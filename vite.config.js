@@ -190,11 +190,13 @@ async function handleDeleteProject(_req, res, id) {
 
   // Delete folder
   if (fs.existsSync(project.path)) {
+    if (process.platform !== 'win32') {
+      try {
+        execFileSync('chmod', ['-R', 'u+rwx', project.path])
+      } catch {}
+    }
     try {
-      execFileSync('chmod', ['-R', 'u+w', project.path])
-    } catch {}
-    try {
-      execFileSync('rm', ['-rf', project.path])
+      fs.rmSync(project.path, { recursive: true, force: true })
     } catch (err) {
       return sendJson(res, 500, { error: `Failed to delete folder: ${err.message}` })
     }
