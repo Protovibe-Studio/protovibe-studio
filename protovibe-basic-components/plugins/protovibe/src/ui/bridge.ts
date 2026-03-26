@@ -227,6 +227,9 @@ function handleParentMessage(e: MessageEvent) {
       isLocked = !!e.data.locked;
       document.body.style.cursor = isLocked ? 'progress' : '';
       break;
+    case 'PV_SET_THEME':
+      document.documentElement.dataset.theme = e.data.theme;
+      break;
   }
 }
 

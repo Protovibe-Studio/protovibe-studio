@@ -510,42 +510,19 @@ export function ProtovibePreviewer() {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [search, setSearch] = useState('');
-  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('dark');
-
-  // Save the original html data-theme so we can restore it when the overlay closes.
-  // `undefined` = overlay has never been shown (don't touch data-theme on close).
-  // `null`      = overlay was shown, but there was no data-theme attribute to restore.
-  // `string`    = overlay was shown, restore this value on close.
-  const savedThemeRef = React.useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (!e.data || typeof e.data !== 'object') return;
       if (e.data.type === 'PV_TOGGLE_COMPONENTS_OVERLAY') {
         const show = !!e.data.show;
-        if (show) {
-          savedThemeRef.current = document.documentElement.dataset.theme ?? null;
-          setSelected(null);
-        } else if (savedThemeRef.current !== undefined) {
-          // Only restore if we actually opened the overlay at some point
-          if (savedThemeRef.current !== null) {
-            document.documentElement.dataset.theme = savedThemeRef.current;
-          } else {
-            delete document.documentElement.dataset.theme;
-          }
-        }
+        if (show) setSelected(null);
         setVisible(show);
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, []);
-
-  // Keep the html data-theme in sync with the user's selection while visible.
-  useEffect(() => {
-    if (!visible) return;
-    document.documentElement.dataset.theme = previewTheme;
-  }, [previewTheme, visible]);
 
   if (!visible) return null;
 
@@ -602,41 +579,6 @@ export function ProtovibePreviewer() {
         <span style={{ fontSize: 11, color: '#444' }}>
           Click any element to inspect &amp; edit styles
         </span>
-
-        {/* Light / Dark toggle */}
-        <div
-          style={{
-            display: 'flex',
-            flexShrink: 0,
-            background: '#1a1a1a',
-            border: '1px solid #333',
-            borderRadius: 6,
-            overflow: 'hidden',
-          }}
-        >
-          {(['light', 'dark'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setPreviewTheme(t)}
-              title={t === 'light' ? 'Light mode' : 'Dark mode'}
-              style={{
-                width: 28,
-                height: 28,
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 13,
-                background: previewTheme === t ? '#333' : 'transparent',
-                color: previewTheme === t ? '#e5e5e5' : '#555',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              {t === 'light' ? '☀' : '☽'}
-            </button>
-          ))}
-        </div>
       </div>
 
       {selected ? (
