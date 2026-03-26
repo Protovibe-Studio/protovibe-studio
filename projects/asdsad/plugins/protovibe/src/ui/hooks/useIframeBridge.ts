@@ -1,0 +1,78 @@
+// plugins/protovibe/src/ui/hooks/useIframeBridge.ts
+// Manages the postMessage bridge between the parent shell and the app iframe.
+// Runs in the PARENT frame only.
+
+import { useEffect, useRef, useCallback, RefObject } from 'react';
+import { useProtovibe } from '../context/ProtovibeContext';
+import { PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
+
+interface PvLoc {
+  name: string;
+  value: string;
+}
+
+interface PvElementClickMessage {
+  type: 'PV_ELEMENT_CLICK';
+  pvLocs: PvLoc[];
+  componentId: string | null;
+  runtimeId: string;
+}
+
+interface PvDoubleClickMessage {
+  type: 'PV_DOUBLE_CLICK';
+}
+
+type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage;
+
+export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) {
+  const { focusElement, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
+
+  // Handle incoming messages from the iframe
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent<BridgeMessage>) => {
+      if (!e.data || typeof e.data !== 'object') return;
+
+      if (e.data.type === 'PV_ELEMENT_CLICK') {
+        const { pvLocs, componentId, runtimeId } = e.data;
+        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeId });
+        
+        const iframeDoc = iframeRef.current?.contentDocument;
+        if (!iframeDoc) return;
+
+        // Use the exact runtimeId to avoid the "first matched element" bug
+        const el = iframeDoc.querySelector<HTMLElement>(`[data-pv-runtime-id="${runtimeId}"]`);
+        if (!el) {
+          console.warn('[Protovibe Shell] Could not resolve element with runtimeId:', runtimeId);
+          return;
+        }
+
+        focusElement(el);
+      }
+
+      if (e.data.type === 'PV_DOUBLE_CLICK') {
+        window.dispatchEvent(new Event(PV_FOCUS_TEXT_CONTENT_EVENT));
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [focusElement, iframeRef]); // <-- Removed resolveElement here
+
+  // Sync mutation lock state into iframe
+  useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'PV_SET_LOCKED', locked: isMutationLocked },
+      '*'
+    );
+  }, [isMutationLocked, iframeRef]);
+
+  // Clear iframe selection when inspector closes
+  useEffect(() => {
+    if (!inspectorOpen) {
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: 'PV_CLEAR_SELECTION' },
+        '*'
+      );
+    }
+  }, [inspectorOpen, iframeRef]);
+}

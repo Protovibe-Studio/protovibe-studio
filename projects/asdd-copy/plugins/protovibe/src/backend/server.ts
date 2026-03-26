@@ -1,0 +1,1123 @@
+// plugins/protovibe/backend/server.ts
+import fs from 'fs';
+import path from 'path';
+import { Connect } from 'vite';
+import * as babel from '@babel/core';
+import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
+import { parseTailwindClasses } from '../shared/utils';
+import { parseThemeColors, updateCssVariable } from './css-theme-parser';
+
+export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, activeId } = JSON.parse(body || '{}');
+      const absolutePath = path.resolve(process.cwd(), file);
+      const content = fs.readFileSync(absolutePath, 'utf-8');
+
+      undoStack.push({ file, content, activeId });
+      redoStack.length = 0; // Clear redo stack on new action
+
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleUndo: Connect.NextHandleFunction = (req, res) => {
+  try {
+    const lastState = undoStack.pop();
+    if (!lastState) {
+      return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
+    }
+
+    const { file, content, activeId } = lastState;
+    const absolutePath = path.resolve(process.cwd(), file);
+    const currentState = fs.readFileSync(absolutePath, 'utf-8');
+    redoStack.push({ file, content: currentState, activeId });
+
+    fs.writeFileSync(absolutePath, content, 'utf-8');
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ success: true, file, activeId }));
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+};
+
+export const handleRedo: Connect.NextHandleFunction = (req, res) => {
+  try {
+    const nextState = redoStack.pop();
+    if (!nextState) {
+      return res.end(JSON.stringify({ success: false, message: 'No more actions to redo.' }));
+    }
+
+    const { file, content, activeId } = nextState;
+    const absolutePath = path.resolve(process.cwd(), file);
+    const currentState = fs.readFileSync(absolutePath, 'utf-8');
+    undoStack.push({ file, content: currentState, activeId });
+
+    fs.writeFileSync(absolutePath, content, 'utf-8');
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ success: true, file, activeId }));
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+};
+
+// Scan src/ for the file that has a pvConfig with the given componentId.
+// This allows the inspector to find pvConfig regardless of barrel imports.
+async function findPvConfigByComponentId(componentId: string, server: import('vite').ViteDevServer): Promise<any> {
+  const srcPath = path.resolve(process.cwd(), 'src');
+
+  const collectCandidates = (dir: string): string[] => {
+    const result: string[] = [];
+    for (const f of fs.readdirSync(dir)) {
+      const fullPath = path.join(dir, f);
+      if (fs.statSync(fullPath).isDirectory()) {
+        if (f !== 'node_modules' && f !== '.git' && f !== 'dist') {
+          result.push(...collectCandidates(fullPath));
+        }
+      } else if ((f.endsWith('.tsx') || f.endsWith('.jsx')) && fs.readFileSync(fullPath, 'utf-8').includes('export const pvConfig')) {
+        result.push(fullPath);
+      }
+    }
+    return result;
+  };
+
+  for (const filePath of collectCandidates(srcPath)) {
+    try {
+      const mod = await server.ssrLoadModule(filePath);
+      if (mod?.pvConfig?.componentId === componentId) return mod.pvConfig;
+    } catch {
+      // skip files that fail to load
+    }
+  }
+  return null;
+}
+
+// Notice we changed the signature to accept the server!
+export const handleGetSourceInfo = (req: any, res: any, server: import('vite').ViteDevServer) => {
+  let body = '';
+  req.on('data', (chunk: string) => { body += chunk; });
+  req.on('end', async () => {
+    try {
+      const payload = JSON.parse(body || '{}');
+      if (!payload.id) return;
+      const { id, componentId } = payload;
+      const data = locatorMap.get(id);
+
+      if (!data) throw new Error(`Could not find memory mapping for ID: ${id}. Please restart the dev server.`);
+
+      const absolutePath = path.resolve(process.cwd(), data.file);
+      if (!fs.existsSync(absolutePath)) throw new Error(`File not found: ${absolutePath}`);
+
+      const fileContent = fs.readFileSync(absolutePath, 'utf-8');
+      const lines = fileContent.split('\n');
+      const codeBlock = lines.slice(data.bStart[0] - 1, data.bEnd[0]).join('\n');
+
+      const ast = babel.parseSync(fileContent, {
+        filename: absolutePath,
+        plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+      });
+
+      let classNameStr = null;
+      let hasClass = false;
+      let cStart = null;
+      let cEnd = null;
+      let nameEnd = null;
+      let componentProps: any[] = [];
+      let importedComponents: Record<string, string> = {};
+      let matchedImportPath: string | null = null;
+      let compNameStr = data.comp || 'Element';
+
+      babel.traverse(ast, {
+        // 1. Build a map of all imports in the file
+        ImportDeclaration(path) {
+          const source = path.node.source.value;
+          path.node.specifiers.forEach(spec => {
+            if (babel.types.isImportSpecifier(spec) || babel.types.isImportDefaultSpecifier(spec)) {
+              importedComponents[spec.local.name] = source;
+            }
+          });
+        },
+        JSXOpeningElement(path) {
+          if (path.node.loc?.start.line === data.bStart[0] && path.node.loc?.start.column === data.bStart[1]) {
+            const nameNode = path.node.name;
+            if (nameNode.loc) nameEnd = [nameNode.loc.end.line, nameNode.loc.end.column];
+
+            path.node.attributes.forEach((attr) => {
+              // Handle spread attributes (e.g., {...props})
+              if (babel.types.isJSXSpreadAttribute(attr)) {
+                componentProps.push({
+                  name: '...',
+                  value: 'Spread Props',
+                  shouldNotBeEdited: true,
+                  loc: attr.loc
+                });
+                return;
+              }
+
+              if (babel.types.isJSXAttribute(attr)) {
+                const propName = attr.name.type === 'JSXNamespacedName' 
+                  ? `${attr.name.namespace.name}:${attr.name.name.name}` 
+                  : attr.name.name;
+
+                // Handle className exactly as before for the Tailwind editor
+                if (propName === 'className') {
+                  hasClass = true;
+                  if (attr.value && attr.value.loc) {
+                    cStart = [attr.value.loc.start.line, attr.value.loc.start.column];
+                    cEnd = [attr.value.loc.end.line, attr.value.loc.end.column];
+                    if (cStart[0] === cEnd[0]) {
+                      classNameStr = lines[cStart[0] - 1].substring(cStart[1], cEnd[1]);
+                    } else {
+                      const first = lines[cStart[0] - 1].substring(cStart[1]);
+                      const middle = lines.slice(cStart[0], cEnd[0] - 1);
+                      const last = lines[cEnd[0] - 1].substring(0, cEnd[1]);
+                      classNameStr = [first, ...middle, last].join('\n');
+                    }
+                  }
+                  return; // Skip adding className to the generic componentProps array
+                }
+
+                // Handle all other props
+                let propValue: any = null;
+                let shouldNotBeEdited = false;
+
+                if (attr.value === null) {
+                  // e.g., <Button disabled />
+                  propValue = true;
+                } else if (babel.types.isStringLiteral(attr.value)) {
+                  // e.g., variant="solid"
+                  propValue = attr.value.value;
+                } else if (babel.types.isJSXExpressionContainer(attr.value)) {
+                  const exp = attr.value.expression;
+                  if (babel.types.isStringLiteral(exp) || babel.types.isNumericLiteral(exp) || babel.types.isBooleanLiteral(exp)) {
+                    // e.g., disabled={true} or tabIndex={0}
+                    propValue = exp.value;
+                  } else {
+                    // e.g., variant={isActive ? "solid" : "outline"}
+                    propValue = 'JS Expression';
+                    shouldNotBeEdited = true;
+                  }
+                } else {
+                  propValue = 'Unknown';
+                  shouldNotBeEdited = true;
+                }
+
+                // Lock internal Protovibe tracking attributes so they don't clutter the UI
+                if (propName === 'data-pv-block') {
+                  shouldNotBeEdited = true;
+                }
+
+                componentProps.push({
+                  name: propName,
+                  value: propValue,
+                  shouldNotBeEdited,
+                  loc: attr.loc // We save the exact start/end locations for safe replacing later
+                });
+              }
+            });
+          }
+        }
+      });
+
+      const parsedClasses = parseTailwindClasses(classNameStr);
+
+      // 2. Resolve pvConfig: try componentId-based scan first (works with barrel imports),
+      //    then fall back to following the import path for backward compat.
+      let configSchema = null;
+      if (componentId) {
+        try {
+          configSchema = await findPvConfigByComponentId(componentId, server);
+        } catch (err) {
+          console.warn('Protovibe: componentId-based pvConfig lookup failed', err);
+        }
+      }
+      if (!configSchema && compNameStr[0] === compNameStr[0].toUpperCase() && importedComponents[compNameStr]) {
+        try {
+          // Ask Vite to resolve the import string (handles aliases like @/components/...)
+          const rawImportStr = importedComponents[compNameStr];
+          const resolvedId = await server.pluginContainer.resolveId(rawImportStr, absolutePath);
+          
+          if (resolvedId && resolvedId.id) {
+            // Remove Vite query params if any, and strip the extension
+            const cleanPath = resolvedId.id.split('?')[0];
+            const pathWithoutExt = cleanPath.replace(/\.[^/.]+$/, "");
+            
+            // Use Vite's SSR module loader to dynamically import the component file
+            try {
+              const mod = await server.ssrLoadModule(cleanPath);
+              if (mod && mod.pvConfig) {
+                configSchema = mod.pvConfig;
+              }
+            } catch (modErr) {
+              console.warn(`Protovibe: Failed to load component module ${cleanPath} for config extraction`, modErr);
+            }
+          }
+        } catch (resolveErr) {
+          console.warn('Protovibe: Failed to resolve component config path', resolveErr);
+        }
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
+        code: codeBlock, classNameStr, parsedClasses, file: data.file,
+        startLine: data.bStart[0], startCol: data.bStart[1], endLine: data.bEnd[0], compName: compNameStr,
+        hasClass: hasClass, nameEnd: nameEnd || data.nameEnd, cStart: cStart || data.cStart, cEnd,
+        componentProps,
+        configSchema // Expose the co-located schema to the frontend!
+      }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      let { file, startLine, endLine, oldClass, oldClasses, newClass, hasClass, nameEnd, cStart, cEnd, action } = JSON.parse(body || '{}');
+      if (!file) return res.end(JSON.stringify({ success: false, error: 'No file provided' }));
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      const originalContent = fs.readFileSync(absolutePath, 'utf-8');
+      const lines = originalContent.split('\n');
+      let finalContent = originalContent;
+
+      const toOffset = (content: string, line: number, col: number) => {
+        const localLines = content.split('\n');
+        let offset = 0;
+        for (let i = 0; i < line - 1; i++) offset += localLines[i].length + 1;
+        return offset + col;
+      };
+
+      const splitClasses = (value: string) => value.split(/\s+/).map(v => v.trim()).filter(Boolean);
+
+      const parseStaticClassValue = (rawValue: string): { classes: string; build: (next: string) => string } | null => {
+        const trimmed = rawValue.trim();
+        const direct = trimmed.match(/^(["'`])([\s\S]*?)\1$/);
+        if (direct) {
+          const quote = direct[1];
+          return {
+            classes: direct[2],
+            build: (next: string) => `${quote}${next}${quote}`
+          };
+        }
+
+        const wrapped = trimmed.match(/^\{\s*(["'`])([\s\S]*?)\1\s*\}$/);
+        if (wrapped) {
+          const quote = wrapped[1];
+          return {
+            classes: wrapped[2],
+            build: (next: string) => `{${quote}${next}${quote}}`
+          };
+        }
+
+        // Handle {cn(...)} — extract string literal args for editing, preserve non-string args (variables, etc.)
+        const cnMatch = trimmed.match(/^\{\s*(?:cn|clsx|classNames)\s*\(([\s\S]*)\)\s*\}$/);
+        if (cnMatch) {
+          const argsStr = cnMatch[1];
+          const argRegex = /(["'`])([\s\S]*?)\1/g;
+          const classes: string[] = [];
+          const stringRanges: Array<{ start: number; end: number }> = [];
+          let argMatch;
+          while ((argMatch = argRegex.exec(argsStr)) !== null) {
+            classes.push(argMatch[2]);
+            stringRanges.push({ start: argMatch.index, end: argMatch.index + argMatch[0].length });
+          }
+          if (classes.length > 0) {
+            // Reconstruct the non-string args by removing string literals
+            let nonStringArgs = argsStr;
+            for (let i = stringRanges.length - 1; i >= 0; i--) {
+              nonStringArgs = nonStringArgs.slice(0, stringRanges[i].start) + nonStringArgs.slice(stringRanges[i].end);
+            }
+            nonStringArgs = nonStringArgs.replace(/^[\s,]+|[\s,]+$/g, '').trim();
+            const joined = classes.join(' ').replace(/\s+/g, ' ').trim();
+            return {
+              classes: joined,
+              build: (next: string) => {
+                const parts: string[] = [`"${next}"`];
+                if (nonStringArgs) parts.push(nonStringArgs);
+                return `{cn(${parts.join(', ')})}`;
+              }
+            };
+          }
+        }
+
+        return null;
+      };
+
+      const mutateTokens = (currentClasses: string) => {
+        let tokens = splitClasses(currentClasses);
+
+        if (action === 'replace-multiple') {
+          if (Array.isArray(oldClasses)) {
+            const toRemove = new Set(oldClasses.filter(Boolean));
+            tokens = tokens.filter(cls => !toRemove.has(cls));
+          }
+          if (newClass) tokens.push(...splitClasses(newClass));
+        } else if (action === 'edit') {
+          if (oldClass) tokens = tokens.filter(cls => cls !== oldClass);
+          if (newClass) tokens.push(...splitClasses(newClass));
+        } else if (action === 'remove') {
+          if (oldClass) tokens = tokens.filter(cls => cls !== oldClass);
+        } else if (action === 'add') {
+          if (newClass) tokens.push(...splitClasses(newClass));
+        }
+
+        const deduped: string[] = [];
+        const seen = new Set<string>();
+        tokens.forEach((token) => {
+          if (!seen.has(token)) {
+            seen.add(token);
+            deduped.push(token);
+          }
+        });
+        return deduped.join(' ').trim();
+      };
+
+      const canEditExistingClassValue = hasClass && Array.isArray(cStart) && cStart.length === 2 && Array.isArray(cEnd) && cEnd.length === 2;
+
+      if (canEditExistingClassValue) {
+        const startOffset = toOffset(finalContent, Number(cStart[0]), Number(cStart[1]));
+        const endOffset = toOffset(finalContent, Number(cEnd[0]), Number(cEnd[1]));
+        const rawValue = finalContent.slice(startOffset, endOffset);
+        const parsed = parseStaticClassValue(rawValue);
+
+        if (parsed) {
+          const nextClasses = mutateTokens(parsed.classes);
+          const nextRawValue = parsed.build(nextClasses);
+          finalContent = finalContent.slice(0, startOffset) + nextRawValue + finalContent.slice(endOffset);
+        } else if (action === 'add' && newClass) {
+          const lineIdx = Number(cStart[0]) - 1;
+          const colIdx = Number(cStart[1]);
+          const line = lines[lineIdx];
+          const charAtStart = line?.[colIdx];
+
+          if (charAtStart === '"' || charAtStart === "'" || charAtStart === '`') {
+            lines[lineIdx] = line.slice(0, colIdx + 1) + newClass + ' ' + line.slice(colIdx + 1);
+            finalContent = lines.join('\n');
+          } else if (charAtStart === '{') {
+            lines[lineIdx] = line.slice(0, colIdx + 1) + `"${newClass} " + ` + line.slice(colIdx + 1);
+            finalContent = lines.join('\n');
+          }
+        }
+      } else if (action === 'add' && newClass) {
+        if (!hasClass) {
+          const lineIdx = nameEnd[0] - 1;
+          const colIdx = nameEnd[1];
+          const line = lines[lineIdx];
+          lines[lineIdx] = line.slice(0, colIdx) + ` className="${newClass}"` + line.slice(colIdx);
+          finalContent = lines.join('\n');
+        }
+      }
+
+      fs.writeFileSync(absolutePath, finalContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleGetZones: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, startLine, startCol, endLine } = JSON.parse(body || '{}');
+      if (!file) return res.end(JSON.stringify({ zones: [] }));
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      if (!fs.existsSync(absolutePath)) return res.end(JSON.stringify({ zones: [] }));
+
+      const fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      // When we have precise element coordinates, use the Babel AST to collect only
+      // zones that are DIRECT children of the focused element — not deeply nested ones.
+      if (startLine != null && startCol != null) {
+        const ast = babel.parseSync(fileContent, {
+          filename: absolutePath,
+          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+        });
+
+        const zones: any[] = [];
+        let pristineIndex = 1;
+
+        babel.traverse(ast, {
+          JSXElement(jsxPath) {
+            const openingEl = jsxPath.node.openingElement;
+            if (
+              openingEl.loc?.start.line !== Number(startLine) ||
+              openingEl.loc?.start.column !== Number(startCol)
+            ) return;
+
+            // Found the focused element — inspect only its immediate children.
+            for (const child of jsxPath.node.children) {
+              // JSX comments {/* ... */} are JSXExpressionContainer > JSXEmptyExpression.
+              // Use the AST-provided character offsets to read the raw text and regex-check it,
+              // which avoids relying on Babel's comment-attachment behaviour.
+              if (
+                child.type === 'JSXExpressionContainer' &&
+                child.expression?.type === 'JSXEmptyExpression' &&
+                child.start != null && child.end != null
+              ) {
+                const childText = fileContent.slice(child.start, child.end);
+                const m = childText.match(/pv-editable-zone-(start|end)(?::([a-zA-Z0-9_-]+))?/);
+                if (m && m[1] === 'start') {
+                  const nameOrId = m[2];
+                  if (!nameOrId) {
+                    zones.push({ id: `pristine-${pristineIndex}`, name: 'New Zone', isPristine: true });
+                    pristineIndex++;
+                  } else {
+                    zones.push({ id: nameOrId, name: nameOrId, isPristine: false });
+                  }
+                }
+              }
+            }
+
+            jsxPath.stop();
+          }
+        });
+
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ zones }));
+      }
+
+      // Fallback (no element coordinates): return all zones within line bounds.
+      const regex = /\{\/\*\s*pv-editable-zone-(start|end)(?::([a-zA-Z0-9_-]+))?\s*\*\/\}/g;
+      const zones: any[] = [];
+      let match;
+      let pristineIndex = 1;
+
+      while ((match = regex.exec(fileContent)) !== null) {
+        const lineNum = fileContent.substring(0, match.index).split('\n').length;
+        const kind = match[1];
+        const nameOrId = match[2];
+
+        if (kind !== 'start') continue;
+
+        let zoneObj = null;
+        if (!nameOrId) {
+          zoneObj = { id: `pristine-${pristineIndex}`, name: 'New Zone', isPristine: true };
+          pristineIndex++;
+        } else {
+          zoneObj = { id: nameOrId, name: nameOrId, isPristine: false };
+        }
+
+        if (zoneObj) {
+          if (!startLine || !endLine || (lineNum >= Number(startLine) && lineNum <= Number(endLine))) {
+            zones.push(zoneObj);
+          }
+        }
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ zones }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, snippet, defaultContent, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+      
+      const blockId = Math.random().toString(36).substring(2, 8);
+
+      // Establish the character bounds using the exact line numbers from pv-loc
+      let blockStart = 0;
+      let blockEnd = fileContent.length;
+      if (targetStartLine && targetEndLine) {
+        const getOffset = (lineNum: number) => {
+          if (lineNum <= 1) return 0;
+          return fileContent.split('\n').slice(0, lineNum - 1).join('\n').length + 1;
+        };
+        blockStart = getOffset(targetStartLine);
+        blockEnd = getOffset(targetEndLine + 1); // Get start of the line *after* the end line
+      }
+
+      // 1. Handle component imports safely without breaking formatting
+      if (elementType === 'component' && importPath && compName) {
+        const ast = babel.parseSync(fileContent, {
+          filename: absolutePath,
+          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+        });
+
+        let hasImport = false;
+        let lastImportLine = 0;
+        let useClientLine = 0;
+
+        babel.traverse(ast, {
+          Directive(path) {
+            if (path.node.value.value === 'use client' && path.node.loc) {
+              useClientLine = path.node.loc.end.line;
+            }
+          },
+          ImportDeclaration(path) {
+            // Check ALL imports for the component name to avoid duplicate identifier errors
+            // (relative vs alias paths for the same module would otherwise both match false)
+            path.node.specifiers.forEach(spec => {
+              if (babel.types.isImportSpecifier(spec) && spec.local.name === compName) {
+                hasImport = true;
+              }
+            });
+            if (path.node.loc) {
+              lastImportLine = Math.max(lastImportLine, path.node.loc.end.line);
+            }
+          }
+        });
+
+        // Inject the import neatly under the last existing import (or at top)
+        if (!hasImport) {
+          const lines = fileContent.split('\n');
+          const importStatement = `import { ${compName} } from '${importPath}'`;
+          const insertAt = Math.max(lastImportLine, useClientLine);
+          lines.splice(insertAt, 0, importStatement);
+          fileContent = lines.join('\n');
+        }
+      }
+
+      let pastedContent = '';
+      if (elementType === 'paste') {
+        if (!clipboard.data || clipboard.data.file !== file) {
+          throw new Error('Clipboard is empty or from another file.');
+        }
+        pastedContent = clipboard.data.content;
+        
+        const rootMatch = pastedContent.match(/pv-block-start:([a-zA-Z0-9_-]{6})/);
+        const rootOldId = rootMatch ? rootMatch[1] : null;
+
+        const idMap: Record<string, string> = {};
+        if (rootOldId) idMap[rootOldId] = blockId;
+
+        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+        let match;
+        while ((match = idRegex.exec(pastedContent)) !== null) {
+          if (!idMap[match[1]]) {
+            idMap[match[1]] = Math.random().toString(36).substring(2, 8);
+          }
+        }
+        
+        for (const [oldId, newId] of Object.entries(idMap)) {
+          pastedContent = pastedContent.split(oldId).join(newId);
+        }
+      }
+
+      // 2. Generate the correct HTML snippet based on type
+      const generateBlockHtml = (spaces: string) => {
+        if (elementType === 'paste') {
+          return '\n' + pastedContent.trim().split('\n').map((line, idx) => idx === 0 ? spaces + line : line).join('\n') + '\n' + spaces;
+        }
+
+        const i = spaces + '  '; const i2 = i + '  ';
+        if (elementType === 'text') {
+          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}">\n${i2}Lorem ipsum\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+        }
+        if (elementType === 'component') {
+          const propsStr = snippet ? ` ${snippet}` : '';
+          
+          if (defaultContent) {
+            // Format the content to respect indentation, and wrap in open/close tags
+            const formattedContent = defaultContent.split('\n').join(`\n${i2}`);
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+          } else {
+            // Render a clean self-closing tag if there are no inner children
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+          }
+        }
+        return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}">\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+      };
+
+      if (isPristine) {
+        // New pristine format: ID-less start/end pair {/* pv-editable-zone-start */} + {/* pv-editable-zone-end */}
+        const pristineStartTag = '{/* pv-editable-zone-start */}';
+        const pristineEndTag = '{/* pv-editable-zone-end */}';
+        const pristineStartRe = /\{\/\*\s*pv-editable-zone-start\s*\*\/\}/g;
+
+        // Collect all pristine start tags within bounds (in document order)
+        const starts: { index: number; fullMatch: string }[] = [];
+        let sm: RegExpExecArray | null;
+        pristineStartRe.lastIndex = 0;
+        while ((sm = pristineStartRe.exec(fileContent)) !== null) {
+          if (sm.index >= blockStart && sm.index <= blockEnd) {
+            starts.push({ index: sm.index, fullMatch: sm[0] });
+          }
+        }
+
+        const pristineN = parseInt(zoneId.replace('pristine-', ''), 10);
+        const target = starts[pristineN - 1];
+        if (target) {
+          const endIdx = fileContent.indexOf(pristineEndTag, target.index + target.fullMatch.length);
+          if (endIdx !== -1 && endIdx <= blockEnd) {
+            const permanentId = Math.random().toString(36).substring(2, 8);
+            // Derive indentation at the end tag position
+            const lineStartPos = fileContent.lastIndexOf('\n', endIdx) + 1;
+            const spaces = (fileContent.substring(lineStartPos, endIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
+            const blockHtml = generateBlockHtml(spaces);
+            const newStartTag = `{/* pv-editable-zone-start:${permanentId} */}`;
+            const newEndTag = `{/* pv-editable-zone-end:${permanentId} */}`;
+            fileContent =
+              fileContent.slice(0, target.index) +
+              newStartTag +
+              fileContent.slice(target.index + target.fullMatch.length, endIdx) +
+              blockHtml +
+              newEndTag +
+              fileContent.slice(endIdx + pristineEndTag.length);
+          }
+        }
+      } else {
+        // Changed to 'gm' flag to allow offset checking
+        const endRegex = new RegExp(`(^[ \\t]*)\\{\\/\\*\\s*pv-editable-zone-end:${zoneId}\\s*\\*\\/\\}`, 'gm');
+        let hasReplaced = false;
+        fileContent = fileContent.replace(endRegex, (match, spaces, offset) => {
+          if (offset < blockStart || offset > blockEnd) return match;
+          if (hasReplaced) return match;
+          hasReplaced = true;
+          return generateBlockHtml(spaces) + match.trim();
+        });
+      }
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, blockId }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+const lineStartAt = (content: string, index: number): number => {
+  if (index <= 0) return 0;
+  const prevNewline = content.lastIndexOf('\n', index - 1);
+  return prevNewline === -1 ? 0 : prevNewline + 1;
+};
+
+const lineEndAt = (content: string, index: number): number => {
+  if (index >= content.length) return content.length;
+  const nextNewline = content.indexOf('\n', index);
+  return nextNewline === -1 ? content.length : nextNewline;
+};
+
+const expandToNeighborLines = (content: string, start: number, end: number) => {
+  const first = lineStartAt(content, Math.max(0, start));
+  const second = lineStartAt(content, Math.max(0, first - 1));
+  const last = lineEndAt(content, Math.min(content.length, end));
+  const after = last < content.length ? lineEndAt(content, last + 1) : last;
+  return { start: second, end: after };
+};
+
+const cleanupBlankLinesInRange = (content: string, rangeStart: number, rangeEnd: number): string => {
+  const boundedStart = Math.max(0, Math.min(rangeStart, content.length));
+  const boundedEnd = Math.max(0, Math.min(rangeEnd, content.length));
+  const window = expandToNeighborLines(content, boundedStart, boundedEnd);
+
+  const before = content.slice(0, window.start);
+  let segment = content.slice(window.start, window.end);
+  const after = content.slice(window.end);
+
+  // Keep at most one blank line in a local run.
+  segment = segment.replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n');
+
+  // Avoid loose blank lines hugging structural markers.
+  segment = segment.replace(/(\{\/\*\s*pv-(?:editable-zone|block)-start:[^*]+\*\/\})\n[ \t]*\n/g, '$1\n');
+  segment = segment.replace(/\n[ \t]*\n([ \t]*\{\/\*\s*pv-(?:editable-zone|block)-end:[^*]+\*\/\})/g, '\n$1');
+
+  return before + segment + after;
+};
+
+const findEnclosingZoneRange = (content: string, anchorIndex: number): { start: number; end: number } | null => {
+  const zoneTagRegex = /\{\/\*\s*pv-editable-zone-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}/g;
+  const stack: Array<{ id: string; start: number }> = [];
+  const ranges: Array<{ start: number; end: number }> = [];
+
+  let tagMatch: RegExpExecArray | null;
+  while ((tagMatch = zoneTagRegex.exec(content)) !== null) {
+    const kind = tagMatch[1];
+    const id = tagMatch[2];
+    const tagStart = tagMatch.index;
+    const tagEnd = tagStart + tagMatch[0].length;
+
+    if (kind === 'start') {
+      stack.push({ id, start: tagStart });
+      continue;
+    }
+
+    for (let i = stack.length - 1; i >= 0; i--) {
+      if (stack[i].id === id) {
+        const startTag = stack[i];
+        stack.splice(i, 1);
+        ranges.push({ start: startTag.start, end: tagEnd });
+        break;
+      }
+    }
+  }
+
+  let best: { start: number; end: number } | null = null;
+  for (const range of ranges) {
+    if (anchorIndex >= range.start && anchorIndex <= range.end) {
+      if (!best || (range.end - range.start) < (best.end - best.start)) {
+        best = range;
+      }
+    }
+  }
+
+  if (!best) return null;
+
+  return {
+    start: lineStartAt(content, best.start),
+    end: lineEndAt(content, best.end)
+  };
+};
+
+export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, blockId, action, text } = JSON.parse(body || '{}');
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      if (action === 'copy' || action === 'cut') {
+        const extractRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
+        const match = extractRegex.exec(fileContent);
+        if (match) {
+          clipboard.data = { file, content: match[0] };
+        }
+        if (action === 'copy') {
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ success: true }));
+        }
+        // If cut, we delete it from the file
+        if (match) {
+          const deleteStart = match.index;
+          fileContent = fileContent.replace(extractRegex, "\n");
+          const zoneRange = findEnclosingZoneRange(fileContent, deleteStart);
+          fileContent = zoneRange
+            ? cleanupBlankLinesInRange(fileContent, zoneRange.start, zoneRange.end)
+            : cleanupBlankLinesInRange(fileContent, deleteStart, deleteStart + 1);
+        }
+      } 
+      else if (action === 'duplicate') {
+        // Group the entire match so we can inject the copy right after it
+        const extractRegex = new RegExp(`(\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?)`);
+        const match = fileContent.match(extractRegex);
+        
+        if (match) {
+          let duplicatedContent = match[1];
+          
+          // Remap all IDs inside the duplicated block
+          const idMap: Record<string, string> = {};
+          const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+          let idMatch;
+          while ((idMatch = idRegex.exec(duplicatedContent)) !== null) {
+            if (!idMap[idMatch[1]]) {
+              idMap[idMatch[1]] = Math.random().toString(36).substring(2, 8);
+            }
+          }
+          
+          for (const [oldId, newId] of Object.entries(idMap)) {
+            duplicatedContent = duplicatedContent.split(oldId).join(newId);
+          }
+          
+          // Inject the duplicated content immediately following the original block
+          fileContent = fileContent.replace(extractRegex, `$1${duplicatedContent}`);
+        }
+      }
+      else if (action === 'delete') {
+        // Includes optional newlines to keep code clean
+        const deleteRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
+        const match = deleteRegex.exec(fileContent);
+        if (match) {
+          const deleteStart = match.index;
+          fileContent = fileContent.replace(deleteRegex, "\n");
+          const zoneRange = findEnclosingZoneRange(fileContent, deleteStart);
+          fileContent = zoneRange
+            ? cleanupBlankLinesInRange(fileContent, zoneRange.start, zoneRange.end)
+            : cleanupBlankLinesInRange(fileContent, deleteStart, deleteStart + 1);
+        }
+      } 
+      else if (action === 'move-up' || action === 'move-down') {
+        // 1. Find all block start and end tags
+        const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-block-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;
+        let match;
+        const tags = [];
+        while ((match = allTagsRegex.exec(fileContent)) !== null) {
+          tags.push({ type: match[2], id: match[3], index: match.index, length: match[0].length });
+        }
+
+        // 2. Build a hierarchy (tree) of blocks based on tag sequences
+        const rootBlocks: any[] = [];
+        const stack: any[] = [];
+
+        for (const tag of tags) {
+          if (tag.type === 'start') {
+            const block = { id: tag.id, startTag: tag, endTag: null, children: [] };
+            if (stack.length > 0) {
+              stack[stack.length - 1].children.push(block);
+            } else {
+              rootBlocks.push(block);
+            }
+            stack.push(block);
+          } else if (tag.type === 'end') {
+            if (stack.length > 0 && stack[stack.length - 1].id === tag.id) {
+              const block = stack.pop();
+              block.endTag = tag;
+            }
+          }
+        }
+
+        // 3. Find the target block and its siblings (the array it belongs to)
+        let targetArray: any[] | null = null;
+        let targetIndex = -1;
+
+        function findBlock(blocks: any[]) {
+          for (let i = 0; i < blocks.length; i++) {
+            if (blocks[i].id === blockId) {
+              targetArray = blocks;
+              targetIndex = i;
+              return true;
+            }
+            if (findBlock(blocks[i].children)) return true;
+          }
+          return false;
+        }
+
+        findBlock(rootBlocks);
+
+        // 4. Swap the block with its sibling
+        if (targetArray && targetIndex !== -1) {
+          if (action === 'move-up' && targetIndex > 0) {
+            const prev = targetArray[targetIndex - 1];
+            const curr = targetArray[targetIndex];
+            
+            if (prev.endTag && curr.endTag) {
+              const prevStart = prev.startTag.index;
+              const prevEnd = prev.endTag.index + prev.endTag.length;
+              const currStart = curr.startTag.index;
+              const currEnd = curr.endTag.index + curr.endTag.length;
+              
+              const prevStr = fileContent.substring(prevStart, prevEnd);
+              const currStr = fileContent.substring(currStart, currEnd);
+              const between = fileContent.substring(prevEnd, currStart);
+
+              fileContent = fileContent.substring(0, prevStart) + currStr + between + prevStr + fileContent.substring(currEnd);
+            }
+          } 
+          else if (action === 'move-down' && targetIndex < targetArray.length - 1) {
+            const curr = targetArray[targetIndex];
+            const next = targetArray[targetIndex + 1];
+            
+            if (curr.endTag && next.endTag) {
+              const currStart = curr.startTag.index;
+              const currEnd = curr.endTag.index + curr.endTag.length;
+              const nextStart = next.startTag.index;
+              const nextEnd = next.endTag.index + next.endTag.length;
+
+              const currStr = fileContent.substring(currStart, currEnd);
+              const nextStr = fileContent.substring(nextStart, nextEnd);
+              const between = fileContent.substring(currEnd, nextStart);
+
+              fileContent = fileContent.substring(0, currStart) + nextStr + between + currStr + fileContent.substring(nextEnd);
+            }
+          }
+        }
+      } 
+      else if (action === 'edit-text') {
+        // Inject exactly inside the opening tag, matching its indentation level
+        const textEditRegex = new RegExp(`(^[ \\t]*)(<[^>]+data-pv-block="${blockId}"[^>]*>)([\\s\\S]*?)(\\{\\/\\*\\s*pv-editable-zone-start:inside-${blockId}\\s*\\*\\/\\})`, 'm');
+        fileContent = fileContent.replace(textEditRegex, (match, spaces, openingTag, oldContent, innerZone) => {
+          const i2 = spaces + '  ';
+          const escapedText = String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/{/g, '&#123;')
+            .replace(/}/g, '&#125;')
+            .split('\n')
+            .join(`<br />\n${i2}`);
+          return `${spaces}${openingTag}\n${i2}${escapedText}\n${i2}${innerZone}`;
+        });
+      }
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleUpdateProp: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, action, propName, propValue, loc, nameEnd } = JSON.parse(body || '{}');
+      if (!file) return res.end(JSON.stringify({ success: false, error: 'No file provided' }));
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      const lines = fs.readFileSync(absolutePath, 'utf-8').split('\n');
+
+      if (action === 'edit' || action === 'remove') {
+        const startLine = loc.start.line - 1;
+        const startCol = loc.start.column;
+        const endLine = loc.end.line - 1;
+        const endCol = loc.end.column;
+
+        // Cleanly format React props and escape dangerous JSX characters
+        let replacement = '';
+        if (action === 'edit') {
+          if (propValue === 'true') {
+             replacement = propName; 
+          } else if (propValue === 'false') {
+             replacement = `${propName}={false}`; 
+          } else {
+             const escapedValue = String(propValue)
+               .replace(/"/g, '&quot;')
+               .replace(/{/g, '&#123;')
+               .replace(/}/g, '&#125;');
+             replacement = `${propName}="${escapedValue}"`;
+          }
+        }
+
+        if (startLine === endLine) {
+          lines[startLine] = lines[startLine].substring(0, startCol) + replacement + lines[startLine].substring(endCol);
+        } else {
+          lines[startLine] = lines[startLine].substring(0, startCol) + replacement;
+          lines[endLine] = lines[endLine].substring(endCol);
+          lines.splice(startLine + 1, endLine - startLine - 1); // remove intermediate lines
+        }
+      } 
+      else if (action === 'add') {
+        // Insert directly after the component name (e.g., <Button[HERE] ...)
+        const lineIdx = nameEnd[0] - 1;
+        const colIdx = nameEnd[1];
+        
+        let newPropStr = '';
+        if (propValue === 'true') {
+           newPropStr = ` ${propName}`; 
+        } else if (propValue === 'false') {
+           newPropStr = ` ${propName}={false}`;
+        } else {
+           const escapedValue = String(propValue)
+             .replace(/"/g, '&quot;')
+             .replace(/{/g, '&#123;')
+             .replace(/}/g, '&#125;');
+           newPropStr = ` ${propName}="${escapedValue}"`;
+        }
+        
+        lines[lineIdx] = lines[lineIdx].substring(0, colIdx) + newPropStr + lines[lineIdx].substring(colIdx);
+      }
+
+      fs.writeFileSync(absolutePath, lines.join('\n'), 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleGetComponents = (req: any, res: any, server: import('vite').ViteDevServer) => {
+  const srcPath = path.resolve(process.cwd(), 'src');
+  const components: any[] = [];
+  const tasks: Promise<void>[] = [];
+
+  // Recursively search the file system for pvConfig
+  const walkDirAsync = (dir: string) => {
+    const files = fs.readdirSync(dir);
+    for (const f of files) {
+      const dirPath = path.join(dir, f);
+      if (fs.statSync(dirPath).isDirectory()) {
+        if (f !== 'node_modules' && f !== '.git' && f !== 'dist') walkDirAsync(dirPath);
+      } else if (f.endsWith('.tsx') || f.endsWith('.jsx')) {
+        const content = fs.readFileSync(dirPath, 'utf-8');
+        
+        // Fast string check before executing Vite's heavy module loader
+        if (content.includes('export const pvConfig')) {
+          tasks.push((async () => {
+            try {
+              const mod = await server.ssrLoadModule(dirPath);
+              if (mod && mod.pvConfig && mod.pvConfig.importPath) {
+                components.push({
+                  name: mod.pvConfig.name || f.replace(/\.[^/.]+$/, ""),
+                  displayName: mod.pvConfig.displayName || mod.pvConfig.name || f.replace(/\.[^/.]+$/, ""),
+                  description: mod.pvConfig.description || 'Custom component',
+                  importPath: mod.pvConfig.importPath,
+                  snippet: mod.pvConfig.snippet || '',
+                  defaultContent: mod.pvConfig.defaultContent || ''
+                });
+              }
+            } catch (err) {
+              console.warn(`Protovibe: Failed to load config from ${dirPath}`, err);
+            }
+          })());
+        }
+      }
+    }
+  };
+
+  try {
+    walkDirAsync(srcPath);
+    // Wait for all ssrLoadModule promises to resolve
+    Promise.all(tasks).then(() => {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ components }));
+    });
+  } catch(e) {
+    res.statusCode = 500; res.end(JSON.stringify({ error: String(e) }));
+  }
+};
+
+export const handleGetThemeColors: Connect.NextHandleFunction = (req, res) => {
+  try {
+    const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
+    const colors = parseThemeColors(cssFilePath);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ colors }));
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+};
+
+export const handleUpdateThemeColor: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { tokenName, themeMode, value } = JSON.parse(body);
+      const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
+      const selector = themeMode === 'light' ? '[data-theme="light"]' : '[data-theme="dark"]';
+      const css = fs.readFileSync(cssFilePath, 'utf-8');
+      const updated = updateCssVariable(css, selector, tokenName, value);
+      fs.writeFileSync(cssFilePath, updated, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};

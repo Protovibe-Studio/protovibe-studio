@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Protovibe Home</title>
+    <script>
+      (function () {
+        const STORAGE_KEY = 'user-theme-preference';
+        const VALID_THEMES = ['light', 'dark', 'auto'];
+
+        const storage = {
+          get() {
+            try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+          },
+          set(value) {
+            try { localStorage.setItem(STORAGE_KEY, value); } catch (e) {
+              console.warn('localStorage is disabled');
+            }
+          },
+        };
+
+        const getSystemTheme = () =>
+          window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+        const resolveTheme = (preference) => {
+          if (preference === 'light' || preference === 'dark') return preference;
+          return getSystemTheme();
+        };
+
+        const applyTheme = (preference) => {
+          const resolved = resolveTheme(preference);
+          document.documentElement.setAttribute('data-theme', resolved);
+          window.dispatchEvent(new CustomEvent('themechange', { detail: { setting: preference, resolved } }));
+        };
+
+        applyTheme(storage.get());
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          const preference = storage.get();
+          if (!preference || preference === 'auto') applyTheme(preference);
+        });
+
+        window.ThemeManager = {
+          setTheme(theme) {
+            if (!VALID_THEMES.includes(theme)) {
+              console.error(`Invalid theme: "${theme}". Allowed: ${VALID_THEMES.join(', ')}`);
+              return;
+            }
+            storage.set(theme);
+            applyTheme(theme);
+          },
+          getPreference() { return storage.get() || 'auto'; },
+          getActiveTheme() { return resolveTheme(storage.get()); },
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

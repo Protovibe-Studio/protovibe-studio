@@ -1,0 +1,328 @@
+// plugins/protovibe/src/ui/context/ProtovibeContext.tsx
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { ActiveModifiers } from '../utils/tailwind';
+import { fetchSourceInfo, fetchComponents, fetchZones, fetchThemeColors, type ThemeColor } from '../api/client';
+
+interface SourceData {
+  id: string;
+  data: any;
+}
+
+interface Zone {
+  id: string;
+  name: string;
+  isPristine: boolean;
+}
+
+interface ProtovibeContextType {
+  inspectorOpen: boolean;
+  setInspectorOpen: (open: boolean) => void;
+  activeSourceId: string | null;
+  setActiveSourceId: (id: string | null) => void;
+  currentBaseTarget: HTMLElement | null;
+  setCurrentBaseTarget: (el: HTMLElement | null) => void;
+  activeModifiers: ActiveModifiers;
+  setActiveModifiers: React.Dispatch<React.SetStateAction<ActiveModifiers>>;
+  availableComponents: any[];
+  refreshComponents: () => Promise<void>;
+  sourceDataList: SourceData[];
+  activeData: any | null;
+  isLoading: boolean;
+  refreshActiveData: () => Promise<void>;
+  toggleInspector: (forceState?: boolean) => void;
+  highlightedElement: HTMLElement | null;
+  setHighlightedElement: (el: HTMLElement | null) => void;
+  sources: string[];
+  setSources: (ids: string[]) => void;
+  zones: Zone[];
+  focusElement: (el: HTMLElement) => void;
+  focusNewBlock: (blockId: string, options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
+  isMutationLocked: boolean;
+  runLockedMutation: <T>(mutation: () => Promise<T>) => Promise<T | undefined>;
+  themeColors: ThemeColor[];
+  refreshThemeColors: () => Promise<void>;
+}
+
+const ProtovibeContext = createContext<ProtovibeContextType | undefined>(undefined);
+
+export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
+  const [currentBaseTarget, setCurrentBaseTarget] = useState<HTMLElement | null>(null);
+  const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {} });
+  const [availableComponents, setAvailableComponents] = useState<any[]>([]);
+  const [sourceDataList, setSourceDataList] = useState<SourceData[]>([]);
+  const [sources, setSources] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [highlightedElement, _setHighlightedElement] = useState<HTMLElement | null>(null);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [isMutationLocked, setIsMutationLocked] = useState(false);
+  const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
+  const sourcesRef = useRef<string[]>([]);
+  const activeSourceIdRef = useRef<string | null>(null);
+  const componentIdOverrideRef = useRef<string | null>(null);
+  const mutationLockRef = useRef(false);
+
+  useEffect(() => {
+    sourcesRef.current = sources;
+  }, [sources]);
+
+  useEffect(() => {
+    activeSourceIdRef.current = activeSourceId;
+  }, [activeSourceId]);
+
+  const setHighlightedElement = useCallback((el: HTMLElement | null) => {
+    // In iframe architecture, the actual DOM manipulation for outlines 
+    // happens entirely inside bridge.ts to avoid cross-frame sync bugs.
+    _setHighlightedElement(el);
+  }, []);
+
+  const refreshActiveData = useCallback(async () => {
+    const currentSources = sourcesRef.current;
+    const requestSourcesKey = currentSources.join('|');
+
+    if (currentSources.length === 0) {
+      setSourceDataList([]);
+      setZones([]);
+      return;
+    }
+
+    setIsLoading(true);
+    const results: SourceData[] = [];
+    for (const id of currentSources) {
+      try {
+        const data = await fetchSourceInfo(id, componentIdOverrideRef.current ?? undefined);
+        results.push({ id, data });
+      } catch (err) {
+        console.error('Failed to fetch source info for', id, err);
+      }
+    }
+
+    // Do not apply stale results when focus/source selection changed during fetch.
+    if (sourcesRef.current.join('|') !== requestSourcesKey) {
+      return;
+    }
+
+    const normalizePath = (filePath: string) => filePath.replace(/\\/g, '/');
+    const isComponentsSource = (filePath: string) => /(^|\/)src\/components(\/|$)/.test(normalizePath(filePath));
+
+    // Sort sources: non-src/components first, src/components last.
+    // If tie, consumer components (Capitalized) first, then shallower file paths.
+    results.sort((a, b) => {
+      const aIsCompFolder = isComponentsSource(a.data.file || '');
+      const bIsCompFolder = isComponentsSource(b.data.file || '');
+
+      // Components folder files go to the far right
+      if (aIsCompFolder && !bIsCompFolder) return 1;
+      if (!aIsCompFolder && bIsCompFolder) return -1;
+
+      const aIsUpper = /^[A-Z]/.test(a.data.compName || '');
+      const bIsUpper = /^[A-Z]/.test(b.data.compName || '');
+      if (aIsUpper && !bIsUpper) return -1;
+      if (!aIsUpper && bIsUpper) return 1;
+      
+      const aDepth = normalizePath(a.data.file || '').split('/').length;
+      const bDepth = normalizePath(b.data.file || '').split('/').length;
+      return aDepth - bDepth;
+    });
+
+    setSourceDataList(results);
+    setIsLoading(false);
+
+    // Fetch theme colors alongside source data
+    fetchThemeColors().then((colors) => {
+      const withDark = colors.filter(c => c.darkValue);
+      console.log('[PV DEBUG] fetchThemeColors total:', colors.length, 'with darkValue:', withDark.length);
+      if (withDark.length > 0) console.log('[PV DEBUG] sample dark color:', withDark[0]);
+      else console.warn('[PV DEBUG] NO colors have darkValue!');
+      setThemeColors(colors);
+    }).catch(() => {});
+    
+    const currentActiveSourceId = activeSourceIdRef.current;
+    if (results.length > 0 && (!currentActiveSourceId || !currentSources.includes(currentActiveSourceId))) {
+      setActiveSourceId(results[0].id);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshActiveData();
+  }, [sources]);
+
+  // Refetch zones whenever the active tab (source) changes
+  useEffect(() => {
+    const active = sourceDataList.find(s => s.id === activeSourceId) || sourceDataList[0];
+    if (active?.data?.file) {
+      fetchZones(active.data.file, active.data.startLine, active.data.startCol, active.data.endLine)
+        .then(zData => {
+          if (zData.zones) setZones(zData.zones);
+          else setZones([]);
+        })
+        .catch(() => setZones([]));
+    } else {
+      setZones([]);
+    }
+  }, [activeSourceId, sourceDataList]);
+
+  const refreshThemeColors = useCallback(async () => {
+    try {
+      const colors = await fetchThemeColors();
+      setThemeColors(colors);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const refreshComponents = useCallback(async () => {
+    try {
+      const data = await fetchComponents();
+      if (data.components) setAvailableComponents(data.components);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshComponents();
+  }, []);
+
+  useEffect(() => {
+    fetchThemeColors().then(setThemeColors).catch(() => {});
+  }, []);
+
+  const focusElement = useCallback((el: HTMLElement) => {
+    let t = el;
+    let matchedIds = new Set<string>();
+    // Use the element's own document root as the walk boundary so this works
+    // whether the element lives in the parent frame or an iframe.
+    const docRoot = el.ownerDocument?.documentElement ?? document.documentElement;
+    while (t && t !== docRoot) {
+      if (t.attributes) {
+        for (let i = 0; i < t.attributes.length; i++) {
+          if (t.attributes[i].name.startsWith('data-pv-loc-')) {
+            matchedIds.add(t.attributes[i].name.replace('data-pv-loc-', ''));
+          }
+        }
+      }
+      if (matchedIds.size > 0) break;
+      t = t.parentElement as HTMLElement;
+    }
+    // Read componentId from the matched element for pvConfig lookup (works with barrel imports)
+    componentIdOverrideRef.current = t?.getAttribute?.('data-pv-component-id') ?? null;
+    
+    // Assign a runtime ID if missing (critical for keyboard traversal)
+    let runtimeId = el.getAttribute('data-pv-runtime-id');
+    if (!runtimeId) {
+      runtimeId = 'pv-' + Math.random().toString(36).substring(2);
+      el.setAttribute('data-pv-runtime-id', runtimeId);
+    }
+
+    setCurrentBaseTarget(el);
+    setHighlightedElement(el);
+    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+    setActiveSourceId(null);
+    if (matchedIds.size > 0) {
+      setSources(Array.from(matchedIds));
+    }
+
+    // Tell bridge to move the outline visually (for keyboard navigation)
+    const iframeEl = document.querySelector('iframe[src="/app.html"]') as HTMLIFrameElement | null;
+    iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeId }, '*');
+
+  }, [setHighlightedElement]);
+
+  const focusNewBlock = useCallback((blockId: string, options: { maxAttempts?: number; initialDelay?: number; interval?: number } = {}) => {
+    const { maxAttempts = 20, initialDelay = 300, interval = 100 } = options;
+    let attempts = 0;
+    const tryFocus = () => {
+      // Search in the canvas iframe document first, falling back to the parent document.
+      const iframeEl = document.querySelector('iframe[src="/app.html"]') as HTMLIFrameElement | null;
+      const searchDoc = iframeEl?.contentDocument ?? document;
+      const target = searchDoc.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
+      const hasPvLoc = !!target && Array.from(target.attributes).some(a => a.name.startsWith('data-pv-loc-'));
+      if (hasPvLoc) {
+        focusElement(target);
+      } else {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryFocus, interval);
+          return;
+        }
+        if (target) focusElement(target);
+        refreshActiveData();
+      }
+    };
+    setTimeout(tryFocus, initialDelay);
+  }, [focusElement, refreshActiveData]);
+
+  const runLockedMutation = useCallback(async <T,>(mutation: () => Promise<T>): Promise<T | undefined> => {
+    if (mutationLockRef.current) {
+      return undefined;
+    }
+
+    mutationLockRef.current = true;
+    setIsMutationLocked(true);
+
+    try {
+      const result = await mutation();
+      await refreshActiveData();
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve());
+        });
+      });
+      return result;
+    } finally {
+      mutationLockRef.current = false;
+      setIsMutationLocked(false);
+    }
+  }, [refreshActiveData]);
+
+  const toggleInspector = useCallback((forceState?: boolean) => {
+    const nextOpen = forceState !== undefined ? forceState : !inspectorOpen;
+    setInspectorOpen(nextOpen);
+    if (!nextOpen) {
+      setHighlightedElement(null);
+      setCurrentBaseTarget(null);
+      setActiveSourceId(null);
+      setSources([]);
+      setZones([]);
+    }
+  }, [inspectorOpen, setHighlightedElement]);
+
+  const activeData = sourceDataList.find(s => s.id === activeSourceId)?.data || null;
+
+  return (
+    <ProtovibeContext.Provider value={{
+      inspectorOpen, setInspectorOpen,
+      activeSourceId, setActiveSourceId,
+      currentBaseTarget, setCurrentBaseTarget,
+      activeModifiers, setActiveModifiers,
+      availableComponents,
+      refreshComponents,
+      sourceDataList,
+      activeData,
+      isLoading,
+      refreshActiveData,
+      toggleInspector,
+      highlightedElement, setHighlightedElement,
+      sources, setSources,
+      zones,
+      focusElement,
+      focusNewBlock,
+      isMutationLocked,
+      runLockedMutation,
+      themeColors,
+      refreshThemeColors,
+    }}>
+      {children}
+    </ProtovibeContext.Provider>
+  );
+};
+
+export const useProtovibe = () => {
+  const context = useContext(ProtovibeContext);
+  if (context === undefined) {
+    throw new Error('useProtovibe must be used within a ProtovibeProvider');
+  }
+  return context;
+};
