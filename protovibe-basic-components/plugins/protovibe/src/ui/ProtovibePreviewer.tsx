@@ -513,7 +513,10 @@ export function ProtovibePreviewer() {
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('dark');
 
   // Save the original html data-theme so we can restore it when the overlay closes.
-  const savedThemeRef = React.useRef<string | null>(null);
+  // `undefined` = overlay has never been shown (don't touch data-theme on close).
+  // `null`      = overlay was shown, but there was no data-theme attribute to restore.
+  // `string`    = overlay was shown, restore this value on close.
+  const savedThemeRef = React.useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -523,8 +526,8 @@ export function ProtovibePreviewer() {
         if (show) {
           savedThemeRef.current = document.documentElement.dataset.theme ?? null;
           setSelected(null);
-        } else {
-          // Restore original theme
+        } else if (savedThemeRef.current !== undefined) {
+          // Only restore if we actually opened the overlay at some point
           if (savedThemeRef.current !== null) {
             document.documentElement.dataset.theme = savedThemeRef.current;
           } else {
