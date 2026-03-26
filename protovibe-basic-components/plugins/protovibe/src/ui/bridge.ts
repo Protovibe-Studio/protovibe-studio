@@ -2,6 +2,17 @@
 // Runs inside app.html (the iframe). Intercepts canvas interactions and
 // communicates them to the parent Protovibe shell via postMessage.
 
+// Apply saved Protovibe theme preference immediately — before React mounts —
+// to avoid a flash of the wrong theme.
+(function () {
+  try {
+    const saved = localStorage.getItem('pv-iframe-theme');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.dataset.theme = saved;
+    }
+  } catch {}
+})();
+
 const SELECTION_OUTLINE = '1.5px solid #18a0fb';
 const SELECTION_OFFSET = '2px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
