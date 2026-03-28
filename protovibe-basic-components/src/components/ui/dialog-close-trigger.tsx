@@ -27,6 +27,14 @@ export const pvConfig = {
   description: 'Placed inside a DialogOverlay; closes the dialog when clicked.',
   importPath: '@/components/ui/dialog-close-trigger',
   snippet: '',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <Button data-pv-block="" variant="ghost" color="neutral" size="icon" leftIcon="X" />
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'Button', path: '@/components/ui/button' },
+  ],
   props: {},
 };

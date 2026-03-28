@@ -81,7 +81,37 @@ export const pvConfig = {
   description: 'Wraps a trigger element; first child is the trigger, remaining children are shown in a dialog overlay on click.',
   importPath: '@/components/ui/dialog-trigger',
   snippet: '',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <Button data-pv-block="" label="Open Dialog" variant="solid" color="primary" size="md" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DialogOverlay data-pv-block="">
+    <DialogWindow size="md">
+      {/* pv-editable-zone-start */}
+      {/* pv-block-start */}
+      <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+      {/* pv-block-end */}
+      {/* pv-block-start */}
+      <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+      {/* pv-block-end */}
+      {/* pv-block-start */}
+      <DialogCloseTrigger data-pv-block="">
+        <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
+      </DialogCloseTrigger>
+      {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </DialogWindow>
+  </DialogOverlay>
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'Button', path: '@/components/ui/button' },
+    { name: 'DialogOverlay', path: '@/components/ui/dialog-overlay' },
+    { name: 'DialogWindow', path: '@/components/ui/dialog-window' },
+    { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
+  ],
   props: {
     closeOnEscape: { type: 'boolean' },
   },

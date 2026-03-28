@@ -31,7 +31,29 @@ export const pvConfig = {
   description: 'A floating list container for dropdown menu items.',
   importPath: '@/components/ui/dropdown-list',
   snippet: 'width="md"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <DropdownGroupLabel data-pv-block="" label="Actions" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DropdownSeparator data-pv-block="" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },
+    { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
+    { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },
+  ],
   props: {
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
   },

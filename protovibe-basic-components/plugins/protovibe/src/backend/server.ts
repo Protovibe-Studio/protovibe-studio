@@ -537,7 +537,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, snippet, defaultContent, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
+      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, snippet, defaultContent, additionalImports, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -556,13 +556,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       }
 
       // 1. Handle component imports safely without breaking formatting
-      if (elementType === 'component' && importPath && compName) {
+      if (elementType === 'component') {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,
           plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
         });
 
-        let hasImport = false;
+        const existingNames = new Set<string>();
         let lastImportLine = 0;
         let useClientLine = 0;
 
@@ -573,11 +573,9 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             }
           },
           ImportDeclaration(path) {
-            // Check ALL imports for the component name to avoid duplicate identifier errors
-            // (relative vs alias paths for the same module would otherwise both match false)
             path.node.specifiers.forEach(spec => {
-              if (babel.types.isImportSpecifier(spec) && spec.local.name === compName) {
-                hasImport = true;
+              if (babel.types.isImportSpecifier(spec)) {
+                existingNames.add(spec.local.name);
               }
             });
             if (path.node.loc) {
@@ -586,12 +584,24 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           }
         });
 
-        // Inject the import neatly under the last existing import (or at top)
-        if (!hasImport) {
+        const toInject: Array<{ name: string; path: string }> = [];
+        if (importPath && compName && !existingNames.has(compName)) {
+          toInject.push({ name: compName, path: importPath });
+        }
+        if (Array.isArray(additionalImports)) {
+          for (const dep of additionalImports) {
+            if (dep.name && dep.path && !existingNames.has(dep.name)) {
+              toInject.push({ name: dep.name, path: dep.path });
+            }
+          }
+        }
+
+        if (toInject.length > 0) {
           const lines = fileContent.split('\n');
-          const importStatement = `import { ${compName} } from '${importPath}'`;
           const insertAt = Math.max(lastImportLine, useClientLine);
-          lines.splice(insertAt, 0, importStatement);
+          for (const imp of [...toInject].reverse()) {
+            lines.splice(insertAt, 0, `import { ${imp.name} } from '${imp.path}'`);
+          }
           fileContent = lines.join('\n');
         }
       }
@@ -622,6 +632,20 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         }
       }
 
+      // Helper: replace bare pv-block-start/end tags with fresh random IDs in defaultContent strings.
+      // Uses iterative innermost-first matching so nested bare blocks are handled correctly.
+      const assignDefaultContentIds = (content: string): string => {
+        const bareBlockRe = /\{\/\*\s*pv-block-start\s*\*\/\}((?:(?!\{\/\*\s*pv-block-start\s*\*\/\}).)*?)\{\/\*\s*pv-block-end\s*\*\/\}/s;
+        while (bareBlockRe.test(content)) {
+          const id = Math.random().toString(36).substring(2, 8);
+          content = content.replace(bareBlockRe, (_match, inner) => {
+            const updatedInner = inner.replace('data-pv-block=""', `data-pv-block="${id}"`);
+            return `{/* pv-block-start:${id} */}${updatedInner}{/* pv-block-end:${id} */}`;
+          });
+        }
+        return content;
+      };
+
       // 2. Generate the correct HTML snippet based on type
       const generateBlockHtml = (spaces: string) => {
         if (elementType === 'paste') {
@@ -636,8 +660,9 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const propsStr = snippet ? ` ${snippet}` : '';
           
           if (defaultContent) {
-            // Format the content to respect indentation, and wrap in open/close tags
-            const formattedContent = defaultContent.split('\n').join(`\n${i2}`);
+            // Assign fresh IDs to bare pv-block tags, then format with indentation
+            const contentWithIds = assignDefaultContentIds(defaultContent.trim());
+            const formattedContent = contentWithIds.split('\n').join(`\n${i2}`);
             return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
           } else {
             // Render a clean self-closing tag if there are no inner children

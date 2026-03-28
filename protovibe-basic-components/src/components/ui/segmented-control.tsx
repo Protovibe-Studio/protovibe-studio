@@ -57,7 +57,21 @@ export const pvConfig = {
   description: 'A segmented control container that manages which item is active.',
   importPath: '@/components/ui/segmented-control',
   snippet: 'value="opt1"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <SegmentedControlItem data-pv-block="" label="Option 1" value="opt1" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <SegmentedControlItem data-pv-block="" label="Option 2" value="opt2" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <SegmentedControlItem data-pv-block="" label="Option 3" value="opt3" />
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'SegmentedControlItem', path: '@/components/ui/segmented-control-item' },
+  ],
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
   },

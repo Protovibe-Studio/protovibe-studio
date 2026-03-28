@@ -57,7 +57,30 @@ export const pvConfig = {
   description: 'A vertical tab bar container that manages which tab is active.',
   importPath: '@/components/ui/vertical-tabs',
   snippet: 'value="tab1"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <VerticalTabTrigger data-pv-block="" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+    {/* pv-editable-zone-start */}
+    {/* pv-editable-zone-end */}
+  </VerticalTabTrigger>
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <VerticalTabTrigger data-pv-block="" label="Analytics" value="tab2" prefixIcon="BarChart2">
+    {/* pv-editable-zone-start */}
+    {/* pv-editable-zone-end */}
+  </VerticalTabTrigger>
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <VerticalTabTrigger data-pv-block="" label="Settings" value="tab3" prefixIcon="Settings">
+    {/* pv-editable-zone-start */}
+    {/* pv-editable-zone-end */}
+  </VerticalTabTrigger>
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'VerticalTabTrigger', path: '@/components/ui/vertical-tab-trigger' },
+  ],
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
   },

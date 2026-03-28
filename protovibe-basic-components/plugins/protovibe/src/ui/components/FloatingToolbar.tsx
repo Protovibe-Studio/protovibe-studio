@@ -81,6 +81,7 @@ export const FloatingToolbar: React.FC = () => {
         importPath: comp?.importPath,
         snippet: comp?.snippet,
         defaultContent: comp?.defaultContent,
+        additionalImports: comp?.additionalImports,
         targetStartLine: activeData.startLine,
         targetEndLine: activeData.endLine,
       });

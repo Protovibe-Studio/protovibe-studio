@@ -57,7 +57,21 @@ export const pvConfig = {
   description: 'A tab bar container that manages which tab is active.',
   importPath: '@/components/ui/tabs',
   snippet: 'value="tab1"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <TabTrigger data-pv-block="" label="Tab 1" value="tab1" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <TabTrigger data-pv-block="" label="Tab 2" value="tab2" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <TabTrigger data-pv-block="" label="Tab 3" value="tab3" />
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'TabTrigger', path: '@/components/ui/tab-trigger' },
+  ],
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
   },

@@ -120,7 +120,40 @@ export const pvConfig = {
   description: 'Wraps a trigger element; shows floating content on click, portalled to root.',
   importPath: '@/components/ui/popover-trigger',
   snippet: 'placement="bottom"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: `
+{/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <Button data-pv-block="" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
+  {/* pv-block-end */}
+  {/* pv-block-start */}
+  <DropdownList data-pv-block="" width="md">
+    {/* pv-editable-zone-start */}
+    {/* pv-block-start */}
+    <DropdownGroupLabel data-pv-block="" label="Actions" />
+    {/* pv-block-end */}
+    {/* pv-block-start */}
+    <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+    {/* pv-block-end */}
+    {/* pv-block-start */}
+    <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
+    {/* pv-block-end */}
+    {/* pv-block-start */}
+    <DropdownSeparator data-pv-block="" />
+    {/* pv-block-end */}
+    {/* pv-block-start */}
+    <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+    {/* pv-block-end */}
+    {/* pv-editable-zone-end */}
+  </DropdownList>
+  {/* pv-block-end */}
+{/* pv-editable-zone-end */}`,
+  additionalImports: [
+    { name: 'Button', path: '@/components/ui/button' },
+    { name: 'DropdownList', path: '@/components/ui/dropdown-list' },
+    { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },
+    { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
+    { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },
+  ],
   props: {
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
