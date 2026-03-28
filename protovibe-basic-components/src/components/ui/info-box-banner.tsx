@@ -133,7 +133,7 @@ export const pvConfig = {
   displayName: 'Info Box Banner',
   description: 'An alert banner with icon, heading, text, action buttons and a close button.',
   importPath: '@/components/ui/info-box-banner',
-  snippet: 'icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true}',
+  defaultProps: 'icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true}',
   defaultContent: '',
   props: {
     icon: { type: 'select', options: Object.keys(LucideIcons) },

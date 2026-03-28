@@ -40,7 +40,7 @@ export const comboboxPvConfig = {
   displayName: 'Combobox',
   description: 'A combobox input',
   importPath: '@/components/ui/combobox',
-  snippet: 'placeholder="Search items..." open={true}',
+  defaultProps: 'placeholder="Search items..." open={true}',
   defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
   props: {
     placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },
@@ -77,7 +77,7 @@ export const comboboxItemPvConfig = {
   displayName: 'Combobox Item',
   description: 'An item within a combobox',
   importPath: '@/components/ui/combobox',
-  snippet: 'label="Item 1" value="item1"',
+  defaultProps: 'label="Item 1" value="item1"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

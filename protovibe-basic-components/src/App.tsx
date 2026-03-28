@@ -158,24 +158,71 @@ export default function App() {
           </DialogTrigger>
           {/* pv-block-end:r0cjwl */}
 
-          {/* pv-block-start:mj5gsv */}
-          <DialogWindow data-pv-block="mj5gsv">
+          {/* pv-block-start:aw2oz7 */}
+          <SelectDropdownButton data-pv-block="aw2oz7" placeholder="Select an option" />
+          {/* pv-block-end:aw2oz7 */}
+
+          {/* pv-block-start:asgbjb */}
+          <PopoverTrigger data-pv-block="asgbjb" placement="bottom">
             
             {/* pv-editable-zone-start */}
-              {/* pv-block-start:y59a0m */}
-              <h2 data-pv-block="y59a0m" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-              {/* pv-block-end:y59a0m */}
-              {/* pv-block-start:cmlz4i */}
-              <p data-pv-block="cmlz4i" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-              {/* pv-block-end:cmlz4i */}
-              {/* pv-block-start:xoj4g0 */}
-              <DialogCloseTrigger data-pv-block="xoj4g0">
-                <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
-              </DialogCloseTrigger>
-              {/* pv-block-end:xoj4g0 */}
+              {/* pv-block-start:vj8naw */}
+              <Button data-pv-block="vj8naw" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
+              {/* pv-block-end:vj8naw */}
+              {/* pv-block-start:izvg2k */}
+              <DropdownList data-pv-block="izvg2k" width="md">
+                {/* pv-editable-zone-start */}
+                {/* pv-block-start:yc8zdj */}
+                <DropdownGroupLabel data-pv-block="yc8zdj" label="Actions" />
+                {/* pv-block-end:yc8zdj */}
+                {/* pv-block-start:jrrpm3 */}
+                <DropdownItem data-pv-block="jrrpm3" label="Edit" prefixIcon="Edit2" />
+                {/* pv-block-end:jrrpm3 */}
+                {/* pv-block-start:hg823g */}
+                <DropdownItem data-pv-block="hg823g" label="Duplicate" prefixIcon="Copy" />
+                {/* pv-block-end:hg823g */}
+                {/* pv-block-start:ccs9aa */}
+                <DropdownSeparator data-pv-block="ccs9aa" />
+                {/* pv-block-end:ccs9aa */}
+                {/* pv-block-start:ms1a6d */}
+                <DropdownItem data-pv-block="ms1a6d" label="Delete" prefixIcon="Trash2" destructive={true} />
+                {/* pv-block-end:ms1a6d */}
+                {/* pv-editable-zone-end */}
+              </DropdownList>
+              {/* pv-block-end */}
             {/* pv-editable-zone-end */}
-          </DialogWindow>
-          {/* pv-block-end:mj5gsv */}
+          </PopoverTrigger>
+          {/* pv-block-end:asgbjb */}
+
+          {/* pv-block-start:o7clh5 */}
+          <DialogTrigger data-pv-block="o7clh5">
+            
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:0ydc7j */}
+              <Button data-pv-block="0ydc7j" label="Open Dialog" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:0ydc7j */}
+              {/* pv-block-start:deua6a */}
+              <DialogOverlay data-pv-block="deua6a">
+                <DialogWindow size="md">
+                  {/* pv-editable-zone-start */}
+                  {/* pv-block-start:6ebkrb */}
+                  <h2 data-pv-block="6ebkrb" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                  {/* pv-block-end:6ebkrb */}
+                  {/* pv-block-start:z85ask */}
+                  <p data-pv-block="z85ask" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                  {/* pv-block-end:z85ask */}
+                  {/* pv-block-start:3e7yey */}
+                  <DialogCloseTrigger data-pv-block="3e7yey">
+                    <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
+                  </DialogCloseTrigger>
+                  {/* pv-block-end:3e7yey */}
+                  {/* pv-editable-zone-end */}
+                </DialogWindow>
+              </DialogOverlay>
+              {/* pv-block-end */}
+            {/* pv-editable-zone-end */}
+          </DialogTrigger>
+          {/* pv-block-end:o7clh5 */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

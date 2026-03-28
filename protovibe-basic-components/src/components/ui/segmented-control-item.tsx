@@ -59,7 +59,7 @@ export const pvConfig = {
   displayName: 'Segmented Control Item',
   description: 'An item inside a SegmentedControl. Active state is derived from the parent context automatically.',
   importPath: '@/components/ui/segmented-control-item',
-  snippet: 'label="Option 1" value="opt1"',
+  defaultProps: 'label="Option 1" value="opt1"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

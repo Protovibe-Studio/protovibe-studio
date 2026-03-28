@@ -35,7 +35,7 @@ export const pvConfig = {
   displayName: 'Radio Icon',
   description: 'A radio button indicator showing selected, unselected, disabled, or error states.',
   importPath: '@/components/ui/radio-icon',
-  snippet: 'state="unselected"',
+  defaultProps: 'state="unselected"',
   defaultContent: '',
   props: {
     state: { type: 'select', options: ['selected', 'unselected', 'disabled', 'error', 'inherit'] },

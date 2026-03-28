@@ -25,7 +25,7 @@ export const pvConfig = {
   displayName: 'Dialog Window',
   description: 'Styled container for dialog content. Place inside DialogOverlay.',
   importPath: '@/components/ui/dialog-window',
-  snippet: '',
+  defaultProps: '',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -40,7 +40,7 @@ export const pvConfig = {
   </DialogCloseTrigger>
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
     { name: 'Button', path: '@/components/ui/button' },
   ],

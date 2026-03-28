@@ -45,7 +45,7 @@ export const pvConfig = {
   displayName: 'Dialog Overlay',
   description: 'Fixed full-screen backdrop for a dialog. Place inside DialogTrigger as the second child.',
   importPath: '@/components/ui/dialog-overlay',
-  snippet: '',
+  defaultProps: '',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -66,7 +66,7 @@ export const pvConfig = {
   </DialogWindow>
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'DialogWindow', path: '@/components/ui/dialog-window' },
     { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
     { name: 'Button', path: '@/components/ui/button' },

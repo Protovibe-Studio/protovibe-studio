@@ -141,7 +141,7 @@ export const pvConfig = {
   displayName: 'Input',
   description: 'A text input field with optional prefix/suffix adornments',
   importPath: '@/components/ui/input',
-  snippet: 'placeholder="Enter text..."',
+  defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
   props: {
     placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },

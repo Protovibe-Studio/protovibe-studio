@@ -58,7 +58,7 @@ export const pvConfig = {
   displayName: 'Dropdown Item',
   description: 'A single item in a dropdown list, with optional prefix/suffix icons.',
   importPath: '@/components/ui/dropdown-item',
-  snippet: 'label="Menu Item"',
+  defaultProps: 'label="Menu Item"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

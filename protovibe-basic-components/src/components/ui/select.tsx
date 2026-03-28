@@ -59,7 +59,7 @@ export const pvConfig = {
   displayName: 'Select Dropdown Button',
   description: 'A select trigger button with open, error, disabled and icon states.',
   importPath: '@/components/ui/select',
-  snippet: 'placeholder="Select an option"',
+  defaultProps: 'placeholder="Select an option"',
   defaultContent: '',
   props: {
     placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },

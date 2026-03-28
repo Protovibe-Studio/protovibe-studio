@@ -104,7 +104,7 @@ export const pvConfig = {
   displayName: 'Checkbox',
   description: 'A checkbox with optional heading, primary/secondary text, icons, and error state.',
   importPath: '@/components/ui/checkbox',
-  snippet: 'primaryText="Accept terms"',
+  defaultProps: 'primaryText="Accept terms"',
   defaultContent: '',
   props: {
     checked: { type: 'boolean' },

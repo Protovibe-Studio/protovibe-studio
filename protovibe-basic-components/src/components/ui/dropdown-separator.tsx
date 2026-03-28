@@ -20,7 +20,7 @@ export const pvConfig = {
   displayName: 'Dropdown Separator',
   description: 'A horizontal divider line between dropdown items or groups.',
   importPath: '@/components/ui/dropdown-separator',
-  snippet: '',
+  defaultProps: '',
   defaultContent: '',
   props: {},
 };

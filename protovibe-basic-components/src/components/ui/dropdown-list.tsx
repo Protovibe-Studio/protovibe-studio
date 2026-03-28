@@ -30,7 +30,7 @@ export const pvConfig = {
   displayName: 'Dropdown List',
   description: 'A floating list container for dropdown menu items.',
   importPath: '@/components/ui/dropdown-list',
-  snippet: 'width="md"',
+  defaultProps: 'width="md"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -49,7 +49,7 @@ export const pvConfig = {
   <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
     { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },

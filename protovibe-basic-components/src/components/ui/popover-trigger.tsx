@@ -119,7 +119,7 @@ export const pvConfig = {
   displayName: 'Popover Trigger',
   description: 'Wraps a trigger element; shows floating content on click, portalled to root.',
   importPath: '@/components/ui/popover-trigger',
-  snippet: 'placement="bottom"',
+  defaultProps: 'placement="bottom"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -147,7 +147,7 @@ export const pvConfig = {
   </DropdownList>
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DropdownList', path: '@/components/ui/dropdown-list' },
     { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },

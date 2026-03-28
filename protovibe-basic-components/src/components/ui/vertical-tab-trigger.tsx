@@ -103,7 +103,7 @@ export const pvConfig = {
   displayName: 'Vertical Tab Trigger',
   description: 'A vertical tab item with optional icons, active state, and an expandable content zone.',
   importPath: '@/components/ui/vertical-tab-trigger',
-  snippet: 'label="Tab 1" value="tab1"',
+  defaultProps: 'label="Tab 1" value="tab1"',
   defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -29,7 +29,7 @@ export const pvConfig = {
   displayName: 'Icon',
   description: 'A lucide-react icon',
   importPath: '@/components/ui/icon',
-  snippet: 'name="Star" size="md"',
+  defaultProps: 'name="Star" size="md"',
   defaultContent: '',
   props: {
     name: { type: 'select', options: Object.keys(LucideIcons) },

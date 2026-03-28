@@ -47,9 +47,9 @@ export async function addBlock(params: {
   elementType: string;
   compName?: string;
   importPath?: string;
-  snippet?: string;
+  defaultProps?: string;
   defaultContent?: string;
-  additionalImports?: Array<{ name: string; path: string }>;
+  additionalImportsForDefaultContent?: Array<{ name: string; path: string }>;
   targetStartLine?: number;
   targetEndLine?: number;
 }) {

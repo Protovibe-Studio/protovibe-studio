@@ -86,7 +86,7 @@ export const pvConfig = {
   displayName: 'Radio Item',
   description: 'A radio button composed of a radio icon and a super label.',
   importPath: '@/components/ui/radio-item',
-  snippet: 'primaryText="Option 1" value="opt1"',
+  defaultProps: 'primaryText="Option 1" value="opt1"',
   defaultContent: '',
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

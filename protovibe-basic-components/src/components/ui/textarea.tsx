@@ -175,7 +175,7 @@ export const pvConfig = {
   displayName: 'Textarea',
   description: 'A multiline text input with auto-grow and adornment support',
   importPath: '@/components/ui/textarea',
-  snippet: 'placeholder="Enter text..."',
+  defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
   props: {
     placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },

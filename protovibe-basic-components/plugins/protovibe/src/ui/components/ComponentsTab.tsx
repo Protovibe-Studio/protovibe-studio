@@ -116,7 +116,7 @@ export const ComponentsTab: React.FC = () => {
 const ComponentCard: React.FC<{ comp: any }> = ({ comp }) => {
   const name: string = comp.displayName ?? comp.name ?? 'Unknown';
   const description: string = comp.description ?? '';
-  const snippet: string = comp.snippet ?? '';
+  const defaultProps: string = comp.defaultProps ?? '';
 
   return (
     <div

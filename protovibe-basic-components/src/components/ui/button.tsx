@@ -53,7 +53,7 @@ export const pvConfig = {
   displayName: 'Button',
   description: 'A clickable button',
   importPath: '@/components/ui/button',
-  snippet: 'label="Button" variant="solid" color="primary" size="md"',
+  defaultProps: 'label="Button" variant="solid" color="primary" size="md"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -12,7 +12,7 @@ interface PvConfig {
   name: string;
   displayName?: string;
   description?: string;
-  snippet?: string;
+  defaultProps?: string;
   props?: Record<string, { type: string; options?: string[]; exampleValue?: string }>;
 }
 
@@ -33,13 +33,13 @@ for (const [filePath, mod] of Object.entries(allModules as Record<string, any>))
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Parse a pvConfig.snippet string like `variant="default" label="Click me" disabled` into plain props. */
-function parseSnippetProps(snippet: string): Record<string, any> {
+/** Parse a pvConfig.defaultProps string like `variant="default" label="Click me" disabled` into plain props. */
+function parseDefaultProps(defaultProps: string): Record<string, any> {
   const result: Record<string, any> = {};
   // Match: key="value", key='value', key={true|false}, or bare key (boolean true)
   const re = /(\w[\w-]*)(?:=(?:"([^"]*)"|'([^']*)'|\{(true|false)\}))?(?=[\s>]|$)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(snippet)) !== null) {
+  while ((m = re.exec(defaultProps)) !== null) {
     const [, key, dq, sq, boolStr] = m;
     if (dq !== undefined) result[key] = dq;
     else if (sq !== undefined) result[key] = sq;
@@ -218,7 +218,7 @@ const PreviewCell: React.FC<{
 const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({ entry, onClick }) => {
   const { config, Component } = entry;
   const displayName = config.displayName || config.name;
-  const defaultProps = parseSnippetProps(config.snippet || '');
+  const defaultProps = parseDefaultProps(config.defaultProps || '');
 
   return (
     <button
@@ -403,7 +403,7 @@ const CatalogView: React.FC<{
 const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = ({ entry, onBack }) => {
   const { config } = entry;
   const displayName = config.displayName || config.name;
-  const baseProps = parseSnippetProps(config.snippet || '');
+  const baseProps = parseDefaultProps(config.defaultProps || '');
   const combos = generateCombinations(config.props || {}, baseProps);
   const [variantSearch, setVariantSearch] = useState('');
 

@@ -66,7 +66,7 @@ export const pvConfig = {
   displayName: 'Preloader Spinner',
   description: 'An animated loading spinner with optional label.',
   importPath: '@/components/ui/preloader-spinner',
-  snippet: 'size="md"',
+  defaultProps: 'size="md"',
   defaultContent: '',
   props: {
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },

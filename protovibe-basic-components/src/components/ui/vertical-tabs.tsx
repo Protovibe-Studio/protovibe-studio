@@ -56,7 +56,7 @@ export const pvConfig = {
   displayName: 'Vertical Tabs',
   description: 'A vertical tab bar container that manages which tab is active.',
   importPath: '@/components/ui/vertical-tabs',
-  snippet: 'value="tab1"',
+  defaultProps: 'value="tab1"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -78,7 +78,7 @@ export const pvConfig = {
   </VerticalTabTrigger>
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'VerticalTabTrigger', path: '@/components/ui/vertical-tab-trigger' },
   ],
   props: {

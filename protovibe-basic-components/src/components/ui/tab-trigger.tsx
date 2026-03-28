@@ -59,7 +59,7 @@ export const pvConfig = {
   displayName: 'Tab Trigger',
   description: 'A single tab trigger. Active state is derived from the parent Tabs context automatically.',
   importPath: '@/components/ui/tab-trigger',
-  snippet: 'label="Tab 1" value="tab1"',
+  defaultProps: 'label="Tab 1" value="tab1"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

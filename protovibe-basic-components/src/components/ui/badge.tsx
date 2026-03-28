@@ -41,7 +41,7 @@ export const pvConfig = {
   displayName: 'Badge',
   description: 'A small badge with color variants and optional icons.',
   importPath: '@/components/ui/badge',
-  snippet: 'label="Badge" color="primary"',
+  defaultProps: 'label="Badge" color="primary"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

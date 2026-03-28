@@ -537,7 +537,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, snippet, defaultContent, additionalImports, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
+      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -588,8 +588,8 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         if (importPath && compName && !existingNames.has(compName)) {
           toInject.push({ name: compName, path: importPath });
         }
-        if (Array.isArray(additionalImports)) {
-          for (const dep of additionalImports) {
+        if (Array.isArray(additionalImportsForDefaultContent)) {
+          for (const dep of additionalImportsForDefaultContent) {
             if (dep.name && dep.path && !existingNames.has(dep.name)) {
               toInject.push({ name: dep.name, path: dep.path });
             }
@@ -657,7 +657,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}">\n${i2}Lorem ipsum\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
         }
         if (elementType === 'component') {
-          const propsStr = snippet ? ` ${snippet}` : '';
+          const propsStr = defaultProps ? ` ${defaultProps}` : '';
           
           if (defaultContent) {
             // Assign fresh IDs to bare pv-block tags, then format with indentation
@@ -1090,8 +1090,9 @@ export const handleGetComponents = (req: any, res: any, server: import('vite').V
                   displayName: mod.pvConfig.displayName || mod.pvConfig.name || f.replace(/\.[^/.]+$/, ""),
                   description: mod.pvConfig.description || 'Custom component',
                   importPath: mod.pvConfig.importPath,
-                  snippet: mod.pvConfig.snippet || '',
-                  defaultContent: mod.pvConfig.defaultContent || ''
+                  defaultProps: mod.pvConfig.defaultProps || '',
+                  defaultContent: mod.pvConfig.defaultContent || '',
+                  additionalImportsForDefaultContent: mod.pvConfig.additionalImportsForDefaultContent || []
                 });
               }
             } catch (err) {

@@ -65,7 +65,7 @@ export const pvConfig = {
   displayName: 'Radio Group',
   description: 'A container for radio items with vertical or horizontal orientation.',
   importPath: '@/components/ui/radio-group',
-  snippet: 'orientation="vertical" value="opt1"',
+  defaultProps: 'orientation="vertical" value="opt1"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -78,7 +78,7 @@ export const pvConfig = {
   <RadioItem data-pv-block="" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'RadioItem', path: '@/components/ui/radio-item' },
   ],
   props: {

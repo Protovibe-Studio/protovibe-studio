@@ -86,7 +86,7 @@ export const pvConfig = {
   displayName: 'Avatar',
   description: 'A circular avatar with initials, icon, or image. Supports six sizes, semantic background colors, and an optional outline ring.',
   importPath: '@/components/ui/avatar',
-  snippet: 'initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"',
+  defaultProps: 'initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"',
   defaultContent: '',
   props: {
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },

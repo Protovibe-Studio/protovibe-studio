@@ -78,7 +78,7 @@ export const pvConfig = {
   displayName: 'Vertical Tabs Expandable Section',
   description: 'A vertical tab item with a collapsible child section.',
   importPath: '@/components/ui/vertical-tabs-expandable-section',
-  snippet: 'label="Section" value="section1" prefixIcon="FolderOpen"',
+  defaultProps: 'label="Section" value="section1" prefixIcon="FolderOpen"',
   defaultContent: '',
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

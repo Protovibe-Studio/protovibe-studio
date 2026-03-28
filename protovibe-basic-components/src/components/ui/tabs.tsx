@@ -56,7 +56,7 @@ export const pvConfig = {
   displayName: 'Tabs',
   description: 'A tab bar container that manages which tab is active.',
   importPath: '@/components/ui/tabs',
-  snippet: 'value="tab1"',
+  defaultProps: 'value="tab1"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -69,7 +69,7 @@ export const pvConfig = {
   <TabTrigger data-pv-block="" label="Tab 3" value="tab3" />
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'TabTrigger', path: '@/components/ui/tab-trigger' },
   ],
   props: {

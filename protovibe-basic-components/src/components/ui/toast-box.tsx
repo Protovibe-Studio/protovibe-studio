@@ -101,7 +101,7 @@ export const pvConfig = {
   displayName: 'Toast Box',
   description: 'A toast notification box with icon, heading, secondary text, action button and close button.',
   importPath: '@/components/ui/toast-box',
-  snippet: 'variant="success" heading="Success!" secondaryText="Your changes have been saved."',
+  defaultProps: 'variant="success" heading="Success!" secondaryText="Your changes have been saved."',
   defaultContent: '',
   props: {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },

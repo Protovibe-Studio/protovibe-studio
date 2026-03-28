@@ -47,7 +47,7 @@ export const pvConfig = {
   displayName: 'Searchbox',
   description: 'A search input field',
   importPath: '@/components/ui/searchbox',
-  snippet: 'placeholder="Search..."',
+  defaultProps: 'placeholder="Search..."',
   defaultContent: '',
   props: {
     placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -56,7 +56,7 @@ export const pvConfig = {
   displayName: 'Segmented Control',
   description: 'A segmented control container that manages which item is active.',
   importPath: '@/components/ui/segmented-control',
-  snippet: 'value="opt1"',
+  defaultProps: 'value="opt1"',
   defaultContent: `
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
@@ -69,7 +69,7 @@ export const pvConfig = {
   <SegmentedControlItem data-pv-block="" label="Option 3" value="opt3" />
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}`,
-  additionalImports: [
+  additionalImportsForDefaultContent: [
     { name: 'SegmentedControlItem', path: '@/components/ui/segmented-control-item' },
   ],
   props: {

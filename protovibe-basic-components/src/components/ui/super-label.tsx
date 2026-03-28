@@ -51,7 +51,7 @@ export const pvConfig = {
   displayName: 'Super Label',
   description: 'A rich label with optional heading, primary text, secondary text, and prefix/suffix icons.',
   importPath: '@/components/ui/super-label',
-  snippet: 'primaryText="Label"',
+  defaultProps: 'primaryText="Label"',
   defaultContent: '',
   props: {
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
