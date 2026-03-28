@@ -5,7 +5,7 @@ import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
 
 export const Header: React.FC = () => {
-  const { currentBaseTarget, setCurrentBaseTarget, setHighlightedElement, setActiveSourceId, setActiveModifiers, setSources } = useProtovibe();
+  const { currentBaseTarget, focusElement } = useProtovibe();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -18,31 +18,7 @@ export const Header: React.FC = () => {
   const hasNext = !!currentBaseTarget.nextElementSibling;
 
   const handleNavigate = (newTarget: HTMLElement | null) => {
-    if (newTarget) {
-      setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
-      setActiveSourceId(null); // Force reset to first tab
-      setCurrentBaseTarget(newTarget);
-      setHighlightedElement(newTarget);
-      
-      // We need to find the pv-loc on the new target too
-      let target = newTarget;
-      let matchedIds = new Set<string>();
-      while (target && target !== document.documentElement) {
-        if (target.attributes) {
-          for (let i = 0; i < target.attributes.length; i++) {
-            if (target.attributes[i].name.startsWith('data-pv-loc-')) {
-              matchedIds.add(target.attributes[i].name.replace('data-pv-loc-', ''));
-            }
-          }
-        }
-        if (matchedIds.size > 0) break;
-        target = target.parentElement as HTMLElement;
-      }
-      if (matchedIds.size > 0) {
-        const ids = Array.from(matchedIds);
-        setSources(ids);
-      }
-    }
+    if (newTarget) focusElement(newTarget);
   };
 
   const btnStyle: React.CSSProperties = {

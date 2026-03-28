@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
-import { Searchbox } from '@/components/ui/searchbox';
 import { DropdownList, DropdownItem, DropdownSeparator, DropdownGroupLabel } from '@/components/ui/dropdown-menu';
 import { SelectDropdownButton } from '@/components/ui/select';
 import { Combobox, ComboboxItem } from '@/components/ui/combobox';
@@ -198,9 +197,6 @@ export default function App() {
           <DialogTrigger data-pv-block="o7clh5">
             
             {/* pv-editable-zone-start */}
-              {/* pv-block-start:0ydc7j */}
-              <Button data-pv-block="0ydc7j" label="Open Dialog" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:0ydc7j */}
               {/* pv-block-start:deua6a */}
               <DialogOverlay data-pv-block="deua6a">
                 <DialogWindow size="md">
@@ -447,11 +443,6 @@ export default function App() {
         <ToggleSwitch heading="" primaryText="Enable feature" checked disabled={false} />
         <pre>
           {JSON.stringify({ label: "Enable feature", checked: true, disabled: false }, null, 2)}
-        </pre>
-
-        <Searchbox placeholder="Search..." error={false} disabled={false} />
-        <pre>
-          {JSON.stringify({ placeholder: "Search...", error: false, disabled: false }, null, 2)}
         </pre>
 
         <DropdownList width="md">
