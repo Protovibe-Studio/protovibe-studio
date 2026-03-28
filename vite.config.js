@@ -91,8 +91,11 @@ function handleGetProjects(_req, res) {
   const stored = readProjects()
   const list = stored.map((p) => {
     const proc = processes.get(p.id)
+    let updatedAt = null
+    try { updatedAt = fs.statSync(p.path).mtime.toISOString() } catch {}
     return {
       ...p,
+      updatedAt,
       status: proc?.status ?? 'stopped',
       port: proc?.port ?? null,
     }

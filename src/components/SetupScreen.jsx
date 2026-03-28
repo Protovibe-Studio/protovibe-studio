@@ -32,7 +32,7 @@ function Spinner() {
   )
 }
 
-export default function SetupScreen({ projectId, projectName, onBack }) {
+export default function SetupScreen({ projectId, projectName, onBack, inline = false }) {
   const [stage, setStage] = useState('installing')
   const [funnyIndex, setFunnyIndex] = useState(0)
   const [logs, setLogs] = useState([])
@@ -124,7 +124,7 @@ export default function SetupScreen({ projectId, projectName, onBack }) {
   const funnyText = messages.length > 0 ? messages[funnyIndex % messages.length] : ''
 
   return (
-    <div className="fixed inset-0 z-50 bg-background-default flex flex-col items-center justify-center p-6">
+    <div className={inline ? 'flex flex-col items-center gap-6 py-6' : 'fixed inset-0 z-50 bg-background-default flex flex-col items-center justify-center p-6'}>
       <div className="flex flex-col items-center gap-6 max-w-md w-full">
         {/* Spinner / ready / error icon */}
         {stage === 'ready' ? (
@@ -196,7 +196,7 @@ export default function SetupScreen({ projectId, projectName, onBack }) {
 
       {/* Collapsible log area */}
       {showLogs && (
-        <div className="mt-6 w-full max-w-2xl max-h-64 overflow-y-auto rounded-xl bg-background-tertiary border border-border-default p-4 font-mono text-xs">
+        <div className={`mt-2 w-full max-h-64 overflow-y-auto rounded-xl bg-background-tertiary border border-border-default p-4 font-mono text-xs ${inline ? '' : 'max-w-2xl'}`}>
           {logs.length === 0 ? (
             <p className="text-foreground-tertiary italic">Waiting for output...</p>
           ) : (

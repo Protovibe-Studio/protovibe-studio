@@ -26,8 +26,28 @@ export default function App() {
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
 
+  // Search
+  const [searchQuery, setSearchQuery] = useState('')
+
   // Theme
   const [theme, setTheme] = useState(() => window.ThemeManager?.getPreference() ?? 'auto')
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname
+      if (path.startsWith('/project/')) {
+        const id = path.split('/')[2]
+        setActiveProjectId(id)
+        setView('project')
+      } else {
+        setView('list')
+        setActiveProjectId(null)
+      }
+    }
+    handlePopState()
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -64,6 +84,7 @@ export default function App() {
   // ── Navigation helpers ──
 
   const openProject = (id) => {
+    window.history.pushState(null, '', `/project/${id}`)
     setActiveProjectId(id)
     setView('project')
   }
@@ -74,6 +95,7 @@ export default function App() {
   }
 
   const goHome = () => {
+    window.history.pushState(null, '', `/`)
     setView('list')
     setActiveProjectId(null)
   }
@@ -117,16 +139,26 @@ export default function App() {
     }
   }
 
+  const handleStop = async (id) => {
+    setError('')
+    try {
+      const res = await apiFetch('POST', `/projects/${id}/stop`)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to stop project.')
+      }
+      fetchProjects()
+    } catch {
+      setError('Network error. Make sure the dev server is running.')
+    }
+  }
+
   // ── Derived state ──
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   const activeTheme = window.ThemeManager?.getActiveTheme() ?? 'light'
 
-  // ── Project page view ──
-
-  if (view === 'project' && activeProject) {
-    return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} />
-  }
+  const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   // ── Setup screen overlay (renders on top of list) ──
 
@@ -138,70 +170,14 @@ export default function App() {
     />
   )
 
-  // ── List view ──
+  const renderContent = () => {
+    if (view === 'project' && activeProject) {
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} />
+    }
 
-  return (
-    <div className="min-h-screen bg-background-default">
-      {/* Header */}
-      <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-primary-foreground" />
-              </svg>
-            </div>
-            <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Home</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleThemeToggle}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors"
-              title={`Switch to ${activeTheme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              {activeTheme === 'dark' ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M13.5 10.5A6 6 0 015.5 2.5a6 6 0 108 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-              </svg>
-              New Project
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Error toast */}
-      {error && (
-        <div className="max-w-7xl mx-auto px-6 pt-4">
-          <div className="flex items-center gap-3 rounded-xl bg-background-destructive-subtle border border-border-destructive px-4 py-3">
-            <p className="text-sm text-foreground-destructive flex-1">{error}</p>
-            <button
-              onClick={() => setError('')}
-              className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    // ── List view ──
+    return (
+      <main className="max-w-4xl mx-auto px-6 py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24 text-foreground-tertiary text-sm">
             Loading projects...
@@ -231,19 +207,112 @@ export default function App() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onOpen={() => openProject(project.id)}
-                onDuplicate={() => handleDuplicate(project.id)}
-                onDelete={() => handleDelete(project.id)}
-              />
-            ))}
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
+                <button
+                  onClick={() => setCreateOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+                  </svg>
+                  New Project
+                </button>
+              </div>
+              <div className="relative w-full">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary">
+                  <path d="M6 11.5a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM13.5 13.5l-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search projects..."
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border text-sm text-foreground-default bg-background-secondary placeholder-foreground-tertiary outline-none transition-colors border-border-default focus:border-border-focus focus:ring-2 focus:ring-border-focus/20"
+                />
+              </div>
+            </div>
+
+            {filteredProjects.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-2">
+                <p className="text-foreground-default font-medium">No results found</p>
+                <p className="text-foreground-tertiary text-sm">Try emptying your search query</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {filteredProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onOpen={() => openProject(project.id)}
+                    onDuplicate={() => handleDuplicate(project.id)}
+                    onDelete={() => handleDelete(project.id)}
+                    onStop={() => handleStop(project.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background-default">
+      {/* Header */}
+      <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-primary-foreground" />
+              </svg>
+            </div>
+            <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Home</h1>
+          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleThemeToggle}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors"
+              title={`Switch to ${activeTheme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {activeTheme === 'dark' ? (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M13.5 10.5A6 6 0 015.5 2.5a6 6 0 108 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Error toast */}
+      {error && (
+        <div className="max-w-4xl mx-auto px-6 pt-4">
+          <div className="flex items-center gap-3 rounded-xl bg-background-destructive-subtle border border-border-destructive px-4 py-3">
+            <p className="text-sm text-foreground-destructive flex-1">{error}</p>
+            <button
+              onClick={() => setError('')}
+              className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main content */}
+      {renderContent()}
 
       {createOpen && (
         <CreateProjectModal

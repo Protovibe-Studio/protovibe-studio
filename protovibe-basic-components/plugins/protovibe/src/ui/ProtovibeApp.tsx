@@ -18,7 +18,7 @@ export const ProtovibeApp: React.FC = () => {
       const saved = localStorage.getItem('pv-iframe-theme');
       if (saved === 'light' || saved === 'dark') return saved;
     } catch {}
-    return 'dark';
+    return 'light';
   });
 
   const updateIframeTheme = useCallback((t: 'light' | 'dark') => {
