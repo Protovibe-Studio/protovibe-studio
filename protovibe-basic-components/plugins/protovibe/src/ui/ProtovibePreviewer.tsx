@@ -14,6 +14,7 @@ interface PvConfig {
   description?: string;
   defaultProps?: string;
   props?: Record<string, { type: string; options?: string[]; exampleValue?: string }>;
+  invalidCombinations?: Array<(props: Record<string, any>) => boolean>;
 }
 
 interface ComponentEntry {
@@ -404,7 +405,11 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
   const { config } = entry;
   const displayName = config.displayName || config.name;
   const baseProps = parseDefaultProps(config.defaultProps || '');
-  const combos = generateCombinations(config.props || {}, baseProps);
+  const allCombos = generateCombinations(config.props || {}, baseProps);
+  const checkers = config.invalidCombinations ?? [];
+  const combos = checkers.length > 0
+    ? allCombos.filter(combo => !checkers.some(fn => fn(combo)))
+    : allCombos;
   const [variantSearch, setVariantSearch] = useState('');
 
   const visibleCombos = variantSearch.trim()

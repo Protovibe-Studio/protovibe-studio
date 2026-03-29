@@ -190,4 +190,14 @@ export const pvConfig = {
     resize: { type: 'select', options: ['none', 'horizontal', 'vertical', 'both'] },
     autoHeight: { type: 'boolean' },
   },
+  invalidCombinations: [
+    // prefix slot can hold either an icon or text, not both
+    (props: Record<string, any>) => !!props.prefixIcon && !!props.prefixText,
+    // suffix slot can hold either an icon or text, not both
+    (props: Record<string, any>) => !!props.suffixIcon && !!props.suffixText,
+    // having both a prefix icon and suffix icon at the same time is too busy
+    (props: Record<string, any>) => !!props.prefixIcon && !!props.suffixIcon,
+    // having both prefix text and suffix text at the same time is too busy
+    (props: Record<string, any>) => !!props.prefixText && !!props.suffixText,
+  ],
 };

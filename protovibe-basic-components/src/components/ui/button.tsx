@@ -65,4 +65,12 @@ export const pvConfig = {
     rightIcon: { type: 'select', options: Object.keys(LucideIcons) },
     disabled: { type: 'boolean' },
   },
+  invalidCombinations: [
+    // iconOnly with no icon to show is meaningless
+    (props: Record<string, any>) => !!props.iconOnly && !props.leftIcon && !props.rightIcon,
+    // non-iconOnly button with no label is invisible
+    (props: Record<string, any>) => !props.iconOnly && !props.label,
+    // iconOnly with both icons is visually ambiguous — pick one side
+    (props: Record<string, any>) => !!props.iconOnly && !!props.leftIcon && !!props.rightIcon,
+  ],
 };
