@@ -22,7 +22,17 @@ interface PvDoubleClickMessage {
   type: 'PV_DOUBLE_CLICK';
 }
 
-type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage;
+interface PvKeyDownMessage {
+  type: 'PV_KEYDOWN';
+  key: string;
+  code: string;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+}
+
+type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvKeyDownMessage;
 
 export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) {
   const { focusElement, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
@@ -51,6 +61,14 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
 
       if (e.data.type === 'PV_DOUBLE_CLICK') {
         window.dispatchEvent(new Event(PV_FOCUS_TEXT_CONTENT_EVENT));
+      }
+
+      if (e.data.type === 'PV_KEYDOWN') {
+        const { key, code, metaKey, ctrlKey, shiftKey, altKey } = e.data;
+        window.dispatchEvent(new KeyboardEvent('keydown', {
+          key, code, metaKey, ctrlKey, shiftKey, altKey,
+          bubbles: true, cancelable: true,
+        }));
       }
     };
 

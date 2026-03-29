@@ -198,6 +198,35 @@ function handleMouseLeave() {
   clearHoverOutline();
 }
 
+function handleKeyDown(e: KeyboardEvent) {
+  // Let the iframe handle key events that target real text-entry elements.
+  const active = document.activeElement as HTMLElement | null;
+  if (
+    active &&
+    (active.tagName === 'INPUT' ||
+      active.tagName === 'TEXTAREA' ||
+      active.tagName === 'SELECT' ||
+      active.isContentEditable)
+  ) {
+    return;
+  }
+
+  e.preventDefault();
+
+  window.parent.postMessage(
+    {
+      type: 'PV_KEYDOWN',
+      key: e.key,
+      code: e.code,
+      metaKey: e.metaKey,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+    },
+    '*'
+  );
+}
+
 function handleDoubleClick(e: MouseEvent) {
   if (isLocked) {
     e.preventDefault();
@@ -252,6 +281,7 @@ function init() {
   document.addEventListener('mousemove', handleMouseMove, true);
   document.addEventListener('mouseleave', handleMouseLeave, true);
   document.addEventListener('dblclick', handleDoubleClick, true);
+  window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('message', handleParentMessage);
 }
 
