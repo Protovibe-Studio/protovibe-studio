@@ -697,7 +697,9 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
       // Helper: replace bare pv-block-start/end tags with fresh random IDs in defaultContent strings.
       // Uses iterative innermost-first matching so nested bare blocks are handled correctly.
+      // Also assigns IDs to bare pv-editable-zone-start/end pairs using a stack-based pass.
       const assignDefaultContentIds = (content: string): string => {
+        // 1. Assign IDs to bare pv-block tags (innermost-first, iterative)
         const bareBlockRe = /\{\/\*\s*pv-block-start\s*\*\/\}((?:(?!\{\/\*\s*pv-block-start\s*\*\/\}).)*?)\{\/\*\s*pv-block-end\s*\*\/\}/s;
         while (bareBlockRe.test(content)) {
           const id = Math.random().toString(36).substring(2, 8);
@@ -706,6 +708,43 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             return `{/* pv-block-start:${id} */}${updatedInner}{/* pv-block-end:${id} */}`;
           });
         }
+
+        // 2. Assign IDs to bare pv-editable-zone tags using a stack-based scan
+        const bareZoneStartRe = /\{\/\*\s*pv-editable-zone-start\s*\*\/\}/g;
+        const bareZoneEndRe = /\{\/\*\s*pv-editable-zone-end\s*\*\/\}/g;
+        const zoneTags: Array<{ index: number; length: number; type: 'start' | 'end' }> = [];
+        let zm: RegExpExecArray | null;
+        bareZoneStartRe.lastIndex = 0;
+        while ((zm = bareZoneStartRe.exec(content)) !== null) {
+          zoneTags.push({ index: zm.index, length: zm[0].length, type: 'start' });
+        }
+        bareZoneEndRe.lastIndex = 0;
+        while ((zm = bareZoneEndRe.exec(content)) !== null) {
+          zoneTags.push({ index: zm.index, length: zm[0].length, type: 'end' });
+        }
+        if (zoneTags.length > 0) {
+          zoneTags.sort((a, b) => a.index - b.index);
+          const stack: string[] = [];
+          const replacements: Array<{ index: number; length: number; replacement: string }> = [];
+          for (const tag of zoneTags) {
+            if (tag.type === 'start') {
+              const id = Math.random().toString(36).substring(2, 8);
+              stack.push(id);
+              replacements.push({ index: tag.index, length: tag.length, replacement: `{/* pv-editable-zone-start:${id} */}` });
+            } else {
+              const id = stack.pop();
+              if (id) {
+                replacements.push({ index: tag.index, length: tag.length, replacement: `{/* pv-editable-zone-end:${id} */}` });
+              }
+            }
+          }
+          // Apply in reverse order so earlier offsets stay valid
+          replacements.sort((a, b) => b.index - a.index);
+          for (const r of replacements) {
+            content = content.slice(0, r.index) + r.replacement + content.slice(r.index + r.length);
+          }
+        }
+
         return content;
       };
 
@@ -1178,9 +1217,21 @@ function extractPvDefaultContentSource(source: string): string {
     }
     j++;
   }
-  let jsx = source.substring(returnStart, j).trim();
-  // Strip outer Fragment wrapper <> ... </>
-  jsx = jsx.replace(/^\s*<>\s*/, '').replace(/\s*<\/>\s*$/, '');
+  let jsx = source.substring(returnStart, j);
+  // Strip outer Fragment wrapper — remove only the <> and </> tags/lines
+  jsx = jsx.replace(/^[\s\S]*?<>[ \t]*\n?/, '').replace(/\n?[ \t]*<\/>[\s\S]*$/, '');
+  // Dedent: strip the common leading whitespace so the content is indentation-neutral
+  const jsxLines = jsx.split('\n');
+  const nonEmptyJsxLines = jsxLines.filter(l => l.trim().length > 0);
+  if (nonEmptyJsxLines.length > 0) {
+    const minIndent = nonEmptyJsxLines.reduce((min, l) => {
+      const m = l.match(/^([ \t]*)/);
+      return Math.min(min, m ? m[1].length : 0);
+    }, Infinity);
+    if (minIndent > 0 && minIndent < Infinity) {
+      jsx = jsxLines.map(l => l.length > 0 ? l.slice(minIndent) : l).join('\n');
+    }
+  }
   return jsx.trim();
 }
 

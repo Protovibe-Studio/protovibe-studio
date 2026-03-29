@@ -41,290 +41,53 @@ export default function App() {
       <div className="flex flex-col items-start pl-10">
         {/* pv-editable-zone-start:kcyc8f */}
 
-          {/* pv-block-start:f3r26d */}
-          <DropdownButton data-pv-block="f3r26d" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:n6uckk */}
-              <DropdownItem data-pv-block="n6uckk" label="Edit" prefixIcon="Edit2" />
-              {/* pv-block-end:n6uckk */}
-              {/* pv-block-start:cagd2f */}
-              <DropdownItem data-pv-block="cagd2f" label="Duplicate" prefixIcon="Copy" />
-              {/* pv-block-end:cagd2f */}
-              {/* pv-block-start:jx9l5a */}
-              <DropdownSeparator data-pv-block="jx9l5a" />
-              {/* pv-block-end:jx9l5a */}
-              {/* pv-block-start:6rixya */}
-              <DropdownItem data-pv-block="6rixya" label="Delete" prefixIcon="Trash2" destructive={true} />
-              {/* pv-block-end:6rixya */}
-            {/* pv-editable-zone-end */}
-          </DropdownButton>
-          {/* pv-block-end:f3r26d */}
+          {/* pv-block-start:vcqewy */}
+          <div className="flex flex-col min-h-4" data-pv-block="vcqewy">
+            {/* pv-editable-zone-start:inside-vcqewy */}
+            {/* pv-editable-zone-end:inside-vcqewy */}
+          </div>
+          {/* pv-block-end:vcqewy */}
 
-          {/* pv-block-start:zb3wr1 */}
-          <SelectDropdown className="w-1/2" data-pv-block="zb3wr1" placeholder="Select an option">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:rkl5y0 */}
-              <DropdownItem data-pv-block="rkl5y0" value="opt1" label="Option One" selected={false} />
-              {/* pv-block-end:rkl5y0 */}
-              {/* pv-block-start:ow5jn7 */}
-              <DropdownItem data-pv-block="ow5jn7" value="opt2" label="Option Two" selected={false} />
-              {/* pv-block-end:ow5jn7 */}
-              {/* pv-block-start:1oto03 */}
-              <DropdownItem data-pv-block="1oto03" value="opt3" label="Option Three" selected={false} />
-              {/* pv-block-end:1oto03 */}
-            {/* pv-editable-zone-end */}
-          </SelectDropdown>
-          {/* pv-block-end:zb3wr1 */}
+          {/* pv-block-start:0t5wgl */}
+          <VerticalTabs data-pv-block="0t5wgl" value="tab1">
+            {/* pv-editable-zone-start:yly832 */}
+              {/* pv-block-start:a6b1x8 */}
+              <VerticalTabItem data-pv-block="a6b1x8" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+                {/* pv-editable-zone-start:6e7oh7 */}
+                {/* pv-editable-zone-end:6e7oh7 */}
+              </VerticalTabItem>
+              {/* pv-block-end:a6b1x8 */}
+              {/* pv-block-start:re97r0 */}
+              <VerticalTabItem data-pv-block="re97r0" label="Analytics" value="tab2" prefixIcon="BarChart2">
+                {/* pv-editable-zone-start:5fu92a */}
+                {/* pv-editable-zone-end:5fu92a */}
+              </VerticalTabItem>
+              {/* pv-block-end:re97r0 */}
+              {/* pv-block-start:1toybw */}
+              <VerticalTabItem data-pv-block="1toybw" label="Settings" value="tab3" prefixIcon="Settings">
+                {/* pv-editable-zone-start:o0xx1b */}
+                {/* pv-editable-zone-end:o0xx1b */}
+              </VerticalTabItem>
+              {/* pv-block-end:1toybw */}
+            {/* pv-editable-zone-end:yly832 */}
+          </VerticalTabs>
+          {/* pv-block-end:0t5wgl */}
 
-          {/* pv-block-start:esr01v */}
-          <VerticalTabItem data-pv-block="esr01v" label="Tab 1" value="tab1">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          {/* pv-block-end:esr01v */}
-
-          {/* pv-block-start:c5xv34 */}
-          <TabItem data-pv-block="c5xv34" label="Tab 1" value="tab1" />
-          {/* pv-block-end:c5xv34 */}
-
-          {/* pv-block-start:5sp8t1 */}
-          <Tabs data-pv-block="5sp8t1" value="tab1">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:bmu375 */}
-              <TabItem data-pv-block="bmu375" label="Tab 1" value="tab1" />
-              {/* pv-block-end:bmu375 */}
-              {/* pv-block-start:topvb3 */}
-              <TabItem data-pv-block="topvb3" label="Tab 2" value="tab2" />
-              {/* pv-block-end:topvb3 */}
-              {/* pv-block-start:ia5m1q */}
-              <TabItem data-pv-block="ia5m1q" label="Tab 3" value="tab3" />
-              {/* pv-block-end:ia5m1q */}
-            {/* pv-editable-zone-end */}
+          {/* pv-block-start:k89w9h */}
+          <Tabs data-pv-block="k89w9h" value="tab1">
+            {/* pv-editable-zone-start:i28u3r */}
+              {/* pv-block-start:njzs0e */}
+              <TabItem data-pv-block="njzs0e" label="Tab 1" value="tab1" />
+              {/* pv-block-end:njzs0e */}
+              {/* pv-block-start:zzi41i */}
+              <TabItem data-pv-block="zzi41i" label="Tab 2" value="tab2" />
+              {/* pv-block-end:zzi41i */}
+              {/* pv-block-start:e16o38 */}
+              <TabItem data-pv-block="e16o38" label="Tab 3" value="tab3" />
+              {/* pv-block-end:e16o38 */}
+            {/* pv-editable-zone-end:i28u3r */}
           </Tabs>
-          {/* pv-block-end:5sp8t1 */}
-
-          {/* pv-block-start:k1nm2r */}
-          <RadioItem data-pv-block="k1nm2r" primaryText="Option 1" value="opt1" />
-          {/* pv-block-end:k1nm2r */}
-
-          {/* pv-block-start:46aa4v */}
-          <RadioGroup data-pv-block="46aa4v" orientation="vertical" value="opt1">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:53tae1 */}
-              <RadioItem data-pv-block="53tae1" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-              {/* pv-block-end:53tae1 */}
-              {/* pv-block-start:iffk3q */}
-              <RadioItem data-pv-block="iffk3q" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-              {/* pv-block-end:iffk3q */}
-              {/* pv-block-start:suw9o1 */}
-              <RadioItem data-pv-block="suw9o1" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
-              {/* pv-block-end:suw9o1 */}
-            {/* pv-editable-zone-end */}
-          </RadioGroup>
-          {/* pv-block-end:46aa4v */}
-
-          {/* pv-block-start:9kpwck */}
-          <VerticalTabs data-pv-block="9kpwck" value="tab1">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:l97ag2 */}
-              <VerticalTabItem data-pv-block="l97ag2" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              {/* pv-block-end:l97ag2 */}
-              {/* pv-block-start:ejswlj */}
-              <VerticalTabItem data-pv-block="ejswlj" label="Analytics" value="tab2" prefixIcon="BarChart2">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              {/* pv-block-end:ejswlj */}
-              {/* pv-block-start:2vmx9m */}
-              <VerticalTabItem data-pv-block="2vmx9m" label="Settings" value="tab3" prefixIcon="Settings">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              {/* pv-block-end:2vmx9m */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabs>
-          {/* pv-block-end:9kpwck */}
-
-          {/* pv-block-start:kb1sqg */}
-          <Button data-pv-block="kb1sqg" label="Button"  color="primary" size="md" />
-          {/* pv-block-end:kb1sqg */}
-
-          {/* pv-block-start:kwz4vz */}
-          <DropdownButton data-pv-block="kwz4vz" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:iu9qtg */}
-                    <DropdownItem data-pv-block="iu9qtg" label="Edit" prefixIcon="Edit2" />
-                    {/* pv-block-end:iu9qtg */}
-                    {/* pv-block-start:3yog62 */}
-                    <DropdownItem data-pv-block="3yog62" label="Duplicate" prefixIcon="Copy" />
-                    {/* pv-block-end:3yog62 */}
-                    {/* pv-block-start:8grjta */}
-                    <DropdownSeparator data-pv-block="8grjta" />
-                    {/* pv-block-end:8grjta */}
-                    {/* pv-block-start:9dccs4 */}
-                    <DropdownItem data-pv-block="9dccs4" label="Delete" prefixIcon="Trash2" destructive={true} />
-                    {/* pv-block-end:9dccs4 */}
-                  {/* pv-editable-zone-end */}
-          </DropdownButton>
-          {/* pv-block-end:kwz4vz */}
-
-          {/* pv-block-start:v2r4ys */}
-          <VerticalTabs data-pv-block="v2r4ys" value="tab1">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:773yqw */}
-                    <VerticalTabItem data-pv-block="773yqw" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:773yqw */}
-                    {/* pv-block-start:jmh8k3 */}
-                    <VerticalTabItem data-pv-block="jmh8k3" label="Analytics" value="tab2" prefixIcon="BarChart2">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:jmh8k3 */}
-                    {/* pv-block-start:bhqncv */}
-                    <VerticalTabItem data-pv-block="bhqncv" label="Settings" value="tab3" prefixIcon="Settings">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:bhqncv */}
-                  {/* pv-editable-zone-end */}
-          </VerticalTabs>
-          {/* pv-block-end:v2r4ys */}
-
-          {/* pv-block-start:y5wa4c */}
-          <DialogTrigger data-pv-block="y5wa4c" />
-          {/* pv-block-end:y5wa4c */}
-
-          {/* pv-block-start:ilko85 */}
-          <RadioGroup data-pv-block="ilko85" orientation="vertical" value="opt1" />
-          {/* pv-block-end:ilko85 */}
-
-          {/* pv-block-start:szwfrz */}
-          <RadioGroup data-pv-block="szwfrz" orientation="vertical" value="opt1">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:xd5z2b */}
-                    <RadioItem data-pv-block="xd5z2b" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                    {/* pv-block-end:xd5z2b */}
-                    {/* pv-block-start:yj7vte */}
-                    <RadioItem data-pv-block="yj7vte" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                    {/* pv-block-end:yj7vte */}
-                    {/* pv-block-start:pkbv09 */}
-                    <RadioItem data-pv-block="pkbv09" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
-                    {/* pv-block-end:pkbv09 */}
-                  {/* pv-editable-zone-end */}
-          </RadioGroup>
-          {/* pv-block-end:szwfrz */}
-
-          {/* pv-block-start:2ixpes */}
-          <DialogTrigger data-pv-block="2ixpes">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:c0thm9 */}
-                    <Button data-pv-block="c0thm9" label="Open Dialog" variant="solid" color="primary" size="md" />
-                    {/* pv-block-end:c0thm9 */}
-                    {/* pv-block-start:bd7g2j */}
-                    <DialogOverlay data-pv-block="bd7g2j">
-                      <DialogWindow size="md">
-                        {/* pv-editable-zone-start */}
-                        {/* pv-block-start:dvlgwj */}
-                        <h2 data-pv-block="dvlgwj" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                        {/* pv-block-end:dvlgwj */}
-                        {/* pv-block-start:zf5rwb */}
-                        <p data-pv-block="zf5rwb" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                        {/* pv-block-end:zf5rwb */}
-                        {/* pv-block-start:6raxry */}
-                        <DialogCloseTrigger data-pv-block="6raxry">
-                          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
-                        </DialogCloseTrigger>
-                        {/* pv-block-end:6raxry */}
-                        {/* pv-editable-zone-end */}
-                      </DialogWindow>
-                    </DialogOverlay>
-                    {/* pv-block-end:bd7g2j */}
-                  {/* pv-editable-zone-end */}
-          </DialogTrigger>
-          {/* pv-block-end:2ixpes */}
-
-          {/* pv-block-start:iiaef9 */}
-          <DialogTrigger data-pv-block="iiaef9">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:dj5ykd */}
-                    <Button data-pv-block="dj5ykd" label="Open Dialog" variant="solid" color="primary" size="md" />
-                    {/* pv-block-end:dj5ykd */}
-                    {/* pv-block-start:80fetb */}
-                    <DialogOverlay data-pv-block="80fetb">
-                      <DialogWindow size="md">
-                        {/* pv-editable-zone-start */}
-                        {/* pv-block-start:kqaj5y */}
-                        <h2 data-pv-block="kqaj5y" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                        {/* pv-block-end:kqaj5y */}
-                        {/* pv-block-start:nefegt */}
-                        <p data-pv-block="nefegt" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                        {/* pv-block-end:nefegt */}
-                        {/* pv-editable-zone-end */}
-                      </DialogWindow>
-                    </DialogOverlay>
-                    {/* pv-block-end:80fetb */}
-                  {/* pv-editable-zone-end */}
-          </DialogTrigger>
-          {/* pv-block-end:iiaef9 */}
-
-          {/* pv-block-start:dwn9dr */}
-          <DialogTrigger data-pv-block="dwn9dr">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:gpsc50 */}
-                    <Button data-pv-block="gpsc50" label="Open Dialog" variant="solid" color="primary" size="md" />
-                    {/* pv-block-end:gpsc50 */}
-                    {/* pv-block-start:5nxnn2 */}
-                    <DialogOverlay data-pv-block="5nxnn2">
-                      <DialogWindow size="md">
-                        {/* pv-editable-zone-start:nk72gs */}
-                        {/* pv-block-start:kdp7ko */}
-                        <h2 data-pv-block="kdp7ko" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                        {/* pv-block-end:kdp7ko */}
-                        {/* pv-block-start:2810k8 */}
-                        <p data-pv-block="2810k8" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                        {/* pv-block-end:2810k8 */}
-                        
-                          {/* pv-block-start:rccd5e */}
-                          <Button data-pv-block="rccd5e" label="Button" variant="solid" color="primary" size="md" />
-                          {/* pv-block-end:rccd5e */}
-                        {/* pv-editable-zone-end:nk72gs */}
-                      </DialogWindow>
-                    </DialogOverlay>
-                    {/* pv-block-end:5nxnn2 */}
-                  {/* pv-editable-zone-end */}
-          </DialogTrigger>
-          {/* pv-block-end:dwn9dr */}
-
-          {/* pv-block-start:gdjjph */}
-          <VerticalTabs data-pv-block="gdjjph" value="tab1">
-            {/* pv-editable-zone-start */}
-                    {/* pv-block-start:4i1lca */}
-                    <VerticalTabItem data-pv-block="4i1lca" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:4i1lca */}
-                    {/* pv-block-start:vnzoar */}
-                    <VerticalTabItem data-pv-block="vnzoar" label="Analytics" value="tab2" prefixIcon="BarChart2">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:vnzoar */}
-                    {/* pv-block-start:cosff8 */}
-                    <VerticalTabItem data-pv-block="cosff8" label="Settings" value="tab3" prefixIcon="Settings">
-                      {/* pv-editable-zone-start */}
-                      {/* pv-editable-zone-end */}
-                    </VerticalTabItem>
-                    {/* pv-block-end:cosff8 */}
-                  {/* pv-editable-zone-end */}
-          </VerticalTabs>
-          {/* pv-block-end:gdjjph */}
+          {/* pv-block-end:k89w9h */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
