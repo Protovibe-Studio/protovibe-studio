@@ -46,7 +46,7 @@ export function VerticalTabsExpandableSection({
   return (
     <div
       {...rest}
-      className={className}
+      className={cn('w-full', className)}
       data-pv-component-id="VerticalTabsExpandableSection"
     >
       <VerticalTabTrigger

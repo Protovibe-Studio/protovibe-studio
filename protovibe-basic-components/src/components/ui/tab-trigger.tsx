@@ -64,6 +64,7 @@ export const pvConfig = {
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
+    active: { type: 'boolean' },
     disabled: { type: 'boolean' },
   },
 };

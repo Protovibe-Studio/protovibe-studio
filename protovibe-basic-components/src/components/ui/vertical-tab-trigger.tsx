@@ -58,6 +58,7 @@ export function VerticalTabTrigger({
   return (
     <div
       {...rest}
+      className="w-full"
       data-pv-component-id="VerticalTabTrigger"
     >
       <button
@@ -108,6 +109,7 @@ export const pvConfig = {
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
+    active: { type: 'boolean' },
     disabled: { type: 'boolean' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
