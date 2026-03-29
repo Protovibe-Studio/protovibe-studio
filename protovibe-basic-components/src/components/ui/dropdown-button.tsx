@@ -123,14 +123,8 @@ export function DropdownButton({
   );
 }
 
-export const pvConfig = {
-  name: 'DropdownButton',
-  componentId: 'DropdownButton',
-  displayName: 'Dropdown Button',
-  description: 'A button that opens a floating dropdown menu on click.',
-  importPath: '@/components/ui/dropdown-button',
-  defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="ChevronDown"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -147,7 +141,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'DropdownButton',
+  componentId: 'DropdownButton',
+  displayName: 'Dropdown Button',
+  description: 'A button that opens a floating dropdown menu on click.',
+  importPath: '@/components/ui/dropdown-button',
+  defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="ChevronDown"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
     { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },

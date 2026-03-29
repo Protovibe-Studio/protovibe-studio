@@ -60,14 +60,8 @@ export function RadioGroup({
   );
 }
 
-export const pvConfig = {
-  name: 'RadioGroup',
-  componentId: 'RadioGroup',
-  displayName: 'Radio Group',
-  description: 'A container for radio items with vertical or horizontal orientation.',
-  importPath: '@/components/ui/radio-group',
-  defaultProps: 'orientation="vertical" value="opt1"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -81,7 +75,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'RadioGroup',
+  componentId: 'RadioGroup',
+  displayName: 'Radio Group',
+  description: 'A container for radio items with vertical or horizontal orientation.',
+  importPath: '@/components/ui/radio-group',
+  defaultProps: 'orientation="vertical" value="opt1"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'RadioItem', path: '@/components/ui/radio-item' },
   ],

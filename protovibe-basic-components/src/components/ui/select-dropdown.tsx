@@ -174,14 +174,8 @@ export function SelectDropdown({
   );
 }
 
-export const pvConfig = {
-  name: 'SelectDropdown',
-  componentId: 'SelectDropdown',
-  displayName: 'Select Dropdown',
-  description: 'An input-style trigger that opens a selectable dropdown list. Manages selection state internally.',
-  importPath: '@/components/ui/select-dropdown',
-  defaultProps: 'placeholder="Select an option"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -195,7 +189,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'SelectDropdown',
+  componentId: 'SelectDropdown',
+  displayName: 'Select Dropdown',
+  description: 'An input-style trigger that opens a selectable dropdown list. Manages selection state internally.',
+  importPath: '@/components/ui/select-dropdown',
+  defaultProps: 'placeholder="Select an option"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
   ],

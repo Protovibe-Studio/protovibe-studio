@@ -1152,6 +1152,38 @@ function extractDefaultContentSource(source: string): string {
   return jsx.trim();
 }
 
+/**
+ * Extracts the inner JSX from an `export function PvDefaultContent()` component.
+ * Finds the function's return statement and extracts the parenthesized JSX body,
+ * stripping any outer Fragment wrapper.
+ */
+function extractPvDefaultContentSource(source: string): string {
+  const fnMatch = source.match(/export\s+function\s+PvDefaultContent\s*\(/);
+  if (!fnMatch || fnMatch.index === undefined) return '';
+  // Find the opening brace of the function body
+  let i = source.indexOf('{', fnMatch.index + fnMatch[0].length);
+  if (i === -1) return '';
+  // Find `return (` inside the function body
+  const returnMatch = source.substring(i).match(/return\s*\(/);
+  if (!returnMatch || returnMatch.index === undefined) return '';
+  const returnStart = i + returnMatch.index + returnMatch[0].length;
+  // Match parentheses to find the end of the return expression
+  let depth = 0;
+  let j = returnStart;
+  while (j < source.length) {
+    if (source[j] === '(') depth++;
+    else if (source[j] === ')') {
+      if (depth === 0) break;
+      depth--;
+    }
+    j++;
+  }
+  let jsx = source.substring(returnStart, j).trim();
+  // Strip outer Fragment wrapper <> ... </>
+  jsx = jsx.replace(/^\s*<>\s*/, '').replace(/\s*<\/>\s*$/, '');
+  return jsx.trim();
+}
+
 export const handleGetComponents = (req: any, res: any, server: import('vite').ViteDevServer) => {
   const srcPath = path.resolve(process.cwd(), 'src');
   const components: any[] = [];
@@ -1181,7 +1213,9 @@ export const handleGetComponents = (req: any, res: any, server: import('vite').V
                   defaultProps: mod.pvConfig.defaultProps || '',
                   defaultContent: typeof mod.pvConfig.defaultContent === 'string'
                     ? mod.pvConfig.defaultContent
-                    : extractDefaultContentSource(content),
+                    : (mod.PvDefaultContent
+                      ? extractPvDefaultContentSource(content)
+                      : extractDefaultContentSource(content)),
                   additionalImportsForDefaultContent: mod.pvConfig.additionalImportsForDefaultContent || []
                 });
               }

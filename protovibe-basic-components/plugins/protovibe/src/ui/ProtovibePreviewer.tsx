@@ -21,16 +21,21 @@ interface PvConfig {
 interface ComponentEntry {
   config: PvConfig;
   Component: React.ComponentType<any>;
+  DefaultContent?: React.ComponentType<any>;
   filePath: string;
 }
 
-const DISCOVERED: ComponentEntry[] = [];
-for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
-  const pvConfig = mod?.pvConfig as PvConfig | undefined;
-  if (!pvConfig?.name) continue;
-  const Component = mod[pvConfig.name];
-  if (typeof Component !== 'function') continue;
-  DISCOVERED.push({ config: pvConfig, Component, filePath });
+function discoverComponents(): ComponentEntry[] {
+  const discovered: ComponentEntry[] = [];
+  for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
+    const pvConfig = mod?.pvConfig as PvConfig | undefined;
+    if (!pvConfig?.name) continue;
+    const Component = mod[pvConfig.name];
+    if (typeof Component !== 'function') continue;
+    const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
+    discovered.push({ config: pvConfig, Component, DefaultContent, filePath });
+  }
+  return discovered;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -186,7 +191,7 @@ const PreviewCell: React.FC<{
       >
         <ErrorBoundary>
           <entry.Component {...props}>
-            {typeof entry.config.defaultContent !== 'string' ? entry.config.defaultContent : undefined}
+            {entry.DefaultContent ? <entry.DefaultContent /> : (typeof entry.config.defaultContent !== 'string' ? entry.config.defaultContent : undefined)}
           </entry.Component>
         </ErrorBoundary>
       </div>
@@ -311,7 +316,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
       >
         <ErrorBoundary>
           <Component {...defaultProps}>
-            {typeof config.defaultContent !== 'string' ? config.defaultContent : undefined}
+            {entry.DefaultContent ? <entry.DefaultContent /> : (typeof config.defaultContent !== 'string' ? config.defaultContent : undefined)}
           </Component>
         </ErrorBoundary>
       </div>
@@ -394,7 +399,7 @@ const CatalogView: React.FC<{
                 paddingTop: 48,
               }}
             >
-              {DISCOVERED.length === 0 ? 'No components with pvConfig found.' : 'No results.'}
+              {entries.length === 0 ? 'No components with pvConfig found.' : 'No results.'}
             </div>
           )}
           {filtered.map(entry => (
@@ -517,9 +522,18 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
 // ─── Root Overlay ──────────────────────────────────────────────────────────────
 
 export function ProtovibePreviewer() {
+  const [discovered, setDiscovered] = useState<ComponentEntry[]>(discoverComponents);
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (import.meta.hot) {
+      import.meta.hot.accept(Object.keys(allModules), () => {
+        setDiscovered(discoverComponents());
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -595,7 +609,7 @@ export function ProtovibePreviewer() {
         <VariantMatrix entry={selected} onBack={() => setSelected(null)} />
       ) : (
         <CatalogView
-          entries={DISCOVERED}
+          entries={discovered}
           onSelect={entry => {
             setSelected(entry);
             setSearch('');

@@ -21,14 +21,8 @@ export function DialogCloseTrigger({ children, ...props }: DialogCloseTriggerPro
   );
 }
 
-export const pvConfig = {
-  name: 'DialogCloseTrigger',
-  componentId: 'DialogCloseTrigger',
-  displayName: 'Dialog Close Trigger',
-  description: 'Placed inside a DialogOverlay; closes the dialog when clicked.',
-  importPath: '@/components/ui/dialog-close-trigger',
-  defaultProps: '',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -36,7 +30,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'DialogCloseTrigger',
+  componentId: 'DialogCloseTrigger',
+  displayName: 'Dialog Close Trigger',
+  description: 'Placed inside a DialogOverlay; closes the dialog when clicked.',
+  importPath: '@/components/ui/dialog-close-trigger',
+  defaultProps: '',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
   ],

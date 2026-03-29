@@ -78,14 +78,8 @@ export const DialogTrigger = forwardRef<DialogHandle, DialogTriggerProps>(functi
   );
 });
 
-export const pvConfig = {
-  name: 'DialogTrigger',
-  componentId: 'DialogTrigger',
-  displayName: 'Dialog Trigger',
-  description: 'Wraps a trigger element; first child is the trigger, remaining children are shown in a dialog overlay on click.',
-  importPath: '@/components/ui/dialog-trigger',
-  defaultProps: '',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -112,7 +106,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'DialogTrigger',
+  componentId: 'DialogTrigger',
+  displayName: 'Dialog Trigger',
+  description: 'Wraps a trigger element; first child is the trigger, remaining children are shown in a dialog overlay on click.',
+  importPath: '@/components/ui/dialog-trigger',
+  defaultProps: '',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DialogOverlay', path: '@/components/ui/dialog-overlay' },

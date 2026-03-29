@@ -150,6 +150,48 @@ Common patterns to always apply:
 
 Since `pvConfig` is a JS module (not JSON), predicate functions are fully supported.
 
+## `PvDefaultContent` — Hot-Reloadable Default Content
+
+When a component's `defaultContent` is JSX (React nodes, not a string), it **must** be defined as an exported React component named `PvDefaultContent` in the same file. This gives it its own HMR boundary so class edits on elements inside defaultContent hot-reload instantly in the Component Playground.
+
+### Pattern
+
+```tsx
+// 1. Define as a separate exported component BEFORE pvConfig
+export function PvDefaultContent() {
+  return (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <ChildComponent data-pv-block="" label="Example" />
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  );
+}
+
+// 2. Reference it in pvConfig
+export const pvConfig = {
+  ...
+  defaultContent: <PvDefaultContent />,
+  ...
+};
+```
+
+### Rules
+
+- **Always name it `PvDefaultContent`** — the server and previewer look for this exact export name.
+- **Export it** — `export function PvDefaultContent()` (not `const`, not unexported).
+- **Place it before `pvConfig`** in the file so the JSX reference `<PvDefaultContent />` resolves.
+- **Only for JSX defaultContent** — if `defaultContent` is a plain string, no change needed.
+- **One per file** — matches the one-pvConfig-per-file rule.
+- The server extracts the return JSX from `PvDefaultContent` for code injection (same as it previously did from inline `defaultContent: (...)`).
+- The previewer renders `<PvDefaultContent />` as a real React component, giving it its own HMR boundary.
+
+### Why
+
+Previously, JSX `defaultContent` was a static value inside the `pvConfig` object. When Protovibe's inspector edited classes on elements within that JSX, the file changed but React HMR couldn't update the static object — only real React components get HMR boundaries. By making it a component, class edits hot-reload immediately.
+
 ## Inspector Mutation Locking
 
 - When adding inspector buttons/inputs that mutate code (backend write), run them through `runLockedMutation` from `plugins/protovibe/src/ui/context/ProtovibeContext.tsx`.

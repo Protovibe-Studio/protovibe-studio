@@ -38,7 +38,7 @@ export default function App() {
   const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
   return (
     <div>
-      <div className="pl-5 flex flex-col items-start">
+      <div className="flex flex-col items-start pl-10">
         {/* pv-editable-zone-start:kcyc8f */}
 
           {/* pv-block-start:f3r26d */}
@@ -195,6 +195,59 @@ export default function App() {
                   {/* pv-editable-zone-end */}
           </VerticalTabs>
           {/* pv-block-end:v2r4ys */}
+
+          {/* pv-block-start:y5wa4c */}
+          <DialogTrigger data-pv-block="y5wa4c" />
+          {/* pv-block-end:y5wa4c */}
+
+          {/* pv-block-start:ilko85 */}
+          <RadioGroup data-pv-block="ilko85" orientation="vertical" value="opt1" />
+          {/* pv-block-end:ilko85 */}
+
+          {/* pv-block-start:szwfrz */}
+          <RadioGroup data-pv-block="szwfrz" orientation="vertical" value="opt1">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:xd5z2b */}
+                    <RadioItem data-pv-block="xd5z2b" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+                    {/* pv-block-end:xd5z2b */}
+                    {/* pv-block-start:yj7vte */}
+                    <RadioItem data-pv-block="yj7vte" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+                    {/* pv-block-end:yj7vte */}
+                    {/* pv-block-start:pkbv09 */}
+                    <RadioItem data-pv-block="pkbv09" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
+                    {/* pv-block-end:pkbv09 */}
+                  {/* pv-editable-zone-end */}
+          </RadioGroup>
+          {/* pv-block-end:szwfrz */}
+
+          {/* pv-block-start:2ixpes */}
+          <DialogTrigger data-pv-block="2ixpes">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:c0thm9 */}
+                    <Button data-pv-block="c0thm9" label="Open Dialog" variant="solid" color="primary" size="md" />
+                    {/* pv-block-end:c0thm9 */}
+                    {/* pv-block-start:bd7g2j */}
+                    <DialogOverlay data-pv-block="bd7g2j">
+                      <DialogWindow size="md">
+                        {/* pv-editable-zone-start */}
+                        {/* pv-block-start:dvlgwj */}
+                        <h2 data-pv-block="dvlgwj" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                        {/* pv-block-end:dvlgwj */}
+                        {/* pv-block-start:zf5rwb */}
+                        <p data-pv-block="zf5rwb" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                        {/* pv-block-end:zf5rwb */}
+                        {/* pv-block-start:6raxry */}
+                        <DialogCloseTrigger data-pv-block="6raxry">
+                          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+                        </DialogCloseTrigger>
+                        {/* pv-block-end:6raxry */}
+                        {/* pv-editable-zone-end */}
+                      </DialogWindow>
+                    </DialogOverlay>
+                    {/* pv-block-end:bd7g2j */}
+                  {/* pv-editable-zone-end */}
+          </DialogTrigger>
+          {/* pv-block-end:2ixpes */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

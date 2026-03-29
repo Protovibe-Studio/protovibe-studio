@@ -27,14 +27,8 @@ export function DropdownList({ width = 'auto', children, className, ...props }: 
   );
 }
 
-export const pvConfig = {
-  name: 'DropdownList',
-  componentId: 'DropdownList',
-  displayName: 'Dropdown List',
-  description: 'A floating list container for dropdown menu items.',
-  importPath: '@/components/ui/dropdown-list',
-  defaultProps: 'width="md"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -54,7 +48,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'DropdownList',
+  componentId: 'DropdownList',
+  displayName: 'Dropdown List',
+  description: 'A floating list container for dropdown menu items.',
+  importPath: '@/components/ui/dropdown-list',
+  defaultProps: 'width="md"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },

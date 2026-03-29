@@ -51,14 +51,8 @@ export function VerticalTabs({
   );
 }
 
-export const pvConfig = {
-  name: 'VerticalTabs',
-  componentId: 'VerticalTabs',
-  displayName: 'Vertical Tabs',
-  description: 'A vertical tab bar container that manages which tab is active.',
-  importPath: '@/components/ui/vertical-tabs',
-  defaultProps: 'value="tab1"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -81,7 +75,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'VerticalTabs',
+  componentId: 'VerticalTabs',
+  displayName: 'Vertical Tabs',
+  description: 'A vertical tab bar container that manages which tab is active.',
+  importPath: '@/components/ui/vertical-tabs',
+  defaultProps: 'value="tab1"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'VerticalTabItem', path: '@/components/ui/vertical-tab-trigger' },
   ],

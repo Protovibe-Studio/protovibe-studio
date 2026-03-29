@@ -43,14 +43,8 @@ export function DialogOverlay({ children, className, ...props }: DialogOverlayPr
   );
 }
 
-export const pvConfig = {
-  name: 'DialogOverlay',
-  componentId: 'DialogOverlay',
-  displayName: 'Dialog Overlay',
-  description: 'Fixed full-screen backdrop for a dialog. Place inside DialogTrigger as the second child.',
-  importPath: '@/components/ui/dialog-overlay',
-  defaultProps: '',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -72,7 +66,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'DialogOverlay',
+  componentId: 'DialogOverlay',
+  displayName: 'Dialog Overlay',
+  description: 'Fixed full-screen backdrop for a dialog. Place inside DialogTrigger as the second child.',
+  importPath: '@/components/ui/dialog-overlay',
+  defaultProps: '',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DialogWindow', path: '@/components/ui/dialog-window' },
     { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },

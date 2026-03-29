@@ -51,14 +51,8 @@ export function Tabs({
   );
 }
 
-export const pvConfig = {
-  name: 'Tabs',
-  componentId: 'Tabs',
-  displayName: 'Tabs',
-  description: 'A tab bar container that manages which tab is active.',
-  importPath: '@/components/ui/tabs',
-  defaultProps: 'value="tab1"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -72,7 +66,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'Tabs',
+  componentId: 'Tabs',
+  displayName: 'Tabs',
+  description: 'A tab bar container that manages which tab is active.',
+  importPath: '@/components/ui/tabs',
+  defaultProps: 'value="tab1"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'TabItem', path: '@/components/ui/tab-trigger' },
   ],

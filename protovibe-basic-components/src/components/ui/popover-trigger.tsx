@@ -118,14 +118,8 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
   );
 });
 
-export const pvConfig = {
-  name: 'PopoverTrigger',
-  componentId: 'PopoverTrigger',
-  displayName: 'Popover Trigger',
-  description: 'Wraps a trigger element; shows floating content on click, portalled to root.',
-  importPath: '@/components/ui/popover-trigger',
-  defaultProps: 'placement="bottom"',
-  defaultContent: (
+export function PvDefaultContent() {
+  return (
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
@@ -154,7 +148,17 @@ export const pvConfig = {
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
-  ),
+  );
+}
+
+export const pvConfig = {
+  name: 'PopoverTrigger',
+  componentId: 'PopoverTrigger',
+  displayName: 'Popover Trigger',
+  description: 'Wraps a trigger element; shows floating content on click, portalled to root.',
+  importPath: '@/components/ui/popover-trigger',
+  defaultProps: 'placement="bottom"',
+  defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DropdownList', path: '@/components/ui/dropdown-list' },
