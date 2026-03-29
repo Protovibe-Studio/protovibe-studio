@@ -4,6 +4,8 @@ import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
 export interface DropdownItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Identifier used by SelectDropdown for selection tracking */
+  value?: string;
   label?: string;
   prefixIcon?: string;
   suffixIcon?: string;
@@ -14,6 +16,7 @@ export interface DropdownItemProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 export function DropdownItem({
+  value,
   label,
   prefixIcon,
   suffixIcon,
@@ -26,6 +29,7 @@ export function DropdownItem({
   return (
     <div
       role="menuitem"
+      data-value={value}
       data-destructive={destructive}
       data-disabled={disabled}
       className={cn(
@@ -61,6 +65,7 @@ export const pvConfig = {
   defaultProps: 'label="Menu Item"',
   defaultContent: '',
   props: {
+    value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },

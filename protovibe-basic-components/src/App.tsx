@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { DropdownList, DropdownItem, DropdownSeparator, DropdownGroupLabel } from '@/components/ui/dropdown-menu';
-import { SelectDropdownButton } from '@/components/ui/select';
 import { Combobox, ComboboxItem } from '@/components/ui/combobox';
 import { Tabs } from '@/components/ui/tabs';
 import { TabTrigger } from '@/components/ui/tab-trigger';
@@ -33,6 +32,7 @@ import { VerticalTabTrigger } from '@/components/ui/vertical-tab-trigger';
 import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
 import { ToastBox } from '@/components/ui/toast-box';
 import { DropdownButton } from '@/components/ui/dropdown-button'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
 
 export default function App() {
   const { showToast } = useStore();
@@ -41,177 +41,21 @@ export default function App() {
     <div>
       <div className="pl-5">
         {/* pv-editable-zone-start:kcyc8f */}
-          {/* pv-block-start:llnqph */}
-          <span className="" data-pv-block="llnqph">
-            Lorem ipsum
-            {/* pv-editable-zone-start:inside-llnqph */}
-            {/* pv-editable-zone-end:inside-llnqph */}
-          </span>
-          {/* pv-block-end:llnqph */}
-
-          {/* pv-block-start:45s619 */}
-          <div className="flex flex-col min-h-4 p-5" data-pv-block="45s619">
-            {/* pv-editable-zone-start:inside-45s619 */}
-            {/* pv-block-start:829q3t */}
-          <InfoBoxBanner showCloseButton={false} color="primary" data-pv-block="829q3t" icon="Info" heading="Heads up" secondaryText="Something needs your attention."   />
-          {/* pv-block-end:829q3t */}
-            {/* pv-editable-zone-end:inside-45s619 */}
-          </div>
-          {/* pv-block-end:45s619 */}
-
-          {/* pv-block-start:efkqkd */}
-          <Button data-pv-block="efkqkd" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:efkqkd */}
-
-        {/* pv-block-start:f6f0xf */}
-              <div className="flex flex-col min-h-4" data-pv-block="f6f0xf">
-                {/* pv-editable-zone-start:inside-f6f0xf */}
-                {/* pv-editable-zone-end:inside-f6f0xf */}
-              </div>
-              {/* pv-block-end:f6f0xf */}
-
-          {/* pv-block-start:z0cd4o */}
-          <Avatar imageSrc="https://i.pravatar.cc/60" data-pv-block="z0cd4o" initials="AB" size="sm" bgColor="default" />
-          {/* pv-block-end:z0cd4o */}
-
-          {/* pv-block-start:e1gx71 */}
-          <PopoverTrigger data-pv-block="e1gx71" placement="bottom">
-            
+          {/* pv-block-start:4elhjy */}
+          <SelectDropdown data-pv-block="4elhjy" placeholder="Select an option">
             {/* pv-editable-zone-start */}
-              {/* pv-block-start:yzpmkr */}
-              <Button data-pv-block="yzpmkr" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
-              {/* pv-block-end:yzpmkr */}
-              {/* pv-block-start:bypmqt */}
-              <DropdownList data-pv-block="bypmqt" width="md">
-                {/* pv-editable-zone-start */}
-                {/* pv-block-start:u11qaj */}
-                <DropdownGroupLabel data-pv-block="u11qaj" label="Actions" />
-                {/* pv-block-end:u11qaj */}
-                {/* pv-block-start:xbw7lt */}
-                <DropdownItem data-pv-block="xbw7lt" label="Edit" prefixIcon="Edit2" />
-                {/* pv-block-end:xbw7lt */}
-                {/* pv-block-start:bxfj73 */}
-                <DropdownItem data-pv-block="bxfj73" label="Duplicate" prefixIcon="Copy" />
-                {/* pv-block-end:bxfj73 */}
-                {/* pv-block-start:xacrxp */}
-                <DropdownSeparator data-pv-block="xacrxp" />
-                {/* pv-block-end:xacrxp */}
-                {/* pv-block-start:8xskhb */}
-                <DropdownItem data-pv-block="8xskhb" label="Delete" prefixIcon="Trash2" destructive={true} />
-                {/* pv-block-end:8xskhb */}
-                {/* pv-editable-zone-end */}
-              </DropdownList>
-              {/* pv-block-end */}
+              {/* pv-block-start:1815vh */}
+              <DropdownItem data-pv-block="1815vh" value="opt1" label="Option One" selected={false} />
+              {/* pv-block-end:1815vh */}
+              {/* pv-block-start:547aw7 */}
+              <DropdownItem data-pv-block="547aw7" value="opt2" label="Option Two" selected={false} />
+              {/* pv-block-end:547aw7 */}
+              {/* pv-block-start:2fnhz0 */}
+              <DropdownItem data-pv-block="2fnhz0" value="opt3" label="Option Three" selected={false} />
+              {/* pv-block-end:2fnhz0 */}
             {/* pv-editable-zone-end */}
-          </PopoverTrigger>
-          {/* pv-block-end:e1gx71 */}
-
-          {/* pv-block-start:jr3bih */}
-          <PopoverCloseTrigger data-pv-block="jr3bih">
-            
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:ucgjt2 */}
-              <Button data-pv-block="ucgjt2" variant="ghost" color="neutral" size="icon" leftIcon="X" />
-              {/* pv-block-end:ucgjt2 */}
-            {/* pv-editable-zone-end */}
-          </PopoverCloseTrigger>
-          {/* pv-block-end:jr3bih */}
-
-          {/* pv-block-start:k75cx6 */}
-          <DialogCloseTrigger data-pv-block="k75cx6">
-            
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:5qip33 */}
-              <Button data-pv-block="5qip33" variant="ghost" color="neutral" size="icon" leftIcon="X" />
-              {/* pv-block-end:5qip33 */}
-            {/* pv-editable-zone-end */}
-          </DialogCloseTrigger>
-          {/* pv-block-end:k75cx6 */}
-
-          {/* pv-block-start:r0cjwl */}
-          <DialogTrigger data-pv-block="r0cjwl">
-            
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:9e6a8h */}
-              <Button data-pv-block="9e6a8h" label="Open Dialog" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:9e6a8h */}
-              {/* pv-block-start:de1cdp */}
-              <DialogOverlay data-pv-block="de1cdp">
-                <DialogWindow size="md">
-                  {/* pv-editable-zone-start */}
-                  {/* pv-block-start:alnfxr */}
-                  <h2 data-pv-block="alnfxr" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                  {/* pv-block-end:alnfxr */}
-                  {/* pv-block-start:waatr8 */}
-                  <p data-pv-block="waatr8" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                  {/* pv-block-end:waatr8 */}
-                  {/* pv-block-start:mie1dq */}
-                  <DialogCloseTrigger data-pv-block="mie1dq">
-                    <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
-                  </DialogCloseTrigger>
-                  {/* pv-block-end:mie1dq */}
-                  {/* pv-editable-zone-end */}
-                </DialogWindow>
-              </DialogOverlay>
-              {/* pv-block-end */}
-            {/* pv-editable-zone-end */}
-          </DialogTrigger>
-          {/* pv-block-end:r0cjwl */}
-
-          {/* pv-block-start:aw2oz7 */}
-          <SelectDropdownButton data-pv-block="aw2oz7" placeholder="Select an option" />
-          {/* pv-block-end:aw2oz7 */}
-
-          {/* pv-block-start:asgbjb */}
-          <PopoverTrigger data-pv-block="asgbjb" placement="bottom">
-            
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:vj8naw */}
-              <Button data-pv-block="vj8naw" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
-              {/* pv-block-end:vj8naw */}
-              {/* pv-block-start:izvg2k */}
-              <DropdownList data-pv-block="izvg2k" width="md">
-                {/* pv-editable-zone-start */}
-                {/* pv-block-start:yc8zdj */}
-                <DropdownGroupLabel data-pv-block="yc8zdj" label="Actions" />
-                {/* pv-block-end:yc8zdj */}
-                {/* pv-block-start:jrrpm3 */}
-                <DropdownItem data-pv-block="jrrpm3" label="Edit" prefixIcon="Edit2" />
-                {/* pv-block-end:jrrpm3 */}
-                {/* pv-block-start:hg823g */}
-                <DropdownItem data-pv-block="hg823g" label="Duplicate" prefixIcon="Copy" />
-                {/* pv-block-end:hg823g */}
-                {/* pv-block-start:ccs9aa */}
-                <DropdownSeparator data-pv-block="ccs9aa" />
-                {/* pv-block-end:ccs9aa */}
-                {/* pv-block-start:ms1a6d */}
-                <DropdownItem data-pv-block="ms1a6d" label="Delete" prefixIcon="Trash2" destructive={true} />
-                {/* pv-block-end:ms1a6d */}
-                {/* pv-editable-zone-end */}
-              </DropdownList>
-              {/* pv-block-end */}
-            {/* pv-editable-zone-end */}
-          </PopoverTrigger>
-          {/* pv-block-end:asgbjb */}
-
-          {/* pv-block-start:s8t34n */}
-          <DropdownButton data-pv-block="s8t34n" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:e0sa49 */}
-              <DropdownItem data-pv-block="e0sa49" label="Edit" prefixIcon="Edit2" />
-              {/* pv-block-end:e0sa49 */}
-              {/* pv-block-start:b6iv4q */}
-              <DropdownItem data-pv-block="b6iv4q" label="Duplicate" prefixIcon="Copy" />
-              {/* pv-block-end:b6iv4q */}
-              {/* pv-block-start:fnopue */}
-              <DropdownSeparator data-pv-block="fnopue" />
-              {/* pv-block-end:fnopue */}
-              {/* pv-block-start:we33gf */}
-              <DropdownItem data-pv-block="we33gf" label="Delete" prefixIcon="Trash2" destructive={true} />
-              {/* pv-block-end:we33gf */}
-            {/* pv-editable-zone-end */}
-          </DropdownButton>
-          {/* pv-block-end:s8t34n */}
+          </SelectDropdown>
+          {/* pv-block-end:4elhjy */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
@@ -449,7 +293,7 @@ export default function App() {
           {JSON.stringify({ width: "md", children: "[DropdownGroupLabel, DropdownItem x3, DropdownSeparator]" }, null, 2)}
         </pre>
 
-        <SelectDropdownButton placeholder="Select an option" value="Option 1" open={false} />
+        <SelectDropdown placeholder="Select an option" value="Option 1" />
         <pre>
           {JSON.stringify({ placeholder: "Select an option", value: "Option 1", open: false }, null, 2)}
         </pre>
