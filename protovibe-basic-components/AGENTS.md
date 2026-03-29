@@ -130,6 +130,26 @@ When writing JSX that composes multiple elements (a mix of UI components and pla
 - Any time you add elements to an existing zone in any file.
 - Does **not** apply inside component source files (`src/components/ui/*.tsx`) — block tags live in usage sites, not in component definitions.
 
+## pvConfig `invalidCombinations`
+
+Use `invalidCombinations` to suppress nonsensical or visually broken prop combos from the Component Playground variant matrix. Each entry is a predicate — if any returns `true` for a combo, that combo is skipped.
+
+```ts
+invalidCombinations: [
+  // prefix slot takes either an icon or text, not both
+  (props) => !!props.prefixIcon && !!props.prefixText,
+  // button with no label and no icon is invisible
+  (props) => !props.iconOnly && !props.label,
+],
+```
+
+Common patterns to always apply:
+- **Mutually exclusive slots** — `prefixIcon` + `prefixText`, `suffixIcon` + `suffixText`
+- **Required content** — filter any combo where the component would render empty (no label, no placeholder, etc.)
+- **Co-dependency** — e.g. `iconOnly=true` requires at least one icon prop set
+
+Since `pvConfig` is a JS module (not JSON), predicate functions are fully supported.
+
 ## Inspector Mutation Locking
 
 - When adding inspector buttons/inputs that mutate code (backend write), run them through `runLockedMutation` from `plugins/protovibe/src/ui/context/ProtovibeContext.tsx`.

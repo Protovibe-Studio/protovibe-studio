@@ -144,13 +144,25 @@ export const pvConfig = {
   defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
   props: {
-    placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },
+    placeholder: { type: 'string', exampleValue: 'Enter text...' },
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
-    type: { type: 'string', exampleValue: 'Lorem ipsum' },
+    type: { type: 'string', exampleValue: 'text' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    prefixText: { type: 'string', exampleValue: 'Lorem ipsum' },
-    suffixText: { type: 'string', exampleValue: 'Lorem ipsum' },
+    prefixText: { type: 'string', exampleValue: 'https://' },
+    suffixText: { type: 'string', exampleValue: 'EUR' },
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
   },
+  invalidCombinations: [
+    // input with no placeholder looks broken in previews
+    (props: Record<string, any>) => !props.placeholder,
+    // prefix slot can hold either an icon or text, not both
+    (props: Record<string, any>) => !!props.prefixIcon && !!props.prefixText,
+    // suffix slot can hold either an icon or text, not both
+    (props: Record<string, any>) => !!props.suffixIcon && !!props.suffixText,
+    // having both a prefix icon and suffix icon at the same time is too busy
+    (props: Record<string, any>) => !!props.prefixIcon && !!props.suffixIcon,
+    // having both prefix text and suffix text at the same time is too busy
+    (props: Record<string, any>) => !!props.prefixText && !!props.suffixText,
+  ],
 };

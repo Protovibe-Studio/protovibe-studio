@@ -15,9 +15,7 @@ export interface TextareaProps extends Omit<React.HTMLAttributes<HTMLDivElement>
   prefixText?: string;
   suffixText?: string;
   suffixIcon?: string;
-  /** Default height in pixels applied as min-height to the textarea */
-  defaultHeight?: number;
-  /** Number of visible text rows (overrides defaultHeight when set) */
+  /** Number of visible text rows; also acts as minimum height when autoHeight is enabled */
   rows?: number;
   /** Controls resize handle. Ignored when autoHeight is true. Default: 'vertical' */
   resize?: TextareaResize;
@@ -59,7 +57,6 @@ export function Textarea({
   prefixText,
   suffixText,
   suffixIcon,
-  defaultHeight,
   rows,
   resize = 'vertical',
   autoHeight = true,
@@ -101,12 +98,8 @@ export function Textarea({
   const hasAdornments = prefixIcon || prefixText || suffixText || suffixIcon;
 
   const minHeightStyle: React.CSSProperties =
-    rows !== undefined
-      ? {} // rows attr controls height
-      : defaultHeight !== undefined
-      ? { minHeight: defaultHeight }
-      : autoHeight
-      ? {} // starts at content size; no forced min
+    rows !== undefined || autoHeight
+      ? {} // rows attr or autoHeight controls height
       : { minHeight: 80 };
 
   return (
@@ -178,19 +171,20 @@ export const pvConfig = {
   defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
   props: {
-    placeholder: { type: 'string', exampleValue: 'Lorem ipsum' },
+    placeholder: { type: 'string', exampleValue: 'Enter text...' },
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    prefixText: { type: 'string', exampleValue: 'Lorem ipsum' },
-    suffixText: { type: 'string', exampleValue: 'Lorem ipsum' },
+    prefixText: { type: 'string', exampleValue: 'Note' },
+    suffixText: { type: 'string', exampleValue: 'EUR' },
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    defaultHeight: { type: 'string', exampleValue: 'Lorem ipsum' },
-    rows: { type: 'string', exampleValue: 'Lorem ipsum' },
+    rows: { type: 'string', exampleValue: '4' },
     resize: { type: 'select', options: ['none', 'horizontal', 'vertical', 'both'] },
     autoHeight: { type: 'boolean' },
   },
   invalidCombinations: [
+    // a textarea with no placeholder looks broken in previews
+    (props: Record<string, any>) => !props.placeholder,
     // prefix slot can hold either an icon or text, not both
     (props: Record<string, any>) => !!props.prefixIcon && !!props.prefixText,
     // suffix slot can hold either an icon or text, not both
