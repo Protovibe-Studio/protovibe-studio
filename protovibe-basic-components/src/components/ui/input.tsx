@@ -126,7 +126,7 @@ export function Input({
         className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-foreground-default placeholder:text-foreground-tertiary disabled:cursor-not-allowed"
       />
       {suffixText && (
-        <span className="shrink-0 ml-2 text-sm text-foreground-tertiary select-none whitespace-nowrap border-l border-border-default pl-2">{suffixText}</span>
+        <span className="shrink-0 ml-2 text-sm select-none whitespace-nowrap border-l border-border-default pl-2 text-foreground-secondary">{suffixText}</span>
       )}
       {suffixIcon && (
         <Icon name={suffixIcon} size="sm" className="shrink-0 ml-2 text-foreground-tertiary pointer-events-none" />

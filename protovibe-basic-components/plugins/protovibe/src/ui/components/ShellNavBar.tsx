@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
 import React from 'react';
-import { Monitor, LayoutGrid, Palette, Paintbrush, PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { Monitor, LayoutGrid, Palette, Paintbrush, Eye, EyeOff } from 'lucide-react';
 import { theme } from '../theme';
 
 export type IframeTab = 'app' | 'components';
@@ -134,11 +134,11 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
         />
       ))}
 
-      {/* Sidebar collapse/expand toggle */}
+      {/* Live preview mode toggle */}
       {onToggleInspector && (
         <button
           onClick={onToggleInspector}
-          title={inspectorOpen ? 'Hide inspector' : 'Show inspector'}
+          title={inspectorOpen ? 'Disable live preview' : 'Enable live preview'}
           style={{
             marginLeft: '4px',
             display: 'flex',
@@ -155,8 +155,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           }}
         >
           {inspectorOpen
-            ? <PanelRightClose size={15} strokeWidth={1.8} />
-            : <PanelRightOpen size={15} strokeWidth={1.8} />}
+            ? <Eye size={15} strokeWidth={1.8} />
+            : <EyeOff size={15} strokeWidth={1.8} />}
         </button>
       )}
     </div>

@@ -25,8 +25,6 @@ export interface DropdownButtonProps extends React.HTMLAttributes<HTMLSpanElemen
   align?: 'left' | 'center' | 'right';
   /** Width of the dropdown list panel */
   width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
-  /** Expand the panel to match the trigger width when it is wider than the named width */
-  growToButtonWidth?: boolean;
   /** z-index for the floating panel */
   zIndex?: number;
   children?: React.ReactNode;
@@ -42,7 +40,6 @@ export function DropdownButton({
   placement = 'bottom',
   align = 'left',
   width = 'md',
-  growToButtonWidth = false,
   zIndex = 9999,
   children,
   className,
@@ -103,6 +100,7 @@ export function DropdownButton({
         size={size}
         leftIcon={leftIcon}
         rightIcon={rightIcon}
+        className="w-full"
         onClick={() => setIsOpen((prev) => !prev)}
       />
 
@@ -111,7 +109,7 @@ export function DropdownButton({
             <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
               <DropdownList
                 width={width}
-                style={growToButtonWidth && floatingStyle.minWidth ? { minWidth: floatingStyle.minWidth } : undefined}
+                style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
               >
                 {children}
               </DropdownList>
@@ -159,6 +157,5 @@ export const pvConfig = {
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
-    growToButtonWidth: { type: 'boolean' },
   },
 };

@@ -19,6 +19,7 @@ const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '2px';
 
 let isLocked = false;
+let isPreviewModeActive = false;
 let hoveredEl: HTMLElement | null = null;
 let selectedEl: HTMLElement | null = null;
 let suppressNextClickTarget: HTMLElement | null = null;
@@ -115,6 +116,7 @@ function clearSelectionOutline() {
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
 function handlePointerDown(e: PointerEvent) {
+  if (!isPreviewModeActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -154,6 +156,7 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handleClick(e: MouseEvent) {
+  if (!isPreviewModeActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -180,6 +183,7 @@ function handleClick(e: MouseEvent) {
 }
 
 function handleMouseMove(e: MouseEvent) {
+  if (!isPreviewModeActive) return;
   if (isLocked) {
     clearHoverOutline();
     return;
@@ -195,10 +199,12 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function handleMouseLeave() {
+  if (!isPreviewModeActive) return;
   clearHoverOutline();
 }
 
 function handleKeyDown(e: KeyboardEvent) {
+  if (!isPreviewModeActive) return;
   // Let the iframe handle key events that target real text-entry elements.
   const active = document.activeElement as HTMLElement | null;
   if (
@@ -228,6 +234,7 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 function handleDoubleClick(e: MouseEvent) {
+  if (!isPreviewModeActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -263,6 +270,16 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_CLEAR_SELECTION':
       clearSelectionOutline();
       break;
+    case 'PV_SET_PREVIEW_MODE': {
+      const active = !!e.data.active;
+      isPreviewModeActive = active;
+      if (!active) {
+        clearHoverOutline();
+        clearSelectionOutline();
+        document.body.style.cursor = '';
+      }
+      break;
+    }
     case 'PV_SET_LOCKED':
       isLocked = !!e.data.locked;
       document.body.style.cursor = isLocked ? 'progress' : '';
@@ -276,6 +293,10 @@ function handleParentMessage(e: MessageEvent) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 function init() {
+  // Skip entirely when the app is opened as a standalone page (not embedded in the
+  // Protovibe shell iframe). In that case window.parent === window.
+  if (window.parent === window) return;
+
   document.addEventListener('pointerdown', handlePointerDown, true);
   document.addEventListener('click', handleClick, true);
   document.addEventListener('mousemove', handleMouseMove, true);

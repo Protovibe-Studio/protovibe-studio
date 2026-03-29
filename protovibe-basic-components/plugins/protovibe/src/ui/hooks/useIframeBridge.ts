@@ -84,8 +84,12 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
     );
   }, [isMutationLocked, iframeRef]);
 
-  // Clear iframe selection when inspector closes
+  // Sync live preview mode into iframe whenever inspector open state changes
   useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
+      '*'
+    );
     if (!inspectorOpen) {
       iframeRef.current?.contentWindow?.postMessage(
         { type: 'PV_CLEAR_SELECTION' },

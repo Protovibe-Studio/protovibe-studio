@@ -22,8 +22,6 @@ export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButt
   align?: 'left' | 'center' | 'right';
   /** Width of the dropdown list panel */
   width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
-  /** Expand the panel to match the trigger width when it is wider than the named width */
-  growToButtonWidth?: boolean;
   /** Shows a destructive/error border on the trigger */
   error?: boolean;
   /** z-index for the floating panel */
@@ -39,7 +37,6 @@ export function SelectDropdown({
   placement = 'bottom',
   align = 'left',
   width = 'md',
-  growToButtonWidth = false,
   error = false,
   disabled = false,
   zIndex = 9999,
@@ -164,7 +161,7 @@ export function SelectDropdown({
             <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
               <DropdownList
                 width={width}
-                style={growToButtonWidth && floatingStyle.minWidth ? { minWidth: floatingStyle.minWidth } : undefined}
+                style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
               >
                 {enhancedChildren}
               </DropdownList>
@@ -205,7 +202,6 @@ export const pvConfig = {
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
-    growToButtonWidth: { type: 'boolean' },
     error: { type: 'boolean' },
     disabled: { type: 'boolean' },
   },

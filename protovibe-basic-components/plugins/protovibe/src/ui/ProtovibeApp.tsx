@@ -50,7 +50,11 @@ export const ProtovibeApp: React.FC = () => {
       { type: 'PV_SET_THEME', theme: iframeTheme },
       '*'
     );
-  }, [activeIframeTab, iframeTheme]);
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
+      '*'
+    );
+  }, [activeIframeTab, iframeTheme, inspectorOpen]);
 
   // Sync iframe theme whenever it changes
   useEffect(() => {

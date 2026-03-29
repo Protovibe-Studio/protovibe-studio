@@ -59,6 +59,22 @@ export default function App() {
             {/* pv-editable-zone-end */}
           </DropdownButton>
           {/* pv-block-end:f3r26d */}
+
+          {/* pv-block-start:zb3wr1 */}
+          <SelectDropdown className="w-1/2" data-pv-block="zb3wr1" placeholder="Select an option">
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:rkl5y0 */}
+              <DropdownItem data-pv-block="rkl5y0" value="opt1" label="Option One" selected={false} />
+              {/* pv-block-end:rkl5y0 */}
+              {/* pv-block-start:ow5jn7 */}
+              <DropdownItem data-pv-block="ow5jn7" value="opt2" label="Option Two" selected={false} />
+              {/* pv-block-end:ow5jn7 */}
+              {/* pv-block-start:1oto03 */}
+              <DropdownItem data-pv-block="1oto03" value="opt3" label="Option Three" selected={false} />
+              {/* pv-block-end:1oto03 */}
+            {/* pv-editable-zone-end */}
+          </SelectDropdown>
+          {/* pv-block-end:zb3wr1 */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
