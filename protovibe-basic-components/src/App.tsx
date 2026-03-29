@@ -39,16 +39,16 @@ export default function App() {
   const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
   return (
     <div>
-      <div className="pl-5">
+      <div className="pl-5 flex flex-col">
         {/* pv-editable-zone-start:kcyc8f */}
           {/* pv-block-start:4elhjy */}
-          <SelectDropdown data-pv-block="4elhjy" placeholder="Select an option">
+          <SelectDropdown className="" growToButtonWidth width="xl"  data-pv-block="4elhjy" placeholder="Select an option">
             {/* pv-editable-zone-start */}
               {/* pv-block-start:1815vh */}
-              <DropdownItem data-pv-block="1815vh" value="opt1" label="Option One" selected={false} />
+              <DropdownItem secondaryText="Witam serdecznie pozdrawiam serdecznie yo man!" data-pv-block="1815vh" value="opt1" label="Option One" selected={false} />
               {/* pv-block-end:1815vh */}
               {/* pv-block-start:547aw7 */}
-              <DropdownItem data-pv-block="547aw7" value="opt2" label="Option Two" selected={false} />
+              <DropdownItem prefixIcon="AArrowUp" data-pv-block="547aw7" value="opt2" label="Option Two" selected={false} />
               {/* pv-block-end:547aw7 */}
               {/* pv-block-start:2fnhz0 */}
               <DropdownItem data-pv-block="2fnhz0" value="opt3" label="Option Three" selected={false} />
@@ -56,6 +56,25 @@ export default function App() {
             {/* pv-editable-zone-end */}
           </SelectDropdown>
           {/* pv-block-end:4elhjy */}
+
+          {/* pv-block-start:22mi6m */}
+          <DropdownButton data-pv-block="22mi6m" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:ezv1s9 */}
+              <DropdownItem data-pv-block="ezv1s9" label="Edit" prefixIcon="Edit2" />
+              {/* pv-block-end:ezv1s9 */}
+              {/* pv-block-start:yq0si9 */}
+              <DropdownItem data-pv-block="yq0si9" label="Duplicate" prefixIcon="Copy" />
+              {/* pv-block-end:yq0si9 */}
+              {/* pv-block-start:f2gnq5 */}
+              <DropdownSeparator data-pv-block="f2gnq5" />
+              {/* pv-block-end:f2gnq5 */}
+              {/* pv-block-start:69ufnv */}
+              <DropdownItem data-pv-block="69ufnv" label="Delete" prefixIcon="Trash2" destructive={true} />
+              {/* pv-block-end:69ufnv */}
+            {/* pv-editable-zone-end */}
+          </DropdownButton>
+          {/* pv-block-end:22mi6m */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

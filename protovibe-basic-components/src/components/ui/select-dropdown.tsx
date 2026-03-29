@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { icons } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
+import { cn } from '@/lib/utils';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import type { DropdownItemProps } from '@/components/ui/dropdown-item';
@@ -21,6 +22,8 @@ export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButt
   align?: 'left' | 'center' | 'right';
   /** Width of the dropdown list panel */
   width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Expand the panel to match the trigger width when it is wider than the named width */
+  growToButtonWidth?: boolean;
   /** Shows a destructive/error border on the trigger */
   error?: boolean;
   /** z-index for the floating panel */
@@ -36,6 +39,7 @@ export function SelectDropdown({
   placement = 'bottom',
   align = 'left',
   width = 'md',
+  growToButtonWidth = false,
   error = false,
   disabled = false,
   zIndex = 9999,
@@ -130,7 +134,7 @@ export function SelectDropdown({
         disabled={disabled}
         data-open={isOpen}
         data-error={error}
-        className={`flex h-10 w-full items-center gap-2 rounded-md border border-border-default bg-background-default px-3 py-2 text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-primary data-[open=true]:border-transparent data-[error=true]:border-border-destructive disabled:cursor-not-allowed disabled:opacity-50${className ? ` ${className}` : ''}`}
+        className={cn('flex h-10 w-full items-center gap-2 rounded-md border border-border-default bg-background-default px-3 py-2 text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-primary data-[open=true]:border-transparent data-[error=true]:border-border-destructive disabled:cursor-not-allowed disabled:opacity-50', className)}
         onClick={(e) => {
           if (!disabled) setIsOpen((prev) => !prev);
           onClick?.(e);
@@ -158,7 +162,10 @@ export function SelectDropdown({
       {isOpen && portalTarget
         ? createPortal(
             <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
-              <DropdownList width={width}>
+              <DropdownList
+                width={width}
+                style={growToButtonWidth && floatingStyle.minWidth ? { minWidth: floatingStyle.minWidth } : undefined}
+              >
                 {enhancedChildren}
               </DropdownList>
             </div>,
@@ -198,6 +205,7 @@ export const pvConfig = {
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
+    growToButtonWidth: { type: 'boolean' },
     error: { type: 'boolean' },
     disabled: { type: 'boolean' },
   },

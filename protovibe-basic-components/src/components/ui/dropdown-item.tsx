@@ -13,6 +13,8 @@ export interface DropdownItemProps extends React.HTMLAttributes<HTMLDivElement> 
   disabled?: boolean;
   /** true = show check icon, false = show invisible placeholder, undefined = render nothing */
   selected?: boolean;
+  /** Smaller muted text rendered below the main label row */
+  secondaryText?: string;
 }
 
 export function DropdownItem({
@@ -23,6 +25,7 @@ export function DropdownItem({
   destructive,
   disabled,
   selected,
+  secondaryText,
   className,
   ...props
 }: DropdownItemProps) {
@@ -33,7 +36,7 @@ export function DropdownItem({
       data-destructive={destructive}
       data-disabled={disabled}
       className={cn(
-        'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer select-none transition-colors',
+        'flex flex-col px-3 py-2 text-sm cursor-pointer select-none transition-colors',
         'text-foreground-default hover:bg-background-secondary',
         'data-[destructive=true]:text-destructive hover:data-[destructive=true]:bg-background-destructive-subtle',
         'data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none',
@@ -42,16 +45,21 @@ export function DropdownItem({
       {...props}
       data-pv-component-id="DropdownItem"
     >
-      {selected !== undefined && (
-        <Icon
-          name="Check"
-          size="sm"
-          className={selected ? 'text-foreground-default' : 'opacity-0 text-foreground-default'}
-        />
+      <div className="flex items-center gap-2">
+        {selected !== undefined && (
+          <Icon
+            name="Check"
+            size="sm"
+            className={selected ? 'text-foreground-default' : 'opacity-0 text-foreground-default'}
+          />
+        )}
+        {prefixIcon && <Icon name={prefixIcon} size="sm" className="text-foreground-secondary" />}
+        {label && <span className="flex-1 text-foreground-default">{label}</span>}
+        {suffixIcon && <Icon name={suffixIcon} size="sm" className="text-foreground-tertiary" />}
+      </div>
+      {secondaryText && (
+        <span className="text-xs text-foreground-tertiary pl-6">{secondaryText}</span>
       )}
-      {prefixIcon && <Icon name={prefixIcon} size="sm" className="text-foreground-secondary" />}
-      {label && <span className="flex-1 text-foreground-default">{label}</span>}
-      {suffixIcon && <Icon name={suffixIcon} size="sm" className="text-foreground-tertiary" />}
     </div>
   );
 }
@@ -69,6 +77,7 @@ export const pvConfig = {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     selected: { type: 'boolean' },
     destructive: { type: 'boolean' },
     disabled: { type: 'boolean' },
