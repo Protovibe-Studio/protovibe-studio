@@ -603,6 +603,18 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             lines.splice(insertAt, 0, `import { ${imp.name} } from '${imp.path}'`);
           }
           fileContent = lines.join('\n');
+
+          // Recalculate blockStart/blockEnd: injected import lines shift everything after them down.
+          if (targetStartLine && targetEndLine) {
+            const getOffsetUpdated = (lineNum: number) => {
+              if (lineNum <= 1) return 0;
+              return fileContent.split('\n').slice(0, lineNum - 1).join('\n').length + 1;
+            };
+            const shiftedStart = targetStartLine + toInject.length;
+            const shiftedEnd = targetEndLine + toInject.length;
+            blockStart = getOffsetUpdated(shiftedStart);
+            blockEnd = getOffsetUpdated(shiftedEnd + 1);
+          }
         }
       }
 

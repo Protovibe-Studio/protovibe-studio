@@ -12,8 +12,6 @@ import { Tabs } from '@/components/ui/tabs';
 import { TabTrigger } from '@/components/ui/tab-trigger';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedControlItem } from '@/components/ui/segmented-control-item';
-import { PopoverTrigger } from '@/components/ui/popover-trigger';
-import { PopoverCloseTrigger } from '@/components/ui/popover-close-trigger';
 import { DialogTrigger } from '@/components/ui/dialog-trigger';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
@@ -41,21 +39,6 @@ export default function App() {
     <div>
       <div className="pl-5 flex flex-col">
         {/* pv-editable-zone-start:kcyc8f */}
-          {/* pv-block-start:4elhjy */}
-          <SelectDropdown className="" growToButtonWidth width="xl"  data-pv-block="4elhjy" placeholder="Select an option">
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start:1815vh */}
-              <DropdownItem secondaryText="Witam serdecznie pozdrawiam serdecznie yo man!" data-pv-block="1815vh" value="opt1" label="Option One" selected={false} />
-              {/* pv-block-end:1815vh */}
-              {/* pv-block-start:547aw7 */}
-              <DropdownItem prefixIcon="AArrowUp" data-pv-block="547aw7" value="opt2" label="Option Two" selected={false} />
-              {/* pv-block-end:547aw7 */}
-              {/* pv-block-start:2fnhz0 */}
-              <DropdownItem data-pv-block="2fnhz0" value="opt3" label="Option Three" selected={false} />
-              {/* pv-block-end:2fnhz0 */}
-            {/* pv-editable-zone-end */}
-          </SelectDropdown>
-          {/* pv-block-end:4elhjy */}
 
           {/* pv-block-start:22mi6m */}
           <DropdownButton data-pv-block="22mi6m" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
@@ -310,11 +293,6 @@ export default function App() {
         </DropdownList>
         <pre>
           {JSON.stringify({ width: "md", children: "[DropdownGroupLabel, DropdownItem x3, DropdownSeparator]" }, null, 2)}
-        </pre>
-
-        <SelectDropdown placeholder="Select an option" value="Option 1" />
-        <pre>
-          {JSON.stringify({ placeholder: "Select an option", value: "Option 1", open: false }, null, 2)}
         </pre>
 
         <Combobox placeholder="Search items..." open={false} value="item1">
