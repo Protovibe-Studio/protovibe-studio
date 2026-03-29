@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor } from './backend/server';
+import { registerSketchpadMiddleware, getSketchpadHtmlInjections } from './sketchpad-source';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +70,9 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__get-components', (req, res) => handleGetComponents(req, res, server));
       server.middlewares.use('/__get-theme-colors', handleGetThemeColors);
       server.middlewares.use('/__update-theme-color', handleUpdateThemeColor);
+
+      // Sketchpad endpoints
+      registerSketchpadMiddleware(server);
     },
 
     transformIndexHtml: {
@@ -76,7 +80,8 @@ export function protovibeSourcePlugin(): Plugin {
       handler(html, ctx) {
         const filename = ctx?.filename ?? '';
         const isAppHtml = filename.endsWith('app.html');
-        const isIndexHtml = !isAppHtml && filename.endsWith('index.html');
+        const isSketchpadHtml = filename.endsWith('sketchpad.html');
+        const isIndexHtml = !isAppHtml && !isSketchpadHtml && filename.endsWith('index.html');
 
         if (isAppHtml) {
           // Inject the bridge script into the app iframe
@@ -112,6 +117,10 @@ export function protovibeSourcePlugin(): Plugin {
           return injections;
         }
 
+        if (isSketchpadHtml) {
+          return getSketchpadHtmlInjections(__dirname, path.resolve(__dirname, '../src'));
+        }
+
         if (isIndexHtml) {
           // Inject the Protovibe shell (inspector) into the parent page
           const inspectorPath = path.resolve(__dirname, 'ui/inspector.js');
@@ -131,6 +140,17 @@ export function protovibeSourcePlugin(): Plugin {
 
         return [];
       },
-    }
+    },
+
+    // Suppress full-page reloads for sketchpad data files (_registry.json,
+    // frame .tsx files). These are written by the sketchpad backend and should
+    // Suppress full-page reloads for non-HMR-able sketchpad data files
+    // (e.g. _registry.json) while letting frame .tsx files hot-reload normally.
+    handleHotUpdate({ file }) {
+      const sketchpadsDir = path.resolve(process.cwd(), 'src/sketchpads');
+      if (file.startsWith(sketchpadsDir) && !file.endsWith('.tsx') && !file.endsWith('.jsx')) {
+        return [];
+      }
+    },
   };
 }

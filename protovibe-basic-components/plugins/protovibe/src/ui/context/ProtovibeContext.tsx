@@ -36,6 +36,7 @@ interface ProtovibeContextType {
   setSources: (ids: string[]) => void;
   zones: Zone[];
   focusElement: (el: HTMLElement) => void;
+  clearFocus: () => void;
   focusNewBlock: (blockId: string, options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
   isMutationLocked: boolean;
   runLockedMutation: <T>(mutation: () => Promise<T>) => Promise<T | undefined>;
@@ -225,9 +226,18 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     // Tell bridge to move the outline visually (for keyboard navigation)
-    const iframeEl = document.querySelector('iframe[src="/app.html"]') as HTMLIFrameElement | null;
+    // Target whichever iframe is currently active (app or sketchpad)
+    const iframeEl = (document.querySelector('iframe[src="/sketchpad.html"]') ??
+      document.querySelector('iframe[src="/app.html"]')) as HTMLIFrameElement | null;
     iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeId }, '*');
 
+  }, [setHighlightedElement]);
+
+  const clearFocus = useCallback(() => {
+    setHighlightedElement(null);
+    setCurrentBaseTarget(null);
+    setActiveSourceId(null);
+    setSources([]);
   }, [setHighlightedElement]);
 
   const focusNewBlock = useCallback((blockId: string, options: { maxAttempts?: number; initialDelay?: number; interval?: number } = {}) => {
@@ -308,6 +318,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       sources, setSources,
       zones,
       focusElement,
+      clearFocus,
       focusNewBlock,
       isMutationLocked,
       runLockedMutation,

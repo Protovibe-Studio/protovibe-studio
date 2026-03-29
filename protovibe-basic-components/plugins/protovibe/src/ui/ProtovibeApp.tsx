@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { Sidebar } from './components/Sidebar';
@@ -30,6 +30,11 @@ export const ProtovibeApp: React.FC = () => {
 
   useIframeBridge(iframeRef);
   useKeyboardShortcuts();
+
+  const iframeSrc = useMemo(() => {
+    if (activeIframeTab === 'sketchpad') return '/sketchpad.html';
+    return '/app.html';
+  }, [activeIframeTab]);
 
   // Tell the in-iframe overlay to show/hide when the Components iframe tab is toggled
   useEffect(() => {
@@ -88,9 +93,9 @@ export const ProtovibeApp: React.FC = () => {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
           <iframe
             ref={iframeRef}
-            src="/app.html"
+            src={iframeSrc}
             style={{ flex: 1, border: 'none', minWidth: 0 }}
-            title="App Preview"
+            title={activeIframeTab === 'sketchpad' ? 'Sketchpad' : 'App Preview'}
             onLoad={handleIframeLoad}
           />
           <div

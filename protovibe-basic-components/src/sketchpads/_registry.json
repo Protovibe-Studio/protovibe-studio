@@ -1,0 +1,33 @@
+{
+  "sketchpads": [
+    {
+      "id": "default",
+      "name": "Untitled Sketchpad",
+      "createdAt": "2026-03-29T00:00:00.000Z",
+      "frames": []
+    },
+    {
+      "id": "asdasd",
+      "name": "asdasd",
+      "createdAt": "2026-03-29T19:38:08.433Z",
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 800,
+          "height": 600,
+          "canvasX": 227,
+          "canvasY": 64
+        },
+        {
+          "id": "frame-frame-2",
+          "name": "Frame 2",
+          "width": 800,
+          "height": 600,
+          "canvasX": 1096,
+          "canvasY": 102
+        }
+      ]
+    }
+  ]
+}

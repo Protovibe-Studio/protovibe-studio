@@ -29,6 +29,8 @@ let suppressNextClickTarget: HTMLElement | null = null;
 function findInspectableTarget(start: EventTarget | null): HTMLElement | null {
   let t = start as HTMLElement | null;
   while (t && t !== document.documentElement) {
+    // Skip Protovibe UI chrome — not inspectable
+    if (t.dataset?.pvUi === 'true') return null;
     if (t.attributes) {
       for (let i = 0; i < t.attributes.length; i++) {
         if (t.attributes[i].name.startsWith('data-pv-loc-')) {
@@ -311,3 +313,5 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+export {};

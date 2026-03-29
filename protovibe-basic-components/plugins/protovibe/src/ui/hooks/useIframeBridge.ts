@@ -35,7 +35,7 @@ interface PvKeyDownMessage {
 type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvKeyDownMessage;
 
 export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) {
-  const { focusElement, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
+  const { focusElement, clearFocus, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
 
   // Handle incoming messages from the iframe
   useEffect(() => {
@@ -59,6 +59,10 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
         focusElement(el);
       }
 
+      if (e.data.type === 'PV_ELEMENT_DESELECT') {
+        clearFocus();
+      }
+
       if (e.data.type === 'PV_DOUBLE_CLICK') {
         window.dispatchEvent(new Event(PV_FOCUS_TEXT_CONTENT_EVENT));
       }
@@ -74,7 +78,7 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [focusElement, iframeRef]); // <-- Removed resolveElement here
+  }, [focusElement, clearFocus, iframeRef]);
 
   // Sync mutation lock state into iframe
   useEffect(() => {
