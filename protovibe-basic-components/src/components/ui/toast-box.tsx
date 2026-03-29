@@ -70,7 +70,7 @@ export function ToastBox({
       {actionLabel && (
         <Button
           label={actionLabel}
-          variant="ghost"
+          variant="outline"
           color="neutral"
           size="sm"
           className="shrink-0 self-center"
@@ -105,10 +105,16 @@ export const pvConfig = {
   defaultContent: '',
   props: {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },
-    heading: { type: 'string', exampleValue: 'Lorem ipsum' },
-    secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
+    heading: { type: 'string', exampleValue: 'Changes saved' },
+    secondaryText: { type: 'string', exampleValue: 'Your changes have been saved successfully.' },
     icon: { type: 'select', options: Object.keys(LucideIcons) },
-    actionLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
+    actionLabel: { type: 'string', exampleValue: 'Undo' },
     showCloseButton: { type: 'boolean' },
   },
+  invalidCombinations: [
+    // heading is the primary identity of a toast — must always be present
+    (props: Record<string, any>) => !props.heading,
+    // secondary text without a heading has no context
+    (props: Record<string, any>) => !!props.secondaryText && !props.heading,
+  ],
 };

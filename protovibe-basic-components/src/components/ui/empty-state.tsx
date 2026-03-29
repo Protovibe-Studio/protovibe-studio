@@ -107,11 +107,20 @@ export const pvConfig = {
   props: {
     icon: { type: 'select', options: Object.keys(LucideIcons) },
     iconSize: { type: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl'] },
-    heading: { type: 'string', exampleValue: 'Lorem ipsum' },
-    secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
-    learnMoreLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
-    learnMoreHref: { type: 'string', exampleValue: 'Lorem ipsum' },
-    primaryActionLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
-    secondaryActionLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
+    heading: { type: 'string', exampleValue: 'Nothing here yet' },
+    secondaryText: { type: 'string', exampleValue: 'Get started by creating your first item.' },
+    learnMoreLabel: { type: 'string', exampleValue: 'Learn more' },
+    learnMoreHref: { type: 'string', exampleValue: '#' },
+    primaryActionLabel: { type: 'string', exampleValue: 'Get started' },
+    secondaryActionLabel: { type: 'string', exampleValue: 'Learn more' },
   },
+  invalidCombinations: [
+    // only md and xl icon sizes make sense for empty states
+    (props: Record<string, any>) => !!props.iconSize && !['md', 'xl'].includes(props.iconSize),
+    // empty state without description text looks incomplete
+    (props: Record<string, any>) => !props.secondaryText,
+    // button labels must never be empty strings
+    (props: Record<string, any>) => props.primaryActionLabel === '',
+    (props: Record<string, any>) => props.secondaryActionLabel === '',
+  ],
 };

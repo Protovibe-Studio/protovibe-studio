@@ -7,7 +7,7 @@ export function DropdownSeparator({ className, ...props }: DropdownSeparatorProp
   return (
     <div
       role="separator"
-      className={cn('my-1 h-px bg-border-default', className)}
+      className={cn('my-1 h-px bg-border-default flex-1', className)}
       {...props}
       data-pv-component-id="DropdownSeparator"
     />

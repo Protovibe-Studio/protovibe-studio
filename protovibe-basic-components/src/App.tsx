@@ -38,7 +38,7 @@ export default function App() {
   const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
   return (
     <div>
-      <div className="pl-5 flex flex-col">
+      <div className="pl-5 flex flex-col items-center">
         {/* pv-editable-zone-start:kcyc8f */}
 
           {/* pv-block-start:f3r26d */}
@@ -75,6 +75,37 @@ export default function App() {
             {/* pv-editable-zone-end */}
           </SelectDropdown>
           {/* pv-block-end:zb3wr1 */}
+
+          {/* pv-block-start:esr01v */}
+          <VerticalTabTrigger data-pv-block="esr01v" label="Tab 1" value="tab1">
+            {/* pv-editable-zone-start */}
+            {/* pv-editable-zone-end */}
+          </VerticalTabTrigger>
+          {/* pv-block-end:esr01v */}
+
+          {/* pv-block-start:c5xv34 */}
+          <TabTrigger data-pv-block="c5xv34" label="Tab 1" value="tab1" />
+          {/* pv-block-end:c5xv34 */}
+
+          {/* pv-block-start:5sp8t1 */}
+          <Tabs data-pv-block="5sp8t1" value="tab1">
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:bmu375 */}
+              <TabTrigger data-pv-block="bmu375" label="Tab 1" value="tab1" />
+              {/* pv-block-end:bmu375 */}
+              {/* pv-block-start:topvb3 */}
+              <TabTrigger data-pv-block="topvb3" label="Tab 2" value="tab2" />
+              {/* pv-block-end:topvb3 */}
+              {/* pv-block-start:ia5m1q */}
+              <TabTrigger data-pv-block="ia5m1q" label="Tab 3" value="tab3" />
+              {/* pv-block-end:ia5m1q */}
+            {/* pv-editable-zone-end */}
+          </Tabs>
+          {/* pv-block-end:5sp8t1 */}
+
+          {/* pv-block-start:k1nm2r */}
+          <RadioItem data-pv-block="k1nm2r" primaryText="Option 1" value="opt1" />
+          {/* pv-block-end:k1nm2r */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

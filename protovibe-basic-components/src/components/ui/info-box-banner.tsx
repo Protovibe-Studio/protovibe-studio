@@ -145,4 +145,8 @@ export const pvConfig = {
     secondaryActionLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
     actionsLayout: { type: 'select', options: ['bottom', 'right'] },
   },
+  invalidCombinations: [
+    // infobox without description text looks incomplete
+    (props: Record<string, any>) => !props.secondaryText,
+  ],
 };
