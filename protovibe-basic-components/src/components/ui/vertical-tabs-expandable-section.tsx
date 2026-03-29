@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { VerticalTabItem, ExpandableState } from '@/components/ui/vertical-tab-trigger';
+import { VerticalTabItem, ExpandableState } from '@/components/ui/vertical-tab-item';
 
 // Extends HTMLDivElement attrs so {...rest} lands on the wrapper div (root element).
 export interface VerticalTabsExpandableSectionProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {

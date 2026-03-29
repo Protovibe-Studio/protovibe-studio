@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { cn } from '@/lib/utils';
-import { VerticalTabItem } from '@/components/ui/vertical-tab-trigger';
+import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
 
 export interface VerticalTabsContextValue {
   activeValue: string | undefined;
@@ -87,7 +87,7 @@ export const pvConfig = {
   defaultProps: 'value="tab1"',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
-    { name: 'VerticalTabItem', path: '@/components/ui/vertical-tab-trigger' },
+    { name: 'VerticalTabItem', path: '@/components/ui/vertical-tab-item' },
   ],
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

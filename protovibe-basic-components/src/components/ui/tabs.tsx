@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { cn } from '@/lib/utils';
-import { TabItem } from '@/components/ui/tab-trigger';
+import { TabItem } from '@/components/ui/tab-item';
 
 export interface TabsContextValue {
   activeValue: string | undefined;
@@ -78,7 +78,7 @@ export const pvConfig = {
   defaultProps: 'value="tab1"',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
-    { name: 'TabItem', path: '@/components/ui/tab-trigger' },
+    { name: 'TabItem', path: '@/components/ui/tab-item' },
   ],
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { Combobox, ComboboxItem } from '@/components/ui/combobox';
 import { Tabs } from '@/components/ui/tabs';
-import { TabItem } from '@/components/ui/tab-trigger';
+import { TabItem } from '@/components/ui/tab-item';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedControlItem } from '@/components/ui/segmented-control-item';
 import { DialogTrigger } from '@/components/ui/dialog-trigger';
@@ -25,7 +25,7 @@ import { InfoBoxBanner } from '@/components/ui/info-box-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PreloaderSpinner } from '@/components/ui/preloader-spinner';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
-import { VerticalTabItem } from '@/components/ui/vertical-tab-trigger';
+import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
 import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
 import { ToastBox } from '@/components/ui/toast-box';
 import { DropdownButton } from '@/components/ui/dropdown-button'
@@ -282,20 +282,49 @@ export default function App() {
                     {/* pv-block-start:5nxnn2 */}
                     <DialogOverlay data-pv-block="5nxnn2">
                       <DialogWindow size="md">
-                        {/* pv-editable-zone-start */}
+                        {/* pv-editable-zone-start:nk72gs */}
                         {/* pv-block-start:kdp7ko */}
                         <h2 data-pv-block="kdp7ko" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
                         {/* pv-block-end:kdp7ko */}
                         {/* pv-block-start:2810k8 */}
                         <p data-pv-block="2810k8" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
                         {/* pv-block-end:2810k8 */}
-                        {/* pv-editable-zone-end */}
+                        
+                          {/* pv-block-start:rccd5e */}
+                          <Button data-pv-block="rccd5e" label="Button" variant="solid" color="primary" size="md" />
+                          {/* pv-block-end:rccd5e */}
+                        {/* pv-editable-zone-end:nk72gs */}
                       </DialogWindow>
                     </DialogOverlay>
                     {/* pv-block-end:5nxnn2 */}
                   {/* pv-editable-zone-end */}
           </DialogTrigger>
           {/* pv-block-end:dwn9dr */}
+
+          {/* pv-block-start:gdjjph */}
+          <VerticalTabs data-pv-block="gdjjph" value="tab1">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:4i1lca */}
+                    <VerticalTabItem data-pv-block="4i1lca" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:4i1lca */}
+                    {/* pv-block-start:vnzoar */}
+                    <VerticalTabItem data-pv-block="vnzoar" label="Analytics" value="tab2" prefixIcon="BarChart2">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:vnzoar */}
+                    {/* pv-block-start:cosff8 */}
+                    <VerticalTabItem data-pv-block="cosff8" label="Settings" value="tab3" prefixIcon="Settings">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:cosff8 */}
+                  {/* pv-editable-zone-end */}
+          </VerticalTabs>
+          {/* pv-block-end:gdjjph */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
