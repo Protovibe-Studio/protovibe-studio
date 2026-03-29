@@ -3,5 +3,6 @@
     "allow": [
       "Bash(grep -E \"\\\\.tsx$|^d\")"
     ]
-  }
+  },
+  "outputStyle": "Explanatory"
 }

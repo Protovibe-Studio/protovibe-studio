@@ -51,29 +51,28 @@ Use fixed overlay (`inset: 0`) in `document.body`; include backdrop, focus manag
 
 ### ID rules — the one thing to remember
 
-You will see `pv-editable-zone` tags in the codebase that already have IDs (e.g. `{/* pv-editable-zone-start:abc123 */}`). Those IDs were assigned by the Protovibe server — **never by hand**. Use this simple rule when writing zones yourself:
+You will see `pv-editable-zone` tags in the codebase that already have IDs (e.g. `{/* pv-editable-zone-start:abc123 */}`). Those IDs were assigned by the Protovibe server — **never by hand**. Always write zones and blocks without IDs:
 
 | Situation | What to write |
 |---|---|
-| Zone is **empty** (no children yet) | Bare form — **no ID** |
-| Zone **already contains children** you are writing | Generate a random 6-char alphanumeric ID |
+| Any zone you write (empty or with children) | Bare form — **no ID** |
+| Any block you write | Bare form — **no ID**, empty `data-pv-block=""` |
 
-**Why:** An empty zone signals to the server "I haven't been registered yet — assign me an ID on first use." A zone that already holds content must carry a stable ID so the builder can track, move, and persist those blocks correctly.
+**Why:** IDs are always assigned by the Protovibe server on first render/registration. Writing IDs by hand causes conflicts and drift. The server handles all ID assignment — never add IDs manually, even when a zone already contains children.
 
 ```jsx
-// ✅ Empty zone — no ID
+// ✅ Correct — always bare, no IDs
 {/* pv-editable-zone-start */}
+  {/* pv-block-start */}
+  <p data-pv-block="">Some content</p>
+  {/* pv-block-end */}
 {/* pv-editable-zone-end */}
 
-// ✅ Zone with content — include a generated ID
-{/* pv-editable-zone-start:x4k9mz */}
+// ❌ Never add IDs by hand — the server does that
+{/* pv-editable-zone-start:abc123 */}
   {/* pv-block-start:r2t5lp */}
   <p data-pv-block="r2t5lp">Some content</p>
   {/* pv-block-end:r2t5lp */}
-{/* pv-editable-zone-end:x4k9mz */}
-
-// ❌ Never add an ID to an empty zone — the server does that
-{/* pv-editable-zone-start:abc123 */}
 {/* pv-editable-zone-end:abc123 */}
 ```
 
@@ -99,21 +98,21 @@ When writing JSX that composes multiple elements (a mix of UI components and pla
 ### Required format
 
 ```jsx
-{/* pv-editable-zone-start:abc123 */}
+{/* pv-editable-zone-start */}
 
-  {/* pv-block-start:x1y2z3 */}
-  <h2 data-pv-block="x1y2z3" className="text-xl font-semibold">Heading</h2>
-  {/* pv-block-end:x1y2z3 */}
+  {/* pv-block-start */}
+  <h2 data-pv-block="" className="text-xl font-semibold">Heading</h2>
+  {/* pv-block-end */}
 
-  {/* pv-block-start:a4b5c6 */}
-  <p data-pv-block="a4b5c6" className="text-foreground-secondary">Body copy goes here.</p>
-  {/* pv-block-end:a4b5c6 */}
+  {/* pv-block-start */}
+  <p data-pv-block="" className="text-foreground-secondary">Body copy goes here.</p>
+  {/* pv-block-end */}
 
-  {/* pv-block-start:d7e8f9 */}
-  <Button data-pv-block="d7e8f9" variant="default" label="Click me" />
-  {/* pv-block-end:d7e8f9 */}
+  {/* pv-block-start */}
+  <Button data-pv-block="" variant="default" label="Click me" />
+  {/* pv-block-end */}
 
-{/* pv-editable-zone-end:abc123 */}
+{/* pv-editable-zone-end */}
 ```
 
 ### Rules

@@ -32,6 +32,7 @@ import { VerticalTabs } from '@/components/ui/vertical-tabs';
 import { VerticalTabTrigger } from '@/components/ui/vertical-tab-trigger';
 import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
 import { ToastBox } from '@/components/ui/toast-box';
+import { DropdownButton } from '@/components/ui/dropdown-button'
 
 export default function App() {
   const { showToast } = useStore();
@@ -193,32 +194,24 @@ export default function App() {
           </PopoverTrigger>
           {/* pv-block-end:asgbjb */}
 
-          {/* pv-block-start:o7clh5 */}
-          <DialogTrigger data-pv-block="o7clh5">
-            
+          {/* pv-block-start:s8t34n */}
+          <DropdownButton data-pv-block="s8t34n" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
             {/* pv-editable-zone-start */}
-              {/* pv-block-start:deua6a */}
-              <DialogOverlay data-pv-block="deua6a">
-                <DialogWindow size="md">
-                  {/* pv-editable-zone-start */}
-                  {/* pv-block-start:6ebkrb */}
-                  <h2 data-pv-block="6ebkrb" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                  {/* pv-block-end:6ebkrb */}
-                  {/* pv-block-start:z85ask */}
-                  <p data-pv-block="z85ask" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                  {/* pv-block-end:z85ask */}
-                  {/* pv-block-start:3e7yey */}
-                  <DialogCloseTrigger data-pv-block="3e7yey">
-                    <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
-                  </DialogCloseTrigger>
-                  {/* pv-block-end:3e7yey */}
-                  {/* pv-editable-zone-end */}
-                </DialogWindow>
-              </DialogOverlay>
-              {/* pv-block-end */}
+              {/* pv-block-start:e0sa49 */}
+              <DropdownItem data-pv-block="e0sa49" label="Edit" prefixIcon="Edit2" />
+              {/* pv-block-end:e0sa49 */}
+              {/* pv-block-start:b6iv4q */}
+              <DropdownItem data-pv-block="b6iv4q" label="Duplicate" prefixIcon="Copy" />
+              {/* pv-block-end:b6iv4q */}
+              {/* pv-block-start:fnopue */}
+              <DropdownSeparator data-pv-block="fnopue" />
+              {/* pv-block-end:fnopue */}
+              {/* pv-block-start:we33gf */}
+              <DropdownItem data-pv-block="we33gf" label="Delete" prefixIcon="Trash2" destructive={true} />
+              {/* pv-block-end:we33gf */}
             {/* pv-editable-zone-end */}
-          </DialogTrigger>
-          {/* pv-block-end:o7clh5 */}
+          </DropdownButton>
+          {/* pv-block-end:s8t34n */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
