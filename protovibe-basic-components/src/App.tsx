@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
-import { DropdownList, DropdownItem, DropdownSeparator, DropdownGroupLabel } from '@/components/ui/dropdown-menu';
 import { Combobox, ComboboxItem } from '@/components/ui/combobox';
 import { Tabs } from '@/components/ui/tabs';
 import { TabTrigger } from '@/components/ui/tab-trigger';
@@ -31,6 +30,8 @@ import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-exp
 import { ToastBox } from '@/components/ui/toast-box';
 import { DropdownButton } from '@/components/ui/dropdown-button'
 import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 
 export default function App() {
   const { showToast } = useStore();
@@ -40,24 +41,24 @@ export default function App() {
       <div className="pl-5 flex flex-col">
         {/* pv-editable-zone-start:kcyc8f */}
 
-          {/* pv-block-start:22mi6m */}
-          <DropdownButton data-pv-block="22mi6m" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
+          {/* pv-block-start:f3r26d */}
+          <DropdownButton data-pv-block="f3r26d" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
             {/* pv-editable-zone-start */}
-              {/* pv-block-start:ezv1s9 */}
-              <DropdownItem data-pv-block="ezv1s9" label="Edit" prefixIcon="Edit2" />
-              {/* pv-block-end:ezv1s9 */}
-              {/* pv-block-start:yq0si9 */}
-              <DropdownItem data-pv-block="yq0si9" label="Duplicate" prefixIcon="Copy" />
-              {/* pv-block-end:yq0si9 */}
-              {/* pv-block-start:f2gnq5 */}
-              <DropdownSeparator data-pv-block="f2gnq5" />
-              {/* pv-block-end:f2gnq5 */}
-              {/* pv-block-start:69ufnv */}
-              <DropdownItem data-pv-block="69ufnv" label="Delete" prefixIcon="Trash2" destructive={true} />
-              {/* pv-block-end:69ufnv */}
+              {/* pv-block-start:n6uckk */}
+              <DropdownItem data-pv-block="n6uckk" label="Edit" prefixIcon="Edit2" />
+              {/* pv-block-end:n6uckk */}
+              {/* pv-block-start:cagd2f */}
+              <DropdownItem data-pv-block="cagd2f" label="Duplicate" prefixIcon="Copy" />
+              {/* pv-block-end:cagd2f */}
+              {/* pv-block-start:jx9l5a */}
+              <DropdownSeparator data-pv-block="jx9l5a" />
+              {/* pv-block-end:jx9l5a */}
+              {/* pv-block-start:6rixya */}
+              <DropdownItem data-pv-block="6rixya" label="Delete" prefixIcon="Trash2" destructive={true} />
+              {/* pv-block-end:6rixya */}
             {/* pv-editable-zone-end */}
           </DropdownButton>
-          {/* pv-block-end:22mi6m */}
+          {/* pv-block-end:f3r26d */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
@@ -284,18 +285,7 @@ export default function App() {
           {JSON.stringify({ label: "Enable feature", checked: true, disabled: false }, null, 2)}
         </pre>
 
-        <DropdownList width="md">
-          <DropdownGroupLabel label="Actions" />
-          <DropdownItem label="Edit" prefixIcon="Edit2" />
-          <DropdownItem label="Duplicate" prefixIcon="Copy" />
-          <DropdownSeparator />
-          <DropdownItem label="Delete" prefixIcon="Trash2" destructive={true} />
-        </DropdownList>
-        <pre>
-          {JSON.stringify({ width: "md", children: "[DropdownGroupLabel, DropdownItem x3, DropdownSeparator]" }, null, 2)}
-        </pre>
-
-        <Combobox placeholder="Search items..." open={false} value="item1">
+<Combobox placeholder="Search items..." open={false} value="item1">
           <ComboboxItem label="Item 1" value="item1" selected={true} />
         </Combobox>
         <pre>

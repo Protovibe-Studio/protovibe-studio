@@ -12,7 +12,7 @@ export function DropdownList({ width = 'auto', children, className, ...props }: 
       role="menu"
       data-width={width}
       className={cn(
-        'rounded-md bg-background-default shadow-lg ring-1 ring-border py-1 overflow-auto',
+        'rounded-md bg-background-default shadow-lg ring-1 ring-border-default py-1 overflow-auto',
         'data-[width=sm]:w-40 data-[width=md]:w-56 data-[width=lg]:w-72 data-[width=xl]:w-96',
         className
       )}

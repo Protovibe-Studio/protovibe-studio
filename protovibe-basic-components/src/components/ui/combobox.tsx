@@ -28,7 +28,7 @@ export function Combobox({ placeholder = 'Search...', open = false, value, child
       
       <div
         data-state={open ? 'open' : 'closed'}
-        className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-background-default py-1 text-base shadow-lg ring-1 ring-border focus:outline-none sm:text-sm data-[state=closed]:hidden z-10"
+        className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-background-default py-1 text-base shadow-lg ring-1 ring-border-default focus:outline-none sm:text-sm data-[state=closed]:hidden z-10"
       >
         {children}
       </div>

@@ -159,7 +159,7 @@
  --color-foreground-info: var(--foreground-info);
 
  /* Borders */
- --color-border: var(--border);
+ --color-border-default: var(--border-default);
  --color-border-secondary: var(--border-secondary);
  --color-border-strong: var(--border-strong);
  --color-border-focus: var(--border-focus);
