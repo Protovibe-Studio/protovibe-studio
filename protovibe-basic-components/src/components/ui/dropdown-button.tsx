@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownList } from '@/components/ui/dropdown-list';
+import { DropdownItem } from '@/components/ui/dropdown-item';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import { cn } from '@/lib/utils';
 
@@ -128,21 +130,24 @@ export const pvConfig = {
   description: 'A button that opens a floating dropdown menu on click.',
   importPath: '@/components/ui/dropdown-button',
   defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="ChevronDown"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownSeparator data-pv-block="" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownSeparator data-pv-block="" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
     { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },

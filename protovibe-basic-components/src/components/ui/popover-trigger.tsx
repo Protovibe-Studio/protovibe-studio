@@ -1,6 +1,11 @@
 import React, { createContext, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
+import { Button } from '@/components/ui/button';
+import { DropdownList } from '@/components/ui/dropdown-list';
+import { DropdownGroupLabel } from '@/components/ui/dropdown-group-label';
+import { DropdownItem } from '@/components/ui/dropdown-item';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
 export const PopoverContext = createContext<{ close: () => void } | null>(null);
 
@@ -120,33 +125,36 @@ export const pvConfig = {
   description: 'Wraps a trigger element; shows floating content on click, portalled to root.',
   importPath: '@/components/ui/popover-trigger',
   defaultProps: 'placement="bottom"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <Button data-pv-block="" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownList data-pv-block="" width="md">
-    {/* pv-editable-zone-start */}
-    {/* pv-block-start */}
-    <DropdownGroupLabel data-pv-block="" label="Actions" />
-    {/* pv-block-end */}
-    {/* pv-block-start */}
-    <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
-    {/* pv-block-end */}
-    {/* pv-block-start */}
-    <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
-    {/* pv-block-end */}
-    {/* pv-block-start */}
-    <DropdownSeparator data-pv-block="" />
-    {/* pv-block-end */}
-    {/* pv-block-start */}
-    <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
-    {/* pv-block-end */}
-    {/* pv-editable-zone-end */}
-  </DropdownList>
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <Button data-pv-block="" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownList data-pv-block="" width="md">
+          {/* pv-editable-zone-start */}
+          {/* pv-block-start */}
+          <DropdownGroupLabel data-pv-block="" label="Actions" />
+          {/* pv-block-end */}
+          {/* pv-block-start */}
+          <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+          {/* pv-block-end */}
+          {/* pv-block-start */}
+          <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
+          {/* pv-block-end */}
+          {/* pv-block-start */}
+          <DropdownSeparator data-pv-block="" />
+          {/* pv-block-end */}
+          {/* pv-block-start */}
+          <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+          {/* pv-block-end */}
+          {/* pv-editable-zone-end */}
+        </DropdownList>
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DropdownList', path: '@/components/ui/dropdown-list' },

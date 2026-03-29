@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { cn } from '@/lib/utils';
+import { VerticalTabItem } from '@/components/ui/vertical-tab-trigger';
 
 export interface VerticalTabsContextValue {
   activeValue: string | undefined;
@@ -57,27 +58,30 @@ export const pvConfig = {
   description: 'A vertical tab bar container that manages which tab is active.',
   importPath: '@/components/ui/vertical-tabs',
   defaultProps: 'value="tab1"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <VerticalTabItem data-pv-block="" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-    {/* pv-editable-zone-start */}
-    {/* pv-editable-zone-end */}
-  </VerticalTabItem>
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <VerticalTabItem data-pv-block="" label="Analytics" value="tab2" prefixIcon="BarChart2">
-    {/* pv-editable-zone-start */}
-    {/* pv-editable-zone-end */}
-  </VerticalTabItem>
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <VerticalTabItem data-pv-block="" label="Settings" value="tab3" prefixIcon="Settings">
-    {/* pv-editable-zone-start */}
-    {/* pv-editable-zone-end */}
-  </VerticalTabItem>
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <VerticalTabItem data-pv-block="" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+          {/* pv-editable-zone-start */}
+          {/* pv-editable-zone-end */}
+        </VerticalTabItem>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <VerticalTabItem data-pv-block="" label="Analytics" value="tab2" prefixIcon="BarChart2">
+          {/* pv-editable-zone-start */}
+          {/* pv-editable-zone-end */}
+        </VerticalTabItem>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <VerticalTabItem data-pv-block="" label="Settings" value="tab3" prefixIcon="Settings">
+          {/* pv-editable-zone-start */}
+          {/* pv-editable-zone-end */}
+        </VerticalTabItem>
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'VerticalTabItem', path: '@/components/ui/vertical-tab-trigger' },
   ],

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { cn } from '@/lib/utils';
+import { RadioItem } from '@/components/ui/radio-item';
 
 export interface RadioGroupContextValue {
   activeValue: string | undefined;
@@ -66,18 +67,21 @@ export const pvConfig = {
   description: 'A container for radio items with vertical or horizontal orientation.',
   importPath: '@/components/ui/radio-group',
   defaultProps: 'orientation="vertical" value="opt1"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <RadioItem data-pv-block="" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <RadioItem data-pv-block="" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <RadioItem data-pv-block="" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <RadioItem data-pv-block="" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <RadioItem data-pv-block="" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <RadioItem data-pv-block="" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'RadioItem', path: '@/components/ui/radio-item' },
   ],

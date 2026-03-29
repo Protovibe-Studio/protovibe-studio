@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { cn } from '@/lib/utils';
+import { TabItem } from '@/components/ui/tab-trigger';
 
 export interface TabsContextValue {
   activeValue: string | undefined;
@@ -57,18 +58,21 @@ export const pvConfig = {
   description: 'A tab bar container that manages which tab is active.',
   importPath: '@/components/ui/tabs',
   defaultProps: 'value="tab1"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <TabItem data-pv-block="" label="Tab 1" value="tab1" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <TabItem data-pv-block="" label="Tab 2" value="tab2" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <TabItem data-pv-block="" label="Tab 3" value="tab3" />
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <TabItem data-pv-block="" label="Tab 1" value="tab1" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <TabItem data-pv-block="" label="Tab 2" value="tab2" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <TabItem data-pv-block="" label="Tab 3" value="tab3" />
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'TabItem', path: '@/components/ui/tab-trigger' },
   ],

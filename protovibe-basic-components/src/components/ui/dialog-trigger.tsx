@@ -1,5 +1,9 @@
 import React, { createContext, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Button } from '@/components/ui/button';
+import { DialogOverlay } from '@/components/ui/dialog-overlay';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { DialogCloseTrigger } from '@/components/ui/dialog-close-trigger';
 
 export const DialogContext = createContext<{ isOpen: boolean; close: () => void } | null>(null);
 
@@ -81,31 +85,34 @@ export const pvConfig = {
   description: 'Wraps a trigger element; first child is the trigger, remaining children are shown in a dialog overlay on click.',
   importPath: '@/components/ui/dialog-trigger',
   defaultProps: '',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <Button data-pv-block="" label="Open Dialog" variant="solid" color="primary" size="md" />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DialogOverlay data-pv-block="">
-    <DialogWindow size="md">
+  defaultContent: (
+    <>
       {/* pv-editable-zone-start */}
-      {/* pv-block-start */}
-      <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-      {/* pv-block-end */}
-      {/* pv-block-start */}
-      <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-      {/* pv-block-end */}
-      {/* pv-block-start */}
-      <DialogCloseTrigger data-pv-block="">
-        <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
-      </DialogCloseTrigger>
-      {/* pv-block-end */}
+        {/* pv-block-start */}
+        <Button data-pv-block="" label="Open Dialog" variant="solid" color="primary" size="md" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DialogOverlay data-pv-block="">
+          <DialogWindow size="md">
+            {/* pv-editable-zone-start */}
+            {/* pv-block-start */}
+            <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <DialogCloseTrigger data-pv-block="">
+              <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+            </DialogCloseTrigger>
+            {/* pv-block-end */}
+            {/* pv-editable-zone-end */}
+          </DialogWindow>
+        </DialogOverlay>
+        {/* pv-block-end */}
       {/* pv-editable-zone-end */}
-    </DialogWindow>
-  </DialogOverlay>
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DialogOverlay', path: '@/components/ui/dialog-overlay' },

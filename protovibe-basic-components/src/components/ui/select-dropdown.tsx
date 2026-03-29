@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import type { DropdownItemProps } from '@/components/ui/dropdown-item';
+import { DropdownItem } from '@/components/ui/dropdown-item';
 
 export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Currently selected value (controlled) */
@@ -180,18 +181,21 @@ export const pvConfig = {
   description: 'An input-style trigger that opens a selectable dropdown list. Manages selection state internally.',
   importPath: '@/components/ui/select-dropdown',
   defaultProps: 'placeholder="Select an option"',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" value="opt1" label="Option One" selected={false} />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" value="opt2" label="Option Two" selected={false} />
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DropdownItem data-pv-block="" value="opt3" label="Option Three" selected={false} />
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" value="opt1" label="Option One" selected={false} />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" value="opt2" label="Option Two" selected={false} />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownItem data-pv-block="" value="opt3" label="Option Three" selected={false} />
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
   ],

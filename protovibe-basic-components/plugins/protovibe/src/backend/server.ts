@@ -1127,6 +1127,31 @@ export const handleUpdateProp: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+/**
+ * Extracts the inner JSX string from a `defaultContent: (...)` expression in a pvConfig source file.
+ * Used when pvConfig.defaultContent is a React node (JSX) rather than a plain string — the server
+ * reads the same source text it already has and pulls out the JSX body for canvas injection.
+ */
+function extractDefaultContentSource(source: string): string {
+  const match = source.match(/defaultContent\s*:\s*\(/);
+  if (!match || match.index === undefined) return '';
+  let depth = 0;
+  let i = source.indexOf('(', match.index) + 1;
+  const start = i;
+  while (i < source.length) {
+    if (source[i] === '(') depth++;
+    else if (source[i] === ')') {
+      if (depth === 0) break;
+      depth--;
+    }
+    i++;
+  }
+  let jsx = source.substring(start, i).trim();
+  // Strip outer Fragment wrapper <> ... </>
+  jsx = jsx.replace(/^\s*<>\s*/, '').replace(/\s*<\/>\s*$/, '');
+  return jsx.trim();
+}
+
 export const handleGetComponents = (req: any, res: any, server: import('vite').ViteDevServer) => {
   const srcPath = path.resolve(process.cwd(), 'src');
   const components: any[] = [];
@@ -1154,7 +1179,9 @@ export const handleGetComponents = (req: any, res: any, server: import('vite').V
                   description: mod.pvConfig.description || 'Custom component',
                   importPath: mod.pvConfig.importPath,
                   defaultProps: mod.pvConfig.defaultProps || '',
-                  defaultContent: mod.pvConfig.defaultContent || '',
+                  defaultContent: typeof mod.pvConfig.defaultContent === 'string'
+                    ? mod.pvConfig.defaultContent
+                    : extractDefaultContentSource(content),
                   additionalImportsForDefaultContent: mod.pvConfig.additionalImportsForDefaultContent || []
                 });
               }

@@ -151,6 +151,50 @@ export default function App() {
           {/* pv-block-start:kb1sqg */}
           <Button data-pv-block="kb1sqg" label="Button"  color="primary" size="md" />
           {/* pv-block-end:kb1sqg */}
+
+          {/* pv-block-start:kwz4vz */}
+          <DropdownButton data-pv-block="kwz4vz" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:iu9qtg */}
+                    <DropdownItem data-pv-block="iu9qtg" label="Edit" prefixIcon="Edit2" />
+                    {/* pv-block-end:iu9qtg */}
+                    {/* pv-block-start:3yog62 */}
+                    <DropdownItem data-pv-block="3yog62" label="Duplicate" prefixIcon="Copy" />
+                    {/* pv-block-end:3yog62 */}
+                    {/* pv-block-start:8grjta */}
+                    <DropdownSeparator data-pv-block="8grjta" />
+                    {/* pv-block-end:8grjta */}
+                    {/* pv-block-start:9dccs4 */}
+                    <DropdownItem data-pv-block="9dccs4" label="Delete" prefixIcon="Trash2" destructive={true} />
+                    {/* pv-block-end:9dccs4 */}
+                  {/* pv-editable-zone-end */}
+          </DropdownButton>
+          {/* pv-block-end:kwz4vz */}
+
+          {/* pv-block-start:v2r4ys */}
+          <VerticalTabs data-pv-block="v2r4ys" value="tab1">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:773yqw */}
+                    <VerticalTabItem data-pv-block="773yqw" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:773yqw */}
+                    {/* pv-block-start:jmh8k3 */}
+                    <VerticalTabItem data-pv-block="jmh8k3" label="Analytics" value="tab2" prefixIcon="BarChart2">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:jmh8k3 */}
+                    {/* pv-block-start:bhqncv */}
+                    <VerticalTabItem data-pv-block="bhqncv" label="Settings" value="tab3" prefixIcon="Settings">
+                      {/* pv-editable-zone-start */}
+                      {/* pv-editable-zone-end */}
+                    </VerticalTabItem>
+                    {/* pv-block-end:bhqncv */}
+                  {/* pv-editable-zone-end */}
+          </VerticalTabs>
+          {/* pv-block-end:v2r4ys */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

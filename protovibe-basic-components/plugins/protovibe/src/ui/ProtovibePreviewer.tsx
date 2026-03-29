@@ -13,6 +13,7 @@ interface PvConfig {
   displayName?: string;
   description?: string;
   defaultProps?: string;
+  defaultContent?: string | React.ReactNode;
   props?: Record<string, { type: string; options?: string[]; exampleValue?: string }>;
   invalidCombinations?: Array<(props: Record<string, any>) => boolean>;
 }
@@ -184,7 +185,9 @@ const PreviewCell: React.FC<{
         }}
       >
         <ErrorBoundary>
-          <entry.Component {...props} />
+          <entry.Component {...props}>
+            {typeof entry.config.defaultContent !== 'string' ? entry.config.defaultContent : undefined}
+          </entry.Component>
         </ErrorBoundary>
       </div>
       {propTokens.length > 0 && (
@@ -307,7 +310,9 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
         }}
       >
         <ErrorBoundary>
-          <Component {...defaultProps} />
+          <Component {...defaultProps}>
+            {typeof config.defaultContent !== 'string' ? config.defaultContent : undefined}
+          </Component>
         </ErrorBoundary>
       </div>
     </button>

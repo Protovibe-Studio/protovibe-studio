@@ -1,5 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { DialogCloseTrigger } from '@/components/ui/dialog-close-trigger';
+import { Button } from '@/components/ui/button';
 
 export interface DialogWindowProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Maximum width of the dialog window */
@@ -27,20 +29,23 @@ export const pvConfig = {
   description: 'Styled container for dialog content. Place inside DialogOverlay.',
   importPath: '@/components/ui/dialog-window',
   defaultProps: '',
-  defaultContent: `
-{/* pv-editable-zone-start */}
-  {/* pv-block-start */}
-  <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-  {/* pv-block-end */}
-  {/* pv-block-start */}
-  <DialogCloseTrigger data-pv-block="">
-    <Button variant="ghost" color="neutral" size="icon" leftIcon="X" />
-  </DialogCloseTrigger>
-  {/* pv-block-end */}
-{/* pv-editable-zone-end */}`,
+  defaultContent: (
+    <>
+      {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DialogCloseTrigger data-pv-block="">
+          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+        </DialogCloseTrigger>
+        {/* pv-block-end */}
+      {/* pv-editable-zone-end */}
+    </>
+  ),
   additionalImportsForDefaultContent: [
     { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
     { name: 'Button', path: '@/components/ui/button' },
