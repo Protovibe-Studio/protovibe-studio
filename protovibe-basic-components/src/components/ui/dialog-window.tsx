@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface DialogWindowProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Maximum width of the dialog window */
@@ -6,11 +7,11 @@ export interface DialogWindowProps extends React.HTMLAttributes<HTMLDivElement> 
   children?: React.ReactNode;
 }
 
-export function DialogWindow({ size = 'md', children, ...props }: DialogWindowProps) {
+export function DialogWindow({ size = 'md', children, className, ...props }: DialogWindowProps) {
   return (
     <div
       data-size={size}
-      className="rounded-xl shadow-2xl p-8 w-full max-h-[90vh] overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated"
+      className={cn('rounded-xl shadow-2xl p-8 w-full max-h-[90vh] overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated', className)}
       {...props}
       data-pv-component-id="DialogWindow"
     >

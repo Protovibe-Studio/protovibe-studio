@@ -4,6 +4,7 @@ import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
+import { cn } from '@/lib/utils';
 
 export interface DropdownButtonProps extends React.HTMLAttributes<HTMLSpanElement> {
   /** Button label */
@@ -44,6 +45,7 @@ export function DropdownButton({
   growToButtonWidth = false,
   zIndex = 9999,
   children,
+  className,
   ...props
 }: DropdownButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +92,7 @@ export function DropdownButton({
   return (
     <span
       ref={anchorRef}
-      className="inline-flex"
+      className={cn('inline-flex', className)}
       {...props}
       data-pv-component-id="DropdownButton"
     >

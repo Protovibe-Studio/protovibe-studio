@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from './icon';
+import { cn } from '@/lib/utils';
 
 export interface ComboboxProps extends React.HTMLAttributes<HTMLDivElement> {
   placeholder?: string;
@@ -8,9 +9,9 @@ export interface ComboboxProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export function Combobox({ placeholder = 'Search...', open = false, value, children, ...props }: ComboboxProps) {
+export function Combobox({ placeholder = 'Search...', open = false, value, children, className, ...props }: ComboboxProps) {
   return (
-    <div data-state={open ? 'open' : 'closed'} className="relative w-full" {...props}>
+    <div data-state={open ? 'open' : 'closed'} className={cn('relative w-full', className)} {...props}>
       <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-background-default text-left border border-border-default focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent sm:text-sm">
         <input
           className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-foreground-strong bg-transparent focus:outline-none"
@@ -55,11 +56,11 @@ export interface ComboboxItemProps extends React.HTMLAttributes<HTMLDivElement> 
   selected?: boolean;
 }
 
-export function ComboboxItem({ label, value, selected, ...props }: ComboboxItemProps) {
+export function ComboboxItem({ label, value, selected, className, ...props }: ComboboxItemProps) {
   return (
     <div
       data-selected={selected}
-      className="relative cursor-default select-none py-2 pl-10 pr-4 text-foreground-strong hover:bg-primary hover:text-primary-foreground data-[selected=true]:bg-primary-subtle data-[selected=true]:text-primary"
+      className={cn('relative cursor-default select-none py-2 pl-10 pr-4 text-foreground-strong hover:bg-primary hover:text-primary-foreground data-[selected=true]:bg-primary-subtle data-[selected=true]:text-primary', className)}
       {...props}
     >
       <span className="block truncate data-[selected=true]:font-medium">{label}</span>

@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { useDialogContext } from '@/components/ui/dialog-trigger';
+import { cn } from '@/lib/utils';
 
 export interface DialogOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export function DialogOverlay({ children, ...props }: DialogOverlayProps) {
+export function DialogOverlay({ children, className, ...props }: DialogOverlayProps) {
   const dialog = useDialogContext();
 
   // Lock body scroll while overlay is mounted
@@ -25,7 +26,7 @@ export function DialogOverlay({ children, ...props }: DialogOverlayProps) {
 
   return (
     <div
-      className="fixed top-0 right-0 bottom-0 left-0 overflow-hidden flex items-center justify-center bg-background-overlay"
+      className={cn('fixed top-0 right-0 bottom-0 left-0 overflow-hidden flex items-center justify-center bg-background-overlay', className)}
       onClick={handleBackdropClick}
       {...props}
       data-pv-component-id="DialogOverlay"
