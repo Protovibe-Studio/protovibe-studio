@@ -8,7 +8,7 @@ export type ExpandableState = 'not-expandable' | 'expandable' | 'expanded' | 'co
 
 // Extends HTMLDivElement attrs so {...rest} lands on the wrapper div (root element).
 // data-pv-loc-* injected by Protovibe's Babel plugin ends up on the outer div, not the inner button.
-export interface VerticalTabTriggerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
+export interface VerticalTabItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
   label?: string;
   value?: string;
   active?: boolean;
@@ -25,7 +25,7 @@ export interface VerticalTabTriggerProps extends Omit<React.HTMLAttributes<HTMLD
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export function VerticalTabTrigger({
+export function VerticalTabItem({
   label,
   value,
   active,
@@ -38,7 +38,7 @@ export function VerticalTabTrigger({
   children,
   onClick,
   ...rest
-}: VerticalTabTriggerProps) {
+}: VerticalTabItemProps) {
   const ctx = useVerticalTabs();
 
   // Derive active state from context when inside a VerticalTabs container, otherwise fall back to prop
@@ -59,7 +59,7 @@ export function VerticalTabTrigger({
     <div
       {...rest}
       className="w-full"
-      data-pv-component-id="VerticalTabTrigger"
+      data-pv-component-id="VerticalTabItem"
     >
       <button
         data-state={isActive ? 'active' : 'inactive'}
@@ -99,9 +99,9 @@ export function VerticalTabTrigger({
 }
 
 export const pvConfig = {
-  name: 'VerticalTabTrigger',
-  componentId: 'VerticalTabTrigger',
-  displayName: 'Vertical Tab Trigger',
+  name: 'VerticalTabItem',
+  componentId: 'VerticalTabItem',
+  displayName: 'Vertical Tab Item',
   description: 'A vertical tab item with optional icons, active state, and an expandable content zone.',
   importPath: '@/components/ui/vertical-tab-trigger',
   defaultProps: 'label="Tab 1" value="tab1"',

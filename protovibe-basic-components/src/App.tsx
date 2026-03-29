@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { Combobox, ComboboxItem } from '@/components/ui/combobox';
 import { Tabs } from '@/components/ui/tabs';
-import { TabTrigger } from '@/components/ui/tab-trigger';
+import { TabItem } from '@/components/ui/tab-trigger';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SegmentedControlItem } from '@/components/ui/segmented-control-item';
 import { DialogTrigger } from '@/components/ui/dialog-trigger';
@@ -25,7 +25,7 @@ import { InfoBoxBanner } from '@/components/ui/info-box-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PreloaderSpinner } from '@/components/ui/preloader-spinner';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
-import { VerticalTabTrigger } from '@/components/ui/vertical-tab-trigger';
+import { VerticalTabItem } from '@/components/ui/vertical-tab-trigger';
 import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
 import { ToastBox } from '@/components/ui/toast-box';
 import { DropdownButton } from '@/components/ui/dropdown-button'
@@ -38,7 +38,7 @@ export default function App() {
   const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
   return (
     <div>
-      <div className="pl-5 flex flex-col items-center">
+      <div className="pl-5 flex flex-col items-start">
         {/* pv-editable-zone-start:kcyc8f */}
 
           {/* pv-block-start:f3r26d */}
@@ -77,27 +77,27 @@ export default function App() {
           {/* pv-block-end:zb3wr1 */}
 
           {/* pv-block-start:esr01v */}
-          <VerticalTabTrigger data-pv-block="esr01v" label="Tab 1" value="tab1">
+          <VerticalTabItem data-pv-block="esr01v" label="Tab 1" value="tab1">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
+          </VerticalTabItem>
           {/* pv-block-end:esr01v */}
 
           {/* pv-block-start:c5xv34 */}
-          <TabTrigger data-pv-block="c5xv34" label="Tab 1" value="tab1" />
+          <TabItem data-pv-block="c5xv34" label="Tab 1" value="tab1" />
           {/* pv-block-end:c5xv34 */}
 
           {/* pv-block-start:5sp8t1 */}
           <Tabs data-pv-block="5sp8t1" value="tab1">
             {/* pv-editable-zone-start */}
               {/* pv-block-start:bmu375 */}
-              <TabTrigger data-pv-block="bmu375" label="Tab 1" value="tab1" />
+              <TabItem data-pv-block="bmu375" label="Tab 1" value="tab1" />
               {/* pv-block-end:bmu375 */}
               {/* pv-block-start:topvb3 */}
-              <TabTrigger data-pv-block="topvb3" label="Tab 2" value="tab2" />
+              <TabItem data-pv-block="topvb3" label="Tab 2" value="tab2" />
               {/* pv-block-end:topvb3 */}
               {/* pv-block-start:ia5m1q */}
-              <TabTrigger data-pv-block="ia5m1q" label="Tab 3" value="tab3" />
+              <TabItem data-pv-block="ia5m1q" label="Tab 3" value="tab3" />
               {/* pv-block-end:ia5m1q */}
             {/* pv-editable-zone-end */}
           </Tabs>
@@ -106,6 +106,51 @@ export default function App() {
           {/* pv-block-start:k1nm2r */}
           <RadioItem data-pv-block="k1nm2r" primaryText="Option 1" value="opt1" />
           {/* pv-block-end:k1nm2r */}
+
+          {/* pv-block-start:46aa4v */}
+          <RadioGroup data-pv-block="46aa4v" orientation="vertical" value="opt1">
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:53tae1 */}
+              <RadioItem data-pv-block="53tae1" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+              {/* pv-block-end:53tae1 */}
+              {/* pv-block-start:iffk3q */}
+              <RadioItem data-pv-block="iffk3q" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+              {/* pv-block-end:iffk3q */}
+              {/* pv-block-start:suw9o1 */}
+              <RadioItem data-pv-block="suw9o1" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
+              {/* pv-block-end:suw9o1 */}
+            {/* pv-editable-zone-end */}
+          </RadioGroup>
+          {/* pv-block-end:46aa4v */}
+
+          {/* pv-block-start:9kpwck */}
+          <VerticalTabs data-pv-block="9kpwck" value="tab1">
+            {/* pv-editable-zone-start */}
+              {/* pv-block-start:l97ag2 */}
+              <VerticalTabItem data-pv-block="l97ag2" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+                {/* pv-editable-zone-start */}
+                {/* pv-editable-zone-end */}
+              </VerticalTabItem>
+              {/* pv-block-end:l97ag2 */}
+              {/* pv-block-start:ejswlj */}
+              <VerticalTabItem data-pv-block="ejswlj" label="Analytics" value="tab2" prefixIcon="BarChart2">
+                {/* pv-editable-zone-start */}
+                {/* pv-editable-zone-end */}
+              </VerticalTabItem>
+              {/* pv-block-end:ejswlj */}
+              {/* pv-block-start:2vmx9m */}
+              <VerticalTabItem data-pv-block="2vmx9m" label="Settings" value="tab3" prefixIcon="Settings">
+                {/* pv-editable-zone-start */}
+                {/* pv-editable-zone-end */}
+              </VerticalTabItem>
+              {/* pv-block-end:2vmx9m */}
+            {/* pv-editable-zone-end */}
+          </VerticalTabs>
+          {/* pv-block-end:9kpwck */}
+
+          {/* pv-block-start:kb1sqg */}
+          <Button data-pv-block="kb1sqg" label="Button"  color="primary" size="md" />
+          {/* pv-block-end:kb1sqg */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
@@ -340,11 +385,11 @@ export default function App() {
         </pre>
 
         <Tabs value="tab1">
-          <TabTrigger  label="Tab 1" value="tab1" />
-          <TabTrigger label="Tab 2" value="tab2" />
+          <TabItem  label="Tab 1" value="tab1" />
+          <TabItem label="Tab 2" value="tab2" />
         </Tabs>
         <pre>
-          {JSON.stringify({ activeValue: "tab1", children: "[TabTrigger, TabTrigger]" }, null, 2)}
+          {JSON.stringify({ activeValue: "tab1", children: "[TabItem, TabItem]" }, null, 2)}
         </pre>
 
         <SegmentedControl value="opt1">
@@ -670,22 +715,22 @@ export default function App() {
 
         {/* VerticalTabs — basic with active state */}
         <VerticalTabs value="tab2" className="w-56">
-          <VerticalTabTrigger label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
+          <VerticalTabItem label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Analytics" value="tab2" prefixIcon="BarChart2">
+          </VerticalTabItem>
+          <VerticalTabItem label="Analytics" value="tab2" prefixIcon="BarChart2">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Reports" value="tab3" prefixIcon="FileText">
+          </VerticalTabItem>
+          <VerticalTabItem label="Reports" value="tab3" prefixIcon="FileText">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Settings" value="tab4" prefixIcon="Settings" disabled>
+          </VerticalTabItem>
+          <VerticalTabItem label="Settings" value="tab4" prefixIcon="Settings" disabled>
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
+          </VerticalTabItem>
         </VerticalTabs>
         <pre>
           {JSON.stringify({ demo: "basic vertical tabs with prefix icons, tab2 active, settings disabled" }, null, 2)}
@@ -693,26 +738,26 @@ export default function App() {
 
         {/* VerticalTabs — with suffix icons */}
         <VerticalTabs value="tab1" className="w-56">
-          <VerticalTabTrigger  label="Inbox" value="tab1" prefixIcon="Inbox" suffixIcon="Bell">
+          <VerticalTabItem  label="Inbox" value="tab1" prefixIcon="Inbox" suffixIcon="Bell">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Sent" value="tab2" prefixIcon="Send">
+          </VerticalTabItem>
+          <VerticalTabItem label="Sent" value="tab2" prefixIcon="Send">
             {/* pv-editable-zone-start:z43kf6 */}
             
               {/* pv-block-start:c3dwn7 */}
               <Badge data-pv-block="c3dwn7" label="Badge" color="primary" />
               {/* pv-block-end:c3dwn7 */}
             {/* pv-editable-zone-end:z43kf6 */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Drafts" value="tab3" prefixIcon="FileEdit" suffixIcon="Badge">
+          </VerticalTabItem>
+          <VerticalTabItem label="Drafts" value="tab3" prefixIcon="FileEdit" suffixIcon="Badge">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
-          <VerticalTabTrigger label="Trash" value="tab4" prefixIcon="Trash2">
+          </VerticalTabItem>
+          <VerticalTabItem label="Trash" value="tab4" prefixIcon="Trash2">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
+          </VerticalTabItem>
         </VerticalTabs>
         <pre>
           {JSON.stringify({ demo: "with prefix and suffix icons" }, null, 2)}
@@ -722,48 +767,48 @@ export default function App() {
         <VerticalTabs value="tab1" className="w-64">
           <VerticalTabsExpandableSection label="Projects" value="tab1" prefixIcon="FolderOpen" expandable="expanded">
             <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabTrigger label="Frontend" value="sub1">
+              <VerticalTabItem label="Frontend" value="sub1">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
-              <VerticalTabTrigger label="Backend" value="sub2">
+              </VerticalTabItem>
+              <VerticalTabItem label="Backend" value="sub2">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
-              <VerticalTabTrigger label="Mobile" value="sub3">
+              </VerticalTabItem>
+              <VerticalTabItem label="Mobile" value="sub3">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
+              </VerticalTabItem>
             </div>
           </VerticalTabsExpandableSection>
           <VerticalTabsExpandableSection label="Team" value="tab2" prefixIcon="Users" expandable="expandable">
             <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabTrigger label="Members" value="sub4">
+              <VerticalTabItem label="Members" value="sub4">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
-              <VerticalTabTrigger label="Roles" value="sub5">
+              </VerticalTabItem>
+              <VerticalTabItem label="Roles" value="sub5">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
+              </VerticalTabItem>
             </div>
           </VerticalTabsExpandableSection>
           <VerticalTabsExpandableSection label="Settings" value="tab3" prefixIcon="Settings" expandable="collapsed">
             <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabTrigger label="General" value="sub6">
+              <VerticalTabItem label="General" value="sub6">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
-              <VerticalTabTrigger label="Security" value="sub7">
+              </VerticalTabItem>
+              <VerticalTabItem label="Security" value="sub7">
                 {/* pv-editable-zone-start */}
                 {/* pv-editable-zone-end */}
-              </VerticalTabTrigger>
+              </VerticalTabItem>
             </div>
           </VerticalTabsExpandableSection>
-          <VerticalTabTrigger label="Docs" value="tab4" prefixIcon="BookOpen">
+          <VerticalTabItem label="Docs" value="tab4" prefixIcon="BookOpen">
             {/* pv-editable-zone-start */}
             {/* pv-editable-zone-end */}
-          </VerticalTabTrigger>
+          </VerticalTabItem>
         </VerticalTabs>
         <pre>
           {JSON.stringify({ demo: "expandable states: 'expanded' (open by default), 'expandable' (toggleable, starts collapsed), 'collapsed' (starts collapsed)" }, null, 2)}

@@ -2,14 +2,14 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useTabs } from '@/components/ui/tabs';
 
-export interface TabTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TabItemProps extends React.HTMLAttributes<HTMLButtonElement> {
   label?: string;
   value?: string;
   active?: boolean;
   disabled?: boolean;
 }
 
-export function TabTrigger({
+export function TabItem({
   label,
   value,
   active,
@@ -17,7 +17,7 @@ export function TabTrigger({
   className,
   onClick,
   ...props
-}: TabTriggerProps) {
+}: TabItemProps) {
   const ctx = useTabs();
 
   // Derive active state from context when inside a Tabs container, otherwise fall back to explicit prop
@@ -46,7 +46,7 @@ export function TabTrigger({
       )}
       onClick={handleClick}
       {...props}
-      data-pv-component-id="TabTrigger"
+      data-pv-component-id="TabItem"
     >
       {label}
     </button>
@@ -54,10 +54,10 @@ export function TabTrigger({
 }
 
 export const pvConfig = {
-  name: 'TabTrigger',
-  componentId: 'TabTrigger',
-  displayName: 'Tab Trigger',
-  description: 'A single tab trigger. Active state is derived from the parent Tabs context automatically.',
+  name: 'TabItem',
+  componentId: 'TabItem',
+  displayName: 'Tab Item',
+  description: 'A single tab item. Active state is derived from the parent Tabs context automatically.',
   importPath: '@/components/ui/tab-trigger',
   defaultProps: 'label="Tab 1" value="tab1"',
   defaultContent: '',
