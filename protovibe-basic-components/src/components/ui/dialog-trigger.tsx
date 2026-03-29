@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
-import { DialogCloseTrigger } from '@/components/ui/dialog-close-trigger';
 
 export const DialogContext = createContext<{ isOpen: boolean; close: () => void } | null>(null);
 
@@ -95,11 +94,6 @@ export function PvDefaultContent() {
             {/* pv-block-start */}
             <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
             {/* pv-block-end */}
-            {/* pv-block-start */}
-            <DialogCloseTrigger data-pv-block="">
-              <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
-            </DialogCloseTrigger>
-            {/* pv-block-end */}
             {/* pv-editable-zone-end */}
           </DialogWindow>
         </DialogOverlay>
@@ -121,7 +115,6 @@ export const pvConfig = {
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DialogOverlay', path: '@/components/ui/dialog-overlay' },
     { name: 'DialogWindow', path: '@/components/ui/dialog-window' },
-    { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
   ],
   props: {
     closeOnEscape: { type: 'boolean' },

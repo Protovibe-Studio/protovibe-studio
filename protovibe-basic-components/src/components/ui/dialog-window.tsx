@@ -6,17 +6,25 @@ import { Button } from '@/components/ui/button';
 export interface DialogWindowProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Maximum width of the dialog window */
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  /** Whether to show the built-in close button in the top-right corner */
+  showCloseButton?: boolean;
   children?: React.ReactNode;
 }
 
-export function DialogWindow({ size = 'md', children, className, ...props }: DialogWindowProps) {
+export function DialogWindow({ size = 'md', showCloseButton = true, children, className, ...props }: DialogWindowProps) {
   return (
     <div
       data-size={size}
+      data-show-close-button={showCloseButton}
       className={cn("rounded-xl shadow-2xl p-8 w-full max-h-[90vh] overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated relative", className)}
       {...props}
       data-pv-component-id="DialogWindow"
     >
+      {showCloseButton && (
+        <DialogCloseTrigger className="absolute top-3 right-3">
+          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+        </DialogCloseTrigger>
+      )}
       {children}
     </div>
   );
@@ -32,11 +40,6 @@ export function PvDefaultContent() {
         {/* pv-block-start */}
         <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
         {/* pv-block-end */}
-        {/* pv-block-start */}
-        <DialogCloseTrigger className="absolute top-0 right-1" data-pv-block="">
-          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
-        </DialogCloseTrigger>
-        {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
   );
@@ -50,11 +53,9 @@ export const pvConfig = {
   importPath: '@/components/ui/dialog-window',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
-  additionalImportsForDefaultContent: [
-    { name: 'DialogCloseTrigger', path: '@/components/ui/dialog-close-trigger' },
-    { name: 'Button', path: '@/components/ui/button' },
-  ],
+  additionalImportsForDefaultContent: [],
   props: {
     size: { type: 'select', options: ['sm', 'md', 'lg', 'xl', 'full'] },
+    showCloseButton: { type: 'boolean' },
   },
 };

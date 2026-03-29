@@ -248,6 +248,54 @@ export default function App() {
                   {/* pv-editable-zone-end */}
           </DialogTrigger>
           {/* pv-block-end:2ixpes */}
+
+          {/* pv-block-start:iiaef9 */}
+          <DialogTrigger data-pv-block="iiaef9">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:dj5ykd */}
+                    <Button data-pv-block="dj5ykd" label="Open Dialog" variant="solid" color="primary" size="md" />
+                    {/* pv-block-end:dj5ykd */}
+                    {/* pv-block-start:80fetb */}
+                    <DialogOverlay data-pv-block="80fetb">
+                      <DialogWindow size="md">
+                        {/* pv-editable-zone-start */}
+                        {/* pv-block-start:kqaj5y */}
+                        <h2 data-pv-block="kqaj5y" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                        {/* pv-block-end:kqaj5y */}
+                        {/* pv-block-start:nefegt */}
+                        <p data-pv-block="nefegt" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                        {/* pv-block-end:nefegt */}
+                        {/* pv-editable-zone-end */}
+                      </DialogWindow>
+                    </DialogOverlay>
+                    {/* pv-block-end:80fetb */}
+                  {/* pv-editable-zone-end */}
+          </DialogTrigger>
+          {/* pv-block-end:iiaef9 */}
+
+          {/* pv-block-start:dwn9dr */}
+          <DialogTrigger data-pv-block="dwn9dr">
+            {/* pv-editable-zone-start */}
+                    {/* pv-block-start:gpsc50 */}
+                    <Button data-pv-block="gpsc50" label="Open Dialog" variant="solid" color="primary" size="md" />
+                    {/* pv-block-end:gpsc50 */}
+                    {/* pv-block-start:5nxnn2 */}
+                    <DialogOverlay data-pv-block="5nxnn2">
+                      <DialogWindow size="md">
+                        {/* pv-editable-zone-start */}
+                        {/* pv-block-start:kdp7ko */}
+                        <h2 data-pv-block="kdp7ko" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                        {/* pv-block-end:kdp7ko */}
+                        {/* pv-block-start:2810k8 */}
+                        <p data-pv-block="2810k8" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                        {/* pv-block-end:2810k8 */}
+                        {/* pv-editable-zone-end */}
+                      </DialogWindow>
+                    </DialogOverlay>
+                    {/* pv-block-end:5nxnn2 */}
+                  {/* pv-editable-zone-end */}
+          </DialogTrigger>
+          {/* pv-block-end:dwn9dr */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

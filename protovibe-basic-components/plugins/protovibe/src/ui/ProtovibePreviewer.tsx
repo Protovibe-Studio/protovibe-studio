@@ -31,7 +31,7 @@ function discoverComponents(): ComponentEntry[] {
     const pvConfig = mod?.pvConfig as PvConfig | undefined;
     if (!pvConfig?.name) continue;
     const Component = mod[pvConfig.name];
-    if (typeof Component !== 'function') continue;
+    if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
     const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
     discovered.push({ config: pvConfig, Component, DefaultContent, filePath });
   }
@@ -39,6 +39,25 @@ function discoverComponents(): ComponentEntry[] {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Render default content for a component entry, unwrapping Fragment wrappers
+ * so that children-splitting components (e.g. DialogTrigger) receive individual
+ * children instead of a single Fragment element.
+ */
+function renderDefaultContent(entry: { DefaultContent?: React.ComponentType<any>; config: PvConfig }): React.ReactNode {
+  if (entry.DefaultContent) {
+    const result = entry.DefaultContent({});
+    if (result && typeof result === 'object' && 'type' in result && result.type === React.Fragment) {
+      return result.props.children;
+    }
+    return result;
+  }
+  if (typeof entry.config.defaultContent !== 'string') {
+    return entry.config.defaultContent;
+  }
+  return undefined;
+}
 
 /** Parse a pvConfig.defaultProps string like `variant="default" label="Click me" disabled` into plain props. */
 function parseDefaultProps(defaultProps: string): Record<string, any> {
@@ -191,7 +210,7 @@ const PreviewCell: React.FC<{
       >
         <ErrorBoundary>
           <entry.Component {...props}>
-            {entry.DefaultContent ? <entry.DefaultContent /> : (typeof entry.config.defaultContent !== 'string' ? entry.config.defaultContent : undefined)}
+            {renderDefaultContent(entry)}
           </entry.Component>
         </ErrorBoundary>
       </div>
@@ -316,7 +335,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
       >
         <ErrorBoundary>
           <Component {...defaultProps}>
-            {entry.DefaultContent ? <entry.DefaultContent /> : (typeof config.defaultContent !== 'string' ? config.defaultContent : undefined)}
+            {renderDefaultContent(entry)}
           </Component>
         </ErrorBoundary>
       </div>
