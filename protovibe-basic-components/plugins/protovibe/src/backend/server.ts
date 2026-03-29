@@ -135,8 +135,66 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
       let nameEnd = null;
       let componentProps: any[] = [];
       let importedComponents: Record<string, string> = {};
-      let matchedImportPath: string | null = null;
       let compNameStr = data.comp || 'Element';
+
+      // Helper to process a matched JSXOpeningElement and extract className/props info.
+      const processOpeningElement = (openingEl: any) => {
+        const nameNode = openingEl.name;
+        if (nameNode.loc) nameEnd = [nameNode.loc.end.line, nameNode.loc.end.column];
+
+        openingEl.attributes.forEach((attr: any) => {
+          if (babel.types.isJSXSpreadAttribute(attr)) {
+            componentProps.push({ name: '...', value: 'Spread Props', shouldNotBeEdited: true, loc: attr.loc });
+            return;
+          }
+          if (babel.types.isJSXAttribute(attr)) {
+            const propName = attr.name.type === 'JSXNamespacedName'
+              ? `${attr.name.namespace.name}:${attr.name.name.name}`
+              : attr.name.name;
+            if (propName === 'className') {
+              hasClass = true;
+              if (attr.value && attr.value.loc) {
+                cStart = [attr.value.loc.start.line, attr.value.loc.start.column];
+                cEnd = [attr.value.loc.end.line, attr.value.loc.end.column];
+                if (cStart[0] === cEnd[0]) {
+                  classNameStr = lines[cStart[0] - 1].substring(cStart[1], cEnd[1]);
+                } else {
+                  const first = lines[cStart[0] - 1].substring(cStart[1]);
+                  const middle = lines.slice(cStart[0], cEnd[0] - 1);
+                  const last = lines[cEnd[0] - 1].substring(0, cEnd[1]);
+                  classNameStr = [first, ...middle, last].join('\n');
+                }
+              }
+              return;
+            }
+            let propValue: any = null;
+            let shouldNotBeEdited = false;
+            if (attr.value === null) {
+              propValue = true;
+            } else if (babel.types.isStringLiteral(attr.value)) {
+              propValue = attr.value.value;
+            } else if (babel.types.isJSXExpressionContainer(attr.value)) {
+              const exp = attr.value.expression;
+              if (babel.types.isStringLiteral(exp) || babel.types.isNumericLiteral(exp) || babel.types.isBooleanLiteral(exp)) {
+                propValue = exp.value;
+              } else {
+                propValue = 'JS Expression';
+                shouldNotBeEdited = true;
+              }
+            } else {
+              propValue = 'Unknown';
+              shouldNotBeEdited = true;
+            }
+            if (propName === 'data-pv-block') shouldNotBeEdited = true;
+            componentProps.push({ name: propName, value: propValue, shouldNotBeEdited, loc: attr.loc });
+          }
+        });
+      };
+
+      // Collect all JSXOpeningElement candidates on the target line so we can
+      // fall back to a line-only match when the file has drifted from the
+      // locatorMap snapshot (e.g. indentation changed since last HMR cycle).
+      const lineMatches: Array<{ el: any; nameEndCol: number }> = [];
 
       babel.traverse(ast, {
         // 1. Build a map of all imports in the file
@@ -149,86 +207,31 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
           });
         },
         JSXOpeningElement(path) {
-          if (path.node.loc?.start.line === data.bStart[0] && path.node.loc?.start.column === data.bStart[1]) {
-            const nameNode = path.node.name;
-            if (nameNode.loc) nameEnd = [nameNode.loc.end.line, nameNode.loc.end.column];
-
-            path.node.attributes.forEach((attr) => {
-              // Handle spread attributes (e.g., {...props})
-              if (babel.types.isJSXSpreadAttribute(attr)) {
-                componentProps.push({
-                  name: '...',
-                  value: 'Spread Props',
-                  shouldNotBeEdited: true,
-                  loc: attr.loc
-                });
-                return;
-              }
-
-              if (babel.types.isJSXAttribute(attr)) {
-                const propName = attr.name.type === 'JSXNamespacedName' 
-                  ? `${attr.name.namespace.name}:${attr.name.name.name}` 
-                  : attr.name.name;
-
-                // Handle className exactly as before for the Tailwind editor
-                if (propName === 'className') {
-                  hasClass = true;
-                  if (attr.value && attr.value.loc) {
-                    cStart = [attr.value.loc.start.line, attr.value.loc.start.column];
-                    cEnd = [attr.value.loc.end.line, attr.value.loc.end.column];
-                    if (cStart[0] === cEnd[0]) {
-                      classNameStr = lines[cStart[0] - 1].substring(cStart[1], cEnd[1]);
-                    } else {
-                      const first = lines[cStart[0] - 1].substring(cStart[1]);
-                      const middle = lines.slice(cStart[0], cEnd[0] - 1);
-                      const last = lines[cEnd[0] - 1].substring(0, cEnd[1]);
-                      classNameStr = [first, ...middle, last].join('\n');
-                    }
-                  }
-                  return; // Skip adding className to the generic componentProps array
-                }
-
-                // Handle all other props
-                let propValue: any = null;
-                let shouldNotBeEdited = false;
-
-                if (attr.value === null) {
-                  // e.g., <Button disabled />
-                  propValue = true;
-                } else if (babel.types.isStringLiteral(attr.value)) {
-                  // e.g., variant="solid"
-                  propValue = attr.value.value;
-                } else if (babel.types.isJSXExpressionContainer(attr.value)) {
-                  const exp = attr.value.expression;
-                  if (babel.types.isStringLiteral(exp) || babel.types.isNumericLiteral(exp) || babel.types.isBooleanLiteral(exp)) {
-                    // e.g., disabled={true} or tabIndex={0}
-                    propValue = exp.value;
-                  } else {
-                    // e.g., variant={isActive ? "solid" : "outline"}
-                    propValue = 'JS Expression';
-                    shouldNotBeEdited = true;
-                  }
-                } else {
-                  propValue = 'Unknown';
-                  shouldNotBeEdited = true;
-                }
-
-                // Lock internal Protovibe tracking attributes so they don't clutter the UI
-                if (propName === 'data-pv-block') {
-                  shouldNotBeEdited = true;
-                }
-
-                componentProps.push({
-                  name: propName,
-                  value: propValue,
-                  shouldNotBeEdited,
-                  loc: attr.loc // We save the exact start/end locations for safe replacing later
-                });
-              }
-            });
+          const loc = path.node.loc;
+          if (!loc) return;
+          // Exact match — process immediately and stop traversal.
+          if (loc.start.line === data.bStart[0] && loc.start.column === data.bStart[1]) {
+            processOpeningElement(path.node);
+            path.stop();
+            return;
+          }
+          // Collect all elements on the same line as a fallback pool.
+          if (loc.start.line === data.bStart[0]) {
+            const nameEndCol = path.node.name.loc?.end.column ?? -1;
+            lineMatches.push({ el: path.node, nameEndCol });
           }
         }
       });
+
+      // If the exact match didn't fire (nameEnd still null), pick the best
+      // candidate from the same line using data.nameEnd[1] as a proximity hint.
+      if (nameEnd === null && lineMatches.length > 0) {
+        const hintCol: number = Array.isArray(data.nameEnd) ? data.nameEnd[1] : -1;
+        lineMatches.sort((a, b) =>
+          Math.abs(a.nameEndCol - hintCol) - Math.abs(b.nameEndCol - hintCol)
+        );
+        processOpeningElement(lineMatches[0].el);
+      }
 
       const parsedClasses = parseTailwindClasses(classNameStr);
 
@@ -294,6 +297,54 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
       const originalContent = fs.readFileSync(absolutePath, 'utf-8');
       const lines = originalContent.split('\n');
       let finalContent = originalContent;
+
+      // Re-derive accurate positions from the current file state to guard against
+      // stale locatorMap entries (e.g. when file indentation changed since last HMR
+      // cycle). We search for a JSXOpeningElement on startLine and use the client's
+      // nameEnd column as a proximity hint when multiple elements share the same line.
+      if (startLine) {
+        try {
+          const freshAst = babel.parseSync(originalContent, {
+            filename: absolutePath,
+            plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+          });
+          if (!freshAst) throw new Error('parse returned null');
+          const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
+          const candidates: Array<{ nameEnd: number[]; hasClass: boolean; cStart: number[] | null; cEnd: number[] | null }> = [];
+
+          babel.traverse(freshAst, {
+            JSXOpeningElement(p) {
+              if (p.node.loc?.start.line !== Number(startLine)) return;
+              const nameNode = p.node.name;
+              if (!nameNode.loc) return;
+              const freshNameEnd = [nameNode.loc.end.line, nameNode.loc.end.column];
+              let freshHasClass = false;
+              let freshCStart: number[] | null = null;
+              let freshCEnd: number[] | null = null;
+              const classAttr = p.node.attributes.find(
+                (attr: any) => babel.types.isJSXAttribute(attr) && (attr as any).name?.name === 'className'
+              );
+              if (classAttr && babel.types.isJSXAttribute(classAttr) && classAttr.value?.loc) {
+                freshHasClass = true;
+                freshCStart = [classAttr.value.loc.start.line, classAttr.value.loc.start.column];
+                freshCEnd = [classAttr.value.loc.end.line, classAttr.value.loc.end.column];
+              }
+              candidates.push({ nameEnd: freshNameEnd, hasClass: freshHasClass, cStart: freshCStart, cEnd: freshCEnd });
+            }
+          });
+
+          if (candidates.length > 0) {
+            candidates.sort((a, b) => Math.abs(a.nameEnd[1] - hintCol) - Math.abs(b.nameEnd[1] - hintCol));
+            const best = candidates[0];
+            nameEnd = best.nameEnd;
+            hasClass = best.hasClass;
+            cStart = best.cStart;
+            cEnd = best.cEnd;
+          }
+        } catch {
+          // If re-parsing fails, fall through and use client-provided values.
+        }
+      }
 
       const toOffset = (content: string, line: number, col: number) => {
         const localLines = content.split('\n');

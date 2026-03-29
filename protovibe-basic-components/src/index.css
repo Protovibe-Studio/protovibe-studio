@@ -97,7 +97,7 @@
  --foreground-info: oklch(74% 0.17 220);
 
  /* Borders */
- --border-default: oklch(30% 0.01 260);
+ --border-default: oklch(45.7% 0.01 260);
  --border-secondary: oklch(22% 0.01 260);
  --border-strong: oklch(46% 0.01 260);
  --border-focus: oklch(55% 0.22 260);
