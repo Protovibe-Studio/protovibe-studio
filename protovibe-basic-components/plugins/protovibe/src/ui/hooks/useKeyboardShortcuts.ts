@@ -61,6 +61,15 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
+        const canAdd = !!(activeData?.file && zones.length > 0);
+        if (canAdd) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
+        }
+        return;
+      }
+
       if (!currentBaseTarget) return;
 
       // Copy, Cut, Paste, Duplicate

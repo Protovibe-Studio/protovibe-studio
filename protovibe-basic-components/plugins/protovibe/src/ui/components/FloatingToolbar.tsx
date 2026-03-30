@@ -18,10 +18,12 @@ export const FloatingToolbar: React.FC = () => {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addSearch, setAddSearch] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const addSearchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const closestBlock = currentBaseTarget?.closest('[data-pv-block]');
   const closestBlockId = closestBlock?.getAttribute('data-pv-block') ?? null;
@@ -38,16 +40,37 @@ export const FloatingToolbar: React.FC = () => {
     }
   }, [zones, closestBlockId]);
 
-  // Close add dialog on outside click
+  // Open add dialog via keyboard shortcut (Cmd+E)
+  useEffect(() => {
+    const handler = () => {
+      if (!canAdd) return;
+      refreshComponents();
+      setAddSearch('');
+      setActiveIndex(0);
+      setShowAddDialog(true);
+      setTimeout(() => addSearchRef.current?.focus(), 0);
+    };
+    window.addEventListener('pv:open-add-dialog', handler);
+    return () => window.removeEventListener('pv:open-add-dialog', handler);
+  }, [canAdd, refreshComponents]);
+
+  // Close add dialog on outside click or Escape
   useEffect(() => {
     if (!showAddDialog) return;
-    const handler = (e: MouseEvent) => {
+    const handleMouse = (e: MouseEvent) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
         setShowAddDialog(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAddDialog(false);
+    };
+    document.addEventListener('mousedown', handleMouse);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleMouse);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, [showAddDialog]);
 
   if (!inspectorOpen || (!canAdd && !canBlockAction)) return null;
@@ -123,18 +146,56 @@ export const FloatingToolbar: React.FC = () => {
       { type: 'block', name: 'Empty Block', description: 'A plain &lt;div&gt; with flex layout' },
       { type: 'text', name: 'Text Node', description: 'A span element with text' },
     ];
-    const filteredBuiltins = builtins.filter(b =>
-      !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q)
-    );
-    const filteredComponents = (availableComponents as any[]).filter(c =>
-      !q || String(c.displayName).toLowerCase().includes(q) || String(c.description).toLowerCase().includes(q)
+    const rankItems = <T extends { name: string; description: string }>(
+      items: T[],
+      nameKey: keyof T = 'name' as keyof T,
+    ): T[] => {
+      if (!q) return items;
+      const exact: T[] = [];
+      const nameIncludes: T[] = [];
+      const descOnly: T[] = [];
+      for (const item of items) {
+        const name = String(item[nameKey]).toLowerCase();
+        const desc = item.description.toLowerCase();
+        if (name.startsWith(q)) exact.push(item);
+        else if (name.includes(q)) nameIncludes.push(item);
+        else if (desc.includes(q)) descOnly.push(item);
+      }
+      return [...exact, ...nameIncludes, ...descOnly];
+    };
+
+    const filteredBuiltins = rankItems(builtins);
+    const filteredComponents = rankItems(
+      availableComponents as any[],
+      'displayName' as any,
     );
 
+    const totalItems = filteredBuiltins.length + filteredComponents.length;
+    const clampedIndex = totalItems > 0 ? Math.min(activeIndex, totalItems - 1) : 0;
+
+    const activateItem = (index: number) => {
+      if (index < filteredBuiltins.length) {
+        handleAddBlock(filteredBuiltins[index].type);
+      } else {
+        handleAddBlock('component', filteredComponents[index - filteredBuiltins.length]);
+      }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      if (filteredBuiltins[0]) handleAddBlock(filteredBuiltins[0].type);
-      else if (filteredComponents[0]) handleAddBlock('component', filteredComponents[0]);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(clampedIndex + 1, totalItems - 1);
+        setActiveIndex(next);
+        listRef.current?.children[next]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(clampedIndex - 1, 0);
+        setActiveIndex(prev);
+        listRef.current?.children[prev]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' && totalItems > 0) {
+        e.preventDefault();
+        activateItem(clampedIndex);
+      }
     };
 
     return (
@@ -158,7 +219,7 @@ export const FloatingToolbar: React.FC = () => {
           <input
             ref={addSearchRef}
             value={addSearch}
-            onChange={e => setAddSearch(e.target.value)}
+            onChange={e => { setAddSearch(e.target.value); setActiveIndex(0); }}
             onKeyDown={handleKeyDown}
             placeholder="Search elements…"
             style={{
@@ -173,29 +234,34 @@ export const FloatingToolbar: React.FC = () => {
             }}
           />
         </div>
-        <div style={{ overflowY: 'auto', maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
-          {filteredBuiltins.map(b => (
+        <div ref={listRef} style={{ overflowY: 'auto', maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
+          {filteredBuiltins.map((b, i) => (
             <button
               key={b.type}
               disabled={locked}
               onClick={() => handleAddBlock(b.type)}
-              style={{ background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_secondary}`, color: theme.text_secondary, padding: '8px 12px', textAlign: 'left', cursor: locked ? 'progress' : 'pointer', opacity: locked ? 0.6 : 1 }}
+              onMouseEnter={() => setActiveIndex(i)}
+              style={{ background: clampedIndex === i ? 'rgba(255,255,255,0.08)' : 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_secondary}`, color: theme.text_secondary, padding: '8px 12px', textAlign: 'left', cursor: locked ? 'progress' : 'pointer', opacity: locked ? 0.6 : 1 }}
             >
               <strong style={{ color: theme.text_default, display: 'block', fontSize: '11px' }}>{b.name}</strong>
               <span style={{ fontSize: '9px', color: theme.text_tertiary }} dangerouslySetInnerHTML={{ __html: b.description }} />
             </button>
           ))}
-          {filteredComponents.map((comp: any) => (
-            <button
-              key={comp.name}
-              disabled={locked}
-              onClick={() => handleAddBlock('component', comp)}
-              style={{ background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_secondary}`, color: theme.text_secondary, padding: '8px 12px', textAlign: 'left', cursor: locked ? 'progress' : 'pointer', opacity: locked ? 0.6 : 1 }}
-            >
-              <strong style={{ color: theme.text_default, display: 'block', fontSize: '11px' }}>{String(comp.displayName)}</strong>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary }}>{String(comp.description)}</span>
-            </button>
-          ))}
+          {filteredComponents.map((comp: any, i: number) => {
+            const idx = filteredBuiltins.length + i;
+            return (
+              <button
+                key={comp.name}
+                disabled={locked}
+                onClick={() => handleAddBlock('component', comp)}
+                onMouseEnter={() => setActiveIndex(idx)}
+                style={{ background: clampedIndex === idx ? 'rgba(255,255,255,0.08)' : 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_secondary}`, color: theme.text_secondary, padding: '8px 12px', textAlign: 'left', cursor: locked ? 'progress' : 'pointer', opacity: locked ? 0.6 : 1 }}
+              >
+                <strong style={{ color: theme.text_default, display: 'block', fontSize: '11px' }}>{String(comp.displayName)}</strong>
+                <span style={{ fontSize: '9px', color: theme.text_tertiary }}>{String(comp.description)}</span>
+              </button>
+            );
+          })}
           {filteredBuiltins.length === 0 && filteredComponents.length === 0 && (
             <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>No results</div>
           )}
@@ -245,6 +311,7 @@ export const FloatingToolbar: React.FC = () => {
                 if (!showAddDialog) {
                   refreshComponents();
                   setAddSearch('');
+                  setActiveIndex(0);
                   setTimeout(() => addSearchRef.current?.focus(), 0);
                 }
                 setShowAddDialog(v => !v);

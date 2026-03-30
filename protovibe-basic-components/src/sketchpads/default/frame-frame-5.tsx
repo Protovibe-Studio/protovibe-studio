@@ -7,19 +7,38 @@ export default function Frame5() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:on4wah */}
-      {/* pv-block-start:yenane */}
-      <Card data-pv-block="yenane" data-pv-sketchpad-el="yenane" variant="bordered" shadow="none" style={{ position: 'absolute', width: 310, left: 100, top: 165 }}>
-        {/* pv-editable-zone-start:3fc5c7 */}
-          {/* pv-block-start:n2rxtf */}
-          <Button data-pv-block="n2rxtf" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:n2rxtf */}
+      
+      {/* pv-block-start:svrqxv */}
+      <TextBlock data-pv-block="svrqxv" data-pv-sketchpad-el="svrqxv" text="Background color" typography="heading-sm" style={{ position: 'absolute', left: 74, top: 107 }} />
+      {/* pv-block-end:svrqxv */}
 
-        {/* pv-block-start:3q40kh */}
-      <TextBlock data-pv-block="3q40kh" data-pv-sketchpad-el="3q40kh" text="Text block" typography="regular" style={{ position: 'absolute', left: 154, top: 47 }} />
-      {/* pv-block-end:3q40kh */}
-        {/* pv-editable-zone-end:3fc5c7 */}
-      </Card>
-      {/* pv-block-end:yenane */}
+      {/* pv-block-start:6g1qbk */}
+      <TextBlock data-pv-block="6g1qbk" data-pv-sketchpad-el="6g1qbk" text="Base" typography="regular" style={{ position: 'absolute', left: 74, top: 147 }} />
+      {/* pv-block-end:6g1qbk */}
+
+      {/* pv-block-start:sy7k9t */}
+      <TextBlock data-pv-block="sy7k9t" data-pv-sketchpad-el="sy7k9t" text="#000000" typography="regular" style={{ position: 'absolute', left: 295, top: 149 }} />
+      {/* pv-block-end:sy7k9t */}
+
+      {/* pv-block-start:eyt3fs */}
+      <TextBlock data-pv-block="eyt3fs" data-pv-sketchpad-el="eyt3fs" text="When screen is large" typography="regular" style={{ position: 'absolute', left: 75, top: 185 }} />
+      {/* pv-block-end:eyt3fs */}
+
+      {/* pv-block-start:f3wpua */}
+      <TextBlock data-pv-block="f3wpua" data-pv-sketchpad-el="f3wpua" text="When Variant is primary" typography="regular" style={{ position: 'absolute', left: 74, top: 222 }} />
+      {/* pv-block-end:f3wpua */}
+
+      {/* pv-block-start:95pc83 */}
+      <TextBlock data-pv-block="95pc83" data-pv-sketchpad-el="95pc83" text="#000000" typography="regular" style={{ position: 'absolute', left: 295, top: 186 }} />
+      {/* pv-block-end:95pc83 */}
+
+      {/* pv-block-start:x2uo0v */}
+      <TextBlock data-pv-block="x2uo0v" data-pv-sketchpad-el="x2uo0v" text="#000000" typography="regular" style={{ position: 'absolute', left: 296, top: 222 }} />
+      {/* pv-block-end:x2uo0v */}
+
+      {/* pv-block-start:760yd5 */}
+      <TextBlock data-pv-block="760yd5" data-pv-sketchpad-el="760yd5" text="When Variant and is hovered" typography="regular" style={{ position: 'absolute', width: 136, left: 74, top: 271 }} />
+      {/* pv-block-end:760yd5 */}
       {/* pv-editable-zone-end:on4wah */}
     </div>
   );

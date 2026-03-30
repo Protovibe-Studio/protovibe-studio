@@ -120,7 +120,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="" data-pv-block="54fl2x"  >
+          <Card className="my-10" data-pv-block="54fl2x"  >
             {/* pv-editable-zone-start:c5gbka */}
             {/* pv-block-start:gc051c */}
           <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />
@@ -150,6 +150,121 @@ export default function App() {
             {/* pv-editable-zone-end:inside-85inm3 */}
           </span>
           {/* pv-block-end:85inm3 */}
+
+          {/* pv-block-start:fadl48 */}
+          <RadioItem data-pv-block="fadl48" primaryText="Option 1" value="opt1" />
+          {/* pv-block-end:fadl48 */}
+
+          {/* pv-block-start:q9lrds */}
+          <span data-pv-block="q9lrds">
+            Lorem ipsum
+            {/* pv-editable-zone-start:inside-q9lrds */}
+            {/* pv-editable-zone-end:inside-q9lrds */}
+          </span>
+          {/* pv-block-end:q9lrds */}
+
+          {/* pv-block-start:91qsdy */}
+          <Button data-pv-block="91qsdy" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:91qsdy */}
+
+          {/* pv-block-start:asyohf */}
+          <DropdownButton data-pv-block="asyohf" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
+            {/* pv-editable-zone-start:ivx27g */}
+              {/* pv-block-start:xegspb */}
+              <DropdownItem data-pv-block="xegspb" label="Edit" prefixIcon="Edit2" />
+              {/* pv-block-end:xegspb */}
+              {/* pv-block-start:4h1ejl */}
+              <DropdownItem data-pv-block="4h1ejl" label="Duplicate" prefixIcon="Copy" />
+              {/* pv-block-end:4h1ejl */}
+              {/* pv-block-start:n7xwzl */}
+              <DropdownSeparator data-pv-block="n7xwzl" />
+              {/* pv-block-end:n7xwzl */}
+              {/* pv-block-start:vuf9mo */}
+              <DropdownItem data-pv-block="vuf9mo" label="Delete" prefixIcon="Trash2" destructive={true} />
+              {/* pv-block-end:vuf9mo */}
+            {/* pv-editable-zone-end:ivx27g */}
+          </DropdownButton>
+          {/* pv-block-end:asyohf */}
+
+          {/* pv-block-start:vyjtlx */}
+          <Card className="gap-2" data-pv-block="vyjtlx" variant="bordered" shadow="none">
+            {/* pv-editable-zone-start:z5l8qh */}
+            {/* pv-block-start:fq41ck */}
+          <TextBlock className="font-thin" data-pv-block="fq41ck" text="Text block Test" typography="heading-md" />
+          {/* pv-block-end:fq41ck */}
+
+            {/* pv-block-start:z3wpx3 */}
+              <TextBlock className="text-foreground-primary" data-pv-block="z3wpx3" text="Witam serdecznie, pozdrawiam!" typography="regular" />
+              {/* pv-block-end:z3wpx3 */}
+
+              {/* pv-block-start:hjyw6a */}
+              <div className="flex min-h-4 flex-row gap-2" data-pv-block="hjyw6a">
+                {/* pv-editable-zone-start:inside-hjyw6a */}
+                {/* pv-block-start:eszc3k */}
+          <Button data-pv-block="eszc3k" label="Button" variant="outline" color="primary" size="md" />
+          {/* pv-block-end:eszc3k */}
+
+                {/* pv-block-start:krzrws */}
+          <Button data-pv-block="krzrws" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:krzrws */}
+                {/* pv-editable-zone-end:inside-hjyw6a */}
+              </div>
+              {/* pv-block-end:hjyw6a */}
+
+              {/* pv-block-start:oxpbiz */}
+              <DialogTrigger data-pv-block="oxpbiz">
+                {/* pv-editable-zone-start:xodz4n */}
+                  {/* pv-block-start:j9we2u */}
+                  <Button data-pv-block="j9we2u" label="Open Dialog" variant="solid" color="primary" size="md" />
+                  {/* pv-block-end:j9we2u */}
+                  {/* pv-block-start:95po0b */}
+                  <DialogOverlay data-pv-block="95po0b">
+                    <DialogWindow size="md">
+                      {/* pv-editable-zone-start:slckwp */}
+                      {/* pv-block-start:3jzxbn */}
+                      <h2 data-pv-block="3jzxbn" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                      {/* pv-block-end:3jzxbn */}
+                      {/* pv-block-start:2kkpf6 */}
+                      <p data-pv-block="2kkpf6" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                      {/* pv-block-end:2kkpf6 */}
+
+                        {/* pv-block-start:pnr0c6 */}
+                        <div className="flex flex-col min-h-4 mb-4" data-pv-block="pnr0c6">
+                          {/* pv-editable-zone-start:inside-pnr0c6 */}
+                          {/* pv-block-start:2objye */}
+                        <SuperLabel secondaryText="Pozdro!" data-pv-block="2objye" primaryText="Label" />
+                        {/* pv-block-end:2objye */}
+
+                          {/* pv-block-start:idts06 */}
+                        <Input data-pv-block="idts06" placeholder="Enter text..." />
+                        {/* pv-block-end:idts06 */}
+                          {/* pv-editable-zone-end:inside-pnr0c6 */}
+                        </div>
+                        {/* pv-block-end:pnr0c6 */}
+
+                        {/* pv-block-start:t59p1g */}
+                        <div className="flex min-h-4 flex-row gap-4" data-pv-block="t59p1g">
+                          {/* pv-editable-zone-start:inside-t59p1g */}
+                          {/* pv-block-start:yxnha5 */}
+                        <Button className="grow" data-pv-block="yxnha5" label="Button" variant="solid" color="primary" size="md" />
+                        {/* pv-block-end:yxnha5 */}
+
+                          {/* pv-block-start:msopcv */}
+                        <Button className="grow" data-pv-block="msopcv" label="Button" variant="solid" color="danger" size="md" />
+                        {/* pv-block-end:msopcv */}
+                          {/* pv-editable-zone-end:inside-t59p1g */}
+                        </div>
+                        {/* pv-block-end:t59p1g */}
+                      {/* pv-editable-zone-end:slckwp */}
+                    </DialogWindow>
+                  </DialogOverlay>
+                  {/* pv-block-end:95po0b */}
+                {/* pv-editable-zone-end:xodz4n */}
+              </DialogTrigger>
+              {/* pv-block-end:oxpbiz */}
+            {/* pv-editable-zone-end:z5l8qh */}
+          </Card>
+          {/* pv-block-end:vyjtlx */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
