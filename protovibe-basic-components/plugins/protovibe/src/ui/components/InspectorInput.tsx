@@ -22,6 +22,7 @@ export const InspectorInput: React.FC<React.InputHTMLAttributes<HTMLInputElement
     fontSize: '11px',
     outline: 'none',
     width: '100%',
+    boxSizing: 'border-box',
     transition: 'all 0.2s',
     ...style
   };

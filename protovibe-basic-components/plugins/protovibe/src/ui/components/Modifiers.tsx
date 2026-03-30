@@ -10,8 +10,15 @@ export const Modifiers: React.FC = () => {
 
   if (!activeData) return null;
 
+  // 1. Get classes from the consumer's source code
   const flatClasses = activeData.parsedClasses ? Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls) : [];
-  const availableDataAttrs = extractAvailableModifiers(flatClasses);
+  
+  // 2. Get the full concatenated class string directly from the rendered DOM element
+  const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/) || [];
+
+  // 3. Combine them and extract all data-* modifiers
+  const combinedClasses = [...flatClasses, ...domClasses];
+  const availableDataAttrs = extractAvailableModifiers(combinedClasses);
 
   const handleInteraction = (val: string) => {
     setActiveModifiers(prev => {

@@ -43,7 +43,6 @@ export default function App() {
     <div>
       <div className="flex flex-col items-start pl-15">
         {/* pv-editable-zone-start:kcyc8f */}
-
           {/* pv-block-start:vcqewy */}
           <div className="flex flex-col min-h-4" data-pv-block="vcqewy">
             {/* pv-editable-zone-start:inside-vcqewy */}
@@ -95,7 +94,6 @@ export default function App() {
           {/* pv-block-start:1imggz */}
           <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="1imggz">
             {/* pv-editable-zone-start:inside-1imggz */}
-
               {/* pv-block-start:dxq3u9 */}
               <span data-pv-block="dxq3u9">
                 Lorem ipsum
@@ -110,7 +108,6 @@ export default function App() {
         {/* pv-block-start:j5f1fn */}
           <div className="flex flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="j5f1fn">
             {/* pv-editable-zone-start:inside-j5f1fn */}
-
               {/* pv-block-start:hkx3km */}
               <span data-pv-block="hkx3km">
                 Lorem ipsum
@@ -123,8 +120,11 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="bg-background-info-subtle pl-2" data-pv-block="54fl2x"  shadow="none">
+          <Card className="bg-background-info-subtle flex gap-4 flex-col" data-pv-block="54fl2x"  shadow="none">
             {/* pv-editable-zone-start:c5gbka */}
+            {/* pv-block-start:gc051c */}
+          <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />
+          {/* pv-block-end:gc051c */}
 
               {/* pv-block-start:fas0lb */}
               <Button data-pv-block="fas0lb" label="Button" variant="solid" color="primary" size="md" />
@@ -133,14 +133,9 @@ export default function App() {
           </Card>
           {/* pv-block-end:54fl2x */}
 
-          {/* pv-block-start:rz1tws */}
-          <TextBlock className="font-thin" data-pv-block="rz1tws" text="Text block Test" typography="heading-md" />
-          {/* pv-block-end:rz1tws */}
-
           {/* pv-block-start:im5sfy */}
           <Container data-pv-block="im5sfy">
             {/* pv-editable-zone-start:vvh5ey */}
-
               {/* pv-block-start:5pzojq */}
               <TextBlock className="text-foreground-primary" data-pv-block="5pzojq" text="Text block" typography="regular" />
               {/* pv-block-end:5pzojq */}

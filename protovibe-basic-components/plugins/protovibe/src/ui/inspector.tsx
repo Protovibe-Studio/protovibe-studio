@@ -1,4 +1,5 @@
 // plugins/protovibe/src/ui/inspector.tsx
+import './shell.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ProtovibeProvider } from './context/ProtovibeContext';
