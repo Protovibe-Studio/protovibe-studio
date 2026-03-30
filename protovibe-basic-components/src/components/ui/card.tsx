@@ -17,14 +17,7 @@ export function Card({
     <div
       data-variant={variant}
       data-shadow={shadow}
-      className={cn(
-        "rounded-xl transition-shadow",
-        "data-[variant=bordered]:bg-background-elevated data-[variant=bordered]:border data-[variant=bordered]:border-border-default data-[variant=bordered]:p-6",
-        "data-[variant=filled]:bg-background-secondary data-[variant=filled]:p-6",
-        "data-[variant=ghost]:bg-transparent data-[variant=ghost]:border-0 data-[variant=ghost]:p-0",
-        "data-[shadow=none]:shadow-none data-[shadow=sm]:shadow-sm data-[shadow=md]:shadow-md data-[shadow=lg]:shadow-lg data-[shadow=xl]:shadow-xl",
-        className
-      )}
+      className={cn("transition-shadow p-5 rounded-md data-[variant=bordered]:bg-background-elevated data-[variant=bordered]:border data-[variant=bordered]:border-border-default data-[variant=filled]:bg-background-secondary data-[variant=ghost]:bg-transparent data-[variant=ghost]:border-0 data-[shadow=none]:shadow-none data-[shadow=sm]:shadow-sm data-[shadow=md]:shadow-md data-[shadow=lg]:shadow-lg data-[shadow=xl]:shadow-xl", className)}
       {...props}
       data-pv-component-id="Card"
     >

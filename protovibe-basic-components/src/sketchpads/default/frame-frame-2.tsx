@@ -6,10 +6,12 @@ import { DropdownList } from '@/components/ui/dropdown-list';
 import { DropdownGroupLabel } from '@/components/ui/dropdown-group-label';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { DropdownSeparator } from '@/components/ui/dropdown-separator';
+import { Card } from '@/components/ui/card';
+import { TextBlock } from '@/components/ui/text-block'
 
 export default function Frame2() {
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div className="bg-background-secondary" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:zb8lla */}
         {/* pv-block-start:o5mtmq */}
         <div className="flex flex-col min-h-4 p-5" data-pv-block="o5mtmq">
@@ -71,6 +73,21 @@ export default function Frame2() {
         {/* pv-editable-zone-end:q7ethq */}
       </RadioGroup>
       {/* pv-block-end:d01gy2 */}
+      
+      {/* pv-block-start:s6x5t6 */}
+      <Card data-pv-block="s6x5t6" data-pv-sketchpad-el="s6x5t6" variant="bordered" shadow="none" style={{ position: 'absolute', left: 395, top: 275 }}>
+        {/* pv-editable-zone-start:2xy2jt */}
+
+          {/* pv-block-start:4upn51 */}
+          <TextBlock className="font-bold" data-pv-block="4upn51" text="Text block" typography="regular" />
+          {/* pv-block-end:4upn51 */}
+        {/* pv-editable-zone-end:2xy2jt */}
+      </Card>
+      {/* pv-block-end:s6x5t6 */}
+      
+      {/* pv-block-start:kwng9f */}
+      <Button className="bg-background-secondary" data-pv-block="kwng9f" data-pv-sketchpad-el="kwng9f" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', width: 172, left: 405, top: 380 }} />
+      {/* pv-block-end:kwng9f */}
       {/* pv-editable-zone-end:zb8lla */}
     </div>
   );

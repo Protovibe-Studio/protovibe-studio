@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useLayoutEffect, Component } from 'react';
 import type { ComponentEntry } from '../types';
-import { parseDefaultProps } from './SketchpadApp';
+import { parseDefaultProps } from '../utils';
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────
 

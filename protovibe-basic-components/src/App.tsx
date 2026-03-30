@@ -41,7 +41,7 @@ export default function App() {
   const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
   return (
     <div>
-      <div className="flex flex-col items-start pl-10">
+      <div className="flex flex-col items-start pl-15">
         {/* pv-editable-zone-start:kcyc8f */}
 
           {/* pv-block-start:vcqewy */}
@@ -108,7 +108,7 @@ export default function App() {
           {/* pv-block-end:1imggz */}
 
         {/* pv-block-start:j5f1fn */}
-          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="j5f1fn">
+          <div className="flex flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="j5f1fn">
             {/* pv-editable-zone-start:inside-j5f1fn */}
 
               {/* pv-block-start:hkx3km */}
@@ -123,7 +123,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card data-pv-block="54fl2x" variant="bordered" shadow="none">
+          <Card className="bg-background-info-subtle pl-2" data-pv-block="54fl2x"  shadow="none">
             {/* pv-editable-zone-start:c5gbka */}
 
               {/* pv-block-start:fas0lb */}
@@ -134,7 +134,7 @@ export default function App() {
           {/* pv-block-end:54fl2x */}
 
           {/* pv-block-start:rz1tws */}
-          <TextBlock data-pv-block="rz1tws" text="Text block Test" typography="heading-md" />
+          <TextBlock className="font-thin" data-pv-block="rz1tws" text="Text block Test" typography="heading-md" />
           {/* pv-block-end:rz1tws */}
 
           {/* pv-block-start:im5sfy */}
@@ -142,7 +142,7 @@ export default function App() {
             {/* pv-editable-zone-start:vvh5ey */}
 
               {/* pv-block-start:5pzojq */}
-              <TextBlock data-pv-block="5pzojq" text="Text block" typography="regular" />
+              <TextBlock className="text-foreground-primary" data-pv-block="5pzojq" text="Text block" typography="regular" />
               {/* pv-block-end:5pzojq */}
             {/* pv-editable-zone-end:vvh5ey */}
           </Container>

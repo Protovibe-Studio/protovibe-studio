@@ -5,8 +5,14 @@ import React, { useState, useEffect, memo, useCallback } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 // ─── Component discovery ───────────────────────────────────────────────────────
-// Fetch component list from the dev server, then dynamically import each module
-// so that newly-created files are picked up without an iframe reload.
+// The static glob creates HMR boundaries for all existing component files so
+// that class edits via the inspector hot-reload without a full page refresh.
+// New files added after the server started aren't in the glob yet — those are
+// discovered via a server fetch + dynamic import and shown after a tab switch.
+const allModules = import.meta.glob(
+  ['/src/**/*.{tsx,jsx}', '!/src/main.tsx', '!/src/store.tsx', '!/src/App.tsx', '!/src/sketchpads/**'],
+  { eager: true }
+);
 
 interface PvConfig {
   name: string;
@@ -25,33 +31,50 @@ interface ComponentEntry {
   filePath: string;
 }
 
-async function discoverComponentsFromServer(): Promise<ComponentEntry[]> {
-  let serverComponents: any[];
+async function discoverComponents(): Promise<ComponentEntry[]> {
+  // Build a name → refs map from the static glob (these get HMR updates).
+  const globRefs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; filePath: string; config: PvConfig }> = {};
+  for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
+    const pvConfig = mod?.pvConfig as PvConfig | undefined;
+    if (!pvConfig?.name) continue;
+    const Component = mod[pvConfig.name];
+    if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
+    const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
+    globRefs[pvConfig.name] = { Component, DefaultContent, filePath, config: pvConfig };
+  }
+
+  // Ask the server for the authoritative component list (includes newly-added files).
+  let serverComponents: any[] = [];
   try {
     const res = await fetch('/__get-components');
     const data = await res.json();
     serverComponents = data.components ?? [];
   } catch {
-    return [];
+    // Server unavailable — fall back to glob-only list.
+    return Object.values(globRefs).map(r => ({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, filePath: r.filePath }));
   }
 
   const entries: ComponentEntry[] = [];
   for (const c of serverComponents) {
     if (!c.importPath) continue;
-    // Resolve @/ alias to /src/ for dynamic browser imports
-    const resolvedPath = c.importPath.startsWith('@/')
-      ? c.importPath.replace('@/', '/src/')
-      : c.importPath;
-    try {
-      const mod = await import(/* @vite-ignore */ resolvedPath);
-      const pvConfig = mod?.pvConfig as PvConfig | undefined;
-      if (!pvConfig?.name) continue;
-      const Component = mod[pvConfig.name];
-      if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
-      const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
-      entries.push({ config: pvConfig, Component, DefaultContent, filePath: resolvedPath });
-    } catch (e) {
-      console.warn(`[Previewer] Failed to import ${resolvedPath}:`, e);
+    if (globRefs[c.name]) {
+      // Component is in the static glob: use glob refs so HMR works.
+      const r = globRefs[c.name];
+      entries.push({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, filePath: r.filePath });
+    } else {
+      // New file not yet in the glob: dynamic import (no HMR, but visible immediately).
+      const resolvedPath = c.importPath.startsWith('@/') ? c.importPath.replace('@/', '/src/') : c.importPath;
+      try {
+        const mod = await import(/* @vite-ignore */ resolvedPath);
+        const pvConfig = mod?.pvConfig as PvConfig | undefined;
+        if (!pvConfig?.name) continue;
+        const Component = mod[pvConfig.name];
+        if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
+        const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
+        entries.push({ config: pvConfig, Component, DefaultContent, filePath: resolvedPath });
+      } catch (e) {
+        console.warn(`[Previewer] Failed to import ${resolvedPath}:`, e);
+      }
     }
   }
   return entries;
@@ -566,13 +589,23 @@ export function ProtovibePreviewer() {
   const [search, setSearch] = useState('');
 
   const refresh = useCallback(async () => {
-    const entries = await discoverComponentsFromServer();
+    const entries = await discoverComponents();
     setDiscovered(entries);
   }, []);
 
   useEffect(() => {
     refresh();
   }, []);
+
+  // Re-run discovery when any glob-tracked component file changes via HMR.
+  // This updates the Component refs so the previewer stays in sync.
+  useEffect(() => {
+    if (import.meta.hot) {
+      import.meta.hot.accept(Object.keys(allModules), () => {
+        refresh();
+      });
+    }
+  }, [refresh]);
 
   // Allow the parent shell to trigger a refresh (e.g. on tab switch)
   useEffect(() => {
