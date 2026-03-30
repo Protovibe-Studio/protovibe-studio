@@ -215,7 +215,12 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (t.attributes) {
         for (let i = 0; i < t.attributes.length; i++) {
           if (t.attributes[i].name.startsWith('data-pv-loc-')) {
-            matchedIds.add(t.attributes[i].name.replace('data-pv-loc-', ''));
+            // Strip the base prefix, then also strip the optional environment
+            // sub-prefix ('app-' or 'ui-') introduced by the jsx-locator plugin
+            // so the hash passed to the server matches the locatorMap key.
+            const rawId = t.attributes[i].name.replace('data-pv-loc-', '');
+            const id = rawId.replace(/^(app|ui)-/, '');
+            matchedIds.add(id);
           }
         }
       }

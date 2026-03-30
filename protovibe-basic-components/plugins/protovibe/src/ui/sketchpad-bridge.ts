@@ -3,6 +3,8 @@
 // tagged with data-pv-sketchpad-el (absolutely-positioned sketchpad components).
 // Supports selecting, dragging, and focusing them in the inspector.
 
+import { findAllowedAncestorOrSelf } from './utils/traversal';
+
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
   try {
@@ -229,10 +231,16 @@ function notifyInspector(el: HTMLElement) {
 function handlePointerDown(e: PointerEvent) {
   if (e.button !== 0) return;
 
-  const el = findSketchpadElement(e.target);
+  // Drag target: always the top-level sketchpad block, so dragging a nested
+  // element moves the entire block rather than orphaning it.
+  const dragTarget = findSketchpadElement(e.target);
+
+  // Inspector target: the nearest allowed element for the sketchpad environment
+  // (data-pv-sketchpad-el or data-pv-component-id), found by walking up.
+  const inspectorTarget = findAllowedAncestorOrSelf(e.target as HTMLElement);
 
   // Click on empty space — but first check if we're in the resize zone of the selected element
-  if (!el) {
+  if (!dragTarget) {
     // If pointer is in the right-edge resize zone of the currently selected element,
     // start a resize without changing focus
     if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
@@ -270,30 +278,32 @@ function handlePointerDown(e: PointerEvent) {
   e.preventDefault();
   e.stopPropagation();
 
-  // Select + notify inspector
+  // Select visually using the drag target (top-level block outline).
+  // Notify the inspector with the more specific allowed target when available,
+  // so props panels for nested registered components still work.
   clearHover();
-  setSelection(el);
-  notifyInspector(el);
+  setSelection(dragTarget);
+  notifyInspector(inspectorTarget ?? dragTarget);
 
   // Check if pointer is near right edge → start resize instead of drag
-  if (isNearRightEdge(el, e.clientX, e.clientY)) {
-    const rect = el.getBoundingClientRect();
+  if (isNearRightEdge(dragTarget, e.clientX, e.clientY)) {
+    const rect = dragTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
     resizeState = {
-      target: el,
+      target: dragTarget,
       pointerId: e.pointerId,
       startX: e.clientX,
       origWidth: rect.width / zoom,
     };
     setForcedCursor('ew-resize');
-    el.style.transition = 'none';
+    dragTarget.style.transition = 'none';
     return;
   }
 
-  // Begin drag tracking (actual drag starts after threshold)
-  const pos = getComputedPos(el);
+  // Begin drag tracking using the top-level block (actual drag starts after threshold)
+  const pos = getComputedPos(dragTarget);
   dragState = {
-    target: el,
+    target: dragTarget,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,

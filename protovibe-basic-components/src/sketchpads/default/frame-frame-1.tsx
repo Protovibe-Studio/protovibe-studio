@@ -11,11 +11,11 @@ export default function Frame1() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:ecam39 */}
       {/* pv-block-start:ak8bcl */}
-      <Button data-pv-block="ak8bcl" data-pv-sketchpad-el="ak8bcl" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 547, top: 378 }} />
+      <Button data-pv-block="ak8bcl" data-pv-sketchpad-el="ak8bcl" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 405, top: 480 }} />
       {/* pv-block-end:ak8bcl */}
 
       {/* pv-block-start:zvaeej */}
-      <VerticalTabs data-pv-block="zvaeej" data-pv-sketchpad-el="zvaeej" value="tab1" style={{ position: 'absolute', width: 177, left: 75, top: 137 }}>
+      <VerticalTabs data-pv-block="zvaeej" data-pv-sketchpad-el="zvaeej" value="tab1" style={{ position: 'absolute', width: 177, left: 73, top: 242 }}>
         {/* pv-editable-zone-start:6fhden */}
           {/* pv-block-start:rkwxmd */}
           <VerticalTabItem data-pv-block="rkwxmd" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
@@ -50,7 +50,7 @@ export default function Frame1() {
         {/* pv-block-end:ulvcic */}
 
       {/* pv-block-start:q0b81h */}
-      <DropdownItem data-pv-block="q0b81h" data-pv-sketchpad-el="q0b81h" label="Menu Item" style={{ position: 'absolute', left: 299, top: 249 }} />
+      <DropdownItem data-pv-block="q0b81h" data-pv-sketchpad-el="q0b81h" label="Menu Item" style={{ position: 'absolute', left: 361, top: 299 }} />
       {/* pv-block-end:q0b81h */}
 
       {/* pv-block-start:xvi355 */}

@@ -2,6 +2,10 @@
 import { Button } from '@/components/ui/button';
 import { RadioGroup } from '@/components/ui/radio-group'
 import { RadioItem } from '@/components/ui/radio-item'
+import { DropdownList } from '@/components/ui/dropdown-list';
+import { DropdownGroupLabel } from '@/components/ui/dropdown-group-label';
+import { DropdownItem } from '@/components/ui/dropdown-item';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
 export default function Frame2() {
   return (
@@ -29,6 +33,28 @@ export default function Frame2() {
           {/* pv-editable-zone-end:inside-o5mtmq */}
         </div>
         {/* pv-block-end:o5mtmq */}
+      
+      {/* pv-block-start:8bxsy1 */}
+      <DropdownList data-pv-block="8bxsy1" data-pv-sketchpad-el="8bxsy1" width="md" style={{ position: 'absolute', left: 275, top: 247 }}>
+        {/* pv-editable-zone-start:wgnxoy */}
+          {/* pv-block-start:ytm5mq */}
+          <DropdownGroupLabel data-pv-block="ytm5mq" label="Actions" />
+          {/* pv-block-end:ytm5mq */}
+          {/* pv-block-start:vazgrd */}
+          <DropdownItem data-pv-block="vazgrd" label="Edit" prefixIcon="Edit2" />
+          {/* pv-block-end:vazgrd */}
+          {/* pv-block-start:zrfqg9 */}
+          <DropdownItem data-pv-block="zrfqg9" label="Duplicate" prefixIcon="Copy" />
+          {/* pv-block-end:zrfqg9 */}
+          {/* pv-block-start:okbkck */}
+          <DropdownSeparator data-pv-block="okbkck" />
+          {/* pv-block-end:okbkck */}
+          {/* pv-block-start:c0rxek */}
+          <DropdownItem data-pv-block="c0rxek" label="Delete" prefixIcon="Trash2" destructive={true} />
+          {/* pv-block-end:c0rxek */}
+        {/* pv-editable-zone-end:wgnxoy */}
+      </DropdownList>
+      {/* pv-block-end:8bxsy1 */}
       {/* pv-editable-zone-end:zb8lla */}
     </div>
   );

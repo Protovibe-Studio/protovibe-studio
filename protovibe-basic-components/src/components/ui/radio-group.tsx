@@ -71,7 +71,7 @@ export function PvDefaultContent() {
         <RadioItem data-pv-block="" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <RadioItem data-pv-block="" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
+        <RadioItem data-pv-block="" value="opt3" primaryText="Option Three" secondaryText="Third option" />
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>

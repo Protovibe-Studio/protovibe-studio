@@ -8,6 +8,11 @@ import {
   type ClipboardBlockAction
 } from '../utils/executeBlockAction';
 import { emitToast } from '../events/toast';
+import {
+  getAllowedParent,
+  getAllowedChild,
+  getAllowedSibling,
+} from '../utils/traversal';
 
 export function useKeyboardShortcuts() {
   const { 
@@ -195,10 +200,10 @@ export function useKeyboardShortcuts() {
         }
       };
 
-      if (e.key === 'ArrowUp') handleNavigate(currentBaseTarget.parentElement);
-      else if (e.key === 'ArrowDown') handleNavigate(currentBaseTarget.firstElementChild as HTMLElement);
-      else if (e.key === 'ArrowLeft') handleNavigate(currentBaseTarget.previousElementSibling as HTMLElement);
-      else if (e.key === 'ArrowRight') handleNavigate(currentBaseTarget.nextElementSibling as HTMLElement);
+      if (e.key === 'ArrowUp') handleNavigate(getAllowedParent(currentBaseTarget));
+      else if (e.key === 'ArrowDown') handleNavigate(getAllowedChild(currentBaseTarget));
+      else if (e.key === 'ArrowLeft') handleNavigate(getAllowedSibling(currentBaseTarget, 'prev'));
+      else if (e.key === 'ArrowRight') handleNavigate(getAllowedSibling(currentBaseTarget, 'next'));
     };
 
     window.addEventListener('keydown', handleKeyDown);

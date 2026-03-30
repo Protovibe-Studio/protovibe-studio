@@ -2,6 +2,8 @@
 // Runs inside app.html (the iframe). Intercepts canvas interactions and
 // communicates them to the parent Protovibe shell via postMessage.
 
+import { isElementAllowed } from './utils/traversal';
+
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
 (function () {
@@ -31,13 +33,7 @@ function findInspectableTarget(start: EventTarget | null): HTMLElement | null {
   while (t && t !== document.documentElement) {
     // Skip Protovibe UI chrome — not inspectable
     if (t.dataset?.pvUi === 'true') return null;
-    if (t.attributes) {
-      for (let i = 0; i < t.attributes.length; i++) {
-        if (t.attributes[i].name.startsWith('data-pv-loc-')) {
-          return t;
-        }
-      }
-    }
+    if (isElementAllowed(t)) return t;
     t = t.parentElement;
   }
   return null;

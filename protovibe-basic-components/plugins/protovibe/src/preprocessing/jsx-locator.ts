@@ -75,7 +75,15 @@ export function jsxLocatorPlugin(): Plugin {
                     hash |= 0;
                   }
                   const uniqueId = Math.abs(hash).toString(36);
-                  const attrName = `data-pv-loc-${uniqueId}`;
+
+                  // Tag the attribute with an environment prefix so the visual
+                  // inspector can distinguish internal UI-component elements from
+                  // application-level elements (the "Root Element Wall").
+                  //   data-pv-loc-ui-<hash>  → element lives inside src/components/ui
+                  //   data-pv-loc-app-<hash> → element lives in application code
+                  const isUiComponent = relativeFilePath.replace(/\\/g, '/').includes('src/components/ui');
+                  const attrPrefix = isUiComponent ? 'data-pv-loc-ui-' : 'data-pv-loc-app-';
+                  const attrName = `${attrPrefix}${uniqueId}`;
 
                   // Save payload to Server Memory
                   locatorMap.set(uniqueId, payload);
