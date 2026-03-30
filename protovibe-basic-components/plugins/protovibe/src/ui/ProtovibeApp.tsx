@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
-import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { Sidebar } from './components/Sidebar';
@@ -26,35 +26,34 @@ export const ProtovibeApp: React.FC = () => {
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
   const { inspectorOpen, toggleInspector } = useProtovibe();
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const appIframeRef = useRef<HTMLIFrameElement>(null);
+  const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
+  const componentsIframeRef = useRef<HTMLIFrameElement>(null);
 
-  useIframeBridge(iframeRef);
+  // Inspector bridge only targets the app iframe
+  useIframeBridge(appIframeRef);
   useKeyboardShortcuts();
 
-  const iframeSrc = useMemo(() => {
-    if (activeIframeTab === 'sketchpad') return '/sketchpad.html';
-    if (activeIframeTab === 'components') return '/components.html';
-    return '/app.html';
-  }, [activeIframeTab]);
-
-  // Re-send state whenever the iframe reloads (e.g. HMR full-reload)
-  const handleIframeLoad = useCallback(() => {
-    iframeRef.current?.contentWindow?.postMessage(
+  // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
+  const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme },
       '*'
     );
-    iframeRef.current?.contentWindow?.postMessage(
+    ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
       '*'
     );
   }, [iframeTheme, inspectorOpen]);
 
-  // Sync iframe theme whenever it changes
+  // Broadcast theme to all iframes whenever it changes
   useEffect(() => {
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: 'PV_SET_THEME', theme: iframeTheme },
-      '*'
-    );
+    [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
+      ref.current?.contentWindow?.postMessage(
+        { type: 'PV_SET_THEME', theme: iframeTheme },
+        '*'
+      );
+    });
   }, [iframeTheme]);
 
   return (
@@ -79,13 +78,33 @@ export const ProtovibeApp: React.FC = () => {
       />
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-          <iframe
-            ref={iframeRef}
-            src={iframeSrc}
-            style={{ flex: 1, border: 'none', minWidth: 0 }}
-            title={activeIframeTab === 'sketchpad' ? 'Sketchpad' : 'App Preview'}
-            onLoad={handleIframeLoad}
-          />
+          <div style={{ flex: 1, display: activeIframeTab === 'app' ? 'flex' : 'none', minHeight: 0 }}>
+            <iframe
+              ref={appIframeRef}
+              src="/app.html"
+              style={{ flex: 1, border: 'none', minWidth: 0 }}
+              title="App Preview"
+              onLoad={() => handleIframeLoad(appIframeRef)}
+            />
+          </div>
+          <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0 }}>
+            <iframe
+              ref={sketchpadIframeRef}
+              src="/sketchpad.html"
+              style={{ flex: 1, border: 'none', minWidth: 0 }}
+              title="Sketchpad"
+              onLoad={() => handleIframeLoad(sketchpadIframeRef)}
+            />
+          </div>
+          <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0 }}>
+            <iframe
+              ref={componentsIframeRef}
+              src="/components.html"
+              style={{ flex: 1, border: 'none', minWidth: 0 }}
+              title="Components Preview"
+              onLoad={() => handleIframeLoad(componentsIframeRef)}
+            />
+          </div>
           <div
             style={{
               height: 32,

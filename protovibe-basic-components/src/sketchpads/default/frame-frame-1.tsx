@@ -15,7 +15,7 @@ export default function Frame1() {
       {/* pv-block-end:ak8bcl */}
 
       {/* pv-block-start:zvaeej */}
-      <VerticalTabs data-pv-block="zvaeej" data-pv-sketchpad-el="zvaeej" value="tab1" style={{ position: 'absolute', width: 177, left: 73, top: 196 }}>
+      <VerticalTabs data-pv-block="zvaeej" data-pv-sketchpad-el="zvaeej" value="tab1" style={{ position: 'absolute', width: 177, left: 75, top: 137 }}>
         {/* pv-editable-zone-start:6fhden */}
           {/* pv-block-start:rkwxmd */}
           <VerticalTabItem data-pv-block="rkwxmd" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
@@ -48,13 +48,9 @@ export default function Frame1() {
           {/* pv-editable-zone-end:inside-ulvcic */}
         </div>
         {/* pv-block-end:ulvcic */}
-      
-      {/* pv-block-start:wy11we */}
-      <Badge data-pv-block="wy11we" data-pv-sketchpad-el="wy11we" label="Test" color="primary" style={{ position: 'absolute', left: 309, top: 138 }} />
-      {/* pv-block-end:wy11we */}
 
       {/* pv-block-start:q0b81h */}
-      <DropdownItem data-pv-block="q0b81h" data-pv-sketchpad-el="q0b81h" label="Menu Item" style={{ position: 'absolute', left: 282, top: 220 }} />
+      <DropdownItem data-pv-block="q0b81h" data-pv-sketchpad-el="q0b81h" label="Menu Item" style={{ position: 'absolute', left: 299, top: 249 }} />
       {/* pv-block-end:q0b81h */}
 
       {/* pv-block-start:xvi355 */}
