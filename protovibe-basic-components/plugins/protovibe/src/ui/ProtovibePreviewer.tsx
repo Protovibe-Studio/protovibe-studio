@@ -559,6 +559,25 @@ export function ProtovibePreviewer() {
     }
   }, []);
 
+  // Listen for PV_OPEN_COMPONENT messages from the parent shell (triggered when
+  // the user clicks a src/components/ui source tab in the inspector).
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (!e.data || e.data.type !== 'PV_OPEN_COMPONENT') return;
+      const { filePath } = e.data as { filePath: string };
+      if (!filePath) return;
+      // Normalise both sides: forward-slashes, strip leading slash for comparison
+      const normalised = filePath.replace(/\\/g, '/').replace(/^\//, '');
+      const match = discovered.find(entry => {
+        const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '');
+        return entryPath === normalised;
+      });
+      if (match) setSelected(match);
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [discovered]);
+
   return (
     <div
       style={{

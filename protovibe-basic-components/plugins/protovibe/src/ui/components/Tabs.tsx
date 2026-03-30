@@ -41,6 +41,13 @@ export const Tabs: React.FC = () => {
             onClick={() => {
               setActiveSourceId(source.id);
               setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+              // If this source lives in src/components/ui, navigate the shell to the
+              // Components tab and open that component's playground preview.
+              if (isCompFolder && filePath) {
+                window.dispatchEvent(
+                  new CustomEvent('pv-open-component-preview', { detail: { filePath } })
+                );
+              }
             }}
             style={{
               display: 'flex',

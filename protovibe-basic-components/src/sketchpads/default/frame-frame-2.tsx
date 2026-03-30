@@ -35,7 +35,7 @@ export default function Frame2() {
         {/* pv-block-end:o5mtmq */}
       
       {/* pv-block-start:8bxsy1 */}
-      <DropdownList data-pv-block="8bxsy1" data-pv-sketchpad-el="8bxsy1" width="md" style={{ position: 'absolute', left: 275, top: 247 }}>
+      <DropdownList data-pv-block="8bxsy1" data-pv-sketchpad-el="8bxsy1" width="md" style={{ position: 'absolute', left: 113, top: 267 }}>
         {/* pv-editable-zone-start:wgnxoy */}
           {/* pv-block-start:ytm5mq */}
           <DropdownGroupLabel data-pv-block="ytm5mq" label="Actions" />

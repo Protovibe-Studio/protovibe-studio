@@ -34,10 +34,31 @@ export const ProtovibeApp: React.FC = () => {
   useIframeBridge(appIframeRef, sketchpadIframeRef, componentsIframeRef);
   useKeyboardShortcuts();
 
+  // Canonical tab-switch: always clears inspector focus and iframe outlines.
+  // Use this everywhere instead of calling setActiveIframeTab directly.
   const handleIframeTabChange = useCallback((tab: IframeTab) => {
     clearFocus();
     setActiveIframeTab(tab);
+    [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
+      ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
+    });
   }, [clearFocus]);
+
+  // When a ui-source tab is clicked in the inspector, switch to the Components
+  // iframe and tell the previewer to open that component's playground view.
+  // Route through handleIframeTabChange so focus + outlines are always cleared.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { filePath } = (e as CustomEvent<{ filePath: string }>).detail;
+      handleIframeTabChange('components');
+      componentsIframeRef.current?.contentWindow?.postMessage(
+        { type: 'PV_OPEN_COMPONENT', filePath },
+        '*'
+      );
+    };
+    window.addEventListener('pv-open-component-preview', handler);
+    return () => window.removeEventListener('pv-open-component-preview', handler);
+  }, [handleIframeTabChange]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
