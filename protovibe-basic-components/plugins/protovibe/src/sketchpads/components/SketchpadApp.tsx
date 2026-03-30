@@ -310,7 +310,9 @@ export function SketchpadApp() {
       const posX = x ?? 100;
       const posY = y ?? 100;
 
-      // Write element to the frame file via backend
+      // Write element to the frame file via backend.
+      // Vite's file watcher will see this write, trigger HMR,
+      // and React Fast Refresh will instantly update the canvas.
       await api.addElementToFrame(
         activeSketchpadId,
         targetFrame,
@@ -322,11 +324,8 @@ export function SketchpadApp() {
         posY,
         comp.additionalImportsForDefaultContent,
       );
-
-      // Re-import the frame module to pick up the new element
-      await loadFrameModule(activeSketchpadId, targetFrame);
     },
-    [selectedFrameId, activeSketchpadId, loadFrameModule],
+    [selectedFrameId, activeSketchpadId],
   );
 
   // Keyboard shortcuts

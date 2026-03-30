@@ -55,6 +55,22 @@ export default function Frame2() {
         {/* pv-editable-zone-end:wgnxoy */}
       </DropdownList>
       {/* pv-block-end:8bxsy1 */}
+      
+      {/* pv-block-start:d01gy2 */}
+      <RadioGroup data-pv-block="d01gy2" data-pv-sketchpad-el="d01gy2" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 345, top: 77 }}>
+        {/* pv-editable-zone-start:q7ethq */}
+          {/* pv-block-start:piumkg */}
+          <RadioItem data-pv-block="piumkg" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:piumkg */}
+          {/* pv-block-start:pmvzqe */}
+          <RadioItem data-pv-block="pmvzqe" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:pmvzqe */}
+          {/* pv-block-start:f3r2zp */}
+          <RadioItem data-pv-block="f3r2zp" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:f3r2zp */}
+        {/* pv-editable-zone-end:q7ethq */}
+      </RadioGroup>
+      {/* pv-block-end:d01gy2 */}
       {/* pv-editable-zone-end:zb8lla */}
     </div>
   );
