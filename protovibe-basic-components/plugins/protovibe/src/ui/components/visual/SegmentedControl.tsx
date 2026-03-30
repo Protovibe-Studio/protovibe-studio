@@ -22,9 +22,10 @@ interface SegmentedControlProps {
   prefix?: string;
   width?: string;
   onChange?: (val: string) => void;
+  inheritedValue?: string;
 }
 
-export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value, segments, originalClass, prefix = '', width = '100%', onChange }) => {
+export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value, segments, originalClass, prefix = '', width = '100%', onChange, inheritedValue }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
 
   const isNoneLike = (seg: Segment) => seg.val === 'none' || seg.val === '' || seg.label === 'All';
@@ -78,16 +79,18 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
     flex: 1
   };
 
-  const btnStyle = (isActive: boolean, seg: Segment): React.CSSProperties => {
+  const btnStyle = (isActive: boolean, isInherited: boolean, seg: Segment): React.CSSProperties => {
     // If active and value is "None"-like, use grey. Else blue.
     const activeColor = isNoneLike(seg) ? theme.text_secondary : theme.accent_default;
+    const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_secondary : 'transparent';
+    const color = isActive ? activeColor : isInherited ? theme.text_secondary : theme.text_tertiary;
 
     return {
       flex: 1,
       padding: '4px 8px',
-      background: isActive ? theme.bg_tertiary : 'transparent',
+      background: bg,
       border: 'none',
-      color: isActive ? activeColor : theme.text_tertiary,
+      color,
       fontSize: '11px',
       cursor: 'pointer',
       transition: 'all 0.2s',
@@ -104,12 +107,16 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
       <div style={groupStyle}>
         {segments.map((seg, idx) => {
           const isActive = Array.isArray(value) ? value.includes(seg.val) : value === seg.val;
+          const hasOverride = Array.isArray(value) ? value.length > 0 : !!value;
+          const isInherited = !isActive && !hasOverride && !!inheritedValue && (
+            Array.isArray(inheritedValue) ? inheritedValue.includes(seg.val) : inheritedValue === seg.val
+          );
           return (
             <React.Fragment key={seg.val}>
               {idx > 0 && <div style={{ width: '1px', background: theme.border_default }}></div>}
-              <button 
+              <button
                 onClick={() => handleSelect(seg.val, seg.prefix)}
-                style={btnStyle(isActive, seg)}
+                style={btnStyle(isActive, isInherited, seg)}
                 title={seg.title || seg.label}
               >
                 {seg.icon && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{seg.icon}</span>}

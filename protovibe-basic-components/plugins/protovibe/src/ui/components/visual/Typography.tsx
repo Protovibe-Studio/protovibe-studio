@@ -9,13 +9,13 @@ import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethro
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 
-export const Typography: React.FC<{ v: any }> = ({ v }) => {
+export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { themeColors } = useProtovibe();
   return (
     <VisualSection title="Typography">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Font" prefix="font-" value={v.fontFamily} options={SCALES.fontFamily} originalClass={v.fontFamily_original} type="input" />
+          <VisualControl label="Font" prefix="font-" value={v.fontFamily} options={SCALES.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={domV?.fontFamily} />
           <VisualControl label="Weight" prefix="font-" value={v.fontWeight} options={[
             { val: 'thin', desc: '100' },
             { val: 'light', desc: '300' },
@@ -24,18 +24,19 @@ export const Typography: React.FC<{ v: any }> = ({ v }) => {
             { val: 'semibold', desc: '600' },
             { val: 'bold', desc: '700' },
             { val: 'black', desc: '900' }
-          ]} originalClass={v.fontWeight_original} />
+          ]} originalClass={v.fontWeight_original} inheritedValue={domV?.fontWeight} />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Size" prefix="text-" value={cleanVal(v.textSize)} options={SCALES.textSize} originalClass={v.textSize_original} type="input" />
-          <VisualControl label="Color" prefix="text-" value={cleanVal(v.textColor)} options={themeColors} originalClass={v.textColor_original} type="input" />
+          <VisualControl label="Size" prefix="text-" value={cleanVal(v.textSize)} options={SCALES.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} />
+          <VisualControl label="Color" prefix="text-" value={cleanVal(v.textColor)} options={themeColors} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} />
         </div>
 
-        <SegmentedControl 
-          label="Align" 
-          value={v.textAlign} 
+        <SegmentedControl
+          label="Align"
+          value={v.textAlign}
           originalClass={v.textAlign_original}
           prefix="text-"
+          inheritedValue={domV?.textAlign}
           segments={[
             { icon: <AlignLeft size={14} />, val: 'left', title: 'Left' },
             { icon: <AlignCenter size={14} />, val: 'center', title: 'Center' },
@@ -44,10 +45,11 @@ export const Typography: React.FC<{ v: any }> = ({ v }) => {
           ]}
         />
 
-        <SegmentedControl 
-          label="Decor" 
-          value={v.textDecoration} 
+        <SegmentedControl
+          label="Decor"
+          value={v.textDecoration}
           originalClass={v.textDecoration_original}
+          inheritedValue={domV?.textDecoration}
           segments={[
             { icon: <RemoveFormatting size={14} />, val: 'no-underline', title: 'None' },
             { icon: <Underline size={14} />, val: 'underline', title: 'Underline' },

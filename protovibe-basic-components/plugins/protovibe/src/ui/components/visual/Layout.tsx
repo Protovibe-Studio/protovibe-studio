@@ -6,16 +6,18 @@ import { VisualControl } from './VisualControl';
 import { cleanVal } from '../../utils/tailwind';
 import { ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
 
-export const Layout: React.FC<{ v: any }> = ({ v }) => {
-  const isFlexOrGrid = v.display === 'flex' || v.display === 'grid' || v.display === 'inline-flex';
+export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
+  const isFlexOrGrid = v.display === 'flex' || v.display === 'grid' || v.display === 'inline-flex'
+    || domV?.display === 'flex' || domV?.display === 'grid' || domV?.display === 'inline-flex';
 
   return (
     <VisualSection title="Layout">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <SegmentedControl 
-          label="Display" 
-          value={v.display} 
+        <SegmentedControl
+          label="Display"
+          value={v.display}
           originalClass={v.display_original}
+          inheritedValue={domV?.display}
           segments={[
             { label: 'Block', val: 'block' },
             { label: 'Flex', val: 'flex' },
@@ -26,10 +28,11 @@ export const Layout: React.FC<{ v: any }> = ({ v }) => {
 
         {isFlexOrGrid && (
           <>
-            <SegmentedControl 
-              label="Dir" 
-              value={v.direction} 
+            <SegmentedControl
+              label="Dir"
+              value={v.direction}
               originalClass={v.direction_original}
+              inheritedValue={domV?.direction}
               segments={[
                 { icon: <ArrowRight size={14} />, val: 'flex-row', title: 'Row' },
                 { icon: <ArrowDown size={14} />, val: 'flex-col', title: 'Column' },
@@ -37,10 +40,11 @@ export const Layout: React.FC<{ v: any }> = ({ v }) => {
                 { icon: <ArrowUp size={14} />, val: 'flex-col-reverse', title: 'Column Reverse' }
               ]}
             />
-            <SegmentedControl 
-              label="Align" 
-              value={v.align} 
+            <SegmentedControl
+              label="Align"
+              value={v.align}
               originalClass={v.align_original}
+              inheritedValue={domV?.align}
               segments={[
                 { label: 'Start', val: 'items-start' },
                 { label: 'Center', val: 'items-center' },
@@ -48,10 +52,11 @@ export const Layout: React.FC<{ v: any }> = ({ v }) => {
                 { label: 'Stretch', val: 'items-stretch' }
               ]}
             />
-            <SegmentedControl 
-              label="Justify" 
-              value={v.justify} 
+            <SegmentedControl
+              label="Justify"
+              value={v.justify}
               originalClass={v.justify_original}
+              inheritedValue={domV?.justify}
               segments={[
                 { label: 'Start', val: 'justify-start' },
                 { label: 'Center', val: 'justify-center' },
@@ -60,10 +65,11 @@ export const Layout: React.FC<{ v: any }> = ({ v }) => {
               ]}
             />
             <div style={{ display: 'flex', gap: '12px' }}>
-              <SegmentedControl 
-                label="Wrap" 
-                value={v.wrap} 
+              <SegmentedControl
+                label="Wrap"
+                value={v.wrap}
                 originalClass={v.wrap_original}
+                inheritedValue={domV?.wrap}
                 segments={[
                   { label: 'Wrap', val: 'flex-wrap' },
                   { label: 'No', val: 'flex-nowrap' }
@@ -72,14 +78,14 @@ export const Layout: React.FC<{ v: any }> = ({ v }) => {
               />
             </div>
             <div>
-              <VisualControl label="Gap" prefix="gap-" value={cleanVal(v.gap)} originalClass={v.gap_original} type="input" width="100%" />
+              <VisualControl label="Gap" prefix="gap-" value={cleanVal(v.gap)} originalClass={v.gap_original} type="input" width="100%" inheritedValue={cleanVal(domV?.gap)} />
             </div>
           </>
         )}
 
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Space X" prefix="space-x-" value={cleanVal(v.spaceX)} originalClass={v.spaceX_original} type="input" />
-          <VisualControl label="Space Y" prefix="space-y-" value={cleanVal(v.spaceY)} originalClass={v.spaceY_original} type="input" />
+          <VisualControl label="Space X" prefix="space-x-" value={cleanVal(v.spaceX)} originalClass={v.spaceX_original} type="input" inheritedValue={cleanVal(domV?.spaceX)} />
+          <VisualControl label="Space Y" prefix="space-y-" value={cleanVal(v.spaceY)} originalClass={v.spaceY_original} type="input" inheritedValue={cleanVal(domV?.spaceY)} />
         </div>
       </div>
     </VisualSection>

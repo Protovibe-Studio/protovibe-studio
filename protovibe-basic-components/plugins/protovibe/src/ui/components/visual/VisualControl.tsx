@@ -21,9 +21,10 @@ interface VisualControlProps {
   originalClass?: string | string[];
   type?: 'select' | 'input';
   width?: string;
+  inheritedValue?: string;
 }
 
-export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%' }) => {
+export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
   const [rawInputValue, setRawInputValue] = useState(value === '-' ? '' : value);
 
@@ -93,6 +94,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
       {options && options.length > 0 ? (
         <AutocompleteDropdown
           value={value === '-' ? '' : value}
+          placeholder={inheritedValue && !(value && value !== '-') ? inheritedValue : undefined}
           options={options}
           onCommit={handleChange}
           zIndex={9999999}
@@ -131,9 +133,10 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
           }}
         />
       ) : (
-        <InspectorInput 
-          type="text" 
+        <InspectorInput
+          type="text"
           value={rawInputValue}
+          placeholder={inheritedValue && !rawInputValue ? inheritedValue : undefined}
           onChange={(e) => setRawInputValue(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') e.currentTarget.blur();

@@ -13,13 +13,14 @@ const SpacingAutocomplete: React.FC<{
   onChange: (val: string) => void;
   placeholder: string;
   posStyle: React.CSSProperties;
-}> = ({ value, onChange, placeholder, posStyle }) => {
+  inheritedPlaceholder?: string;
+}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder }) => {
   return (
     <AutocompleteDropdown
       value={value === '-' ? '' : value}
       options={SCALES.spacing}
       onCommit={onChange}
-      placeholder={placeholder}
+      placeholder={inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder}
       zIndex={999999}
       containerStyle={{ ...posStyle, position: 'absolute', width: '34px', height: '16px' }}
       inputStyle={{
@@ -68,7 +69,7 @@ const SpacingAutocomplete: React.FC<{
   );
 };
 
-export const Spacing: React.FC<{ v: any }> = ({ v }) => {
+export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
 
   const handleSpacingUpdate = async (type: 'm' | 'p', direction: 't' | 'r' | 'b' | 'l', newVal: string) => {
@@ -119,18 +120,18 @@ export const Spacing: React.FC<{ v: any }> = ({ v }) => {
         <div style={{ borderStyle: 'solid', borderWidth: '24px 36px', borderColor: `${theme.border_default} ${theme.bg_secondary} ${theme.border_default} ${theme.bg_secondary}`, position: 'relative', borderRadius: '4px', display: 'flex', margin: '0 16px', width: '100%', maxWidth: '240px' }}>
           <span style={labelStyle({ top: '-18px', left: '-28px' })}>MARGIN</span>
           
-          <SpacingAutocomplete posStyle={{ top: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.mt === '-' ? '' : v.mt} onChange={(val) => handleSpacingUpdate('m', 't', val)} placeholder="-" />
-          <SpacingAutocomplete posStyle={{ bottom: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.mb === '-' ? '' : v.mb} onChange={(val) => handleSpacingUpdate('m', 'b', val)} placeholder="-" />
-          <SpacingAutocomplete posStyle={{ left: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.ml === '-' ? '' : v.ml} onChange={(val) => handleSpacingUpdate('m', 'l', val)} placeholder="-" />
-          <SpacingAutocomplete posStyle={{ right: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.mr === '-' ? '' : v.mr} onChange={(val) => handleSpacingUpdate('m', 'r', val)} placeholder="-" />
+          <SpacingAutocomplete posStyle={{ top: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.mt === '-' ? '' : v.mt} onChange={(val) => handleSpacingUpdate('m', 't', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.mt)} />
+          <SpacingAutocomplete posStyle={{ bottom: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.mb === '-' ? '' : v.mb} onChange={(val) => handleSpacingUpdate('m', 'b', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.mb)} />
+          <SpacingAutocomplete posStyle={{ left: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.ml === '-' ? '' : v.ml} onChange={(val) => handleSpacingUpdate('m', 'l', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.ml)} />
+          <SpacingAutocomplete posStyle={{ right: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.mr === '-' ? '' : v.mr} onChange={(val) => handleSpacingUpdate('m', 'r', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.mr)} />
           
           <div style={{ flex: 1, borderStyle: 'solid', borderWidth: '24px 36px', borderColor: `${theme.border_strong} ${theme.border_default} ${theme.border_strong} ${theme.border_default}`, position: 'relative', display: 'flex' }}>
             <span style={labelStyle({ top: '-18px', left: '-28px' })}>PADDING</span>
             
-            <SpacingAutocomplete posStyle={{ top: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.pt === '-' ? '' : v.pt} onChange={(val) => handleSpacingUpdate('p', 't', val)} placeholder="-" />
-            <SpacingAutocomplete posStyle={{ bottom: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.pb === '-' ? '' : v.pb} onChange={(val) => handleSpacingUpdate('p', 'b', val)} placeholder="-" />
-            <SpacingAutocomplete posStyle={{ left: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.pl === '-' ? '' : v.pl} onChange={(val) => handleSpacingUpdate('p', 'l', val)} placeholder="-" />
-            <SpacingAutocomplete posStyle={{ right: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.pr === '-' ? '' : v.pr} onChange={(val) => handleSpacingUpdate('p', 'r', val)} placeholder="-" />
+            <SpacingAutocomplete posStyle={{ top: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.pt === '-' ? '' : v.pt} onChange={(val) => handleSpacingUpdate('p', 't', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.pt)} />
+            <SpacingAutocomplete posStyle={{ bottom: '-18px', left: '50%', transform: 'translateX(-50%)' }} value={v.pb === '-' ? '' : v.pb} onChange={(val) => handleSpacingUpdate('p', 'b', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.pb)} />
+            <SpacingAutocomplete posStyle={{ left: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.pl === '-' ? '' : v.pl} onChange={(val) => handleSpacingUpdate('p', 'l', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.pl)} />
+            <SpacingAutocomplete posStyle={{ right: '-34px', top: '50%', transform: 'translateY(-50%)' }} value={v.pr === '-' ? '' : v.pr} onChange={(val) => handleSpacingUpdate('p', 'r', val)} placeholder="-" inheritedPlaceholder={cleanVal(domV?.pr)} />
             
             <div style={{ flex: 1, background: theme.bg_default, minHeight: '16px', minWidth: '32px', border: `1px solid ${theme.border_strong}` }}></div>
           </div>

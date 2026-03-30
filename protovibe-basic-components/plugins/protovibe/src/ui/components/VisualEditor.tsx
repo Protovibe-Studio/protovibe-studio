@@ -10,7 +10,7 @@ import { SizePosition } from './visual/SizePosition';
 import { Effects } from './visual/Effects';
 
 export const VisualEditor: React.FC = () => {
-  const { activeData, activeModifiers } = useProtovibe();
+  const { activeData, activeModifiers, currentBaseTarget } = useProtovibe();
 
   if (!activeData) return null;
 
@@ -18,13 +18,17 @@ export const VisualEditor: React.FC = () => {
   const filteredClasses = filterClassesByContext(flatClasses, activeModifiers);
   const v = extractVisualValues(filteredClasses);
 
+  const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/).filter(Boolean) || [];
+  const filteredDomClasses = filterClassesByContext(domClasses, activeModifiers);
+  const domV = extractVisualValues(filteredDomClasses);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <Spacing v={v} />
-      <Layout v={v} />
-      <SizePosition v={v} />
-      <Typography v={v} />
-      <Effects v={v} />
+      <Spacing v={v} domV={domV} />
+      <Layout v={v} domV={domV} />
+      <SizePosition v={v} domV={domV} />
+      <Typography v={v} domV={domV} />
+      <Effects v={v} domV={domV} />
     </div>
   );
 };
