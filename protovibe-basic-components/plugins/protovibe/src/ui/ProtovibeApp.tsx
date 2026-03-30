@@ -25,7 +25,7 @@ export const ProtovibeApp: React.FC = () => {
     setIframeTheme(t);
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
-  const { inspectorOpen, toggleInspector, clearFocus } = useProtovibe();
+  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents } = useProtovibe();
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
@@ -42,7 +42,8 @@ export const ProtovibeApp: React.FC = () => {
     [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
       ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
     });
-  }, [clearFocus]);
+    refreshComponents();
+  }, [clearFocus, refreshComponents]);
 
   // When a ui-source tab is clicked in the inspector, switch to the Components
   // iframe and tell the previewer to open that component's playground view.

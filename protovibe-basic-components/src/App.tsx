@@ -33,6 +33,7 @@ import { SelectDropdown } from '@/components/ui/select-dropdown'
 import { DropdownItem } from '@/components/ui/dropdown-item'
 import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 import { Card } from '@/components/ui/card'
+import { TextBlock } from '@/components/ui/text-block'
 
 export default function App() {
   const { showToast } = useStore();
@@ -130,6 +131,10 @@ export default function App() {
             {/* pv-editable-zone-end:c5gbka */}
           </Card>
           {/* pv-block-end:54fl2x */}
+
+          {/* pv-block-start:rz1tws */}
+          <TextBlock data-pv-block="rz1tws" text="Text block Test" typography="heading-md" />
+          {/* pv-block-end:rz1tws */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

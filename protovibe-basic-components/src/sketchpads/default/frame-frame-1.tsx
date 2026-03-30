@@ -5,6 +5,7 @@ import { DialogWindow } from '@/components/ui/dialog-window';
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge';
 import { DropdownItem } from '@/components/ui/dropdown-item';
+import { TextBlock } from '@/components/ui/text-block';
 
 export default function Frame1() {
   return (
@@ -56,6 +57,10 @@ export default function Frame1() {
       {/* pv-block-start:xvi355 */}
       <Button data-pv-block="xvi355" data-pv-sketchpad-el="xvi355" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 612, top: -86 }} />
       {/* pv-block-end:xvi355 */}
+      
+      {/* pv-block-start:6vqci2 */}
+      <TextBlock data-pv-block="6vqci2" data-pv-sketchpad-el="6vqci2" text="Text block" typography="small" style={{ position: 'absolute', left: 142, top: 135 }} />
+      {/* pv-block-end:6vqci2 */}
       {/* pv-editable-zone-end:ecam39 */}
     </div>
   );
