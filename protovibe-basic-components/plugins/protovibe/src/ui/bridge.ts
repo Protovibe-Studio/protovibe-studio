@@ -29,9 +29,32 @@ let suppressNextClickTarget: HTMLElement | null = null;
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 function findInspectableTarget(start: EventTarget | null): HTMLElement | null {
-  let t = start as HTMLElement | null;
+  const startEl = start as HTMLElement | null;
+  if (!startEl) return null;
+
+  // If the click originated inside Protovibe UI chrome (e.g. the Component
+  // Playground overlay), only allow inspection within designated preview areas
+  // (data-pv-preview-area). This means the catalog card list is never
+  // intercepted — clicks reach React's onClick — while individual variant
+  // preview cells remain fully inspectable.
+  const pvUiAncestor = startEl.closest('[data-pv-ui]');
+  if (pvUiAncestor) {
+    const previewArea = startEl.closest('[data-pv-preview-area]') as HTMLElement | null;
+    if (!previewArea) return null;
+
+    // Walk up only to the preview-area boundary so we never escape into pv-ui chrome
+    let t: HTMLElement | null = startEl;
+    while (t && t !== previewArea) {
+      if (isElementAllowed(t)) return t;
+      t = t.parentElement as HTMLElement | null;
+    }
+    if (previewArea && isElementAllowed(previewArea)) return previewArea;
+    return null;
+  }
+
+  // Normal case: not inside pv-ui overlay
+  let t: HTMLElement | null = startEl;
   while (t && t !== document.documentElement) {
-    // Skip Protovibe UI chrome — not inspectable
     if (t.dataset?.pvUi === 'true') return null;
     if (isElementAllowed(t)) return t;
     t = t.parentElement;

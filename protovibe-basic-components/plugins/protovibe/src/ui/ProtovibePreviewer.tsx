@@ -200,6 +200,7 @@ const PreviewCell: React.FC<{
       }}
     >
       <div
+        data-pv-preview-area="true"
         className="bg-background-default"
         style={{
           flex: 1,
