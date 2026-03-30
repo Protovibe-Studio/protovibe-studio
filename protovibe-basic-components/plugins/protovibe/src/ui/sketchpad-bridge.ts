@@ -20,6 +20,7 @@ const SELECTION_OFFSET = '2px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '2px';
 const DRAG_THRESHOLD = 3;
+const RESIZE_EDGE_PX = 8;
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,13 @@ let dragState: {
   origLeft: number;
   origTop: number;
   moved: boolean;
+} | null = null;
+
+let resizeState: {
+  target: HTMLElement;
+  pointerId: number;
+  startX: number;
+  origWidth: number;
 } | null = null;
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
@@ -60,6 +68,25 @@ function findFrameContainer(el: HTMLElement): HTMLElement | null {
     t = t.parentElement;
   }
   return null;
+}
+
+/** Find the frame's root content div (the one with data-pv-loc-* attributes inside a frame container). */
+function findFrameRoot(start: HTMLElement): HTMLElement | null {
+  const frame = findFrameContainer(start);
+  if (!frame) return null;
+  // The frame root is the first child element with a data-pv-loc-* attribute
+  for (let i = 0; i < frame.children.length; i++) {
+    const child = frame.children[i] as HTMLElement;
+    if (hasPvLoc(child)) return child;
+  }
+  return null;
+}
+
+function hasPvLoc(el: HTMLElement): boolean {
+  for (let i = 0; i < el.attributes.length; i++) {
+    if (el.attributes[i].name.startsWith('data-pv-loc-')) return true;
+  }
+  return false;
 }
 
 /** Get the active sketchpad ID from the root data attribute. */
@@ -90,6 +117,17 @@ function collectPvLocs(el: HTMLElement): { name: string; value: string }[] {
     }
   }
   return locs;
+}
+
+/** Check if pointer is near the right edge of an element (8px on either side). */
+function isNearRightEdge(el: HTMLElement, clientX: number, clientY: number): boolean {
+  const rect = el.getBoundingClientRect();
+  return (
+    clientX >= rect.right - RESIZE_EDGE_PX &&
+    clientX <= rect.right + RESIZE_EDGE_PX &&
+    clientY >= rect.top &&
+    clientY <= rect.bottom
+  );
 }
 
 // ─── Outline helpers ──────────────────────────────────────────────────────────
@@ -142,6 +180,25 @@ function clearSelection() {
   selectedEl = null;
 }
 
+// ─── Cursor override ──────────────────────────────────────────────────────────
+
+let cursorStyleEl: HTMLStyleElement | null = null;
+
+function setForcedCursor(cursor: string) {
+  if (!cursorStyleEl) {
+    cursorStyleEl = document.createElement('style');
+    cursorStyleEl.id = 'pv-cursor-override';
+    document.head.appendChild(cursorStyleEl);
+  }
+  cursorStyleEl.textContent = `* { cursor: ${cursor} !important; }`;
+}
+
+function clearForcedCursor() {
+  if (cursorStyleEl) {
+    cursorStyleEl.textContent = '';
+  }
+}
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 function postApi(url: string, body: Record<string, unknown>) {
@@ -174,11 +231,38 @@ function handlePointerDown(e: PointerEvent) {
 
   const el = findSketchpadElement(e.target);
 
-  // Click on empty space → deselect + tell inspector
+  // Click on empty space — but first check if we're in the resize zone of the selected element
   if (!el) {
+    // If pointer is in the right-edge resize zone of the currently selected element,
+    // start a resize without changing focus
+    if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = selectedEl.getBoundingClientRect();
+      const zoom = getCanvasZoom();
+      resizeState = {
+        target: selectedEl,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        origWidth: rect.width / zoom,
+      };
+      setForcedCursor('ew-resize');
+      selectedEl.style.transition = 'none';
+      return;
+    }
+
     clearHover();
     clearSelection();
-    window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+
+    // Walk up from click target to find the frame container's content root
+    // (the div with position:relative that has data-pv-loc-* attributes)
+    const frameRoot = findFrameRoot(e.target as HTMLElement);
+    if (frameRoot) {
+      setSelection(frameRoot);
+      notifyInspector(frameRoot);
+    } else {
+      window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+    }
     return;
   }
 
@@ -190,6 +274,21 @@ function handlePointerDown(e: PointerEvent) {
   clearHover();
   setSelection(el);
   notifyInspector(el);
+
+  // Check if pointer is near right edge → start resize instead of drag
+  if (isNearRightEdge(el, e.clientX, e.clientY)) {
+    const rect = el.getBoundingClientRect();
+    const zoom = getCanvasZoom();
+    resizeState = {
+      target: el,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      origWidth: rect.width / zoom,
+    };
+    setForcedCursor('ew-resize');
+    el.style.transition = 'none';
+    return;
+  }
 
   // Begin drag tracking (actual drag starts after threshold)
   const pos = getComputedPos(el);
@@ -205,6 +304,17 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handlePointerMove(e: PointerEvent) {
+  // Handle resize
+  if (resizeState && e.pointerId === resizeState.pointerId) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zoom = getCanvasZoom();
+    const dx = (e.clientX - resizeState.startX) / zoom;
+    const newWidth = Math.max(20, Math.round(resizeState.origWidth + dx));
+    resizeState.target.style.width = `${newWidth}px`;
+    return;
+  }
+
   if (dragState && e.pointerId === dragState.pointerId) {
     e.preventDefault();
     e.stopPropagation();
@@ -216,7 +326,9 @@ function handlePointerMove(e: PointerEvent) {
     if (!dragState.moved) {
       if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
       dragState.moved = true;
-      document.body.style.cursor = 'grabbing';
+      setForcedCursor('grabbing');
+      // Disable CSS transitions during drag to prevent sluggish movement
+      dragState.target.style.transition = 'none';
     }
 
     dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
@@ -227,18 +339,56 @@ function handlePointerMove(e: PointerEvent) {
   // Hover (only when not dragging)
   const el = findSketchpadElement(e.target);
   if (!el || el === selectedEl) {
+    // If hovering over the right edge of the selected element, show resize cursor
+    if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
+      setForcedCursor('ew-resize');
+    } else {
+      clearForcedCursor();
+    }
     clearHover();
     return;
+  }
+  // Show resize cursor when hovering right edge of any sketchpad element
+  if (isNearRightEdge(el, e.clientX, e.clientY)) {
+    setForcedCursor('ew-resize');
+  } else {
+    clearForcedCursor();
   }
   setHover(el);
 }
 
 function handlePointerUp(e: PointerEvent) {
+  // Handle resize end
+  if (resizeState && e.pointerId === resizeState.pointerId) {
+    e.preventDefault();
+    e.stopPropagation();
+    clearForcedCursor();
+    resizeState.target.style.transition = '';
+
+    const newWidth = parseFloat(resizeState.target.style.width) || 0;
+    if (newWidth > 0) {
+      const frame = findFrameContainer(resizeState.target);
+      const frameId = frame?.getAttribute('data-sketchpad-frame');
+      const blockId = resizeState.target.getAttribute('data-pv-sketchpad-el');
+      const sketchpadId = getSketchpadId();
+      if (sketchpadId && frameId && blockId) {
+        postApi('/__sketchpad-update-element-size', {
+          sketchpadId, frameId, blockId, width: Math.round(newWidth),
+        });
+      }
+    }
+    resizeState = null;
+    return;
+  }
+
   if (!dragState || e.pointerId !== dragState.pointerId) return;
 
   e.preventDefault();
   e.stopPropagation();
-  document.body.style.cursor = '';
+  clearForcedCursor();
+
+  // Restore transitions
+  dragState.target.style.transition = '';
 
   if (dragState.moved) {
     const newLeft = parseFloat(dragState.target.style.left) || 0;

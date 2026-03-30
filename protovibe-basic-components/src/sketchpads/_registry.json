@@ -4,7 +4,40 @@
       "id": "default",
       "name": "Untitled Sketchpad",
       "createdAt": "2026-03-29T00:00:00.000Z",
-      "frames": []
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 815,
+          "height": 601,
+          "canvasX": 214,
+          "canvasY": 4
+        },
+        {
+          "id": "frame-frame-2",
+          "name": "Frame 2",
+          "width": 800,
+          "height": 600,
+          "canvasX": 1154,
+          "canvasY": 1
+        },
+        {
+          "id": "frame-frame-3",
+          "name": "Frame 3",
+          "width": 800,
+          "height": 600,
+          "canvasX": 225,
+          "canvasY": 715
+        },
+        {
+          "id": "frame-frame-4",
+          "name": "Frame 4",
+          "width": 800,
+          "height": 600,
+          "canvasX": 1160,
+          "canvasY": 714
+        }
+      ]
     },
     {
       "id": "asdasd",
@@ -24,8 +57,8 @@
           "name": "Frame 2",
           "width": 800,
           "height": 600,
-          "canvasX": 1096,
-          "canvasY": 102
+          "canvasX": 1121,
+          "canvasY": 65
         }
       ]
     }

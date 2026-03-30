@@ -4,6 +4,7 @@ import { TabItem } from '@/components/ui/tab-item';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { RadioItem } from '@/components/ui/radio-item';
 import { RadioIcon } from '@/components/ui/radio-icon';
+import { Button } from '@/components/ui/button'
 
 export default function Frame1() {
   return (
@@ -11,7 +12,7 @@ export default function Frame1() {
       {/* pv-editable-zone-start:9kul9k */}
       
       {/* pv-block-start:1davm1 */}
-      <Tabs data-pv-block="1davm1" data-pv-sketchpad-el="1davm1" value="tab1" style={{ position: 'absolute', left: 92, top: 137 }}>
+      <Tabs data-pv-block="1davm1" data-pv-sketchpad-el="1davm1" value="tab1" style={{ position: 'absolute', left: 228, top: 102 }}>
         {/* pv-editable-zone-start:wdryh9 */}
           {/* pv-block-start:wb2htm */}
           <TabItem data-pv-block="wb2htm" label="Tab 1" value="tab1" />
@@ -27,7 +28,7 @@ export default function Frame1() {
       {/* pv-block-end:1davm1 */}
       
       {/* pv-block-start:wv56uj */}
-      <RadioGroup data-pv-block="wv56uj" data-pv-sketchpad-el="wv56uj" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 214, top: 240 }}>
+      <RadioGroup data-pv-block="wv56uj" data-pv-sketchpad-el="wv56uj" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 245, top: 217 }}>
         {/* pv-editable-zone-start:5rrvi3 */}
           {/* pv-block-start:y47q7f */}
           <RadioItem data-pv-block="y47q7f" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
@@ -41,14 +42,34 @@ export default function Frame1() {
         {/* pv-editable-zone-end:5rrvi3 */}
       </RadioGroup>
       {/* pv-block-end:wv56uj */}
+
+      {/* pv-block-start:6zy9ji */}
+      <RadioGroup data-pv-block="6zy9ji" data-pv-sketchpad-el="6zy9ji" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 498, top: 213 }}>
+        {/* pv-editable-zone-start:5rrvi3 */}
+          {/* pv-block-start:mittn6 */}
+          <RadioItem data-pv-block="mittn6" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:mittn6 */}
+          {/* pv-block-start:q7ouga */}
+          <RadioItem data-pv-block="q7ouga" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:q7ouga */}
+          {/* pv-block-start:voiyxq */}
+          <RadioItem data-pv-block="voiyxq" value="opt3" primaryText="Option Three" disabled={true} secondaryText="Disabled option" />
+          {/* pv-block-end:voiyxq */}
+        {/* pv-editable-zone-end:5rrvi3 */}
+      </RadioGroup>
+      {/* pv-block-end:6zy9ji */}
       
       {/* pv-block-start:nv9rkl */}
-      <RadioItem data-pv-block="nv9rkl" data-pv-sketchpad-el="nv9rkl" primaryText="Option 1" value="opt1" style={{ position: 'absolute', left: 85, top: 446 }} />
+      <RadioItem data-pv-block="nv9rkl" data-pv-sketchpad-el="nv9rkl" primaryText="Option 1" value="opt1" style={{ position: 'absolute', left: 82, top: 401 }} />
       {/* pv-block-end:nv9rkl */}
       
       {/* pv-block-start:1cogsw */}
-      <RadioIcon data-pv-block="1cogsw" data-pv-sketchpad-el="1cogsw" state="unselected" style={{ position: 'absolute', left: 513, top: 418 }} />
+      <RadioIcon data-pv-block="1cogsw" data-pv-sketchpad-el="1cogsw" state="unselected" style={{ position: 'absolute', left: 89, top: 359 }} />
       {/* pv-block-end:1cogsw */}
+
+        {/* pv-block-start:wf3vvz */}
+        <Button data-pv-block="wf3vvz" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:wf3vvz */}
       {/* pv-editable-zone-end:9kul9k */}
     </div>
   );

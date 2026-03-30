@@ -13,6 +13,7 @@ import {
   handleFrameUpdatePosition,
   handleSketchpadAddElement,
   handleSketchpadUpdateElementPosition,
+  handleSketchpadUpdateElementSize,
   handleSketchpadDuplicateElement,
   handleSketchpadDeleteElement,
   handleSketchpadReorderElement,
@@ -32,6 +33,7 @@ export function registerSketchpadMiddleware(server: ViteDevServer) {
   server.middlewares.use('/__frame-update-position', handleFrameUpdatePosition);
   server.middlewares.use('/__sketchpad-add-element', handleSketchpadAddElement);
   server.middlewares.use('/__sketchpad-update-element-position', handleSketchpadUpdateElementPosition);
+  server.middlewares.use('/__sketchpad-update-element-size', handleSketchpadUpdateElementSize);
   server.middlewares.use('/__sketchpad-duplicate-element', handleSketchpadDuplicateElement);
   server.middlewares.use('/__sketchpad-delete-element', handleSketchpadDeleteElement);
   server.middlewares.use('/__sketchpad-reorder-element', handleSketchpadReorderElement);

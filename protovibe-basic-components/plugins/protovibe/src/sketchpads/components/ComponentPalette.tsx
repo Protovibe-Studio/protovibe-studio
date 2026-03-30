@@ -1,17 +1,121 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect, Component } from 'react';
 import type { ComponentEntry } from '../types';
+import { parseDefaultProps } from './SketchpadApp';
+
+// ─── Error Boundary ──────────────────────────────────────────────────────────
+
+class PreviewErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ fontSize: 10, color: '#555', padding: 4 }}>Preview unavailable</div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+function renderDefaultContent(comp: ComponentEntry): React.ReactNode {
+  if (comp.DefaultContent) {
+    const DC = comp.DefaultContent as React.FC<any>;
+    const result = DC({});
+    if (result && typeof result === 'object' && 'type' in result && (result as any).type === React.Fragment) {
+      return (result as any).props.children;
+    }
+    return result;
+  }
+  return undefined;
+}
+
+// ─── ComponentPreview ────────────────────────────────────────────────────────
+
+const PREVIEW_WIDTH = 180; // px, visible width of the preview cell
+const PREVIEW_HEIGHT = 80; // px visible height of the preview cell
+const PREVIEW_PADDING = 12; // px padding inside preview
+const PREVIEW_RENDER_WIDTH = 300; // px min width at which the component is rendered before scaling
+
+const ComponentPreview: React.FC<{ comp: ComponentEntry }> = ({ comp }) => {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  const defaultProps = useMemo(
+    () => parseDefaultProps(comp.defaultProps || ''),
+    [comp.defaultProps],
+  );
+
+  // After render, measure the inner content and scale it to fit the cell
+  useLayoutEffect(() => {
+    const inner = innerRef.current;
+    const wrap = wrapRef.current;
+    if (!inner || !wrap) return;
+    const contentW = Math.max(inner.scrollWidth, PREVIEW_RENDER_WIDTH);
+    const contentH = inner.scrollHeight || PREVIEW_HEIGHT;
+    const availW = PREVIEW_WIDTH - PREVIEW_PADDING * 2;
+    const availH = PREVIEW_HEIGHT - PREVIEW_PADDING * 2;
+    const scaleX = availW / contentW;
+    const scaleY = availH / contentH;
+    setScale(Math.min(1, scaleX, scaleY));
+  }, [comp.name]);
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{
+        width: PREVIEW_WIDTH,
+        height: PREVIEW_HEIGHT,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '8px 8px 0 0',
+        background: 'var(--background-default, #ffffff)',
+        padding: PREVIEW_PADDING,
+        pointerEvents: 'none',
+      }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: PREVIEW_RENDER_WIDTH,
+        }}
+      >
+        <PreviewErrorBoundary>
+          <comp.Component {...defaultProps}>
+            {renderDefaultContent(comp)}
+          </comp.Component>
+        </PreviewErrorBoundary>
+      </div>
+    </div>
+  );
+};
+
+// ─── ComponentPalette ────────────────────────────────────────────────────────
 
 interface ComponentPaletteProps {
-  isOpen: boolean;
-  onClose: () => void;
   components: ComponentEntry[];
   onDragStart: (comp: ComponentEntry) => void;
   onClickAdd: (comp: ComponentEntry) => void;
 }
 
 export function ComponentPalette({
-  isOpen,
-  onClose,
   components,
   onDragStart,
   onClickAdd,
@@ -28,145 +132,141 @@ export function ComponentPalette({
     [components, search],
   );
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
-        onClick={onClose}
-      />
-
-      {/* Palette panel */}
+    <div
+      style={{
+        position: 'fixed',
+        top: 60,
+        left: 12,
+        bottom: 52,
+        width: 200,
+        zIndex: 100,
+        background: 'rgba(28,28,42,0.92)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        overflow: 'hidden',
+        backdropFilter: 'blur(12px)',
+      }}
+    >
+      {/* Header */}
       <div
         style={{
-          position: 'fixed',
-          bottom: 16,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          background: '#2a2a3e',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 12,
-          padding: 16,
-          width: 480,
-          maxHeight: 400,
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          padding: '10px 12px 8px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <input
-            type="text"
-            placeholder="Search components…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            autoFocus
-            style={{
-              flex: 1,
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 6,
-              padding: '8px 12px',
-              color: '#eee',
-              fontSize: 13,
-              outline: 'none',
-              fontFamily: 'inherit',
-            }}
-          />
-          <button
-            onClick={onClose}
-            style={{
-              marginLeft: 8,
-              background: 'transparent',
-              border: 'none',
-              color: '#888',
-              cursor: 'pointer',
-              fontSize: 18,
-              padding: '4px 8px',
-            }}
-          >
-            ×
-          </button>
-        </div>
-
         <div
           style={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 8,
+            fontSize: 10,
+            fontWeight: 600,
+            color: '#666',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginBottom: 8,
           }}
         >
-          {filtered.map((comp) => (
+          Drag components
+        </div>
+        <input
+          type="text"
+          placeholder="Search…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 6,
+            padding: '6px 10px',
+            color: '#eee',
+            fontSize: 12,
+            outline: 'none',
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* Component list */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '6px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        {filtered.map((comp) => (
+          <div
+            key={comp.name}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', comp.name);
+              onDragStart(comp);
+            }}
+            onClick={() => onClickAdd(comp)}
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 8,
+              cursor: 'grab',
+              overflow: 'hidden',
+              flexShrink: 0,
+              transition: 'border-color 0.12s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(24,160,251,0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
+            }}
+          >
+            {/* Live preview */}
+            <ComponentPreview comp={comp} />
+
+            {/* Label */}
             <div
-              key={comp.name}
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/plain', comp.name);
-                onDragStart(comp);
-              }}
-              onClick={() => onClickAdd(comp)}
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 8,
-                padding: '10px 12px',
-                cursor: 'grab',
-                transition: 'background 0.15s, border-color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                e.currentTarget.style.borderColor = 'rgba(24,160,251,0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                padding: '4px 10px 6px',
+                borderTop: '1px solid rgba(255,255,255,0.05)',
               }}
             >
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 600,
                   color: '#ddd',
-                  marginBottom: 4,
-                }}
-              >
-                {comp.displayName || comp.name}
-              </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: '#888',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
               >
-                {comp.description || `<${comp.name} />`}
+                {comp.displayName || comp.name}
               </div>
             </div>
-          ))}
+          </div>
+        ))}
 
-          {filtered.length === 0 && (
-            <div
-              style={{
-                gridColumn: '1 / -1',
-                textAlign: 'center',
-                color: '#666',
-                padding: 24,
-                fontSize: 13,
-              }}
-            >
-              No components found
-            </div>
-          )}
-        </div>
+        {filtered.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              color: '#555',
+              padding: '24px 0',
+              fontSize: 12,
+            }}
+          >
+            No components found
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

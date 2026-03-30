@@ -9,15 +9,33 @@ import * as api from '../api';
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
 
-// Build a map of component name → React Component from client-side modules
-function getComponentRefs(): Record<string, React.ComponentType<any>> {
-  const refs: Record<string, React.ComponentType<any>> = {};
+// Build a map of component name → { Component, DefaultContent } from client-side modules
+function getComponentRefs(): Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any> }> {
+  const refs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any> }> = {};
   for (const [, mod] of Object.entries(allModules)) {
     const cfg = mod?.pvConfig;
     if (!cfg?.name || !mod[cfg.name]) continue;
-    refs[cfg.name] = mod[cfg.name];
+    refs[cfg.name] = {
+      Component: mod[cfg.name],
+      DefaultContent: typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined,
+    };
   }
   return refs;
+}
+
+/** Parse a pvConfig.defaultProps string like `variant="default" label="Click me"` into plain props. */
+export function parseDefaultProps(defaultProps: string): Record<string, any> {
+  const result: Record<string, any> = {};
+  const re = /(\w[\w-]*)(?:=(?:"([^"]*)"|'([^']*)'|\{(true|false)\}))?(?=[\s>]|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(defaultProps)) !== null) {
+    const [, key, dq, sq, boolStr] = m;
+    if (dq !== undefined) result[key] = dq;
+    else if (sq !== undefined) result[key] = sq;
+    else if (boolStr !== undefined) result[key] = boolStr === 'true';
+    else result[key] = true;
+  }
+  return result;
 }
 
 // Fetch component data from server (includes PvDefaultContent extraction)
@@ -37,7 +55,8 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
         defaultContent: c.defaultContent || '',
         additionalImportsForDefaultContent: c.additionalImportsForDefaultContent || [],
         props: c.props || {},
-        Component: refs[c.name],
+        Component: refs[c.name].Component,
+        DefaultContent: refs[c.name].DefaultContent,
       }));
   } catch {
     // Fallback to client-side discovery if server is unavailable
@@ -55,6 +74,7 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
         additionalImportsForDefaultContent: cfg.additionalImportsForDefaultContent || [],
         props: cfg.props || {},
         Component: mod[cfg.name],
+        DefaultContent: typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined,
       });
     }
     return discovered;
@@ -68,7 +88,6 @@ export function SketchpadApp() {
   const [activeSketchpadId, setActiveSketchpadId] = useState<string>('');
   const [transform, setTransform] = useState<CanvasTransform>(INITIAL_TRANSFORM);
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
-  const [showPalette, setShowPalette] = useState(false);
   const [showSketchpadPanel, setShowSketchpadPanel] = useState(false);
   const [dragComp, setDragComp] = useState<ComponentEntry | null>(null);
 
@@ -187,6 +206,17 @@ export function SketchpadApp() {
     [activeSketchpadId, activeSketchpad, loadFrameModule],
   );
 
+  const handleAddFrameCentered = useCallback(async () => {
+    if (!activeSketchpadId || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    // Convert viewport center to canvas coordinates
+    const viewCx = rect.width / 2;
+    const viewCy = rect.height / 2;
+    const canvasX = (viewCx - transform.panX) / transform.zoom - 400; // center 800-wide frame
+    const canvasY = (viewCy - transform.panY) / transform.zoom - 300; // center 600-tall frame
+    await handleCreateFrame(canvasX, canvasY);
+  }, [activeSketchpadId, transform, containerRef, handleCreateFrame]);
+
   const handleDeleteFrame = useCallback(
     async (frameId: string) => {
       if (!activeSketchpadId) return;
@@ -295,8 +325,6 @@ export function SketchpadApp() {
 
       // Re-import the frame module to pick up the new element
       await loadFrameModule(activeSketchpadId, targetFrame);
-
-      setShowPalette(false);
     },
     [selectedFrameId, activeSketchpadId, loadFrameModule],
   );
@@ -304,13 +332,6 @@ export function SketchpadApp() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Add component palette
-      if (e.key === 'a' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-        const target = e.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-        setShowPalette((prev) => !prev);
-      }
-
       // Zoom to fit
       if (e.key === '0' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -405,7 +426,7 @@ export function SketchpadApp() {
                   userSelect: 'none',
                 }}
               >
-                Press A to add components
+                Click a component to add it
               </div>
             )}
           </FrameContainer>
@@ -431,9 +452,9 @@ export function SketchpadApp() {
         />
         <ToolbarButton
           label="+"
-          title="Add Component (A)"
-          isActive={showPalette}
-          onClick={() => setShowPalette((p) => !p)}
+          title="Add Frame"
+          isActive={false}
+          onClick={handleAddFrameCentered}
         />
       </div>
 
@@ -480,8 +501,6 @@ export function SketchpadApp() {
       )}
 
       <ComponentPalette
-        isOpen={showPalette}
-        onClose={() => setShowPalette(false)}
         components={components}
         onDragStart={setDragComp}
         onClickAdd={(comp) => handleAddComponent(comp)}

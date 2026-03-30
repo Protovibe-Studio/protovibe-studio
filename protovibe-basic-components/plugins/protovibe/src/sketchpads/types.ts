@@ -42,4 +42,5 @@ export interface ComponentEntry {
   additionalImportsForDefaultContent: Array<{ name: string; path: string }>;
   props: Record<string, { type: string; options?: string[] }>;
   Component: React.ComponentType<any>;
+  DefaultContent?: React.ComponentType<any>;
 }

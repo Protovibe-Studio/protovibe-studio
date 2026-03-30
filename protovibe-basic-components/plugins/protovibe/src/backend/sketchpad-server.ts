@@ -460,7 +460,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
 
     // Find the element by its data-pv-sketchpad-el ID and update inline style position
     const elRegex = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*\\d+,\\s*top:\\s*\\d+`,
+      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+,\\s*top:\\s*-?\\d+`,
     );
     const newPos = `left: ${Math.round(x)}, top: ${Math.round(y)}`;
     if (elRegex.test(content)) {
@@ -468,6 +468,41 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
       fs.writeFileSync(filePath, content, 'utf-8');
     }
 
+    sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frameId, blockId, width } = await parseBody(req);
+    if (!sketchpadId || !frameId || !blockId || width === undefined)
+      return sendError(res, 'sketchpadId, frameId, blockId, and width required');
+
+    const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
+    if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
+
+    let content = fs.readFileSync(filePath, 'utf-8');
+
+    // Check if the element already has a width in its style
+    const widthExistsRe = new RegExp(
+      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+`,
+    );
+    if (widthExistsRe.test(content)) {
+      // Update existing width
+      content = content.replace(widthExistsRe, `$1width: ${Math.round(width)}`);
+    } else {
+      // Insert width after position: 'absolute' in the style object
+      const insertRe = new RegExp(
+        `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?position:\\s*'absolute')`,
+      );
+      if (insertRe.test(content)) {
+        content = content.replace(insertRe, `$1, width: ${Math.round(width)}`);
+      }
+    }
+
+    fs.writeFileSync(filePath, content, 'utf-8');
     sendJson(res, { success: true });
   } catch (err) {
     sendError(res, String(err), 500);

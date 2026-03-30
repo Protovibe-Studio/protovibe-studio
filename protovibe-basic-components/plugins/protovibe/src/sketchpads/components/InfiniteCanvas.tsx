@@ -21,9 +21,14 @@ export function InfiniteCanvas({
   onCanvasContextMenu,
 }: InfiniteCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  const isBackgroundTarget = useCallback((target: EventTarget | null) => {
+    return target === containerRef.current || target === innerRef.current;
+  }, []);
 
   // Zoom centered on cursor
   const handleWheel = useCallback(
@@ -80,8 +85,8 @@ export function InfiniteCanvas({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Middle mouse button or space+left click starts pan
-      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+      // Middle mouse button, space+left click, or left click on background starts pan
+      if (e.button === 1 || (e.button === 0 && spaceHeld) || (e.button === 0 && isBackgroundTarget(e.target))) {
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = {
@@ -93,7 +98,7 @@ export function InfiniteCanvas({
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
       }
     },
-    [spaceHeld, transform.panX, transform.panY],
+    [spaceHeld, isBackgroundTarget, transform.panX, transform.panY],
   );
 
   const handlePointerMove = useCallback(
@@ -151,7 +156,7 @@ export function InfiniteCanvas({
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'default',
+        cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'move',
         backgroundImage: `radial-gradient(circle, rgba(150,150,150,${dotOpacity}) 1px, transparent 1px)`,
         backgroundSize: `${gridSpacing}px ${gridSpacing}px`,
         backgroundPosition: `${offsetX}px ${offsetY}px`,
@@ -160,6 +165,7 @@ export function InfiniteCanvas({
       }}
     >
       <div
+        ref={innerRef}
         data-sketchpad-zoom={transform.zoom}
         style={{
           position: 'absolute',

@@ -141,6 +141,7 @@ export function FrameContainer({
           top: canvasY,
           width,
           userSelect: 'none',
+          cursor: 'default',
         }}
         onClick={handleContentClick}
       >
