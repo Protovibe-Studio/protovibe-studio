@@ -346,15 +346,14 @@ export const pvConfig = { importPath: 'components/ui/button', ... };
 # Protovibe Component Guidelines
 When creating or modifying React components in this project, you MUST ensure they are compatible with the Protovibe visual builder by adhering to these strict rules:
 
-* **Always Maintain `pvConfig`**: Every editable UI component must export a `pvConfig` object defining its visual editor schema (`name`, `displayName`, `description`, `importPath`, `snippet`, `defaultContent`, and `props`). If you modify the TypeScript interface, you MUST update `pvConfig` to match.
+* **Always Maintain `pvConfig`**: Every editable UI component must export a `pvConfig` object defining its visual editor schema (`name`, `displayName`, `description`, `importPath`, `defaultProps`, `defaultContent`, and `props`). If you modify the TypeScript interface, you MUST update `pvConfig` to match.
 * **Spread `...props` to the Root**: You must spread `...props` onto the outermost HTML/DOM element of the component (e.g., `<button {...props}>`). Protovibe strictly relies on this to inject the `data-pv-loc` tracking attributes.
 * **Expose ALL Text as Props**: Never hardcode text labels inside a component's JSX. All text (labels, titles, descriptions, button text) MUST be exposed as `string` props (e.g., `label="Click me"`) and added to the `props` schema in `pvConfig` so they can be edited directly from the visual inspector.
-* **Understand Injection Strings (`snippet` vs `defaultContent`)**: 
-  * `snippet`: A string of default **props** injected into the opening tag when the component is first added via the UI (e.g., `variant="default" label="New Button"`). Do not include angle brackets.
-  * `defaultContent`: A string representing the **inner JSX children**. In almost all cases where a component acts as a wrapper (like a Button, Card, or Container), this should default to a pristine `pv-editable-zone` pair (e.g., `'{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'`) so the user can immediately drop other blocks inside it. If `defaultContent` is provided, the builder injects open/close tags. If empty, it injects a self-closing tag.
+* **Understand Injection Strings (`defaultProps` vs `defaultContent`)**: 
+  * `defaultProps`: A string of default **props** injected into the opening tag when the component is first added via the UI (e.g., `variant="default" label="New Button"`). Do not include angle brackets.
+  * `defaultContent`: The **inner JSX children** injected when the component is added. Use `''` for self-closing components (no children). Use a plain string like `'{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'` for simple zones. For complex JSX content (multiple child components), define an exported `PvDefaultContent` component and reference it as `<PvDefaultContent />`. When using `<PvDefaultContent />`, also provide `additionalImportsForDefaultContent` — an array of `{ name, path }` objects for any component imports needed in the injected content.
 * **No Complex Props in Config**: Never expose functions (e.g., `onClick`), React nodes, or dangerous render props (like `asChild`) inside `pvConfig`. The visual builder can only serialize and edit `string`, `boolean`, and `select` (string enums).
 * **Use the Unified `<Icon />` Component**: Do NOT import individual icons directly (e.g., `import { Download } from 'lucide-react'`). Instead, always use the unified wrapper (`import { Icon } from '@/components/ui/icon'`) and pass the icon name as a string (`<Icon name="Download" />`). This ensures the visual builder can swap icons dynamically via dropdowns.
-Always include by default the pv-editable-zone pair inside defaultContent. 
 
 *** Example pvConfig ***
 export const pvConfig = {
@@ -362,9 +361,9 @@ export const pvConfig = {
   displayName: "Interactive Button",
   description: "A standard button with Lucide icon support.",
   importPath: "@/components/ui/button",
-  snippet: `label="New Button" variant="default"`,
+  defaultProps: `label="New Button" variant="default"`,
   defaultContent: `{/* pv-editable-zone-start */}
-{/* pv-editable-zone-end */}`,
+{/* pv-editable-zone-end */}`,  // '' for self-closing, or <PvDefaultContent /> for complex JSX
   props: {
     variant: { 
       type: "select", 
@@ -405,9 +404,9 @@ export const pvConfig = {
   displayName: "Button", 
   description: "A standard button with variants and icon support.",
   importPath: "@/components/ui/button", 
-  snippet: `variant="default" label="Click me"`, 
+  defaultProps: `variant="default" label="Click me"`, 
   defaultContent: `{/* pv-editable-zone-start */}
-{/* pv-editable-zone-end */}`,
+{/* pv-editable-zone-end */}`,  // '' for self-closing; or <PvDefaultContent /> for complex JSX (+ additionalImportsForDefaultContent)
   props: {
     variant: { type: "select", options: ["default", "destructive", "outline", "ghost"] },
     size: { type: "select", options: ["default", "sm", "lg", "icon"] },
@@ -426,8 +425,9 @@ export const pvConfig = {
 | **`displayName`** | `string` | The human-readable name shown in the Protovibe component menu. |
 | **`description`** | `string` | A short subtitle explaining what the component does in the menu. |
 | **`importPath`** | `string` | The absolute or aliased path to inject into the file when adding the component (e.g., `"@/components/ui/button"`). |
-| **`snippet`** | `string` | A string of default **props** injected into the opening tag when the component is inserted (e.g., `variant="outline" label="New"`). *Do not include angle brackets.* |
-| **`defaultContent`**| `string` | The **inner JSX children** injected when the component is added. Use a pristine `pv-editable-zone` pair (e.g., `'{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'`) to allow dropping nested blocks. If provided, Protovibe injects open/close tags; if empty, it injects a self-closing tag. |
+| **`defaultProps`** | `string` | A string of default **props** injected into the opening tag when the component is inserted (e.g., `variant="outline" label="New"`). *Do not include angle brackets.* |
+| **`defaultContent`**| `string \| JSX` | The **inner JSX children** injected when the component is added. Use `''` for self-closing tags. Use a string zone pair (e.g., `'{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'`) for simple drop zones. Use `<PvDefaultContent />` (a named exported component defined in the same file, before `pvConfig`) for complex multi-element JSX content. |
+| **`additionalImportsForDefaultContent`** | `{ name, path }[]` | Required when `defaultContent` is `<PvDefaultContent />` and its JSX references other components. Each entry adds an import statement injected alongside the component. |
 | **`props`** | `object` | A schema defining which props are editable in the UI and what UI control to render. |
 
 ---
