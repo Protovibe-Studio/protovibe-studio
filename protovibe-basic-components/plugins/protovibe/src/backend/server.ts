@@ -5,7 +5,7 @@ import { Connect } from 'vite';
 import * as babel from '@babel/core';
 import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses } from '../shared/utils';
-import { parseThemeColors, updateCssVariable } from './css-theme-parser';
+import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
 export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   let body = '';
@@ -1312,7 +1312,42 @@ export const handleUpdateThemeColor: Connect.NextHandleFunction = (req, res) => 
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       const selector = themeMode === 'light' ? '[data-theme="light"]' : '[data-theme="dark"]';
       const css = fs.readFileSync(cssFilePath, 'utf-8');
+      undoStack.push({ file: 'src/index.css', content: css, activeId: '' });
+      redoStack.length = 0;
       const updated = updateCssVariable(css, selector, tokenName, value);
+      fs.writeFileSync(cssFilePath, updated, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleGetThemeTokens: Connect.NextHandleFunction = (req, res) => {
+  try {
+    const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
+    const tokens = parseThemeTokens(cssFilePath);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ tokens }));
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+};
+
+export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { tokenName, value } = JSON.parse(body);
+      const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
+      const css = fs.readFileSync(cssFilePath, 'utf-8');
+      undoStack.push({ file: 'src/index.css', content: css, activeId: '' });
+      redoStack.length = 0;
+      const updated = updateCssVariable(css, '@theme', tokenName, value);
       fs.writeFileSync(cssFilePath, updated, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));

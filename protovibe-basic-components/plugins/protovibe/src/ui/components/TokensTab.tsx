@@ -1,12 +1,13 @@
 // plugins/protovibe/src/ui/components/TokensTab.tsx
 import React, { useMemo, useState, useCallback } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { type ThemeColor, updateThemeColor } from '../api/client';
+import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken } from '../api/client';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
 import { cssColorToHex } from '../utils/colorConversion';
+import { AutocompleteDropdown, type AutocompleteOption } from './visual/AutocompleteDropdown';
 
-type TabId = 'semantic' | 'palette';
+type TabId = 'semantic' | 'palette' | 'other';
 
 // Module-level cache to avoid redundant canvas calls on every render
 const hexCache = new Map<string, string>();
@@ -124,10 +125,10 @@ function groupTokens(colors: ThemeColor[]): Record<string, ThemeColor[]> {
   return groups;
 }
 
-const TAB_LABELS: Record<TabId, string> = { semantic: 'Semantic', palette: 'Palette' };
+const TAB_LABELS: Record<TabId, string> = { semantic: 'Semantic', palette: 'Palette', other: 'Other' };
 
 export const TokensTab: React.FC = () => {
-  const { themeColors, refreshComponents, refreshThemeColors } = useProtovibe();
+  const { themeColors, refreshComponents, refreshThemeColors, themeTokens, refreshThemeTokens } = useProtovibe();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabId>('semantic');
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -156,6 +157,28 @@ export const TokensTab: React.FC = () => {
   );
 
   const groups = useMemo(() => groupTokens(filtered), [filtered]);
+
+  const groupedOtherTokens = useMemo((): Record<string, ThemeToken[]> => {
+    if (activeTab !== 'other') return {};
+    const filtered = search
+      ? themeTokens.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.value.toLowerCase().includes(search.toLowerCase()))
+      : themeTokens;
+    const groups: Record<string, ThemeToken[]> = {};
+    for (const t of filtered) {
+      if (!groups[t.category]) groups[t.category] = [];
+      groups[t.category].push(t);
+    }
+    return groups;
+  }, [activeTab, themeTokens, search]);
+
+  const handleTokenSave = useCallback(async (tokenName: string, newValue: string) => {
+    try {
+      await updateThemeToken(tokenName, newValue);
+      refreshThemeTokens();
+    } catch (err) {
+      console.error('[protovibe] Failed to update token:', err);
+    }
+  }, [refreshThemeTokens]);
 
   const handleSave = useCallback(async (oklchValue: string) => {
     if (!editing) return;
@@ -203,7 +226,7 @@ export const TokensTab: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', background: theme.bg_secondary, borderRadius: '4px', border: `1px solid ${theme.border_default}`, overflow: 'hidden', marginBottom: '8px' }}>
-          {(['semantic', 'palette'] as TabId[]).map((tab, idx) => (
+          {(['semantic', 'palette', 'other'] as TabId[]).map((tab, idx) => (
             <React.Fragment key={tab}>
               {idx > 0 && <div style={{ width: '1px', background: theme.border_default }} />}
               <button onClick={() => setActiveTab(tab)} style={segBtnStyle(activeTab === tab)}>
@@ -295,7 +318,7 @@ export const TokensTab: React.FC = () => {
             ))}
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'palette' ? (
         /* Palette: card grid */
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {filtered.length === 0 && (
@@ -345,6 +368,54 @@ export const TokensTab: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      ) : (
+        /* Other: non-color @theme tokens */
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+          {Object.keys(groupedOtherTokens).length === 0 && (
+            <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
+              No tokens found.
+            </div>
+          )}
+          {Object.entries(groupedOtherTokens).map(([category, tokens]) => {
+            const categoryOptions: AutocompleteOption[] = tokens.map(t => ({ val: t.value, desc: `--${t.name}` }));
+            return (
+              <div key={category} style={{ marginBottom: '20px' }}>
+                <div style={{
+                  fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
+                  color: theme.text_tertiary, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', marginBottom: '6px',
+                }}>
+                  {category}
+                </div>
+                {tokens.map(t => (
+                  <div key={t.name} style={{
+                    display: 'flex', alignItems: 'center',
+                    borderBottom: `1px solid ${theme.border_default}`,
+                    padding: '3px 0',
+                  }}>
+                    <span style={{
+                      fontFamily: 'monospace', fontSize: '10px',
+                      color: theme.text_secondary,
+                      flex: '0 0 auto', marginRight: '8px',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      maxWidth: '45%',
+                    }} title={`--${t.name}`}>
+                      --{t.name}
+                    </span>
+                    <AutocompleteDropdown
+                      value={t.value}
+                      options={categoryOptions}
+                      onCommit={(val) => { if (val && val !== t.value) handleTokenSave(t.name, val); }}
+                      showNoneOption={false}
+                      containerStyle={{ flex: 1, minWidth: 0 }}
+                      inputStyle={{ fontSize: '11px', fontFamily: 'monospace' }}
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

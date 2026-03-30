@@ -88,6 +88,21 @@ export default function App() {
             {/* pv-editable-zone-end:i28u3r */}
           </Tabs>
           {/* pv-block-end:k89w9h */}
+
+          {/* pv-block-start:1imggz */}
+          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="1imggz">
+            {/* pv-editable-zone-start:inside-1imggz */}
+
+              {/* pv-block-start:dxq3u9 */}
+              <span data-pv-block="dxq3u9">
+                Lorem ipsum
+                {/* pv-editable-zone-start:inside-dxq3u9 */}
+                {/* pv-editable-zone-end:inside-dxq3u9 */}
+              </span>
+              {/* pv-block-end:dxq3u9 */}
+            {/* pv-editable-zone-end:inside-1imggz */}
+          </div>
+          {/* pv-block-end:1imggz */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

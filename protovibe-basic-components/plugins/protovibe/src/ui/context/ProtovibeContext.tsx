@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/context/ProtovibeContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { ActiveModifiers } from '../utils/tailwind';
-import { fetchSourceInfo, fetchComponents, fetchZones, fetchThemeColors, type ThemeColor } from '../api/client';
+import { fetchSourceInfo, fetchComponents, fetchZones, fetchThemeColors, fetchThemeTokens, type ThemeColor, type ThemeToken } from '../api/client';
 
 interface SourceData {
   id: string;
@@ -42,6 +42,8 @@ interface ProtovibeContextType {
   runLockedMutation: <T>(mutation: () => Promise<T>) => Promise<T | undefined>;
   themeColors: ThemeColor[];
   refreshThemeColors: () => Promise<void>;
+  themeTokens: ThemeToken[];
+  refreshThemeTokens: () => Promise<void>;
 }
 
 const ProtovibeContext = createContext<ProtovibeContextType | undefined>(undefined);
@@ -59,6 +61,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [zones, setZones] = useState<Zone[]>([]);
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
+  const [themeTokens, setThemeTokens] = useState<ThemeToken[]>([]);
   const sourcesRef = useRef<string[]>([]);
   const activeSourceIdRef = useRef<string | null>(null);
   const componentIdOverrideRef = useRef<string | null>(null);
@@ -132,12 +135,11 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     // Fetch theme colors alongside source data
     fetchThemeColors().then((colors) => {
-      const withDark = colors.filter(c => c.darkValue);
-      console.log('[PV DEBUG] fetchThemeColors total:', colors.length, 'with darkValue:', withDark.length);
-      if (withDark.length > 0) console.log('[PV DEBUG] sample dark color:', withDark[0]);
-      else console.warn('[PV DEBUG] NO colors have darkValue!');
       setThemeColors(colors);
     }).catch(() => {});
+
+    // Fetch other tokens so the "Other" tab syncs after an undo
+    fetchThemeTokens().then(setThemeTokens).catch(() => {});
     
     const currentActiveSourceId = activeSourceIdRef.current;
     if (results.length > 0 && (!currentActiveSourceId || !currentSources.includes(currentActiveSourceId))) {
@@ -173,6 +175,15 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const refreshThemeTokens = useCallback(async () => {
+    try {
+      const tokens = await fetchThemeTokens();
+      setThemeTokens(tokens);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const refreshComponents = useCallback(async () => {
     try {
       const data = await fetchComponents();
@@ -188,6 +199,10 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     fetchThemeColors().then(setThemeColors).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchThemeTokens().then(setThemeTokens).catch(() => {});
   }, []);
 
   const focusElement = useCallback((el: HTMLElement) => {
@@ -324,6 +339,8 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runLockedMutation,
       themeColors,
       refreshThemeColors,
+      themeTokens,
+      refreshThemeTokens,
     }}>
       {children}
     </ProtovibeContext.Provider>

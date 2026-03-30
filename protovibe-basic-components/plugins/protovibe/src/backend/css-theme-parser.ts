@@ -1,5 +1,87 @@
 import fs from 'fs';
 
+export interface ThemeToken {
+  name: string;
+  value: string;
+  category: string;
+}
+
+const CATEGORY_PREFIXES: [string, string][] = [
+  ['inset-shadow', 'Inset Shadow'],
+  ['drop-shadow', 'Drop Shadow'],
+  ['text-shadow', 'Text Shadow'],
+  ['font-weight', 'Font Weight'],
+  ['shadow', 'Shadow'],
+  ['radius', 'Radius'],
+  ['blur', 'Blur'],
+  ['text', 'Font Size'],
+  ['tracking', 'Letter Spacing'],
+  ['leading', 'Line Height'],
+  ['font', 'Font Family'],
+  ['breakpoint', 'Breakpoint'],
+  ['container', 'Container'],
+  ['perspective', 'Perspective'],
+  ['ease', 'Easing'],
+  ['animate', 'Animation'],
+  ['aspect', 'Aspect Ratio'],
+  ['spacing', 'Spacing'],
+];
+
+function getTokenCategory(name: string): string {
+  for (const [prefix, label] of CATEGORY_PREFIXES) {
+    if (name.startsWith(prefix)) return label;
+  }
+  return 'Other';
+}
+
+export function parseThemeTokens(cssFilePath: string): ThemeToken[] {
+  const content = fs.readFileSync(cssFilePath, 'utf-8');
+
+  const themeStart = content.indexOf('@theme {');
+  if (themeStart === -1) return [];
+
+  let braceDepth = 0;
+  let blockStart = -1;
+  let blockEnd = -1;
+  for (let i = themeStart; i < content.length; i++) {
+    if (content[i] === '{') {
+      if (braceDepth === 0) blockStart = i + 1;
+      braceDepth++;
+    } else if (content[i] === '}') {
+      braceDepth--;
+      if (braceDepth === 0) {
+        blockEnd = i;
+        break;
+      }
+    }
+  }
+
+  if (blockStart === -1 || blockEnd === -1) return [];
+
+  const block = content.slice(blockStart, blockEnd);
+  const varRegex = /^\s*--([\w-]+)\s*:\s*([^;]+?)\s*;/gm;
+  const tokens: ThemeToken[] = [];
+
+  let match: RegExpExecArray | null;
+  while ((match = varRegex.exec(block)) !== null) {
+    const name = match[1].trim();
+    const value = match[2].trim();
+    if (name.startsWith('color-')) continue;
+    if (name.includes('--')) continue;
+    tokens.push({ name, value, category: getTokenCategory(name) });
+  }
+
+  const categoryOrder = new Map(CATEGORY_PREFIXES.map(([, label], i) => [label, i]));
+  tokens.sort((a, b) => {
+    const ai = categoryOrder.get(a.category) ?? Infinity;
+    const bi = categoryOrder.get(b.category) ?? Infinity;
+    if (ai !== bi) return ai - bi;
+    return a.name.localeCompare(b.name);
+  });
+
+  return tokens;
+}
+
 export function updateCssVariable(css: string, selector: string, varName: string, newValue: string): string {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const selectorMatch = new RegExp(escaped + '\\s*\\{').exec(css);
@@ -27,10 +109,10 @@ export function updateCssVariable(css: string, selector: string, varName: string
   const after = css.slice(blockEnd);
 
   const safeVar = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const varRegex = new RegExp(`(--${safeVar}\\s*:\\s*)[^;]+`);
+  const varRegex = new RegExp(`(^|[^\\w-])(--${safeVar}\\s*:\\s*)[^;]+`);
   if (!varRegex.test(block)) throw new Error(`Variable "--${varName}" not found in "${selector}" block`);
 
-  return before + block.replace(varRegex, `$1${newValue}`) + after;
+  return before + block.replace(varRegex, (match, p1, p2) => `${p1}${p2}${newValue}`) + after;
 }
 
 export interface ThemeColor {

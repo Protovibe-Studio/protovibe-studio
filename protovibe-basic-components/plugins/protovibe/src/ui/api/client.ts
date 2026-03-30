@@ -141,6 +141,32 @@ export async function updateThemeColor(tokenName: string, themeMode: 'light' | '
   if (!res.ok) throw new Error('Failed to update theme color');
 }
 
+export interface ThemeToken {
+  name: string;
+  value: string;
+  category: string;
+}
+
+export async function fetchThemeTokens(): Promise<ThemeToken[]> {
+  const res = await fetch('/__get-theme-tokens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!res.ok) throw new Error('Failed to fetch theme tokens');
+  const data = await res.json();
+  return data.tokens || [];
+}
+
+export async function updateThemeToken(tokenName: string, value: string): Promise<void> {
+  const res = await fetch('/__update-theme-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tokenName, value }),
+  });
+  if (!res.ok) throw new Error('Failed to update theme token');
+}
+
 export async function fetchThemeColors(): Promise<ThemeColor[]> {
   const res = await fetch('/__get-theme-colors', {
     method: 'POST',
