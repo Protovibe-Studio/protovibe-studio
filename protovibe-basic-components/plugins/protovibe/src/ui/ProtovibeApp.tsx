@@ -43,6 +43,9 @@ export const ProtovibeApp: React.FC = () => {
       ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
     });
     refreshComponents();
+    if (tab === 'components') {
+      componentsIframeRef.current?.contentWindow?.postMessage({ type: 'PV_REFRESH_COMPONENTS' }, '*');
+    }
   }, [clearFocus, refreshComponents]);
 
   // When a ui-source tab is clicked in the inspector, switch to the Components

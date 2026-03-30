@@ -1,17 +1,12 @@
 // plugins/protovibe/src/ui/ProtovibePreviewer.tsx
 // Runs INSIDE the user's app iframe. Listens for PV_TOGGLE_COMPONENTS_OVERLAY
 // and shows a full-screen catalog + variant-matrix playground.
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 // ─── Component discovery ───────────────────────────────────────────────────────
-// Vite resolves these glob patterns relative to the project root at build time.
-// Exclude app entry-point files that have side effects (e.g. createRoot calls)
-// so they don't execute when eagerly imported inside the components iframe.
-const allModules = import.meta.glob(
-  ['/src/**/*.{tsx,jsx}', '!/src/main.tsx', '!/src/store.tsx', '!/src/App.tsx', '!/src/sketchpads/**'],
-  { eager: true }
-);
+// Fetch component list from the dev server, then dynamically import each module
+// so that newly-created files are picked up without an iframe reload.
 
 interface PvConfig {
   name: string;
@@ -30,17 +25,36 @@ interface ComponentEntry {
   filePath: string;
 }
 
-function discoverComponents(): ComponentEntry[] {
-  const discovered: ComponentEntry[] = [];
-  for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
-    const pvConfig = mod?.pvConfig as PvConfig | undefined;
-    if (!pvConfig?.name) continue;
-    const Component = mod[pvConfig.name];
-    if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
-    const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
-    discovered.push({ config: pvConfig, Component, DefaultContent, filePath });
+async function discoverComponentsFromServer(): Promise<ComponentEntry[]> {
+  let serverComponents: any[];
+  try {
+    const res = await fetch('/__get-components');
+    const data = await res.json();
+    serverComponents = data.components ?? [];
+  } catch {
+    return [];
   }
-  return discovered;
+
+  const entries: ComponentEntry[] = [];
+  for (const c of serverComponents) {
+    if (!c.importPath) continue;
+    // Resolve @/ alias to /src/ for dynamic browser imports
+    const resolvedPath = c.importPath.startsWith('@/')
+      ? c.importPath.replace('@/', '/src/')
+      : c.importPath;
+    try {
+      const mod = await import(/* @vite-ignore */ resolvedPath);
+      const pvConfig = mod?.pvConfig as PvConfig | undefined;
+      if (!pvConfig?.name) continue;
+      const Component = mod[pvConfig.name];
+      if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
+      const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
+      entries.push({ config: pvConfig, Component, DefaultContent, filePath: resolvedPath });
+    } catch (e) {
+      console.warn(`[Previewer] Failed to import ${resolvedPath}:`, e);
+    }
+  }
+  return entries;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -547,17 +561,27 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
 // ─── Root Overlay ──────────────────────────────────────────────────────────────
 
 export function ProtovibePreviewer() {
-  const [discovered, setDiscovered] = useState<ComponentEntry[]>(discoverComponents);
+  const [discovered, setDiscovered] = useState<ComponentEntry[]>([]);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    if (import.meta.hot) {
-      import.meta.hot.accept(Object.keys(allModules), () => {
-        setDiscovered(discoverComponents());
-      });
-    }
+  const refresh = useCallback(async () => {
+    const entries = await discoverComponentsFromServer();
+    setDiscovered(entries);
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  // Allow the parent shell to trigger a refresh (e.g. on tab switch)
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_REFRESH_COMPONENTS') refresh();
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [refresh]);
 
   // Listen for PV_OPEN_COMPONENT messages from the parent shell (triggered when
   // the user clicks a src/components/ui source tab in the inspector).
