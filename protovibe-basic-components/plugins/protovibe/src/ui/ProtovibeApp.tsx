@@ -33,24 +33,12 @@ export const ProtovibeApp: React.FC = () => {
 
   const iframeSrc = useMemo(() => {
     if (activeIframeTab === 'sketchpad') return '/sketchpad.html';
+    if (activeIframeTab === 'components') return '/components.html';
     return '/app.html';
   }, [activeIframeTab]);
 
-  // Tell the in-iframe overlay to show/hide when the Components iframe tab is toggled
-  useEffect(() => {
-    const show = activeIframeTab === 'components';
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: 'PV_TOGGLE_COMPONENTS_OVERLAY', show },
-      '*'
-    );
-  }, [activeIframeTab]);
-
-  // Re-send overlay state whenever the iframe reloads (e.g. HMR full-reload)
+  // Re-send state whenever the iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback(() => {
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: 'PV_TOGGLE_COMPONENTS_OVERLAY', show: activeIframeTab === 'components' },
-      '*'
-    );
     iframeRef.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme },
       '*'
@@ -59,7 +47,7 @@ export const ProtovibeApp: React.FC = () => {
       { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
       '*'
     );
-  }, [activeIframeTab, iframeTheme, inspectorOpen]);
+  }, [iframeTheme, inspectorOpen]);
 
   // Sync iframe theme whenever it changes
   useEffect(() => {

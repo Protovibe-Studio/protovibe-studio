@@ -50,7 +50,7 @@ export default function Frame1() {
         {/* pv-block-end:ulvcic */}
       
       {/* pv-block-start:wy11we */}
-      <Badge data-pv-block="wy11we" data-pv-sketchpad-el="wy11we" label="Test" color="primary" style={{ position: 'absolute', left: 305, top: 168 }} />
+      <Badge data-pv-block="wy11we" data-pv-sketchpad-el="wy11we" label="Test" color="primary" style={{ position: 'absolute', left: 309, top: 138 }} />
       {/* pv-block-end:wy11we */}
 
       {/* pv-block-start:q0b81h */}

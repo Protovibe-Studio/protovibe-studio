@@ -6,7 +6,12 @@ import { ErrorBoundary } from './ErrorBoundary';
 
 // ─── Component discovery ───────────────────────────────────────────────────────
 // Vite resolves these glob patterns relative to the project root at build time.
-const allModules = import.meta.glob('/src/**/*.{tsx,jsx}', { eager: true });
+// Exclude app entry-point files that have side effects (e.g. createRoot calls)
+// so they don't execute when eagerly imported inside the components iframe.
+const allModules = import.meta.glob(
+  ['/src/**/*.{tsx,jsx}', '!/src/main.tsx', '!/src/store.tsx', '!/src/App.tsx', '!/src/sketchpads/**'],
+  { eager: true }
+);
 
 interface PvConfig {
   name: string;
@@ -542,7 +547,6 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
 
 export function ProtovibePreviewer() {
   const [discovered, setDiscovered] = useState<ComponentEntry[]>(discoverComponents);
-  const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [search, setSearch] = useState('');
 
@@ -553,21 +557,6 @@ export function ProtovibePreviewer() {
       });
     }
   }, []);
-
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      if (!e.data || typeof e.data !== 'object') return;
-      if (e.data.type === 'PV_TOGGLE_COMPONENTS_OVERLAY') {
-        const show = !!e.data.show;
-        if (show) setSelected(null);
-        setVisible(show);
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
-
-  if (!visible) return null;
 
   return (
     <div

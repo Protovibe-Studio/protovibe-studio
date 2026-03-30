@@ -82,11 +82,12 @@ export function protovibeSourcePlugin(): Plugin {
       handler(html, ctx) {
         const filename = ctx?.filename ?? '';
         const isAppHtml = filename.endsWith('app.html');
+        const isComponentsHtml = filename.endsWith('components.html');
         const isSketchpadHtml = filename.endsWith('sketchpad.html');
-        const isIndexHtml = !isAppHtml && !isSketchpadHtml && filename.endsWith('index.html');
+        const isIndexHtml = !isAppHtml && !isComponentsHtml && !isSketchpadHtml && filename.endsWith('index.html');
 
-        if (isAppHtml) {
-          // Inject the bridge script into the app iframe
+        if (isAppHtml || isComponentsHtml) {
+          // Inject the bridge script into the app/components iframe
           const bridgePath = path.resolve(__dirname, 'ui/bridge.js');
           if (!fs.existsSync(bridgePath)) {
             console.warn('⚠️ Protovibe bridge bundle not found at ' + bridgePath);
@@ -102,18 +103,20 @@ export function protovibeSourcePlugin(): Plugin {
             },
           ];
 
-          // Inject the component previewer overlay.
-          // The source file lives next to the dist output (../src/ui/), and Vite
-          // serves it via @fs so that import.meta.glob and JSX transforms are applied.
-          const previewerEntryPath = path.resolve(__dirname, '../src/ui/previewer-entry.tsx');
-          if (fs.existsSync(previewerEntryPath)) {
-            injections.push({
-              tag: 'script',
-              attrs: { type: 'module', src: `/@fs${previewerEntryPath}` },
-              injectTo: 'body',
-            });
-          } else {
-            console.warn('⚠️ Protovibe previewer entry not found at ' + previewerEntryPath);
+          if (isComponentsHtml) {
+            // Inject the component previewer overlay.
+            // The source file lives next to the dist output (../src/ui/), and Vite
+            // serves it via @fs so that import.meta.glob and JSX transforms are applied.
+            const previewerEntryPath = path.resolve(__dirname, '../src/ui/previewer-entry.tsx');
+            if (fs.existsSync(previewerEntryPath)) {
+              injections.push({
+                tag: 'script',
+                attrs: { type: 'module', src: `/@fs${previewerEntryPath}` },
+                injectTo: 'body',
+              });
+            } else {
+              console.warn('⚠️ Protovibe previewer entry not found at ' + previewerEntryPath);
+            }
           }
 
           return injections;
