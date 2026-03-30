@@ -32,6 +32,7 @@ import { DropdownButton } from '@/components/ui/dropdown-button'
 import { SelectDropdown } from '@/components/ui/select-dropdown'
 import { DropdownItem } from '@/components/ui/dropdown-item'
 import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { Card } from '@/components/ui/card'
 
 export default function App() {
   const { showToast } = useStore();
@@ -118,6 +119,17 @@ export default function App() {
             {/* pv-editable-zone-end:inside-j5f1fn */}
           </div>
           {/* pv-block-end:j5f1fn */}
+
+          {/* pv-block-start:54fl2x */}
+          <Card data-pv-block="54fl2x" variant="bordered" shadow="none">
+            {/* pv-editable-zone-start:c5gbka */}
+
+              {/* pv-block-start:fas0lb */}
+              <Button data-pv-block="fas0lb" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:fas0lb */}
+            {/* pv-editable-zone-end:c5gbka */}
+          </Card>
+          {/* pv-block-end:54fl2x */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
