@@ -40,6 +40,13 @@ export function PvDefaultContent() {
         {/* pv-block-start */}
         <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
         {/* pv-block-end */}
+        <div>
+          {/* pv-editable-zone-start */}
+            {/* pv-block-start */}
+            <p data-pv-block="" className="text-foreground-secondary mb-6">This is additional editable content.</p>
+            {/* pv-block-end */}
+          {/* pv-editable-zone-end */}
+        </div>
       {/* pv-editable-zone-end */}
     </>
   );

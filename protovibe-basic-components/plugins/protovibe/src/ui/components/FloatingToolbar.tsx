@@ -6,6 +6,7 @@ import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
 import { theme } from '../theme';
+import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 
 export const FloatingToolbar: React.FC = () => {
   const {
@@ -210,7 +211,7 @@ export const FloatingToolbar: React.FC = () => {
       style={{
         position: 'fixed',
         bottom: '24px',
-        left: '50%',
+        left: inspectorOpen ? `calc((100vw - ${INSPECTOR_WIDTH_PX}px) / 2)` : '50%',
         transform: 'translateX(-50%)',
         zIndex: 99998,
         display: 'flex',
@@ -227,7 +228,6 @@ export const FloatingToolbar: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           height: '38px',
-          minWidth: '200px',
           background: 'rgba(18, 18, 24, 0.88)',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
@@ -252,13 +252,18 @@ export const FloatingToolbar: React.FC = () => {
               onMouseEnter={() => setHoveredBtn('add')}
               onMouseLeave={() => setHoveredBtn(null)}
               style={mkBtnStyle('add', {
+                minWidth: '180px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
                 color: showAddDialog ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
                 background: showAddDialog ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
               })}
-              title="Add element"
+              title="Add child element"
             >
               <Plus size={13} strokeWidth={2.5} />
-              Add element
+              Add child element
             </button>
             {canBlockAction && divider}
           </>

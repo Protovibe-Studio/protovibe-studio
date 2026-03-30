@@ -103,6 +103,21 @@ export default function App() {
             {/* pv-editable-zone-end:inside-1imggz */}
           </div>
           {/* pv-block-end:1imggz */}
+
+        {/* pv-block-start:j5f1fn */}
+          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="j5f1fn">
+            {/* pv-editable-zone-start:inside-j5f1fn */}
+
+              {/* pv-block-start:hkx3km */}
+              <span data-pv-block="hkx3km">
+                Lorem ipsum
+                {/* pv-editable-zone-start:inside-hkx3km */}
+                {/* pv-editable-zone-end:inside-hkx3km */}
+              </span>
+              {/* pv-block-end:hkx3km */}
+            {/* pv-editable-zone-end:inside-j5f1fn */}
+          </div>
+          {/* pv-block-end:j5f1fn */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

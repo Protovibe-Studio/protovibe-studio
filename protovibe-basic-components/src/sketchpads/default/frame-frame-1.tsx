@@ -11,7 +11,7 @@ export default function Frame1() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:ecam39 */}
       {/* pv-block-start:ak8bcl */}
-      <Button data-pv-block="ak8bcl" data-pv-sketchpad-el="ak8bcl" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 565, top: 399 }} />
+      <Button data-pv-block="ak8bcl" data-pv-sketchpad-el="ak8bcl" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 547, top: 378 }} />
       {/* pv-block-end:ak8bcl */}
 
       {/* pv-block-start:zvaeej */}

@@ -2,7 +2,7 @@
 // Manages the postMessage bridge between the parent shell and the app iframe.
 // Runs in the PARENT frame only.
 
-import { useEffect, useRef, useCallback, RefObject } from 'react';
+import { useEffect, RefObject } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
 
@@ -34,10 +34,10 @@ interface PvKeyDownMessage {
 
 type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvKeyDownMessage;
 
-export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) {
+export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | null>[]) {
   const { focusElement, clearFocus, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
 
-  // Handle incoming messages from the iframe
+  // Handle incoming messages from any iframe
   useEffect(() => {
     const handleMessage = (e: MessageEvent<BridgeMessage>) => {
       if (!e.data || typeof e.data !== 'object') return;
@@ -45,8 +45,10 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
       if (e.data.type === 'PV_ELEMENT_CLICK') {
         const { pvLocs, componentId, runtimeId } = e.data;
         console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeId });
-        
-        const iframeDoc = iframeRef.current?.contentDocument;
+
+        // Identify which iframe sent the message by matching e.source
+        const sourceRef = iframeRefs.find(ref => ref.current?.contentWindow === e.source);
+        const iframeDoc = sourceRef?.current?.contentDocument;
         if (!iframeDoc) return;
 
         // Use the exact runtimeId to avoid the "first matched element" bug
@@ -78,27 +80,31 @@ export function useIframeBridge(iframeRef: RefObject<HTMLIFrameElement | null>) 
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [focusElement, clearFocus, iframeRef]);
+  }, [focusElement, clearFocus, ...iframeRefs]);
 
-  // Sync mutation lock state into iframe
+  // Sync mutation lock state into all iframes
   useEffect(() => {
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: 'PV_SET_LOCKED', locked: isMutationLocked },
-      '*'
-    );
-  }, [isMutationLocked, iframeRef]);
-
-  // Sync live preview mode into iframe whenever inspector open state changes
-  useEffect(() => {
-    iframeRef.current?.contentWindow?.postMessage(
-      { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
-      '*'
-    );
-    if (!inspectorOpen) {
-      iframeRef.current?.contentWindow?.postMessage(
-        { type: 'PV_CLEAR_SELECTION' },
+    iframeRefs.forEach(ref => {
+      ref.current?.contentWindow?.postMessage(
+        { type: 'PV_SET_LOCKED', locked: isMutationLocked },
         '*'
       );
-    }
-  }, [inspectorOpen, iframeRef]);
+    });
+  }, [isMutationLocked, ...iframeRefs]);
+
+  // Sync live preview mode into all iframes whenever inspector open state changes
+  useEffect(() => {
+    iframeRefs.forEach(ref => {
+      ref.current?.contentWindow?.postMessage(
+        { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
+        '*'
+      );
+      if (!inspectorOpen) {
+        ref.current?.contentWindow?.postMessage(
+          { type: 'PV_CLEAR_SELECTION' },
+          '*'
+        );
+      }
+    });
+  }, [inspectorOpen, ...iframeRefs]);
 }

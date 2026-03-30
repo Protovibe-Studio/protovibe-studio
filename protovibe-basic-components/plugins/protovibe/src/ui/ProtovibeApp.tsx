@@ -25,14 +25,19 @@ export const ProtovibeApp: React.FC = () => {
     setIframeTheme(t);
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
-  const { inspectorOpen, toggleInspector } = useProtovibe();
+  const { inspectorOpen, toggleInspector, clearFocus } = useProtovibe();
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Inspector bridge only targets the app iframe
-  useIframeBridge(appIframeRef);
+  // Inspector bridge targets all iframes — identifies source via e.source
+  useIframeBridge(appIframeRef, sketchpadIframeRef, componentsIframeRef);
   useKeyboardShortcuts();
+
+  const handleIframeTabChange = useCallback((tab: IframeTab) => {
+    clearFocus();
+    setActiveIframeTab(tab);
+  }, [clearFocus]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
@@ -70,7 +75,7 @@ export const ProtovibeApp: React.FC = () => {
     >
       <ShellNavBar
         activeIframeTab={activeIframeTab}
-        onIframeTabChange={setActiveIframeTab}
+        onIframeTabChange={handleIframeTabChange}
         activeSidebarTab={activeSidebarTab}
         onSidebarTabChange={setActiveSidebarTab}
         inspectorOpen={inspectorOpen}

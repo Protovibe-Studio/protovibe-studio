@@ -10,16 +10,16 @@
           "name": "Frame 1",
           "width": 815,
           "height": 601,
-          "canvasX": 214,
-          "canvasY": 4
+          "canvasX": 215,
+          "canvasY": 5
         },
         {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 800,
           "height": 600,
-          "canvasX": 1154,
-          "canvasY": 1
+          "canvasX": 1155,
+          "canvasY": 4
         },
         {
           "id": "frame-frame-3",

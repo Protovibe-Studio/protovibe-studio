@@ -241,9 +241,9 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     // Tell bridge to move the outline visually (for keyboard navigation)
-    // Target whichever iframe is currently active (app or sketchpad)
-    const iframeEl = (document.querySelector('iframe[src="/sketchpad.html"]') ??
-      document.querySelector('iframe[src="/app.html"]')) as HTMLIFrameElement | null;
+    // Find the iframe that owns this element's document.
+    const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+    const iframeEl = allIframes.find(f => f.contentDocument === el.ownerDocument) ?? null;
     iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeId }, '*');
 
   }, [setHighlightedElement]);
@@ -253,16 +253,24 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCurrentBaseTarget(null);
     setActiveSourceId(null);
     setSources([]);
+    // Clear outline in all iframes
+    (Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[]).forEach(iframe => {
+      iframe.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
+    });
   }, [setHighlightedElement]);
 
   const focusNewBlock = useCallback((blockId: string, options: { maxAttempts?: number; initialDelay?: number; interval?: number } = {}) => {
     const { maxAttempts = 20, initialDelay = 300, interval = 100 } = options;
     let attempts = 0;
     const tryFocus = () => {
-      // Search in the canvas iframe document first, falling back to the parent document.
-      const iframeEl = document.querySelector('iframe[src="/app.html"]') as HTMLIFrameElement | null;
-      const searchDoc = iframeEl?.contentDocument ?? document;
-      const target = searchDoc.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
+      // Search across all iframes, then fall back to the parent document.
+      const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+      let target: HTMLElement | null = null;
+      for (const iframe of allIframes) {
+        target = (iframe.contentDocument?.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement | null) ?? null;
+        if (target) break;
+      }
+      if (!target) target = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
       const hasPvLoc = !!target && Array.from(target.attributes).some(a => a.name.startsWith('data-pv-loc-'));
       if (hasPvLoc) {
         focusElement(target);
