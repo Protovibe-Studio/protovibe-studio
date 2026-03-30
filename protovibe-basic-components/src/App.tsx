@@ -443,7 +443,7 @@ export default function App() {
           {JSON.stringify({ children: "[Button trigger, DialogOverlay > DialogWindow]" }, null, 2)}
         </pre>
 
-        <RadioGroup orientation="vertical" value="opt2">
+        <RadioGroup  value="opt2">
           {/* pv-editable-zone-start:rgz8kp */}
 
             {/* pv-block-start:rxa3n1 */}
