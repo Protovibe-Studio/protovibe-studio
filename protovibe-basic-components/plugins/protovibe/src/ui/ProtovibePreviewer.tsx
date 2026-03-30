@@ -590,10 +590,10 @@ export function ProtovibePreviewer() {
       if (!e.data || e.data.type !== 'PV_OPEN_COMPONENT') return;
       const { filePath } = e.data as { filePath: string };
       if (!filePath) return;
-      // Normalise both sides: forward-slashes, strip leading slash for comparison
-      const normalised = filePath.replace(/\\/g, '/').replace(/^\//, '');
+      // Normalise both sides: forward-slashes, strip leading slash, and strip file extensions
+      const normalised = filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
       const match = discovered.find(entry => {
-        const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '');
+        const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
         return entryPath === normalised;
       });
       if (match) setSelected(match);
