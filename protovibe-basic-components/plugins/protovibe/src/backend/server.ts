@@ -235,39 +235,48 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
 
       const parsedClasses = parseTailwindClasses(classNameStr);
 
-      // 2. Resolve pvConfig: try componentId-based scan first (works with barrel imports),
-      //    then fall back to following the import path for backward compat.
+      // 2. Resolve pvConfig: Ensure the AST node is actually a React component (capitalized).
+      //    Native HTML elements (div, button, span) should never have a component props panel.
       let configSchema = null;
-      if (componentId) {
-        try {
-          configSchema = await findPvConfigByComponentId(componentId, server);
-        } catch (err) {
-          console.warn('Protovibe: componentId-based pvConfig lookup failed', err);
-        }
-      }
-      if (!configSchema && compNameStr[0] === compNameStr[0].toUpperCase() && importedComponents[compNameStr]) {
-        try {
-          // Ask Vite to resolve the import string (handles aliases like @/components/...)
-          const rawImportStr = importedComponents[compNameStr];
-          const resolvedId = await server.pluginContainer.resolveId(rawImportStr, absolutePath);
-          
-          if (resolvedId && resolvedId.id) {
-            // Remove Vite query params if any, and strip the extension
-            const cleanPath = resolvedId.id.split('?')[0];
-            const pathWithoutExt = cleanPath.replace(/\.[^/.]+$/, "");
-            
-            // Use Vite's SSR module loader to dynamically import the component file
-            try {
-              const mod = await server.ssrLoadModule(cleanPath);
-              if (mod && mod.pvConfig) {
-                configSchema = mod.pvConfig;
-              }
-            } catch (modErr) {
-              console.warn(`Protovibe: Failed to load component module ${cleanPath} for config extraction`, modErr);
-            }
+      const isComponent = compNameStr && compNameStr[0] === compNameStr[0].toUpperCase();
+
+      if (isComponent) {
+        // Try componentId-based scan first, but ONLY if the DOM componentId matches the 
+        // AST component name. If they differ, it means we are editing a nested component 
+        // that happens to be the root node, OR we are using an import alias.
+        if (componentId && componentId === compNameStr) {
+          try {
+            configSchema = await findPvConfigByComponentId(componentId, server);
+          } catch (err) {
+            console.warn('Protovibe: componentId-based pvConfig lookup failed', err);
           }
-        } catch (resolveErr) {
-          console.warn('Protovibe: Failed to resolve component config path', resolveErr);
+        }
+
+        // If fast lookup failed (or was bypassed due to mismatch), fall back to
+        // AST import tracking. This correctly resolves nested components and aliases.
+        if (!configSchema && importedComponents[compNameStr]) {
+          try {
+            // Ask Vite to resolve the import string (handles aliases like @/components/...)
+            const rawImportStr = importedComponents[compNameStr];
+            const resolvedId = await server.pluginContainer.resolveId(rawImportStr, absolutePath);
+            
+            if (resolvedId && resolvedId.id) {
+              // Remove Vite query params if any, and strip the extension
+              const cleanPath = resolvedId.id.split('?')[0];
+              
+              // Use Vite's SSR module loader to dynamically import the component file
+              try {
+                const mod = await server.ssrLoadModule(cleanPath);
+                if (mod && mod.pvConfig) {
+                  configSchema = mod.pvConfig;
+                }
+              } catch (modErr) {
+                console.warn(`Protovibe: Failed to load component module ${cleanPath} for config extraction`, modErr);
+              }
+            }
+          } catch (resolveErr) {
+            console.warn('Protovibe: Failed to resolve component config path', resolveErr);
+          }
         }
       }
 

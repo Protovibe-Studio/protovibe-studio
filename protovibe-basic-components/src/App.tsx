@@ -147,6 +147,14 @@ export default function App() {
             {/* pv-editable-zone-end:vvh5ey */}
           </Container>
           {/* pv-block-end:im5sfy */}
+
+          {/* pv-block-start:85inm3 */}
+          <span data-pv-block="85inm3">
+            Lorem ipsum
+            {/* pv-editable-zone-start:inside-85inm3 */}
+            {/* pv-editable-zone-end:inside-85inm3 */}
+          </span>
+          {/* pv-block-end:85inm3 */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
