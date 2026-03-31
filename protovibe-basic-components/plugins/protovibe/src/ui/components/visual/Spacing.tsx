@@ -339,24 +339,11 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     return raw && raw !== '-' ? raw : '';
   };
 
-  // ── Expand button style ─────────────────────────────────────────────────────
-
-  const expandBtnStyle: React.CSSProperties = {
-    background: 'none',
-    border: 'none',
-    padding: '2px',
-    cursor: 'pointer',
-    color: theme.text_tertiary,
-    display: 'flex',
-    alignItems: 'center',
-    borderRadius: '3px',
-    flexShrink: 0,
-  };
 
   return (
     <VisualSection title="Essentials" defaultOpen>
       {/* ── Box model SVG with overlay inputs ── */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1', marginBottom: '12px' }}>
+      <div style={{ position: 'relative', width: '82%', aspectRatio: '1', margin: '12px auto' }}>
         <SpacingBoxSVG style={{ width: '100%', height: '100%', display: 'block' }} />
 
         {/* Margin – top / bottom / left / right */}
@@ -463,19 +450,44 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         />
       </div>
 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+      {/* ── BG Color ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <VisualControl
+          label="BG Color"
+          prefix="bg-"
+          value={cleanVal(v.bg)}
+          options={themeColors as any[]}
+          originalClass={v.bg_original}
+          type="input"
+          inheritedValue={cleanVal(domV?.bg)}
+        />
+      </div>
+
       {/* ── Border radius ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
-        {/* Label row with expand button */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '10px', fontWeight: 600, color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Radius</span>
-          <button
-            style={expandBtnStyle}
-            onClick={() => setRadiusExpanded((x) => !x)}
-            title={radiusExpanded ? 'Collapse corners' : 'Expand corners'}
-          >
-            {radiusExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* Clickable label row – chevron sits right after the text */}
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            height: '14px',
+            width: 'fit-content',
+          }}
+          onClick={() => setRadiusExpanded((x) => !x)}
+          title={radiusExpanded ? 'Collapse corners' : 'Expand corners'}
+        >
+          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Border radius</span>
+          <span style={{ color: theme.text_tertiary, display: 'flex', alignItems: 'center' }}>
+            {radiusExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          </span>
+        </button>
 
         {/* All corners */}
         <RadiusAutocomplete
@@ -521,16 +533,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         )}
       </div>
 
-      {/* ── BG Color ── */}
-      <VisualControl
-        label="BG Color"
-        prefix="bg-"
-        value={cleanVal(v.bg)}
-        options={themeColors as any[]}
-        originalClass={v.bg_original}
-        type="input"
-        inheritedValue={cleanVal(domV?.bg)}
-      />
+      </div>{/* end fieldsets gap wrapper */}
+
     </VisualSection>
   );
 };
