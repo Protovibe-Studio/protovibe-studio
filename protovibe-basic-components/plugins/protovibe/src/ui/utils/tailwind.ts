@@ -92,7 +92,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
-    bg: '', fill: '', radius: '', borderWidth: '', borderColor: '', opacity: '', shadow: '',
+    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderColor: '', opacity: '', shadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -183,6 +183,10 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     }
     else if (cls.startsWith('bg-')) { v.bg = cls.replace('bg-', ''); orig.bg_original = originalClass; }
     else if (cls.startsWith('fill-')) { v.fill = cls.replace('fill-', ''); orig.fill_original = originalClass; }
+    else if (cls.startsWith('rounded-tl-')) { v.radiusTL = cls.replace('rounded-tl-', ''); orig.radiusTL_original = originalClass; }
+    else if (cls.startsWith('rounded-tr-')) { v.radiusTR = cls.replace('rounded-tr-', ''); orig.radiusTR_original = originalClass; }
+    else if (cls.startsWith('rounded-br-')) { v.radiusBR = cls.replace('rounded-br-', ''); orig.radiusBR_original = originalClass; }
+    else if (cls.startsWith('rounded-bl-')) { v.radiusBL = cls.replace('rounded-bl-', ''); orig.radiusBL_original = originalClass; }
     else if (cls.startsWith('rounded')) { v.radius = cls === 'rounded' ? 'DEFAULT' : cls.replace('rounded-', ''); orig.radius_original = originalClass; }
     else if (cls.startsWith('border')) {
       if (/^border-(0|2|4|8)$/.test(cls) || cls === 'border' || /^border-\[.*(?:px|rem|em)\]$/.test(cls)) {

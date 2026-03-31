@@ -33,6 +33,8 @@ interface AutocompleteDropdownProps {
   onInputBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onInputMouseEnter?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onInputMouseLeave?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -53,6 +55,8 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   onInputBlur,
   onInputMouseEnter,
   onInputMouseLeave,
+  prefix,
+  suffix,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
@@ -223,6 +227,8 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         onMouseLeave={(e) => onInputMouseLeave?.(e)}
         placeholder={placeholder}
         style={inputStyle}
+        prefix={prefix}
+        suffix={suffix}
       />
 
       {isOpen && canUseDOM && createPortal(
