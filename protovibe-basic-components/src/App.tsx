@@ -120,7 +120,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="my-10 w-full border-5 data-[variant=bordered]:border-px border-l-5 data-[variant=bordered]:border-t-4 data-[variant=bordered]:rounded-tl-none data-[variant=bordered]:rounded-tr-none gap-4" data-pv-block="54fl2x"  >
+          <Card className="my-10 w-full border-5 data-[variant=bordered]:border-px border-l-5 data-[variant=bordered]:border-t-4 data-[variant=bordered]:rounded-tl-none data-[variant=bordered]:rounded-tr-none" data-pv-block="54fl2x"  >
             {/* pv-editable-zone-start:c5gbka */}
             {/* pv-block-start:gc051c */}
           <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />
@@ -280,6 +280,17 @@ export default function App() {
             {/* pv-editable-zone-end:c1cn2h */}
           </Card>
           {/* pv-block-end:hf8ryd */}
+
+          {/* pv-block-start:4xr5m8 */}
+          <div className="flex flex-col min-h-4 border p-4 rounded" data-pv-block="4xr5m8">
+            {/* pv-editable-zone-start:inside-4xr5m8 */}
+
+              {/* pv-block-start:3naqql */}
+              <Button data-pv-block="3naqql" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:3naqql */}
+            {/* pv-editable-zone-end:inside-4xr5m8 */}
+          </div>
+          {/* pv-block-end:4xr5m8 */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

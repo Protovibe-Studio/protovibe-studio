@@ -7,7 +7,7 @@ import { AutocompleteDropdown } from './AutocompleteDropdown';
 import { SpacingBoxSVG } from './SpacingBoxSVG';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
-import { buildContextPrefix, makeSafe, computeOptimalSpacing, cleanVal } from '../../utils/tailwind';
+import { buildContextPrefix, makeSafe, computeOptimalSpacing, computeOptimalBorder, cleanVal } from '../../utils/tailwind';
 import { SCALES } from '../../constants/tailwind';
 import { theme } from '../../theme';
 
@@ -180,7 +180,21 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       b: cleanVal(type === 'm' ? v.mb : v.pb),
       l: cleanVal(type === 'm' ? v.ml : v.pl),
     };
-    vals[direction] = safeVal || '';
+
+    // If no padding/margin is set or inherited on any side, spread the new value to all sides.
+    const noSource = !vals.t && !vals.r && !vals.b && !vals.l;
+    const domSides = type === 'm'
+      ? [domV?.mt, domV?.mr, domV?.mb, domV?.ml]
+      : [domV?.pt, domV?.pr, domV?.pb, domV?.pl];
+    const noInherited = domSides.every((s) => !cleanVal(s));
+    if (noSource && noInherited && safeVal) {
+      vals.t = safeVal;
+      vals.r = safeVal;
+      vals.b = safeVal;
+      vals.l = safeVal;
+    } else {
+      vals[direction] = safeVal || '';
+    }
 
     const newClassesStr = computeOptimalSpacing(type, vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);
@@ -238,26 +252,45 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
-    const sideKey = side === 't' ? 'borderT' : side === 'r' ? 'borderR' : side === 'b' ? 'borderB' : 'borderL';
 
-    let newClass = '';
-    if (safeVal && safeVal !== '-') {
-      newClass = safeVal === 'DEFAULT'
-        ? `${currentContextPrefix}border-${side}`
-        : `${currentContextPrefix}border-${side}-${safeVal}`;
+    // Resolve effective per-side values: explicit side override > all-sides shorthand
+    const fallback = cleanVal(v.borderWidth) || '';
+    const effectiveT = cleanVal(v.borderT) || fallback;
+    const effectiveR = cleanVal(v.borderR) || fallback;
+    const effectiveB = cleanVal(v.borderB) || fallback;
+    const effectiveL = cleanVal(v.borderL) || fallback;
+
+    const vals = { t: effectiveT, r: effectiveR, b: effectiveB, l: effectiveL };
+
+    const noSource = !effectiveT && !effectiveR && !effectiveB && !effectiveL;
+    const noInherited = !domBorderSideVal('borderT') && !domBorderSideVal('borderR') && !domBorderSideVal('borderB') && !domBorderSideVal('borderL');
+    if (noSource && noInherited && safeVal) {
+      vals.t = safeVal; vals.r = safeVal; vals.b = safeVal; vals.l = safeVal;
+    } else {
+      vals[side] = safeVal || '';
     }
+
+    const newClassesStr = computeOptimalBorder(vals.t, vals.r, vals.b, vals.l);
+    const newClasses = newClassesStr.split(' ').filter(Boolean);
+    const prefixedNewClasses = newClasses.map((c: string) => `${currentContextPrefix}${c}`).join(' ');
+
+    // Collect ALL old border-width originals to replace
+    const origClasses = [
+      v.borderWidth_original,
+      v.borderT_original,
+      v.borderR_original,
+      v.borderB_original,
+      v.borderL_original,
+    ].filter(Boolean);
 
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
-      const origClass = v[`${sideKey}_original`] || '';
-      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
-      if (origClass === newClass) return;
       await updateSource({
         ...activeData,
         id: activeSourceId!,
-        oldClass: origClass,
-        newClass,
-        action,
+        oldClasses: origClasses,
+        newClass: prefixedNewClasses,
+        action: 'replace-multiple',
       });
     });
   };
@@ -336,14 +369,22 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   const borderSideVal = (key: 'borderT' | 'borderR' | 'borderB' | 'borderL') => {
     const raw = v[key];
-    return raw && raw !== '-' ? raw : '';
+    if (raw && raw !== '-') return raw;
+    // Fall back to all-sides shorthand so the box model always reflects effective value
+    return cleanVal(v.borderWidth) || '';
+  };
+
+  const domBorderSideVal = (key: 'borderT' | 'borderR' | 'borderB' | 'borderL') => {
+    const raw = domV?.[key];
+    if (raw && raw !== '-') return raw;
+    return cleanVal(domV?.borderWidth) || '';
   };
 
 
   return (
     <VisualSection title="Essentials" defaultOpen>
       {/* ── Box model SVG with overlay inputs ── */}
-      <div style={{ position: 'relative', width: '82%', aspectRatio: '1', margin: '12px auto' }}>
+      <div style={{ position: 'relative', width: '240px', aspectRatio: '1', margin: '12px auto' }}>
         <SpacingBoxSVG style={{ width: '100%', height: '100%', display: 'block' }} />
 
         {/* Margin – top / bottom / left / right */}
@@ -383,7 +424,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onChange={(val) => handleBorderSideUpdate('t', val)}
           placeholder="-"
           options={SCALES.borderWidth}
-          inheritedPlaceholder={cleanVal(domV?.borderT)}
+          inheritedPlaceholder={domBorderSideVal('borderT')}
         />
         <SpacingAutocomplete
           posStyle={centreH(81)}
@@ -391,7 +432,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onChange={(val) => handleBorderSideUpdate('b', val)}
           placeholder="-"
           options={SCALES.borderWidth}
-          inheritedPlaceholder={cleanVal(domV?.borderB)}
+          inheritedPlaceholder={domBorderSideVal('borderB')}
         />
         <SpacingAutocomplete
           posStyle={centre(19)}
@@ -399,7 +440,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onChange={(val) => handleBorderSideUpdate('l', val)}
           placeholder="-"
           options={SCALES.borderWidth}
-          inheritedPlaceholder={cleanVal(domV?.borderL)}
+          inheritedPlaceholder={domBorderSideVal('borderL')}
         />
         <SpacingAutocomplete
           posStyle={centre(81)}
@@ -407,7 +448,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onChange={(val) => handleBorderSideUpdate('r', val)}
           placeholder="-"
           options={SCALES.borderWidth}
-          inheritedPlaceholder={cleanVal(domV?.borderR)}
+          inheritedPlaceholder={domBorderSideVal('borderR')}
         />
 
         {/* Padding – top / bottom / left / right */}

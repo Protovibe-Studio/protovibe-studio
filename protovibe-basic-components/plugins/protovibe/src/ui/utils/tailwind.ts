@@ -208,6 +208,21 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
   return { ...v, ...orig, origMargin: orig.margin, origPadding: orig.padding };
 }
 
+export function computeOptimalBorder(t: string, r: string, b: string, l: string): string {
+  const toClass = (side: string, val: string) => {
+    if (!val) return '';
+    if (side === '') return val === 'DEFAULT' ? 'border' : `border-${val}`;
+    return val === 'DEFAULT' ? `border-${side}` : `border-${side}-${val}`;
+  };
+  if (t && t === r && t === b && t === l) return toClass('', t);
+  const classes: string[] = [];
+  if (t) classes.push(toClass('t', t));
+  if (r) classes.push(toClass('r', r));
+  if (b) classes.push(toClass('b', b));
+  if (l) classes.push(toClass('l', l));
+  return classes.join(' ');
+}
+
 export function computeOptimalSpacing(prefix: string, t: string, r: string, b: string, l: string) {
   let classes = [];
   if (t && t === r && t === b && t === l) classes.push(`${prefix}-${t}`);

@@ -4,9 +4,8 @@ import { createPortal } from 'react-dom';
 import { MoveRight, ChevronDown, ChevronUp, MoreHorizontal, Check } from 'lucide-react';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
-import { buildContextPrefix, cleanVal } from '../../utils/tailwind';
+import { buildContextPrefix } from '../../utils/tailwind';
 import { VisualSection } from './VisualSection';
-import { VisualControl } from './VisualControl';
 import { SegmentedControl } from './SegmentedControl';
 import { InspectorSlider } from './InspectorSlider';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
@@ -428,7 +427,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const hasInheritedDisplay = !v.display && !!domV?.display;
   const hasAnySourceOverride = !!(
     v.display || v.direction || v.align || v.justify || v.wrap ||
-    v.gap || v.spaceX || v.spaceY ||
+    v.spaceX || v.spaceY ||
     v.gridCols || v.gridRows || v.gridFlow || v.justifyItems || v.alignContent
   );
 
@@ -663,8 +662,6 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   return (
     <VisualSection title="Display and Layout" headerAction={moreMenuButton}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
         {/* Trigger button */}
         <button
           ref={triggerRef}
@@ -695,19 +692,6 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             : <ChevronDown size={13} color={theme.text_tertiary} />
           }
         </button>
-
-        {/* Gap (flex/grid) or Space X/Y (block) — hidden when display is none */}
-        {display !== 'hidden' && (
-          (isFlexLike || isGrid) ? (
-            <VisualControl label="Gap" prefix="gap-" value={cleanVal(v.gap)} originalClass={v.gap_original} type="input" inheritedValue={cleanVal(domV?.gap)} />
-          ) : (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <VisualControl label="Space X" prefix="space-x-" value={cleanVal(v.spaceX)} originalClass={v.spaceX_original} type="input" inheritedValue={cleanVal(domV?.spaceX)} />
-              <VisualControl label="Space Y" prefix="space-y-" value={cleanVal(v.spaceY)} originalClass={v.spaceY_original} type="input" inheritedValue={cleanVal(domV?.spaceY)} />
-            </div>
-          )
-        )}
-      </div>
 
       {/* ── More menu portal ────────────────────────────────── */}
       {isMoreOpen && typeof document !== 'undefined' && createPortal(
