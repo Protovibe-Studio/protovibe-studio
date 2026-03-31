@@ -144,6 +144,20 @@ export default function App() {
             {/* pv-editable-zone-end:c1cn2h */}
           </Card>
           {/* pv-block-end:z3m7ik */}
+
+            {/* pv-block-start:03z36g */}
+          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="03z36g">
+            {/* pv-editable-zone-start:inside-03z36g */}
+              {/* pv-block-start:eburnz */}
+              <span data-pv-block="eburnz">
+                Lorem ipsum
+                {/* pv-editable-zone-start:inside-eburnz */}
+                {/* pv-editable-zone-end:inside-eburnz */}
+              </span>
+              {/* pv-block-end:eburnz */}
+            {/* pv-editable-zone-end:inside-03z36g */}
+          </div>
+          {/* pv-block-end:03z36g */}
             {/* pv-editable-zone-end:c5gbka */}
           </Card>
           {/* pv-block-end:54fl2x */}

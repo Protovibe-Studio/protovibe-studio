@@ -616,7 +616,36 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       }
 
       // 1. Handle component imports safely without breaking formatting
-      if (elementType === 'component') {
+      let pastedContent = '';
+      let pastedImports: Array<{ name: string; path: string }> = [];
+
+      if (elementType === 'paste') {
+        if (!clipboard.data) {
+          throw new Error('Clipboard is empty.');
+        }
+        pastedContent = clipboard.data.content;
+        pastedImports = clipboard.data.imports || [];
+
+        const rootMatch = pastedContent.match(/pv-block-start:([a-zA-Z0-9_-]{6})/);
+        const rootOldId = rootMatch ? rootMatch[1] : null;
+
+        const idMap: Record<string, string> = {};
+        if (rootOldId) idMap[rootOldId] = blockId;
+
+        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+        let match;
+        while ((match = idRegex.exec(pastedContent)) !== null) {
+          if (!idMap[match[1]]) {
+            idMap[match[1]] = Math.random().toString(36).substring(2, 8);
+          }
+        }
+
+        for (const [oldId, newId] of Object.entries(idMap)) {
+          pastedContent = pastedContent.split(oldId).join(newId);
+        }
+      }
+
+      if (elementType === 'component' || (elementType === 'paste' && pastedImports.length > 0)) {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,
           plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
@@ -645,13 +674,24 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         });
 
         const toInject: Array<{ name: string; path: string }> = [];
-        if (importPath && compName && !existingNames.has(compName)) {
-          toInject.push({ name: compName, path: importPath });
+
+        if (elementType === 'component') {
+          if (importPath && compName && !existingNames.has(compName)) {
+            toInject.push({ name: compName, path: importPath });
+          }
+          if (Array.isArray(additionalImportsForDefaultContent)) {
+            for (const dep of additionalImportsForDefaultContent) {
+              if (dep.name && dep.path && !existingNames.has(dep.name)) {
+                toInject.push({ name: dep.name, path: dep.path });
+              }
+            }
+          }
         }
-        if (Array.isArray(additionalImportsForDefaultContent)) {
-          for (const dep of additionalImportsForDefaultContent) {
-            if (dep.name && dep.path && !existingNames.has(dep.name)) {
-              toInject.push({ name: dep.name, path: dep.path });
+
+        if (elementType === 'paste') {
+          for (const dep of pastedImports) {
+            if (!existingNames.has(dep.name)) {
+              toInject.push(dep);
             }
           }
         }
@@ -675,32 +715,6 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             blockStart = getOffsetUpdated(shiftedStart);
             blockEnd = getOffsetUpdated(shiftedEnd + 1);
           }
-        }
-      }
-
-      let pastedContent = '';
-      if (elementType === 'paste') {
-        if (!clipboard.data || clipboard.data.file !== file) {
-          throw new Error('Clipboard is empty or from another file.');
-        }
-        pastedContent = clipboard.data.content;
-        
-        const rootMatch = pastedContent.match(/pv-block-start:([a-zA-Z0-9_-]{6})/);
-        const rootOldId = rootMatch ? rootMatch[1] : null;
-
-        const idMap: Record<string, string> = {};
-        if (rootOldId) idMap[rootOldId] = blockId;
-
-        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
-        let match;
-        while ((match = idRegex.exec(pastedContent)) !== null) {
-          if (!idMap[match[1]]) {
-            idMap[match[1]] = Math.random().toString(36).substring(2, 8);
-          }
-        }
-        
-        for (const [oldId, newId] of Object.entries(idMap)) {
-          pastedContent = pastedContent.split(oldId).join(newId);
         }
       }
 
@@ -937,7 +951,65 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         const extractRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
         const match = extractRegex.exec(fileContent);
         if (match) {
-          clipboard.data = { file, content: match[0] };
+          const rawBlock = match[0];
+          const usedComponents = new Set<string>();
+          const fileImports = new Map<string, string>();
+
+          // 1. Parse the full source file to map all available imports
+          try {
+            const fileAst = babel.parseSync(fileContent, {
+              filename: absolutePath,
+              plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+            });
+            if (!fileAst) throw new Error('Failed to parse file AST');
+            babel.traverse(fileAst, {
+              ImportDeclaration(p) {
+                const source = p.node.source.value;
+                p.node.specifiers.forEach(spec => {
+                  if (babel.types.isImportSpecifier(spec) || babel.types.isImportDefaultSpecifier(spec)) {
+                    fileImports.set(spec.local.name, source);
+                  }
+                });
+              }
+            });
+          } catch (e) {
+            console.warn('Protovibe: Failed to parse source file imports', e);
+          }
+
+          // 2. Parse the extracted block (wrapped in a fragment) to find used components
+          try {
+            const blockAst = babel.parseSync(`<>${rawBlock}</>`, {
+              filename: 'temp.tsx',
+              plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+            });
+            if (!blockAst) throw new Error('Failed to parse block AST');
+            babel.traverse(blockAst, {
+              JSXOpeningElement(p) {
+                let compName = '';
+                if (babel.types.isJSXIdentifier(p.node.name)) {
+                  compName = p.node.name.name;
+                } else if (babel.types.isJSXMemberExpression(p.node.name)) {
+                  compName = (p.node.name.object as babel.types.JSXIdentifier).name;
+                }
+                if (compName && /^[A-Z]/.test(compName)) {
+                  usedComponents.add(compName);
+                }
+              }
+            });
+          } catch (e) {
+            console.warn('Protovibe: Failed to parse copied block for imports', e);
+          }
+
+          // 3. Intersect used components with available imports (only @/ aliases)
+          const requiredImports: Array<{ name: string; path: string }> = [];
+          usedComponents.forEach(comp => {
+            const importSource = fileImports.get(comp);
+            if (importSource && importSource.startsWith('@/')) {
+              requiredImports.push({ name: comp, path: importSource });
+            }
+          });
+
+          clipboard.data = { file, content: rawBlock, imports: requiredImports };
         }
         if (action === 'copy') {
           res.setHeader('Content-Type', 'application/json');

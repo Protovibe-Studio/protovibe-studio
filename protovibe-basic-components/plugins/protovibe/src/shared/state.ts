@@ -6,7 +6,7 @@ export const undoStack: {
   content: string;
   activeId: string;
 }[] = [];
-export const clipboard = { data: null as { file: string; content: string } | null };
+export const clipboard = { data: null as { file: string; content: string; imports: Array<{ name: string; path: string }> } | null };
 
 export const redoStack: {
   file: string;

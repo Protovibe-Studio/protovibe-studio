@@ -36,7 +36,7 @@ export default function Frame3() {
       {/* pv-block-end:xz74b9 */}
       
       {/* pv-block-start:izvvqp */}
-      <DialogTrigger data-pv-block="izvvqp" data-pv-sketchpad-el="izvvqp"  style={{ position: 'absolute', left: 223, top: 111 }}>
+      <DialogTrigger data-pv-block="izvvqp" data-pv-sketchpad-el="izvvqp"  style={{ position: 'absolute', left: 256, top: 75 }}>
         {/* pv-editable-zone-start:chwdu8 */}
           {/* pv-block-start:lv723v */}
           <Button data-pv-block="lv723v" label="Open Dialog" variant="solid" color="primary" size="md" />
@@ -170,6 +170,10 @@ export default function Frame3() {
       {/* pv-block-start:pascqc */}
       <RadioItem data-pv-block="pascqc" data-pv-sketchpad-el="pascqc" primaryText="Option 1" value="opt1" style={{ position: 'absolute', left: 487, top: 238 }} />
       {/* pv-block-end:pascqc */}
+
+      {/* pv-block-start:cm10og */}
+          <Button data-pv-block="cm10og" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:cm10og */}
       {/* pv-editable-zone-end:4f4vuf */}
     </div>
   );

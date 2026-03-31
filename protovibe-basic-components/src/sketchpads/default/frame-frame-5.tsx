@@ -2,6 +2,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button'
 import { TextBlock } from '@/components/ui/text-block';
+import { RadioItem } from '@/components/ui/radio-item'
 
 export default function Frame5() {
   return (
@@ -39,6 +40,14 @@ export default function Frame5() {
       {/* pv-block-start:760yd5 */}
       <TextBlock data-pv-block="760yd5" data-pv-sketchpad-el="760yd5" text="When Variant and is hovered" typography="regular" style={{ position: 'absolute', width: 136, left: 74, top: 271 }} />
       {/* pv-block-end:760yd5 */}
+
+      {/* pv-block-start:13llj8 */}
+      <Button className="bg-background-secondary" data-pv-block="13llj8" data-pv-sketchpad-el="13llj8" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', width: 172, left: 71, top: 375 }} />
+      {/* pv-block-end:13llj8 */}
+
+      {/* pv-block-start:d0rndo */}
+          <RadioItem data-pv-block="d0rndo" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:d0rndo */}
       {/* pv-editable-zone-end:on4wah */}
     </div>
   );
