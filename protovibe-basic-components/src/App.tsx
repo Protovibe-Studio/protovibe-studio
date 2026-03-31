@@ -106,7 +106,7 @@ export default function App() {
           {/* pv-block-end:1imggz */}
 
         {/* pv-block-start:j5f1fn */}
-          <div className="flex flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="j5f1fn">
+          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="j5f1fn">
             {/* pv-editable-zone-start:inside-j5f1fn */}
               {/* pv-block-start:hkx3km */}
               <span data-pv-block="hkx3km">
@@ -120,7 +120,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="my-10 w-full flex-col" data-pv-block="54fl2x"  >
+          <Card className="my-10 w-full" data-pv-block="54fl2x"  >
             {/* pv-editable-zone-start:c5gbka */}
             {/* pv-block-start:gc051c */}
           <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />

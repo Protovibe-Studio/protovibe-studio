@@ -34,8 +34,8 @@ export const VisualEditor: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <Spacing v={v} domV={domV} />
       <Layout v={v} domV={domV} />
+      <Spacing v={v} domV={domV} />
       <SizePosition v={v} domV={domV} />
       <Typography v={v} domV={domV} />
       <Effects v={v} domV={domV} />

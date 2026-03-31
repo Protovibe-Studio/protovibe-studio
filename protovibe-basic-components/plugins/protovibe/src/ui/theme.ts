@@ -1,16 +1,16 @@
 // plugins/protovibe/src/ui/theme.ts
 export const theme = {
   // Backgrounds
-  bg_default: '#1E1E1E',       // Main panels & sidebar
-  bg_secondary: '#2C2C2C',     // Inputs, dropdowns, hover states
-  bg_tertiary: '#3E3E3E',      // Active Segmented / Lighter elements
-  bg_strong: '#111111',        // Headers, deep backgrounds
+  bg_default: '#131313',       // Main panels & sidebar
+  bg_secondary: '#222222',     // Inputs, dropdowns, hover states
+  bg_tertiary: '#343434',      // Active Segmented / Lighter elements
+  bg_strong: '#0a0a0a',        // Headers, deep backgrounds
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
   // Text
   text_default: '#FFFFFF',     // Active/Primary text
   text_secondary: '#B3B3B3',   // Standard text, labels
-  text_tertiary: '#808080',    // Muted text, placeholders
+  text_tertiary: '#8a8a8a',    // Muted text, placeholders
 
   // Accents (Figma Blue)
   accent_default: '#18A0FB',
@@ -19,11 +19,11 @@ export const theme = {
   accent_low: 'rgba(24, 160, 251, 0.15)',
 
   // Borders
-  border_default: '#444444',   // Standard dividers
+  border_default: '#3c3c3c',   // Standard dividers
   border_secondary: '#333333', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
   border_accent: '#18A0FB',    // Focused borders
-  border_strong: '#555555',    // High contrast borders
+  border_strong: '#6a6a6a',    // High contrast borders
 
   // Warnings (Yellow/Orange)
   warning_primary: '#F2C94C',

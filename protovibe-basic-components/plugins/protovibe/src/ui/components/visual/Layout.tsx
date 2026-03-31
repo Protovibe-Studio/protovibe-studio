@@ -426,6 +426,11 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   const hasSourceDisplay = !!v.display;
   const hasInheritedDisplay = !v.display && !!domV?.display;
+  const hasAnySourceOverride = !!(
+    v.display || v.direction || v.align || v.justify || v.wrap ||
+    v.gap || v.spaceX || v.spaceY ||
+    v.gridCols || v.gridRows || v.gridFlow || v.justifyItems || v.alignContent
+  );
 
   // For OptionGroups: pass domV value as inheritedValue only when no source override exists
   const inheritedDirection = !v.direction ? (domV?.direction || '') : '';
@@ -443,12 +448,12 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   };
 
   const triggerLabelText = display ? (DISPLAY_LABELS[display] || display) : 'Unset';
-  const triggerLabelColor = hasSourceDisplay
+  const triggerLabelColor = hasAnySourceOverride
     ? theme.accent_default
     : hasInheritedDisplay
     ? theme.text_secondary
     : theme.text_tertiary;
-  const triggerBorderColor = hasSourceDisplay ? theme.border_accent : theme.border_default;
+  const triggerBorderColor = hasAnySourceOverride ? theme.border_accent : theme.border_default;
 
   const renderTriggerIcon = () => {
     if (isFlexLike) {
@@ -678,7 +683,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '36px', height: '36px', flexShrink: 0 }}>
+            <div style={{ width: '28px', height: '28px', flexShrink: 0, filter: hasAnySourceOverride ? 'none' : 'saturate(0)' }}>
               {renderTriggerIcon()}
             </div>
             <span style={{ fontSize: '12px', fontWeight: 500, color: triggerLabelColor }}>
@@ -717,7 +722,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               border: `1px solid ${theme.border_default}`,
               borderRadius: '6px',
               zIndex: 9999999,
-              boxShadow: '0 8px 16px rgba(0,0,0,0.6)',
+              boxShadow: '0 8px 16px rgba(0,0,0,0.8)',
               overflow: 'hidden',
               ...moreStyle,
             }}
@@ -745,11 +750,11 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             data-pv-overlay="true"
             data-pv-ui="true"
             style={{
-              background: theme.bg_secondary,
-              border: `1px solid ${theme.border_default}`,
+              background: theme.bg_default,
+              border: `1px solid ${theme.border_strong}`,
               borderRadius: '8px',
               zIndex: 9999999,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
+              boxShadow: '0 8px 12px rgba(0,0,0,0.9)',
               display: 'flex',
               flexDirection: 'column',
               overflowY: 'auto',
