@@ -82,8 +82,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
   const btnStyle = (isActive: boolean, isInherited: boolean, seg: Segment): React.CSSProperties => {
     // If active and value is "None"-like, use grey. Else blue.
     const activeColor = isNoneLike(seg) ? theme.text_secondary : theme.accent_default;
-    const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_secondary : 'transparent';
-    const color = isActive ? activeColor : isInherited ? theme.text_secondary : theme.text_tertiary;
+    const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_tertiary : 'transparent';
+    const color = isActive ? activeColor : isInherited ? theme.text_default : theme.text_tertiary;
 
     return {
       flex: 1,

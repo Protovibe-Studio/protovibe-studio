@@ -120,7 +120,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="my-10 flex" data-pv-block="54fl2x"  >
+          <Card className="my-10 w-full flex-row" data-pv-block="54fl2x"  >
             {/* pv-editable-zone-start:c5gbka */}
             {/* pv-block-start:gc051c */}
           <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />
@@ -267,7 +267,7 @@ export default function App() {
           {/* pv-block-end:vyjtlx */}
 
           {/* pv-block-start:hf8ryd */}
-          <Card className="" data-pv-block="hf8ryd" variant="bordered" shadow="none">
+          <Card className="flex justify-center flex-col w-1/2 items-start" data-pv-block="hf8ryd" variant="bordered" shadow="none">
             {/* pv-editable-zone-start:c1cn2h */}
 
             {/* pv-block-start:3komdo */}

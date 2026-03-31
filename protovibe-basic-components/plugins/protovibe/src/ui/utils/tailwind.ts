@@ -88,6 +88,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
   const v: Record<string, any> = {
     mt: '-', mr: '-', mb: '-', ml: '-', pt: '-', pr: '-', pb: '-', pl: '-',
     display: '', direction: '', justify: '', align: '', wrap: '', gap: '', spaceX: '', spaceY: '',
+    gridCols: '', gridRows: '', gridFlow: '', justifyItems: '', alignContent: '',
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
@@ -103,7 +104,9 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
   
   const displays = ['block', 'flex', 'grid', 'inline-block', 'hidden', 'inline-flex', 'inline'];
   const directions = ['flex-row', 'flex-col', 'flex-row-reverse', 'flex-col-reverse'];
-  const justifies = ['justify-start', 'justify-end', 'justify-center', 'justify-between', 'justify-around'];
+  const justifies = ['justify-start', 'justify-end', 'justify-center', 'justify-between', 'justify-around', 'justify-evenly'];
+  const justifyItems = ['justify-items-start', 'justify-items-end', 'justify-items-center', 'justify-items-stretch'];
+  const alignContents = ['content-start', 'content-end', 'content-center', 'content-between', 'content-around', 'content-evenly', 'content-stretch', 'content-normal'];
   const aligns = ['items-start', 'items-end', 'items-center', 'items-baseline', 'items-stretch'];
   const selfAligns = ['self-auto', 'self-start', 'self-center', 'self-end', 'self-stretch'];
   const wraps = ['flex-wrap', 'flex-nowrap', 'flex-wrap-reverse'];
@@ -158,6 +161,11 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     else if (aligns.includes(cls)) { v.align = cls; orig.align_original = originalClass; }
     else if (selfAligns.includes(cls)) { v.selfAlign = cls; orig.selfAlign_original = originalClass; }
     else if (wraps.includes(cls)) { v.wrap = cls; orig.wrap_original = originalClass; }
+    else if (cls.startsWith('grid-cols-')) { v.gridCols = cls; orig.gridCols_original = originalClass; }
+    else if (cls.startsWith('grid-rows-')) { v.gridRows = cls; orig.gridRows_original = originalClass; }
+    else if (cls.startsWith('grid-flow-')) { v.gridFlow = cls; orig.gridFlow_original = originalClass; }
+    else if (justifyItems.includes(cls)) { v.justifyItems = cls; orig.justifyItems_original = originalClass; }
+    else if (alignContents.includes(cls)) { v.alignContent = cls; orig.alignContent_original = originalClass; }
     else if (cls.startsWith('gap-')) { v.gap = cls.replace('gap-', ''); orig.gap_original = originalClass; }
     else if (cls.startsWith('space-x-')) { v.spaceX = cls.replace('space-x-', ''); orig.spaceX_original = originalClass; }
     else if (cls.startsWith('space-y-')) { v.spaceY = cls.replace('space-y-', ''); orig.spaceY_original = originalClass; }

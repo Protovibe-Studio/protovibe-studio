@@ -7,6 +7,8 @@ import { takeSnapshot, updateSource } from '../../api/client';
 import { buildContextPrefix, cleanVal } from '../../utils/tailwind';
 import { VisualSection } from './VisualSection';
 import { VisualControl } from './VisualControl';
+import { SegmentedControl } from './SegmentedControl';
+import { InspectorSlider } from './InspectorSlider';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
 import { theme } from '../../theme';
 
@@ -152,10 +154,46 @@ interface GridIconProps {
 }
 
 const GridIcon: React.FC<GridIconProps> = ({ prop, value }) => {
-  const suffix = value.replace(/^items-/, '').replace(/^justify-/, '');
+  // Normalise to bare suffix for highlight comparisons
+  const suffix = value
+    .replace(/^items-/, '')
+    .replace(/^justify-items-/, '')
+    .replace(/^justify-/, '')
+    .replace(/^content-/, '')
+    .replace(/^grid-flow-/, '');
 
-  const isXAxis = prop === 'justify';
-  const isYAxis = prop === 'align';
+  // ── gridFlow: show fill order with colored cells ──────────────────────────
+  if (prop === 'gridFlow') {
+    const isCol = value === 'grid-flow-col' || value === 'grid-flow-col-dense';
+    const isDense = value.includes('dense');
+    return (
+      <div style={{
+        display: 'grid',
+        width: '100%', height: '100%',
+        padding: '2px', gap: '2px',
+        backgroundColor: ICON_BG,
+        border: `1px solid ${ICON_BORDER}`,
+        borderRadius: '3px',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gridTemplateRows: 'repeat(2, 1fr)',
+        gridAutoFlow: isCol ? 'column' : 'row',
+        overflow: 'hidden',
+      }}>
+        {[ITEM_1, ITEM_2, theme.success_default].map((color, i) => (
+          <div key={i} style={{
+            backgroundColor: color,
+            borderRadius: '1px',
+            zIndex: 1,
+            ...(isDense && i === 0 ? { gridColumn: 'span 2' } : {}),
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Border-highlight logic for all other props ────────────────────────────
+  const isXAxis = prop === 'justify' || prop === 'justifyItems';
+  const isYAxis = prop === 'align'   || prop === 'content';
 
   let hiTop = false, hiRight = false, hiBottom = false, hiLeft = false, hiCH = false, hiCV = false;
   if (isXAxis) {
@@ -171,21 +209,16 @@ const GridIcon: React.FC<GridIconProps> = ({ prop, value }) => {
     if (['between', 'around', 'evenly', 'stretch'].includes(suffix)) { hiTop = true; hiBottom = true; }
   }
 
-  const alignMap: Record<string, string> = { 'items-start': 'start', 'items-end': 'end', 'items-center': 'center', 'items-stretch': 'stretch' };
-
   const containerStyle: React.CSSProperties = {
     display: 'grid',
-    width: '100%',
-    height: '100%',
-    padding: '2px',
-    gap: '2px',
+    width: '100%', height: '100%',
+    padding: '2px', gap: '2px',
     backgroundColor: ICON_BG,
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    borderTopColor: hiTop ? ICON_BORDER_HI : ICON_BORDER,
-    borderRightColor: hiRight ? ICON_BORDER_HI : ICON_BORDER,
+    borderStyle: 'solid', borderWidth: '1px',
+    borderTopColor:    hiTop    ? ICON_BORDER_HI : ICON_BORDER,
+    borderRightColor:  hiRight  ? ICON_BORDER_HI : ICON_BORDER,
     borderBottomColor: hiBottom ? ICON_BORDER_HI : ICON_BORDER,
-    borderLeftColor: hiLeft ? ICON_BORDER_HI : ICON_BORDER,
+    borderLeftColor:   hiLeft   ? ICON_BORDER_HI : ICON_BORDER,
     borderRadius: '3px',
     gridTemplateColumns: 'repeat(2, 1fr)',
     gridTemplateRows: 'repeat(2, 1fr)',
@@ -193,15 +226,20 @@ const GridIcon: React.FC<GridIconProps> = ({ prop, value }) => {
     overflow: 'hidden',
   };
 
-  if (prop === 'align') containerStyle.alignItems = alignMap[value] || 'stretch';
+  const alignItemsMap:   Record<string, string> = { 'items-start': 'start', 'items-end': 'end', 'items-center': 'center', 'items-stretch': 'stretch' };
+  const justifyItemsMap: Record<string, string> = { 'justify-items-start': 'start', 'justify-items-end': 'end', 'justify-items-center': 'center', 'justify-items-stretch': 'stretch' };
+  const justifyMap:      Record<string, string> = { 'justify-start': 'start', 'justify-end': 'end', 'justify-center': 'center', 'justify-between': 'space-between', 'justify-around': 'space-around', 'justify-evenly': 'space-evenly' };
+  const contentMap:      Record<string, string> = { 'content-start': 'start', 'content-end': 'end', 'content-center': 'center', 'content-between': 'space-between', 'content-around': 'space-around', 'content-evenly': 'space-evenly', 'content-stretch': 'stretch' };
+
+  if (prop === 'align')        containerStyle.alignItems    = alignItemsMap[value]   || 'stretch';
+  if (prop === 'justifyItems') containerStyle.justifyItems  = justifyItemsMap[value] || 'stretch';
+  if (prop === 'justify')      { containerStyle.justifyContent = justifyMap[value] || 'start'; containerStyle.gridTemplateColumns = 'repeat(2, 7px)'; }
+  if (prop === 'content')      { containerStyle.alignContent   = contentMap[value]  || 'start'; containerStyle.gridTemplateRows    = 'repeat(2, 6px)'; }
 
   const getItemStyle = (i: number): React.CSSProperties => {
-    const s: React.CSSProperties = {
-      backgroundColor: [ITEM_1, ITEM_2, theme.success_default][i % 3],
-      borderRadius: '1px',
-      zIndex: 1,
-    };
-    if (prop === 'align' && suffix !== 'stretch') s.height = [7, 5, 4][i] + 'px';
+    const s: React.CSSProperties = { backgroundColor: [ITEM_1, ITEM_2, theme.success_default][i % 3], borderRadius: '1px', zIndex: 1 };
+    if (prop === 'justifyItems' && suffix !== 'stretch') s.width  = [11, 9, 6][i] + 'px';
+    if (prop === 'align'        && suffix !== 'stretch') s.height = [7,  5, 4][i] + 'px';
     return s;
   };
 
@@ -224,21 +262,27 @@ interface OptionGroupProps {
   label: string;
   options: OptionItem[];
   activeValue: string;
+  inheritedValue?: string;
   onSelect: (val: string) => void;
   renderIcon: (val: string) => React.ReactNode;
   cols?: number;
 }
 
-const OptionGroup: React.FC<OptionGroupProps> = ({ label, options, activeValue, onSelect, renderIcon, cols = 3 }) => (
+const OptionGroup: React.FC<OptionGroupProps> = ({ label, options, activeValue, inheritedValue, onSelect, renderIcon, cols = 3 }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
     <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '4px' }}>
       {options.map(opt => {
-        const isActive = activeValue === opt.value;
+        const isSource = activeValue === opt.value;
+        // inherited only shows when no source override exists at all
+        const isInherited = !activeValue && inheritedValue === opt.value;
+        const borderColor = isSource ? theme.accent_default : isInherited ? theme.text_secondary : theme.border_default;
+        const bgColor = isSource ? theme.accent_low : isInherited ? theme.bg_low : 'transparent';
+        const textColor = isSource ? theme.accent_default : isInherited ? theme.text_default : theme.text_tertiary;
         return (
           <button
             key={opt.value}
-            onClick={() => onSelect(isActive ? '' : opt.value)}
+            onClick={() => onSelect(isSource ? '' : opt.value)}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -247,9 +291,9 @@ const OptionGroup: React.FC<OptionGroupProps> = ({ label, options, activeValue, 
               gap: '4px',
               padding: '6px 4px',
               borderRadius: '4px',
-              border: `1px solid ${isActive ? theme.accent_default : theme.border_default}`,
-              background: isActive ? theme.accent_low : 'transparent',
-              color: isActive ? theme.accent_default : theme.text_secondary,
+              border: `1px solid ${borderColor}`,
+              background: bgColor,
+              color: textColor,
               fontSize: '9px',
               cursor: 'pointer',
               transition: 'border-color 0.15s, background 0.15s',
@@ -299,11 +343,36 @@ const FLEX_JUSTIFY_ADVANCED: OptionItem[] = [
   { value: 'justify-around', label: 'Around' },
   { value: 'justify-evenly', label: 'Evenly' },
 ];
-const GRID_ALIGN_OPTIONS: OptionItem[] = [
+const GRID_ALIGN_ITEMS_OPTIONS: OptionItem[] = [
   { value: 'items-stretch', label: 'Stretch' },
   { value: 'items-start', label: 'Start' },
   { value: 'items-center', label: 'Center' },
   { value: 'items-end', label: 'End' },
+];
+const GRID_JUSTIFY_ITEMS_OPTIONS: OptionItem[] = [
+  { value: 'justify-items-stretch', label: 'Stretch' },
+  { value: 'justify-items-start', label: 'Start' },
+  { value: 'justify-items-center', label: 'Center' },
+  { value: 'justify-items-end', label: 'End' },
+];
+const GRID_AUTO_FLOW_OPTIONS: OptionItem[] = [
+  { value: 'grid-flow-row', label: 'Row' },
+  { value: 'grid-flow-col', label: 'Col' },
+  { value: 'grid-flow-dense', label: 'Dense' },
+  { value: 'grid-flow-row-dense', label: 'Row D.' },
+  { value: 'grid-flow-col-dense', label: 'Col D.' },
+];
+const GRID_JUSTIFY_CONTENT_OPTIONS: OptionItem[] = [
+  { value: 'justify-start', label: 'Start' },
+  { value: 'justify-center', label: 'Center' },
+  { value: 'justify-end', label: 'End' },
+  { value: 'justify-between', label: 'Between' },
+];
+const GRID_ALIGN_CONTENT_OPTIONS: OptionItem[] = [
+  { value: 'content-start', label: 'Start' },
+  { value: 'content-center', label: 'Center' },
+  { value: 'content-end', label: 'End' },
+  { value: 'content-between', label: 'Between' },
 ];
 
 // ─── Layout ────────────────────────────────────────────────────────────────────
@@ -349,19 +418,37 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     });
   }, [activeData, activeSourceId, activeModifiers, runLockedMutation]);
 
+  // Three-state derivation: source (v.*) > inherited (domV.*) > unset
   const display = v.display || domV?.display || '';
   const direction = v.direction || domV?.direction || 'flex-row';
   const align = v.align || domV?.align || '';
   const justify = v.justify || domV?.justify || '';
+
+  const hasSourceDisplay = !!v.display;
+  const hasInheritedDisplay = !v.display && !!domV?.display;
+
+  // For OptionGroups: pass domV value as inheritedValue only when no source override exists
+  const inheritedDirection = !v.direction ? (domV?.direction || '') : '';
+  const inheritedAlign = !v.align ? (domV?.align || '') : '';
+  const inheritedJustify = !v.justify ? (domV?.justify || '') : '';
+
   const isFlexLike = display === 'flex' || display === 'inline-flex';
   const isGrid = display === 'grid' || display === 'inline-grid';
   const isCol = direction.includes('col');
 
-  const displayLabel: Record<string, string> = {
+  const DISPLAY_LABELS: Record<string, string> = {
     flex: 'Flexbox', 'inline-flex': 'Inline Flex',
     grid: 'Grid', 'inline-grid': 'Inline Grid',
     block: 'Block', hidden: 'None',
   };
+
+  const triggerLabelText = display ? (DISPLAY_LABELS[display] || display) : 'Unset';
+  const triggerLabelColor = hasSourceDisplay
+    ? theme.accent_default
+    : hasInheritedDisplay
+    ? theme.text_secondary
+    : theme.text_tertiary;
+  const triggerBorderColor = hasSourceDisplay ? theme.border_accent : theme.border_default;
 
   const renderTriggerIcon = () => {
     if (isFlexLike) {
@@ -391,12 +478,22 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const alignOptions = showAdvanced ? FLEX_ALIGN_ADVANCED : FLEX_ALIGN_SIMPLE;
     const justifyOptions = showAdvanced ? FLEX_JUSTIFY_ADVANCED : FLEX_JUSTIFY_SIMPLE;
 
+    // Wrap: source > inherited > unset
+    const isWrapSource = v.wrap === 'flex-wrap';
+    const isWrapInherited = !v.wrap && domV?.wrap === 'flex-wrap';
+    const wrapBorder = isWrapSource ? theme.accent_default : isWrapInherited ? theme.text_secondary : theme.border_default;
+    const wrapBg = isWrapSource ? theme.accent_low : isWrapInherited ? theme.bg_low : 'transparent';
+    const wrapColor = isWrapSource ? theme.accent_default : isWrapInherited ? theme.text_default : theme.text_secondary;
+    const checkboxBg = isWrapSource ? theme.accent_default : isWrapInherited ? theme.text_default : 'transparent';
+    const checkboxBorder = isWrapSource || isWrapInherited ? checkboxBg : theme.border_default;
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <OptionGroup
           label="Direction"
           options={dirOptions}
           activeValue={v.direction || ''}
+          inheritedValue={inheritedDirection}
           onSelect={(val) => handleSetClass(v.direction_original, val)}
           renderIcon={(val) => <FlexIcon prop="direction" value={val} direction={val} />}
           cols={dirOptions.length}
@@ -405,6 +502,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           label={isCol ? 'Align horizontally' : 'Align vertically'}
           options={alignOptions}
           activeValue={v.align || ''}
+          inheritedValue={inheritedAlign}
           onSelect={(val) => handleSetClass(v.align_original, val)}
           renderIcon={(val) => <FlexIcon prop="align" value={val} direction={direction} />}
           cols={alignOptions.length}
@@ -413,6 +511,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           label={isCol ? 'Justify vertically' : 'Justify horizontally'}
           options={justifyOptions}
           activeValue={v.justify || ''}
+          inheritedValue={inheritedJustify}
           onSelect={(val) => handleSetClass(v.justify_original, val)}
           renderIcon={(val) => <FlexIcon prop="justify" value={val} direction={direction} alignItems={align || 'items-stretch'} />}
           cols={justifyOptions.length > 4 ? 3 : justifyOptions.length}
@@ -421,16 +520,16 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Wrap</span>
             <button
-              onClick={() => handleSetClass(v.wrap_original, v.wrap === 'flex-wrap' ? '' : 'flex-wrap')}
+              onClick={() => handleSetClass(v.wrap_original, isWrapSource ? '' : 'flex-wrap')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
                 padding: '8px',
                 borderRadius: '6px',
-                border: `1px solid ${v.wrap === 'flex-wrap' ? theme.accent_default : theme.border_default}`,
-                background: v.wrap === 'flex-wrap' ? theme.accent_low : 'transparent',
-                color: v.wrap === 'flex-wrap' ? theme.accent_default : theme.text_secondary,
+                border: `1px solid ${wrapBorder}`,
+                background: wrapBg,
+                color: wrapColor,
                 cursor: 'pointer',
                 width: '100%',
               }}
@@ -444,11 +543,11 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               </div>
               <div style={{
                 width: '14px', height: '14px', borderRadius: '3px', flexShrink: 0,
-                backgroundColor: v.wrap === 'flex-wrap' ? theme.accent_default : 'transparent',
-                border: `1px solid ${v.wrap === 'flex-wrap' ? theme.accent_default : theme.border_default}`,
+                backgroundColor: checkboxBg,
+                border: `1px solid ${checkboxBorder}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                {v.wrap === 'flex-wrap' && <Check size={9} color={theme.bg_default} />}
+                {(isWrapSource || isWrapInherited) && <Check size={9} color={theme.bg_default} />}
               </div>
             </button>
           </div>
@@ -457,34 +556,109 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     );
   };
 
-  const renderGridControls = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <OptionGroup
-        label="Align items"
-        options={GRID_ALIGN_OPTIONS}
-        activeValue={v.align || ''}
-        onSelect={(val) => handleSetClass(v.align_original, val)}
-        renderIcon={(val) => <GridIcon prop="align" value={val} />}
-        cols={4}
-      />
-    </div>
+  const renderGridControls = () => {
+    const colsNum = parseInt((v.gridCols || '').replace('grid-cols-', '') || '0');
+    const rowsNum = parseInt((v.gridRows || '').replace('grid-rows-', '') || '0');
+    const inheritedColsNum = parseInt((domV?.gridCols || '').replace('grid-cols-', '') || '0');
+    const inheritedRowsNum = parseInt((domV?.gridRows || '').replace('grid-rows-', '') || '0');
+    const inheritedJustifyItems = !v.justifyItems ? (domV?.justifyItems || '') : '';
+    const inheritedAlignContent = !v.alignContent ? (domV?.alignContent || '') : '';
+    const inheritedGridFlow = !v.gridFlow ? (domV?.gridFlow || '') : '';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+        <InspectorSlider
+          label="Columns"
+          value={colsNum}
+          inheritedValue={inheritedColsNum}
+          originalClass={v.gridCols_original}
+          min={1}
+          max={12}
+          onCommit={(n) => handleSetClass(v.gridCols_original, n >= 1 ? `grid-cols-${n}` : '')}
+        />
+
+        {showAdvanced && (
+          <InspectorSlider
+            label="Rows"
+            value={rowsNum}
+            inheritedValue={inheritedRowsNum}
+            originalClass={v.gridRows_original}
+            min={0}
+            max={12}
+            onCommit={(n) => handleSetClass(v.gridRows_original, n > 0 ? `grid-rows-${n}` : '')}
+            zeroLabel="Auto"
+          />
+        )}
+
+        <OptionGroup
+          label="Justify items"
+          options={GRID_JUSTIFY_ITEMS_OPTIONS}
+          activeValue={v.justifyItems || ''}
+          inheritedValue={inheritedJustifyItems}
+          onSelect={(val) => handleSetClass(v.justifyItems_original, val)}
+          renderIcon={(val) => <GridIcon prop="justifyItems" value={val} />}
+          cols={4}
+        />
+
+        <OptionGroup
+          label="Align items"
+          options={GRID_ALIGN_ITEMS_OPTIONS}
+          activeValue={v.align || ''}
+          inheritedValue={inheritedAlign}
+          onSelect={(val) => handleSetClass(v.align_original, val)}
+          renderIcon={(val) => <GridIcon prop="align" value={val} />}
+          cols={4}
+        />
+
+        {showAdvanced && (
+          <>
+            <OptionGroup
+              label="Auto flow"
+              options={GRID_AUTO_FLOW_OPTIONS}
+              activeValue={v.gridFlow || ''}
+              inheritedValue={inheritedGridFlow}
+              onSelect={(val) => handleSetClass(v.gridFlow_original, val)}
+              renderIcon={(val) => <GridIcon prop="gridFlow" value={val} />}
+              cols={3}
+            />
+            <OptionGroup
+              label="Justify content"
+              options={GRID_JUSTIFY_CONTENT_OPTIONS}
+              activeValue={v.justify || ''}
+              inheritedValue={inheritedJustify}
+              onSelect={(val) => handleSetClass(v.justify_original, val)}
+              renderIcon={(val) => <GridIcon prop="justify" value={val} />}
+              cols={4}
+            />
+            <OptionGroup
+              label="Align content"
+              options={GRID_ALIGN_CONTENT_OPTIONS}
+              activeValue={v.alignContent || ''}
+              inheritedValue={inheritedAlignContent}
+              onSelect={(val) => handleSetClass(v.alignContent_original, val)}
+              renderIcon={(val) => <GridIcon prop="content" value={val} />}
+              cols={4}
+            />
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const moreMenuButton = (
+    <button
+      ref={moreRef}
+      onClick={() => setIsMoreOpen(o => !o)}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
+    >
+      <MoreHorizontal size={13} />
+    </button>
   );
 
   return (
-    <VisualSection title="Layout">
+    <VisualSection title="Display and Layout" headerAction={moreMenuButton}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-        {/* Header: label + more menu */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Display and Layout</span>
-          <button
-            ref={moreRef}
-            onClick={() => setIsMoreOpen(o => !o)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
-          >
-            <MoreHorizontal size={13} />
-          </button>
-        </div>
 
         {/* Trigger button */}
         <button
@@ -497,7 +671,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             justifyContent: 'space-between',
             padding: '8px',
             borderRadius: '6px',
-            border: `1px solid ${theme.border_default}`,
+            border: `1px solid ${triggerBorderColor}`,
             background: theme.bg_secondary,
             color: theme.text_default,
             cursor: 'pointer',
@@ -507,8 +681,8 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <div style={{ width: '36px', height: '36px', flexShrink: 0 }}>
               {renderTriggerIcon()}
             </div>
-            <span style={{ fontSize: '12px', fontWeight: 500 }}>
-              {displayLabel[display] || display || 'Block'}
+            <span style={{ fontSize: '12px', fontWeight: 500, color: triggerLabelColor }}>
+              {triggerLabelText}
             </span>
           </div>
           {isOpen
@@ -517,11 +691,17 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           }
         </button>
 
-        {/* Space X / Y */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <VisualControl label="Space X" prefix="space-x-" value={cleanVal(v.spaceX)} originalClass={v.spaceX_original} type="input" inheritedValue={cleanVal(domV?.spaceX)} />
-          <VisualControl label="Space Y" prefix="space-y-" value={cleanVal(v.spaceY)} originalClass={v.spaceY_original} type="input" inheritedValue={cleanVal(domV?.spaceY)} />
-        </div>
+        {/* Gap (flex/grid) or Space X/Y (block) — hidden when display is none */}
+        {display !== 'hidden' && (
+          (isFlexLike || isGrid) ? (
+            <VisualControl label="Gap" prefix="gap-" value={cleanVal(v.gap)} originalClass={v.gap_original} type="input" inheritedValue={cleanVal(domV?.gap)} />
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <VisualControl label="Space X" prefix="space-x-" value={cleanVal(v.spaceX)} originalClass={v.spaceX_original} type="input" inheritedValue={cleanVal(domV?.spaceX)} />
+              <VisualControl label="Space Y" prefix="space-y-" value={cleanVal(v.spaceY)} originalClass={v.spaceY_original} type="input" inheritedValue={cleanVal(domV?.spaceY)} />
+            </div>
+          )
+        )}
       </div>
 
       {/* ── More menu portal ────────────────────────────────── */}
@@ -572,44 +752,31 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
+              overflowY: 'auto',
               ...popoverStyle,
             }}
           >
-            {/* Display type segmented tabs */}
-            <div style={{ padding: '8px', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, flexShrink: 0 }}>
-              <div style={{ display: 'flex', background: theme.bg_tertiary, borderRadius: '5px', padding: '2px', gap: '1px' }}>
-                {(['block', 'flex', 'grid', 'hidden'] as const).map((type, i) => {
-                  const labels = ['Block', 'Flex', 'Grid', 'None'];
-                  const isActive = display === type;
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => handleSetClass(v.display_original, type)}
-                      style={{
-                        flex: 1,
-                        padding: '4px 6px',
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        background: isActive ? theme.bg_secondary : 'transparent',
-                        color: isActive ? theme.text_default : theme.text_tertiary,
-                        boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.35)' : 'none',
-                        transition: 'background 0.12s, color 0.12s',
-                      }}
-                    >
-                      {labels[i]}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Display type — reuse SegmentedControl for correct source/inherited/unset colours */}
+            <div style={{ padding: '12px 12px 0' }}>
+              <span style={{ display: 'block', fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Display</span>
+              <SegmentedControl
+                label=""
+                value={v.display}
+                originalClass={v.display_original}
+                inheritedValue={domV?.display}
+                width="100%"
+                segments={[
+                  { label: 'Block', val: 'block' },
+                  { label: 'Flex',  val: 'flex'  },
+                  { label: 'Grid',  val: 'grid'  },
+                  { label: 'None',  val: 'hidden' },
+                ]}
+              />
             </div>
 
             {/* Flex / Grid controls */}
             {(isFlexLike || isGrid) && (
-              <div style={{ padding: '12px', overflowY: 'auto' }}>
+              <div style={{ padding: '12px' }}>
                 {isFlexLike ? renderFlexControls() : renderGridControls()}
               </div>
             )}

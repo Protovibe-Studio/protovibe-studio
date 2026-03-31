@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/VisualEditor.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { filterClassesByContext, extractVisualValues } from '../utils/tailwind';
 
@@ -11,6 +11,16 @@ import { Effects } from './visual/Effects';
 
 export const VisualEditor: React.FC = () => {
   const { activeData, activeModifiers, currentBaseTarget } = useProtovibe();
+
+  // Re-render whenever the target element's class attribute changes (e.g. after HMR),
+  // so domV never goes stale after a class is added or removed from source.
+  const [, setDomTick] = useState(0);
+  useEffect(() => {
+    if (!currentBaseTarget) return;
+    const observer = new MutationObserver(() => setDomTick(n => n + 1));
+    observer.observe(currentBaseTarget, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [currentBaseTarget]);
 
   if (!activeData) return null;
 

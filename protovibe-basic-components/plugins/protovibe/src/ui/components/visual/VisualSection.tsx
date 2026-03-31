@@ -5,12 +5,13 @@ interface VisualSectionProps {
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean; // Kept to avoid breaking existing imports
+  headerAction?: React.ReactNode;
 }
 
-export const VisualSection: React.FC<VisualSectionProps> = ({ title, children }) => {
+export const VisualSection: React.FC<VisualSectionProps> = ({ title, children, headerAction }) => {
   return (
     <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
-      <div 
+      <div
         style={{
           width: '100%',
           display: 'flex',
@@ -23,6 +24,7 @@ export const VisualSection: React.FC<VisualSectionProps> = ({ title, children })
           }}
       >
         <span>{title}</span>
+        {headerAction}
       </div>
       <div style={{ padding: '0 16px 16px 16px' }}>
         {children}
