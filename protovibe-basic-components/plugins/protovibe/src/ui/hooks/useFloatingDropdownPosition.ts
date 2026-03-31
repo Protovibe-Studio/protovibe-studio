@@ -19,8 +19,6 @@ interface FloatingDropdownPosition {
   updatePosition: () => void;
 }
 
-const DEFAULT_MAX_HEIGHT = 280;
-
 export function useFloatingDropdownPosition({
   isOpen,
   anchorRef,
@@ -48,31 +46,35 @@ export function useFloatingDropdownPosition({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const measuredWidth = Math.max(dropdownRect.width, anchorRect.width);
-    const measuredHeight = dropdownRect.height || DEFAULT_MAX_HEIGHT;
 
     const spaceBelow = viewportHeight - anchorRect.bottom - viewportPadding;
-    const spaceAbove = anchorRect.top - viewportPadding;
+    const fullViewportHeight = viewportHeight - viewportPadding * 2;
 
-    const shouldOpenAbove =
-      preferredPlacement === 'bottom'
-        ? spaceBelow < minVisibleHeight && spaceAbove > spaceBelow
-        : spaceAbove >= minVisibleHeight || spaceAbove > spaceBelow;
+    // Prefer opening below the anchor. If there isn't enough room below,
+    // position from the top of the viewport (may overlap the anchor).
+    let top: number;
+    let maxHeight: number;
+    let nextPlacement: Placement;
 
-    const nextPlacement: Placement = shouldOpenAbove ? 'top' : 'bottom';
-    const availableHeight = Math.max(
-      minVisibleHeight,
-      (nextPlacement === 'bottom' ? spaceBelow : spaceAbove) - offset
-    );
-    const nextMaxHeight = Math.max(minVisibleHeight, Math.min(DEFAULT_MAX_HEIGHT, availableHeight));
+    if (preferredPlacement === 'top' || (preferredPlacement === 'bottom' && spaceBelow < minVisibleHeight && anchorRect.top - viewportPadding > spaceBelow)) {
+      // Open above
+      nextPlacement = 'top';
+      maxHeight = anchorRect.top - viewportPadding - offset;
+      top = Math.max(viewportPadding, anchorRect.top - offset - Math.min(dropdownRect.height || fullViewportHeight, maxHeight));
+    } else if (spaceBelow >= minVisibleHeight) {
+      // Enough room below — open below anchor
+      nextPlacement = 'bottom';
+      maxHeight = spaceBelow;
+      top = anchorRect.bottom + offset;
+    } else {
+      // Not enough room below or above — use full viewport, may overlap anchor
+      nextPlacement = 'bottom';
+      maxHeight = fullViewportHeight;
+      top = viewportPadding;
+    }
 
     let left = anchorRect.left + anchorRect.width / 2 - measuredWidth / 2;
     left = Math.min(Math.max(left, viewportPadding), viewportWidth - viewportPadding - measuredWidth);
-
-    const renderedHeight = Math.min(measuredHeight, nextMaxHeight);
-    const top =
-      nextPlacement === 'bottom'
-        ? Math.min(anchorRect.bottom + offset, viewportHeight - viewportPadding - renderedHeight)
-        : Math.max(viewportPadding, anchorRect.top - offset - renderedHeight);
 
     setPlacement(nextPlacement);
     setStyle({
@@ -81,7 +83,7 @@ export function useFloatingDropdownPosition({
       left,
       minWidth: anchorRect.width,
       maxWidth: Math.max(120, viewportWidth - viewportPadding * 2),
-      maxHeight: nextMaxHeight,
+      maxHeight,
       visibility: 'visible',
     });
   }, [anchorRef, dropdownRef, isOpen, minVisibleHeight, offset, preferredPlacement, viewportPadding]);
