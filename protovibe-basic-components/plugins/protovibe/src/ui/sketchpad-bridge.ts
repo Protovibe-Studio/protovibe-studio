@@ -21,6 +21,8 @@ const SELECTION_OUTLINE = '2px solid #18a0fb';
 const SELECTION_OFFSET = '2px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '2px';
+const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
+const DROP_TARGET_OFFSET = '2px';
 const DRAG_THRESHOLD = 3;
 const RESIZE_EDGE_PX = 8;
 
@@ -46,6 +48,8 @@ let resizeState: {
   startX: number;
   origWidth: number;
 } | null = null;
+
+let currentDropTarget: HTMLElement | null = null;
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
@@ -90,6 +94,67 @@ function hasPvLoc(el: HTMLElement): boolean {
     if (el.attributes[i].name.startsWith('data-pv-loc-')) return true;
   }
   return false;
+}
+
+function getNearestPvLocId(start: HTMLElement): string | null {
+  let t: HTMLElement | null = start;
+  while (t && t !== document.documentElement) {
+    for (let i = 0; i < t.attributes.length; i++) {
+      const a = t.attributes[i];
+      if (a.name.startsWith('data-pv-loc-')) {
+        const rawId = a.name.replace('data-pv-loc-', '');
+        return rawId.replace(/^(app|ui)-/, '');
+      }
+    }
+    t = t.parentElement;
+  }
+  return null;
+}
+
+function findDropContainerAtPoint(clientX: number, clientY: number, dragTarget: HTMLElement): HTMLElement | null {
+  dragTarget.style.pointerEvents = 'none';
+  const raw = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+  dragTarget.style.pointerEvents = '';
+  if (!raw) return null;
+
+  const container = raw.closest('[data-pv-block], [data-sketchpad-frame]') as HTMLElement | null;
+  if (!container) return null;
+  if (container === dragTarget) return null;
+  return container;
+}
+
+function applyDropTargetHighlight(el: HTMLElement | null) {
+  if (!el) return;
+  const a = el as any;
+  if (a._pvDropOrigOutline === undefined) {
+    a._pvDropOrigOutline = el.style.outline;
+    a._pvDropOrigOffset = el.style.outlineOffset;
+  }
+  el.style.outline = DROP_TARGET_OUTLINE;
+  el.style.outlineOffset = DROP_TARGET_OFFSET;
+}
+
+function clearDropTargetHighlight(el: HTMLElement | null) {
+  if (!el) return;
+  const a = el as any;
+  if (a._pvDropOrigOutline !== undefined) {
+    el.style.outline = a._pvDropOrigOutline;
+    el.style.outlineOffset = a._pvDropOrigOffset;
+    delete a._pvDropOrigOutline;
+    delete a._pvDropOrigOffset;
+  }
+}
+
+function setCurrentDropTarget(next: HTMLElement | null) {
+  if (currentDropTarget === next) return;
+  clearDropTargetHighlight(currentDropTarget);
+  currentDropTarget = next;
+  applyDropTargetHighlight(currentDropTarget);
+}
+
+function clearCurrentDropTarget() {
+  clearDropTargetHighlight(currentDropTarget);
+  currentDropTarget = null;
 }
 
 /** Get the active sketchpad ID from the root data attribute. */
@@ -347,6 +412,9 @@ function handlePointerMove(e: PointerEvent) {
 
     dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
     dragState.target.style.top = `${Math.round(dragState.origTop + dy)}px`;
+
+    const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
+    setCurrentDropTarget(dropContainer);
     return;
   }
 
@@ -406,45 +474,47 @@ function handlePointerUp(e: PointerEvent) {
   dragState.target.style.zIndex = dragState.origZIndex;
 
   if (dragState.moved) {
-    // Temporarily hide dragged element to detect what's underneath at drop point
-    dragState.target.style.pointerEvents = 'none';
-    const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
-    dragState.target.style.pointerEvents = '';
+    const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
+    clearCurrentDropTarget();
 
-    const sourceFrame = findFrameContainer(dragState.target);
-    const targetFrameContainer = findFrameContainer(dropTarget as HTMLElement);
-    const sourceFrameId = sourceFrame?.getAttribute('data-sketchpad-frame');
-    const targetFrameId = targetFrameContainer?.getAttribute('data-sketchpad-frame');
-    const blockId = dragState.target.getAttribute('data-pv-sketchpad-el');
+    const sourceFrameId = findFrameContainer(dragState.target)?.getAttribute('data-sketchpad-frame');
+    const targetFrameId = findFrameContainer(dropContainer as HTMLElement)?.getAttribute('data-sketchpad-frame') ?? null;
+    const draggedBlockId = dragState.target.getAttribute('data-pv-sketchpad-el') || dragState.target.getAttribute('data-pv-block');
     const sketchpadId = getSketchpadId();
 
-    if (sketchpadId && blockId && sourceFrameId && targetFrameId && sourceFrameId !== targetFrameId) {
-      // CROSS-FRAME MOVE
-      const elRect = dragState.target.getBoundingClientRect();
-      const targetFrameRect = targetFrameContainer!.getBoundingClientRect();
-      const zoom = getCanvasZoom();
+    if (sketchpadId && draggedBlockId && sourceFrameId && targetFrameId && dropContainer && dropContainer !== dragState.target) {
+      const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
+      const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
+      const isSameFrameRoot = sourceFrameId === targetFrameId && isFrameTarget;
 
-      // Detect the layout mode of the drop target
-      const layoutContainer = (dropTarget as HTMLElement)?.closest('[data-layout-mode]');
-      const targetLayoutMode = layoutContainer?.getAttribute('data-layout-mode') || 'flow';
+      if (!isSameFrameRoot) {
+        const elRect = dragState.target.getBoundingClientRect();
+        const containerRect = dropContainer.getBoundingClientRect();
+        const zoom = getCanvasZoom();
+        const newLeft = layoutMode === 'absolute' ? (elRect.left - containerRect.left) / zoom : 0;
+        const newTop = layoutMode === 'absolute' ? (elRect.top - containerRect.top) / zoom : 0;
 
-      const newLeft = targetLayoutMode === 'absolute' ? (elRect.left - targetFrameRect.left) / zoom : 0;
-      const newTop = targetLayoutMode === 'absolute' ? (elRect.top - targetFrameRect.top) / zoom : 0;
+        const targetLocatorId = getNearestPvLocId(dropContainer);
+        const targetBlockId = dropContainer.getAttribute('data-pv-block');
 
-      window.dispatchEvent(new CustomEvent('pv-sketchpad-cross-frame-move', {
-        detail: {
-          sketchpadId,
-          sourceFrameId,
-          targetFrameId,
-          blockId,
-          x: newLeft,
-          y: newTop,
-          targetLayoutMode,
-        },
-      }));
+        window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
+          detail: {
+            sketchpadId,
+            sourceFrameId,
+            targetFrameId,
+            draggedBlockId,
+            targetLocatorId,
+            targetBlockId,
+            isFrameTarget,
+            x: newLeft,
+            y: newTop,
+            targetLayoutMode: layoutMode,
+          },
+        }));
 
-      dragState = null;
-      return;
+        dragState = null;
+        return;
+      }
     }
 
     // SAME-FRAME MOVE (or drop on empty canvas — fall back to original position update)
@@ -454,13 +524,14 @@ function handlePointerUp(e: PointerEvent) {
     const frame = findFrameContainer(dragState.target);
     const frameId = frame?.getAttribute('data-sketchpad-frame');
 
-    if (sketchpadId && frameId && blockId) {
+    if (sketchpadId && frameId && draggedBlockId) {
       postApi('/__sketchpad-update-element-position', {
-        sketchpadId, frameId, blockId, x: newLeft, y: newTop,
+        sketchpadId, frameId, blockId: draggedBlockId, x: newLeft, y: newTop,
       });
     }
   }
 
+  clearCurrentDropTarget();
   dragState = null;
 }
 

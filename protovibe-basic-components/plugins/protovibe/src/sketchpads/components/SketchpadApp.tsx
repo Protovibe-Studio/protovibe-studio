@@ -5,6 +5,7 @@ import { FrameContainer } from './FrameContainer';
 import { ComponentPalette } from './ComponentPalette';
 import { SketchpadOverlayPanel } from './SketchpadOverlayPanel';
 import * as api from '../api';
+import { fetchSourceInfo, fetchZones } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
 
 // Client-side modules for React Component references (rendering)
@@ -69,6 +70,19 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
 }
 
 const INITIAL_TRANSFORM: CanvasTransform = { zoom: 0.7, panX: 200, panY: 100 };
+
+type SketchpadDropDetail = {
+  sketchpadId: string;
+  sourceFrameId: string;
+  targetFrameId: string;
+  draggedBlockId: string;
+  targetLocatorId?: string | null;
+  targetBlockId?: string | null;
+  isFrameTarget: boolean;
+  targetLayoutMode: 'flow' | 'absolute' | string;
+  x: number;
+  y: number;
+};
 
 export function SketchpadApp() {
   const [sketchpads, setSketchpads] = useState<Sketchpad[]>([]);
@@ -328,55 +342,114 @@ export function SketchpadApp() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Cross-frame move — orchestrates cut from source frame then paste into target frame
+  // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
-    const handleCrossFrameMove = async (e: Event) => {
-      const { sketchpadId, sourceFrameId, targetFrameId, blockId, x, y, targetLayoutMode } =
-        (e as CustomEvent).detail;
+    const handleDropElement = async (e: Event) => {
+      const data = (e as CustomEvent<SketchpadDropDetail>).detail;
+      if (!data) return;
+
+      const {
+        sketchpadId,
+        sourceFrameId,
+        targetFrameId,
+        draggedBlockId,
+        targetLocatorId,
+        isFrameTarget,
+        targetLayoutMode,
+        x,
+        y,
+      } = data;
+
+      if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockId) return;
 
       const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
-      const targetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
+      let targetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
+      let targetZoneId = 'target-zone-placeholder';
+      let targetStartLine: number | undefined;
+      let targetEndLine: number | undefined;
+
+      if (!isFrameTarget) {
+        if (!targetLocatorId) {
+          window.dispatchEvent(new CustomEvent('pv-toast', {
+            detail: { message: 'Cannot drop here - no source locator found', variant: 'error' },
+          }));
+          return;
+        }
+
+        try {
+          const sourceInfo = await fetchSourceInfo(targetLocatorId);
+          targetFile = sourceInfo.file;
+          targetStartLine = sourceInfo.startLine;
+          targetEndLine = sourceInfo.endLine;
+
+          const zonesData = await fetchZones(
+            sourceInfo.file,
+            sourceInfo.startLine,
+            sourceInfo.startCol,
+            sourceInfo.endLine,
+          );
+
+          if (!zonesData?.zones || zonesData.zones.length === 0) {
+            window.dispatchEvent(new CustomEvent('pv-toast', {
+              detail: { message: 'Cannot drop here - no editable zone', variant: 'error' },
+            }));
+            return;
+          }
+
+          targetZoneId = zonesData.zones[0].id;
+        } catch (err) {
+          console.error('[Sketchpad] Failed to resolve nested drop target:', err);
+          window.dispatchEvent(new CustomEvent('pv-toast', {
+            detail: { message: 'Cannot resolve drop target', variant: 'error' },
+          }));
+          return;
+        }
+      }
 
       try {
         // 1. Cut from source frame (loads clipboard & harvests imports)
         const cutRes = await fetch('/__block-action', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'cut', blockId, file: sourceFile }),
+          body: JSON.stringify({ action: 'cut', blockId: draggedBlockId, file: sourceFile }),
         });
         if (!cutRes.ok) {
-          console.error('[Sketchpad] Cross-frame cut failed:', await cutRes.text());
+          console.error('[Sketchpad] Cut failed:', await cutRes.text());
           return;
         }
 
-        // 2. Paste into target frame with layout-mode context and coordinate overrides
+        // 2. Paste into resolved target zone with layout-mode context
         const pasteRes = await fetch('/__add-block', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             elementType: 'paste',
             file: targetFile,
-            zoneId: 'target-zone-placeholder',
+            zoneId: targetZoneId,
             targetLayoutMode,
             pasteX: Math.round(x),
             pasteY: Math.round(y),
+            targetStartLine,
+            targetEndLine,
           }),
         });
         if (!pasteRes.ok) {
-          console.error('[Sketchpad] Cross-frame paste failed:', await pasteRes.text());
+          console.error('[Sketchpad] Paste failed:', await pasteRes.text());
           return;
         }
 
-        // 3. Reload both frames so the UI reflects the change
+        // 3. Reload affected frames so the UI reflects the change
         await loadFrameModule(sketchpadId, sourceFrameId);
-        await loadFrameModule(sketchpadId, targetFrameId);
+        if (sourceFrameId !== targetFrameId) {
+          await loadFrameModule(sketchpadId, targetFrameId);
+        }
       } catch (err) {
-        console.error('[Sketchpad] Cross-frame move error:', err);
+        console.error('[Sketchpad] Drop sequence failed:', err);
       }
     };
 
-    window.addEventListener('pv-sketchpad-cross-frame-move', handleCrossFrameMove);
-    return () => window.removeEventListener('pv-sketchpad-cross-frame-move', handleCrossFrameMove);
+    window.addEventListener('pv-sketchpad-drop-element', handleDropElement);
+    return () => window.removeEventListener('pv-sketchpad-drop-element', handleDropElement);
   }, [loadFrameModule]);
 
   // Drop handler for drag from palette

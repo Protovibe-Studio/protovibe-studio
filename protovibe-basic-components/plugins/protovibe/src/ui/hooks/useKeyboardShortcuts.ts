@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock } from '../api/client';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -149,7 +149,6 @@ export function useKeyboardShortcuts() {
 
           await runLockedMutation(async () => {
             await takeSnapshot(activeData.file, activeSourceId!);
-            const { addBlock } = await import('../api/client');
             const res = await addBlock({
               file: activeData.file,
               zoneId: targetZone.id,

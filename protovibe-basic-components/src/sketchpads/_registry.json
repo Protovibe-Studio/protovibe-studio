@@ -10,8 +10,8 @@
           "name": "Frame 2",
           "width": 800,
           "height": 600,
-          "canvasX": 1155,
-          "canvasY": 4
+          "canvasX": 1032,
+          "canvasY": -6
         },
         {
           "id": "frame-frame-3",
@@ -48,10 +48,26 @@
         {
           "id": "frame-frame-6",
           "name": "Frame 6",
+          "width": 884,
+          "height": 748,
+          "canvasX": 2034,
+          "canvasY": 5
+        },
+        {
+          "id": "frame-frame-7",
+          "name": "Frame 7",
           "width": 800,
           "height": 600,
-          "canvasX": 2053,
-          "canvasY": 132
+          "canvasX": 2982,
+          "canvasY": -26
+        },
+        {
+          "id": "frame-frame-8",
+          "name": "Frame 8",
+          "width": 800,
+          "height": 600,
+          "canvasX": 3937,
+          "canvasY": 36
         }
       ]
     },

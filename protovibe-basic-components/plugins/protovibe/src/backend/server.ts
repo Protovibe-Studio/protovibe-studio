@@ -645,7 +645,6 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         }
 
         // Hybrid style transform: add, update, or strip absolute-positioning styles
-        // based on the layout mode of the drop target.
         if (targetLayoutMode) {
           const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
           pastedContent = pastedContent.replace(firstTagRegex, (match, tag, attrs, closing) => {
@@ -654,12 +653,14 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             const hasStyle = styleRegex.test(attrs);
 
             if (targetLayoutMode === 'flow') {
+              // Strip sketchpad draggable attribute
+              newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])(?:(?!\1).)*\1/g, '');
+
               if (hasStyle) {
-                newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                  // Strip absolute positioning and sketchpad-injected dimensions
                   let cleaned = innerStyles
-                    .replace(/position:\s*['"](?:absolute|relative|fixed)['"]\s*,?/g, '')
-                    .replace(/left:\s*-?\d+(\.\d+)?\s*,?/g, '')
-                    .replace(/top:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
                     .trim()
                     .replace(/,$/, '')
                     .trim();
@@ -667,13 +668,17 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
                 });
               }
             } else if (targetLayoutMode === 'absolute') {
+              // Ensure dragged marker exists so bridge can drag this block again.
+              if (!newAttrs.includes('data-pv-sketchpad-el')) {
+                newAttrs += ` data-pv-sketchpad-el="${blockId}"`;
+              }
+
               const absStyles = `position: 'absolute', left: ${pasteX}, top: ${pasteY}`;
               if (hasStyle) {
-                newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                  // Clear old position keys, preserve remaining style entries.
                   let cleaned = innerStyles
-                    .replace(/position:\s*['"][^'"]+['"]\s*,?/g, '')
-                    .replace(/left:\s*-?\d+(\.\d+)?\s*,?/g, '')
-                    .replace(/top:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .replace(/(?:position|left|top)\s*:\s*[^,}]*,?/g, '')
                     .trim()
                     .replace(/,$/, '')
                     .trim();
@@ -681,7 +686,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
                   return `style={{ ${absStyles}${separator}${cleaned} }}`;
                 });
               } else {
-                newAttrs = `${attrs} style={{ ${absStyles} }}`;
+                newAttrs = `${newAttrs} style={{ ${absStyles} }}`;
               }
             }
 

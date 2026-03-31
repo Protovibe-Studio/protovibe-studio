@@ -115,6 +115,24 @@ export default function App() {
                 {/* pv-editable-zone-end:inside-hkx3km */}
               </span>
               {/* pv-block-end:hkx3km */}
+
+            {/* pv-block-start:hf88xn */}
+          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="hf88xn">
+            {/* pv-editable-zone-start:inside-hf88xn */}
+              {/* pv-block-start:3b25zt */}
+              <span data-pv-block="3b25zt">
+                Lorem ipsum
+                {/* pv-editable-zone-start:inside-3b25zt */}
+                {/* pv-editable-zone-end:inside-3b25zt */}
+              </span>
+              {/* pv-block-end:3b25zt */}
+            {/* pv-editable-zone-end:inside-hf88xn */}
+          </div>
+          {/* pv-block-end:hf88xn */}
+
+            {/* pv-block-start:r0spod */}
+          <Button data-pv-block="r0spod" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:r0spod */}
             {/* pv-editable-zone-end:inside-j5f1fn */}
           </div>
           {/* pv-block-end:j5f1fn */}
@@ -157,6 +175,14 @@ export default function App() {
             {/* pv-editable-zone-end:inside-03z36g */}
           </div>
           {/* pv-block-end:03z36g */}
+
+            {/* pv-block-start:m8ldvx */}
+      <Button className="bg-background-secondary" data-pv-block="m8ldvx" data-pv-sketchpad-el="m8ldvx" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 294, top: 582, width: 172 }} />
+      {/* pv-block-end:m8ldvx */}
+
+            {/* pv-block-start:5z1c40 */}
+              <Button data-pv-block="5z1c40" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:5z1c40 */}
             {/* pv-editable-zone-end:c5gbka */}
           </Card>
           {/* pv-block-end:54fl2x */}
