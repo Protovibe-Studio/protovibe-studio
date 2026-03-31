@@ -12,7 +12,7 @@ export default function Frame3() {
       {/* pv-editable-zone-start:4f4vuf */}
       
       {/* pv-block-start:xz74b9 */}
-      <DialogTrigger data-pv-block="xz74b9" data-pv-sketchpad-el="xz74b9"  style={{ position: 'absolute', left: 136, top: 150 }}>
+      <DialogTrigger data-pv-block="xz74b9" data-pv-sketchpad-el="xz74b9"  style={{ position: 'absolute', left: 87, top: 122 }}>
         {/* pv-editable-zone-start:r8zwx3 */}
           {/* pv-block-start:cuqxgq */}
           <Button data-pv-block="cuqxgq" label="Open Dialog" variant="solid" color="primary" size="md" />
@@ -174,6 +174,30 @@ export default function Frame3() {
       {/* pv-block-start:cm10og */}
           <Button data-pv-block="cm10og" label="Open Dialog" variant="solid" color="primary" size="md" />
           {/* pv-block-end:cm10og */}
+      
+      {/* pv-block-start:ilxt04 */}
+      <DialogTrigger data-pv-block="ilxt04" data-pv-sketchpad-el="ilxt04"  style={{ position: 'absolute', left: 519, top: 103 }}>
+        {/* pv-editable-zone-start:5kprfn */}
+          {/* pv-block-start:976y1u */}
+          <Button data-pv-block="976y1u" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:976y1u */}
+          {/* pv-block-start:tr5s0f */}
+          <DialogOverlay data-pv-block="tr5s0f">
+            <DialogWindow size="md">
+              {/* pv-editable-zone-start:dsc5mm */}
+              {/* pv-block-start:9rxcbk */}
+              <h2 data-pv-block="9rxcbk" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+              {/* pv-block-end:9rxcbk */}
+              {/* pv-block-start:rg2du9 */}
+              <p data-pv-block="rg2du9" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+              {/* pv-block-end:rg2du9 */}
+              {/* pv-editable-zone-end:dsc5mm */}
+            </DialogWindow>
+          </DialogOverlay>
+          {/* pv-block-end:tr5s0f */}
+        {/* pv-editable-zone-end:5kprfn */}
+      </DialogTrigger>
+      {/* pv-block-end:ilxt04 */}
       {/* pv-editable-zone-end:4f4vuf */}
     </div>
   );

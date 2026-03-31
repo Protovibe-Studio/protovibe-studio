@@ -324,6 +324,10 @@ export default function App() {
             {/* pv-editable-zone-end:inside-4xr5m8 */}
           </div>
           {/* pv-block-end:4xr5m8 */}
+
+        {/* pv-block-start:1yar0i */}
+          <Button data-pv-block="1yar0i" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:1yar0i */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

@@ -700,7 +700,10 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const lines = fileContent.split('\n');
           const insertAt = Math.max(lastImportLine, useClientLine);
           for (const imp of [...toInject].reverse()) {
-            lines.splice(insertAt, 0, `import { ${imp.name} } from '${imp.path}'`);
+            const importStatement = (imp as any).isDefault
+              ? `import ${imp.name} from '${imp.path}'`
+              : `import { ${imp.name} } from '${imp.path}'`;
+            lines.splice(insertAt, 0, importStatement);
           }
           fileContent = lines.join('\n');
 
@@ -953,7 +956,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         if (match) {
           const rawBlock = match[0];
           const usedComponents = new Set<string>();
-          const fileImports = new Map<string, string>();
+          const fileImports = new Map<string, { source: string; isDefault: boolean }>();
 
           // 1. Parse the full source file to map all available imports
           try {
@@ -966,8 +969,10 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
               ImportDeclaration(p) {
                 const source = p.node.source.value;
                 p.node.specifiers.forEach(spec => {
-                  if (babel.types.isImportSpecifier(spec) || babel.types.isImportDefaultSpecifier(spec)) {
-                    fileImports.set(spec.local.name, source);
+                  if (babel.types.isImportSpecifier(spec)) {
+                    fileImports.set(spec.local.name, { source, isDefault: false });
+                  } else if (babel.types.isImportDefaultSpecifier(spec)) {
+                    fileImports.set(spec.local.name, { source, isDefault: true });
                   }
                 });
               }
@@ -1000,12 +1005,13 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             console.warn('Protovibe: Failed to parse copied block for imports', e);
           }
 
-          // 3. Intersect used components with available imports (only @/ aliases)
-          const requiredImports: Array<{ name: string; path: string }> = [];
+          // 3. Intersect used components with available imports.
+          // Harvest @/ aliases and npm packages; skip relative paths (./, ../) as they are file-local.
+          const requiredImports: Array<{ name: string; path: string; isDefault: boolean }> = [];
           usedComponents.forEach(comp => {
-            const importSource = fileImports.get(comp);
-            if (importSource && importSource.startsWith('@/')) {
-              requiredImports.push({ name: comp, path: importSource });
+            const entry = fileImports.get(comp);
+            if (entry && !entry.source.startsWith('./') && !entry.source.startsWith('../')) {
+              requiredImports.push({ name: comp, path: entry.source, isDefault: entry.isDefault });
             }
           });
 

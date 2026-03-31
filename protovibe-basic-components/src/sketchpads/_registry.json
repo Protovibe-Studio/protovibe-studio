@@ -36,6 +36,22 @@
           "height": 600,
           "canvasX": 1201,
           "canvasY": -709
+        },
+        {
+          "id": "frame-frame-5-2",
+          "name": "Frame 5",
+          "width": 800,
+          "height": 600,
+          "canvasX": 330,
+          "canvasY": -4
+        },
+        {
+          "id": "frame-frame-6",
+          "name": "Frame 6",
+          "width": 800,
+          "height": 600,
+          "canvasX": 2053,
+          "canvasY": 132
         }
       ]
     },
