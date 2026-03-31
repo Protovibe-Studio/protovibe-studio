@@ -92,7 +92,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
-    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '',
+    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -209,7 +209,10 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
       } else if (cls.startsWith('border-')) { v.borderColor = cls.replace('border-', ''); orig.borderColor_original = originalClass; }
     }
     else if (cls.startsWith('opacity-')) { v.opacity = cls.replace('opacity-', ''); orig.opacity_original = originalClass; }
-    else if (cls.startsWith('shadow')) { v.shadow = cls === 'shadow' ? 'DEFAULT' : cls.replace('shadow-', ''); orig.shadow_original = originalClass; }
+    else if (cls.startsWith('shadow')) {
+      if (cls === 'shadow-inner') { v.insetShadow = 'inner'; orig.insetShadow_original = originalClass; }
+      else { v.shadow = cls === 'shadow' ? 'DEFAULT' : cls.replace('shadow-', ''); orig.shadow_original = originalClass; }
+    }
   });
 
   return { ...v, ...orig, origMargin: orig.margin, origPadding: orig.padding };

@@ -27,7 +27,7 @@ const Chip: React.FC<ChipProps> = ({ label, colors, onRemove }) => (
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    padding: '2px 4px 2px 8px',
+    padding: '1px 4px 1px 8px',
     borderRadius: '4px',
     background: colors.bg,
     border: `1px solid ${colors.border}`,
@@ -156,8 +156,8 @@ export const Modifiers: React.FC = () => {
           flexWrap: 'wrap',
           alignItems: 'center',
           gap: '4px',
-          minHeight: '32px',
-          padding: hasAny ? '5px 28px 5px 8px' : '0 28px 0 12px',
+          minHeight: '24px',
+          padding: hasAny ? '3px 28px 3px 8px' : '0 28px 0 12px',
           borderRadius: '6px',
           border: `1px solid ${isOpen ? theme.border_accent : theme.border_default}`,
           background: theme.bg_secondary,
@@ -167,7 +167,7 @@ export const Modifiers: React.FC = () => {
         }}
       >
         {!hasAny && (
-          <span style={{ fontSize: '11px', color: theme.text_tertiary, lineHeight: '30px' }}>
+          <span style={{ fontSize: '11px', color: theme.text_tertiary, lineHeight: '20px' }}>
             Add hover or variant modifier....
           </span>
         )}

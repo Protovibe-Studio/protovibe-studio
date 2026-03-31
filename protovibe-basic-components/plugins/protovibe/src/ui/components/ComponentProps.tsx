@@ -103,7 +103,7 @@ export const ComponentProps: React.FC = () => {
   };
 
   return (
-    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '16px 0' }}>
+    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '0 0 16px 0' }}>
       <div style={{ padding: '12px 16px', fontSize: '10px', fontWeight: '600', color: theme.text_default, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Component properties</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

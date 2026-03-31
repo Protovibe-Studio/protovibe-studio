@@ -7,6 +7,7 @@ import { Spacing } from './visual/Spacing';
 import { Layout } from './visual/Layout';
 import { Typography } from './visual/Typography';
 import { SizePosition } from './visual/SizePosition';
+import { Position } from './visual/Position';
 import { Effects } from './visual/Effects';
 
 export const VisualEditor: React.FC = () => {
@@ -36,8 +37,9 @@ export const VisualEditor: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Layout v={v} domV={domV} />
       <Spacing v={v} domV={domV} />
-      <SizePosition v={v} domV={domV} />
       <Typography v={v} domV={domV} />
+      <SizePosition v={v} domV={domV} />
+      <Position v={v} domV={domV} />
       <Effects v={v} domV={domV} />
     </div>
   );
