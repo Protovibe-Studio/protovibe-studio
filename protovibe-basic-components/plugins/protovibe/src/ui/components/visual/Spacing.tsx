@@ -14,8 +14,11 @@ import { theme } from '../../theme';
 // ─── Corner icons ──────────────────────────────────────────────────────────────
 
 const CornerAllIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-    <rect x="1.5" y="1.5" width="9" height="9" rx="2.5" stroke="currentColor" strokeWidth="1.2" />
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4.22705 0.661438H2.65527C1.55071 0.661438 0.655273 1.55687 0.655273 2.66144V4.23322" stroke="currentColor"/>
+    <path d="M11.5873 4.29972L11.5873 2.72794C11.5873 1.62337 10.6918 0.727936 9.58728 0.727936L8.0155 0.727936" stroke="currentColor"/>
+    <path d="M7.94897 11.6956L9.52075 11.6956C10.6253 11.6956 11.5208 10.8001 11.5208 9.69556L11.5208 8.12378" stroke="currentColor"/>
+    <path d="M0.655273 8.05728L0.655273 9.62906C0.655273 10.7336 1.5507 11.6291 2.65527 11.6291L4.22705 11.6291" stroke="currentColor"/>
   </svg>
 );
 
@@ -108,6 +111,42 @@ const SpacingAutocomplete: React.FC<{
   />
 );
 
+// ─── Border side icons ─────────────────────────────────────────────────────────
+
+const BorderAllIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
+);
+
+const BorderTIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" />
+    <path d="M1.5 3C1.5 2.17 2.17 1.5 3 1.5H9C9.83 1.5 10.5 2.17 10.5 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const BorderRIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" />
+    <path d="M9 1.5C9.83 1.5 10.5 2.17 10.5 3V9C10.5 9.83 9.83 10.5 9 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const BorderBIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" />
+    <path d="M10.5 9C10.5 9.83 9.83 10.5 9 10.5H3C2.17 10.5 1.5 9.83 1.5 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const BorderLIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" />
+    <path d="M3 10.5C2.17 10.5 1.5 9.83 1.5 9V3C1.5 2.17 2.17 1.5 3 1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
 // ─── RadiusAutocomplete ────────────────────────────────────────────────────────
 // Full-width autocomplete for border radius with an icon prefix.
 
@@ -138,6 +177,50 @@ const RadiusAutocomplete: React.FC<{
   />
 );
 
+// ─── BorderColorAutocomplete ───────────────────────────────────────────────────
+
+const BorderColorAutocomplete: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  icon: React.ReactNode;
+  inheritedValue?: string;
+  colorOptions: any[];
+}> = ({ value, onChange, icon, inheritedValue, colorOptions }) => (
+  <AutocompleteDropdown
+    value={value === '-' ? '' : value}
+    options={colorOptions}
+    onCommit={onChange}
+    placeholder={inheritedValue && !value ? inheritedValue : '—'}
+    zIndex={9999999}
+    prefix={icon}
+    showColorModeToggle={colorOptions.some((o: any) => o.lightValue !== undefined || o.darkValue !== undefined || o.hex !== undefined)}
+    filterOptions={(opts, query, hasTyped) => {
+      if (!hasTyped) return opts;
+      return opts.filter((opt) =>
+        opt.val.toLowerCase().startsWith(query) ||
+        opt.val.toLowerCase().includes(`-${query}`) ||
+        (opt.desc && opt.desc.toLowerCase().includes(query))
+      );
+    }}
+    renderOption={(opt: any, colorMode?: any) => {
+      let swatchColor: string | undefined;
+      if (colorMode === 'light' && opt.lightValue) swatchColor = opt.lightValue;
+      else if (colorMode === 'dark' && opt.darkValue) swatchColor = opt.darkValue;
+      else if (opt.hex) swatchColor = opt.hex;
+
+      if (swatchColor) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: swatchColor, border: `1px solid ${theme.border_default}`, flexShrink: 0 }} />
+            <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
+          </div>
+        );
+      }
+      return <span style={{ fontWeight: 'bold' }}>{opt.val}</span>;
+    }}
+  />
+);
+
 // ─── Box-model input positions ─────────────────────────────────────────────────
 // Percentages are relative to the 240×240 SVG viewBox (maintained via aspectRatio: '1').
 // Band midpoints (derived from label text positions baked into SpacingBoxSVG):
@@ -163,6 +246,7 @@ const centreH = (pct: number): React.CSSProperties => ({
 export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation, themeColors } = useProtovibe();
   const [radiusExpanded, setRadiusExpanded] = useState(false);
+  const [borderColorExpanded, setBorderColorExpanded] = useState(false);
 
   // ── Spacing update ──────────────────────────────────────────────────────────
 
@@ -331,6 +415,32 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         newClass,
         action,
       });
+    });
+  };
+
+  // ── Border-color update ─────────────────────────────────────────────────────
+
+  const handleBorderColorUpdate = async (side: 'all' | 't' | 'r' | 'b' | 'l', newVal: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+
+    const isAll = side === 'all';
+    const origKey = isAll ? 'borderColor_original' : `borderColor${side.toUpperCase()}_original`;
+    const origClass = v[origKey] || '';
+
+    let newClass = '';
+    if (safeVal && safeVal !== '-') {
+      newClass = isAll
+        ? `${currentContextPrefix}border-${safeVal}`
+        : `${currentContextPrefix}border-${side}-${safeVal}`;
+    }
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
+      if (origClass === newClass) return;
+      await updateSource({ ...activeData, id: activeSourceId!, oldClass: origClass, newClass, action });
     });
   };
 
@@ -504,6 +614,61 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           type="input"
           inheritedValue={cleanVal(domV?.bg)}
         />
+      </div>
+
+      {/* ── Border color ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <button
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', height: '14px', width: 'fit-content' }}
+          onClick={() => setBorderColorExpanded((x) => !x)}
+          title={borderColorExpanded ? 'Collapse border colors' : 'Expand border colors'}
+        >
+          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Border color</span>
+          <span style={{ color: theme.text_tertiary, display: 'flex', alignItems: 'center' }}>
+            {borderColorExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          </span>
+        </button>
+
+        <BorderColorAutocomplete
+          value={cleanVal(v.borderColor)}
+          onChange={(val) => handleBorderColorUpdate('all', val)}
+          icon={<BorderAllIcon />}
+          inheritedValue={cleanVal(domV?.borderColor)}
+          colorOptions={themeColors as any[]}
+        />
+
+        {borderColorExpanded && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <BorderColorAutocomplete
+              value={cleanVal(v.borderColorT)}
+              onChange={(val) => handleBorderColorUpdate('t', val)}
+              icon={<BorderTIcon />}
+              inheritedValue={cleanVal(domV?.borderColorT)}
+              colorOptions={themeColors as any[]}
+            />
+            <BorderColorAutocomplete
+              value={cleanVal(v.borderColorR)}
+              onChange={(val) => handleBorderColorUpdate('r', val)}
+              icon={<BorderRIcon />}
+              inheritedValue={cleanVal(domV?.borderColorR)}
+              colorOptions={themeColors as any[]}
+            />
+            <BorderColorAutocomplete
+              value={cleanVal(v.borderColorB)}
+              onChange={(val) => handleBorderColorUpdate('b', val)}
+              icon={<BorderBIcon />}
+              inheritedValue={cleanVal(domV?.borderColorB)}
+              colorOptions={themeColors as any[]}
+            />
+            <BorderColorAutocomplete
+              value={cleanVal(v.borderColorL)}
+              onChange={(val) => handleBorderColorUpdate('l', val)}
+              icon={<BorderLIcon />}
+              inheritedValue={cleanVal(domV?.borderColorL)}
+              colorOptions={themeColors as any[]}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Border radius ── */}

@@ -92,7 +92,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
-    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', opacity: '', shadow: '',
+    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -198,6 +198,13 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
         const val = parts.length === 3 ? parts[2] : 'DEFAULT';
         const key = side === 't' ? 'borderT' : side === 'r' ? 'borderR' : side === 'b' ? 'borderB' : 'borderL';
         v[key] = val;
+        orig[`${key}_original`] = originalClass;
+      } else if (/^border-[trbl]-/.test(cls)) {
+        // per-side border color: border-t-red-500 → borderColorT = 'red-500'
+        const side = cls[7];
+        const color = cls.slice(9);
+        const key = side === 't' ? 'borderColorT' : side === 'r' ? 'borderColorR' : side === 'b' ? 'borderColorB' : 'borderColorL';
+        v[key] = color;
         orig[`${key}_original`] = originalClass;
       } else if (cls.startsWith('border-')) { v.borderColor = cls.replace('border-', ''); orig.borderColor_original = originalClass; }
     }

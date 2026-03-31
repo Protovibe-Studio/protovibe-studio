@@ -282,7 +282,7 @@ export default function App() {
           {/* pv-block-end:hf8ryd */}
 
           {/* pv-block-start:4xr5m8 */}
-          <div className="flex flex-col min-h-4 border p-4 rounded" data-pv-block="4xr5m8">
+          <div className="flex flex-col min-h-4 border p-4 rounded bg-background-default border-border-default" data-pv-block="4xr5m8">
             {/* pv-editable-zone-start:inside-4xr5m8 */}
 
               {/* pv-block-start:3naqql */}
