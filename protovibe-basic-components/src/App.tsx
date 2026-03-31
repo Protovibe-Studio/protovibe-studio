@@ -120,7 +120,7 @@ export default function App() {
           {/* pv-block-end:j5f1fn */}
 
           {/* pv-block-start:54fl2x */}
-          <Card className="my-10 w-full data-[variant=bordered]:border-px border-l-5 data-[variant=bordered]:border-t-4 data-[variant=bordered]:rounded-tl-none data-[variant=bordered]:rounded-tr-none" data-pv-block="54fl2x"  >
+          <Card className="my-10 w-full data-[variant=bordered]:border-px border-l-5 data-[variant=bordered]:border-t-4 data-[variant=bordered]:rounded-tl-none data-[variant=bordered]:rounded-tr-none bg-background-primary-subtle" data-pv-block="54fl2x"  >
             {/* pv-editable-zone-start:c5gbka */}
             {/* pv-block-start:gc051c */}
           <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />

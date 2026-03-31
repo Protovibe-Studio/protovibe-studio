@@ -115,6 +115,18 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     return { semanticOptions: semantic, paletteOptions: palette, hasColorGroups: semantic.length > 0 };
   }, [showColorModeToggle, filteredOptions]);
 
+  // Resolve swatch for the currently committed value (uses full options list, not filtered)
+  const currentSwatchColor = useMemo(() => {
+    if (!showColorModeToggle) return undefined;
+    const match = options.find(o => o.val === localValue);
+    if (!match) return undefined;
+    if (colorMode === 'light' && match.lightValue) return match.lightValue as string;
+    if (colorMode === 'dark' && match.darkValue) return match.darkValue as string;
+    if (match.lightValue) return match.lightValue as string;
+    if ((match as any).hex) return (match as any).hex as string;
+    return undefined;
+  }, [showColorModeToggle, options, localValue, colorMode]);
+
   const { style: floatingStyle } = useFloatingDropdownPosition({
     isOpen,
     anchorRef: inputElRef,
@@ -227,7 +239,9 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         onMouseLeave={(e) => onInputMouseLeave?.(e)}
         placeholder={placeholder}
         style={inputStyle}
-        prefix={prefix}
+        prefix={currentSwatchColor
+          ? <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: currentSwatchColor, border: `1px solid rgba(255,255,255,0.15)`, flexShrink: 0 }} />
+          : prefix}
         suffix={suffix}
       />
 

@@ -157,7 +157,7 @@ export const Modifiers: React.FC = () => {
           alignItems: 'center',
           gap: '4px',
           minHeight: '24px',
-          padding: hasAny ? '3px 28px 3px 8px' : '0 28px 0 12px',
+          padding: hasAny ? '3px 28px 3px 8px' : '0 28px 0 8px',
           borderRadius: '6px',
           border: `1px solid ${isOpen ? theme.border_accent : theme.border_default}`,
           background: theme.bg_secondary,

@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/components/visual/Layout.tsx
 import React, { useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { MoveRight, ChevronDown, ChevronUp, MoreHorizontal, Check } from 'lucide-react';
+import { MoveRight, ChevronDown, ChevronUp, MoreHorizontal, Check, X } from 'lucide-react';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
 import { buildContextPrefix } from '../../utils/tailwind';
@@ -417,6 +417,22 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     });
   }, [activeData, activeSourceId, activeModifiers, runLockedMutation]);
 
+  const handleClearAll = useCallback(async () => {
+    if (!activeData?.file) return;
+    const originals = [
+      v.display_original, v.direction_original, v.align_original, v.justify_original,
+      v.wrap_original, v.spaceX_original, v.spaceY_original, v.gridCols_original,
+      v.gridRows_original, v.gridFlow_original, v.justifyItems_original, v.alignContent_original,
+    ].filter(Boolean) as string[];
+    if (!originals.length) return;
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      for (const cls of originals) {
+        await updateSource({ ...activeData, id: activeSourceId!, oldClass: cls, newClass: '', action: 'remove' });
+      }
+    });
+  }, [activeData, activeSourceId, v, runLockedMutation]);
+
   // Three-state derivation: source (v.*) > inherited (domV.*) > unset
   const display = v.display || domV?.display || '';
   const direction = v.direction || domV?.direction || 'flex-row';
@@ -452,7 +468,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     : hasInheritedDisplay
     ? theme.text_secondary
     : theme.text_tertiary;
-  const triggerBorderColor = hasAnySourceOverride ? theme.border_accent : theme.border_default;
+  const triggerBorderColor = theme.border_default;
 
   const renderTriggerIcon = () => {
     if (isFlexLike) {
@@ -651,13 +667,24 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   };
 
   const moreMenuButton = (
-    <button
-      ref={moreRef}
-      onClick={() => setIsMoreOpen(o => !o)}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
-    >
-      <MoreHorizontal size={13} />
-    </button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+      {hasAnySourceOverride && (
+        <button
+          onClick={handleClearAll}
+          title="Clear all layout classes"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
+        >
+          <X size={13} />
+        </button>
+      )}
+      <button
+        ref={moreRef}
+        onClick={() => setIsMoreOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
+      >
+        <MoreHorizontal size={13} />
+      </button>
+    </div>
   );
 
   return (
