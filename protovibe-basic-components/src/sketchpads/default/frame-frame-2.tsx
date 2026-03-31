@@ -16,7 +16,6 @@ export default function Frame2() {
         {/* pv-block-start:o5mtmq */}
         <div className="flex flex-col min-h-4 p-5" data-pv-block="o5mtmq">
           {/* pv-editable-zone-start:inside-o5mtmq */}
-
           {/* pv-block-start:82m3f6 */}
         <RadioGroup data-pv-block="82m3f6" orientation="vertical" value="opt1">
           {/* pv-editable-zone-start:jjuwp8 */}
@@ -37,7 +36,7 @@ export default function Frame2() {
         {/* pv-block-end:o5mtmq */}
       
       {/* pv-block-start:8bxsy1 */}
-      <DropdownList data-pv-block="8bxsy1" data-pv-sketchpad-el="8bxsy1" width="md" style={{ position: 'absolute', left: 113, top: 267 }}>
+      <DropdownList data-pv-block="8bxsy1" data-pv-sketchpad-el="8bxsy1" width="md" style={{ position: 'absolute', left: 50, top: 220 }}>
         {/* pv-editable-zone-start:wgnxoy */}
           {/* pv-block-start:ytm5mq */}
           <DropdownGroupLabel data-pv-block="ytm5mq" label="Actions" />
@@ -77,18 +76,17 @@ export default function Frame2() {
       {/* pv-block-start:s6x5t6 */}
       <Card data-pv-block="s6x5t6" data-pv-sketchpad-el="s6x5t6" variant="bordered" shadow="none" style={{ position: 'absolute', left: 395, top: 275 }}>
         {/* pv-editable-zone-start:2xy2jt */}
-
           {/* pv-block-start:4upn51 */}
           <TextBlock className="font-bold" data-pv-block="4upn51" text="Text block" typography="regular" />
           {/* pv-block-end:4upn51 */}
         {/* pv-editable-zone-end:2xy2jt */}
       </Card>
       {/* pv-block-end:s6x5t6 */}
-      
-      {/* pv-block-start:kwng9f */}
-      <Button className="bg-background-secondary" data-pv-block="kwng9f" data-pv-sketchpad-el="kwng9f" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', width: 172, left: 405, top: 380 }} />
-      {/* pv-block-end:kwng9f */}
-      {/* pv-editable-zone-end:zb8lla */}
+            
+            {/* pv-block-start:qrlfk0 */}
+      <Button className="bg-background-secondary" data-pv-block="qrlfk0" data-pv-sketchpad-el="qrlfk0" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 213, top: 436, width: 172 }} />
+      {/* pv-block-end:qrlfk0 */}
+                        {/* pv-editable-zone-end:zb8lla */}
     </div>
   );
 }

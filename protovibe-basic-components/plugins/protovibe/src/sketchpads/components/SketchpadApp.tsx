@@ -328,6 +328,57 @@ export function SketchpadApp() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Cross-frame move — orchestrates cut from source frame then paste into target frame
+  useEffect(() => {
+    const handleCrossFrameMove = async (e: Event) => {
+      const { sketchpadId, sourceFrameId, targetFrameId, blockId, x, y, targetLayoutMode } =
+        (e as CustomEvent).detail;
+
+      const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
+      const targetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
+
+      try {
+        // 1. Cut from source frame (loads clipboard & harvests imports)
+        const cutRes = await fetch('/__block-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'cut', blockId, file: sourceFile }),
+        });
+        if (!cutRes.ok) {
+          console.error('[Sketchpad] Cross-frame cut failed:', await cutRes.text());
+          return;
+        }
+
+        // 2. Paste into target frame with layout-mode context and coordinate overrides
+        const pasteRes = await fetch('/__add-block', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            elementType: 'paste',
+            file: targetFile,
+            zoneId: 'target-zone-placeholder',
+            targetLayoutMode,
+            pasteX: Math.round(x),
+            pasteY: Math.round(y),
+          }),
+        });
+        if (!pasteRes.ok) {
+          console.error('[Sketchpad] Cross-frame paste failed:', await pasteRes.text());
+          return;
+        }
+
+        // 3. Reload both frames so the UI reflects the change
+        await loadFrameModule(sketchpadId, sourceFrameId);
+        await loadFrameModule(sketchpadId, targetFrameId);
+      } catch (err) {
+        console.error('[Sketchpad] Cross-frame move error:', err);
+      }
+    };
+
+    window.addEventListener('pv-sketchpad-cross-frame-move', handleCrossFrameMove);
+    return () => window.removeEventListener('pv-sketchpad-cross-frame-move', handleCrossFrameMove);
+  }, [loadFrameModule]);
+
   // Drop handler for drag from palette
   const handleDrop = useCallback(
     (e: React.DragEvent) => {

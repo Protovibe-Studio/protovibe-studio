@@ -597,7 +597,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine } = JSON.parse(body || '{}');
+      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -642,6 +642,51 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
         for (const [oldId, newId] of Object.entries(idMap)) {
           pastedContent = pastedContent.split(oldId).join(newId);
+        }
+
+        // Hybrid style transform: add, update, or strip absolute-positioning styles
+        // based on the layout mode of the drop target.
+        if (targetLayoutMode) {
+          const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
+          pastedContent = pastedContent.replace(firstTagRegex, (match, tag, attrs, closing) => {
+            let newAttrs = attrs;
+            const styleRegex = /style=\{\{([\s\S]*?)\}\}/;
+            const hasStyle = styleRegex.test(attrs);
+
+            if (targetLayoutMode === 'flow') {
+              if (hasStyle) {
+                newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                  let cleaned = innerStyles
+                    .replace(/position:\s*['"](?:absolute|relative|fixed)['"]\s*,?/g, '')
+                    .replace(/left:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .replace(/top:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .trim()
+                    .replace(/,$/, '')
+                    .trim();
+                  return cleaned ? `style={{ ${cleaned} }}` : '';
+                });
+              }
+            } else if (targetLayoutMode === 'absolute') {
+              const absStyles = `position: 'absolute', left: ${pasteX}, top: ${pasteY}`;
+              if (hasStyle) {
+                newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                  let cleaned = innerStyles
+                    .replace(/position:\s*['"][^'"]+['"]\s*,?/g, '')
+                    .replace(/left:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .replace(/top:\s*-?\d+(\.\d+)?\s*,?/g, '')
+                    .trim()
+                    .replace(/,$/, '')
+                    .trim();
+                  const separator = cleaned ? ', ' : '';
+                  return `style={{ ${absStyles}${separator}${cleaned} }}`;
+                });
+              } else {
+                newAttrs = `${attrs} style={{ ${absStyles} }}`;
+              }
+            }
+
+            return `${tag}${newAttrs}${closing}`;
+          });
         }
       }
 
@@ -836,6 +881,25 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
               newEndTag +
               fileContent.slice(endIdx + pristineEndTag.length);
           }
+        }
+      } else if (zoneId === 'target-zone-placeholder') {
+        // Cross-frame paste: inject before the last pv-editable-zone-end in the file
+        // (mirrors the strategy used by handleSketchpadAddElement)
+        const zoneEndRe = /\{\/\* pv-editable-zone-end(?::[a-zA-Z0-9_-]+)? \*\/\}/g;
+        let zoneEndIdx = -1;
+        let zm: RegExpExecArray | null;
+        while ((zm = zoneEndRe.exec(fileContent)) !== null) {
+          zoneEndIdx = zm.index;
+        }
+        if (zoneEndIdx >= 0) {
+          const lineStartPos = fileContent.lastIndexOf('\n', zoneEndIdx) + 1;
+          const spaces = (fileContent.substring(lineStartPos, zoneEndIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
+          const blockHtml = generateBlockHtml(spaces);
+          fileContent =
+            fileContent.slice(0, zoneEndIdx) +
+            blockHtml +
+            spaces +
+            fileContent.slice(zoneEndIdx);
         }
       } else {
         // Changed to 'gm' flag to allow offset checking

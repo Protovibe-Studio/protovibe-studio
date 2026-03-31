@@ -175,6 +175,7 @@ export function FrameContainer({
         {/* Frame content area */}
         <div
           data-sketchpad-frame={frameId}
+          data-layout-mode="absolute"
           style={{
             width,
             height,
@@ -182,7 +183,7 @@ export function FrameContainer({
             backgroundColor: '#ffffff',
             borderRadius: 4,
             border: isSelected ? '2px solid #18a0fb' : '1px solid rgba(255,255,255,0.1)',
-            overflow: 'hidden',
+            overflow: 'visible',
             boxShadow: isSelected
               ? '0 0 0 1px #18a0fb, 0 4px 24px rgba(0,0,0,0.3)'
               : '0 2px 12px rgba(0,0,0,0.2)',

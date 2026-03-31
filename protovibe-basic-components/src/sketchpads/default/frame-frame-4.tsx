@@ -180,7 +180,11 @@ export default function Frame4() {
         {/* pv-editable-zone-end:7bwnuk */}
       </VerticalTabs>
       {/* pv-block-end:bjb82l */}
-      {/* pv-editable-zone-end:a96c1l */}
+      
+      {/* pv-block-start:m9te0j */}
+      <Button className="bg-background-secondary" data-pv-block="m9te0j" data-pv-sketchpad-el="m9te0j" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 48, top: 50, width: 172 }} />
+      {/* pv-block-end:m9te0j */}
+            {/* pv-editable-zone-end:a96c1l */}
     </div>
   );
 }

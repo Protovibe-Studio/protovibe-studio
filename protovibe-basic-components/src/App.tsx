@@ -133,7 +133,6 @@ export default function App() {
             {/* pv-block-start:z3m7ik */}
           <Card className="flex justify-center flex-col w-1/2 items-start" data-pv-block="z3m7ik" variant="bordered" shadow="none">
             {/* pv-editable-zone-start:c1cn2h */}
-
             {/* pv-block-start:160x6a */}
           <Button data-pv-block="160x6a" label="Button" variant="solid" color="primary" size="md" />
           {/* pv-block-end:160x6a */}

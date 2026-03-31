@@ -36,6 +36,7 @@ let dragState: {
   startY: number;
   origLeft: number;
   origTop: number;
+  origZIndex: string;
   moved: boolean;
 } | null = null;
 
@@ -309,6 +310,7 @@ function handlePointerDown(e: PointerEvent) {
     startY: e.clientY,
     origLeft: pos.left,
     origTop: pos.top,
+    origZIndex: dragTarget.style.zIndex,
     moved: false,
   };
 }
@@ -339,6 +341,8 @@ function handlePointerMove(e: PointerEvent) {
       setForcedCursor('grabbing');
       // Disable CSS transitions during drag to prevent sluggish movement
       dragState.target.style.transition = 'none';
+      // Keep dragged element above all frames while dragging
+      dragState.target.style.zIndex = '2147483647';
     }
 
     dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
@@ -399,15 +403,56 @@ function handlePointerUp(e: PointerEvent) {
 
   // Restore transitions
   dragState.target.style.transition = '';
+  dragState.target.style.zIndex = dragState.origZIndex;
 
   if (dragState.moved) {
+    // Temporarily hide dragged element to detect what's underneath at drop point
+    dragState.target.style.pointerEvents = 'none';
+    const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+    dragState.target.style.pointerEvents = '';
+
+    const sourceFrame = findFrameContainer(dragState.target);
+    const targetFrameContainer = findFrameContainer(dropTarget as HTMLElement);
+    const sourceFrameId = sourceFrame?.getAttribute('data-sketchpad-frame');
+    const targetFrameId = targetFrameContainer?.getAttribute('data-sketchpad-frame');
+    const blockId = dragState.target.getAttribute('data-pv-sketchpad-el');
+    const sketchpadId = getSketchpadId();
+
+    if (sketchpadId && blockId && sourceFrameId && targetFrameId && sourceFrameId !== targetFrameId) {
+      // CROSS-FRAME MOVE
+      const elRect = dragState.target.getBoundingClientRect();
+      const targetFrameRect = targetFrameContainer!.getBoundingClientRect();
+      const zoom = getCanvasZoom();
+
+      // Detect the layout mode of the drop target
+      const layoutContainer = (dropTarget as HTMLElement)?.closest('[data-layout-mode]');
+      const targetLayoutMode = layoutContainer?.getAttribute('data-layout-mode') || 'flow';
+
+      const newLeft = targetLayoutMode === 'absolute' ? (elRect.left - targetFrameRect.left) / zoom : 0;
+      const newTop = targetLayoutMode === 'absolute' ? (elRect.top - targetFrameRect.top) / zoom : 0;
+
+      window.dispatchEvent(new CustomEvent('pv-sketchpad-cross-frame-move', {
+        detail: {
+          sketchpadId,
+          sourceFrameId,
+          targetFrameId,
+          blockId,
+          x: newLeft,
+          y: newTop,
+          targetLayoutMode,
+        },
+      }));
+
+      dragState = null;
+      return;
+    }
+
+    // SAME-FRAME MOVE (or drop on empty canvas — fall back to original position update)
     const newLeft = parseFloat(dragState.target.style.left) || 0;
     const newTop = parseFloat(dragState.target.style.top) || 0;
 
     const frame = findFrameContainer(dragState.target);
     const frameId = frame?.getAttribute('data-sketchpad-frame');
-    const blockId = dragState.target.getAttribute('data-pv-sketchpad-el');
-    const sketchpadId = getSketchpadId();
 
     if (sketchpadId && frameId && blockId) {
       postApi('/__sketchpad-update-element-position', {
