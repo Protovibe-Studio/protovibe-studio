@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { VisualSection } from './VisualSection';
+import { VisualControl } from './VisualControl';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
 import { SpacingBoxSVG } from './SpacingBoxSVG';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -51,10 +52,11 @@ const SpacingAutocomplete: React.FC<{
   placeholder: string;
   posStyle: React.CSSProperties;
   inheritedPlaceholder?: string;
-}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder }) => (
+  options?: typeof SCALES.spacing;
+}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options = SCALES.spacing }) => (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
-    options={SCALES.spacing}
+    options={options}
     onCommit={onChange}
     placeholder={
       inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder
@@ -114,12 +116,13 @@ const RadiusAutocomplete: React.FC<{
   onChange: (val: string) => void;
   placeholder?: string;
   icon: React.ReactNode;
-}> = ({ value, onChange, placeholder, icon }) => (
+  inheritedValue?: string;
+}> = ({ value, onChange, placeholder, icon, inheritedValue }) => (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
     options={SCALES.radius}
     onCommit={onChange}
-    placeholder={placeholder ?? '—'}
+    placeholder={inheritedValue && !value ? inheritedValue : (placeholder ?? '—')}
     zIndex={999999}
     prefix={icon}
     filterOptions={(opts, query, hasTyped) => {
@@ -158,7 +161,7 @@ const centreH = (pct: number): React.CSSProperties => ({
 // ─── Essentials section ────────────────────────────────────────────────────────
 
 export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
-  const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
+  const { activeData, activeSourceId, activeModifiers, runLockedMutation, themeColors } = useProtovibe();
   const [radiusExpanded, setRadiusExpanded] = useState(false);
 
   // ── Spacing update ──────────────────────────────────────────────────────────
@@ -217,6 +220,36 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
       const origClass = v.borderWidth_original || '';
+      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
+      if (origClass === newClass) return;
+      await updateSource({
+        ...activeData,
+        id: activeSourceId!,
+        oldClass: origClass,
+        newClass,
+        action,
+      });
+    });
+  };
+
+  // ── Per-side border-width update ────────────────────────────────────────────
+
+  const handleBorderSideUpdate = async (side: 't' | 'r' | 'b' | 'l', newVal: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+    const sideKey = side === 't' ? 'borderT' : side === 'r' ? 'borderR' : side === 'b' ? 'borderB' : 'borderL';
+
+    let newClass = '';
+    if (safeVal && safeVal !== '-') {
+      newClass = safeVal === 'DEFAULT'
+        ? `${currentContextPrefix}border-${side}`
+        : `${currentContextPrefix}border-${side}-${safeVal}`;
+    }
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const origClass = v[`${sideKey}_original`] || '';
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({
@@ -299,6 +332,13 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     return raw && raw !== '-' ? raw : '';
   };
 
+  // ── Border side value helper ────────────────────────────────────────────────
+
+  const borderSideVal = (key: 'borderT' | 'borderR' | 'borderB' | 'borderL') => {
+    const raw = v[key];
+    return raw && raw !== '-' ? raw : '';
+  };
+
   // ── Expand button style ─────────────────────────────────────────────────────
 
   const expandBtnStyle: React.CSSProperties = {
@@ -349,13 +389,38 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.mr)}
         />
 
-        {/* Border width – single value at top of border band */}
+        {/* Border sides – top / bottom / left / right */}
         <SpacingAutocomplete
-          posStyle={centreH(18)}
-          value={cleanVal(v.borderWidth) === '-' ? '' : cleanVal(v.borderWidth)}
-          onChange={handleBorderUpdate}
+          posStyle={centreH(19)}
+          value={borderSideVal('borderT')}
+          onChange={(val) => handleBorderSideUpdate('t', val)}
           placeholder="-"
-          inheritedPlaceholder={cleanVal(domV?.borderWidth)}
+          options={SCALES.borderWidth}
+          inheritedPlaceholder={cleanVal(domV?.borderT)}
+        />
+        <SpacingAutocomplete
+          posStyle={centreH(81)}
+          value={borderSideVal('borderB')}
+          onChange={(val) => handleBorderSideUpdate('b', val)}
+          placeholder="-"
+          options={SCALES.borderWidth}
+          inheritedPlaceholder={cleanVal(domV?.borderB)}
+        />
+        <SpacingAutocomplete
+          posStyle={centre(19)}
+          value={borderSideVal('borderL')}
+          onChange={(val) => handleBorderSideUpdate('l', val)}
+          placeholder="-"
+          options={SCALES.borderWidth}
+          inheritedPlaceholder={cleanVal(domV?.borderL)}
+        />
+        <SpacingAutocomplete
+          posStyle={centre(81)}
+          value={borderSideVal('borderR')}
+          onChange={(val) => handleBorderSideUpdate('r', val)}
+          placeholder="-"
+          options={SCALES.borderWidth}
+          inheritedPlaceholder={cleanVal(domV?.borderR)}
         />
 
         {/* Padding – top / bottom / left / right */}
@@ -399,17 +464,10 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       </div>
 
       {/* ── Border radius ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {/* Collapsed row – all corners */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ flex: 1 }}>
-            <RadiusAutocomplete
-              value={v.radius === '-' ? '' : v.radius}
-              onChange={(val) => handleRadiusUpdate('all', val)}
-              placeholder="—"
-              icon={<CornerAllIcon />}
-            />
-          </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+        {/* Label row with expand button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Radius</span>
           <button
             style={expandBtnStyle}
             onClick={() => setRadiusExpanded((x) => !x)}
@@ -419,6 +477,15 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           </button>
         </div>
 
+        {/* All corners */}
+        <RadiusAutocomplete
+          value={v.radius === '-' ? '' : v.radius}
+          onChange={(val) => handleRadiusUpdate('all', val)}
+          placeholder="—"
+          icon={<CornerAllIcon />}
+          inheritedValue={cleanVal(domV?.radius)}
+        />
+
         {/* Expanded – 4 individual corners */}
         {radiusExpanded && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -427,28 +494,43 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               onChange={(val) => handleRadiusUpdate('tl', val)}
               placeholder="—"
               icon={<CornerTLIcon />}
+              inheritedValue={cleanVal(domV?.radiusTL)}
             />
             <RadiusAutocomplete
               value={cornerVal('TR')}
               onChange={(val) => handleRadiusUpdate('tr', val)}
               placeholder="—"
               icon={<CornerTRIcon />}
+              inheritedValue={cleanVal(domV?.radiusTR)}
             />
             <RadiusAutocomplete
               value={cornerVal('BL')}
               onChange={(val) => handleRadiusUpdate('bl', val)}
               placeholder="—"
               icon={<CornerBLIcon />}
+              inheritedValue={cleanVal(domV?.radiusBL)}
             />
             <RadiusAutocomplete
               value={cornerVal('BR')}
               onChange={(val) => handleRadiusUpdate('br', val)}
               placeholder="—"
               icon={<CornerBRIcon />}
+              inheritedValue={cleanVal(domV?.radiusBR)}
             />
           </div>
         )}
       </div>
+
+      {/* ── BG Color ── */}
+      <VisualControl
+        label="BG Color"
+        prefix="bg-"
+        value={cleanVal(v.bg)}
+        options={themeColors as any[]}
+        originalClass={v.bg_original}
+        type="input"
+        inheritedValue={cleanVal(domV?.bg)}
+      />
     </VisualSection>
   );
 };

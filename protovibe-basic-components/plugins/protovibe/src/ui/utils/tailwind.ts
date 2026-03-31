@@ -92,7 +92,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
-    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderColor: '', opacity: '', shadow: '',
+    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', opacity: '', shadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -192,6 +192,13 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
       if (/^border-(0|2|4|8)$/.test(cls) || cls === 'border' || /^border-\[.*(?:px|rem|em)\]$/.test(cls)) {
         v.borderWidth = cls === 'border' ? 'DEFAULT' : cls.replace('border-', '');
         orig.borderWidth_original = originalClass;
+      } else if (/^border-[trbl]$/.test(cls) || /^border-[trbl]-(0|2|4|8)$/.test(cls)) {
+        const parts = cls.split('-');
+        const side = parts[1];
+        const val = parts.length === 3 ? parts[2] : 'DEFAULT';
+        const key = side === 't' ? 'borderT' : side === 'r' ? 'borderR' : side === 'b' ? 'borderB' : 'borderL';
+        v[key] = val;
+        orig[`${key}_original`] = originalClass;
       } else if (cls.startsWith('border-')) { v.borderColor = cls.replace('border-', ''); orig.borderColor_original = originalClass; }
     }
     else if (cls.startsWith('opacity-')) { v.opacity = cls.replace('opacity-', ''); orig.opacity_original = originalClass; }
