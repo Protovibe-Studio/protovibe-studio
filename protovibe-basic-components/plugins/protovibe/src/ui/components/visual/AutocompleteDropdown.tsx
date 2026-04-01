@@ -110,8 +110,6 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (!showColorModeToggle) return { semanticOptions: [], paletteOptions: [], hasColorGroups: false };
     const semantic = filteredOptions.filter(o => o.lightValue !== undefined || o.darkValue !== undefined);
     const palette = filteredOptions.filter(o => o.lightValue === undefined && o.darkValue === undefined);
-    console.log('[PV DEBUG AutocompleteDropdown] colorMode:', colorMode, 'semantic count:', semantic.length, 'palette count:', palette.length);
-    if (semantic.length > 0) console.log('[PV DEBUG AutocompleteDropdown] first semantic option:', semantic[0]);
     return { semanticOptions: semantic, paletteOptions: palette, hasColorGroups: semantic.length > 0 };
   }, [showColorModeToggle, filteredOptions]);
 

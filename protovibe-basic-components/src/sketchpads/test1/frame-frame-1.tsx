@@ -2,34 +2,90 @@
 import { RadioGroup } from '@/components/ui/radio-group';
 import { RadioItem } from '@/components/ui/radio-item';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:t362fh */}
+      {/* pv-block-start:h9byvi */}
+      <Card data-pv-block="h9byvi" data-pv-sketchpad-el="h9byvi" variant="bordered" shadow="none" style={{ position: 'absolute', width: 320, left: 385, top: 85 }}>
+        {/* pv-editable-zone-start:e5p33e */}
+        {/* pv-block-start:frvi1v */}
+      <Card data-pv-block="frvi1v" variant="bordered" shadow="none" >
+        {/* pv-editable-zone-start:ftmlni */}
+        {/* pv-editable-zone-end:ftmlni */}
+      </Card>
+      {/* pv-block-end:frvi1v */}
+
+        {/* pv-block-start:sqlxpm */}
+          <RadioItem data-pv-block="sqlxpm" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:sqlxpm */}
+
+          {/* pv-block-start:1635fu */}
+          <span data-pv-block="1635fu">
+            Lorem ipsum
+            {/* pv-editable-zone-start:inside-1635fu */}
+            {/* pv-editable-zone-end:inside-1635fu */}
+          </span>
+          {/* pv-block-end:1635fu */}
+
+          {/* pv-block-start:yecrsf */}
+          <Button data-pv-block="yecrsf" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:yecrsf */}
+
+        {/* pv-block-start:4shxnk */}
+        <Button data-pv-block="4shxnk" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:4shxnk */}
+        {/* pv-editable-zone-end:e5p33e */}
+      </Card>
+      {/* pv-block-end:h9byvi */}
       
-      {/* pv-block-start:umz5pu */}
-      <RadioGroup data-pv-block="umz5pu" data-pv-sketchpad-el="umz5pu" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 464, top: 327 }}>
+      {/* pv-block-start:cos5bj */}
+      <Card data-pv-block="cos5bj" data-pv-sketchpad-el="cos5bj" variant="bordered" shadow="none" style={{ position: 'absolute', left: 95, top: 324 }}>
+        {/* pv-editable-zone-start:ev1pm3 */}
+        {/* pv-editable-zone-end:ev1pm3 */}
+      </Card>
+      {/* pv-block-end:cos5bj */}
+      
+      {/* pv-block-start:gp85ke */}
+      <Card data-pv-block="gp85ke" variant="bordered" shadow="none"  data-pv-sketchpad-el="gp85ke" style={{ position: 'absolute', width: 314, left: 27, top: 39 }}>
+        {/* pv-editable-zone-start:t1i2jj */}
+        {/* pv-block-start:eyxz9w */}
+      <RadioGroup data-pv-block="eyxz9w" orientation="vertical" value="opt1" >
         {/* pv-editable-zone-start:mvy8s3 */}
-          {/* pv-block-start:beqo8v */}
-          <RadioItem data-pv-block="beqo8v" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-          {/* pv-block-end:beqo8v */}
-          {/* pv-block-start:h2oia9 */}
-          <RadioItem data-pv-block="h2oia9" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-          {/* pv-block-end:h2oia9 */}
-          {/* pv-block-start:7cqx7l */}
-          <RadioItem data-pv-block="7cqx7l" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-          {/* pv-block-end:7cqx7l */}
+          {/* pv-block-start:g7rhla */}
+          <RadioItem data-pv-block="g7rhla" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:g7rhla */}
+          {/* pv-block-start:zcxh5z */}
+          <RadioItem data-pv-block="zcxh5z" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:zcxh5z */}
         {/* pv-editable-zone-end:mvy8s3 */}
       </RadioGroup>
-      {/* pv-block-end:umz5pu */}
-      
-      {/* pv-block-start:f118lk */}
-      <Card data-pv-block="f118lk" data-pv-sketchpad-el="f118lk" variant="bordered" shadow="none" style={{ position: 'absolute', left: 202, top: 242 }}>
-        {/* pv-editable-zone-start:t1i2jj */}
+      {/* pv-block-end:eyxz9w */}
         {/* pv-editable-zone-end:t1i2jj */}
       </Card>
-      {/* pv-block-end:f118lk */}
+      {/* pv-block-end:gp85ke */}
+      
+      {/* pv-block-start:92l8ls */}
+      <Button data-pv-block="92l8ls" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="92l8ls" style={{ position: 'absolute', left: 240, top: 338 }}/>
+      {/* pv-block-end:92l8ls */}
+      
+      {/* pv-block-start:j3x4sx */}
+      <Button data-pv-block="j3x4sx" data-pv-sketchpad-el="j3x4sx" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 114, top: 206 }} />
+      {/* pv-block-end:j3x4sx */}
+
+        {/* pv-block-start:7pwpbi */}
+        <span data-pv-block="7pwpbi">
+          Lorem ipsum
+          {/* pv-editable-zone-start:inside-7pwpbi */}
+          {/* pv-editable-zone-end:inside-7pwpbi */}
+        </span>
+        {/* pv-block-end:7pwpbi */}
+      
+      {/* pv-block-start:mdhhao */}
+      <Button data-pv-block="mdhhao" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="mdhhao" style={{ position: 'absolute', left: 519, top: 31 }}/>
+      {/* pv-block-end:mdhhao */}
       {/* pv-editable-zone-end:t362fh */}
     </div>
   );

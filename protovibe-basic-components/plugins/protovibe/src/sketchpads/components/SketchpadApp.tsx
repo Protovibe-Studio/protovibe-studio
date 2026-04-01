@@ -419,69 +419,77 @@ export function SketchpadApp() {
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockId) return;
 
       const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
-      let targetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
-      let targetZoneId = 'target-zone-placeholder';
-      let targetIsPristine = false;
-      let targetStartLine: number | undefined;
-      let targetEndLine: number | undefined;
-
-      if (!isFrameTarget) {
-        if (!targetLocatorId) {
-          window.dispatchEvent(new CustomEvent('pv-toast', {
-            detail: { message: 'Cannot drop here - no source locator found', variant: 'error' },
-          }));
-          return;
-        }
-
-        try {
-          const sourceInfo = await fetchSourceInfo(targetLocatorId);
-          targetFile = sourceInfo.file;
-          targetStartLine = sourceInfo.startLine;
-          targetEndLine = sourceInfo.endLine;
-
-          const zonesData = await fetchZones(
-            sourceInfo.file,
-            sourceInfo.startLine,
-            sourceInfo.startCol,
-            sourceInfo.endLine,
-          );
-
-          if (!zonesData?.zones || zonesData.zones.length === 0) {
-            window.dispatchEvent(new CustomEvent('pv-toast', {
-              detail: { message: 'Cannot drop here - no editable zone', variant: 'error' },
-            }));
-            return;
-          }
-
-          targetZoneId = zonesData.zones[0].id;
-          targetIsPristine = zonesData.zones[0].isPristine;
-        } catch (err) {
-          console.error('[Sketchpad] Failed to resolve nested drop target:', err);
-          window.dispatchEvent(new CustomEvent('pv-toast', {
-            detail: { message: 'Cannot resolve drop target', variant: 'error' },
-          }));
-          return;
-        }
-      }
+        const fallbackTargetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
 
       try {
         await runLockedMutation(async () => {
-          const extraFiles = sourceFile !== targetFile ? [targetFile] : [];
-          await takeSnapshot(sourceFile, '', extraFiles);
+            // 1. Copy the element first
+          await blockAction('copy', draggedBlockId, sourceFile);
 
-          await blockAction('cut', draggedBlockId, sourceFile);
+            // 2. Fetch the target fresh so zone IDs and line numbers are current.
+            let currentTargetFile = fallbackTargetFile;
+            let currentTargetZoneId = 'target-zone-placeholder';
+            let currentTargetIsPristine = false;
+            let currentTargetStartLine: number | undefined;
+            let currentTargetEndLine: number | undefined;
 
+            if (!isFrameTarget) {
+              if (!targetLocatorId) {
+                window.dispatchEvent(new CustomEvent('pv-toast', {
+                  detail: { message: 'Cannot drop here - no source locator found', variant: 'error' },
+                }));
+                return;
+              }
+
+              try {
+                const sourceInfo = await fetchSourceInfo(targetLocatorId);
+                currentTargetFile = sourceInfo.file;
+                currentTargetStartLine = sourceInfo.startLine;
+                currentTargetEndLine = sourceInfo.endLine;
+
+                const zonesData = await fetchZones(
+                  sourceInfo.file,
+                  sourceInfo.startLine,
+                  sourceInfo.startCol,
+                  sourceInfo.endLine,
+                );
+
+                if (!zonesData?.zones || zonesData.zones.length === 0) {
+                  window.dispatchEvent(new CustomEvent('pv-toast', {
+                    detail: { message: 'Cannot drop here - no editable zone', variant: 'error' },
+                  }));
+                  return;
+                }
+
+                currentTargetZoneId = zonesData.zones[0].id;
+                currentTargetIsPristine = zonesData.zones[0].isPristine;
+              } catch (err) {
+                console.error('[Sketchpad] Failed to resolve nested drop target:', err);
+                window.dispatchEvent(new CustomEvent('pv-toast', {
+                  detail: { message: 'Cannot resolve drop target', variant: 'error' },
+                }));
+                return;
+              }
+            }
+
+            const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
+            await takeSnapshot(sourceFile, '', extraFiles);
+
+            // 3. Paste into the freshly fetched target
           await addBlock({
-            file: targetFile,
-            zoneId: targetZoneId,
-            isPristine: targetIsPristine,
+              file: currentTargetFile,
+              zoneId: currentTargetZoneId,
+              isPristine: currentTargetIsPristine,
             elementType: 'paste',
             targetLayoutMode,
             pasteX: Math.round(x),
             pasteY: Math.round(y),
-            targetStartLine,
-            targetEndLine,
+              targetStartLine: currentTargetStartLine,
+              targetEndLine: currentTargetEndLine,
           });
+
+            // 4. Delete the original block
+          await blockAction('delete', draggedBlockId, sourceFile);
         });
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);

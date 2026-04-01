@@ -526,13 +526,6 @@ function handlePointerUp(e: PointerEvent) {
         const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
         const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
 
-        // Absolute-to-flow drops remove positional styles in source, so clear the live DOM too.
-        if (!dragState.isFlow && layoutMode === 'flow') {
-          dragState.target.style.position = '';
-          dragState.target.style.left = '';
-          dragState.target.style.top = '';
-        }
-
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
 
