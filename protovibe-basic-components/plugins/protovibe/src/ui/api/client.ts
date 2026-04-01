@@ -52,6 +52,9 @@ export async function addBlock(params: {
   additionalImportsForDefaultContent?: Array<{ name: string; path: string }>;
   targetStartLine?: number;
   targetEndLine?: number;
+  targetLayoutMode?: string;
+  pasteX?: number;
+  pasteY?: number;
 }) {
   const res = await fetch('/__add-block', {
     method: 'POST',
@@ -103,11 +106,14 @@ export async function updateProp(params: {
   return await res.json();
 }
 
-export async function takeSnapshot(file: string, activeId: string) {
+export async function takeSnapshot(file: string, activeId: string, extraFiles?: string[]) {
+  const body = extraFiles?.length
+    ? { files: [file, ...extraFiles], activeId }
+    : { file, activeId };
   const res = await fetch('/__take-snapshot', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file, activeId }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error('Failed to take snapshot');
   return await res.json();

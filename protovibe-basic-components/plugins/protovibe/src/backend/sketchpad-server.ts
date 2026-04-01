@@ -5,8 +5,22 @@
 import fs from 'fs';
 import path from 'path';
 import { Connect } from 'vite';
+import { undoStack, redoStack } from '../shared/state';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
+
+// Snapshot one or more files into the undo stack before mutating them.
+function snapshotFiles(...relPaths: string[]): void {
+  const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
+  const files = uniquePaths
+    .map((f) => {
+      const abs = path.resolve(process.cwd(), f);
+      return { file: f, content: fs.existsSync(abs) ? fs.readFileSync(abs, 'utf-8') : '' };
+    });
+  if (files.length === 0) return;
+  undoStack.push({ files, activeId: '' });
+  redoStack.length = 0;
+}
 const REGISTRY_PATH = path.join(SKETCHPADS_DIR, '_registry.json');
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -179,7 +193,7 @@ function generateFrameContent(
 ${importLines ? importLines + '\n' : ''}
 export default function ${funcName || 'Frame'}() {
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:${zoneId} */}${elementsJsx}
       {/* pv-editable-zone-end:${zoneId} */}
     </div>
@@ -230,6 +244,12 @@ export const handleSketchpadDelete: Connect.NextHandleFunction = async (req, res
     if (!id) return sendError(res, 'ID required');
 
     const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === id);
+    const framePaths = (sp?.frames ?? []).map(
+      (f) => path.relative(process.cwd(), path.join(SKETCHPADS_DIR, id, `${f.id}.tsx`)),
+    );
+    snapshotFiles('src/sketchpads/_registry.json', ...framePaths);
+
     reg.sketchpads = reg.sketchpads.filter((s) => s.id !== id);
     writeRegistry(reg);
 
@@ -253,6 +273,7 @@ export const handleSketchpadRename: Connect.NextHandleFunction = async (req, res
     const sp = reg.sketchpads.find((s) => s.id === id);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
+    snapshotFiles('src/sketchpads/_registry.json');
     sp.name = name;
     writeRegistry(reg);
 
@@ -285,6 +306,9 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
       canvasY: canvasY ?? 0,
     };
 
+    const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
+    // Snapshot both the registry and the tsx (tsx doesn't exist yet → stored as '' so undo deletes it)
+    snapshotFiles('src/sketchpads/_registry.json', frameRelPath);
     sp.frames.push(frame);
     writeRegistry(reg);
 
@@ -309,11 +333,35 @@ export const handleFrameDelete: Connect.NextHandleFunction = async (req, res) =>
     const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
+    const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
+    snapshotFiles('src/sketchpads/_registry.json', frameRelPath);
     sp.frames = sp.frames.filter((f) => f.id !== frameId);
     writeRegistry(reg);
 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleFrameRename: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frameId, name } = await parseBody(req);
+    if (!sketchpadId || !frameId || !name) return sendError(res, 'sketchpadId, frameId, and name required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    const frame = sp.frames.find((f) => f.id === frameId);
+    if (!frame) return sendError(res, 'Frame not found', 404);
+
+    snapshotFiles('src/sketchpads/_registry.json');
+    frame.name = name;
+    writeRegistry(reg);
 
     sendJson(res, { success: true });
   } catch (err) {
@@ -375,6 +423,7 @@ export const handleSketchpadAddElement: Connect.NextHandleFunction = async (req,
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
+    snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Collect all imports to add (component + additional imports for default content)
@@ -456,6 +505,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
+    snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Find the element by its data-pv-sketchpad-el ID and update inline style position
@@ -483,6 +533,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
+    snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Check if the element already has a width in its style
@@ -511,7 +562,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
 
 export const handleSketchpadDuplicateElement: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, x, y } = await parseBody(req);
+    const { sketchpadId, frameId, blockId } = await parseBody(req);
     if (!sketchpadId || !frameId || !blockId)
       return sendError(res, 'sketchpadId, frameId, and blockId required');
 

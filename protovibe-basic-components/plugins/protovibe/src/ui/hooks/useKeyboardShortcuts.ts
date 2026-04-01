@@ -147,6 +147,8 @@ export function useKeyboardShortcuts() {
             return;
           }
 
+          const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') ?? undefined;
+
           await runLockedMutation(async () => {
             await takeSnapshot(activeData.file, activeSourceId!);
             const res = await addBlock({
@@ -155,7 +157,8 @@ export function useKeyboardShortcuts() {
               isPristine: targetZone.isPristine,
               elementType: 'paste',
               targetStartLine: activeData.startLine,
-              targetEndLine: activeData.endLine
+              targetEndLine: activeData.endLine,
+              ...(targetLayoutMode ? { targetLayoutMode, pasteX: 100, pasteY: 100 } : {}),
             });
 
             if (res.blockId) {

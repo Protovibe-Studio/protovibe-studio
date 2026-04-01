@@ -5,7 +5,7 @@ import { FrameContainer } from './FrameContainer';
 import { ComponentPalette } from './ComponentPalette';
 import { SketchpadOverlayPanel } from './SketchpadOverlayPanel';
 import * as api from '../api';
-import { fetchSourceInfo, fetchZones } from '../../ui/api/client';
+import { fetchSourceInfo, fetchZones, takeSnapshot } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
 
 // Client-side modules for React Component references (rendering)
@@ -245,18 +245,20 @@ export function SketchpadApp() {
       if (!frame) return;
       const newName = prompt('Rename frame:', frame.name);
       if (newName && newName.trim()) {
+        const trimmed = newName.trim();
         setSketchpads((prev) =>
           prev.map((s) =>
             s.id === activeSketchpadId
               ? {
                   ...s,
                   frames: s.frames.map((f) =>
-                    f.id === frameId ? { ...f, name: newName.trim() } : f,
+                    f.id === frameId ? { ...f, name: trimmed } : f,
                   ),
                 }
               : s,
           ),
         );
+        api.renameFrame(activeSketchpadId, frameId, trimmed);
       }
     },
     [activeSketchpad, activeSketchpadId],
@@ -276,8 +278,15 @@ export function SketchpadApp() {
             : s,
         ),
       );
-      // Persist on pointer up (debounced via frame component)
-      api.updateFramePosition(activeSketchpadId, frameId, Math.round(x), Math.round(y));
+    },
+    [activeSketchpadId],
+  );
+
+  const handleMoveFrameEnd = useCallback(
+    (frameId: string, x: number, y: number) => {
+      if (activeSketchpadId) {
+        api.updateFramePosition(activeSketchpadId, frameId, Math.round(x), Math.round(y));
+      }
     },
     [activeSketchpadId],
   );
@@ -296,7 +305,15 @@ export function SketchpadApp() {
             : s,
         ),
       );
-      api.resizeFrame(activeSketchpadId, frameId, w, h);
+    },
+    [activeSketchpadId],
+  );
+
+  const handleResizeFrameEnd = useCallback(
+    (frameId: string, w: number, h: number) => {
+      if (activeSketchpadId) {
+        api.resizeFrame(activeSketchpadId, frameId, Math.round(w), Math.round(h));
+      }
     },
     [activeSketchpadId],
   );
@@ -329,18 +346,34 @@ export function SketchpadApp() {
     [selectedFrameId, activeSketchpadId],
   );
 
+  // Reload registry and affected frame modules after undo/redo
+  const reloadAfterUndoRedo = useCallback(async () => {
+    const reg = await api.fetchRegistry();
+    setSketchpads(reg.sketchpads);
+    const sp = reg.sketchpads.find((s) => s.id === activeSketchpadId);
+    if (sp) await loadAllFrameModules(activeSketchpadId, sp.frames);
+  }, [activeSketchpadId, loadAllFrameModules]);
+
   // Keyboard shortcuts
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const handler = async (e: KeyboardEvent) => {
       // Zoom to fit
       if (e.key === '0' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setTransform(INITIAL_TRANSFORM);
+        return;
+      }
+      // Undo / Redo
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        const endpoint = e.shiftKey ? '/__redo' : '/__undo';
+        const res = await fetch(endpoint, { method: 'POST' });
+        if (res.ok) await reloadAfterUndoRedo();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [reloadAfterUndoRedo]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
@@ -407,6 +440,10 @@ export function SketchpadApp() {
       }
 
       try {
+        // 0. Snapshot both affected files before mutating so the drop is undoable
+        const extraFiles = sourceFile !== targetFile ? [targetFile] : [];
+        await takeSnapshot(sourceFile, '', extraFiles);
+
         // 1. Cut from source frame (loads clipboard & harvests imports)
         const cutRes = await fetch('/__block-action', {
           method: 'POST',
@@ -514,7 +551,9 @@ export function SketchpadApp() {
             zoom={transform.zoom}
             isSelected={selectedFrameId === frame.id}
             onMove={handleMoveFrame}
+            onMoveEnd={handleMoveFrameEnd}
             onResize={handleResizeFrame}
+            onResizeEnd={handleResizeFrameEnd}
             onSelect={setSelectedFrameId}
             onDelete={handleDeleteFrame}
             onRename={handleRenameFrame}

@@ -106,7 +106,7 @@ export default function App() {
           {/* pv-block-end:1imggz */}
 
         {/* pv-block-start:j5f1fn */}
-          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="j5f1fn">
+          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5 flex w-1/2" data-pv-block="j5f1fn">
             {/* pv-editable-zone-start:inside-j5f1fn */}
               {/* pv-block-start:hkx3km */}
               <span data-pv-block="hkx3km">
@@ -133,6 +133,20 @@ export default function App() {
             {/* pv-block-start:r0spod */}
           <Button data-pv-block="r0spod" label="Open Dialog" variant="solid" color="primary" size="md" />
           {/* pv-block-end:r0spod */}
+
+            {/* pv-block-start:ia01ir */}
+              <Button data-pv-block="ia01ir" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:ia01ir */}
+
+            {/* pv-block-start:9nrhi0 */}
+          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="9nrhi0" variant="bordered" shadow="none">
+            {/* pv-editable-zone-start:c1cn2h */}
+            {/* pv-block-start:a2ubzy */}
+          <Button data-pv-block="a2ubzy" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:a2ubzy */}
+            {/* pv-editable-zone-end:c1cn2h */}
+          </Card>
+          {/* pv-block-end:9nrhi0 */}
             {/* pv-editable-zone-end:inside-j5f1fn */}
           </div>
           {/* pv-block-end:j5f1fn */}

@@ -1,96 +1,33 @@
 {
   "sketchpads": [
     {
-      "id": "default",
-      "name": "Untitled Sketchpad",
-      "createdAt": "2026-03-29T00:00:00.000Z",
-      "frames": [
-        {
-          "id": "frame-frame-2",
-          "name": "Frame 2",
-          "width": 800,
-          "height": 600,
-          "canvasX": 1032,
-          "canvasY": -6
-        },
-        {
-          "id": "frame-frame-3",
-          "name": "Frame 3",
-          "width": 800,
-          "height": 600,
-          "canvasX": 225,
-          "canvasY": 715
-        },
-        {
-          "id": "frame-frame-4",
-          "name": "Frame 4",
-          "width": 800,
-          "height": 600,
-          "canvasX": 1160,
-          "canvasY": 714
-        },
-        {
-          "id": "frame-frame-5",
-          "name": "Frame 5",
-          "width": 800,
-          "height": 600,
-          "canvasX": 1028,
-          "canvasY": -700
-        },
-        {
-          "id": "frame-frame-5-2",
-          "name": "Frame 5",
-          "width": 800,
-          "height": 600,
-          "canvasX": 40,
-          "canvasY": -49
-        },
-        {
-          "id": "frame-frame-6",
-          "name": "Frame 6",
-          "width": 884,
-          "height": 748,
-          "canvasX": 2034,
-          "canvasY": 5
-        },
-        {
-          "id": "frame-frame-7",
-          "name": "Frame 7",
-          "width": 800,
-          "height": 600,
-          "canvasX": 2982,
-          "canvasY": -26
-        },
-        {
-          "id": "frame-frame-8",
-          "name": "Frame 8",
-          "width": 800,
-          "height": 600,
-          "canvasX": 3937,
-          "canvasY": 36
-        }
-      ]
-    },
-    {
-      "id": "asdasd",
-      "name": "asdasd",
-      "createdAt": "2026-03-29T19:38:08.433Z",
+      "id": "test",
+      "name": "test",
+      "createdAt": "2026-04-01T06:17:06.525Z",
       "frames": [
         {
           "id": "frame-frame-1",
           "name": "Frame 1",
           "width": 800,
           "height": 600,
-          "canvasX": 227,
-          "canvasY": 64
+          "canvasX": 437,
+          "canvasY": 294
         },
         {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 800,
           "height": 600,
-          "canvasX": 1121,
-          "canvasY": 65
+          "canvasX": 1329,
+          "canvasY": 290
+        },
+        {
+          "id": "frame-frame-3",
+          "name": "Frame 3",
+          "width": 800,
+          "height": 600,
+          "canvasX": 427,
+          "canvasY": 973
         }
       ]
     }

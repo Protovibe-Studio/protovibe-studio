@@ -269,12 +269,20 @@ function clearForcedCursor() {
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
+let apiQueue: Promise<void> = Promise.resolve();
+
 function postApi(url: string, body: Record<string, unknown>) {
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }).catch((e) => console.warn('[Sketchpad Bridge]', e));
+  apiQueue = apiQueue.then(() =>
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    .then((res) => {
+      if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    })
+    .catch((e) => console.warn('[Sketchpad Bridge]', e))
+  );
 }
 
 // ─── Inspector communication ──────────────────────────────────────────────────

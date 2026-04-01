@@ -40,6 +40,10 @@ export async function deleteFrame(sketchpadId: string, frameId: string): Promise
   await post('/__frame-delete', { sketchpadId, frameId });
 }
 
+export async function renameFrame(sketchpadId: string, frameId: string, name: string): Promise<void> {
+  await post('/__frame-rename', { sketchpadId, frameId, name });
+}
+
 export async function resizeFrame(
   sketchpadId: string,
   frameId: string,

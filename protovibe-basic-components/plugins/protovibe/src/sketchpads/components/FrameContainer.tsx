@@ -11,7 +11,9 @@ interface FrameContainerProps {
   isSelected: boolean;
   children: React.ReactNode;
   onMove: (frameId: string, x: number, y: number) => void;
+  onMoveEnd: (frameId: string, x: number, y: number) => void;
   onResize: (frameId: string, w: number, h: number) => void;
+  onResizeEnd: (frameId: string, w: number, h: number) => void;
   onSelect: (frameId: string) => void;
   onDelete: (frameId: string) => void;
   onRename: (frameId: string) => void;
@@ -31,7 +33,9 @@ export function FrameContainer({
   isSelected,
   children,
   onMove,
+  onMoveEnd,
   onResize,
+  onResizeEnd,
   onSelect,
   onDelete,
   onRename,
@@ -73,9 +77,12 @@ export function FrameContainer({
       if (isDragging) {
         setIsDragging(false);
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+        const dx = (e.clientX - dragStartRef.current.x) / zoom;
+        const dy = (e.clientY - dragStartRef.current.y) / zoom;
+        onMoveEnd(frameId, dragStartRef.current.frameX + dx, dragStartRef.current.frameY + dy);
       }
     },
-    [isDragging],
+    [isDragging, zoom, frameId, onMoveEnd],
   );
 
   // Resize handle (bottom-right corner)
@@ -108,9 +115,14 @@ export function FrameContainer({
       if (isResizing) {
         setIsResizing(false);
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+        const dx = (e.clientX - resizeStartRef.current.x) / zoom;
+        const dy = (e.clientY - resizeStartRef.current.y) / zoom;
+        const newW = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.w + dx);
+        const newH = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.h + dy);
+        onResizeEnd(frameId, Math.round(newW), Math.round(newH));
       }
     },
-    [isResizing],
+    [isResizing, zoom, frameId, onResizeEnd],
   );
 
   const handleContextMenu = useCallback(

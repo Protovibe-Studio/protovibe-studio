@@ -12,12 +12,16 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, activeId } = JSON.parse(body || '{}');
-      const absolutePath = path.resolve(process.cwd(), file);
-      const content = fs.readFileSync(absolutePath, 'utf-8');
+      const { file, files: filesArr, activeId } = JSON.parse(body || '{}');
+      // Deduplicate to prevent double-restores corrupting the redo stack
+      const toSnapshot: string[] = Array.from(new Set(filesArr ?? (file ? [file] : [])));
+      const files = toSnapshot.map((f: string) => {
+        const absolutePath = path.resolve(process.cwd(), f);
+        return { file: f, content: fs.readFileSync(absolutePath, 'utf-8') };
+      });
 
-      undoStack.push({ file, content, activeId });
-      redoStack.length = 0; // Clear redo stack on new action
+      undoStack.push({ files, activeId: activeId || '' });
+      redoStack.length = 0;
 
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -35,15 +39,23 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
     }
 
-    const { file, content, activeId } = lastState;
-    const absolutePath = path.resolve(process.cwd(), file);
-    const currentState = fs.readFileSync(absolutePath, 'utf-8');
-    redoStack.push({ file, content: currentState, activeId });
-
-    fs.writeFileSync(absolutePath, content, 'utf-8');
+    const { files, activeId } = lastState;
+    const currentFiles = files.map(({ file, content: savedContent }) => {
+      const absolutePath = path.resolve(process.cwd(), file);
+      const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
+      if (savedContent === '') {
+        // File did not exist before this operation — delete it to truly undo the creation
+        if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+      } else {
+        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+        fs.writeFileSync(absolutePath, savedContent, 'utf-8');
+      }
+      return { file, content: currentContent };
+    });
+    redoStack.push({ files: currentFiles, activeId });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file, activeId }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));
@@ -57,15 +69,22 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to redo.' }));
     }
 
-    const { file, content, activeId } = nextState;
-    const absolutePath = path.resolve(process.cwd(), file);
-    const currentState = fs.readFileSync(absolutePath, 'utf-8');
-    undoStack.push({ file, content: currentState, activeId });
-
-    fs.writeFileSync(absolutePath, content, 'utf-8');
+    const { files, activeId } = nextState;
+    const currentFiles = files.map(({ file, content: savedContent }) => {
+      const absolutePath = path.resolve(process.cwd(), file);
+      const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
+      if (savedContent === '') {
+        if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+      } else {
+        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+        fs.writeFileSync(absolutePath, savedContent, 'utf-8');
+      }
+      return { file, content: currentContent };
+    });
+    undoStack.push({ files: currentFiles, activeId });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file, activeId }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));
@@ -1468,7 +1487,7 @@ export const handleUpdateThemeColor: Connect.NextHandleFunction = (req, res) => 
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       const selector = themeMode === 'light' ? '[data-theme="light"]' : '[data-theme="dark"]';
       const css = fs.readFileSync(cssFilePath, 'utf-8');
-      undoStack.push({ file: 'src/index.css', content: css, activeId: '' });
+      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
       redoStack.length = 0;
       const updated = updateCssVariable(css, selector, tokenName, value);
       fs.writeFileSync(cssFilePath, updated, 'utf-8');
@@ -1501,7 +1520,7 @@ export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => 
       const { tokenName, value } = JSON.parse(body);
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       const css = fs.readFileSync(cssFilePath, 'utf-8');
-      undoStack.push({ file: 'src/index.css', content: css, activeId: '' });
+      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
       redoStack.length = 0;
       const updated = updateCssVariable(css, '@theme', tokenName, value);
       fs.writeFileSync(cssFilePath, updated, 'utf-8');

@@ -9,6 +9,7 @@ import {
   handleSketchpadRename,
   handleFrameCreate,
   handleFrameDelete,
+  handleFrameRename,
   handleFrameResize,
   handleFrameUpdatePosition,
   handleSketchpadAddElement,
@@ -29,6 +30,7 @@ export function registerSketchpadMiddleware(server: ViteDevServer) {
   server.middlewares.use('/__sketchpad-rename', handleSketchpadRename);
   server.middlewares.use('/__frame-create', handleFrameCreate);
   server.middlewares.use('/__frame-delete', handleFrameDelete);
+  server.middlewares.use('/__frame-rename', handleFrameRename);
   server.middlewares.use('/__frame-resize', handleFrameResize);
   server.middlewares.use('/__frame-update-position', handleFrameUpdatePosition);
   server.middlewares.use('/__sketchpad-add-element', handleSketchpadAddElement);
