@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '@/store';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
@@ -65,32 +65,84 @@ function DashboardPage() {
         
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card variant="bordered" shadow="sm" className="bg-background-default">
-            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
-              <Icon name="Users" size="sm" />
-              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
-            </div>
-            <TextBlock typography="heading-xxl" className="mb-2">142</TextBlock>
-            <Badge label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
-          </Card>
+          {/* pv-editable-zone-start:w2x3y4 */}
 
-          <Card variant="bordered" shadow="sm" className="bg-background-default">
-            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
-              <Icon name="Briefcase" size="sm" />
-              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Open Roles</TextBlock>
-            </div>
-            <TextBlock typography="heading-xxl" className="mb-2">18</TextBlock>
-            <Badge label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
-          </Card>
+            {/* pv-block-start:z5a6b7 */}
+            <Card data-pv-block="z5a6b7" variant="bordered" shadow="sm" className="bg-background-default">
+              {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:f2g3h4 */}
+                <div data-pv-block="f2g3h4" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:l8m9n1 */}
+                    <Icon data-pv-block="l8m9n1" name="Users" size="sm" />
+                    {/* pv-block-end:l8m9n1 */}
+                    {/* pv-block-start:o2p3q4 */}
+                    <TextBlock data-pv-block="o2p3q4" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    {/* pv-block-end:o2p3q4 */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:f2g3h4 */}
+                {/* pv-block-start:r5s6t7 */}
+                <TextBlock data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">142</TextBlock>
+                {/* pv-block-end:r5s6t7 */}
+                {/* pv-block-start:u8v9w1 */}
+                <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                {/* pv-block-end:u8v9w1 */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:z5a6b7 */}
 
-          <Card variant="bordered" shadow="sm" className="bg-background-default">
-            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
-              <Icon name="CalendarHeart" size="sm" />
-              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">On Leave</TextBlock>
-            </div>
-            <TextBlock typography="heading-xxl" className="mb-2">6</TextBlock>
-            <Badge label="2 returning this week" color="info" prefixIcon="Clock" />
-          </Card>
+            {/* pv-block-start:x2y3z4 */}
+            <Card data-pv-block="x2y3z4" variant="bordered" shadow="sm" className="bg-background-default">
+              {/* pv-editable-zone-start:a5b6c7 */}
+                {/* pv-block-start:d8e9f1 */}
+                <div data-pv-block="d8e9f1" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:g2h3i4 */}
+                    {/* pv-block-start:j5k6l7 */}
+                    <Icon data-pv-block="j5k6l7" name="Briefcase" size="sm" />
+                    {/* pv-block-end:j5k6l7 */}
+                    {/* pv-block-start:m8n9o1 */}
+                    <TextBlock data-pv-block="m8n9o1" typography="small" className="font-semibold uppercase tracking-wider">Open Roles</TextBlock>
+                    {/* pv-block-end:m8n9o1 */}
+                  {/* pv-editable-zone-end:g2h3i4 */}
+                </div>
+                {/* pv-block-end:d8e9f1 */}
+                {/* pv-block-start:p2q3r4 */}
+                <TextBlock data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextBlock>
+                {/* pv-block-end:p2q3r4 */}
+                {/* pv-block-start:s5t6u7 */}
+                <Badge data-pv-block="s5t6u7" label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
+                {/* pv-block-end:s5t6u7 */}
+              {/* pv-editable-zone-end:a5b6c7 */}
+            </Card>
+            {/* pv-block-end:x2y3z4 */}
+
+            {/* pv-block-start:v8w9x1 */}
+            <Card data-pv-block="v8w9x1" variant="bordered" shadow="sm" className="bg-background-default">
+              {/* pv-editable-zone-start:y2z3a4 */}
+                {/* pv-block-start:b5c6d7 */}
+                <div data-pv-block="b5c6d7" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:e8f9g1 */}
+                    {/* pv-block-start:h2i3j4 */}
+                    <Icon data-pv-block="h2i3j4" name="CalendarHeart" size="sm" />
+                    {/* pv-block-end:h2i3j4 */}
+                    {/* pv-block-start:k5l6m7 */}
+                    <TextBlock data-pv-block="k5l6m7" typography="small" className="font-semibold uppercase tracking-wider">On Leave</TextBlock>
+                    {/* pv-block-end:k5l6m7 */}
+                  {/* pv-editable-zone-end:e8f9g1 */}
+                </div>
+                {/* pv-block-end:b5c6d7 */}
+                {/* pv-block-start:n8o9p1 */}
+                <TextBlock data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextBlock>
+                {/* pv-block-end:n8o9p1 */}
+                {/* pv-block-start:q2r3s4 */}
+                <Badge data-pv-block="q2r3s4" label="2 returning this week" color="info" prefixIcon="Clock" />
+                {/* pv-block-end:q2r3s4 */}
+              {/* pv-editable-zone-end:y2z3a4 */}
+            </Card>
+            {/* pv-block-end:v8w9x1 */}
+
+          {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
         
@@ -106,11 +158,17 @@ function EmployeesPage() {
         
         {/* pv-block-start:h4e5k6 */}
         <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <Input placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md bg-background-default" />
-          <div className="flex gap-2">
-            <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
-            <Button label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
-          </div>
+          {/* pv-editable-zone-start:t5u6v7 */}
+            {/* pv-block-start:w8x9y1 */}
+            <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md bg-background-default" />
+            {/* pv-block-end:w8x9y1 */}
+            {/* pv-block-start:z2a3b4 */}
+            <div data-pv-block="z2a3b4" className="flex gap-2">
+              <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
+              <Button label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
+            </div>
+            {/* pv-block-end:z2a3b4 */}
+          {/* pv-editable-zone-end:t5u6v7 */}
         </div>
         {/* pv-block-end:h4e5k6 */}
 
@@ -178,35 +236,61 @@ function PositionsPage() {
         
         {/* pv-block-start:h4p5w6 */}
         <div data-pv-block="h4p5w6" className="flex justify-between items-center mb-2">
-          <TextBlock typography="heading-md">Open Positions</TextBlock>
-          <Button label="Create Requisition" leftIcon="Plus" size="sm" color="primary" />
+          {/* pv-editable-zone-start:e1f2g3 */}
+            {/* pv-block-start:h3i4j5 */}
+            <TextBlock data-pv-block="h3i4j5" typography="heading-md">Open Positions</TextBlock>
+            {/* pv-block-end:h3i4j5 */}
+            {/* pv-block-start:k6l7m8 */}
+            <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus" size="sm" color="primary" />
+            {/* pv-block-end:k6l7m8 */}
+          {/* pv-editable-zone-end:e1f2g3 */}
         </div>
         {/* pv-block-end:h4p5w6 */}
         
-        {/* Dynamic mapping omits pv-block tags */}
         {mockPositions.map(pos => (
           <Card key={pos.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-background-secondary flex items-center justify-center text-foreground-secondary">
-                <Icon name="Briefcase" size="md" />
+            {/* pv-editable-zone-start:f2a3b4 */}
+              {/* pv-block-start:c5d6e7 */}
+              <div data-pv-block="c5d6e7" className="flex items-center gap-4">
+                {/* pv-editable-zone-start:w9x1y2 */}
+                  {/* pv-block-start:z3a4b5 */}
+                  <div data-pv-block="z3a4b5" className="w-12 h-12 rounded-lg bg-background-secondary flex items-center justify-center text-foreground-secondary">
+                    <Icon name="Briefcase" size="md" />
+                  </div>
+                  {/* pv-block-end:z3a4b5 */}
+                  {/* pv-block-start:c6d7e8 */}
+                  <div data-pv-block="c6d7e8">
+                    <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextBlock>
+                    <div className="flex items-center gap-3 mt-1">
+                      <TextBlock typography="small">{pos.department}</TextBlock>
+                      <span className="text-foreground-tertiary text-xs">•</span>
+                      <TextBlock typography="small">{pos.location}</TextBlock>
+                    </div>
+                  </div>
+                  {/* pv-block-end:c6d7e8 */}
+                {/* pv-editable-zone-end:w9x1y2 */}
               </div>
-              <div>
-                <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextBlock>
-                <div className="flex items-center gap-3 mt-1">
-                  <TextBlock typography="small">{pos.department}</TextBlock>
-                  <span className="text-foreground-tertiary text-xs">•</span>
-                  <TextBlock typography="small">{pos.location}</TextBlock>
-                </div>
+              {/* pv-block-end:c5d6e7 */}
+
+              {/* pv-block-start:h8j9k1 */}
+              <div data-pv-block="h8j9k1" className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
+                {/* pv-editable-zone-start:f9g1h2 */}
+                  {/* pv-block-start:i3j4k5 */}
+                  <div data-pv-block="i3j4k5" className="flex flex-col items-start sm:items-end">
+                    <TextBlock typography="heading-sm">{pos.applicants}</TextBlock>
+                    <TextBlock typography="small">Applicants</TextBlock>
+                  </div>
+                  {/* pv-block-end:i3j4k5 */}
+                  {/* pv-block-start:l6m7n8 */}
+                  <Badge data-pv-block="l6m7n8" label={pos.status} color={pos.status === 'Open' ? 'success' : 'info'} />
+                  {/* pv-block-end:l6m7n8 */}
+                  {/* pv-block-start:o9p1q2 */}
+                  <Button data-pv-block="o9p1q2" iconOnly variant="ghost" leftIcon="ChevronRight" />
+                  {/* pv-block-end:o9p1q2 */}
+                {/* pv-editable-zone-end:f9g1h2 */}
               </div>
-            </div>
-            <div className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
-              <div className="flex flex-col items-start sm:items-end">
-                <TextBlock typography="heading-sm">{pos.applicants}</TextBlock>
-                <TextBlock typography="small">Applicants</TextBlock>
-              </div>
-              <Badge label={pos.status} color={pos.status === 'Open' ? 'success' : 'info'} />
-              <Button iconOnly variant="ghost" leftIcon="ChevronRight" />
-            </div>
+              {/* pv-block-end:h8j9k1 */}
+            {/* pv-editable-zone-end:f2a3b4 */}
           </Card>
         ))}
         
@@ -222,31 +306,57 @@ function DepartmentsPage() {
       
         {/* pv-block-start:h4d5v6 */}
         <div data-pv-block="h4d5v6" className="flex justify-between items-center mb-2">
-          <TextBlock typography="heading-md">Departments</TextBlock>
-          <Button label="Add Department" leftIcon="Plus" size="sm" color="primary" />
+          {/* pv-editable-zone-start:n9o1p2 */}
+            {/* pv-block-start:q3r4s5 */}
+            <TextBlock data-pv-block="q3r4s5" typography="heading-md">Departments</TextBlock>
+            {/* pv-block-end:q3r4s5 */}
+            {/* pv-block-start:t6u7v8 */}
+            <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus" size="sm" color="primary" />
+            {/* pv-block-end:t6u7v8 */}
+          {/* pv-editable-zone-end:n9o1p2 */}
         </div>
         {/* pv-block-end:h4d5v6 */}
         
-        {/* Dynamic mapping omits pv-block tags */}
         {mockDepartments.map(dept => (
           <Card key={dept.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
-            <div className="flex items-center gap-4">
-              <Avatar icon="Building2" size="lg" bgColor="info" />
-              <div>
-                <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextBlock>
-                <TextBlock typography="small" className="mt-1">Manager: {dept.manager}</TextBlock>
+            {/* pv-editable-zone-start:m2n3p4 */}
+              {/* pv-block-start:q5r6s7 */}
+              <div data-pv-block="q5r6s7" className="flex items-center gap-4">
+                {/* pv-editable-zone-start:r3s4t5 */}
+                  {/* pv-block-start:u6v7w8 */}
+                  <Avatar data-pv-block="u6v7w8" icon="Building2" size="lg" bgColor="info" />
+                  {/* pv-block-end:u6v7w8 */}
+                  {/* pv-block-start:x9y1z2 */}
+                  <div data-pv-block="x9y1z2">
+                    <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextBlock>
+                    <TextBlock typography="small" className="mt-1">Manager: {dept.manager}</TextBlock>
+                  </div>
+                  {/* pv-block-end:x9y1z2 */}
+                {/* pv-editable-zone-end:r3s4t5 */}
               </div>
-            </div>
-            <div className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
-              <div className="flex flex-col items-start sm:items-end">
-                <TextBlock typography="heading-sm">{dept.headcount}</TextBlock>
-                <TextBlock typography="small">Employees</TextBlock>
+              {/* pv-block-end:q5r6s7 */}
+
+              {/* pv-block-start:t8u9v1 */}
+              <div data-pv-block="t8u9v1" className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
+                {/* pv-editable-zone-start:a3b4c5 */}
+                  {/* pv-block-start:d6e7f8 */}
+                  <div data-pv-block="d6e7f8" className="flex flex-col items-start sm:items-end">
+                    <TextBlock typography="heading-sm">{dept.headcount}</TextBlock>
+                    <TextBlock typography="small">Employees</TextBlock>
+                  </div>
+                  {/* pv-block-end:d6e7f8 */}
+                  {/* pv-block-start:g9h1i2 */}
+                  <div data-pv-block="g9h1i2" className="flex flex-col items-start sm:items-end">
+                    <Badge label={dept.budget} color={dept.budget === 'At Risk' ? 'warning' : 'success'} />
+                  </div>
+                  {/* pv-block-end:g9h1i2 */}
+                  {/* pv-block-start:j3k4l5 */}
+                  <Button data-pv-block="j3k4l5" iconOnly variant="ghost" leftIcon="ChevronRight" />
+                  {/* pv-block-end:j3k4l5 */}
+                {/* pv-editable-zone-end:a3b4c5 */}
               </div>
-              <div className="flex flex-col items-start sm:items-end">
-                <Badge label={dept.budget} color={dept.budget === 'At Risk' ? 'warning' : 'success'} />
-              </div>
-              <Button iconOnly variant="ghost" leftIcon="ChevronRight" />
-            </div>
+              {/* pv-block-end:t8u9v1 */}
+            {/* pv-editable-zone-end:m2n3p4 */}
           </Card>
         ))}
         
@@ -380,16 +490,7 @@ function DetailField({
 
 export default function App() {
   const { state, navigate } = useStore();
-  
-  // Enforce default routing if on the root path
-  useEffect(() => {
-    if (!state.path || state.path === '/' || state.path === '/index.html') {
-      navigate('/dashboard');
-    }
-  }, [state.path, navigate]);
-  
-  // Normalize root path to dashboard robustly to prevent null reads before effect applies
-  const currentPath = (!state.path || state.path === '/' || state.path === '/index.html') ? '/dashboard' : state.path;
+  const currentPath = state.path;
 
   // Derive page title from path
   const pageTitle = currentPath.replace('/', '').charAt(0).toUpperCase() + currentPath.replace('/', '').slice(1);

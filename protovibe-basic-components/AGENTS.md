@@ -51,9 +51,9 @@ Use fixed overlay (`inset: 0`) in `document.body`; include backdrop, focus manag
 
 How you write blocks and zones depends entirely on **where** you are writing them.
 
-### 1. Inside Component Source Files (`PvDefaultContent` & `pvConfig`)
+### 1. Inside `PvDefaultContent` only
 
-Always use the **bare, ID-less** form. This code acts as a template — the Protovibe server automatically generates and assigns unique IDs when the user adds the component to the canvas.
+Use the **bare, ID-less** form only inside `PvDefaultContent` templates.
 
 ```jsx
 // ✅ Correct for component definitions
@@ -64,7 +64,7 @@ Always use the **bare, ID-less** form. This code acts as a template — the Prot
 {/* pv-editable-zone-end */}
 ```
 
-Component source files (`src/components/ui/`) use a bare empty zone:
+`PvDefaultContent` templates use a bare empty zone:
 
 ```jsx
 {/* pv-editable-zone-start */}
@@ -77,11 +77,11 @@ Component source files (`src/components/ui/`) use a bare empty zone:
 defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'
 ```
 
+Do not extend this exception to any other code path. Outside `PvDefaultContent`, do not leave zone IDs or block IDs empty.
+
 ### 2. Inside Application Pages (e.g., `App.tsx`, `Dashboard.tsx`)
 
-When hardcoding populated blocks directly into page layouts, you **MUST** assign a matching random 6-character alphanumeric ID to the comment tags and the root element's `data-pv-block` attribute. Without IDs, the visual builder's Cut, Copy, and Delete actions will fail because the server cannot target the block.
-
-> **Note:** Empty "pristine" zones waiting for future drops can remain bare (no ID).
+When writing blocks anywhere outside `PvDefaultContent`, you **MUST** assign a matching random 6-character alphanumeric ID to the comment tags and the root element's `data-pv-block` attribute. Without IDs, the visual builder's Cut, Copy, and Delete actions will fail because the server cannot target the block.
 
 ```jsx
 // ✅ Correct for page files / usage sites
@@ -108,12 +108,72 @@ When hardcoding populated blocks directly into page layouts, you **MUST** assign
 2. **The block ID goes on both the comment tags and the `data-pv-block` attribute** of the root element of that block. Components that spread `...props` forward the attribute automatically.
 3. **Nested children do NOT need their own block tags** unless they are inside a nested `pv-editable-zone`.
 4. **IDs are random 6-character lowercase alphanumeric strings** (e.g. `x1y2z3`). All IDs in the file must be unique — do not reuse zone IDs for block IDs or vice versa.
+5. **Do not collapse simple static UI into one large block.** If a section does not depend on conditionals, branching, or special runtime logic, break it down into `pv-editable-zone` and `pv-block` pairs so each meaningful child can be edited, reordered, copied, or deleted independently.
 
 ### When to use Zones and Blocks (Reorderability & Dynamic Content)
 
 1. **Make siblings reorderable:** Every item that can be freely reordered with other siblings should be wrapped in its own `pv-block` pair, and the parent container should be wrapped in a `pv-editable-zone` pair. 
 2. **When to skip zones:** You should ONLY skip adding a `pv-editable-zone` if it is structurally unsafe or functionally broken to let the user reorder blocks or add new elements inside that specific container. Default to making things editable.
-3. **Dynamic/Repeatable Elements (`.map()`):** While you shouldn't wrap the `.map()` call itself in a block, you **should** let the user visually edit the *contents* of the repeatable item if it just renders data. Wrap the inner contents of the mapped element in a `pv-editable-zone` and `pv-block` pairs. This allows the user to visually compose the template of the repeatable item (e.g., wrap items in a div, add an icon, adjust layout).
+3. **Dynamic/Repeatable Elements (`.map()`):** While you shouldn't wrap the `.map()` call itself in a block, you **should** let the user visually edit the *contents* of the repeatable item if it just renders data. Wrap the inner contents of the mapped element in a `pv-editable-zone` and `pv-block` pairs. If that mapped structure is written anywhere outside `PvDefaultContent`, its zones and blocks must still use explicit IDs. Repetition does not make bare IDs acceptable.
+4. **Static container content should usually get an inner zone:** If a `Card`, `div`, section, or similar wrapper contains plain presentational children with no special logic, add a `pv-editable-zone` inside that wrapper and wrap each meaningful child in its own `pv-block`.
+
+### Granularity example
+
+This is too coarse because one large block wraps multiple editable cards and their internal content:
+
+```jsx
+{/* pv-block-start:g6h7j8 */}
+<div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <Card variant="bordered" shadow="sm" className="bg-background-default">
+    ...
+  </Card>
+  <Card variant="bordered" shadow="sm" className="bg-background-default">
+    ...
+  </Card>
+  <Card variant="bordered" shadow="sm" className="bg-background-default">
+    ...
+  </Card>
+</div>
+{/* pv-block-end:g6h7j8 */}
+```
+
+Prefer this structure instead, where each card is its own block and each card's simple children live inside an inner editable zone with their own blocks:
+
+```jsx
+{/* pv-block-start:g6h7j8 */}
+<div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {/* pv-editable-zone-start:a1b2c3 */}
+    {/* pv-block-start:d4e5f6 */}
+    <Card data-pv-block="d4e5f6" variant="bordered" shadow="sm" className="bg-background-default">
+      {/* pv-editable-zone-start:g7h8i9 */}
+        {/* pv-block-start:j1k2l3 */}
+        <div data-pv-block="j1k2l3" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+          {/* pv-editable-zone-start:s1t2u3 */}
+            {/* pv-block-start:v4w5x6 */}
+            <Icon data-pv-block="v4w5x6" name="Users" size="sm" />
+            {/* pv-block-end:v4w5x6 */}
+            {/* pv-block-start:y7z8a9 */}
+            <TextBlock data-pv-block="y7z8a9" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+            {/* pv-block-end:y7z8a9 */}
+          {/* pv-editable-zone-end:s1t2u3 */}
+        </div>
+        {/* pv-block-end:j1k2l3 */}
+        {/* pv-block-start:m4n5o6 */}
+        <TextBlock data-pv-block="m4n5o6" typography="heading-xxl" className="mb-2">142</TextBlock>
+        {/* pv-block-end:m4n5o6 */}
+        {/* pv-block-start:p7q8r9 */}
+        <Badge data-pv-block="p7q8r9" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+        {/* pv-block-end:p7q8r9 */}
+      {/* pv-editable-zone-end:g7h8i9 */}
+    </Card>
+    {/* pv-block-end:d4e5f6 */}
+    {/* Repeat the same pattern for the other cards, each with unique IDs */}
+  {/* pv-editable-zone-end:a1b2c3 */}
+</div>
+{/* pv-block-end:g6h7j8 */}
+```
+
+The rule of thumb is simple: if the children are plain presentational content and can reasonably be edited independently, they should each get their own block, and their parent container should expose an editable zone.
 
 ## pvConfig `invalidCombinations`
 
@@ -170,6 +230,8 @@ export const pvConfig = {
 - **Place it before `pvConfig`** in the file so the JSX reference `<PvDefaultContent />` resolves.
 - **Only for JSX defaultContent** — if `defaultContent` is a plain string, no change needed.
 - **One per file** — matches the one-pvConfig-per-file rule.
+- **Declare every referenced component in `additionalImportsForDefaultContent`** — if `PvDefaultContent` renders `Button`, `Badge`, `Card`, or any other React component, each dependency must be listed explicitly in `pvConfig.additionalImportsForDefaultContent`.
+- **Do not rely on backend auto-detection for `PvDefaultContent` dependencies** — the injection system does not infer nested component imports from the JSX template.
 - The server extracts the return JSX from `PvDefaultContent` for code injection (same as it previously did from inline `defaultContent: (...)`).
 - The previewer renders `<PvDefaultContent />` as a real React component, giving it its own HMR boundary.
 
@@ -177,11 +239,24 @@ export const pvConfig = {
 
 Previously, JSX `defaultContent` was a static value inside the `pvConfig` object. When Protovibe's inspector edited classes on elements within that JSX, the file changed but React HMR couldn't update the static object — only real React components get HMR boundaries. By making it a component, class edits hot-reload immediately.
 
+If `additionalImportsForDefaultContent` is incomplete, dragging the component onto the canvas injects JSX without the import statements required to compile it. That immediately breaks the generated file and crashes the Vite preview.
+
 ## Inspector Mutation Locking
 
 - When adding inspector buttons/inputs that mutate code (backend write), run them through `runLockedMutation` from `plugins/protovibe/src/ui/context/ProtovibeContext.tsx`.
 - New controls must respect `isMutationLocked` (disable interaction while locked).
 - While locked, inspector should show progress cursor only (no extra blocking message).
+
+## Compound Component State Management
+
+Certain parent-child component pairs manage item state implicitly through React Context. Common examples in this codebase include `RadioGroup > RadioItem`, `Tabs > TabItem`, and `SelectDropdown > DropdownItem`.
+
+### Rule: Do not manually wire state for compound components
+
+- When a child is rendered inside its matching parent group, the parent injects props such as `selected`, `active`, and `onClick` automatically.
+- Never manually pass `selected={true}`, `active={true}`, `onClick={...}`, or similar state-control props to those child items inside the group. Doing so overrides the context contract and breaks the component.
+- Always manage selection state exclusively on the parent wrapper, for example `<RadioGroup value={value} onValueChange={setValue}>` or `<Tabs value={value} onValueChange={setValue}>`.
+- If you need a standalone item outside its parent group, verify that the component actually supports standalone usage before wiring state manually.
 
 ## Reuse Existing Components
 
@@ -190,6 +265,17 @@ Never create custom `<button>`, `<input>`, or other interactive HTML elements wh
 # Component Architecture Rules (Visual Editor)
 
 Our custom visual editor parses the AST to read and write raw Tailwind strings directly. To maintain compatibility, all React components MUST adhere to these strict rules:
+
+## Root DOM Node Requirement
+
+Protovibe's Babel plugin injects tracking props such as `data-pv-loc-*` onto the root AST node at the component usage site. That only works when the component renders a concrete DOM element as its outermost node.
+
+### Rule: Never use `<>...</>` fragments as the root of an editable component
+
+- A Protovibe-compatible editable component must return a concrete root HTML element such as `<div>`, `<span>`, `<button>`, or `<label>`.
+- Never return a React Fragment as the outermost root of an editable component.
+- If the component returns a fragment, there is no DOM node to receive `...props` and no place for `data-pv-loc-*` to attach, so the visual inspector cannot detect or select the component.
+- Wrap multi-node layouts in a single semantic root element and spread `...props` onto that element.
 
 ## 0. Never Use Inline Styles — Always Use Tailwind
 
@@ -210,11 +296,15 @@ Hardcoded colors bypass the theme system and will not respond to dark mode or th
 
 The only acceptable use of `style` is for **computed / dynamic values that cannot be expressed as static Tailwind classes** (e.g. `style={{ maxWidth: props.maxWidth }}` where `maxWidth` is a runtime prop). Even then, prefer a Tailwind arbitrary-value class if the value is static.
 
-## 1. No `cva` or JS Conditionals in `className`
-Do not use `cva`, `clsx`, or ternaries for Tailwind classes. All possible classes (across all variants and sizes) must be written out in a single concatenated string.
+## 1. Use `cn()` with Data-Attribute Selectors — No `cva` or JS Conditionals
 
-* **BAD:** `className={cva("base", { variants: { variant: { default: "bg-blue" } } })}`
-* **GOOD:** `className={"base-classes data-[variant=default]:bg-blue"}`
+Use `cn()` (from `@/lib/utils`) to compose Tailwind class strings. Do **not** use `cva` or JS ternaries inside `className` — the AST parser can read and edit static string literals inside `cn()`, but it cannot evaluate complex JavaScript structures.
+
+All variant styles must be expressed as static Tailwind data-attribute modifier strings inside `cn()`.
+
+* **BAD:** `className={cva("base", { variants: { variant: { default: "bg-blue" } } })()}`
+* **BAD:** `className={variant === 'ghost' ? 'bg-transparent' : 'bg-background-default'}`
+* **GOOD:** `className={cn("base-classes data-[variant=default]:bg-background-default data-[variant=ghost]:bg-transparent", className)}`
 
 ## 1.5. Never Use Palette Colors — Only Semantic Tokens
 
@@ -333,7 +423,7 @@ When creating or modifying React components in this project, you MUST ensure the
 
 * **Always Maintain `pvConfig`**: Every editable UI component must export a `pvConfig` object defining its visual editor schema (`name`, `displayName`, `description`, `importPath`, `defaultProps`, `defaultContent`, and `props`). If you modify the TypeScript interface, you MUST update `pvConfig` to match.
 * **Spread `...props` to the Root**: You must spread `...props` onto the outermost HTML/DOM element of the component (e.g., `<button {...props}>`). Protovibe strictly relies on this to inject the `data-pv-loc` tracking attributes.
-* **Expose ALL Text as Props**: Never hardcode text labels inside a component's JSX. All text (labels, titles, descriptions, button text) MUST be exposed as `string` props (e.g., `label="Click me"`) and added to the `props` schema in `pvConfig` so they can be edited directly from the visual inspector.
+* **Expose Text as Props for Atomic Components**: For atomic/leaf components (buttons, badges, tags, inputs), never hardcode text labels — expose them as `string` props (e.g., `label="Click me"`) in both the component and `pvConfig`. For structural/container components (cards, dialogs, panels), use `children` instead so users can drop `<TextBlock>` components or edit raw text nodes directly inside the visual builder.
 * **Understand Injection Strings (`defaultProps` vs `defaultContent`)**: 
   * `defaultProps`: A string of default **props** injected into the opening tag when the component is first added via the UI (e.g., `variant="default" label="New Button"`). Do not include angle brackets.
   * `defaultContent`: The **inner JSX children** injected when the component is added. Use `''` for self-closing components (no children). Use a plain string like `'{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'` for simple zones. For complex JSX content (multiple child components), define an exported `PvDefaultContent` component and reference it as `<PvDefaultContent />`. When using `<PvDefaultContent />`, also provide `additionalImportsForDefaultContent` — an array of `{ name, path }` objects for any component imports needed in the injected content.
@@ -490,8 +580,11 @@ function Input({ error, disabled, placeholder, value, onChange, onFocus, onBlur,
 
 The rule: **`InputProps` (and any similar wrapper-component props interface) must extend `React.HTMLAttributes<HTMLDivElement>` instead of `React.InputHTMLAttributes<HTMLInputElement>`**. All element-specific props are then enumerated explicitly in the interface and forwarded explicitly to the inner element. `{...rest}` on the root div will only contain generic/unknown HTML attributes (including `data-pv-loc-*`), which are safe to apply to any HTML element.
 
-### Rule 2: Expose ALL Text as Props & Protect Internals
-Never hardcode text labels inside a component's JSX. All text (labels, titles, descriptions, button text) MUST be exposed as `string` props (e.g., `label="Click me"`) and added to the `props` schema in `pvConfig` so they can be edited directly from the visual inspector.
+### Rule 2: Expose Text as Props for Atomic Components; Use `children` for Containers
+
+**Atomic/leaf components** (buttons, badges, tags, inputs): never hardcode text — expose it as a `string` prop (e.g., `label="Click me"`) and add it to `pvConfig.props`. The visual inspector edits it via the props panel.
+
+**Structural/container components** (cards, dialogs, panels, sections): use `children` instead of a text prop. Users compose content inside these components by dropping `<TextBlock>` elements or editing raw text nodes directly through the visual builder's block editor.
 
 ### Rule 3: NEVER expose complex or dangerous props
 Do not expose props in `pvConfig` that accept functions, React nodes, or complex objects. Only expose plain strings, booleans, and simple enums. 
@@ -519,8 +612,8 @@ Tailwind CSS scans your files at build time to generate styles. It cannot execut
 \`\`\`
 
 **✅ Good:**
-Use full class names via lookup maps, `data-[variant]` attribute selectors, or `cva()` (Class Variance Authority) definitions.
+Use full class names via lookup maps or Tailwind `data-[variant]` attribute selectors inside `cn()`.
 \`\`\`tsx
-// Using Radix-style data attributes
-<div data-variant={variant} className="data-[variant=destructive]:bg-red-500">
+// Using data-attribute selectors inside cn()
+<div data-variant={variant} className={cn("data-[variant=destructive]:bg-background-destructive", className)}>
 \`\`\`

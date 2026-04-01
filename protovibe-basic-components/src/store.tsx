@@ -26,7 +26,9 @@ type StoreContextType = {
 const StoreContext = createContext<StoreContextType | null>(null);
 
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
-  const [path, setPath] = useState(window.location.pathname);
+  const knownPaths = ['/dashboard', '/employees', '/positions', '/departments'];
+  const initialPath = knownPaths.includes(window.location.pathname) ? window.location.pathname : '/dashboard';
+  const [path, setPath] = useState(initialPath);
   const [toast, setToast] = useState<ToastOptions | null>(null);
 
   useEffect(() => {
