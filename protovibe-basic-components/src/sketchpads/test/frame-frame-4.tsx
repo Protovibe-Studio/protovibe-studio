@@ -12,7 +12,7 @@ export default function Frame4() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:7l9pk8 */}
       {/* pv-block-start:c1qbw0 */}
-      <Card data-pv-block="c1qbw0" data-pv-sketchpad-el="c1qbw0" variant="bordered" shadow="none" style={{ position: 'absolute', width: 341, left: 337, top: 56 }}>
+      <Card data-pv-block="c1qbw0" data-pv-sketchpad-el="c1qbw0" variant="bordered" shadow="none" style={{ position: 'absolute', width: 341, left: 368, top: 59 }}>
         {/* pv-editable-zone-start:nh6hjw */}
         {/* pv-block-start:k01z8n */}
           <Button data-pv-block="k01z8n" label="Open Dialog" variant="solid" color="primary" size="md" />
@@ -74,7 +74,7 @@ export default function Frame4() {
           {/* pv-block-end:env6et */}
 
       {/* pv-block-start:2qed1x */}
-      <Card data-pv-block="2qed1x" variant="bordered" shadow="none"  data-pv-sketchpad-el="2qed1x" style={{ position: 'absolute', left: 52, top: 340 }}>
+      <Card data-pv-block="2qed1x" variant="bordered" shadow="none"  data-pv-sketchpad-el="2qed1x" style={{ position: 'absolute', left: 59, top: 301 }}>
         {/* pv-editable-zone-start:anfldj */}
         {/* pv-block-start:71bwyh */}
       <RadioGroup data-pv-block="71bwyh" orientation="vertical" value="opt1" >
@@ -118,7 +118,7 @@ export default function Frame4() {
         {/* pv-editable-zone-end:anfldj */}
       </Card>
       {/* pv-block-end:2qed1x */}
-      {/* pv-editable-zone-end:7l9pk8 */}
+                                                {/* pv-editable-zone-end:7l9pk8 */}
     </div>
   );
 }

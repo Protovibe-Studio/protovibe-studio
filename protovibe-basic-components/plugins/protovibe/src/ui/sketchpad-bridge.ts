@@ -40,6 +40,8 @@ let dragState: {
   origTop: number;
   origZIndex: string;
   moved: boolean;
+  isFlow: boolean;
+  origTransform: string;
 } | null = null;
 
 let resizeState: {
@@ -305,18 +307,24 @@ function notifyInspector(el: HTMLElement) {
 function handlePointerDown(e: PointerEvent) {
   if (e.button !== 0) return;
 
-  // Drag target: always the top-level sketchpad block, so dragging a nested
-  // element moves the entire block rather than orphaning it.
-  const dragTarget = findSketchpadElement(e.target);
+  // Build a top-down path of all inspectable elements (frame -> wrapper -> component -> ...)
+  const path: HTMLElement[] = [];
+  let t = e.target as HTMLElement | null;
+  while (t && t !== document.documentElement) {
+    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
+      path.unshift(t);
+    }
+    t = t.parentElement;
+  }
 
-  // Inspector target: the nearest allowed element for the sketchpad environment
-  // (data-pv-sketchpad-el or data-pv-component-id), found by walking up.
-  const inspectorTarget = findAllowedAncestorOrSelf(e.target as HTMLElement);
+  // Single click logic: select top-level, or maintain current selection if clicking inside it
+  let nextTarget: HTMLElement | null = path.length > 0 ? path[0] : null;
+  if (selectedEl && path.includes(selectedEl)) {
+    nextTarget = selectedEl; // Keep current selection on single click
+  }
 
-  // Click on empty space — but first check if we're in the resize zone of the selected element
-  if (!dragTarget) {
-    // If pointer is in the right-edge resize zone of the currently selected element,
-    // start a resize without changing focus
+  if (!nextTarget) {
+    // If pointer is in the right-edge resize zone of the currently selected element
     if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
       e.preventDefault();
       e.stopPropagation();
@@ -336,8 +344,7 @@ function handlePointerDown(e: PointerEvent) {
     clearHover();
     clearSelection();
 
-    // Walk up from click target to find the frame container's content root
-    // (the div with position:relative that has data-pv-loc-* attributes)
+    // Fall back to frame root selection
     const frameRoot = findFrameRoot(e.target as HTMLElement);
     if (frameRoot) {
       setSelection(frameRoot);
@@ -348,43 +355,39 @@ function handlePointerDown(e: PointerEvent) {
     return;
   }
 
-  // Stop event from reaching InfiniteCanvas (pan) and FrameContainer handlers
   e.preventDefault();
   e.stopPropagation();
 
-  // Select visually using the drag target (top-level block outline).
-  // Notify the inspector with the more specific allowed target when available,
-  // so props panels for nested registered components still work.
   clearHover();
-  setSelection(dragTarget);
-  notifyInspector(inspectorTarget ?? dragTarget);
+  setSelection(nextTarget);
+  notifyInspector(nextTarget);
 
-  // Check if pointer is near right edge → start resize instead of drag
-  if (isNearRightEdge(dragTarget, e.clientX, e.clientY)) {
-    const rect = dragTarget.getBoundingClientRect();
+  if (isNearRightEdge(nextTarget, e.clientX, e.clientY)) {
+    const rect = nextTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
     resizeState = {
-      target: dragTarget,
+      target: nextTarget,
       pointerId: e.pointerId,
       startX: e.clientX,
       origWidth: rect.width / zoom,
     };
     setForcedCursor('ew-resize');
-    dragTarget.style.transition = 'none';
+    nextTarget.style.transition = 'none';
     return;
   }
 
-  // Begin drag tracking using the top-level block (actual drag starts after threshold)
-  const pos = getComputedPos(dragTarget);
+  const pos = getComputedPos(nextTarget);
   dragState = {
-    target: dragTarget,
+    target: nextTarget,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
     origLeft: pos.left,
     origTop: pos.top,
-    origZIndex: dragTarget.style.zIndex,
+    origZIndex: nextTarget.style.zIndex,
     moved: false,
+    isFlow: !nextTarget.hasAttribute('data-pv-sketchpad-el'),
+    origTransform: nextTarget.style.transform
   };
 }
 
@@ -412,14 +415,18 @@ function handlePointerMove(e: PointerEvent) {
       if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
       dragState.moved = true;
       setForcedCursor('grabbing');
-      // Disable CSS transitions during drag to prevent sluggish movement
       dragState.target.style.transition = 'none';
-      // Keep dragged element above all frames while dragging
       dragState.target.style.zIndex = '2147483647';
     }
 
-    dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
-    dragState.target.style.top = `${Math.round(dragState.origTop + dy)}px`;
+    if (dragState.isFlow) {
+      // Visually translate flow elements on the canvas
+      dragState.target.style.transform = `translate(${dx}px, ${dy}px)`;
+    } else {
+      // Standard position updates for absolute elements
+      dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
+      dragState.target.style.top = `${Math.round(dragState.origTop + dy)}px`;
+    }
 
     const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
     setCurrentDropTarget(dropContainer);
@@ -480,6 +487,13 @@ function handlePointerUp(e: PointerEvent) {
   // Restore transitions
   dragState.target.style.transition = '';
   dragState.target.style.zIndex = dragState.origZIndex;
+  
+  // Capture the bounding rect BEFORE resetting the transform so we know where it was dropped
+  const draggedRect = dragState.target.getBoundingClientRect();
+
+  if (dragState.isFlow) {
+    dragState.target.style.transform = dragState.origTransform; // Remove visual translate
+  }
 
   if (dragState.moved) {
     const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
@@ -490,19 +504,29 @@ function handlePointerUp(e: PointerEvent) {
     const draggedBlockId = dragState.target.getAttribute('data-pv-sketchpad-el') || dragState.target.getAttribute('data-pv-block');
     const sketchpadId = getSketchpadId();
 
+    const currentContainer = dragState.target.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
+
     if (sketchpadId && draggedBlockId && sourceFrameId && targetFrameId && dropContainer && dropContainer !== dragState.target) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
-      const isSameFrameRoot = sourceFrameId === targetFrameId && isFrameTarget;
-
-      if (!isSameFrameRoot) {
-        const elRect = dragState.target.getBoundingClientRect();
+      
+      if (dragState.isFlow && dropContainer === currentContainer) {
+        // Dropped inside its own flow container -> transform revert handles this cleanly.
+      } else if (!dragState.isFlow && sourceFrameId === targetFrameId && isFrameTarget) {
+        // Same-frame absolute move
+        const newLeft = parseFloat(dragState.target.style.left) || 0;
+        const newTop = parseFloat(dragState.target.style.top) || 0;
+        postApi('/__sketchpad-update-element-position', {
+          sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
+        });
+      } else {
+        // Dragged to a different container, OR a flow element being moved somewhere else
         const containerRect = dropContainer.getBoundingClientRect();
         const zoom = getCanvasZoom();
-        const newLeft = layoutMode === 'absolute' ? (elRect.left - containerRect.left) / zoom : 0;
-        const newTop = layoutMode === 'absolute' ? (elRect.top - containerRect.top) / zoom : 0;
+        const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
+        const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
 
-        const targetLocatorId = getNearestPvLocId(dropContainer);
+        const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
 
         window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
@@ -523,19 +547,16 @@ function handlePointerUp(e: PointerEvent) {
         dragState = null;
         return;
       }
-    }
+    } else if (!dragState.isFlow) {
+      // Fallback for same-frame move on empty canvas
+      const newLeft = parseFloat(dragState.target.style.left) || 0;
+      const newTop = parseFloat(dragState.target.style.top) || 0;
 
-    // SAME-FRAME MOVE (or drop on empty canvas — fall back to original position update)
-    const newLeft = parseFloat(dragState.target.style.left) || 0;
-    const newTop = parseFloat(dragState.target.style.top) || 0;
-
-    const frame = findFrameContainer(dragState.target);
-    const frameId = frame?.getAttribute('data-sketchpad-frame');
-
-    if (sketchpadId && frameId && draggedBlockId) {
-      postApi('/__sketchpad-update-element-position', {
-        sketchpadId, frameId, blockId: draggedBlockId, x: newLeft, y: newTop,
-      });
+      if (sketchpadId && sourceFrameId && draggedBlockId) {
+        postApi('/__sketchpad-update-element-position', {
+          sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
+        });
+      }
     }
   }
 
@@ -547,6 +568,32 @@ function handleClick(e: MouseEvent) {
   // Prevent clicks on sketchpad elements from bubbling to React handlers
   if (findSketchpadElement(e.target)) {
     e.stopPropagation();
+  }
+}
+
+function handleDoubleClick(e: MouseEvent) {
+  if (e.button !== 0) return;
+
+  const path: HTMLElement[] = [];
+  let t = e.target as HTMLElement | null;
+  while (t && t !== document.documentElement) {
+    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
+      path.unshift(t);
+    }
+    t = t.parentElement;
+  }
+
+  // Drill-down into the next child on double click
+  if (selectedEl && path.includes(selectedEl)) {
+    const idx = path.indexOf(selectedEl);
+    if (idx >= 0 && idx < path.length - 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      const nextTarget = path[idx + 1];
+      clearHover();
+      setSelection(nextTarget);
+      notifyInspector(nextTarget);
+    }
   }
 }
 
@@ -612,6 +659,7 @@ function init() {
   document.addEventListener('pointermove', handlePointerMove, true);
   document.addEventListener('pointerup', handlePointerUp, true);
   document.addEventListener('click', handleClick, true);
+  document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('message', handleParentMessage);
 }
