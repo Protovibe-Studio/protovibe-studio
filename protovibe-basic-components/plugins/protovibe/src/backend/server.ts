@@ -907,8 +907,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         }
 
         const i = spaces + '  '; const i2 = i + '  ';
+          let layoutAttrs = '';
+          if (targetLayoutMode === 'absolute') {
+            layoutAttrs = ` data-pv-sketchpad-el="${blockId}" style={{ position: 'absolute', left: ${pasteX ?? 100}, top: ${pasteY ?? 100} }}`;
+          }
+
         if (elementType === 'text') {
-          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}">\n${i2}Lorem ipsum\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>\n${i2}Lorem ipsum\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
         }
         if (elementType === 'component') {
           const propsStr = defaultProps ? ` ${defaultProps}` : '';
@@ -917,13 +922,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             // Assign fresh IDs to bare pv-block tags, then format with indentation
             const contentWithIds = assignDefaultContentIds(defaultContent.trim());
             const formattedContent = contentWithIds.split('\n').join(`\n${i2}`);
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+              return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
           } else {
             // Render a clean self-closing tag if there are no inner children
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+              return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
           }
         }
-        return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}">\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
       };
 
       if (isPristine) {

@@ -12,6 +12,14 @@
           "height": 600,
           "canvasX": 384,
           "canvasY": 54
+        },
+        {
+          "id": "frame-frame-2",
+          "name": "Frame 2",
+          "width": 800,
+          "height": 600,
+          "canvasX": 1834,
+          "canvasY": 75
         }
       ]
     }

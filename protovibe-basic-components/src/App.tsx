@@ -405,6 +405,22 @@ export default function App() {
         {/* pv-block-start:1yar0i */}
           <Button data-pv-block="1yar0i" label="Open Dialog" variant="solid" color="primary" size="md" />
           {/* pv-block-end:1yar0i */}
+
+          {/* pv-block-start:qk8xdx */}
+          <RadioGroup data-pv-block="qk8xdx" orientation="vertical" value="opt1">
+            {/* pv-editable-zone-start:j895fb */}
+              {/* pv-block-start:g2im1m */}
+              <RadioItem data-pv-block="g2im1m" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+              {/* pv-block-end:g2im1m */}
+              {/* pv-block-start:q0qk5e */}
+              <RadioItem data-pv-block="q0qk5e" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+              {/* pv-block-end:q0qk5e */}
+              {/* pv-block-start:i3n0z9 */}
+              <RadioItem data-pv-block="i3n0z9" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+              {/* pv-block-end:i3n0z9 */}
+            {/* pv-editable-zone-end:j895fb */}
+          </RadioGroup>
+          {/* pv-block-end:qk8xdx */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

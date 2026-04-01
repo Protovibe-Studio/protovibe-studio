@@ -94,6 +94,7 @@ export const FloatingToolbar: React.FC = () => {
     if (!activeData?.file || !selectedZone) return;
     const zone = zones.find(z => z.id === selectedZone);
     if (!zone) return;
+      const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
     const res = await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
       return addBlock({
@@ -108,6 +109,9 @@ export const FloatingToolbar: React.FC = () => {
         additionalImportsForDefaultContent: comp?.additionalImportsForDefaultContent,
         targetStartLine: activeData.startLine,
         targetEndLine: activeData.endLine,
+          targetLayoutMode,
+          pasteX: 100,
+          pasteY: 100,
       });
     });
     setShowAddDialog(false);

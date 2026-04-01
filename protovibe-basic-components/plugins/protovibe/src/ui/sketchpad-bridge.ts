@@ -101,13 +101,22 @@ function hasPvLoc(el: HTMLElement): boolean {
 function getNearestPvLocId(start: HTMLElement): string | null {
   let t: HTMLElement | null = start;
   while (t && t !== document.documentElement) {
+    let uiId: string | null = null;
+    let appId: string | null = null;
+
     for (let i = 0; i < t.attributes.length; i++) {
       const a = t.attributes[i];
-      if (a.name.startsWith('data-pv-loc-')) {
-        const rawId = a.name.replace('data-pv-loc-', '');
-        return rawId.replace(/^(app|ui)-/, '');
+      if (a.name.startsWith('data-pv-loc-app-')) {
+        appId = a.name.replace('data-pv-loc-app-', '');
+      } else if (a.name.startsWith('data-pv-loc-ui-')) {
+        uiId = a.name.replace('data-pv-loc-ui-', '');
       }
     }
+
+    // Always prefer the app-level locator (usage site) over the ui-level locator (component definition site)
+    if (appId) return appId;
+    if (uiId) return uiId;
+
     t = t.parentElement;
   }
   return null;
