@@ -393,10 +393,17 @@ export function SketchpadApp() {
         return;
       }
 
+      // Delete selected frame via keyboard (skip when an input is focused)
+      if (e.key === 'Delete' && selectedFrameId) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+        handleDeleteFrame(selectedFrameId);
+        return;
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [reloadAfterUndoRedo]);
+  }, [reloadAfterUndoRedo, selectedFrameId, handleDeleteFrame]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {

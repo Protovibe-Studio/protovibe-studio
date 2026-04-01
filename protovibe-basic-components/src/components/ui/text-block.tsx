@@ -2,14 +2,15 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface TextBlockProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  text?: string;
+  label?: string;
   typography?: 'regular' | 'secondary' | 'small' | 'heading-sm' | 'heading-md' | 'heading-lg' | 'heading-xxl' | 'all-caps';
 }
 
 export function TextBlock({
-  text = 'Text block',
+  label,
   typography = 'regular',
   className,
+  children,
   ...props
 }: TextBlockProps) {
   return (
@@ -29,7 +30,7 @@ export function TextBlock({
       {...props}
       data-pv-component-id="TextBlock"
     >
-      {text}
+      <span>{label || children}</span>
     </p>
   );
 }
@@ -40,10 +41,10 @@ export const pvConfig = {
   displayName: 'Text Block',
   description: 'A text element with typography style variants.',
   importPath: '@/components/ui/text-block',
-  defaultProps: 'text="Text block" typography="regular"',
+  defaultProps: 'label="Text block" typography="regular"',
   defaultContent: '',
   props: {
-    text: { type: 'string', exampleValue: 'The quick brown fox jumps over the lazy dog' },
+    label: { type: 'string' },
     typography: {
       type: 'select',
       options: ['regular', 'secondary', 'small', 'heading-sm', 'heading-md', 'heading-lg', 'heading-xxl', 'all-caps'],

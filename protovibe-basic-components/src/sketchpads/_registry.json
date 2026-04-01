@@ -6,20 +6,20 @@
       "createdAt": "2026-04-01T09:25:24.831Z",
       "frames": [
         {
-          "id": "frame-frame-1",
-          "name": "Frame 1",
-          "width": 800,
-          "height": 600,
-          "canvasX": 384,
-          "canvasY": 54
-        },
-        {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 800,
           "height": 600,
-          "canvasX": 1773,
-          "canvasY": 368
+          "canvasX": 1658,
+          "canvasY": -359
+        },
+        {
+          "id": "frame-frame-2-2",
+          "name": "Frame 2",
+          "width": 800,
+          "height": 600,
+          "canvasX": 627,
+          "canvasY": -68
         }
       ]
     }

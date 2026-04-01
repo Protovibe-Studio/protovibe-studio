@@ -1,1165 +1,464 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/store';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ToggleSwitch } from '@/components/ui/toggle-switch';
-import { Combobox, ComboboxItem } from '@/components/ui/combobox';
-import { Tabs } from '@/components/ui/tabs';
-import { TabItem } from '@/components/ui/tab-item';
-import { SegmentedControl } from '@/components/ui/segmented-control';
-import { SegmentedControlItem } from '@/components/ui/segmented-control-item';
-import { DialogTrigger } from '@/components/ui/dialog-trigger';
-import { DialogOverlay } from '@/components/ui/dialog-overlay';
-import { DialogWindow } from '@/components/ui/dialog-window';
-import { DialogCloseTrigger } from '@/components/ui/dialog-close-trigger';
-import { RadioGroup } from '@/components/ui/radio-group';
-import { RadioItem } from '@/components/ui/radio-item';
-import { RadioIcon } from '@/components/ui/radio-icon';
-import { SuperLabel } from '@/components/ui/super-label';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { InfoBoxBanner } from '@/components/ui/info-box-banner';
-import { EmptyState } from '@/components/ui/empty-state';
-import { PreloaderSpinner } from '@/components/ui/preloader-spinner';
+import { Card } from '@/components/ui/card';
+import { TextBlock } from '@/components/ui/text-block';
+import { Tabs } from '@/components/ui/tabs';
+import { TabItem } from '@/components/ui/tab-item';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
 import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
-import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
-import { ToastBox } from '@/components/ui/toast-box';
-import { DropdownButton } from '@/components/ui/dropdown-button'
-import { SelectDropdown } from '@/components/ui/select-dropdown'
-import { DropdownItem } from '@/components/ui/dropdown-item'
-import { DropdownSeparator } from '@/components/ui/dropdown-separator'
-import { Card } from '@/components/ui/card'
-import { TextBlock } from '@/components/ui/text-block'
-import { Container } from '@/components/ui/container'
+import { DialogTrigger } from '@/components/ui/dialog-trigger';
+import { DialogOverlay } from '@/components/ui/dialog-overlay';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { SelectDropdown } from '@/components/ui/select-dropdown';
+import { PopoverTrigger } from '@/components/ui/popover-trigger';
+import { DropdownList } from '@/components/ui/dropdown-list';
+import { DropdownItem } from '@/components/ui/dropdown-item';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
-export default function App() {
-  const { showToast } = useStore();
-  const [showMoreButtonVariants, setShowMoreButtonVariants] = React.useState(false);
+// --- MOCK DATA ---
+
+const mockEmployees = [
+  { id: '1', name: 'Alice Johnson', role: 'Senior Product Designer', department: 'Design', status: 'Active', email: 'alice.j@acmecorp.com', phone: '+1 (555) 123-4567', location: 'New York, NY', startDate: '2021-03-15' },
+  { id: '2', name: 'Bob Smith', role: 'Frontend Engineer', department: 'Engineering', status: 'Active', email: 'bob.s@acmecorp.com', phone: '+1 (555) 987-6543', location: 'Remote (US)', startDate: '2022-08-01' },
+  { id: '3', name: 'Carol Davis', role: 'Marketing Manager', department: 'Marketing', status: 'On Leave', email: 'carol.d@acmecorp.com', phone: '+1 (555) 555-0192', location: 'London, UK', startDate: '2019-11-10' },
+  { id: '4', name: 'David Wilson', role: 'HR Business Partner', department: 'Human Resources', status: 'Active', email: 'david.w@acmecorp.com', phone: '+1 (555) 444-3333', location: 'San Francisco, CA', startDate: '2023-01-20' },
+  { id: '5', name: 'Eve Martinez', role: 'Data Scientist', department: 'Data', status: 'Terminated', email: 'eve.m@acmecorp.com', phone: '+1 (555) 222-1111', location: 'Austin, TX', startDate: '2020-05-05' },
+];
+
+const mockPositions = [
+  { id: 'p1', title: 'Senior React Developer', department: 'Engineering', location: 'Remote', applicants: 24, status: 'Open' },
+  { id: 'p2', title: 'Product Marketing Manager', department: 'Marketing', location: 'New York, NY', applicants: 12, status: 'Interviewing' },
+  { id: 'p3', title: 'UX Researcher', department: 'Design', location: 'London, UK', applicants: 8, status: 'Open' },
+];
+
+const mockDepartments = [
+  { id: 'd1', name: 'Engineering', manager: 'Sarah Connor', headcount: 45, budget: 'On Track' },
+  { id: 'd2', name: 'Design', manager: 'John Doe', headcount: 12, budget: 'At Risk' },
+  { id: 'd3', name: 'Marketing', manager: 'Jane Smith', headcount: 28, budget: 'On Track' },
+  { id: 'd4', name: 'Human Resources', manager: 'Michael Scott', headcount: 8, budget: 'Under Budget' },
+];
+
+
+// --- SUBPAGES ---
+
+function DashboardPage() {
   return (
-    <div>
-      <div className="flex flex-col items-start pl-15">
-        {/* pv-editable-zone-start:kcyc8f */}
-          {/* pv-block-start:vcqewy */}
-          <div className="flex flex-col min-h-4" data-pv-block="vcqewy">
-            {/* pv-editable-zone-start:inside-vcqewy */}
-            {/* pv-editable-zone-end:inside-vcqewy */}
-          </div>
-          {/* pv-block-end:vcqewy */}
-
-          {/* pv-block-start:0t5wgl */}
-          <VerticalTabs data-pv-block="0t5wgl" value="tab1">
-            {/* pv-editable-zone-start:yly832 */}
-              {/* pv-block-start:a6b1x8 */}
-              <VerticalTabItem data-pv-block="a6b1x8" label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-                {/* pv-editable-zone-start:6e7oh7 */}
-                {/* pv-editable-zone-end:6e7oh7 */}
-              </VerticalTabItem>
-              {/* pv-block-end:a6b1x8 */}
-              {/* pv-block-start:re97r0 */}
-              <VerticalTabItem data-pv-block="re97r0" label="Analytics" value="tab2" prefixIcon="BarChart2">
-                {/* pv-editable-zone-start:5fu92a */}
-                {/* pv-editable-zone-end:5fu92a */}
-              </VerticalTabItem>
-              {/* pv-block-end:re97r0 */}
-              {/* pv-block-start:1toybw */}
-              <VerticalTabItem data-pv-block="1toybw" label="Settings" value="tab3" prefixIcon="Settings">
-                {/* pv-editable-zone-start:o0xx1b */}
-                {/* pv-editable-zone-end:o0xx1b */}
-              </VerticalTabItem>
-              {/* pv-block-end:1toybw */}
-            {/* pv-editable-zone-end:yly832 */}
-          </VerticalTabs>
-          {/* pv-block-end:0t5wgl */}
-
-          {/* pv-block-start:k89w9h */}
-          <Tabs data-pv-block="k89w9h" value="tab1">
-            {/* pv-editable-zone-start:i28u3r */}
-              {/* pv-block-start:njzs0e */}
-              <TabItem data-pv-block="njzs0e" label="Tab 1" value="tab1" />
-              {/* pv-block-end:njzs0e */}
-              {/* pv-block-start:zzi41i */}
-              <TabItem data-pv-block="zzi41i" label="Tab 2" value="tab2" />
-              {/* pv-block-end:zzi41i */}
-              {/* pv-block-start:e16o38 */}
-              <TabItem data-pv-block="e16o38" label="Tab 3" value="tab3" />
-              {/* pv-block-end:e16o38 */}
-            {/* pv-editable-zone-end:i28u3r */}
-          </Tabs>
-          {/* pv-block-end:k89w9h */}
-
-          {/* pv-block-start:1imggz */}
-          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="1imggz">
-            {/* pv-editable-zone-start:inside-1imggz */}
-              {/* pv-block-start:dxq3u9 */}
-              <span data-pv-block="dxq3u9">
-                Lorem ipsum
-                {/* pv-editable-zone-start:inside-dxq3u9 */}
-                {/* pv-editable-zone-end:inside-dxq3u9 */}
-              </span>
-              {/* pv-block-end:dxq3u9 */}
-            {/* pv-editable-zone-end:inside-1imggz */}
-          </div>
-          {/* pv-block-end:1imggz */}
-
-        {/* pv-block-start:j5f1fn */}
-          <div className="flex-col min-h-4 bg-background-secondary rounded-md flex w-1/2 py-5 pl-2 pr-5" data-pv-block="j5f1fn">
-            {/* pv-editable-zone-start:inside-j5f1fn */}
-              {/* pv-block-start:hkx3km */}
-              <span data-pv-block="hkx3km">
-                Lorem ipsum
-                {/* pv-editable-zone-start:inside-hkx3km */}
-                {/* pv-editable-zone-end:inside-hkx3km */}
-              </span>
-              {/* pv-block-end:hkx3km */}
-
-            {/* pv-block-start:hf88xn */}
-          <div className="flex flex-col min-h-4 p-5 bg-background-secondary rounded-md" data-pv-block="hf88xn">
-            {/* pv-editable-zone-start:inside-hf88xn */}
-              {/* pv-block-start:3b25zt */}
-              <span data-pv-block="3b25zt">
-                Lorem ipsum
-                {/* pv-editable-zone-start:inside-3b25zt */}
-                {/* pv-editable-zone-end:inside-3b25zt */}
-              </span>
-              {/* pv-block-end:3b25zt */}
-            {/* pv-editable-zone-end:inside-hf88xn */}
-          </div>
-          {/* pv-block-end:hf88xn */}
-
-            {/* pv-block-start:r0spod */}
-          <Button data-pv-block="r0spod" label="Open Dialog" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:r0spod */}
-
-            {/* pv-block-start:ia01ir */}
-              <Button data-pv-block="ia01ir" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:ia01ir */}
-
-            {/* pv-block-start:9nrhi0 */}
-          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="9nrhi0" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:c1cn2h */}
-            {/* pv-block-start:a2ubzy */}
-          <Button data-pv-block="a2ubzy" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:a2ubzy */}
-            {/* pv-editable-zone-end:c1cn2h */}
+    <div className="flex flex-col animate-in fade-in duration-300 gap-4">
+      {/* pv-editable-zone-start */}
+        
+        {/* pv-block-start */}
+        <InfoBoxBanner
+          data-pv-block=""
+          heading="Welcome back, HR Admin!"
+          secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."
+          color="primary"
+          icon="Sparkles"
+          primaryActionLabel="Review Requests"
+          actionsLayout="right"
+        />
+        {/* pv-block-end */}
+        
+        {/* pv-block-start */}
+        <div data-pv-block="" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card variant="bordered" shadow="sm">
+            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
+              <Icon name="Users" size="sm" />
+              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+            </div>
+            <TextBlock typography="heading-xxl" className="mb-2">142</TextBlock>
+            <Badge label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
           </Card>
-          {/* pv-block-end:9nrhi0 */}
 
-              {/* pv-block-start:dcq1nc */}
-              <DialogTrigger data-pv-block="dcq1nc">
-                {/* pv-editable-zone-start:n4ivbh */}
-                  {/* pv-block-start:pgfdrs */}
-                  <Button data-pv-block="pgfdrs" label="Open Dialog" variant="solid" color="primary" size="md" />
-                  {/* pv-block-end:pgfdrs */}
-                  {/* pv-block-start:12in4j */}
-                  <DialogOverlay data-pv-block="12in4j">
-                    <DialogWindow size="md">
-                      {/* pv-editable-zone-start:906s94 */}
-                      {/* pv-block-start:9ixyf6 */}
-                      <h2 data-pv-block="9ixyf6" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                      {/* pv-block-end:9ixyf6 */}
-                      {/* pv-block-start:cqyy0w */}
-                      <p data-pv-block="cqyy0w" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                      {/* pv-block-end:cqyy0w */}
-                      {/* pv-editable-zone-end:906s94 */}
-                    </DialogWindow>
-                  </DialogOverlay>
-                  {/* pv-block-end:12in4j */}
-                {/* pv-editable-zone-end:n4ivbh */}
+          <Card variant="bordered" shadow="sm">
+            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
+              <Icon name="Briefcase" size="sm" />
+              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Open Roles</TextBlock>
+            </div>
+            <TextBlock typography="heading-xxl" className="mb-2">18</TextBlock>
+            <Badge label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
+          </Card>
+
+          <Card variant="bordered" shadow="sm">
+            <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
+              <Icon name="CalendarHeart" size="sm" />
+              <TextBlock typography="small" className="font-semibold uppercase tracking-wider">On Leave</TextBlock>
+            </div>
+            <TextBlock typography="heading-xxl" className="mb-2">6</TextBlock>
+            <Badge label="2 returning this week" color="info" prefixIcon="Clock" />
+          </Card>
+        </div>
+        {/* pv-block-end */}
+        
+      {/* pv-editable-zone-end */}
+    </div>
+  );
+}
+
+function EmployeesPage() {
+  return (
+    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+      {/* pv-editable-zone-start */}
+        
+        {/* pv-block-start */}
+        <div data-pv-block="" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <Input placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md" />
+          <div className="flex gap-2">
+            <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
+            <Button label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
+          </div>
+        </div>
+        {/* pv-block-end */}
+
+        {/* pv-block-start */}
+        <div data-pv-block="" className="flex flex-col border border-border-default rounded-lg bg-background-default overflow-hidden shadow-sm">
+          {/* Table Header */}
+          <div className="flex items-center px-6 py-3 border-b border-border-default bg-background-default">
+            <TextBlock typography="small" className="flex-1 font-semibold uppercase tracking-wider">Employee</TextBlock>
+            <TextBlock typography="small" className="w-48 font-semibold uppercase tracking-wider hidden md:block">Role</TextBlock>
+            <TextBlock typography="small" className="w-40 font-semibold uppercase tracking-wider hidden lg:block">Department</TextBlock>
+            <TextBlock typography="small" className="w-32 font-semibold uppercase tracking-wider">Status</TextBlock>
+            <div className="w-10"></div>
+          </div>
+
+          {/* Table Body - Dynamic mapping omits pv-block tags */}
+          <div className="flex flex-col divide-y divide-border-default">
+            {mockEmployees.map(emp => (
+              <DialogTrigger key={emp.id} closeOnEscape>
+                <div className="flex items-center px-6 py-4 hover:bg-background-secondary cursor-pointer transition-colors group grow">
+                  <div className="flex-1 flex items-center gap-4">
+                    <Avatar initials={emp.name} size="md" bgColor="primary" />
+                    <div className="flex flex-col">
+                      <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{emp.name}</TextBlock>
+                      <TextBlock typography="small">{emp.email}</TextBlock>
+                    </div>
+                  </div>
+                  <div className="w-48 hidden md:block">
+                    <TextBlock typography="regular" className="truncate">{emp.role}</TextBlock>
+                  </div>
+                  <div className="w-40 hidden lg:block">
+                    <TextBlock typography="regular">{emp.department}</TextBlock>
+                  </div>
+                  <div className="w-32">
+                    <Badge 
+                      label={emp.status} 
+                      color={emp.status === 'Active' ? 'success' : emp.status === 'On Leave' ? 'warning' : 'neutral'} 
+                    />
+                  </div>
+                  <div className="w-10 text-right">
+                    <Icon name="ChevronRight" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
+                  </div>
+                </div>
+
+                {/* Detail Dialog */}
+                <DialogOverlay>
+                  <DialogWindow size="lg">
+                    <EmployeeDetailsDialog emp={emp} />
+                  </DialogWindow>
+                </DialogOverlay>
               </DialogTrigger>
-              {/* pv-block-end:dcq1nc */}
-            {/* pv-editable-zone-end:inside-j5f1fn */}
+            ))}
           </div>
-          {/* pv-block-end:j5f1fn */}
+        </div>
+        {/* pv-block-end */}
+        
+      {/* pv-editable-zone-end */}
+    </div>
+  );
+}
 
-          {/* pv-block-start:54fl2x */}
-          <Card className="my-10 w-full data-[variant=bordered]:border-px border-l-5 data-[variant=bordered]:border-t-4 data-[variant=bordered]:rounded-tl-none data-[variant=bordered]:rounded-tr-none bg-background-primary-subtle" data-pv-block="54fl2x"  >
-            {/* pv-editable-zone-start:c5gbka */}
-            {/* pv-block-start:gc051c */}
-          <TextBlock className="font-thin" data-pv-block="gc051c" text="Text block Test" typography="heading-md" />
-          {/* pv-block-end:gc051c */}
-
-              {/* pv-block-start:fas0lb */}
-              <Button data-pv-block="fas0lb" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:fas0lb */}
-
-            {/* pv-block-start:z3m7ik */}
-          <Card className="flex justify-center flex-col w-1/2 items-start" data-pv-block="z3m7ik" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:c1cn2h */}
-            {/* pv-block-start:160x6a */}
-          <Button data-pv-block="160x6a" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:160x6a */}
-
-            {/* pv-block-start:334e7i */}
-          <Button data-pv-block="334e7i" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:334e7i */}
-            {/* pv-editable-zone-end:c1cn2h */}
-          </Card>
-          {/* pv-block-end:z3m7ik */}
-
-            {/* pv-block-start:03z36g */}
-          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5" data-pv-block="03z36g">
-            {/* pv-editable-zone-start:inside-03z36g */}
-              {/* pv-block-start:eburnz */}
-              <span data-pv-block="eburnz">
-                Lorem ipsum
-                {/* pv-editable-zone-start:inside-eburnz */}
-                {/* pv-editable-zone-end:inside-eburnz */}
-              </span>
-              {/* pv-block-end:eburnz */}
-            {/* pv-editable-zone-end:inside-03z36g */}
-          </div>
-          {/* pv-block-end:03z36g */}
-
-            {/* pv-block-start:m8ldvx */}
-      <Button className="bg-background-secondary" data-pv-block="m8ldvx" data-pv-sketchpad-el="m8ldvx" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 294, top: 582, width: 172 }} />
-      {/* pv-block-end:m8ldvx */}
-
-            {/* pv-block-start:5z1c40 */}
-              <Button data-pv-block="5z1c40" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:5z1c40 */}
-            {/* pv-editable-zone-end:c5gbka */}
-          </Card>
-          {/* pv-block-end:54fl2x */}
-
-          {/* pv-block-start:im5sfy */}
-          <Container data-pv-block="im5sfy">
-            {/* pv-editable-zone-start:vvh5ey */}
-              {/* pv-block-start:5pzojq */}
-              <TextBlock className="text-foreground-primary" data-pv-block="5pzojq" text="Text block" typography="regular" />
-              {/* pv-block-end:5pzojq */}
-            {/* pv-editable-zone-end:vvh5ey */}
-          </Container>
-          {/* pv-block-end:im5sfy */}
-
-          {/* pv-block-start:85inm3 */}
-          <span data-pv-block="85inm3">
-            Lorem ipsum
-            {/* pv-editable-zone-start:inside-85inm3 */}
-            {/* pv-editable-zone-end:inside-85inm3 */}
-          </span>
-          {/* pv-block-end:85inm3 */}
-
-          {/* pv-block-start:fadl48 */}
-          <RadioItem data-pv-block="fadl48" primaryText="Option 1" value="opt1" />
-          {/* pv-block-end:fadl48 */}
-
-          {/* pv-block-start:q9lrds */}
-          <span data-pv-block="q9lrds">
-            Lorem ipsum
-            {/* pv-editable-zone-start:inside-q9lrds */}
-            {/* pv-editable-zone-end:inside-q9lrds */}
-          </span>
-          {/* pv-block-end:q9lrds */}
-
-          {/* pv-block-start:91qsdy */}
-          <Button data-pv-block="91qsdy" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:91qsdy */}
-
-          {/* pv-block-start:asyohf */}
-          <DropdownButton data-pv-block="asyohf" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown">
-            {/* pv-editable-zone-start:ivx27g */}
-              {/* pv-block-start:xegspb */}
-              <DropdownItem data-pv-block="xegspb" label="Edit" prefixIcon="Edit2" />
-              {/* pv-block-end:xegspb */}
-              {/* pv-block-start:4h1ejl */}
-              <DropdownItem data-pv-block="4h1ejl" label="Duplicate" prefixIcon="Copy" />
-              {/* pv-block-end:4h1ejl */}
-              {/* pv-block-start:n7xwzl */}
-              <DropdownSeparator data-pv-block="n7xwzl" />
-              {/* pv-block-end:n7xwzl */}
-              {/* pv-block-start:vuf9mo */}
-              <DropdownItem data-pv-block="vuf9mo" label="Delete" prefixIcon="Trash2" destructive={true} />
-              {/* pv-block-end:vuf9mo */}
-            {/* pv-editable-zone-end:ivx27g */}
-          </DropdownButton>
-          {/* pv-block-end:asyohf */}
-
-          {/* pv-block-start:vyjtlx */}
-          <Card className="gap-2 shadow-lg" data-pv-block="vyjtlx" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:z5l8qh */}
-            {/* pv-block-start:fq41ck */}
-          <TextBlock className="font-thin" data-pv-block="fq41ck" text="Text block Test" typography="heading-md" />
-          {/* pv-block-end:fq41ck */}
-
-            {/* pv-block-start:z3wpx3 */}
-              <TextBlock className="text-foreground-primary" data-pv-block="z3wpx3" text="Witam serdecznie, pozdrawiam!" typography="regular" />
-              {/* pv-block-end:z3wpx3 */}
-
-              {/* pv-block-start:hjyw6a */}
-              <div className="flex min-h-4 flex-row gap-2" data-pv-block="hjyw6a">
-                {/* pv-editable-zone-start:inside-hjyw6a */}
-                {/* pv-block-start:eszc3k */}
-          <Button data-pv-block="eszc3k" label="Button" variant="outline" color="primary" size="md" />
-          {/* pv-block-end:eszc3k */}
-
-                {/* pv-block-start:krzrws */}
-          <Button data-pv-block="krzrws" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:krzrws */}
-                {/* pv-editable-zone-end:inside-hjyw6a */}
+function PositionsPage() {
+  return (
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+      {/* pv-editable-zone-start */}
+        
+        {/* pv-block-start */}
+        <div data-pv-block="" className="flex justify-between items-center mb-2">
+          <TextBlock typography="heading-md">Open Positions</TextBlock>
+          <Button label="Create Requisition" leftIcon="Plus" size="sm" color="primary" />
+        </div>
+        {/* pv-block-end */}
+        
+        {/* Dynamic mapping omits pv-block tags */}
+        {mockPositions.map(pos => (
+          <Card key={pos.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-background-secondary flex items-center justify-center text-foreground-secondary">
+                <Icon name="Briefcase" size="md" />
               </div>
-              {/* pv-block-end:hjyw6a */}
-
-              {/* pv-block-start:oxpbiz */}
-              <DialogTrigger data-pv-block="oxpbiz">
-                {/* pv-editable-zone-start:xodz4n */}
-                  {/* pv-block-start:j9we2u */}
-                  <Button data-pv-block="j9we2u" label="Open Dialog" variant="solid" color="primary" size="md" />
-                  {/* pv-block-end:j9we2u */}
-                  {/* pv-block-start:95po0b */}
-                  <DialogOverlay data-pv-block="95po0b">
-                    <DialogWindow size="md">
-                      {/* pv-editable-zone-start:slckwp */}
-                      {/* pv-block-start:3jzxbn */}
-                      <h2 data-pv-block="3jzxbn" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-                      {/* pv-block-end:3jzxbn */}
-                      {/* pv-block-start:2kkpf6 */}
-                      <p data-pv-block="2kkpf6" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-                      {/* pv-block-end:2kkpf6 */}
-
-                        {/* pv-block-start:pnr0c6 */}
-                        <div className="flex flex-col min-h-4 mb-4" data-pv-block="pnr0c6">
-                          {/* pv-editable-zone-start:inside-pnr0c6 */}
-                          {/* pv-block-start:2objye */}
-                        <SuperLabel secondaryText="Pozdro!" data-pv-block="2objye" primaryText="Label" />
-                        {/* pv-block-end:2objye */}
-
-                          {/* pv-block-start:idts06 */}
-                        <Input data-pv-block="idts06" placeholder="Enter text..." />
-                        {/* pv-block-end:idts06 */}
-                          {/* pv-editable-zone-end:inside-pnr0c6 */}
-                        </div>
-                        {/* pv-block-end:pnr0c6 */}
-
-                        {/* pv-block-start:t59p1g */}
-                        <div className="flex min-h-4 flex-row gap-4" data-pv-block="t59p1g">
-                          {/* pv-editable-zone-start:inside-t59p1g */}
-                          {/* pv-block-start:yxnha5 */}
-                        <Button className="grow" data-pv-block="yxnha5" label="Button" variant="solid" color="primary" size="md" />
-                        {/* pv-block-end:yxnha5 */}
-
-                          {/* pv-block-start:msopcv */}
-                        <Button className="grow" data-pv-block="msopcv" label="Button" variant="solid" color="danger" size="md" />
-                        {/* pv-block-end:msopcv */}
-                          {/* pv-editable-zone-end:inside-t59p1g */}
-                        </div>
-                        {/* pv-block-end:t59p1g */}
-                      {/* pv-editable-zone-end:slckwp */}
-                    </DialogWindow>
-                  </DialogOverlay>
-                  {/* pv-block-end:95po0b */}
-                {/* pv-editable-zone-end:xodz4n */}
-              </DialogTrigger>
-              {/* pv-block-end:oxpbiz */}
-            {/* pv-editable-zone-end:z5l8qh */}
+              <div>
+                <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextBlock>
+                <div className="flex items-center gap-3 mt-1">
+                  <TextBlock typography="small">{pos.department}</TextBlock>
+                  <span className="text-foreground-tertiary text-xs">•</span>
+                  <TextBlock typography="small">{pos.location}</TextBlock>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex flex-col items-start sm:items-end">
+                <TextBlock typography="heading-sm">{pos.applicants}</TextBlock>
+                <TextBlock typography="small">Applicants</TextBlock>
+              </div>
+              <Badge label={pos.status} color={pos.status === 'Open' ? 'success' : 'info'} />
+              <Button iconOnly variant="ghost" leftIcon="ChevronRight" />
+            </div>
           </Card>
-          {/* pv-block-end:vyjtlx */}
+        ))}
+        
+      {/* pv-editable-zone-end */}
+    </div>
+  );
+}
 
-          {/* pv-block-start:hf8ryd */}
-          <Card className="flex flex-col w-1/2 items-start justify-start shadow-inner" data-pv-block="hf8ryd" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:c1cn2h */}
-            {/* pv-block-start:3komdo */}
-          <Button data-pv-block="3komdo" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:3komdo */}
-
-            {/* pv-block-start:hkpswj */}
-          <Button data-pv-block="hkpswj" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:hkpswj */}
-
-            {/* pv-block-start:ltiqzm */}
-          <TextBlock className="" data-pv-block="ltiqzm" text="Text block Test" typography="heading-md" />
-          {/* pv-block-end:ltiqzm */}
-
-            {/* pv-block-start:kzpt6n */}
-          <RadioGroup data-pv-block="kzpt6n" orientation="vertical" value="opt1">
-            {/* pv-editable-zone-start:a2detv */}
-              {/* pv-block-start:3l2zyn */}
-              <RadioItem data-pv-block="3l2zyn" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-              {/* pv-block-end:3l2zyn */}
-              {/* pv-block-start:i8mg7r */}
-              <RadioItem data-pv-block="i8mg7r" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-              {/* pv-block-end:i8mg7r */}
-              {/* pv-block-start:d710ps */}
-              <RadioItem data-pv-block="d710ps" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-              {/* pv-block-end:d710ps */}
-            {/* pv-editable-zone-end:a2detv */}
-          </RadioGroup>
-          {/* pv-block-end:kzpt6n */}
-            {/* pv-editable-zone-end:c1cn2h */}
+function DepartmentsPage() {
+  return (
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+      {/* pv-editable-zone-start */}
+      
+        {/* pv-block-start */}
+        <div data-pv-block="" className="flex justify-between items-center mb-2">
+          <TextBlock typography="heading-md">Departments</TextBlock>
+          <Button label="Add Department" leftIcon="Plus" size="sm" color="primary" />
+        </div>
+        {/* pv-block-end */}
+        
+        {/* Dynamic mapping omits pv-block tags */}
+        {mockDepartments.map(dept => (
+          <Card key={dept.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+            <div className="flex items-center gap-4">
+              <Avatar icon="Building2" size="lg" bgColor="info" />
+              <div>
+                <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextBlock>
+                <TextBlock typography="small" className="mt-1">Manager: {dept.manager}</TextBlock>
+              </div>
+            </div>
+            <div className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex flex-col items-start sm:items-end">
+                <TextBlock typography="heading-sm">{dept.headcount}</TextBlock>
+                <TextBlock typography="small">Employees</TextBlock>
+              </div>
+              <div className="flex flex-col items-start sm:items-end">
+                <Badge label={dept.budget} color={dept.budget === 'At Risk' ? 'warning' : 'success'} />
+              </div>
+              <Button iconOnly variant="ghost" leftIcon="ChevronRight" />
+            </div>
           </Card>
-          {/* pv-block-end:hf8ryd */}
+        ))}
+        
+      {/* pv-editable-zone-end */}
+    </div>
+  );
+}
 
-          {/* pv-block-start:4xr5m8 */}
-          <div className="flex-col min-h-4 border rounded bg-background-default border-border-default shadow-xl flex py-4 pl-10 pr-4" data-pv-block="4xr5m8">
-            {/* pv-editable-zone-start:inside-4xr5m8 */}
-              {/* pv-block-start:3naqql */}
-              <Button data-pv-block="3naqql" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:3naqql */}
-            {/* pv-editable-zone-end:inside-4xr5m8 */}
+
+// --- DIALOG DETAILS COMPONENT ---
+
+function EmployeeDetailsDialog({ emp }: { emp: any }) {
+  const [activeTab, setActiveTab] = useState('general');
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <div className="flex flex-col min-w-[500px]">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-8">
+        <div className="flex items-center gap-5">
+          <Avatar initials={emp.name} size="2xl" bgColor="primary" />
+          <div className="flex flex-col gap-1">
+            <TextBlock typography="heading-lg">{emp.name}</TextBlock>
+            <TextBlock typography="secondary">{emp.role}</TextBlock>
+            <Badge 
+              label={emp.status} 
+              color={emp.status === 'Active' ? 'success' : emp.status === 'On Leave' ? 'warning' : 'neutral'} 
+              className="w-fit mt-1" 
+            />
           </div>
-          {/* pv-block-end:4xr5m8 */}
-
-        {/* pv-block-start:1yar0i */}
-          <Button data-pv-block="1yar0i" label="Open Dialog" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:1yar0i */}
-
-          {/* pv-block-start:qk8xdx */}
-          <RadioGroup data-pv-block="qk8xdx" orientation="vertical" value="opt1">
-            {/* pv-editable-zone-start:j895fb */}
-              {/* pv-block-start:g2im1m */}
-              <RadioItem data-pv-block="g2im1m" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-              {/* pv-block-end:g2im1m */}
-              {/* pv-block-start:q0qk5e */}
-              <RadioItem data-pv-block="q0qk5e" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-              {/* pv-block-end:q0qk5e */}
-              {/* pv-block-start:i3n0z9 */}
-              <RadioItem data-pv-block="i3n0z9" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-              {/* pv-block-end:i3n0z9 */}
-            {/* pv-editable-zone-end:j895fb */}
-          </RadioGroup>
-          {/* pv-block-end:qk8xdx */}
-
-          {/* pv-block-start:dhc5xg */}
-          <Card className="gap-5 pl-10" data-pv-block="dhc5xg" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:pq51gg */}
-
-              {/* pv-block-start:7vda1v */}
-              <Button data-pv-block="7vda1v" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:7vda1v */}
-            {/* pv-editable-zone-end:pq51gg */}
-          </Card>
-          {/* pv-block-end:dhc5xg */}
-
-          {/* pv-block-start:mkclei */}
-          <Card className="pl-10" data-pv-block="mkclei" variant="bordered" shadow="none">
-            {/* pv-editable-zone-start:e580uf */}
-
-              {/* pv-block-start:t4opc8 */}
-              <Button data-pv-block="t4opc8" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:t4opc8 */}
-            {/* pv-editable-zone-end:e580uf */}
-          </Card>
-          {/* pv-block-end:mkclei */}
-        {/* pv-editable-zone-end:kcyc8f */}
+        </div>
+        <Button
+          label={isEditing ? "Save Changes" : "Edit Profile"}
+          variant={isEditing ? "solid" : "outline"}
+          color="primary"
+          leftIcon={isEditing ? "Save" : "Edit2"}
+          onClick={(e) => {
+            e.stopPropagation(); // prevent dialog from closing if clicking weirdly
+            setIsEditing(!isEditing);
+          }}
+        />
       </div>
-      <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">
-        {/* Icon — all 6 sizes */}
-        <div className="flex gap-4 items-end">
-          <Icon name="Star" size="xs" />
-          <Icon name="Star" size="sm" />
-          <Icon name="Star" size="md" />
-          <Icon name="Star" size="lg" />
-          <Icon name="Star" size="xl" />
-          <Icon name="Star" size="2xl" />
-        </div>
-        <pre>
-          {JSON.stringify({ sizes: ["xs", "sm", "md", "lg", "xl", "2xl"] }, null, 2)}
-        </pre>
 
-        {/* Icon — different icons with foreground colors */}
-        <div className="flex gap-4 items-center flex-wrap">
-          <Icon name="Star" size="lg" className="text-foreground-warning" />
-          <Icon name="Heart" size="lg" className="text-foreground-destructive" />
-          <Icon name="Zap" size="lg" className="text-foreground-primary" />
-          <Icon name="Shield" size="lg" className="text-foreground-success" />
-          <Icon name="Bell" size="lg" className="text-foreground-info" />
-          <Icon name="Settings" size="lg" className="text-foreground-secondary" />
-          <Icon name="Search" size="lg" className="text-foreground-default" />
-          <Icon name="Mail" size="lg" className="text-foreground-tertiary" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "icons with semantic foreground colors" }, null, 2)}
-        </pre>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <TabItem value="general" label="General Info" />
+        <TabItem value="contact" label="Contact Details" />
+        <TabItem value="job" label="Job & Pay" />
+      </Tabs>
 
-        {/* Button — solid variant, all colors */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Button label="Primary" variant="solid" color="primary" size="md" />
-          <Button label="Secondary" variant="solid" color="neutral" size="md" />
-          <Button label="Danger" variant="solid" color="danger" size="md" />
-        </div>
-        <pre>
-          {JSON.stringify({ variant: "solid", colors: ["primary", "secondary", "danger"] }, null, 2)}
-        </pre>
-
-        {/* Button — outline variant, all colors */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Button label="Primary" variant="outline" color="primary" size="md" />
-          <Button label="Secondary" variant="outline" color="neutral" size="md" />
-          <Button label="Danger" variant="outline" color="danger" size="md" />
-        </div>
-        <pre>
-          {JSON.stringify({ variant: "outline", colors: ["primary", "secondary", "danger"] }, null, 2)}
-        </pre>
-
-        {/* Button — ghost variants */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Button label="Ghost Primary" variant="ghost"  size="md" />
-          <Button label="Ghost Secondary" variant="ghost" color="neutral" size="md" />
-          <Button label="Ghost Danger" variant="ghost" color="danger" size="md" />
-          <Button iconOnly label="Ghost Neutral" variant="ghost" color="neutral" size="md" />
-        </div>
-        <pre>
-          {JSON.stringify({ variant: "ghost", colors: ["primary", "neutral", "danger"] }, null, 2)}
-        </pre>
-
-        {/* Button — sizes */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Button label="Small" variant="solid" color="primary" size="sm" />
-          <Button label="Medium" variant="solid" color="primary" size="md" />
-          <Button label="Large" variant="solid" color="primary" size="lg" />
-        </div>
-        <pre>
-          {JSON.stringify({ sizes: ["sm", "md", "lg"] }, null, 2)}
-        </pre>
-
-        {/* Button — show more toggle (spans both columns) */}
-        <div className="col-span-2 flex justify-start">
-          <Button
-            label={showMoreButtonVariants ? "Show fewer variants" : "Show more variants of the button"}
-            variant="ghost"
-            color="neutral"
-            size="md"
-            rightIcon={showMoreButtonVariants ? "ChevronUp" : "ChevronDown"}
-            onClick={() => setShowMoreButtonVariants(v => !v)}
-          />
-        </div>
-
-        {showMoreButtonVariants && (
-          <>
-            {/* Button — with left / right icons */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <Button label="Download" variant="solid" color="primary" size="md" leftIcon="Download" />
-              <Button label="Settings" variant="outline" color="neutral" size="md" rightIcon="Settings" />
-              <Button label="Delete" variant="solid" color="danger" size="md" leftIcon="Trash2" />
-              <Button label="Share" variant="ghost" color="primary" size="md" rightIcon="Share2" />
-            </div>
-            <pre>
-              {JSON.stringify({ demo: "leftIcon / rightIcon props" }, null, 2)}
-            </pre>
-
-            {/* Button — icon-only */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <Button iconOnly variant="solid" color="primary" size="sm" leftIcon="Plus" />
-              <Button iconOnly variant="solid" color="primary" size="md" leftIcon="Plus" />
-              <Button iconOnly variant="solid" color="primary" size="lg" leftIcon="Plus" />
-              <Button iconOnly variant="outline" color="neutral" size="md" leftIcon="Settings" />
-              <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="MoreHorizontal" />
-              <Button iconOnly variant="solid" color="danger" size="md" leftIcon="Trash2" />
-            </div>
-            <pre>
-              {JSON.stringify({ demo: "iconOnly across sizes and variants" }, null, 2)}
-            </pre>
-
-            {/* Button — disabled states */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <Button label="Disabled Solid" variant="solid" color="primary" size="md" disabled />
-              <Button label="Disabled Outline" variant="outline" color="primary" size="md" disabled />
-              <Button label="Disabled Ghost" variant="ghost" color="primary" size="md" disabled />
-            </div>
-            <pre>
-              {JSON.stringify({ demo: "disabled state across variants" }, null, 2)}
-            </pre>
-          </>
+      {/* Tab Content */}
+      <div className="flex flex-col gap-6">
+        {activeTab === 'general' && (
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 animate-in fade-in">
+            <DetailField label="Full Name" value={emp.name} isEditing={isEditing} />
+            <DetailField label="Preferred Name" value={emp.name.split(' ')[0]} isEditing={isEditing} />
+            <DetailField 
+              label="Status" 
+              value={emp.status} 
+              isEditing={isEditing} 
+              type="select" 
+              options={['Active', 'On Leave', 'Terminated']} 
+            />
+            <DetailField label="Location" value={emp.location} isEditing={isEditing} />
+          </div>
         )}
 
-        {/* Input — base states */}
-        <div className="flex flex-col gap-3">
-          <Input  placeholder="Default input" />
-          <Input placeholder="Disabled input" disabled />
-          <Input placeholder="Error state" error />
-          <Input defaultValue="With a value" />
+        {activeTab === 'contact' && (
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 animate-in fade-in">
+            <DetailField label="Email Address" value={emp.email} isEditing={isEditing} type="email" />
+            <DetailField label="Phone Number" value={emp.phone} isEditing={isEditing} type="tel" />
+          </div>
+        )}
+
+        {activeTab === 'job' && (
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 animate-in fade-in">
+            <DetailField label="Job Title" value={emp.role} isEditing={isEditing} />
+            <DetailField 
+              label="Department" 
+              value={emp.department} 
+              isEditing={isEditing} 
+              type="select" 
+              options={['Engineering', 'Design', 'Marketing', 'Human Resources', 'Data']} 
+            />
+            <DetailField label="Start Date" value={emp.startDate} isEditing={isEditing} type="date" />
+            <DetailField label="Manager" value="System Administrator" isEditing={isEditing} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Reusable field component for the dialog
+function DetailField({ 
+  label, 
+  value, 
+  isEditing, 
+  type = 'text', 
+  options = [] 
+}: { 
+  label: string, 
+  value: string, 
+  isEditing: boolean, 
+  type?: 'text' | 'select' | 'email' | 'tel' | 'date',
+  options?: string[] 
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <TextBlock typography="all-caps">{label}</TextBlock>
+      
+      {isEditing ? (
+        type === 'select' ? (
+          <SelectDropdown value={value} placeholder={`Select ${label.toLowerCase()}`}>
+            {options.map((opt) => (
+              <DropdownItem key={opt} value={opt} label={opt} />
+            ))}
+          </SelectDropdown>
+        ) : (
+          <Input defaultValue={value} type={type} />
+        )
+      ) : (
+        <div className="h-10 flex items-center">
+          <TextBlock typography="regular" className="font-medium">{value}</TextBlock>
         </div>
-        <pre>
-          {JSON.stringify({ demo: "base states: default / disabled / error / with value" }, null, 2)}
-        </pre>
+      )}
+    </div>
+  );
+}
 
-        {/* Input — prefix & suffix icons */}
-        <div className="flex flex-col gap-3">
-          <Input placeholder="Search..." prefixIcon="Search" />
-          <Input placeholder="Enter email" prefixIcon="Mail" />
-          <Input placeholder="Amount" suffixIcon="DollarSign" />
-          <Input placeholder="Website" prefixIcon="Globe" suffixIcon="ExternalLink" />
+
+// --- MAIN APP COMPONENT ---
+
+export default function App() {
+  const { state, navigate } = useStore();
+  
+  // Enforce default routing if on the root path
+  useEffect(() => {
+    if (!state.path || state.path === '/' || state.path === '/index.html') {
+      navigate('/dashboard');
+    }
+  }, [state.path, navigate]);
+  
+  // Normalize root path to dashboard robustly to prevent null reads before effect applies
+  const currentPath = (!state.path || state.path === '/' || state.path === '/index.html') ? '/dashboard' : state.path;
+
+  // Derive page title from path
+  const pageTitle = currentPath.replace('/', '').charAt(0).toUpperCase() + currentPath.replace('/', '').slice(1);
+
+  return (
+    <div className="flex h-screen bg-background-default text-foreground-default font-sans overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 border-r border-border-default bg-background-secondary flex flex-col shrink-0">
+        <div className="h-16 flex items-center px-6 border-b border-border-default gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+            <Icon name="Hexagon" size="sm" />
+          </div>
+          <TextBlock typography="heading-sm" className="tracking-tight">CoreHR</TextBlock>
         </div>
-        <pre>
-          {JSON.stringify({ demo: "prefix and suffix icons" }, null, 2)}
-        </pre>
-
-        {/* Input — prefix & suffix text */}
-        <div className="flex flex-col gap-3">
-          <Input placeholder="yourdomain.com" prefixText="https://" />
-          <Input placeholder="0.00" suffixText="USD" />
-          <Input placeholder="username" prefixText="@" suffixText=".com" />
-          <Input placeholder="Enter amount" prefixText="$" suffixText="per month" />
+        
+        <div className="p-4 flex-1">
+          <TextBlock typography="all-caps" className="mb-3 px-3">Main Menu</TextBlock>
+          <VerticalTabs value={currentPath} onValueChange={navigate}>
+            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="LayoutDashboard" />
+            <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
+            <VerticalTabItem value="/positions" label="Positions" prefixIcon="Briefcase" />
+            <VerticalTabItem value="/departments" label="Departments" prefixIcon="Building2" />
+          </VerticalTabs>
         </div>
-        <pre>
-          {JSON.stringify({ demo: "prefix and suffix text adornments" }, null, 2)}
-        </pre>
+      </div>
 
-        {/* Input — mixed icons + text */}
-        <div className="flex flex-col gap-3">
-          <Input placeholder="Search users..." prefixIcon="Search" suffixText="⌘K" />
-          <Input placeholder="Enter price" prefixText="€" suffixIcon="Tag" />
-          <Input placeholder="Port number" prefixText="localhost:" error />
-          <Input placeholder="Disabled with adornments" prefixIcon="Lock" suffixText="required" disabled />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "mixed icon + text combos, including error and disabled" }, null, 2)}
-        </pre>
-
-        {/* Textarea — base states */}
-        <div className="flex flex-col gap-3">
-          <Textarea placeholder="Default textarea" />
-          <Textarea placeholder="Disabled textarea" disabled />
-          <Textarea placeholder="Error textarea" error />
-          <Textarea defaultValue={"Line one\nLine two\nLine three"} />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "textarea states: default / disabled / error / with value" }, null, 2)}
-        </pre>
-
-        {/* Textarea — prefix/suffix adornments */}
-        <div className="flex flex-col gap-3">
-          <Textarea placeholder="Write a message..." prefixIcon="MessageSquare" />
-          <Textarea placeholder="Add a note..." prefixText="Note" />
-          <Textarea placeholder="Your bio" suffixIcon="User" />
-          <Textarea placeholder="Leave feedback" prefixIcon="Star" suffixText="max 500" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "prefix/suffix icon and text adornments" }, null, 2)}
-        </pre>
-
-        {/* Textarea — resize options */}
-        <div className="flex flex-col gap-3">
-          <Textarea placeholder="No resize" autoHeight={false} resize="none" />
-          <Textarea placeholder="Horizontal resize only" autoHeight={false} resize="horizontal" />
-          <Textarea placeholder="Vertical resize (default)" autoHeight={false} resize="vertical" />
-          <Textarea placeholder="Resize both directions" autoHeight={false} resize="both" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "resize options: none / horizontal / vertical / both (autoHeight disabled)" }, null, 2)}
-        </pre>
-
-        {/* Textarea — auto height + rows + defaultHeight */}
-        <div className="flex flex-col gap-3">
-          <Textarea placeholder="Auto height (default) — grows as you type" />
-          <Textarea placeholder="Auto height disabled — fixed at 3 rows" autoHeight={false} rows={3} />
-          <Textarea placeholder="Custom default height of 160px" defaultHeight={160} />
-          <Textarea placeholder="5 rows, no auto height" autoHeight={false} rows={5} />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "autoHeight / rows / defaultHeight props" }, null, 2)}
-        </pre>
-
-        <div className="flex flex-col gap-3">
-          <Checkbox checked primaryText="Accept terms" secondaryText="I agree to the terms of service" />
-          <Checkbox  primaryText="Unchecked option" />
-          <Checkbox disabled primaryText="Disabled option" secondaryText="Cannot be changed" />
-          <Checkbox error errorLabel="This field is required" primaryText="Error state" secondaryText="Please accept to continue" />
-          <Checkbox checked error errorLabel="Invalid selection" primaryText="Checked with error" />
-        </div>
-        <pre>
-          {JSON.stringify({ props: ["checked", "disabled", "error", "errorLabel", "primaryText", "secondaryText", "heading", "prefixIcon", "suffixIcon"] }, null, 2)}
-        </pre>
-
-        <ToggleSwitch heading="" primaryText="Enable feature" checked disabled={false} />
-        <pre>
-          {JSON.stringify({ label: "Enable feature", checked: true, disabled: false }, null, 2)}
-        </pre>
-
-<Combobox placeholder="Search items..." open={false} value="item1">
-          <ComboboxItem label="Item 1" value="item1" selected={true} />
-        </Combobox>
-        <pre>
-          {JSON.stringify({ placeholder: "Search items...", open: false, value: "item1", children: "[ComboboxItem]" }, null, 2)}
-        </pre>
-
-        <Tabs value="tab1">
-          <TabItem  label="Tab 1" value="tab1" />
-          <TabItem label="Tab 2" value="tab2" />
-        </Tabs>
-        <pre>
-          {JSON.stringify({ activeValue: "tab1", children: "[TabItem, TabItem]" }, null, 2)}
-        </pre>
-
-        <SegmentedControl value="opt1">
-          <SegmentedControlItem label="Option 1" value="opt1" />
-          <SegmentedControlItem label="Option 2" value="opt2" />
-        </SegmentedControl>
-        <pre>
-          {JSON.stringify({ activeValue: "opt1", children: "[SegmentedControlItem, SegmentedControlItem]" }, null, 2)}
-        </pre>
-
-        <DialogTrigger>
-          {/* pv-editable-zone-start:dtr1gx */}
-          <Button label="Open Dialog" variant="solid" color="primary" size="md" />
-          <DialogOverlay>
-            <DialogWindow size="md">
-              {/* pv-editable-zone-start:dwn2ky */}
-              <h2 className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-              <p className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-              <DialogCloseTrigger>
-                <Button label="Close" variant="outline" color="primary" size="md" />
-              </DialogCloseTrigger>
-
-                {/* pv-block-start:7asxww */}
-                <span className="block py-5" data-pv-block="7asxww">
-                  Lorem ipsum
-                  {/* pv-editable-zone-start:inside-7asxww */}
-                  {/* pv-editable-zone-end:inside-7asxww */}
-                </span>
-                {/* pv-block-end:7asxww */}
-
-                {/* pv-block-start:ulvawm */}
-                <div className="flex flex-col min-h-4 gap-4" data-pv-block="ulvawm">
-                  {/* pv-editable-zone-start:inside-ulvawm */}
-
-                    {/* pv-block-start:4ygxbo */}
-                    <Button data-pv-block="4ygxbo" label="kokoko" variant="solid" color="primary" size="md" />
-                    {/* pv-block-end:4ygxbo */}
-
-                    {/* pv-block-start:pv0qkq */}
-                    <Button data-pv-block="pv0qkq" label="Button" variant="solid" color="primary" size="md" />
-                    {/* pv-block-end:pv0qkq */}
-                  {/* pv-editable-zone-end:inside-ulvawm */}
-                </div>
-                {/* pv-block-end:ulvawm */}
-              {/* pv-editable-zone-end:dwn2ky */}
-            </DialogWindow>
-          </DialogOverlay>
-
-            {/* pv-block-start:wnv1it */}
-            <span data-pv-block="wnv1it">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-wnv1it */}
-              {/* pv-editable-zone-end:inside-wnv1it */}
-            </span>
-            {/* pv-block-end:wnv1it */}
-
-            {/* pv-block-start:3nnoxx */}
-            <span data-pv-block="3nnoxx">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-3nnoxx */}
-              {/* pv-editable-zone-end:inside-3nnoxx */}
-            </span>
-            {/* pv-block-end:3nnoxx */}
-
-            {/* pv-block-start:aq1y0u */}
-            <span data-pv-block="aq1y0u">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-aq1y0u */}
-              {/* pv-editable-zone-end:inside-aq1y0u */}
-            </span>
-            {/* pv-block-end:aq1y0u */}
-
-            {/* pv-block-start:6jdpfx */}
-            <span data-pv-block="6jdpfx">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-6jdpfx */}
-              {/* pv-editable-zone-end:inside-6jdpfx */}
-            </span>
-            {/* pv-block-end:6jdpfx */}
-
-            {/* pv-block-start:932lo5 */}
-            <span data-pv-block="932lo5">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-932lo5 */}
-              {/* pv-editable-zone-end:inside-932lo5 */}
-            </span>
-            {/* pv-block-end:932lo5 */}
-
-            {/* pv-block-start:8bcnse */}
-            <span data-pv-block="8bcnse">
-              Lorem ipsum
-              {/* pv-editable-zone-start:inside-8bcnse */}
-              {/* pv-editable-zone-end:inside-8bcnse */}
-            </span>
-            {/* pv-block-end:8bcnse */}
-          {/* pv-editable-zone-end:dtr1gx */}
-        </DialogTrigger>
-        <pre>
-          {JSON.stringify({ children: "[Button trigger, DialogOverlay > DialogWindow]" }, null, 2)}
-        </pre>
-
-        <RadioGroup  value="opt2">
-          {/* pv-editable-zone-start:rgz8kp */}
-
-            {/* pv-block-start:rxa3n1 */}
-            <RadioItem   data-pv-block="rxa3n1" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-            {/* pv-block-end:rxa3n1 */}
-
-            {/* pv-block-start:rxb4m2 */}
-            <RadioItem data-pv-block="rxb4m2" value="opt2" selected={true} primaryText="Option Two" secondaryText="This one is selected" />
-            {/* pv-block-end:rxb4m2 */}
-
-            {/* pv-block-start:rxc5p3 */}
-            <RadioItem data-pv-block="rxc5p3" value="opt3" disabled={true} primaryText="Option Three" secondaryText="Disabled option" />
-            {/* pv-block-end:rxc5p3 */}
-
-            {/* pv-block-start:rxd6q4 */}
-            <RadioItem data-pv-block="rxd6q4" value="opt4" error={true} errorLabel="This selection is invalid" primaryText="Option Four" secondaryText="Error state example" />
-            {/* pv-block-end:rxd6q4 */}
-
-          {/* pv-editable-zone-end:rgz8kp */}
-        </RadioGroup>
-        <pre>
-          {JSON.stringify({ orientation: "vertical", value: "opt2", items: ["opt1 (unselected)", "opt2 (selected)", "opt3 (disabled)"] }, null, 2)}
-        </pre>
-
-        <div className="flex gap-4 items-center">
-          <RadioIcon state="unselected" />
-          <RadioIcon state="selected" />
-          <RadioIcon state="disabled" />
-          <RadioIcon state="error" />
-          <RadioIcon state="inherit" />
-        </div>
-        <pre>
-          {JSON.stringify({ states: ["unselected", "selected", "disabled", "error", "inherit"] }, null, 2)}
-        </pre>
-
-        <SuperLabel
-          heading="Category"
-          primaryText="Option Label"
-          secondaryText="Helper description text"
-          prefixIcon="Star"
-          suffixIcon="ChevronRight"
-        />
-        <pre>
-          {JSON.stringify({ heading: "Category", primaryText: "Option Label", secondaryText: "Helper description text", prefixIcon: "Star", suffixIcon: "ChevronRight" }, null, 2)}
-        </pre>
-
-        {/* Avatar — sizes */}
-        <div className="flex gap-4 items-end">
-          <Avatar size="xs" initials="ab" bgColor="primary" />
-          <Avatar  size="sm" initials="cd"  />
-          <Avatar size="md" initials="ef" bgColor="warning" />
-          <Avatar size="lg" initials="gh" bgColor="destructive" />
-          <Avatar size="xl" initials="ij" bgColor="info" />
-          <Avatar size="2xl" initials="kl" bgColor="default" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "6 sizes with initials (auto-uppercase)", sizes: ["xs", "sm", "md", "lg", "xl", "2xl"] }, null, 2)}
-        </pre>
-
-        {/* Avatar — icon + outline */}
-        <div className="flex gap-4 items-center">
-          <Avatar size="md" icon="User" bgColor="default" />
-          <Avatar size="md" icon="Star" bgColor="primary" />
-          <Avatar size="lg" initials="jd" bgColor="primary" outline />
-          <Avatar size="lg" initials="ms" bgColor="success" outline />
-          <Avatar size="xl" icon="Shield" bgColor="destructive" outline />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "icon prop replaces initials; outline=true adds 2px ring in background-default color" }, null, 2)}
-        </pre>
-
-        {/* Avatar — with image */}
-        <div className="flex gap-4 items-center">
-          <Avatar size="sm" initials="jd" bgColor="primary" imageSrc="https://i.pravatar.cc/80?img=1" />
-          <Avatar size="md" initials="ms" bgColor="success" imageSrc="https://i.pravatar.cc/80?img=2" />
-          <Avatar size="lg" initials="ab" bgColor="info" imageSrc="https://i.pravatar.cc/80?img=3" />
-          <Avatar size="xl" initials="cd" bgColor="warning" imageSrc="https://i.pravatar.cc/80?img=4" outline />
-          <Avatar size="2xl" initials="ef" bgColor="destructive" imageSrc="https://i.pravatar.cc/80?img=5" outline />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "imageSrc covers initials when loaded; initials visible as fallback" }, null, 2)}
-        </pre>
-
-        {/* Badge — all color variants */}
-        <div className="flex gap-2 items-center flex-wrap">
-          <Badge label="Primary" color="primary" />
-          <Badge label="Destructive" color="destructive" />
-          <Badge  label="Success" color="success" />
-          <Badge label="Warning" color="warning" />
-          <Badge label="Info" color="info" />
-          <Badge label="Neutral" color="neutral" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "all six color variants" }, null, 2)}
-        </pre>
-
-        {/* Badge — with prefix and suffix icons */}
-        <div className="flex gap-2 items-center flex-wrap">
-          <Badge label="New" color="primary" prefixIcon="Sparkles" />
-          <Badge label="Error" color="destructive" prefixIcon="AlertCircle" />
-          <Badge label="Live" color="success" prefixIcon="Radio" />
-          <Badge label="Pending" color="warning" suffixIcon="Clock" />
-          <Badge label="Beta" color="info" prefixIcon="FlaskConical" />
-          <Badge label="Draft" color="neutral" suffixIcon="FileEdit" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "badges with prefix and suffix icons" }, null, 2)}
-        </pre>
-
-        {/* InfoBoxBanner — color variants */}
-        <div className="flex flex-col gap-3">
-          <InfoBoxBanner icon="Info" heading="Info" secondaryText="This is an informational message." color="info" showCloseButton={false} />
-          <InfoBoxBanner primaryActionLabel="test" icon="CheckCircle" heading="Success" secondaryText="Your changes were saved successfully." color="success" showCloseButton={false} />
-          <InfoBoxBanner icon="AlertTriangle" heading="Warning" secondaryText="Please review before continuing." color="warning" showCloseButton={false} />
-          <InfoBoxBanner icon="XCircle" heading="Error" secondaryText="Something went wrong. Try again." color="destructive" showCloseButton={false} />
-          <InfoBoxBanner icon="Sparkles" heading="New feature" secondaryText="Check out what's new in this release." color="primary" showCloseButton={false} />
-          <InfoBoxBanner icon="MessageSquare" heading="Note" secondaryText="A neutral message with no specific urgency." color="neutral" showCloseButton={false} />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "all six color variants" }, null, 2)}
-        </pre>
-
-        {/* InfoBoxBanner — with action buttons and close */}
-        <div className="flex flex-col gap-3">
-          <InfoBoxBanner
-            icon="Info"
-            heading="Update available"
-            secondaryText="A new version is ready to install."
-            color="primary"
-            primaryActionLabel="Install now"
-            secondaryActionLabel="Remind me later"
-            showCloseButton={true}
-          />
-          <InfoBoxBanner
-            icon="AlertTriangle"
-            heading="Storage almost full"
-            secondaryText="You have used 90% of your storage quota."
-            color="warning"
-            primaryActionLabel="Upgrade plan"
-            secondaryActionLabel="Manage files"
-            showCloseButton={true}
-          />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "with primary/secondary actions and close button" }, null, 2)}
-        </pre>
-
-        {/* InfoBoxBanner — actionsLayout right */}
-        <div className="flex flex-col gap-3">
-          <InfoBoxBanner
-            icon="Info"
-            heading="Update available"
-            secondaryText="A new version is ready to install. Some random text so that it's longer so that you can see how it wraps. All right, man, shit, motherfucker. "
-            color="primary"
-            primaryActionLabel="Install now"
-            secondaryActionLabel="Later"
-            actionsLayout="right"
-            showCloseButton={true}
-          />
-          <InfoBoxBanner
-            icon="AlertTriangle"
-            heading="Storage almost full"
-            secondaryText="You have used 90% of your storage quota."
-            color="warning"
-            primaryActionLabel="Upgrade plan"
-            actionsLayout="right"
-            showCloseButton={true}
-          />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "actionsLayout right — buttons beside text before close" }, null, 2)}
-        </pre>
-
-        {/* EmptyState — basic */}
-        <EmptyState
-          icon="Inbox"
-          iconSize="xl"
-          heading="Nothing here yet"
-          secondaryText="Get started by creating your first item."
-          learnMoreLabel="Learn more"
-          learnMoreHref="#"
-          primaryActionLabel="Create item"
-          secondaryActionLabel="Learn more"
-        />
-        <pre>
-          {JSON.stringify({ demo: "empty state with icon, heading, description and actions" }, null, 2)}
-        </pre>
-
-        {/* EmptyState — icon size variants */}
-        <div className="grid grid-cols-3 gap-4">
-          <EmptyState icon="Search" iconSize="sm" heading="No results" secondaryText="Try a different search." />
-          <EmptyState icon="FolderOpen" iconSize="lg" heading="Empty folder" secondaryText="Upload files to get started." primaryActionLabel="Upload" />
-          <EmptyState icon="Bell" iconSize="2xl" heading="No notifications" secondaryText="You're all caught up!" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "icon size variants: sm / lg / 2xl" }, null, 2)}
-        </pre>
-
-        {/* PreloaderSpinner — all sizes */}
-        <div className="flex gap-6 items-end">
-          <PreloaderSpinner size="xs" />
-          <PreloaderSpinner size="sm" />
-          <PreloaderSpinner size="md" />
-          <PreloaderSpinner size="lg" />
-          <PreloaderSpinner size="xl" />
-          <PreloaderSpinner size="2xl" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "all six sizes" }, null, 2)}
-        </pre>
-
-        {/* PreloaderSpinner — with label */}
-        <div className="flex flex-col gap-4">
-          <PreloaderSpinner size="md" label="Loading..." labelPlacement="bottom" />
-          <PreloaderSpinner size="md" label="Loading..." labelPlacement="right" />
-          <PreloaderSpinner size="lg" label="Please wait" labelPlacement="right" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "label bottom vs right" }, null, 2)}
-        </pre>
-
-        {/* VerticalTabs — basic with active state */}
-        <VerticalTabs value="tab2" className="w-56">
-          <VerticalTabItem label="Dashboard" value="tab1" prefixIcon="LayoutDashboard">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Analytics" value="tab2" prefixIcon="BarChart2">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Reports" value="tab3" prefixIcon="FileText">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Settings" value="tab4" prefixIcon="Settings" disabled>
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-        </VerticalTabs>
-        <pre>
-          {JSON.stringify({ demo: "basic vertical tabs with prefix icons, tab2 active, settings disabled" }, null, 2)}
-        </pre>
-
-        {/* VerticalTabs — with suffix icons */}
-        <VerticalTabs value="tab1" className="w-56">
-          <VerticalTabItem  label="Inbox" value="tab1" prefixIcon="Inbox" suffixIcon="Bell">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Sent" value="tab2" prefixIcon="Send">
-            {/* pv-editable-zone-start:z43kf6 */}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
+        <header className="h-16 border-b border-border-default flex items-center justify-between px-8 bg-background-default shrink-0">
+          <TextBlock typography="heading-lg">{pageTitle}</TextBlock>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative mr-2">
+              <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="Bell" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border border-background-default"></span>
+            </div>
             
-              {/* pv-block-start:c3dwn7 */}
-              <Badge data-pv-block="c3dwn7" label="Badge" color="primary" />
-              {/* pv-block-end:c3dwn7 */}
-            {/* pv-editable-zone-end:z43kf6 */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Drafts" value="tab3" prefixIcon="FileEdit" suffixIcon="Badge">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-          <VerticalTabItem label="Trash" value="tab4" prefixIcon="Trash2">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-        </VerticalTabs>
-        <pre>
-          {JSON.stringify({ demo: "with prefix and suffix icons" }, null, 2)}
-        </pre>
+            {/* User Avatar Dropdown */}
+            <PopoverTrigger placement="bottom" align="right">
+              <button className="flex items-center gap-2 hover:bg-background-secondary p-1.5 pr-3 rounded-full border border-transparent hover:border-border-default transition-all focus:outline-none">
+                <Avatar initials="JD" bgColor="info" size="sm" />
+                <TextBlock typography="small" className="font-medium hidden sm:block">Jane Doe</TextBlock>
+                <Icon name="ChevronDown" size="sm" className="text-foreground-tertiary hidden sm:block" />
+              </button>
+              
+              <DropdownList width="sm" className="mt-1">
+                <DropdownItem label="Profile" prefixIcon="User" />
+                <DropdownItem label="Account Settings" prefixIcon="Settings" />
+                <DropdownItem label="Help & Support" prefixIcon="HelpCircle" />
+                <DropdownSeparator />
+                <DropdownItem label="Sign out" prefixIcon="LogOut" destructive />
+              </DropdownList>
+            </PopoverTrigger>
+          </div>
+        </header>
 
-        {/* VerticalTabs — expandable states */}
-        <VerticalTabs value="tab1" className="w-64">
-          <VerticalTabsExpandableSection label="Projects" value="tab1" prefixIcon="FolderOpen" expandable="expanded">
-            <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabItem label="Frontend" value="sub1">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              <VerticalTabItem label="Backend" value="sub2">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              <VerticalTabItem label="Mobile" value="sub3">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-            </div>
-          </VerticalTabsExpandableSection>
-          <VerticalTabsExpandableSection label="Team" value="tab2" prefixIcon="Users" expandable="expandable">
-            <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabItem label="Members" value="sub4">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              <VerticalTabItem label="Roles" value="sub5">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-            </div>
-          </VerticalTabsExpandableSection>
-          <VerticalTabsExpandableSection label="Settings" value="tab3" prefixIcon="Settings" expandable="collapsed">
-            <div className="flex flex-col gap-0.5 py-1 pl-9">
-              <VerticalTabItem label="General" value="sub6">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-              <VerticalTabItem label="Security" value="sub7">
-                {/* pv-editable-zone-start */}
-                {/* pv-editable-zone-end */}
-              </VerticalTabItem>
-            </div>
-          </VerticalTabsExpandableSection>
-          <VerticalTabItem label="Docs" value="tab4" prefixIcon="BookOpen">
-            {/* pv-editable-zone-start */}
-            {/* pv-editable-zone-end */}
-          </VerticalTabItem>
-        </VerticalTabs>
-        <pre>
-          {JSON.stringify({ demo: "expandable states: 'expanded' (open by default), 'expandable' (toggleable, starts collapsed), 'collapsed' (starts collapsed)" }, null, 2)}
-        </pre>
-
-        {/* ToastBox — all 4 variants */}
-        <div className="flex flex-col gap-3">
-          <ToastBox variant="success" heading="Success!" secondaryText="Your changes have been saved successfully." showCloseButton={false} />
-          <ToastBox variant="destructive" heading="Error" secondaryText="Something went wrong. Please try again." showCloseButton={false} />
-          <ToastBox variant="warning" heading="Warning" secondaryText="This action cannot be undone." showCloseButton={false} />
-          <ToastBox variant="neutral" heading="Info" secondaryText="A new update is available." showCloseButton={false} />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "all four toast variants" }, null, 2)}
-        </pre>
-
-        {/* ToastBox — with action button and close */}
-        <div className="flex flex-col gap-3">
-          <ToastBox variant="success" heading="File uploaded" secondaryText="report.pdf was uploaded." actionLabel="View" />
-          <ToastBox variant="warning" heading="Session expiring" secondaryText="Your session will expire in 5 minutes." actionLabel="Extend" />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "with action button and close button" }, null, 2)}
-        </pre>
-
-        {/* ToastBox — trigger buttons for global toast */}
-        <div className="flex flex-col gap-3">
-          <Button
-            label="Show success toast"
-            variant="solid"
-            color="primary"
-            size="md"
-            onClick={() => showToast({ variant: 'success', heading: 'Saved!', secondaryText: 'Your changes have been saved.' })}
-          />
-          <Button
-            label="Show destructive toast"
-            variant="outline"
-            color="danger"
-            size="md"
-            onClick={() => showToast({ variant: 'destructive', heading: 'Error', secondaryText: 'Something went wrong.' })}
-          />
-          <Button
-            label="Show warning toast"
-            variant="outline"
-            color="neutral"
-            size="md"
-            onClick={() => showToast({ variant: 'warning', heading: 'Warning', secondaryText: 'This action cannot be undone.' })}
-          />
-          <Button
-            label="Show persistent toast"
-            variant="ghost"
-            color="neutral"
-            size="md"
-            onClick={() => showToast({ variant: 'neutral', heading: 'Persistent toast', secondaryText: 'This will not auto-dismiss. Click close to hide.', persistent: true })}
-          />
-        </div>
-        <pre>
-          {JSON.stringify({ demo: "buttons triggering global toast via showToast()" }, null, 2)}
-        </pre>
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-8 bg-background-default">
+          <div className="max-w-6xl mx-auto">
+            {currentPath === '/dashboard' && <DashboardPage />}
+            {currentPath === '/employees' && <EmployeesPage />}
+            {currentPath === '/positions' && <PositionsPage />}
+            {currentPath === '/departments' && <DepartmentsPage />}
+          </div>
+        </main>
       </div>
     </div>
   );

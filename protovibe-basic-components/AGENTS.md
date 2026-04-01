@@ -86,33 +86,31 @@ Always use the **bare ID-less** form. The zone is empty at definition time; the 
 ```
 
 ### `pvConfig.defaultContent`
-If the component already has a `pv-editable-zone` in its JSX body, set `defaultContent: ''` — do not duplicate the zone here. Only use a bare zone pair in `defaultContent` when the component is a pure wrapper with **no** hardcoded zone in its JSX:
-```js
 defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'
 ```
 
 ## pv-block Tags When Composing Multi-Element JSX
 
-When writing JSX that composes multiple elements (a mix of UI components and plain HTML elements like `div`, `span`, `h1`–`h6`, `p`, `img`, `ul`, `li`, etc.), **every direct child element or component inside a `pv-editable-zone` MUST be wrapped in a `pv-block` comment pair** with a unique random 6-character alphanumeric ID. This is what allows the user to select, move, duplicate, and delete each piece independently in the visual builder.
+When writing JSX that composes multiple elements or components **every direct child element or component inside a `pv-editable-zone` MUST be wrapped in a `pv-block` comment pair** with a unique random 6-character alphanumeric ID. This is what allows the user to select, move, duplicate, and delete each piece independently in the visual builder.
 
 ### Required format
 
 ```jsx
-{/* pv-editable-zone-start */}
+{/* pv-editable-zone-start:a1b2c3 */}
 
-  {/* pv-block-start */}
-  <h2 data-pv-block="" className="text-xl font-semibold">Heading</h2>
-  {/* pv-block-end */}
+  {/* pv-block-start:x4y5z6 */}
+  <h2 data-pv-block="x4y5z6" className="text-xl font-semibold">Heading</h2>
+  {/* pv-block-end:x4y5z6 */}
 
-  {/* pv-block-start */}
-  <p data-pv-block="" className="text-foreground-secondary">Body copy goes here.</p>
-  {/* pv-block-end */}
+  {/* pv-block-start:m7n8p9 */}
+  <p data-pv-block="m7n8p9" className="text-foreground-secondary">Body copy goes here.</p>
+  {/* pv-block-end:m7n8p9 */}
 
-  {/* pv-block-start */}
-  <Button data-pv-block="" variant="default" label="Click me" />
-  {/* pv-block-end */}
+  {/* pv-block-start:q2r3s4 */}
+  <Button data-pv-block="q2r3s4" variant="default" label="Click me" />
+  {/* pv-block-end:q2r3s4 */}
 
-{/* pv-editable-zone-end */}
+{/* pv-editable-zone-end:a1b2c3 */}
 ```
 
 ### Rules
@@ -437,7 +435,6 @@ export const pvConfig = {
 The `props` object defines how Protovibe renders the right-hand inspector panel. 
 
 * **`string`**: Renders a standard text input. (e.g., `label: { type: "string" }`)
-    * *Note: If you want the inner text of the component to be editable, use the special `children` key: `children: { type: "string" }`.*
 * **`boolean`**: Renders a True/False dropdown. When True, Protovibe injects the valueless shorthand (e.g., `<Button disabled />`). When False, it injects the explicit boolean (e.g., `<Button disabled={false} />`).
 * **`select`**: Renders a dropdown menu. Requires an `options` array of strings. (e.g., `variant: { type: "select", options: ["solid", "outline"] }`).
 
@@ -508,8 +505,6 @@ The rule: **`InputProps` (and any similar wrapper-component props interface) mus
 
 ### Rule 2: Expose ALL Text as Props & Protect Internals
 Never hardcode text labels inside a component's JSX. All text (labels, titles, descriptions, button text) MUST be exposed as `string` props (e.g., `label="Click me"`) and added to the `props` schema in `pvConfig` so they can be edited directly from the visual inspector.
-
-Furthermore, if your component wraps `children` in complex logic (like an icon next to text), use a `label` prop instead of exposing `children` to the config. If you expose `children` as a string, Protovibe will overwrite whatever internal elements are nested inside the component. Only expose `children: { type: "string" }` if the component is a simple text wrapper.
 
 ### Rule 3: NEVER expose complex or dangerous props
 Do not expose props in `pvConfig` that accept functions, React nodes, or complex objects. Only expose plain strings, booleans, and simple enums. 

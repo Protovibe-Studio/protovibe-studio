@@ -1,4 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloatingDropdownPosition } from '../../ui/hooks/useFloatingDropdownPosition';
 
 interface FrameContainerProps {
   frameId: string;
@@ -43,10 +45,19 @@ export function FrameContainer({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0, frameX: 0, frameY: 0 });
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const frameRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const { style: menuStyle } = useFloatingDropdownPosition({
+    isOpen: showContextMenu,
+    anchorRef: moreButtonRef,
+    dropdownRef: menuRef,
+    preferredPlacement: 'bottom',
+    offset: 4,
+  });
 
   // Title bar drag to reposition frame on canvas
   const handleTitlePointerDown = useCallback(
@@ -58,6 +69,8 @@ export function FrameContainer({
       dragStartRef.current = { x: e.clientX, y: e.clientY, frameX: canvasX, frameY: canvasY };
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       onSelect(frameId);
+      // Focus the frame div so keyboard Delete works after clicking title bar
+      frameRef.current?.focus();
     },
     [canvasX, canvasY, frameId, onSelect],
   );
@@ -129,8 +142,15 @@ export function FrameContainer({
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setContextMenuPos({ x: e.clientX, y: e.clientY });
       setShowContextMenu(true);
+    },
+    [],
+  );
+
+  const handleMoreButtonClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setShowContextMenu((prev) => !prev);
     },
     [],
   );
@@ -143,10 +163,16 @@ export function FrameContainer({
     [frameId, onSelect],
   );
 
+  const menuItems = [
+    { label: 'Rename', action: () => onRename(frameId) },
+    { label: 'Delete', action: () => onDelete(frameId) },
+  ];
+
   return (
     <>
       <div
         ref={frameRef}
+        tabIndex={-1}
         style={{
           position: 'absolute',
           left: canvasX,
@@ -154,6 +180,7 @@ export function FrameContainer({
           width,
           userSelect: 'none',
           cursor: 'default',
+          outline: 'none',
         }}
         onClick={handleContentClick}
       >
@@ -168,7 +195,7 @@ export function FrameContainer({
             height: TITLE_BAR_HEIGHT,
             display: 'flex',
             alignItems: 'center',
-            padding: '0 10px',
+            padding: '0',
             fontSize: 12,
             fontFamily: 'Inter, system-ui, sans-serif',
             fontWeight: 600,
@@ -176,12 +203,41 @@ export function FrameContainer({
             cursor: isDragging ? 'grabbing' : 'grab',
             userSelect: 'none',
             letterSpacing: '-0.2px',
+            gap: 4,
           }}
         >
-          {name}
-          <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.5, fontSize: 11 }}>
-            {width} × {height}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            {name}
+            <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 11, marginLeft: 6 }}>
+              ({width} × {height})
+            </span>
           </span>
+          {/* More menu button */}
+          <button
+            ref={moreButtonRef}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={handleMoreButtonClick}
+            title="Frame options"
+            style={{
+              width: 16,
+              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              border: 'none',
+              background: isSelected ? '#18a0fb' : (showContextMenu ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.85)'),
+              color: isSelected ? '#fff' : '#333',
+              cursor: 'pointer',
+              fontSize: 12,
+              padding: 0,
+              flexShrink: 0,
+              lineHeight: 1,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+            }}
+          >
+            ⋮
+          </button>
         </div>
 
         {/* Frame content area */}
@@ -224,18 +280,17 @@ export function FrameContainer({
         />
       </div>
 
-      {/* Context menu */}
-      {showContextMenu && (
+      {/* Context menu — rendered in portal so it escapes the canvas CSS transform */}
+      {showContextMenu && createPortal(
         <>
           <div
             style={{ position: 'fixed', inset: 0, zIndex: 99998 }}
             onClick={() => setShowContextMenu(false)}
           />
           <div
+            ref={menuRef}
             style={{
-              position: 'fixed',
-              left: contextMenuPos.x,
-              top: contextMenuPos.y,
+              ...menuStyle,
               zIndex: 99999,
               background: '#2a2a3e',
               border: '1px solid rgba(255,255,255,0.1)',
@@ -247,10 +302,7 @@ export function FrameContainer({
               fontSize: 12,
             }}
           >
-            {[
-              { label: 'Rename', action: () => onRename(frameId) },
-              { label: 'Delete', action: () => onDelete(frameId) },
-            ].map((item) => (
+            {menuItems.map((item) => (
               <div
                 key={item.label}
                 onClick={() => {
@@ -269,7 +321,8 @@ export function FrameContainer({
               </div>
             ))}
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </>
   );
