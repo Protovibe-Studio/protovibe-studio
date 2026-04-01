@@ -66,7 +66,7 @@ export default function Frame1() {
       {/* pv-block-end:cos5bj */}
       
       {/* pv-block-start:gp85ke */}
-      <Card data-pv-block="gp85ke" variant="bordered" shadow="none"  data-pv-sketchpad-el="gp85ke" style={{ position: 'absolute', width: 314, left: 27, top: 39 }}>
+      <Card data-pv-block="gp85ke" variant="bordered" shadow="none"  data-pv-sketchpad-el="gp85ke" style={{ position: 'absolute', width: 314, left: 47, top: 102 }}>
         {/* pv-editable-zone-start:t1i2jj */}
         {/* pv-block-start:eyxz9w */}
       <RadioGroup data-pv-block="eyxz9w" orientation="vertical" value="opt1" >

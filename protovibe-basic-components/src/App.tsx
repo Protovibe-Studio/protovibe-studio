@@ -393,7 +393,7 @@ export default function App() {
           {/* pv-block-end:hf8ryd */}
 
           {/* pv-block-start:4xr5m8 */}
-          <div className="flex-col min-h-4 border p-4 rounded bg-background-default border-border-default shadow-xl flex" data-pv-block="4xr5m8">
+          <div className="flex-col min-h-4 border rounded bg-background-default border-border-default shadow-xl flex py-4 pl-10 pr-4" data-pv-block="4xr5m8">
             {/* pv-editable-zone-start:inside-4xr5m8 */}
               {/* pv-block-start:3naqql */}
               <Button data-pv-block="3naqql" label="Button" variant="solid" color="primary" size="md" />
@@ -421,6 +421,28 @@ export default function App() {
             {/* pv-editable-zone-end:j895fb */}
           </RadioGroup>
           {/* pv-block-end:qk8xdx */}
+
+          {/* pv-block-start:dhc5xg */}
+          <Card className="gap-5 pl-10" data-pv-block="dhc5xg" variant="bordered" shadow="none">
+            {/* pv-editable-zone-start:pq51gg */}
+
+              {/* pv-block-start:7vda1v */}
+              <Button data-pv-block="7vda1v" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:7vda1v */}
+            {/* pv-editable-zone-end:pq51gg */}
+          </Card>
+          {/* pv-block-end:dhc5xg */}
+
+          {/* pv-block-start:mkclei */}
+          <Card className="pl-10" data-pv-block="mkclei" variant="bordered" shadow="none">
+            {/* pv-editable-zone-start:e580uf */}
+
+              {/* pv-block-start:t4opc8 */}
+              <Button data-pv-block="t4opc8" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:t4opc8 */}
+            {/* pv-editable-zone-end:e580uf */}
+          </Card>
+          {/* pv-block-end:mkclei */}
         {/* pv-editable-zone-end:kcyc8f */}
       </div>
       <div className="grid grid-cols-2 gap-y-12 gap-x-8 p-8 max-w-6xl mx-auto font-sans items-start">

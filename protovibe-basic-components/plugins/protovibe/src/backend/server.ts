@@ -547,7 +547,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
             finalContent = lines.join('\n');
           }
         }
-      } else if (action === 'add' && newClass) {
+      } else if ((action === 'add' || action === 'replace-multiple') && newClass) {
         if (!hasClass) {
           const lineIdx = nameEnd[0] - 1;
           const colIdx = nameEnd[1];
