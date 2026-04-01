@@ -482,11 +482,6 @@ export function SketchpadApp() {
             targetStartLine,
             targetEndLine,
           });
-
-          await loadFrameModule(sketchpadId, sourceFrameId);
-          if (sourceFrameId !== targetFrameId) {
-            await loadFrameModule(sketchpadId, targetFrameId);
-          }
         });
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);
@@ -495,7 +490,7 @@ export function SketchpadApp() {
 
     window.addEventListener('pv-sketchpad-drop-element', handleDropElement);
     return () => window.removeEventListener('pv-sketchpad-drop-element', handleDropElement);
-  }, [loadFrameModule, runLockedMutation]);
+  }, [runLockedMutation]);
 
   // Drop handler for drag from palette
   const handleDrop = useCallback(

@@ -766,7 +766,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
           if (targetLayoutMode === 'flow') {
             // Universally strip sketchpad draggable attribute from the entire pasted block
-            pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])(?:(?!\1).)*\1/g, '');
+            pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
           }
         }
       }
@@ -976,10 +976,12 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const lineStartPos = fileContent.lastIndexOf('\n', zoneEndIdx) + 1;
           const spaces = (fileContent.substring(lineStartPos, zoneEndIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
           const blockHtml = generateBlockHtml(spaces);
+          
+          // generateBlockHtml already appends the correct trailing \n + spaces.
+          // We must NOT append spaces again, or it will double the indentation on every paste.
           fileContent =
             fileContent.slice(0, zoneEndIdx) +
             blockHtml +
-            spaces +
             fileContent.slice(zoneEndIdx);
         }
       } else {

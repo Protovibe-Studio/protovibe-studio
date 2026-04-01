@@ -361,7 +361,6 @@ export default function App() {
           {/* pv-block-start:hf8ryd */}
           <Card className="flex flex-col w-1/2 items-start justify-start shadow-inner" data-pv-block="hf8ryd" variant="bordered" shadow="none">
             {/* pv-editable-zone-start:c1cn2h */}
-
             {/* pv-block-start:3komdo */}
           <Button data-pv-block="3komdo" label="Button" variant="solid" color="primary" size="md" />
           {/* pv-block-end:3komdo */}
@@ -373,6 +372,22 @@ export default function App() {
             {/* pv-block-start:ltiqzm */}
           <TextBlock className="" data-pv-block="ltiqzm" text="Text block Test" typography="heading-md" />
           {/* pv-block-end:ltiqzm */}
+
+            {/* pv-block-start:kzpt6n */}
+          <RadioGroup data-pv-block="kzpt6n" orientation="vertical" value="opt1">
+            {/* pv-editable-zone-start:a2detv */}
+              {/* pv-block-start:3l2zyn */}
+              <RadioItem data-pv-block="3l2zyn" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+              {/* pv-block-end:3l2zyn */}
+              {/* pv-block-start:i8mg7r */}
+              <RadioItem data-pv-block="i8mg7r" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+              {/* pv-block-end:i8mg7r */}
+              {/* pv-block-start:d710ps */}
+              <RadioItem data-pv-block="d710ps" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+              {/* pv-block-end:d710ps */}
+            {/* pv-editable-zone-end:a2detv */}
+          </RadioGroup>
+          {/* pv-block-end:kzpt6n */}
             {/* pv-editable-zone-end:c1cn2h */}
           </Card>
           {/* pv-block-end:hf8ryd */}
@@ -380,7 +395,6 @@ export default function App() {
           {/* pv-block-start:4xr5m8 */}
           <div className="flex-col min-h-4 border p-4 rounded bg-background-default border-border-default shadow-xl flex" data-pv-block="4xr5m8">
             {/* pv-editable-zone-start:inside-4xr5m8 */}
-
               {/* pv-block-start:3naqql */}
               <Button data-pv-block="3naqql" label="Button" variant="solid" color="primary" size="md" />
               {/* pv-block-end:3naqql */}

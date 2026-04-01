@@ -1,41 +1,17 @@
 {
   "sketchpads": [
     {
-      "id": "test",
-      "name": "test",
-      "createdAt": "2026-04-01T06:17:06.525Z",
+      "id": "test1",
+      "name": "Test1",
+      "createdAt": "2026-04-01T09:25:24.831Z",
       "frames": [
         {
           "id": "frame-frame-1",
           "name": "Frame 1",
           "width": 800,
           "height": 600,
-          "canvasX": 411,
-          "canvasY": 284
-        },
-        {
-          "id": "frame-frame-2",
-          "name": "Frame 2",
-          "width": 800,
-          "height": 600,
-          "canvasX": 1329,
-          "canvasY": 290
-        },
-        {
-          "id": "frame-frame-3",
-          "name": "Frame 3",
-          "width": 800,
-          "height": 600,
-          "canvasX": 427,
-          "canvasY": 973
-        },
-        {
-          "id": "frame-frame-4",
-          "name": "Frame 4",
-          "width": 800,
-          "height": 600,
-          "canvasX": 421,
-          "canvasY": -417
+          "canvasX": 384,
+          "canvasY": 54
         }
       ]
     }
