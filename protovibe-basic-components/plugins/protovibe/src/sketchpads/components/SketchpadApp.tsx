@@ -5,7 +5,7 @@ import { FrameContainer } from './FrameContainer';
 import { ComponentPalette } from './ComponentPalette';
 import { SketchpadOverlayPanel } from './SketchpadOverlayPanel';
 import * as api from '../api';
-import { fetchSourceInfo, fetchZones, takeSnapshot } from '../../ui/api/client';
+import { fetchSourceInfo, fetchZones, takeSnapshot, blockAction, addBlock } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
 
 // Client-side modules for React Component references (rendering)
@@ -392,6 +392,7 @@ export function SketchpadApp() {
       const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
       let targetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
       let targetZoneId = 'target-zone-placeholder';
+      let targetIsPristine = false;
       let targetStartLine: number | undefined;
       let targetEndLine: number | undefined;
 
@@ -424,6 +425,7 @@ export function SketchpadApp() {
           }
 
           targetZoneId = zonesData.zones[0].id;
+          targetIsPristine = zonesData.zones[0].isPristine;
         } catch (err) {
           console.error('[Sketchpad] Failed to resolve nested drop target:', err);
           window.dispatchEvent(new CustomEvent('pv-toast', {
@@ -439,35 +441,20 @@ export function SketchpadApp() {
         await takeSnapshot(sourceFile, '', extraFiles);
 
         // 1. Cut from source frame (loads clipboard & harvests imports)
-        const cutRes = await fetch('/__block-action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'cut', blockId: draggedBlockId, file: sourceFile }),
-        });
-        if (!cutRes.ok) {
-          console.error('[Sketchpad] Cut failed:', await cutRes.text());
-          return;
-        }
+        await blockAction('cut', draggedBlockId, sourceFile);
 
         // 2. Paste into resolved target zone with layout-mode context
-        const pasteRes = await fetch('/__add-block', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            elementType: 'paste',
-            file: targetFile,
-            zoneId: targetZoneId,
-            targetLayoutMode,
-            pasteX: Math.round(x),
-            pasteY: Math.round(y),
-            targetStartLine,
-            targetEndLine,
-          }),
+        await addBlock({
+          file: targetFile,
+          zoneId: targetZoneId,
+          isPristine: targetIsPristine,
+          elementType: 'paste',
+          targetLayoutMode,
+          pasteX: Math.round(x),
+          pasteY: Math.round(y),
+          targetStartLine,
+          targetEndLine,
         });
-        if (!pasteRes.ok) {
-          console.error('[Sketchpad] Paste failed:', await pasteRes.text());
-          return;
-        }
 
         // 3. Reload affected frames so the UI reflects the change
         await loadFrameModule(sketchpadId, sourceFrameId);

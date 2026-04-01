@@ -12,7 +12,7 @@ export default function Frame1() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:fzhckc */}
       {/* pv-block-start:opc0u2 */}
-      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 520, top: 42 }}>
+      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 514, top: 47 }}>
         {/* pv-editable-zone-start:t57su3 */}
         {/* pv-block-start:4ndiup */}
       <DialogTrigger data-pv-block="4ndiup"  >
@@ -90,18 +90,10 @@ export default function Frame1() {
         {/* pv-editable-zone-end:t57su3 */}
       </Card>
       {/* pv-block-end:opc0u2 */}
-      
-      {/* pv-block-start:17s6v5 */}
-      <Card data-pv-block="17s6v5" data-pv-sketchpad-el="17s6v5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 192, left: 120, top: 110 }}>
-        {/* pv-editable-zone-start:jeo10g */}
-        {/* pv-editable-zone-end:jeo10g */}
-      </Card>
-      {/* pv-block-end:17s6v5 */}
-      
-      {/* pv-block-start:mjmhb5 */}
-      <Card data-pv-block="mjmhb5" data-pv-sketchpad-el="mjmhb5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 340, left: 89, top: 353 }}>
-        {/* pv-editable-zone-start:5h15xo */}
 
+      {/* pv-block-start:mjmhb5 */}
+      <Card data-pv-block="mjmhb5" data-pv-sketchpad-el="mjmhb5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 340, left: 94, top: 71 }}>
+        {/* pv-editable-zone-start:5h15xo */}
         {/* pv-block-start:lxrdhc */}
       <DialogTrigger data-pv-block="lxrdhc"  >
         {/* pv-editable-zone-start:7yngvo */}
@@ -125,6 +117,30 @@ export default function Frame1() {
         {/* pv-editable-zone-end:7yngvo */}
       </DialogTrigger>
       {/* pv-block-end:lxrdhc */}
+
+        {/* pv-block-start:vqcyth */}
+      <DialogTrigger data-pv-block="vqcyth"  >
+        {/* pv-editable-zone-start:wq9e0k */}
+          {/* pv-block-start:qrzdb1 */}
+          <Button data-pv-block="qrzdb1" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:qrzdb1 */}
+          {/* pv-block-start:kes50g */}
+          <DialogOverlay data-pv-block="kes50g">
+            <DialogWindow size="md">
+              {/* pv-editable-zone-start:qfidf3 */}
+              {/* pv-block-start:8vc7ee */}
+              <h2 data-pv-block="8vc7ee" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+              {/* pv-block-end:8vc7ee */}
+              {/* pv-block-start:j7p7r4 */}
+              <p data-pv-block="j7p7r4" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+              {/* pv-block-end:j7p7r4 */}
+              {/* pv-editable-zone-end:qfidf3 */}
+            </DialogWindow>
+          </DialogOverlay>
+          {/* pv-block-end:kes50g */}
+        {/* pv-editable-zone-end:wq9e0k */}
+      </DialogTrigger>
+      {/* pv-block-end:vqcyth */}
         {/* pv-editable-zone-end:5h15xo */}
       </Card>
       {/* pv-block-end:mjmhb5 */}

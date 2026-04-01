@@ -147,7 +147,7 @@ export function useKeyboardShortcuts() {
             return;
           }
 
-          const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') ?? undefined;
+          const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
 
           await runLockedMutation(async () => {
             await takeSnapshot(activeData.file, activeSourceId!);
@@ -158,7 +158,9 @@ export function useKeyboardShortcuts() {
               elementType: 'paste',
               targetStartLine: activeData.startLine,
               targetEndLine: activeData.endLine,
-              ...(targetLayoutMode ? { targetLayoutMode, pasteX: 100, pasteY: 100 } : {}),
+              targetLayoutMode,
+              pasteX: 100,
+              pasteY: 100,
             });
 
             if (res.blockId) {

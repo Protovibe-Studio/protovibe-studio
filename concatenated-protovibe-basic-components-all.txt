@@ -1108,6 +1108,10 @@ import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
+function logUndoDebug(event: string, details: Record<string, unknown>): void {
+  console.log(`[protovibe:undo] ${event}`, details);
+}
+
 export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
@@ -1118,11 +1122,39 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
       const toSnapshot: string[] = Array.from(new Set(filesArr ?? (file ? [file] : [])));
       const files = toSnapshot.map((f: string) => {
         const absolutePath = path.resolve(process.cwd(), f);
-        return { file: f, content: fs.readFileSync(absolutePath, 'utf-8') };
+        return { file: f, content: fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '' };
       });
 
-      undoStack.push({ files, activeId: activeId || '' });
-      redoStack.length = 0;
+      if (files.length > 0) {
+        const lastState = undoStack[undoStack.length - 1];
+        let isIdentical = false;
+
+        if (lastState && lastState.files.length === files.length) {
+          isIdentical = files.every(f => {
+            const match = lastState.files.find(lf => lf.file === f.file);
+            return match && match.content === f.content;
+          });
+        }
+
+        if (!isIdentical) {
+          undoStack.push({ files, activeId: activeId || '' });
+          redoStack.length = 0;
+          logUndoDebug('snapshot-created', {
+            source: 'server',
+            activeId: activeId || '',
+            files: files.map((file) => ({ file: file.file, existed: file.content !== '', size: file.content.length })),
+            undoDepth: undoStack.length,
+            redoDepth: redoStack.length,
+          });
+        } else {
+          logUndoDebug('snapshot-skipped-identical', {
+            source: 'server',
+            activeId: activeId || '',
+            files: files.map((file) => file.file),
+            undoDepth: undoStack.length,
+          });
+        }
+      }
 
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -1137,13 +1169,24 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
   try {
     const lastState = undoStack.pop();
     if (!lastState) {
+      logUndoDebug('undo-empty', {
+        undoDepth: undoStack.length,
+        redoDepth: redoStack.length,
+      });
       return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
     }
 
     const { files, activeId } = lastState;
+    logUndoDebug('undo-start', {
+      activeId,
+      files: files.map((file) => file.file),
+      undoDepthAfterPop: undoStack.length,
+      redoDepthBeforePush: redoStack.length,
+    });
     const currentFiles = files.map(({ file, content: savedContent }) => {
       const absolutePath = path.resolve(process.cwd(), file);
       const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
+      const operation = savedContent === '' ? 'delete' : 'restore';
       if (savedContent === '') {
         // File did not exist before this operation — delete it to truly undo the creation
         if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
@@ -1151,9 +1194,21 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
         fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
         fs.writeFileSync(absolutePath, savedContent, 'utf-8');
       }
+      logUndoDebug('undo-file-applied', {
+        file,
+        operation,
+        restoredSize: savedContent.length,
+        previousSize: currentContent.length,
+      });
       return { file, content: currentContent };
     });
     redoStack.push({ files: currentFiles, activeId });
+    logUndoDebug('undo-complete', {
+      activeId,
+      files: currentFiles.map((file) => file.file),
+      undoDepth: undoStack.length,
+      redoDepth: redoStack.length,
+    });
 
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));
@@ -2649,6 +2704,10 @@ import { undoStack, redoStack } from '../shared/state';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
 
+function logUndoDebug(event: string, details: Record<string, unknown>): void {
+  console.log(`[protovibe:undo] ${event}`, details);
+}
+
 // Snapshot one or more files into the undo stack before mutating them.
 function snapshotFiles(...relPaths: string[]): void {
   const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
@@ -2658,8 +2717,32 @@ function snapshotFiles(...relPaths: string[]): void {
       return { file: f, content: fs.existsSync(abs) ? fs.readFileSync(abs, 'utf-8') : '' };
     });
   if (files.length === 0) return;
+
+  // Deduplicate: Don't push if the top of the stack has the exact same content
+  const lastState = undoStack[undoStack.length - 1];
+  if (lastState && lastState.files.length === files.length) {
+    const isIdentical = files.every(f => {
+      const match = lastState.files.find(lf => lf.file === f.file);
+      return match && match.content === f.content;
+    });
+    if (isIdentical) {
+      logUndoDebug('snapshot-skipped-identical', {
+        source: 'sketchpad-server',
+        files: files.map((file) => file.file),
+        undoDepth: undoStack.length,
+      });
+      return;
+    }
+  }
+
   undoStack.push({ files, activeId: '' });
   redoStack.length = 0;
+  logUndoDebug('snapshot-created', {
+    source: 'sketchpad-server',
+    files: files.map((file) => ({ file: file.file, existed: file.content !== '', size: file.content.length })),
+    undoDepth: undoStack.length,
+    redoDepth: redoStack.length,
+  });
 }
 const REGISTRY_PATH = path.join(SKETCHPADS_DIR, '_registry.json');
 
@@ -3021,6 +3104,7 @@ export const handleFrameResize: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
+    snapshotFiles('src/sketchpads/_registry.json');
     if (width) frame.width = width;
     if (height) frame.height = height;
     writeRegistry(reg);
@@ -3043,6 +3127,7 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
+    snapshotFiles('src/sketchpads/_registry.json');
     if (canvasX !== undefined) frame.canvasX = canvasX;
     if (canvasY !== undefined) frame.canvasY = canvasY;
     writeRegistry(reg);
@@ -3148,13 +3233,21 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
-    // Find the element by its data-pv-sketchpad-el ID and update inline style position
-    const elRegex = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+,\\s*top:\\s*-?\\d+`,
-    );
-    const newPos = `left: ${Math.round(x)}, top: ${Math.round(y)}`;
-    if (elRegex.test(content)) {
-      content = content.replace(elRegex, `$1${newPos}`);
+    // Independently update left and top to avoid regex failures if code formatting changes
+    const leftRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+(?:\\.\\d+)?`);
+    const topRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)top:\\s*-?\\d+(?:\\.\\d+)?`);
+
+    let updated = false;
+    if (leftRegex.test(content)) {
+      content = content.replace(leftRegex, `$1left: ${Math.round(x)}`);
+      updated = true;
+    }
+    if (topRegex.test(content)) {
+      content = content.replace(topRegex, `$1top: ${Math.round(y)}`);
+      updated = true;
+    }
+
+    if (updated) {
       fs.writeFileSync(filePath, content, 'utf-8');
     }
 
@@ -3178,7 +3271,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
 
     // Check if the element already has a width in its style
     const widthExistsRe = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+`,
+      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+(?:\\.\\d+)?`,
     );
     if (widthExistsRe.test(content)) {
       // Update existing width
@@ -4953,13 +5046,7 @@ export function SketchpadApp() {
         setTransform(INITIAL_TRANSFORM);
         return;
       }
-      // Undo / Redo
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-        e.preventDefault();
-        const endpoint = e.shiftKey ? '/__redo' : '/__undo';
-        const res = await fetch(endpoint, { method: 'POST' });
-        if (res.ok) await reloadAfterUndoRedo();
-      }
+
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -22041,7 +22128,7 @@ export default function Frame1() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:fzhckc */}
       {/* pv-block-start:opc0u2 */}
-      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 367, top: 88 }}>
+      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 514, top: 47 }}>
         {/* pv-editable-zone-start:t57su3 */}
         {/* pv-block-start:4ndiup */}
       <DialogTrigger data-pv-block="4ndiup"  >
@@ -22119,13 +22206,36 @@ export default function Frame1() {
         {/* pv-editable-zone-end:t57su3 */}
       </Card>
       {/* pv-block-end:opc0u2 */}
-      
-      {/* pv-block-start:17s6v5 */}
-      <Card data-pv-block="17s6v5" data-pv-sketchpad-el="17s6v5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 192, left: 171, top: 104 }}>
-        {/* pv-editable-zone-start:jeo10g */}
-        {/* pv-editable-zone-end:jeo10g */}
+
+      {/* pv-block-start:mjmhb5 */}
+      <Card data-pv-block="mjmhb5" data-pv-sketchpad-el="mjmhb5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 340, left: 89, top: 353 }}>
+        {/* pv-editable-zone-start:5h15xo */}
+        {/* pv-block-start:lxrdhc */}
+      <DialogTrigger data-pv-block="lxrdhc"  >
+        {/* pv-editable-zone-start:7yngvo */}
+          {/* pv-block-start:f9wmoe */}
+          <Button data-pv-block="f9wmoe" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:f9wmoe */}
+          {/* pv-block-start:vxtscm */}
+          <DialogOverlay data-pv-block="vxtscm">
+            <DialogWindow size="md">
+              {/* pv-editable-zone-start:ciwcgw */}
+              {/* pv-block-start:kcgma8 */}
+              <h2 data-pv-block="kcgma8" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+              {/* pv-block-end:kcgma8 */}
+              {/* pv-block-start:iy05ao */}
+              <p data-pv-block="iy05ao" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+              {/* pv-block-end:iy05ao */}
+              {/* pv-editable-zone-end:ciwcgw */}
+            </DialogWindow>
+          </DialogOverlay>
+          {/* pv-block-end:vxtscm */}
+        {/* pv-editable-zone-end:7yngvo */}
+      </DialogTrigger>
+      {/* pv-block-end:lxrdhc */}
+        {/* pv-editable-zone-end:5h15xo */}
       </Card>
-      {/* pv-block-end:17s6v5 */}
+      {/* pv-block-end:mjmhb5 */}
       {/* pv-editable-zone-end:fzhckc */}
     </div>
   );

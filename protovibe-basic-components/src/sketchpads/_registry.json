@@ -28,6 +28,14 @@
           "height": 600,
           "canvasX": 427,
           "canvasY": 973
+        },
+        {
+          "id": "frame-frame-4",
+          "name": "Frame 4",
+          "width": 800,
+          "height": 600,
+          "canvasX": 432,
+          "canvasY": -412
         }
       ]
     }

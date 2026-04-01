@@ -147,6 +147,30 @@ export default function App() {
             {/* pv-editable-zone-end:c1cn2h */}
           </Card>
           {/* pv-block-end:9nrhi0 */}
+
+              {/* pv-block-start:dcq1nc */}
+              <DialogTrigger data-pv-block="dcq1nc">
+                {/* pv-editable-zone-start:n4ivbh */}
+                  {/* pv-block-start:pgfdrs */}
+                  <Button data-pv-block="pgfdrs" label="Open Dialog" variant="solid" color="primary" size="md" />
+                  {/* pv-block-end:pgfdrs */}
+                  {/* pv-block-start:12in4j */}
+                  <DialogOverlay data-pv-block="12in4j">
+                    <DialogWindow size="md">
+                      {/* pv-editable-zone-start:906s94 */}
+                      {/* pv-block-start:9ixyf6 */}
+                      <h2 data-pv-block="9ixyf6" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+                      {/* pv-block-end:9ixyf6 */}
+                      {/* pv-block-start:cqyy0w */}
+                      <p data-pv-block="cqyy0w" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+                      {/* pv-block-end:cqyy0w */}
+                      {/* pv-editable-zone-end:906s94 */}
+                    </DialogWindow>
+                  </DialogOverlay>
+                  {/* pv-block-end:12in4j */}
+                {/* pv-editable-zone-end:n4ivbh */}
+              </DialogTrigger>
+              {/* pv-block-end:dcq1nc */}
             {/* pv-editable-zone-end:inside-j5f1fn */}
           </div>
           {/* pv-block-end:j5f1fn */}

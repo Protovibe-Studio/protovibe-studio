@@ -723,13 +723,10 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
           pastedContent = pastedContent.replace(firstTagRegex, (match, tag, attrs, closing) => {
             let newAttrs = attrs;
-            const styleRegex = /style=\{\{([\s\S]*?)\}\}/;
+            const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
             const hasStyle = styleRegex.test(attrs);
 
             if (targetLayoutMode === 'flow') {
-              // Strip sketchpad draggable attribute
-              newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])(?:(?!\1).)*\1/g, '');
-
               if (hasStyle) {
                 newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
                   // Strip absolute positioning and sketchpad-injected dimensions
@@ -766,6 +763,11 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
             return `${tag}${newAttrs}${closing}`;
           });
+
+          if (targetLayoutMode === 'flow') {
+            // Universally strip sketchpad draggable attribute from the entire pasted block
+            pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])(?:(?!\1).)*\1/g, '');
+          }
         }
       }
 
