@@ -44,17 +44,16 @@ const mockDepartments = [
   { id: 'd4', name: 'Human Resources', manager: 'Michael Scott', headcount: 8, budget: 'Under Budget' },
 ];
 
-
 // --- SUBPAGES ---
 
 function DashboardPage() {
   return (
     <div className="flex flex-col animate-in fade-in duration-300 gap-4">
-      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-start:d8z9a1 */}
         
-        {/* pv-block-start */}
+        {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner
-          data-pv-block=""
+          data-pv-block="i3b4c5"
           heading="Welcome back, HR Admin!"
           secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."
           color="primary"
@@ -62,11 +61,11 @@ function DashboardPage() {
           primaryActionLabel="Review Requests"
           actionsLayout="right"
         />
-        {/* pv-block-end */}
+        {/* pv-block-end:i3b4c5 */}
         
-        {/* pv-block-start */}
-        <div data-pv-block="" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card variant="bordered" shadow="sm">
+        {/* pv-block-start:g6h7j8 */}
+        <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card variant="bordered" shadow="sm" className="bg-background-default">
             <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
               <Icon name="Users" size="sm" />
               <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
@@ -75,7 +74,7 @@ function DashboardPage() {
             <Badge label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
           </Card>
 
-          <Card variant="bordered" shadow="sm">
+          <Card variant="bordered" shadow="sm" className="bg-background-default">
             <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
               <Icon name="Briefcase" size="sm" />
               <TextBlock typography="small" className="font-semibold uppercase tracking-wider">Open Roles</TextBlock>
@@ -84,7 +83,7 @@ function DashboardPage() {
             <Badge label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
           </Card>
 
-          <Card variant="bordered" shadow="sm">
+          <Card variant="bordered" shadow="sm" className="bg-background-default">
             <div className="flex items-center gap-3 mb-2 text-foreground-secondary">
               <Icon name="CalendarHeart" size="sm" />
               <TextBlock typography="small" className="font-semibold uppercase tracking-wider">On Leave</TextBlock>
@@ -93,9 +92,9 @@ function DashboardPage() {
             <Badge label="2 returning this week" color="info" prefixIcon="Clock" />
           </Card>
         </div>
-        {/* pv-block-end */}
+        {/* pv-block-end:g6h7j8 */}
         
-      {/* pv-editable-zone-end */}
+      {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
 }
@@ -103,20 +102,20 @@ function DashboardPage() {
 function EmployeesPage() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
-      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-start:e1z2x3 */}
         
-        {/* pv-block-start */}
-        <div data-pv-block="" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <Input placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md" />
+        {/* pv-block-start:h4e5k6 */}
+        <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <Input placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md bg-background-default" />
           <div className="flex gap-2">
             <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
             <Button label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
           </div>
         </div>
-        {/* pv-block-end */}
+        {/* pv-block-end:h4e5k6 */}
 
-        {/* pv-block-start */}
-        <div data-pv-block="" className="flex flex-col border border-border-default rounded-lg bg-background-default overflow-hidden shadow-sm">
+        {/* pv-block-start:t7m8n9 */}
+        <div data-pv-block="t7m8n9" className="flex flex-col border border-border-default rounded-lg bg-background-default overflow-hidden shadow-sm">
           {/* Table Header */}
           <div className="flex items-center px-6 py-3 border-b border-border-default bg-background-default">
             <TextBlock typography="small" className="flex-1 font-semibold uppercase tracking-wider">Employee</TextBlock>
@@ -157,7 +156,7 @@ function EmployeesPage() {
 
                 {/* Detail Dialog */}
                 <DialogOverlay>
-                  <DialogWindow size="lg">
+                  <DialogWindow size="lg" className="bg-background-default">
                     <EmployeeDetailsDialog emp={emp} />
                   </DialogWindow>
                 </DialogOverlay>
@@ -165,9 +164,9 @@ function EmployeesPage() {
             ))}
           </div>
         </div>
-        {/* pv-block-end */}
+        {/* pv-block-end:t7m8n9 */}
         
-      {/* pv-editable-zone-end */}
+      {/* pv-editable-zone-end:e1z2x3 */}
     </div>
   );
 }
@@ -175,14 +174,14 @@ function EmployeesPage() {
 function PositionsPage() {
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-start:p1z2q3 */}
         
-        {/* pv-block-start */}
-        <div data-pv-block="" className="flex justify-between items-center mb-2">
+        {/* pv-block-start:h4p5w6 */}
+        <div data-pv-block="h4p5w6" className="flex justify-between items-center mb-2">
           <TextBlock typography="heading-md">Open Positions</TextBlock>
           <Button label="Create Requisition" leftIcon="Plus" size="sm" color="primary" />
         </div>
-        {/* pv-block-end */}
+        {/* pv-block-end:h4p5w6 */}
         
         {/* Dynamic mapping omits pv-block tags */}
         {mockPositions.map(pos => (
@@ -211,7 +210,7 @@ function PositionsPage() {
           </Card>
         ))}
         
-      {/* pv-editable-zone-end */}
+      {/* pv-editable-zone-end:p1z2q3 */}
     </div>
   );
 }
@@ -219,14 +218,14 @@ function PositionsPage() {
 function DepartmentsPage() {
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-start:d1z2r3 */}
       
-        {/* pv-block-start */}
-        <div data-pv-block="" className="flex justify-between items-center mb-2">
+        {/* pv-block-start:h4d5v6 */}
+        <div data-pv-block="h4d5v6" className="flex justify-between items-center mb-2">
           <TextBlock typography="heading-md">Departments</TextBlock>
           <Button label="Add Department" leftIcon="Plus" size="sm" color="primary" />
         </div>
-        {/* pv-block-end */}
+        {/* pv-block-end:h4d5v6 */}
         
         {/* Dynamic mapping omits pv-block tags */}
         {mockDepartments.map(dept => (
@@ -251,11 +250,10 @@ function DepartmentsPage() {
           </Card>
         ))}
         
-      {/* pv-editable-zone-end */}
+      {/* pv-editable-zone-end:d1z2r3 */}
     </div>
   );
 }
-
 
 // --- DIALOG DETAILS COMPONENT ---
 
@@ -285,7 +283,7 @@ function EmployeeDetailsDialog({ emp }: { emp: any }) {
           color="primary"
           leftIcon={isEditing ? "Save" : "Edit2"}
           onClick={(e) => {
-            e.stopPropagation(); // prevent dialog from closing if clicking weirdly
+            e.stopPropagation(); // prevent dialog from closing
             setIsEditing(!isEditing);
           }}
         />
@@ -367,7 +365,7 @@ function DetailField({
             ))}
           </SelectDropdown>
         ) : (
-          <Input defaultValue={value} type={type} />
+          <Input defaultValue={value} type={type} className="bg-background-default" />
         )
       ) : (
         <div className="h-10 flex items-center">
@@ -377,7 +375,6 @@ function DetailField({
     </div>
   );
 }
-
 
 // --- MAIN APP COMPONENT ---
 

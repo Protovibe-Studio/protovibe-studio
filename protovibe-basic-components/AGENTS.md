@@ -47,37 +47,24 @@ const { style } = useFloatingDropdownPosition({
 
 Use fixed overlay (`inset: 0`) in `document.body`; include backdrop, focus management, and Escape close.
 
-## pv-editable-zone Conventions
+## pv-editable-zone and pv-block ID Rules
 
-### ID rules — the one thing to remember
+How you write blocks and zones depends entirely on **where** you are writing them.
 
-You will see `pv-editable-zone` tags in the codebase that already have IDs (e.g. `{/* pv-editable-zone-start:abc123 */}`). Those IDs were assigned by the Protovibe server — **never by hand**. Always write zones and blocks without IDs:
+### 1. Inside Component Source Files (`PvDefaultContent` & `pvConfig`)
 
-| Situation | What to write |
-|---|---|
-| Any zone you write (empty or with children) | Bare form — **no ID** |
-| Any block you write | Bare form — **no ID**, empty `data-pv-block=""` |
-
-**Why:** IDs are always assigned by the Protovibe server on first render/registration. Writing IDs by hand causes conflicts and drift. The server handles all ID assignment — never add IDs manually, even when a zone already contains children.
+Always use the **bare, ID-less** form. This code acts as a template — the Protovibe server automatically generates and assigns unique IDs when the user adds the component to the canvas.
 
 ```jsx
-// ✅ Correct — always bare, no IDs
+// ✅ Correct for component definitions
 {/* pv-editable-zone-start */}
   {/* pv-block-start */}
-  <p data-pv-block="">Some content</p>
+  <div data-pv-block="">Template content</div>
   {/* pv-block-end */}
 {/* pv-editable-zone-end */}
-
-// ❌ Never add IDs by hand — the server does that
-{/* pv-editable-zone-start:abc123 */}
-  {/* pv-block-start:r2t5lp */}
-  <p data-pv-block="r2t5lp">Some content</p>
-  {/* pv-block-end:r2t5lp */}
-{/* pv-editable-zone-end:abc123 */}
 ```
 
-### Component source files (`src/components/ui/`)
-Always use the **bare ID-less** form. The zone is empty at definition time; the server registers it on first render.
+Component source files (`src/components/ui/`) use a bare empty zone:
 
 ```jsx
 {/* pv-editable-zone-start */}
@@ -85,17 +72,19 @@ Always use the **bare ID-less** form. The zone is empty at definition time; the 
 {/* pv-editable-zone-end */}
 ```
 
-### `pvConfig.defaultContent`
+`pvConfig.defaultContent` for simple drop zones:
+```
 defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}'
 ```
 
-## pv-block Tags When Composing Multi-Element JSX
+### 2. Inside Application Pages (e.g., `App.tsx`, `Dashboard.tsx`)
 
-When writing JSX that composes multiple elements or components **every direct child element or component inside a `pv-editable-zone` MUST be wrapped in a `pv-block` comment pair** with a unique random 6-character alphanumeric ID. This is what allows the user to select, move, duplicate, and delete each piece independently in the visual builder.
+When hardcoding populated blocks directly into page layouts, you **MUST** assign a matching random 6-character alphanumeric ID to the comment tags and the root element's `data-pv-block` attribute. Without IDs, the visual builder's Cut, Copy, and Delete actions will fail because the server cannot target the block.
 
-### Required format
+> **Note:** Empty "pristine" zones waiting for future drops can remain bare (no ID).
 
 ```jsx
+// ✅ Correct for page files / usage sites
 {/* pv-editable-zone-start:a1b2c3 */}
 
   {/* pv-block-start:x4y5z6 */}
@@ -113,20 +102,18 @@ When writing JSX that composes multiple elements or components **every direct ch
 {/* pv-editable-zone-end:a1b2c3 */}
 ```
 
-### Rules
+### Block rules (apply everywhere)
 
 1. **Every direct sibling inside a zone gets its own `pv-block` pair.** Never place bare elements directly inside a zone without a block fence.
-2. **The block ID goes on both the comment tags and the `data-pv-block` attribute of the root element of that block.** If the block's root is a plain HTML element, add `data-pv-block="<id>"` to it. If it is a component that spreads `...props`, the attribute will be forwarded automatically.
-3. **Nested children do NOT need their own block tags** unless they are themselves inside a nested `pv-editable-zone`.
+2. **The block ID goes on both the comment tags and the `data-pv-block` attribute** of the root element of that block. Components that spread `...props` forward the attribute automatically.
+3. **Nested children do NOT need their own block tags** unless they are inside a nested `pv-editable-zone`.
 4. **IDs are random 6-character lowercase alphanumeric strings** (e.g. `x1y2z3`). All IDs in the file must be unique — do not reuse zone IDs for block IDs or vice versa.
-5. **Do not wrap conditional renders or `.map()` calls** in a single block tag — each statically-known element should have its own block. If content is dynamic, omit the block tags for that dynamic section.
 
-### When this rule applies
+### When to use Zones and Blocks (Reorderability & Dynamic Content)
 
-- Any time you are asked to create a layout, design a section, or compose UI with multiple elements — **in any file**.
-- Any time you write or edit JSX that contains more than one child element inside a `pv-editable-zone`, regardless of which file it is in.
-- Any time you add elements to an existing zone in any file.
-- Does **not** apply inside component source files (`src/components/ui/*.tsx`) — block tags live in usage sites, not in component definitions.
+1. **Make siblings reorderable:** Every item that can be freely reordered with other siblings should be wrapped in its own `pv-block` pair, and the parent container should be wrapped in a `pv-editable-zone` pair. 
+2. **When to skip zones:** You should ONLY skip adding a `pv-editable-zone` if it is structurally unsafe or functionally broken to let the user reorder blocks or add new elements inside that specific container. Default to making things editable.
+3. **Dynamic/Repeatable Elements (`.map()`):** While you shouldn't wrap the `.map()` call itself in a block, you **should** let the user visually edit the *contents* of the repeatable item if it just renders data. Wrap the inner contents of the mapped element in a `pv-editable-zone` and `pv-block` pairs. This allows the user to visually compose the template of the repeatable item (e.g., wrap items in a div, add an icon, adjust layout).
 
 ## pvConfig `invalidCombinations`
 
