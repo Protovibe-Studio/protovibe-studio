@@ -12,7 +12,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:0zel3z */}
       {/* pv-block-start:3xxs7r */}
-          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="3xxs7r" variant="bordered" shadow="none" data-pv-sketchpad-el="3xxs7r" style={{ position: 'absolute', width: 563, left: 81, top: 67 }}>
+          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="3xxs7r" variant="bordered" shadow="none" data-pv-sketchpad-el="3xxs7r" style={{ position: 'absolute', width: 563, left: 127, top: 196 }}>
             {/* pv-editable-zone-start:c1cn2h */}
             {/* pv-block-start:mxnmct */}
           <Button data-pv-block="mxnmct" label="Button" variant="solid" color="primary" size="md" />
@@ -78,7 +78,7 @@ export default function Frame2() {
           {/* pv-block-end:195pu0 */}
 
       {/* pv-block-start:lrt7qh */}
-      <DialogTrigger data-pv-block="lrt7qh"   data-pv-sketchpad-el="lrt7qh" style={{ position: 'absolute', left: 127, top: 411 }}>
+      <DialogTrigger data-pv-block="lrt7qh"   data-pv-sketchpad-el="lrt7qh" style={{ position: 'absolute', left: 54, top: 443 }}>
         {/* pv-editable-zone-start:z19ouz */}
           {/* pv-block-start:vgql6t */}
           <Button data-pv-block="vgql6t" label="Open Dialog" variant="solid" color="primary" size="md" />

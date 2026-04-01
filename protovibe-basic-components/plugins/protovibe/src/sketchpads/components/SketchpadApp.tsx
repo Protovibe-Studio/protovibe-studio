@@ -363,13 +363,7 @@ export function SketchpadApp() {
         setTransform(INITIAL_TRANSFORM);
         return;
       }
-      // Undo / Redo
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-        e.preventDefault();
-        const endpoint = e.shiftKey ? '/__redo' : '/__undo';
-        const res = await fetch(endpoint, { method: 'POST' });
-        if (res.ok) await reloadAfterUndoRedo();
-      }
+
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);

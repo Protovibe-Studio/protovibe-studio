@@ -12,7 +12,7 @@ export default function Frame1() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:fzhckc */}
       {/* pv-block-start:opc0u2 */}
-      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 105, top: 120 }}>
+      <Card data-pv-block="opc0u2" data-pv-sketchpad-el="opc0u2" variant="bordered" shadow="none" style={{ position: 'absolute', width: 203, left: 520, top: 42 }}>
         {/* pv-editable-zone-start:t57su3 */}
         {/* pv-block-start:4ndiup */}
       <DialogTrigger data-pv-block="4ndiup"  >
@@ -81,7 +81,6 @@ export default function Frame1() {
         {/* pv-block-start:nujnh1 */}
       <Card data-pv-block="nujnh1" variant="bordered" shadow="none" >
         {/* pv-editable-zone-start:fjfs74 */}
-
         {/* pv-block-start:jri5c5 */}
           <Button data-pv-block="jri5c5" label="Button" variant="solid" color="primary" size="md" />
           {/* pv-block-end:jri5c5 */}
@@ -92,51 +91,43 @@ export default function Frame1() {
       </Card>
       {/* pv-block-end:opc0u2 */}
       
-      {/* pv-block-start:34kuij */}
-      <RadioGroup data-pv-block="34kuij" data-pv-sketchpad-el="34kuij" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 411, top: 354 }}>
-        {/* pv-editable-zone-start:tzgeto */}
-          {/* pv-block-start:v2la36 */}
-          <RadioItem data-pv-block="v2la36" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-          {/* pv-block-end:v2la36 */}
-          {/* pv-block-start:82z1ii */}
-          <RadioItem data-pv-block="82z1ii" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-          {/* pv-block-end:82z1ii */}
-          {/* pv-block-start:2vzfs9 */}
-          <RadioItem data-pv-block="2vzfs9" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-          {/* pv-block-end:2vzfs9 */}
-        {/* pv-editable-zone-end:tzgeto */}
-      </RadioGroup>
-      {/* pv-block-end:34kuij */}
+      {/* pv-block-start:17s6v5 */}
+      <Card data-pv-block="17s6v5" data-pv-sketchpad-el="17s6v5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 192, left: 120, top: 110 }}>
+        {/* pv-editable-zone-start:jeo10g */}
+        {/* pv-editable-zone-end:jeo10g */}
+      </Card>
+      {/* pv-block-end:17s6v5 */}
       
-      {/* pv-block-start:30jrxf */}
-      <Card data-pv-block="30jrxf" data-pv-sketchpad-el="30jrxf" variant="bordered" shadow="none" style={{ position: 'absolute', left: 460, top: 104 }}>
-        {/* pv-editable-zone-start:pucms9 */}
-        {/* pv-block-start:bh3v4k */}
-      <DialogTrigger data-pv-block="bh3v4k"  >
-        {/* pv-editable-zone-start:0qc45c */}
-          {/* pv-block-start:p710s2 */}
-          <Button data-pv-block="p710s2" label="Open Dialog" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:p710s2 */}
-          {/* pv-block-start:elfixw */}
-          <DialogOverlay data-pv-block="elfixw">
+      {/* pv-block-start:mjmhb5 */}
+      <Card data-pv-block="mjmhb5" data-pv-sketchpad-el="mjmhb5" variant="bordered" shadow="none" style={{ position: 'absolute', width: 340, left: 89, top: 353 }}>
+        {/* pv-editable-zone-start:5h15xo */}
+
+        {/* pv-block-start:lxrdhc */}
+      <DialogTrigger data-pv-block="lxrdhc"  >
+        {/* pv-editable-zone-start:7yngvo */}
+          {/* pv-block-start:f9wmoe */}
+          <Button data-pv-block="f9wmoe" label="Open Dialog" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:f9wmoe */}
+          {/* pv-block-start:vxtscm */}
+          <DialogOverlay data-pv-block="vxtscm">
             <DialogWindow size="md">
-              {/* pv-editable-zone-start:wlup44 */}
-              {/* pv-block-start:jrq7tl */}
-              <h2 data-pv-block="jrq7tl" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-              {/* pv-block-end:jrq7tl */}
-              {/* pv-block-start:87z171 */}
-              <p data-pv-block="87z171" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-              {/* pv-block-end:87z171 */}
-              {/* pv-editable-zone-end:wlup44 */}
+              {/* pv-editable-zone-start:ciwcgw */}
+              {/* pv-block-start:kcgma8 */}
+              <h2 data-pv-block="kcgma8" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
+              {/* pv-block-end:kcgma8 */}
+              {/* pv-block-start:iy05ao */}
+              <p data-pv-block="iy05ao" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+              {/* pv-block-end:iy05ao */}
+              {/* pv-editable-zone-end:ciwcgw */}
             </DialogWindow>
           </DialogOverlay>
-          {/* pv-block-end:elfixw */}
-        {/* pv-editable-zone-end:0qc45c */}
+          {/* pv-block-end:vxtscm */}
+        {/* pv-editable-zone-end:7yngvo */}
       </DialogTrigger>
-      {/* pv-block-end:bh3v4k */}
-        {/* pv-editable-zone-end:pucms9 */}
+      {/* pv-block-end:lxrdhc */}
+        {/* pv-editable-zone-end:5h15xo */}
       </Card>
-      {/* pv-block-end:30jrxf */}
+      {/* pv-block-end:mjmhb5 */}
       {/* pv-editable-zone-end:fzhckc */}
     </div>
   );

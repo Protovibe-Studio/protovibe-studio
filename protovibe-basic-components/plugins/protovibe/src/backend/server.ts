@@ -7,6 +7,10 @@ import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
+function logUndoDebug(event: string, details: Record<string, unknown>): void {
+  console.log(`[protovibe:undo] ${event}`, details);
+}
+
 export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
@@ -17,11 +21,39 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
       const toSnapshot: string[] = Array.from(new Set(filesArr ?? (file ? [file] : [])));
       const files = toSnapshot.map((f: string) => {
         const absolutePath = path.resolve(process.cwd(), f);
-        return { file: f, content: fs.readFileSync(absolutePath, 'utf-8') };
+        return { file: f, content: fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '' };
       });
 
-      undoStack.push({ files, activeId: activeId || '' });
-      redoStack.length = 0;
+      if (files.length > 0) {
+        const lastState = undoStack[undoStack.length - 1];
+        let isIdentical = false;
+
+        if (lastState && lastState.files.length === files.length) {
+          isIdentical = files.every(f => {
+            const match = lastState.files.find(lf => lf.file === f.file);
+            return match && match.content === f.content;
+          });
+        }
+
+        if (!isIdentical) {
+          undoStack.push({ files, activeId: activeId || '' });
+          redoStack.length = 0;
+          logUndoDebug('snapshot-created', {
+            source: 'server',
+            activeId: activeId || '',
+            files: files.map((file) => ({ file: file.file, existed: file.content !== '', size: file.content.length })),
+            undoDepth: undoStack.length,
+            redoDepth: redoStack.length,
+          });
+        } else {
+          logUndoDebug('snapshot-skipped-identical', {
+            source: 'server',
+            activeId: activeId || '',
+            files: files.map((file) => file.file),
+            undoDepth: undoStack.length,
+          });
+        }
+      }
 
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -36,13 +68,24 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
   try {
     const lastState = undoStack.pop();
     if (!lastState) {
+      logUndoDebug('undo-empty', {
+        undoDepth: undoStack.length,
+        redoDepth: redoStack.length,
+      });
       return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
     }
 
     const { files, activeId } = lastState;
+    logUndoDebug('undo-start', {
+      activeId,
+      files: files.map((file) => file.file),
+      undoDepthAfterPop: undoStack.length,
+      redoDepthBeforePush: redoStack.length,
+    });
     const currentFiles = files.map(({ file, content: savedContent }) => {
       const absolutePath = path.resolve(process.cwd(), file);
       const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
+      const operation = savedContent === '' ? 'delete' : 'restore';
       if (savedContent === '') {
         // File did not exist before this operation — delete it to truly undo the creation
         if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
@@ -50,9 +93,21 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
         fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
         fs.writeFileSync(absolutePath, savedContent, 'utf-8');
       }
+      logUndoDebug('undo-file-applied', {
+        file,
+        operation,
+        restoredSize: savedContent.length,
+        previousSize: currentContent.length,
+      });
       return { file, content: currentContent };
     });
     redoStack.push({ files: currentFiles, activeId });
+    logUndoDebug('undo-complete', {
+      activeId,
+      files: currentFiles.map((file) => file.file),
+      undoDepth: undoStack.length,
+      redoDepth: redoStack.length,
+    });
 
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));

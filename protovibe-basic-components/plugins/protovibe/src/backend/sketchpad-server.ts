@@ -9,6 +9,10 @@ import { undoStack, redoStack } from '../shared/state';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
 
+function logUndoDebug(event: string, details: Record<string, unknown>): void {
+  console.log(`[protovibe:undo] ${event}`, details);
+}
+
 // Snapshot one or more files into the undo stack before mutating them.
 function snapshotFiles(...relPaths: string[]): void {
   const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
@@ -18,8 +22,32 @@ function snapshotFiles(...relPaths: string[]): void {
       return { file: f, content: fs.existsSync(abs) ? fs.readFileSync(abs, 'utf-8') : '' };
     });
   if (files.length === 0) return;
+
+  // Deduplicate: Don't push if the top of the stack has the exact same content
+  const lastState = undoStack[undoStack.length - 1];
+  if (lastState && lastState.files.length === files.length) {
+    const isIdentical = files.every(f => {
+      const match = lastState.files.find(lf => lf.file === f.file);
+      return match && match.content === f.content;
+    });
+    if (isIdentical) {
+      logUndoDebug('snapshot-skipped-identical', {
+        source: 'sketchpad-server',
+        files: files.map((file) => file.file),
+        undoDepth: undoStack.length,
+      });
+      return;
+    }
+  }
+
   undoStack.push({ files, activeId: '' });
   redoStack.length = 0;
+  logUndoDebug('snapshot-created', {
+    source: 'sketchpad-server',
+    files: files.map((file) => ({ file: file.file, existed: file.content !== '', size: file.content.length })),
+    undoDepth: undoStack.length,
+    redoDepth: redoStack.length,
+  });
 }
 const REGISTRY_PATH = path.join(SKETCHPADS_DIR, '_registry.json');
 
@@ -381,6 +409,7 @@ export const handleFrameResize: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
+    snapshotFiles('src/sketchpads/_registry.json');
     if (width) frame.width = width;
     if (height) frame.height = height;
     writeRegistry(reg);
@@ -403,6 +432,7 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
+    snapshotFiles('src/sketchpads/_registry.json');
     if (canvasX !== undefined) frame.canvasX = canvasX;
     if (canvasY !== undefined) frame.canvasY = canvasY;
     writeRegistry(reg);
@@ -508,13 +538,21 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
-    // Find the element by its data-pv-sketchpad-el ID and update inline style position
-    const elRegex = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+,\\s*top:\\s*-?\\d+`,
-    );
-    const newPos = `left: ${Math.round(x)}, top: ${Math.round(y)}`;
-    if (elRegex.test(content)) {
-      content = content.replace(elRegex, `$1${newPos}`);
+    // Independently update left and top to avoid regex failures if code formatting changes
+    const leftRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+(?:\\.\\d+)?`);
+    const topRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)top:\\s*-?\\d+(?:\\.\\d+)?`);
+
+    let updated = false;
+    if (leftRegex.test(content)) {
+      content = content.replace(leftRegex, `$1left: ${Math.round(x)}`);
+      updated = true;
+    }
+    if (topRegex.test(content)) {
+      content = content.replace(topRegex, `$1top: ${Math.round(y)}`);
+      updated = true;
+    }
+
+    if (updated) {
       fs.writeFileSync(filePath, content, 'utf-8');
     }
 
@@ -538,7 +576,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
 
     // Check if the element already has a width in its style
     const widthExistsRe = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+`,
+      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+(?:\\.\\d+)?`,
     );
     if (widthExistsRe.test(content)) {
       // Update existing width
