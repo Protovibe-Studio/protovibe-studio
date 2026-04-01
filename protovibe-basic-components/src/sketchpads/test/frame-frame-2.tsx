@@ -12,7 +12,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:0zel3z */}
       {/* pv-block-start:3xxs7r */}
-          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="3xxs7r" variant="bordered" shadow="none" data-pv-sketchpad-el="3xxs7r" style={{ position: 'absolute', width: 563, left: 99, top: 64 }}>
+          <Card className="flex justify-center flex-col items-start self-start shrink pr-10" data-pv-block="3xxs7r" variant="bordered" shadow="none" data-pv-sketchpad-el="3xxs7r" style={{ position: 'absolute', width: 563, left: 62, top: 58 }}>
             {/* pv-editable-zone-start:c1cn2h */}
             {/* pv-block-start:mxnmct */}
           <Button data-pv-block="mxnmct" label="Button" variant="solid" color="primary" size="md" />
@@ -110,7 +110,7 @@ export default function Frame2() {
         {/* pv-editable-zone-end:z19ouz */}
       </DialogTrigger>
       {/* pv-block-end:lrt7qh */}
-      {/* pv-editable-zone-end:0zel3z */}
+            {/* pv-editable-zone-end:0zel3z */}
     </div>
   );
 }

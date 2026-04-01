@@ -95,6 +95,24 @@ export function SketchpadApp() {
   const [components, setComponents] = useState<ComponentEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [isMutationLocked, setIsMutationLocked] = useState(false);
+  const mutationLockRef = useRef(false);
+
+  const runLockedMutation = useCallback(async <T,>(mutation: () => Promise<T>): Promise<T | undefined> => {
+    if (mutationLockRef.current) return undefined;
+    mutationLockRef.current = true;
+    setIsMutationLocked(true);
+    try {
+      const result = await mutation();
+      // Let HMR/Fast Refresh settle before accepting the next mutation.
+      await new Promise<void>((resolve) => setTimeout(resolve, 150));
+      return result;
+    } finally {
+      mutationLockRef.current = false;
+      setIsMutationLocked(false);
+    }
+  }, []);
+
   // Fetch components from server (includes PvDefaultContent extraction)
   useEffect(() => {
     fetchServerComponents().then(setComponents);
@@ -161,50 +179,57 @@ export function SketchpadApp() {
 
   // Sketchpad CRUD
   const handleCreateSketchpad = useCallback(async (name: string) => {
-    const sp = await api.createSketchpad(name);
-    setSketchpads((prev) => [...prev, sp]);
-    setActiveSketchpadId(sp.id);
-  }, []);
+    await runLockedMutation(async () => {
+      const sp = await api.createSketchpad(name);
+      setSketchpads((prev) => [...prev, sp]);
+      setActiveSketchpadId(sp.id);
+    });
+  }, [runLockedMutation]);
 
   const handleDeleteSketchpad = useCallback(
     async (id: string) => {
-      await api.deleteSketchpad(id);
-      setSketchpads((prev) => {
-        const next = prev.filter((s) => s.id !== id);
-        if (activeSketchpadId === id && next.length > 0) {
-          setActiveSketchpadId(next[0].id);
-        }
-        return next;
+      await runLockedMutation(async () => {
+        await api.deleteSketchpad(id);
+        setSketchpads((prev) => {
+          const next = prev.filter((s) => s.id !== id);
+          if (activeSketchpadId === id && next.length > 0) {
+            setActiveSketchpadId(next[0].id);
+          }
+          return next;
+        });
       });
     },
-    [activeSketchpadId],
+    [activeSketchpadId, runLockedMutation],
   );
 
   const handleRenameSketchpad = useCallback(async (id: string, name: string) => {
-    await api.renameSketchpad(id, name);
-    setSketchpads((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, name } : s)),
-    );
-  }, []);
+    await runLockedMutation(async () => {
+      await api.renameSketchpad(id, name);
+      setSketchpads((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, name } : s)),
+      );
+    });
+  }, [runLockedMutation]);
 
   // Frame CRUD
   const handleCreateFrame = useCallback(
     async (canvasX: number, canvasY: number) => {
       if (!activeSketchpadId) return;
-      const name = `Frame ${(activeSketchpad?.frames.length ?? 0) + 1}`;
-      const frame = await api.createFrame(activeSketchpadId, name, 800, 600, Math.round(canvasX), Math.round(canvasY));
-      setSketchpads((prev) =>
-        prev.map((s) =>
-          s.id === activeSketchpadId
-            ? { ...s, frames: [...s.frames, frame] }
-            : s,
-        ),
-      );
-      setSelectedFrameId(frame.id);
-      // Load the newly created frame module
-      loadFrameModule(activeSketchpadId, frame.id);
+      await runLockedMutation(async () => {
+        const name = `Frame ${(activeSketchpad?.frames.length ?? 0) + 1}`;
+        const frame = await api.createFrame(activeSketchpadId, name, 800, 600, Math.round(canvasX), Math.round(canvasY));
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId
+              ? { ...s, frames: [...s.frames, frame] }
+              : s,
+          ),
+        );
+        setSelectedFrameId(frame.id);
+        await loadFrameModule(activeSketchpadId, frame.id);
+      });
     },
-    [activeSketchpadId, activeSketchpad, loadFrameModule],
+    [activeSketchpadId, activeSketchpad, loadFrameModule, runLockedMutation],
   );
 
   const handleAddFrameCentered = useCallback(async () => {
@@ -221,22 +246,24 @@ export function SketchpadApp() {
   const handleDeleteFrame = useCallback(
     async (frameId: string) => {
       if (!activeSketchpadId) return;
-      await api.deleteFrame(activeSketchpadId, frameId);
-      setSketchpads((prev) =>
-        prev.map((s) =>
-          s.id === activeSketchpadId
-            ? { ...s, frames: s.frames.filter((f) => f.id !== frameId) }
-            : s,
-        ),
-      );
-      setFrameModules((prev) => {
-        const next = { ...prev };
-        delete next[frameId];
-        return next;
+      await runLockedMutation(async () => {
+        await api.deleteFrame(activeSketchpadId, frameId);
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId
+              ? { ...s, frames: s.frames.filter((f) => f.id !== frameId) }
+              : s,
+          ),
+        );
+        setFrameModules((prev) => {
+          const next = { ...prev };
+          delete next[frameId];
+          return next;
+        });
+        if (selectedFrameId === frameId) setSelectedFrameId(null);
       });
-      if (selectedFrameId === frameId) setSelectedFrameId(null);
     },
-    [activeSketchpadId, selectedFrameId],
+    [activeSketchpadId, selectedFrameId, runLockedMutation],
   );
 
   const handleRenameFrame = useCallback(
@@ -246,22 +273,24 @@ export function SketchpadApp() {
       const newName = prompt('Rename frame:', frame.name);
       if (newName && newName.trim()) {
         const trimmed = newName.trim();
-        setSketchpads((prev) =>
-          prev.map((s) =>
-            s.id === activeSketchpadId
-              ? {
-                  ...s,
-                  frames: s.frames.map((f) =>
-                    f.id === frameId ? { ...f, name: trimmed } : f,
-                  ),
-                }
-              : s,
-          ),
-        );
-        api.renameFrame(activeSketchpadId, frameId, trimmed);
+        runLockedMutation(async () => {
+          setSketchpads((prev) =>
+            prev.map((s) =>
+              s.id === activeSketchpadId
+                ? {
+                    ...s,
+                    frames: s.frames.map((f) =>
+                      f.id === frameId ? { ...f, name: trimmed } : f,
+                    ),
+                  }
+                : s,
+            ),
+          );
+          await api.renameFrame(activeSketchpadId, frameId, trimmed);
+        });
       }
     },
-    [activeSketchpad, activeSketchpadId],
+    [activeSketchpad, activeSketchpadId, runLockedMutation],
   );
 
   const handleMoveFrame = useCallback(
@@ -285,10 +314,10 @@ export function SketchpadApp() {
   const handleMoveFrameEnd = useCallback(
     (frameId: string, x: number, y: number) => {
       if (activeSketchpadId) {
-        api.updateFramePosition(activeSketchpadId, frameId, Math.round(x), Math.round(y));
+        runLockedMutation(() => api.updateFramePosition(activeSketchpadId, frameId, Math.round(x), Math.round(y)));
       }
     },
-    [activeSketchpadId],
+    [activeSketchpadId, runLockedMutation],
   );
 
   const handleResizeFrame = useCallback(
@@ -312,10 +341,10 @@ export function SketchpadApp() {
   const handleResizeFrameEnd = useCallback(
     (frameId: string, w: number, h: number) => {
       if (activeSketchpadId) {
-        api.resizeFrame(activeSketchpadId, frameId, Math.round(w), Math.round(h));
+        runLockedMutation(() => api.resizeFrame(activeSketchpadId, frameId, Math.round(w), Math.round(h)));
       }
     },
-    [activeSketchpadId],
+    [activeSketchpadId, runLockedMutation],
   );
 
   // Element interactions — components are rendered from frame .tsx modules.
@@ -331,7 +360,7 @@ export function SketchpadApp() {
       // Write element to the frame file via backend.
       // Vite's file watcher will see this write, trigger HMR,
       // and React Fast Refresh will instantly update the canvas.
-      await api.addElementToFrame(
+      await runLockedMutation(() => api.addElementToFrame(
         activeSketchpadId,
         targetFrame,
         comp.name,
@@ -341,9 +370,9 @@ export function SketchpadApp() {
         posX,
         posY,
         comp.additionalImportsForDefaultContent,
-      );
+      ));
     },
-    [selectedFrameId, activeSketchpadId],
+    [selectedFrameId, activeSketchpadId, runLockedMutation],
   );
 
   // Reload registry and affected frame modules after undo/redo
@@ -436,31 +465,29 @@ export function SketchpadApp() {
       }
 
       try {
-        // 0. Snapshot both affected files before mutating so the drop is undoable
-        const extraFiles = sourceFile !== targetFile ? [targetFile] : [];
-        await takeSnapshot(sourceFile, '', extraFiles);
+        await runLockedMutation(async () => {
+          const extraFiles = sourceFile !== targetFile ? [targetFile] : [];
+          await takeSnapshot(sourceFile, '', extraFiles);
 
-        // 1. Cut from source frame (loads clipboard & harvests imports)
-        await blockAction('cut', draggedBlockId, sourceFile);
+          await blockAction('cut', draggedBlockId, sourceFile);
 
-        // 2. Paste into resolved target zone with layout-mode context
-        await addBlock({
-          file: targetFile,
-          zoneId: targetZoneId,
-          isPristine: targetIsPristine,
-          elementType: 'paste',
-          targetLayoutMode,
-          pasteX: Math.round(x),
-          pasteY: Math.round(y),
-          targetStartLine,
-          targetEndLine,
+          await addBlock({
+            file: targetFile,
+            zoneId: targetZoneId,
+            isPristine: targetIsPristine,
+            elementType: 'paste',
+            targetLayoutMode,
+            pasteX: Math.round(x),
+            pasteY: Math.round(y),
+            targetStartLine,
+            targetEndLine,
+          });
+
+          await loadFrameModule(sketchpadId, sourceFrameId);
+          if (sourceFrameId !== targetFrameId) {
+            await loadFrameModule(sketchpadId, targetFrameId);
+          }
         });
-
-        // 3. Reload affected frames so the UI reflects the change
-        await loadFrameModule(sketchpadId, sourceFrameId);
-        if (sourceFrameId !== targetFrameId) {
-          await loadFrameModule(sketchpadId, targetFrameId);
-        }
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);
       }
@@ -468,7 +495,7 @@ export function SketchpadApp() {
 
     window.addEventListener('pv-sketchpad-drop-element', handleDropElement);
     return () => window.removeEventListener('pv-sketchpad-drop-element', handleDropElement);
-  }, [loadFrameModule]);
+  }, [loadFrameModule, runLockedMutation]);
 
   // Drop handler for drag from palette
   const handleDrop = useCallback(
@@ -652,6 +679,18 @@ export function SketchpadApp() {
         onDelete={handleDeleteSketchpad}
         onRename={handleRenameSketchpad}
       />
+      {isMutationLocked && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 999999,
+            background: 'transparent',
+            pointerEvents: 'auto',
+            cursor: 'progress',
+          }}
+        />
+      )}
     </div>
   );
 }

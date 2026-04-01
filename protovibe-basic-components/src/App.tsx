@@ -106,7 +106,7 @@ export default function App() {
           {/* pv-block-end:1imggz */}
 
         {/* pv-block-start:j5f1fn */}
-          <div className="flex-col min-h-4 bg-background-secondary rounded-md py-5 pl-2 pr-5 flex w-1/2" data-pv-block="j5f1fn">
+          <div className="flex-col min-h-4 bg-background-secondary rounded-md flex w-1/2 py-5 pl-2 pr-5" data-pv-block="j5f1fn">
             {/* pv-editable-zone-start:inside-j5f1fn */}
               {/* pv-block-start:hkx3km */}
               <span data-pv-block="hkx3km">
