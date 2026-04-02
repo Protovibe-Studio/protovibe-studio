@@ -77,7 +77,7 @@ function DashboardPage() {
                     <Icon data-pv-block="l8m9n1" name="Users" size="sm" />
                     {/* pv-block-end:l8m9n1 */}
                     {/* pv-block-start:o2p3q4 */}
-                    <TextBlock data-pv-block="o2p3q4" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    <TextBlock data-pv-block="o2p3q4" typography="all-caps" className="uppercase tracking-wider">Total Headcount</TextBlock>
                     {/* pv-block-end:o2p3q4 */}
                   {/* pv-editable-zone-end:i5j6k7 */}
                 </div>
@@ -102,7 +102,7 @@ function DashboardPage() {
                     <Icon data-pv-block="j5k6l7" name="Briefcase" size="sm" />
                     {/* pv-block-end:j5k6l7 */}
                     {/* pv-block-start:m8n9o1 */}
-                    <TextBlock data-pv-block="m8n9o1" typography="small" className="font-semibold uppercase tracking-wider">Open Roles</TextBlock>
+                    <TextBlock data-pv-block="m8n9o1" typography="all-caps" className="uppercase tracking-wider">Open Roles</TextBlock>
                     {/* pv-block-end:m8n9o1 */}
                   {/* pv-editable-zone-end:g2h3i4 */}
                 </div>
@@ -127,7 +127,7 @@ function DashboardPage() {
                     <Icon data-pv-block="h2i3j4" name="CalendarHeart" size="sm" />
                     {/* pv-block-end:h2i3j4 */}
                     {/* pv-block-start:k5l6m7 */}
-                    <TextBlock data-pv-block="k5l6m7" typography="small" className="font-semibold uppercase tracking-wider">On Leave</TextBlock>
+                    <TextBlock data-pv-block="k5l6m7" typography="all-caps" className="uppercase tracking-wider">On Leave</TextBlock>
                     {/* pv-block-end:k5l6m7 */}
                   {/* pv-editable-zone-end:e8f9g1 */}
                 </div>

@@ -21,10 +21,7 @@ export function Badge({
   return (
     <span
       data-color={color}
-      className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary",
-        className
-      )}
+      className={cn("inline-flex items-center gap-1 uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary font-semibold text-tiny py-0.5 px-1.5 rounded-sm", className)}
       {...props}
       data-pv-component-id="Badge"
     >

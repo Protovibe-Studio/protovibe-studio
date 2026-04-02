@@ -6,6 +6,9 @@ Protovibe is an AST-based visual builder that reads and writes React code direct
 
 When building out application pages (e.g., `Dashboard.tsx`, `App.tsx`), Protovibe requires specific AST structures to track, move, and edit elements safely on the canvas.
 
+### Rule: Always check component definitions from component/ui folder before using them
+Never guess the components structure! Always read the files from @src/components/ui before creating a new view.
+
 ### Rule: Zone and Block IDs in Application Pages
 
 When writing blocks anywhere outside a component's `PvDefaultContent` definition, you MUST manually assign a matching random 6-character alphanumeric ID to the comment tags and the root element's `data-pv-block` attribute. Without IDs, the visual builder's Cut, Copy, and Delete actions will fail.
@@ -32,7 +35,7 @@ When writing blocks anywhere outside a component's `PvDefaultContent` definition
 
 ### Rule: Block Granularity
 
-Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse simple static UI into one large block. If a section contains elements that can be reordered or edited independently, break it down.
+Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse simple static UI into one large block. If a section contains elements that can be reordered or edited independently, break it down. Dividers made with custom divs should also be a separate block so that user can delete them.
 
 * **❌ BAD: Too coarse (One block wrapping an entire grid of cards)**
 
@@ -51,6 +54,7 @@ Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse
   {/* pv-block-start:g6h7j8 */}
   <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
     {/* pv-editable-zone-start:a1b2c3 */}
+    
       {/* pv-block-start:d4e5f6 */}
       <Card data-pv-block="d4e5f6" variant="bordered">
         {/* pv-editable-zone-start:g7h8i9 */}
@@ -60,6 +64,21 @@ Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse
         {/* pv-editable-zone-end:g7h8i9 */}
       </Card>
       {/* pv-block-end:d4e5f6 */}
+
+      {/* pv-block-start:x1y2z3 */}
+      <div data-pv-block="x1y2z3" className="w-full h-px bg-border-default" />
+      {/* pv-block-end:x1y2z3 */}
+
+      {/* pv-block-start:p9q8r7 */}
+      <Card data-pv-block="p9q8r7" variant="bordered">
+        {/* pv-editable-zone-start:v4b5n6 */}
+          {/* pv-block-start:k1l2m3 */}
+          <TextBlock data-pv-block="k1l2m3" typography="heading-xxl">87</TextBlock>
+          {/* pv-block-end:k1l2m3 */}
+        {/* pv-editable-zone-end:v4b5n6 */}
+      </Card>
+      {/* pv-block-end:p9q8r7 */}
+
     {/* pv-editable-zone-end:a1b2c3 */}
   </div>
   {/* pv-block-end:g6h7j8 */}
@@ -437,4 +456,22 @@ Components should have a default size when property size is not set. Use a diffe
   ```tsx
   <Button label="Create Project" />
   ```
- 
+
+### Rule: Avoid Custom Text Styles—Use TextBlock with Typography Property
+
+Never add custom Tailwind classes for text styling. Instead, use the `TextBlock` component with its `typography` property to apply predefined, consistent text styles. This keeps your design system cohesive and makes the visual builder's text variant control work properly.
+
+* **❌ BAD: Custom classes for styling**
+  ```tsx
+  <TextBlock className="uppercase font-bold text-sm">Section Title</TextBlock>
+  ```
+
+* **❌ BAD: all caps hardcoded**
+  ```tsx
+  <TextBlock className="font-bold text-sm">SECTION TITLE</TextBlock>
+  ```
+
+* **✅ GOOD: Typography property selects predefined style**
+  ```tsx
+  <TextBlock typography="all-caps">Section Title</TextBlock>
+  ```

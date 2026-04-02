@@ -7,8 +7,8 @@
 [data-theme="light"] {
  color-scheme: light;
  /* Backgrounds */
- --background-default: oklch(99% 0.006 260); /* page canvas */
- --background-secondary: oklch(96% 0.008 260); /* cards, panels */
+ --background-default: oklch(100% 0.006 260); /* page canvas */
+ --background-secondary: oklch(97% 0.008 257.5); /* cards, panels */
  --background-tertiary: oklch(92% 0.01 260); /* code blocks, elevated */
  --background-elevated: oklch(100% 0 0); /* floating surfaces, pure white */
  --background-strong: oklch(12% 0.01 260); /* inverse chip / tooltip */
@@ -67,7 +67,7 @@
  color-scheme: dark;
 
  /* Backgrounds */
- --background-default: oklch(12% 0.095 260);
+ --background-default: oklch(0% 0.095 260);
  --background-secondary: oklch(17% 0.01 260);
  --background-tertiary: oklch(22% 0.01 260);
  --background-elevated: oklch(20% 0.01 260); /* lighter than background-default */
@@ -505,19 +505,34 @@
  --container-7xl: 80rem;
 
  /* ── Typography ──────────────────────────────────────────────────────────── */
- --text-xs: 0.75rem; --text-xs--line-height: calc(1 / 0.75);
- --text-sm: 0.875rem; --text-sm--line-height: calc(1.25 / 0.875);
- --text-base: 1rem; --text-base--line-height: calc(1.5 / 1);
- --text-lg: 1.125rem; --text-lg--line-height: calc(1.75 / 1.125);
- --text-xl: 1.25rem; --text-xl--line-height: calc(1.75 / 1.25);
- --text-2xl: 1.5rem; --text-2xl--line-height: calc(2 / 1.5);
- --text-3xl: 1.875rem; --text-3xl--line-height: calc(2.25 / 1.875);
- --text-4xl: 2.25rem; --text-4xl--line-height: calc(2.5 / 2.25);
- --text-5xl: 3rem; --text-5xl--line-height: 1;
- --text-6xl: 3.75rem; --text-6xl--line-height: 1;
- --text-7xl: 4.5rem; --text-7xl--line-height: 1;
- --text-8xl: 6rem; --text-8xl--line-height: 1;
- --text-9xl: 8rem; --text-9xl--line-height: 1;
+ --text-tiny: 0.6875rem;
+ --text-tiny--line-height: calc(1 / 0.6875); 
+ --text-xs: 0.75rem; 
+ --text-xs--line-height: calc(1 / 0.75);
+ --text-sm: 0.875rem; 
+ --text-sm--line-height: calc(1.25 / 0.875);
+ --text-base: 1rem; 
+ --text-base--line-height: calc(1.5 / 1);
+ --text-lg: 1.125rem; 
+ --text-lg--line-height: calc(1.75 / 1.125);
+ --text-xl: 1.25rem; 
+ --text-xl--line-height: calc(1.75 / 1.25);
+ --text-2xl: 1.5rem; 
+ --text-2xl--line-height: calc(2 / 1.5);
+ --text-3xl: 1.875rem; 
+ --text-3xl--line-height: calc(2.25 / 1.875);
+ --text-4xl: 2.25rem; 
+ --text-4xl--line-height: calc(2.5 / 2.25);
+ --text-5xl: 3rem; 
+ --text-5xl--line-height: 1;
+ --text-6xl: 3.75rem; 
+ --text-6xl--line-height: 1;
+ --text-7xl: 4.5rem; 
+ --text-7xl--line-height: 1;
+ --text-8xl: 6rem; 
+ --text-8xl--line-height: 1;
+ --text-9xl: 8rem; 
+ --text-9xl--line-height: 1;
 
  --font-weight-thin: 100;
  --font-weight-extralight: 200;
@@ -543,13 +558,14 @@
  --leading-loose: 2;
 
  /* ── Border radius ────────────────────────────────────────────────────────── */
+ --radius: 0.5rem;
  --radius-xs: 0.125rem;
  --radius-sm: 0.25rem;
- --radius-md: 0.5rem;
- --radius-lg: 0.8rem;
- --radius-xl: 0.75rem;
- --radius-2xl: 1rem;
- --radius-3xl: 1.5rem;
+ --radius-md: 0.75rem;
+ --radius-lg: 1rem;
+ --radius-xl: 1.25rem;
+ --radius-2xl: 1.5rem;
+ --radius-3xl: 1.75rem;
  --radius-4xl: 2rem;
 
  /* ── Shadows ─────────────────────────────────────────────────────────────── */
@@ -631,4 +647,8 @@ body {
  background: var(--color-background-default);
  color: var(--color-foreground);
  min-height: 100vh;
+}
+
+html {
+    font-size: 16px;
 }
