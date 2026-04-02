@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { InspectorInput } from '../InspectorInput';
 import { theme } from '../../theme';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
@@ -45,7 +46,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   containerStyle,
   inputStyle,
   dropdownStyle,
-  noneLabel = 'None',
+  noneLabel = 'Unset',
   showNoneOption = true,
   zIndex = 9999999,
   filterOptions,
@@ -151,7 +152,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       const top = filteredOptions[0];
-      const val = localValue && top ? top.val : localValue;
+      const val = hasTyped && localValue && top ? top.val : localValue;
       selectValue(val, e.currentTarget);
       return;
     }
@@ -243,7 +244,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         suffix={suffix}
       />
 
-      {isOpen && canUseDOM && createPortal(
+      {isOpen && canUseDOM && (filteredOptions.length > 0 || !hasTyped) && createPortal(
         <div
           ref={dropdownElRef}
           data-pv-overlay="true"
@@ -298,10 +299,13 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
                 fontSize: '11px',
                 color: theme.text_tertiary,
                 cursor: 'pointer',
-                fontStyle: 'italic',
                 borderBottom: `1px solid ${theme.border_secondary}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
+              <X size={10} strokeWidth={2.5} />
               {noneLabel}
             </div>
           )}

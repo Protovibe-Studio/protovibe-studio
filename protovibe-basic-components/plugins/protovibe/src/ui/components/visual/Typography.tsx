@@ -5,6 +5,7 @@ import { VisualControl } from './VisualControl';
 import { SegmentedControl } from './SegmentedControl';
 import { cleanVal } from '../../utils/tailwind';
 import { useScales } from '../../hooks/useScales';
+import { prioritizeColors } from '../../constants/tailwind';
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -16,7 +17,7 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     <VisualSection title="Typography">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={themeColors as any[]} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} />
+          <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={prioritizeColors(themeColors as any[], 'foreground-')} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} />
           <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>

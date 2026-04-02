@@ -8,7 +8,7 @@ import { SpacingBoxSVG } from './SpacingBoxSVG';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
 import { buildContextPrefix, makeSafe, computeOptimalSpacing, computeOptimalBorder, cleanVal } from '../../utils/tailwind';
-import { SCALES } from '../../constants/tailwind';
+import { SCALES, prioritizeColors } from '../../constants/tailwind';
 import { useScales } from '../../hooks/useScales';
 import { theme } from '../../theme';
 
@@ -619,7 +619,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           label="BG Color"
           prefix="bg-"
           value={cleanVal(v.bg)}
-          options={themeColors as any[]}
+          options={prioritizeColors(themeColors as any[], 'background-')}
           originalClass={v.bg_original}
           type="input"
           inheritedValue={cleanVal(domV?.bg)}
@@ -644,7 +644,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onChange={(val) => handleBorderColorUpdate('all', val)}
           icon={<BorderAllIcon />}
           inheritedValue={cleanVal(domV?.borderColor)}
-          colorOptions={themeColors as any[]}
+          colorOptions={prioritizeColors(themeColors as any[], 'border-')}
         />
 
         {borderColorExpanded && (
@@ -654,28 +654,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               onChange={(val) => handleBorderColorUpdate('t', val)}
               icon={<BorderTIcon />}
               inheritedValue={cleanVal(domV?.borderColorT)}
-              colorOptions={themeColors as any[]}
+              colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorR)}
               onChange={(val) => handleBorderColorUpdate('r', val)}
               icon={<BorderRIcon />}
               inheritedValue={cleanVal(domV?.borderColorR)}
-              colorOptions={themeColors as any[]}
+              colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorB)}
               onChange={(val) => handleBorderColorUpdate('b', val)}
               icon={<BorderBIcon />}
               inheritedValue={cleanVal(domV?.borderColorB)}
-              colorOptions={themeColors as any[]}
+              colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorL)}
               onChange={(val) => handleBorderColorUpdate('l', val)}
               icon={<BorderLIcon />}
               inheritedValue={cleanVal(domV?.borderColorL)}
-              colorOptions={themeColors as any[]}
+              colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
           </div>
         )}

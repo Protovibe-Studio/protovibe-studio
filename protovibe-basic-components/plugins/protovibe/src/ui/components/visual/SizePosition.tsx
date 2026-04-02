@@ -17,10 +17,10 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           <VisualControl label="Height" prefix="h-" value={cleanVal(v.h)} options={scales.size} originalClass={v.h_original} type="input" inheritedValue={cleanVal(domV?.h)} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-          <VisualControl label="Min W" prefix="min-w-" value={cleanVal(v.minW)} originalClass={v.minW_original} type="input" inheritedValue={cleanVal(domV?.minW)} />
-          <VisualControl label="Max W" prefix="max-w-" value={cleanVal(v.maxW)} originalClass={v.maxW_original} type="input" inheritedValue={cleanVal(domV?.maxW)} />
-          <VisualControl label="Min H" prefix="min-h-" value={cleanVal(v.minH)} originalClass={v.minH_original} type="input" inheritedValue={cleanVal(domV?.minH)} />
-          <VisualControl label="Max H" prefix="max-h-" value={cleanVal(v.maxH)} originalClass={v.maxH_original} type="input" inheritedValue={cleanVal(domV?.maxH)} />
+          <VisualControl label="Min W" prefix="min-w-" value={cleanVal(v.minW)} options={scales.size} originalClass={v.minW_original} type="input" inheritedValue={cleanVal(domV?.minW)} />
+          <VisualControl label="Max W" prefix="max-w-" value={cleanVal(v.maxW)} options={scales.size} originalClass={v.maxW_original} type="input" inheritedValue={cleanVal(domV?.maxW)} />
+          <VisualControl label="Min H" prefix="min-h-" value={cleanVal(v.minH)} options={scales.size} originalClass={v.minH_original} type="input" inheritedValue={cleanVal(domV?.minH)} />
+          <VisualControl label="Max H" prefix="max-h-" value={cleanVal(v.maxH)} options={scales.size} originalClass={v.maxH_original} type="input" inheritedValue={cleanVal(domV?.maxH)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

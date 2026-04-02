@@ -27,7 +27,7 @@ export const SCALES = {
   spacing: [
     { val: '0', desc: '0px' }, { val: 'px', desc: '1px' }, { val: '0.5', desc: '2px' }, { val: '1', desc: '4px' }, 
     { val: '1.5', desc: '6px' }, { val: '2', desc: '8px' }, { val: '2.5', desc: '10px' }, { val: '3', desc: '12px' }, 
-    { val: '4', desc: '16px' }, { val: '5', desc: '20px' }, { val: '6', desc: '24px' }, { val: '8', desc: '32px' }, 
+    { val: '4', desc: '16px' }, { val: '5', desc: '20px' }, { val: '6', desc: '24px' }, { val: '7', desc: '28px' }, { val: '8', desc: '32px' },
     { val: '10', desc: '40px' }, { val: '12', desc: '48px' }, { val: '16', desc: '64px' }, { val: '20', desc: '80px' }, 
     { val: '24', desc: '96px' }, { val: '32', desc: '128px' }, { val: '40', desc: '160px' }, { val: '48', desc: '192px' }, 
     { val: '64', desc: '256px' }, { val: 'auto', desc: 'auto' }
@@ -58,7 +58,7 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
   const spacingEntries: [string, number | null][] = [
     ['0', 0], ['px', 1], ['0.5', unit * 0.5], ['1', unit], ['1.5', unit * 1.5],
     ['2', unit * 2], ['2.5', unit * 2.5], ['3', unit * 3], ['4', unit * 4],
-    ['5', unit * 5], ['6', unit * 6], ['8', unit * 8], ['10', unit * 10],
+    ['5', unit * 5], ['6', unit * 6], ['7', unit * 7], ['8', unit * 8], ['10', unit * 10],
     ['12', unit * 12], ['16', unit * 16], ['20', unit * 20], ['24', unit * 24],
     ['32', unit * 32], ['40', unit * 40], ['48', unit * 48], ['64', unit * 64],
     ['auto', null],
@@ -116,4 +116,11 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
     : SCALES.textSize;
 
   return { ...SCALES, spacing, size, radius, textSize };
+}
+
+/** Re-orders a color options array so tokens whose `val` starts with `prefix` appear first. */
+export function prioritizeColors<T extends { val: string }>(colors: T[], prefix: string): T[] {
+  const top = colors.filter(c => c.val.startsWith(prefix));
+  const rest = colors.filter(c => !c.val.startsWith(prefix));
+  return [...top, ...rest];
 }
