@@ -3,23 +3,24 @@ import React from 'react';
 import { VisualSection } from './VisualSection';
 import { VisualControl } from './VisualControl';
 import { SegmentedControl } from './SegmentedControl';
-import { SCALES } from '../../constants/tailwind';
 import { cleanVal } from '../../utils/tailwind';
+import { useScales } from '../../hooks/useScales';
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 
 export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { themeColors } = useProtovibe();
+  const scales = useScales();
   return (
     <VisualSection title="Typography">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
           <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={themeColors as any[]} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} />
-          <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={SCALES.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} />
+          <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Font family" prefix="font-" value={v.fontFamily} options={SCALES.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={domV?.fontFamily} />
+          <VisualControl label="Font family" prefix="font-" value={v.fontFamily} options={scales.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={domV?.fontFamily} />
           <VisualControl label="Weight" prefix="font-" value={v.fontWeight} options={[
             { val: 'thin', desc: '100' },
             { val: 'light', desc: '300' },

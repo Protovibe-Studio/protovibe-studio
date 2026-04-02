@@ -9,6 +9,7 @@ import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
 import { buildContextPrefix, makeSafe, computeOptimalSpacing, computeOptimalBorder, cleanVal } from '../../utils/tailwind';
 import { SCALES } from '../../constants/tailwind';
+import { useScales } from '../../hooks/useScales';
 import { theme } from '../../theme';
 
 // ─── Corner icons ──────────────────────────────────────────────────────────────
@@ -56,10 +57,13 @@ const SpacingAutocomplete: React.FC<{
   posStyle: React.CSSProperties;
   inheritedPlaceholder?: string;
   options?: typeof SCALES.spacing;
-}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options = SCALES.spacing }) => (
+}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options }) => {
+  const scales = useScales();
+  const resolvedOptions = options ?? scales.spacing;
+  return (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
-    options={options}
+    options={resolvedOptions}
     onCommit={onChange}
     placeholder={
       inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder
@@ -109,7 +113,8 @@ const SpacingAutocomplete: React.FC<{
       }
     }}
   />
-);
+  );
+};
 
 // ─── Border side icons ─────────────────────────────────────────────────────────
 
@@ -156,10 +161,14 @@ const RadiusAutocomplete: React.FC<{
   placeholder?: string;
   icon: React.ReactNode;
   inheritedValue?: string;
-}> = ({ value, onChange, placeholder, icon, inheritedValue }) => (
+  options?: typeof SCALES.radius;
+}> = ({ value, onChange, placeholder, icon, inheritedValue, options }) => {
+  const scales = useScales();
+  const resolvedOptions = options ?? scales.radius;
+  return (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
-    options={SCALES.radius}
+    options={resolvedOptions}
     onCommit={onChange}
     placeholder={inheritedValue && !value ? inheritedValue : (placeholder ?? '—')}
     zIndex={999999}
@@ -175,7 +184,8 @@ const RadiusAutocomplete: React.FC<{
       </>
     )}
   />
-);
+  );
+};
 
 // ─── BorderColorAutocomplete ───────────────────────────────────────────────────
 

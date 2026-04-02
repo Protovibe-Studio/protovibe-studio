@@ -44,6 +44,8 @@ interface ProtovibeContextType {
   refreshThemeColors: () => Promise<void>;
   themeTokens: ThemeToken[];
   refreshThemeTokens: () => Promise<void>;
+  htmlFontSize: number;
+  setHtmlFontSize: (size: number) => void;
 }
 
 const ProtovibeContext = createContext<ProtovibeContextType | undefined>(undefined);
@@ -62,6 +64,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
   const [themeTokens, setThemeTokens] = useState<ThemeToken[]>([]);
+  const [htmlFontSize, setHtmlFontSize] = useState(16);
   const sourcesRef = useRef<string[]>([]);
   const activeSourceIdRef = useRef<string | null>(null);
   const componentIdOverrideRef = useRef<string | null>(null);
@@ -359,6 +362,8 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       refreshThemeColors,
       themeTokens,
       refreshThemeTokens,
+      htmlFontSize,
+      setHtmlFontSize,
     }}>
       {children}
     </ProtovibeContext.Provider>

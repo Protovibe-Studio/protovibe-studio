@@ -25,7 +25,7 @@ export const ProtovibeApp: React.FC = () => {
     setIframeTheme(t);
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
-  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents } = useProtovibe();
+  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize } = useProtovibe();
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
@@ -74,7 +74,14 @@ export const ProtovibeApp: React.FC = () => {
       { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
       '*'
     );
-  }, [iframeTheme, inspectorOpen]);
+    if (ref === appIframeRef) {
+      const iframeDoc = ref.current?.contentDocument;
+      if (iframeDoc?.defaultView) {
+        const fs = parseFloat(iframeDoc.defaultView.getComputedStyle(iframeDoc.documentElement).fontSize);
+        if (!isNaN(fs) && fs > 0) setHtmlFontSize(fs);
+      }
+    }
+  }, [iframeTheme, inspectorOpen, setHtmlFontSize]);
 
   // Broadcast theme to all iframes whenever it changes
   useEffect(() => {

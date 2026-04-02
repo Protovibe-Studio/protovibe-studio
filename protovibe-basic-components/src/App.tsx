@@ -152,6 +152,10 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g6h7j8 */}
         
+
+        {/* pv-block-start:mgkj3o */}
+        <TextBlock data-pv-block="mgkj3o" label="Text block" typography="regular" />
+        {/* pv-block-end:mgkj3o */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

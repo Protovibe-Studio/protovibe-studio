@@ -3,17 +3,18 @@ import React from 'react';
 import { VisualSection } from './VisualSection';
 import { VisualControl } from './VisualControl';
 import { SegmentedControl } from './SegmentedControl';
-import { SCALES } from '../../constants/tailwind';
 import { cleanVal } from '../../utils/tailwind';
 import { theme } from '../../theme';
+import { useScales } from '../../hooks/useScales';
 
 export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
+  const scales = useScales();
   return (
     <VisualSection title="Size">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Width" prefix="w-" value={cleanVal(v.w)} options={SCALES.size} originalClass={v.w_original} type="input" inheritedValue={cleanVal(domV?.w)} />
-          <VisualControl label="Height" prefix="h-" value={cleanVal(v.h)} options={SCALES.size} originalClass={v.h_original} type="input" inheritedValue={cleanVal(domV?.h)} />
+          <VisualControl label="Width" prefix="w-" value={cleanVal(v.w)} options={scales.size} originalClass={v.w_original} type="input" inheritedValue={cleanVal(domV?.w)} />
+          <VisualControl label="Height" prefix="h-" value={cleanVal(v.h)} options={scales.size} originalClass={v.h_original} type="input" inheritedValue={cleanVal(domV?.h)} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
           <VisualControl label="Min W" prefix="min-w-" value={cleanVal(v.minW)} originalClass={v.minW_original} type="input" inheritedValue={cleanVal(domV?.minW)} />
