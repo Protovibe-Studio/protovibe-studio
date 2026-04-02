@@ -21,7 +21,7 @@ export function DialogWindow({ size = 'md', showCloseButton = true, children, cl
       data-pv-component-id="DialogWindow"
     >
       {showCloseButton && (
-        <DialogCloseTrigger className="absolute top-3 right-3">
+        <DialogCloseTrigger className="absolute top-1 right-1">
           <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
         </DialogCloseTrigger>
       )}

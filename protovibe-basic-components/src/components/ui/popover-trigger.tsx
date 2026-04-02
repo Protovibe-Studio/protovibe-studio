@@ -95,7 +95,7 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
     <PopoverContext.Provider value={{ close: () => setIsOpen(false) }}>
       <span
         ref={anchorRef}
-        style={{ display: 'inline-flex' }}
+        style={{ display: 'inline-flex', cursor: 'pointer' }}
         onClick={() => setIsOpen((prev) => !prev)}
         {...props}
         data-pv-component-id="PopoverTrigger"

@@ -57,7 +57,7 @@ export const DialogTrigger = forwardRef<DialogHandle, DialogTriggerProps>(functi
   return (
     <DialogContext.Provider value={{ isOpen, close: () => setIsOpen(false) }}>
       <span
-        style={{ display: 'inline-flex' }}
+        style={{ display: 'inline-flex', cursor: 'pointer' }}
         onClick={() => setIsOpen((prev) => !prev)}
         {...props}
         data-pv-component-id="DialogTrigger"
