@@ -21,7 +21,7 @@ export default function Frame2() {
       {/* pv-block-end:f2uptw */}
 
       {/* pv-block-start:qqn3dn */}
-            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', left: 211, top: 88 }}>
+            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 206, left: 211, top: 88 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:3lfgei */}
                 <div data-pv-block="3lfgei" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -194,6 +194,29 @@ export default function Frame2() {
         {/* pv-editable-zone-end:rqlqwm */}
       </Table>
       {/* pv-block-end:4ka2gh */}
+
+      {/* pv-block-start:aac2v5 */}
+            <Card data-pv-block="aac2v5" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="aac2v5" style={{ position: 'absolute', left: 467, top: 90, width: 206 }}>
+              {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:pgsa7t */}
+                <div data-pv-block="pgsa7t" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:tjb27b */}
+                    <TextBlock data-pv-block="tjb27b" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    {/* pv-block-end:tjb27b */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:pgsa7t */}
+                {/* pv-block-start:zqhd2f */}
+                <TextBlock data-pv-block="zqhd2f" typography="heading-xxl" className="mb-2">142</TextBlock>
+                {/* pv-block-end:zqhd2f */}
+
+              {/* pv-block-start:x4hugl */}
+                <Badge data-pv-block="x4hugl" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                {/* pv-block-end:x4hugl */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:aac2v5 */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
   );

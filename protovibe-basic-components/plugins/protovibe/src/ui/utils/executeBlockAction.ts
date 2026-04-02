@@ -42,6 +42,27 @@ export async function executeBlockAction({
   const oldTarget = findBlockElement(blockId);
   const parentBlockId = oldTarget?.parentElement?.closest('[data-pv-block]')?.getAttribute('data-pv-block');
 
+  // Capture sibling focus candidates before deletion removes the element from the DOM.
+  const prevSiblingBlockId = (() => {
+    let sib = oldTarget?.previousElementSibling as HTMLElement | null;
+    while (sib) {
+      const id = sib.getAttribute('data-pv-block');
+      if (id) return id;
+      sib = sib.previousElementSibling as HTMLElement | null;
+    }
+    return null;
+  })();
+
+  const nextSiblingBlockId = (() => {
+    let sib = oldTarget?.nextElementSibling as HTMLElement | null;
+    while (sib) {
+      const id = sib.getAttribute('data-pv-block');
+      if (id) return id;
+      sib = sib.nextElementSibling as HTMLElement | null;
+    }
+    return null;
+  })();
+
   const getPvLocAttr = (el: Element | null) => {
     if (!el) return null;
     for (let i = 0; i < el.attributes.length; i++) {
@@ -66,7 +87,11 @@ export async function executeBlockAction({
         await wait(100);
         continue;
       }
-      if (parentBlockId) {
+      if (prevSiblingBlockId) {
+        focusTarget = findBlockElement(prevSiblingBlockId);
+      } else if (nextSiblingBlockId) {
+        focusTarget = findBlockElement(nextSiblingBlockId);
+      } else if (parentBlockId) {
         focusTarget = findBlockElement(parentBlockId);
       }
     } else {

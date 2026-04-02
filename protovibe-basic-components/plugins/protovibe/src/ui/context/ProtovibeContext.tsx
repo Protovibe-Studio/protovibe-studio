@@ -206,6 +206,11 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const focusElement = useCallback((el: HTMLElement) => {
+    // Flush any pending uncommitted inspector input before switching elements.
+    // React does not fire onBlur when a component unmounts, so we must blur
+    // imperatively here — while the old inspector fields are still mounted.
+    (document.activeElement as HTMLElement | null)?.blur?.();
+
     let t = el;
     let matchedIds = new Set<string>();
     // Use the element's own document root as the walk boundary so this works
