@@ -241,7 +241,7 @@ function PositionsPage() {
             <TextBlock data-pv-block="h3i4j5" typography="heading-md">Open Positions</TextBlock>
             {/* pv-block-end:h3i4j5 */}
             {/* pv-block-start:k6l7m8 */}
-            <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus" size="sm" color="primary" />
+            <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus"  color="primary" />
             {/* pv-block-end:k6l7m8 */}
           {/* pv-editable-zone-end:e1f2g3 */}
         </div>
@@ -275,12 +275,6 @@ function PositionsPage() {
               {/* pv-block-start:h8j9k1 */}
               <div data-pv-block="h8j9k1" className="flex items-center gap-8 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
                 {/* pv-editable-zone-start:f9g1h2 */}
-                  {/* pv-block-start:i3j4k5 */}
-                  <div data-pv-block="i3j4k5" className="flex flex-col items-start sm:items-end">
-                    <TextBlock typography="heading-sm">{pos.applicants}</TextBlock>
-                    <TextBlock typography="small">Applicants</TextBlock>
-                  </div>
-                  {/* pv-block-end:i3j4k5 */}
                   {/* pv-block-start:l6m7n8 */}
                   <Badge data-pv-block="l6m7n8" label={pos.status} color={pos.status === 'Open' ? 'success' : 'info'} />
                   {/* pv-block-end:l6m7n8 */}
@@ -311,7 +305,7 @@ function DepartmentsPage() {
             <TextBlock data-pv-block="q3r4s5" typography="heading-md">Departments</TextBlock>
             {/* pv-block-end:q3r4s5 */}
             {/* pv-block-start:t6u7v8 */}
-            <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus" size="sm" color="primary" />
+            <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus"  color="primary" />
             {/* pv-block-end:t6u7v8 */}
           {/* pv-editable-zone-end:n9o1p2 */}
         </div>
@@ -345,11 +339,6 @@ function DepartmentsPage() {
                     <TextBlock typography="small">Employees</TextBlock>
                   </div>
                   {/* pv-block-end:d6e7f8 */}
-                  {/* pv-block-start:g9h1i2 */}
-                  <div data-pv-block="g9h1i2" className="flex flex-col items-start sm:items-end">
-                    <Badge label={dept.budget} color={dept.budget === 'At Risk' ? 'warning' : 'success'} />
-                  </div>
-                  {/* pv-block-end:g9h1i2 */}
                   {/* pv-block-start:j3k4l5 */}
                   <Button data-pv-block="j3k4l5" iconOnly variant="ghost" leftIcon="ChevronRight" />
                   {/* pv-block-end:j3k4l5 */}

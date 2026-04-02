@@ -420,3 +420,21 @@ Do not import specific icons directly. Use the centralized `Icon` component so t
   import { Icon } from '@/components/ui/icon';
   <Icon name="Download" size="sm" />
   ```
+
+### Rule: Don't set component size property unless it's justified
+
+Components should have a default size when property size is not set. Use a different size like (`sm`) only when the component is intentionally de-emphasized—such as in secondary actions, nested containers, or auxiliary controls. 
+
+
+* **❌ BAD: Small as default**
+
+  ```tsx
+  <Button size="sm" label="Create Project" />
+  ```
+
+* **✅ GOOD: no size defined
+
+  ```tsx
+  <Button label="Create Project" />
+  ```
+ 
