@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useStore } from '@/store';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,14 @@ import { Tabs } from '@/components/ui/tabs';
 import { TabItem } from '@/components/ui/tab-item';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
 import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
-import { DialogTrigger } from '@/components/ui/dialog-trigger';
+import { DialogContext } from '@/components/ui/dialog-trigger';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
+import { Table } from '@/components/ui/table';
+import { TableRowHeading } from '@/components/ui/table-row-heading';
+import { TableRowContent } from '@/components/ui/table-row-content';
+import { TableCellHeading } from '@/components/ui/table-cell-heading';
+import { TableCellContent } from '@/components/ui/table-cell-content';
 import { SelectDropdown } from '@/components/ui/select-dropdown';
 import { PopoverTrigger } from '@/components/ui/popover-trigger';
 import { DropdownList } from '@/components/ui/dropdown-list';
@@ -152,15 +158,17 @@ function DashboardPage() {
 }
 
 function EmployeesPage() {
+  const [selectedEmp, setSelectedEmp] = useState<typeof mockEmployees[0] | null>(null);
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
       {/* pv-editable-zone-start:e1z2x3 */}
-        
+
         {/* pv-block-start:h4e5k6 */}
         <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* pv-editable-zone-start:t5u6v7 */}
             {/* pv-block-start:w8x9y1 */}
-            <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="Search" className="max-w-md bg-background-default" />
+            <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="Search" className="bg-background-default" />
             {/* pv-block-end:w8x9y1 */}
             {/* pv-block-start:z2a3b4 */}
             <div data-pv-block="z2a3b4" className="flex gap-2">
@@ -173,58 +181,73 @@ function EmployeesPage() {
         {/* pv-block-end:h4e5k6 */}
 
         {/* pv-block-start:t7m8n9 */}
-        <div data-pv-block="t7m8n9" className="flex flex-col border border-border-default rounded-lg bg-background-default overflow-hidden shadow-sm">
-          {/* Table Header */}
-          <div className="flex items-center px-6 py-3 border-b border-border-default bg-background-default">
-            <TextBlock typography="small" className="flex-1 font-semibold uppercase tracking-wider">Employee</TextBlock>
-            <TextBlock typography="small" className="w-48 font-semibold uppercase tracking-wider hidden md:block">Role</TextBlock>
-            <TextBlock typography="small" className="w-40 font-semibold uppercase tracking-wider hidden lg:block">Department</TextBlock>
-            <TextBlock typography="small" className="w-32 font-semibold uppercase tracking-wider">Status</TextBlock>
-            <div className="w-10"></div>
-          </div>
-
-          {/* Table Body - Dynamic mapping omits pv-block tags */}
-          <div className="flex flex-col divide-y divide-border-default">
+        <Table data-pv-block="t7m8n9">
+          <thead>
+            <TableRowHeading>
+              {/* pv-editable-zone-start:h1e2a3 */}
+                {/* pv-block-start:d4e5f6 */}
+                <TableCellHeading data-pv-block="d4e5f6" label="Employee" />
+                {/* pv-block-end:d4e5f6 */}
+                {/* pv-block-start:g7h8i9 */}
+                <TableCellHeading data-pv-block="g7h8i9" label="Role" />
+                {/* pv-block-end:g7h8i9 */}
+                {/* pv-block-start:j1k2l3 */}
+                <TableCellHeading data-pv-block="j1k2l3" label="Department" />
+                {/* pv-block-end:j1k2l3 */}
+                {/* pv-block-start:m4n5o6 */}
+                <TableCellHeading data-pv-block="m4n5o6" label="Status" />
+                {/* pv-block-end:m4n5o6 */}
+                {/* pv-block-start:p7q8r9 */}
+                <TableCellHeading data-pv-block="p7q8r9" label="" />
+                {/* pv-block-end:p7q8r9 */}
+              {/* pv-editable-zone-end:h1e2a3 */}
+            </TableRowHeading>
+          </thead>
+          <tbody>
             {mockEmployees.map(emp => (
-              <DialogTrigger key={emp.id} closeOnEscape>
-                <div className="flex items-center px-6 py-4 hover:bg-background-secondary cursor-pointer transition-colors group grow">
-                  <div className="flex-1 flex items-center gap-4">
+              <TableRowContent key={emp.id} className="cursor-pointer hover:bg-background-secondary transition-colors group" onClick={() => setSelectedEmp(emp)}>
+                <TableCellContent>
+                  <div className="flex items-center gap-3">
                     <Avatar initials={emp.name} size="md" bgColor="primary" />
                     <div className="flex flex-col">
                       <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{emp.name}</TextBlock>
                       <TextBlock typography="small">{emp.email}</TextBlock>
                     </div>
                   </div>
-                  <div className="w-48 hidden md:block">
-                    <TextBlock typography="regular" className="truncate">{emp.role}</TextBlock>
-                  </div>
-                  <div className="w-40 hidden lg:block">
-                    <TextBlock typography="regular">{emp.department}</TextBlock>
-                  </div>
-                  <div className="w-32">
-                    <Badge 
-                      label={emp.status} 
-                      color={emp.status === 'Active' ? 'success' : emp.status === 'On Leave' ? 'warning' : 'neutral'} 
-                    />
-                  </div>
-                  <div className="w-10 text-right">
-                    <Icon name="ChevronRight" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
-                  </div>
-                </div>
-
-                {/* Detail Dialog */}
-                <DialogOverlay>
-                  <DialogWindow size="lg" className="bg-background-default">
-                    <EmployeeDetailsDialog emp={emp} />
-                  </DialogWindow>
-                </DialogOverlay>
-              </DialogTrigger>
+                </TableCellContent>
+                <TableCellContent>
+                  <TextBlock typography="regular">{emp.role}</TextBlock>
+                </TableCellContent>
+                <TableCellContent>
+                  <TextBlock typography="regular">{emp.department}</TextBlock>
+                </TableCellContent>
+                <TableCellContent>
+                  <Badge
+                    label={emp.status}
+                    color={emp.status === 'Active' ? 'success' : emp.status === 'On Leave' ? 'warning' : 'neutral'}
+                  />
+                </TableCellContent>
+                <TableCellContent>
+                  <Icon name="ChevronRight" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
+                </TableCellContent>
+              </TableRowContent>
             ))}
-          </div>
-        </div>
+          </tbody>
+        </Table>
         {/* pv-block-end:t7m8n9 */}
-        
+
       {/* pv-editable-zone-end:e1z2x3 */}
+
+      {selectedEmp && createPortal(
+        <DialogContext.Provider value={{ isOpen: true, close: () => setSelectedEmp(null) }}>
+          <DialogOverlay>
+            <DialogWindow size="lg" className="bg-background-default">
+              <EmployeeDetailsDialog emp={selectedEmp} />
+            </DialogWindow>
+          </DialogOverlay>
+        </DialogContext.Provider>,
+        document.body
+      )}
     </div>
   );
 }
@@ -254,14 +277,14 @@ function PositionsPage() {
               <div data-pv-block="c5d6e7" className="flex items-center gap-4">
                 {/* pv-editable-zone-start:w9x1y2 */}
                   {/* pv-block-start:z3a4b5 */}
-                  <div data-pv-block="z3a4b5" className="w-12 h-12 rounded-lg bg-background-secondary flex items-center justify-center text-foreground-secondary">
+                  <div data-pv-block="z3a4b5" className="bg-background-secondary flex items-center justify-center text-foreground-secondary rounded w-10 h-10">
                     <Icon name="Briefcase" size="md" />
                   </div>
                   {/* pv-block-end:z3a4b5 */}
                   {/* pv-block-start:c6d7e8 */}
                   <div data-pv-block="c6d7e8">
                     <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextBlock>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center mt-1 gap-1">
                       <TextBlock typography="small">{pos.department}</TextBlock>
                       <span className="text-foreground-tertiary text-xs">•</span>
                       <TextBlock typography="small">{pos.location}</TextBlock>
