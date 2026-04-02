@@ -9,6 +9,7 @@ interface InspectorInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEl
 
 export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur, style, prefix, suffix, containerStyle, ...props }) => {
   const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select();
@@ -27,7 +28,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
   if (!prefix && !suffix) {
     const defaultStyle: React.CSSProperties = {
       background: theme.bg_secondary,
-      border: `1px solid ${focused ? theme.accent_default : theme.border_default}`,
+      border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : theme.border_default}`,
       color: hasValue ? theme.accent_default : theme.text_tertiary,
       padding: '4px 8px',
       borderRadius: '4px',
@@ -39,7 +40,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
       transition: 'border-color 0.15s',
       ...style
     };
-    return <input {...props} onFocus={handleFocus} onBlur={handleBlur} style={defaultStyle} />;
+    return <input {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={defaultStyle} />;
   }
 
   const inputStyle: React.CSSProperties = {
@@ -57,9 +58,11 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
 
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         background: theme.bg_secondary,
-        border: `1px solid ${focused ? theme.accent_default : theme.border_default}`,
+        border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : theme.border_default}`,
         borderRadius: '4px',
         display: 'flex',
         alignItems: 'center',

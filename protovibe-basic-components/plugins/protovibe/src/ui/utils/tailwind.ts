@@ -91,7 +91,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     gridCols: '', gridRows: '', gridFlow: '', justifyItems: '', alignContent: '',
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
-    fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '',
+    fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '', leading: '', tracking: '',
     bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
@@ -175,6 +175,8 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
       if (weights.includes(val) || val.startsWith('[')) { v.fontWeight = val; orig.fontWeight_original = originalClass; }
       else { v.fontFamily = val; orig.fontFamily_original = originalClass; }
     }
+    else if (cls.startsWith('leading-')) { v.leading = cls.replace('leading-', ''); orig.leading_original = originalClass; }
+    else if (cls.startsWith('tracking-')) { v.tracking = cls.replace('tracking-', ''); orig.tracking_original = originalClass; }
     else if (cls.startsWith('text-')) {
       const val = cls.replace('text-', '');
       if (textAligns.includes(val)) { v.textAlign = val; orig.textAlign_original = originalClass; }

@@ -116,11 +116,11 @@ export const ClassesRaw: React.FC = () => {
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {classes.map((c: any) => (
                         <div key={c.cls} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <InspectorInput 
-                            type="text" 
-                            defaultValue={c.cls} 
+                          <InspectorInput
+                            type="text"
+                            defaultValue={c.cls}
                             onBlur={(e) => handleUpdateClass(c.cls, e.target.value, 'edit')}
-                            style={{ fontFamily: 'monospace' }} 
+                            style={{ fontFamily: 'monospace', color: theme.text_default }}
                           />
                           <button 
                             onClick={() => handleUpdateClass(c.cls, '', 'remove')}
@@ -137,13 +137,13 @@ export const ClassesRaw: React.FC = () => {
           )}
 
           <div style={{ padding: '12px 16px', background: theme.bg_default, display: 'flex', gap: '8px', alignItems: 'center', borderTop: `1px solid ${theme.border_default}` }}>
-            <InspectorInput 
-              type="text" 
-              placeholder="e.g. text-center" 
+            <InspectorInput
+              type="text"
+              placeholder="e.g. text-center"
               value={newClass}
               onChange={(e) => setNewClass(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
-              style={{ fontFamily: 'monospace' }} 
+              style={{ fontFamily: 'monospace', color: theme.text_default }}
             />
             <button 
               onClick={handleAddClass}

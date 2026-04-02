@@ -47,7 +47,19 @@ export const SCALES = {
   borderWidth: [{ val: '0', desc: '0px' }, { val: 'DEFAULT', desc: '1px' }, { val: '2', desc: '2px' }, { val: '4', desc: '4px' }, { val: '8', desc: '8px' }],
   shadow: [{ val: 'sm', desc: 'Small' }, { val: 'DEFAULT', desc: 'Normal' }, { val: 'md', desc: 'Medium' }, { val: 'lg', desc: 'Large' }, { val: 'xl', desc: 'Extra Large' }, { val: '2xl', desc: '2XL' }, { val: 'inner', desc: 'Inner' }, { val: 'none', desc: 'None' }],
   opacity: [{ val: '0', desc: '0%' }, { val: '10', desc: '10%' }, { val: '25', desc: '25%' }, { val: '50', desc: '50%' }, { val: '75', desc: '75%' }, { val: '90', desc: '90%' }, { val: '100', desc: '100%' }],
-  zIndex: [{ val: '0', desc: '' }, { val: '10', desc: '' }, { val: '20', desc: '' }, { val: '30', desc: '' }, { val: '40', desc: '' }, { val: '50', desc: '' }, { val: 'auto', desc: '' }]
+  zIndex: [{ val: '0', desc: '' }, { val: '10', desc: '' }, { val: '20', desc: '' }, { val: '30', desc: '' }, { val: '40', desc: '' }, { val: '50', desc: '' }, { val: 'auto', desc: '' }],
+  leading: [
+    { val: 'none', desc: '1' }, { val: 'tight', desc: '1.25' }, { val: 'snug', desc: '1.375' },
+    { val: 'normal', desc: '1.5' }, { val: 'relaxed', desc: '1.625' }, { val: 'loose', desc: '2' },
+    { val: '3', desc: '12px' }, { val: '4', desc: '16px' }, { val: '5', desc: '20px' },
+    { val: '6', desc: '24px' }, { val: '7', desc: '28px' }, { val: '8', desc: '32px' },
+    { val: '9', desc: '36px' }, { val: '10', desc: '40px' },
+  ],
+  tracking: [
+    { val: 'tighter', desc: '-0.05em' }, { val: 'tight', desc: '-0.025em' },
+    { val: 'normal', desc: '0em' }, { val: 'wide', desc: '0.025em' },
+    { val: 'wider', desc: '0.05em' }, { val: 'widest', desc: '0.1em' },
+  ],
 };
 
 export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): typeof SCALES {
@@ -115,7 +127,29 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
         .map(val => ({ val, desc: fmtPx(cssValueToPx(textSizeMap[val], htmlFontSize)) }))
     : SCALES.textSize;
 
-  return { ...SCALES, spacing, size, radius, textSize };
+  // ── Leading (line-height) ──────────────────────────────────────────────────
+  const leadingTokens = tokens.filter(t => t.name.startsWith('leading-'));
+  const leadingMap: Record<string, string> = {};
+  leadingTokens.forEach(t => { leadingMap[t.name.replace('leading-', '')] = t.value; });
+  const leadingOrder = ['none', 'tight', 'snug', 'normal', 'relaxed', 'loose', '3', '4', '5', '6', '7', '8', '9', '10'];
+  const leading = leadingTokens.length > 0
+    ? leadingOrder
+        .filter(val => val === 'none' || leadingMap[val])
+        .map(val => ({ val, desc: val === 'none' ? '1' : (leadingMap[val] ?? val) }))
+    : SCALES.leading;
+
+  // ── Tracking (letter-spacing) ──────────────────────────────────────────────
+  const trackingTokens = tokens.filter(t => t.name.startsWith('tracking-'));
+  const trackingMap: Record<string, string> = {};
+  trackingTokens.forEach(t => { trackingMap[t.name.replace('tracking-', '')] = t.value; });
+  const trackingOrder = ['tighter', 'tight', 'normal', 'wide', 'wider', 'widest'];
+  const tracking = trackingTokens.length > 0
+    ? trackingOrder
+        .filter(val => trackingMap[val])
+        .map(val => ({ val, desc: trackingMap[val] ?? '' }))
+    : SCALES.tracking;
+
+  return { ...SCALES, spacing, size, radius, textSize, leading, tracking };
 }
 
 /** Re-orders a color options array so tokens whose `val` starts with `prefix` appear first. */

@@ -154,7 +154,7 @@ function DashboardPage() {
         
 
         {/* pv-block-start:mgkj3o */}
-        <TextBlock className="pt-1 pb-7 px-7" data-pv-block="mgkj3o" label="Text block" typography="regular" />
+        <TextBlock className="pt-1 pb-7 px-7" data-pv-block="mgkj3o" label="Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as "  />
         {/* pv-block-end:mgkj3o */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>

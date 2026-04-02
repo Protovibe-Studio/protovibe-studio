@@ -10,6 +10,7 @@ import { MoreHorizontal } from 'lucide-react';
 export const ComponentProps: React.FC = () => {
   const { activeData, activeSourceId, runLockedMutation } = useProtovibe();
   const [showLockedProps, setShowLockedProps] = useState(false);
+  const [showAdvancedProps, setShowAdvancedProps] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [newPropKey, setNewPropKey] = useState('');
@@ -116,6 +117,9 @@ export const ComponentProps: React.FC = () => {
                 <label style={{ fontSize: '10px', color: theme.text_secondary, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '4px 8px' }}>
                   <input type="checkbox" checked={showLockedProps} onChange={(e) => setShowLockedProps(e.target.checked)} /> Show locked props
                 </label>
+                <label style={{ fontSize: '10px', color: theme.text_secondary, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '4px 8px' }}>
+                  <input type="checkbox" checked={showAdvancedProps} onChange={(e) => setShowAdvancedProps(e.target.checked)} /> Show advanced attributes
+                </label>
               </div>
             )}
           </div>
@@ -124,6 +128,9 @@ export const ComponentProps: React.FC = () => {
 
       <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {mergedProps.map(prop => {
+          const isAdvanced = !configProps[prop.name] && !prop.shouldNotBeEdited;
+          if (isAdvanced && !showAdvancedProps) return null;
+
           if (prop.shouldNotBeEdited) {
             if (!showLockedProps) return null;
             return (

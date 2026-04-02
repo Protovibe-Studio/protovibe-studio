@@ -36,6 +36,8 @@ interface AutocompleteDropdownProps {
   onInputMouseLeave?: (e: React.MouseEvent<HTMLInputElement>) => void;
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
+  /** When true, only values present in options can be committed. Typed values not matching any option are reset on blur. */
+  strictOptions?: boolean;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -58,6 +60,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   onInputMouseLeave,
   prefix,
   suffix,
+  strictOptions = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
@@ -228,8 +231,12 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           onInputFocus?.(e);
         }}
         onBlur={(e) => {
-          const commitValue = pendingBlurValueRef.current ?? localValue;
+          let commitValue = pendingBlurValueRef.current ?? localValue;
           pendingBlurValueRef.current = null;
+          if (strictOptions && commitValue && !options.some(o => o.val === commitValue)) {
+            commitValue = lastCommittedValueRef.current;
+            setLocalValue(commitValue);
+          }
           setTimeout(() => setIsOpen(false), 200);
           triggerCommit(commitValue);
           onInputBlur?.(e);
@@ -287,6 +294,23 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
                   </button>
                 </React.Fragment>
               ))}
+            </div>
+          )}
+
+          {strictOptions && hasTyped && localValue && !options.some(o => o.val === localValue) && (
+            <div
+              style={{
+                padding: '5px 10px',
+                fontSize: '10px',
+                color: theme.warning_primary,
+                borderBottom: `1px solid ${theme.border_secondary}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: 'sans-serif',
+              }}
+            >
+              ⚠ Invalid value — will be discarded
             </div>
           )}
 

@@ -22,9 +22,10 @@ interface VisualControlProps {
   type?: 'select' | 'input';
   width?: string;
   inheritedValue?: string;
+  strictOptions?: boolean;
 }
 
-export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue }) => {
+export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue, strictOptions = false }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
   const [rawInputValue, setRawInputValue] = useState(value === '-' ? '' : value);
 
@@ -98,6 +99,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
           options={options}
           onCommit={handleChange}
           zIndex={9999999}
+          strictOptions={strictOptions}
           showColorModeToggle={options.some(o => (o as Option).lightValue !== undefined || (o as Option).darkValue !== undefined || (o as Option).hex !== undefined)}
           filterOptions={(opts, query, hasTyped) => {
             if (!hasTyped) return opts;

@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/Sidebar.tsx
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { Header } from './Header';
 import { Tabs } from './Tabs';
@@ -19,6 +19,21 @@ type SidebarProps = {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const { currentBaseTarget, activeData, isMutationLocked } = useProtovibe();
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const savedScrollRef = useRef(0);
+  const prevActiveRef = useRef(activeData);
+
+  if (prevActiveRef.current !== activeData) {
+    savedScrollRef.current = scrollContainerRef.current?.scrollTop ?? 0;
+    prevActiveRef.current = activeData;
+  }
+
+  useLayoutEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = savedScrollRef.current;
+    }
+  }, [activeData]);
 
   const stopScrollEventEscape = (event: React.UIEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -78,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         onTouchMoveCapture={stopScrollEventEscape}
       >
         <Header />
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
+        <div ref={scrollContainerRef} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
           <Tabs />
           <BlockEditor />
           {activeData && (

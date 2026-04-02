@@ -22,7 +22,7 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <VisualControl label="Font family" prefix="font-" value={v.fontFamily} options={scales.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={domV?.fontFamily} />
-          <VisualControl label="Weight" prefix="font-" value={v.fontWeight} options={[
+          <VisualControl label="Weight" prefix="font-" value={v.fontWeight} strictOptions options={[
             { val: 'thin', desc: '100' },
             { val: 'light', desc: '300' },
             { val: 'normal', desc: '400' },
@@ -31,6 +31,11 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             { val: 'bold', desc: '700' },
             { val: 'black', desc: '900' }
           ]} originalClass={v.fontWeight_original} inheritedValue={domV?.fontWeight} />
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <VisualControl label="Line height" prefix="leading-" value={v.leading} options={scales.leading} originalClass={v.leading_original} inheritedValue={domV?.leading} />
+          <VisualControl label="Letter spacing" prefix="tracking-" value={v.tracking} options={scales.tracking} originalClass={v.tracking_original} inheritedValue={domV?.tracking} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
