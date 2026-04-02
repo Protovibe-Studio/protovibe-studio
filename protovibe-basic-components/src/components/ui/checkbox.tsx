@@ -80,7 +80,7 @@ export function Checkbox({
             data-error={error}
             className="w-5 h-5 border border-border-default rounded peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[error=true]:border-destructive flex items-center justify-center bg-background-secondary transition-colors"
           >
-            {isChecked && <Icon name="Check" size="sm"  className="text-primary-foreground" />}
+            {isChecked && <Icon name="Check" size="sm"  className="text-foreground-on-primary" />}
           </div>
         </div>
         <SuperLabel

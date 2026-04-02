@@ -81,7 +81,7 @@ export function ToggleSwitch({
           >
             <div
               data-state={isChecked ? 'checked' : 'unchecked'}
-              className="absolute top-[2px] left-[2px] w-5 h-5 bg-primary-foreground rounded-full transition-transform data-[state=checked]:translate-x-5 shadow-sm"
+              className="absolute top-[2px] left-[2px] w-5 h-5 bg-foreground-on-primary rounded-full transition-transform data-[state=checked]:translate-x-5 shadow-sm"
             />
           </div>
         </div>

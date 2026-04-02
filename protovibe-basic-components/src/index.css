@@ -50,7 +50,6 @@
  /* Solid accent fills */
  --primary: oklch(39.7% 0.28 260);
  --primary-hover: oklch(47% 0.22 260);
- --primary-foreground: oklch(98% 0.01 260); /* text on primary bg */
  --destructive: oklch(55% 0.22 25);
  --destructive-hover: oklch(50% 0.22 25);
  --destructive-foreground: oklch(98% 0.01 0);
@@ -110,7 +109,6 @@
  /* Solid accent fills */
  --primary: oklch(55% 0.22 260);
  --primary-hover: oklch(50% 0.22 260);
- --primary-foreground: oklch(98% 0.01 260);
  --destructive: oklch(60% 0.22 25);
  --destructive-hover: oklch(55% 0.22 25);
  --destructive-foreground: oklch(98% 0.01 0);
@@ -172,7 +170,6 @@
  /* Solid accents */
  --color-primary: var(--primary);
  --color-primary-hover: var(--primary-hover);
- --color-primary-foreground: var(--primary-foreground);
  --color-destructive: var(--destructive);
  --color-destructive-hover: var(--destructive-hover);
  --color-destructive-foreground: var(--destructive-foreground);

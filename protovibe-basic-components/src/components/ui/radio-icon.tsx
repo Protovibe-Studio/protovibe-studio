@@ -23,7 +23,7 @@ export function RadioIcon({ state = 'inherit', className, ...props }: RadioIconP
     >
       <div
         data-state={state}
-        className="w-2.5 h-2.5 rounded-full bg-primary-foreground transition-opacity opacity-0 data-[state=selected]:opacity-100"
+        className="w-2.5 h-2.5 rounded-full bg-foreground-on-primary transition-opacity opacity-0 data-[state=selected]:opacity-100"
       />
     </div>
   );

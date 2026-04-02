@@ -512,7 +512,7 @@ export default function App() {
       {/* Sidebar */}
       <div className="w-64 border-r border-border-default bg-background-secondary flex flex-col shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-border-default gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
             <Icon name="Hexagon" size="sm" />
           </div>
           <TextBlock typography="heading-sm" className="tracking-tight">CoreHR</TextBlock>
