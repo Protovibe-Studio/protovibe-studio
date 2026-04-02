@@ -21,7 +21,7 @@ export default function Frame2() {
       {/* pv-block-end:f2uptw */}
 
       {/* pv-block-start:qqn3dn */}
-            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', left: 80, top: 238 }}>
+            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', left: 211, top: 88 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:3lfgei */}
                 <div data-pv-block="3lfgei" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -47,7 +47,7 @@ export default function Frame2() {
             {/* pv-block-end:qqn3dn */}
       
       {/* pv-block-start:4ka2gh */}
-      <Table data-pv-block="4ka2gh" data-pv-sketchpad-el="4ka2gh"  style={{ position: 'absolute', width: 669, left: 28, top: 403 }}>
+      <Table data-pv-block="4ka2gh" data-pv-sketchpad-el="4ka2gh"  style={{ position: 'absolute', width: 669, left: 59, top: 331 }}>
         {/* pv-editable-zone-start:rqlqwm */}
           {/* pv-block-start:6chu7x */}
           <thead data-pv-block="6chu7x">

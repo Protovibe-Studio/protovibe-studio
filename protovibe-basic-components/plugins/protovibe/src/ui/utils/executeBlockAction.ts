@@ -1,6 +1,15 @@
 import { blockAction, takeSnapshot } from '../api/client';
 
 export type BlockMutationAction = 'delete' | 'move-up' | 'move-down';
+
+function findBlockElement(blockId: string): HTMLElement | null {
+  const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+  for (const iframe of allIframes) {
+    const el = iframe.contentDocument?.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement | null;
+    if (el) return el;
+  }
+  return document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement | null;
+}
 export type ClipboardBlockAction = 'copy' | 'cut' | 'duplicate';
 
 interface ExecuteBlockActionParams {
@@ -30,7 +39,7 @@ export async function executeBlockAction({
   refreshActiveData
 }: ExecuteBlockActionParams): Promise<void> {
   const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-  const oldTarget = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
+  const oldTarget = findBlockElement(blockId);
   const parentBlockId = oldTarget?.parentElement?.closest('[data-pv-block]')?.getAttribute('data-pv-block');
 
   const getPvLocAttr = (el: Element | null) => {
@@ -52,16 +61,16 @@ export async function executeBlockAction({
     let focusTarget: HTMLElement | null = null;
 
     if (action === 'delete') {
-      const stillExists = document.querySelector(`[data-pv-block="${blockId}"]`);
+      const stillExists = findBlockElement(blockId);
       if (stillExists && attempts < maxAttempts - 1) {
         await wait(100);
         continue;
       }
       if (parentBlockId) {
-        focusTarget = document.querySelector(`[data-pv-block="${parentBlockId}"]`) as HTMLElement;
+        focusTarget = findBlockElement(parentBlockId);
       }
     } else {
-      focusTarget = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
+      focusTarget = findBlockElement(blockId);
       const newLoc = getPvLocAttr(focusTarget);
 
       if (focusTarget && focusTarget === oldTarget && newLoc === oldLoc && attempts < maxAttempts - 1) {
@@ -94,7 +103,7 @@ export async function executeClipboardBlockAction({
     return;
   }
 
-  const oldTarget = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
+  const oldTarget = findBlockElement(blockId);
 
   await takeSnapshot(file, activeSourceId);
   await blockAction(action, blockId, file);
