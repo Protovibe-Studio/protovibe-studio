@@ -164,6 +164,12 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-g0fqyb */}
         </div>
         {/* pv-block-end:g0fqyb */}
+
+        {/* pv-block-start:krvk39 */}
+        <TextBlock data-pv-block="krvk39" typography="regular">
+          Witam serdecznie
+        </TextBlock>
+        {/* pv-block-end:krvk39 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

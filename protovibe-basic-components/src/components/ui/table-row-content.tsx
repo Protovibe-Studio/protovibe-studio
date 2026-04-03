@@ -25,7 +25,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="" label="Value" />
+            <TextBlock data-pv-block="">Value</TextBlock>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>
@@ -34,7 +34,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="" label="Active" />
+            <TextBlock data-pv-block="">Active</TextBlock>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>
@@ -43,7 +43,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="" label="Jan 1, 2024" />
+            <TextBlock data-pv-block="">Jan 1, 2024</TextBlock>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>

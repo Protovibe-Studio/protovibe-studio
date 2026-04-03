@@ -27,7 +27,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Value" />
+                <TextBlock data-pv-block="">Value</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -36,7 +36,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Active" />
+                <TextBlock data-pv-block="">Active</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -45,40 +45,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Jan 1, 2024" />
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-          {/* pv-editable-zone-end */}
-        </TableRowContent>
-        {/* pv-block-end */}
-        {/* pv-block-start */}
-        <TableRowContent data-pv-block="">
-          {/* pv-editable-zone-start */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Value 2" />
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Inactive" />
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Jan 2, 2024" />
+                <TextBlock data-pv-block="">Jan 1, 2024</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -93,7 +60,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Value 3" />
+                <TextBlock data-pv-block="">Value 2</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -102,7 +69,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Active" />
+                <TextBlock data-pv-block="">Inactive</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -111,7 +78,40 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="" label="Jan 3, 2024" />
+                <TextBlock data-pv-block="">Jan 2, 2024</TextBlock>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+          {/* pv-editable-zone-end */}
+        </TableRowContent>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <TableRowContent data-pv-block="">
+          {/* pv-editable-zone-start */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextBlock data-pv-block="">Value 3</TextBlock>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextBlock data-pv-block="">Active</TextBlock>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextBlock data-pv-block="">Jan 3, 2024</TextBlock>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>

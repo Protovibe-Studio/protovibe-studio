@@ -21,7 +21,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <TextBlock data-pv-block="" label="Value" />
+        <TextBlock data-pv-block="">Value</TextBlock>
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
