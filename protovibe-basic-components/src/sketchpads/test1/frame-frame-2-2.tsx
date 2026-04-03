@@ -17,12 +17,8 @@ export default function Frame2() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:hxwp0f */}
-      {/* pv-block-start:f2uptw */}
-      <Button data-pv-block="f2uptw" data-pv-sketchpad-el="f2uptw" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 81, top: 154 }} />
-      {/* pv-block-end:f2uptw */}
-
       {/* pv-block-start:qqn3dn */}
-            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 206, left: 211, top: 88 }}>
+            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 206, left: 231, top: 59 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:3lfgei */}
                 <div data-pv-block="3lfgei" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -36,19 +32,24 @@ export default function Frame2() {
                   {/* pv-editable-zone-end:i5j6k7 */}
                 </div>
                 {/* pv-block-end:3lfgei */}
-                {/* pv-block-start:8vx2jm */}
-                <TextBlock data-pv-block="8vx2jm" typography="heading-xxl" className="mb-2">142</TextBlock>
-                {/* pv-block-end:8vx2jm */}
+
+              {/* pv-block-start:rz5kvr */}
+                <TextBlock data-pv-block="rz5kvr" typography="heading-xxl" className="mb-2" >142</TextBlock>
+                {/* pv-block-end:rz5kvr */}
 
               {/* pv-block-start:forrs6 */}
                 <Badge data-pv-block="forrs6" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
                 {/* pv-block-end:forrs6 */}
+
+              {/* pv-block-start:maw5ms */}
+      <Button data-pv-block="maw5ms" label="Button" variant="solid" color="primary" size="md"  />
+      {/* pv-block-end:maw5ms */}
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
             {/* pv-block-end:qqn3dn */}
       
       {/* pv-block-start:4ka2gh */}
-      <Table data-pv-block="4ka2gh" data-pv-sketchpad-el="4ka2gh"  style={{ position: 'absolute', width: 669, left: 59, top: 331 }}>
+      <Table data-pv-block="4ka2gh" data-pv-sketchpad-el="4ka2gh"  style={{ position: 'absolute', width: 669, left: 58, top: 329 }}>
         {/* pv-editable-zone-start:rqlqwm */}
           {/* pv-block-start:6chu7x */}
           <thead data-pv-block="6chu7x">
@@ -197,7 +198,7 @@ export default function Frame2() {
       {/* pv-block-end:4ka2gh */}
 
       {/* pv-block-start:aac2v5 */}
-            <Card data-pv-block="aac2v5" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="aac2v5" style={{ position: 'absolute', left: 467, top: 90, width: 206 }}>
+            <Card data-pv-block="aac2v5" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="aac2v5" style={{ position: 'absolute', left: 485, top: 65, width: 206 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:pgsa7t */}
                 <div data-pv-block="pgsa7t" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -220,7 +221,7 @@ export default function Frame2() {
             {/* pv-block-end:aac2v5 */}
       
       {/* pv-block-start:jwfcna */}
-      <SuperLabel heading="Test" data-pv-block="jwfcna" data-pv-sketchpad-el="jwfcna" primaryText="Label" style={{ position: 'absolute', left: 107, top: 62 }} />
+      <SuperLabel heading="Test" data-pv-block="jwfcna" data-pv-sketchpad-el="jwfcna" primaryText="Label" style={{ position: 'absolute', left: 90, top: 77 }} />
       {/* pv-block-end:jwfcna */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
