@@ -244,11 +244,11 @@ export function FrameContainer({
         <div
           data-sketchpad-frame={frameId}
           data-layout-mode="absolute"
+          className="bg-background-default"
           style={{
             width,
             height,
             position: 'relative',
-            backgroundColor: '#ffffff',
             borderRadius: 4,
             border: isSelected ? '2px solid #18a0fb' : '1px solid rgba(255,255,255,0.1)',
             overflow: 'visible',
