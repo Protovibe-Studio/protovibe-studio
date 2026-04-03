@@ -73,6 +73,15 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__get-theme-tokens', handleGetThemeTokens);
       server.middlewares.use('/__update-theme-token', handleUpdateThemeToken);
 
+      // Resolve a relative file path to its absolute path on disk
+      server.middlewares.use('/__resolve-file-path', (req, res) => {
+        const url = new URL(req.url || '', 'http://localhost');
+        const file = url.searchParams.get('file') || '';
+        const absolutePath = path.resolve(process.cwd(), file);
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ absolutePath }));
+      });
+
       // Sketchpad endpoints
       registerSketchpadMiddleware(server);
     },

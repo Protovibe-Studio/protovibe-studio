@@ -159,15 +159,28 @@ export const ClassesRaw: React.FC = () => {
                 <span style={{ fontSize: '10px', fontFamily: 'monospace', color: theme.text_tertiary, wordBreak: 'break-all' }}>
                   {activeData.file}{activeData.startLine ? `:${activeData.startLine}` : ''}
                 </span>
-                <button
-                  onClick={() => {
-                    const line = activeData.startLine || 1;
-                    fetch(`/__open-in-editor?file=${encodeURIComponent(activeData.file)}&line=${line}&column=1`);
-                  }}
-                  style={{ alignSelf: 'flex-start', background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
-                >
-                  Open in editor
-                </button>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => {
+                      const line = activeData.startLine || 1;
+                      fetch(`/__open-in-editor?file=${encodeURIComponent(activeData.file)}&line=${line}&column=1`);
+                    }}
+                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
+                  >
+                    Open in editor
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const line = activeData.startLine || 1;
+                      const res = await fetch(`/__resolve-file-path?file=${encodeURIComponent(activeData.file)}`);
+                      const { absolutePath } = await res.json();
+                      window.open(`vscode://file/${absolutePath}:${line}:1`, '_self');
+                    }}
+                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
+                  >
+                    Open in VS Code
+                  </button>
+                </div>
               </div>
             )}
             <div style={{ padding: '0 16px 16px 16px', position: 'relative' }}>
