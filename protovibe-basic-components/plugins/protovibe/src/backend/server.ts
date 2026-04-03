@@ -913,7 +913,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           }
 
         if (elementType === 'text') {
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>\n${i2}Lorem ipsum\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
         }
         if (elementType === 'component') {
           const propsStr = defaultProps ? ` ${defaultProps}` : '';

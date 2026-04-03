@@ -156,7 +156,6 @@ function DashboardPage() {
         {/* pv-block-start:g0fqyb */}
         <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
           {/* pv-editable-zone-start:inside-g0fqyb */}
-
             {/* pv-block-start:lw979w */}
             <TextBlock data-pv-block="lw979w" typography="heading-md">
               Witam serdecznie
