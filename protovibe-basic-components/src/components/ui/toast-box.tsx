@@ -103,6 +103,7 @@ export const pvConfig = {
   importPath: '@/components/ui/toast-box',
   defaultProps: 'variant="success" heading="Success!" secondaryText="Your changes have been saved."',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },
     heading: { type: 'string', exampleValue: 'Changes saved' },

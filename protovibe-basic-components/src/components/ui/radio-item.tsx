@@ -88,6 +88,7 @@ export const pvConfig = {
   importPath: '@/components/ui/radio-item',
   defaultProps: 'primaryText="Option 1" value="opt1"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     selected: { type: 'boolean' },

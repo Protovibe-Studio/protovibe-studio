@@ -1,4 +1,3 @@
-// plugins/protovibe/src/ui/components/BlockEditor.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { blockAction, takeSnapshot } from '../api/client';
@@ -6,18 +5,20 @@ import { isTextEditableElement, PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/ele
 import { theme } from '../theme';
 
 export const BlockEditor: React.FC = () => {
-  const { currentBaseTarget, activeData, activeSourceId, runLockedMutation, isMutationLocked } = useProtovibe();
+  // 1. Add isLoading to the destructuring
+  const { currentBaseTarget, activeData, activeSourceId, runLockedMutation, isMutationLocked, isLoading } = useProtovibe();
+  
   const textContentRef = useRef<HTMLTextAreaElement>(null);
   const originalTextContentRef = useRef<string>('');
   const [textContent, setTextContent] = useState('');
-
-  const isTextNode = isTextEditableElement(currentBaseTarget);
+  
+  const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
   const normalizeText = (value: string) => String(value).trim();
 
   useEffect(() => {
     const handleFocusTextContent = () => {
-      if (!isTextEditableElement(currentBaseTarget)) return;
+      if (!isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema)) return;
       const input = textContentRef.current;
       if (!input) return;
       input.focus();
@@ -25,28 +26,46 @@ export const BlockEditor: React.FC = () => {
     };
     window.addEventListener(PV_FOCUS_TEXT_CONTENT_EVENT, handleFocusTextContent);
     return () => window.removeEventListener(PV_FOCUS_TEXT_CONTENT_EVENT, handleFocusTextContent);
-  }, [currentBaseTarget]);
+  }, [currentBaseTarget, activeData?.code]);
 
   useEffect(() => {
-    const updateText = () => {
-      if (currentBaseTarget) {
-        let text = '';
-        currentBaseTarget.childNodes.forEach((node: any) => {
-          if (node.nodeType === 3) {
-            text += String(node.nodeValue || '');
-          } else if (node.nodeName === 'BR') {
-            text += '\n';
-          }
-        });
-        const normalized = normalizeText(text);
-        originalTextContentRef.current = normalized;
-        setTextContent(normalized);
-      }
-    };
-    updateText();
-    const t = setTimeout(updateText, 150);
-    return () => clearTimeout(t);
-  }, [currentBaseTarget, activeData?.code]);
+    // 2. Immediately clear text if loading new data (e.g. keyboard traversal)
+    // or if the element is no longer a valid text node.
+    if (isLoading || !isTextNode || !activeData?.code) {
+      setTextContent('');
+      originalTextContentRef.current = '';
+      return;
+    }
+
+    // 3. Safely extract text from AST
+    const codeSnippet = activeData.code;
+    const firstClose = codeSnippet.indexOf('>');
+    const lastOpen = codeSnippet.lastIndexOf('<');
+
+    if (firstClose !== -1 && lastOpen !== -1 && lastOpen > firstClose) {
+      let innerContent = codeSnippet.slice(firstClose + 1, lastOpen);
+      
+      // Clean up formatting for the textarea
+      innerContent = innerContent.replace(/\{\/\*[\s\S]*?\*\/\}/g, ''); // Remove comments
+      innerContent = innerContent.replace(/<br\s*\/?>/gi, '\n'); // Convert <br> to newlines
+      
+      // Unescape JSX specific characters
+      innerContent = innerContent
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#123;/g, '{')
+        .replace(/&#125;/g, '}');
+
+      const normalized = normalizeText(innerContent);
+      originalTextContentRef.current = normalized;
+      setTextContent(normalized);
+    } else {
+      setTextContent('');
+      originalTextContentRef.current = '';
+    }
+  // 4. Add isLoading and currentBaseTarget to the dependency array
+  }, [currentBaseTarget, activeData?.code, isTextNode, isLoading]);
 
   if (!isTextNode) return null;
 

@@ -137,6 +137,7 @@ export const pvConfig = {
   importPath: '@/components/ui/input',
   defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     placeholder: { type: 'string', exampleValue: 'Enter text...' },
     disabled: { type: 'boolean' },

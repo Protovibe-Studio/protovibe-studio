@@ -265,6 +265,23 @@ Only expose `string`, `boolean`, and `select` (string enums) inside `pvConfig.pr
   }
   ```
 
+### Rule: Text in Children vs. Props (`allowTextInChildren`)
+
+Components strictly dictate how they receive text. If a component's `pvConfig` contains `allowTextInChildren: true` (e.g., `TextBlock`), you MUST pass text as a direct JSX child. If it does not contain this property, you MUST NOT pass text as a child; you must use the designated props (like `label`, `heading`, or `primaryText`).
+
+* **❌ BAD: Passing text as a child when not allowed**
+
+  ```tsx
+  <InfoBoxBanner>Welcome back!</InfoBoxBanner>
+  ```
+
+* **✅ GOOD: Using props for restricted components, and children for allowed components**
+
+  ```tsx
+  <InfoBoxBanner heading="Welcome back!" />
+  <TextBlock>This text is perfectly fine here.</TextBlock>
+  ```
+
 ### Rule: Suppress Invalid Combinations (`invalidCombinations`)
 
 Use `invalidCombinations` in `pvConfig` to suppress nonsensical or visually broken prop combinations from the Component Playground matrix.

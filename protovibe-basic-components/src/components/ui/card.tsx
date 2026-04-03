@@ -46,6 +46,7 @@ export const pvConfig = {
   importPath: '@/components/ui/card',
   defaultProps: 'variant="bordered" shadow="none" border="default"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   props: {
     variant: { type: 'select', options: ['bordered', 'filled', 'ghost'] },
     shadow: { type: 'select', options: ['none', 'sm', 'md', 'lg'] },

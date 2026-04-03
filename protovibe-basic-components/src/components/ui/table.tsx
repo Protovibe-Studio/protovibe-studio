@@ -160,6 +160,7 @@ export const pvConfig = {
   importPath: '@/components/ui/table',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'TableRowHeading', path: '@/components/ui/table-row-heading' },
     { name: 'TableBody', path: '@/components/ui/table-body' },

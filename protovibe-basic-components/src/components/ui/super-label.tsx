@@ -29,7 +29,7 @@ export function SuperLabel({
       {prefixIcon && <Icon name={prefixIcon} size="sm" className="text-foreground-default" />}
       <div className="flex flex-col gap-0.5 flex-1">
         {heading && (
-          <span className="text-xs font-medium text-foreground-tertiary uppercase tracking-wide">
+          <span className="font-bold text-foreground-default text-base leading-tight">
             {heading}
           </span>
         )}
@@ -53,6 +53,7 @@ export const pvConfig = {
   importPath: '@/components/ui/super-label',
   defaultProps: 'primaryText="Label"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
     primaryText: { type: 'string', exampleValue: 'Lorem ipsum' },

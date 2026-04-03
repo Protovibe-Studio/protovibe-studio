@@ -32,6 +32,7 @@ export const pvConfig = {
   importPath: '@/components/ui/icon',
   defaultProps: 'name="Star" size="md"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     name: { type: 'select', options: Object.keys(LucideIcons) },
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },

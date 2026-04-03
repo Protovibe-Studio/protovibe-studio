@@ -86,6 +86,7 @@ export const pvConfig = {
   importPath: '@/components/ui/radio-group',
   defaultProps: 'orientation="vertical" value="opt1"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'RadioItem', path: '@/components/ui/radio-item' },
   ],

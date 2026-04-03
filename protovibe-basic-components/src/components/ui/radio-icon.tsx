@@ -37,6 +37,7 @@ export const pvConfig = {
   importPath: '@/components/ui/radio-icon',
   defaultProps: 'state="unselected"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     state: { type: 'select', options: ['selected', 'unselected', 'disabled', 'error', 'inherit'] },
   },

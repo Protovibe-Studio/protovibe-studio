@@ -1309,10 +1309,37 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         }
       } 
       else if (action === 'edit-text') {
-        // Inject exactly inside the opening tag, matching its indentation level
-        const textEditRegex = new RegExp(`(^[ \\t]*)(<[^>]+data-pv-block="${blockId}"[^>]*>)([\\s\\S]*?)(\\{\\/\\*\\s*pv-editable-zone-start:inside-${blockId}\\s*\\*\\/\\})`, 'm');
-        fileContent = fileContent.replace(textEditRegex, (match, spaces, openingTag, oldContent, innerZone) => {
+        const ast = babel.parseSync(fileContent, {
+          filename: absolutePath,
+          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+        });
+
+        let targetNode: any = null;
+        babel.traverse(ast, {
+          JSXOpeningElement(p) {
+            const hasBlockId = p.node.attributes.some(attr =>
+              babel.types.isJSXAttribute(attr) &&
+              attr.name.name === 'data-pv-block' &&
+              babel.types.isStringLiteral(attr.value) &&
+              attr.value.value === blockId
+            );
+            if (hasBlockId) {
+              targetNode = p.parentPath.node; // Get the full JSXElement
+              p.stop();
+            }
+          }
+        });
+
+        if (targetNode) {
+          const opening = targetNode.openingElement;
+          const closing = targetNode.closingElement;
+
+          // Grab original indentation from the opening tag's line
+          const lineStartPos = fileContent.lastIndexOf('\n', opening.start) + 1;
+          const spaces = (fileContent.substring(lineStartPos, opening.start).match(/^([ \t]*)/) ?? ['', ''])[1];
           const i2 = spaces + '  ';
+
+          // Escape and prepare new text
           const escapedText = String(text)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -1321,8 +1348,33 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             .replace(/}/g, '&#125;')
             .split('\n')
             .join(`<br />\n${i2}`);
-          return `${spaces}${openingTag}\n${i2}${escapedText}\n${i2}${innerZone}`;
-        });
+
+          if (closing) {
+            // Standard tag: <tag>...</tag>
+            const innerContent = fileContent.slice(opening.end, closing.start);
+
+            // Preserve any existing Protovibe comments (e.g., pv-editable-zone)
+            const comments = innerContent.match(/\{\/\*[\s\S]*?\*\/\}/g) || [];
+            const commentsStr = comments.length > 0 ? '\n' + i2 + comments.join(`\n${i2}`) : '';
+
+            const newInnerContent = `\n${i2}${escapedText}${commentsStr}\n${spaces}`;
+            fileContent = fileContent.slice(0, opening.end) + newInnerContent + fileContent.slice(closing.start);
+          } else {
+            // Self-closing tag: <tag /> -> convert to <tag>...</tag>
+            const openingText = fileContent.slice(opening.start, opening.end);
+            const newOpening = openingText.replace(/\s*\/\>$/, '>');
+
+            let tagName = 'div';
+            if (babel.types.isJSXIdentifier(opening.name)) {
+              tagName = opening.name.name;
+            } else if (babel.types.isJSXMemberExpression(opening.name)) {
+              tagName = `${(opening.name.object as any).name}.${opening.name.property.name}`;
+            }
+
+            const newInnerContent = `\n${i2}${escapedText}\n${spaces}</${tagName}>`;
+            fileContent = fileContent.slice(0, opening.start) + newOpening + newInnerContent + fileContent.slice(opening.end);
+          }
+        }
       }
 
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');

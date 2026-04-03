@@ -68,6 +68,7 @@ export const pvConfig = {
   importPath: '@/components/ui/preloader-spinner',
   defaultProps: 'size="md"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

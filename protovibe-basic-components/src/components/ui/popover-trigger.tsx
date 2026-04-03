@@ -159,6 +159,7 @@ export const pvConfig = {
   importPath: '@/components/ui/popover-trigger',
   defaultProps: 'placement="bottom"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DropdownList', path: '@/components/ui/dropdown-list' },

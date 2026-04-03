@@ -4,7 +4,7 @@ import { useProtovibe } from '../context/ProtovibeContext';
 import { isTextEditableElement, PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
 
 export function useCanvasInterceptor() {
-  const { inspectorOpen, focusElement, highlightedElement, currentBaseTarget, isMutationLocked } = useProtovibe();
+  const { inspectorOpen, focusElement, highlightedElement, currentBaseTarget, isMutationLocked, activeData } = useProtovibe();
   const hoveredElementRef = useRef<HTMLElement | null>(null);
   const suppressNextClickTargetRef = useRef<HTMLElement | null>(null);
 
@@ -153,7 +153,7 @@ export function useCanvasInterceptor() {
       if (!target || !currentBaseTarget) return;
 
       if (target !== currentBaseTarget) return;
-      if (!isTextEditableElement(currentBaseTarget)) return;
+      if (!isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema)) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -175,5 +175,5 @@ export function useCanvasInterceptor() {
       document.removeEventListener('dblclick', handleDoubleClick, true);
       clearHoverOutline();
     };
-  }, [inspectorOpen, focusElement, highlightedElement, currentBaseTarget, isMutationLocked]);
+  }, [inspectorOpen, focusElement, highlightedElement, currentBaseTarget, isMutationLocked, activeData]);
 }

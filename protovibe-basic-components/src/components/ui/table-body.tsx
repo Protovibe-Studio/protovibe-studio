@@ -132,6 +132,7 @@ export const pvConfig = {
   importPath: '@/components/ui/table-body',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'TableRowContent', path: '@/components/ui/table-row-content' },
     { name: 'TableCellContent', path: '@/components/ui/table-cell-content' },

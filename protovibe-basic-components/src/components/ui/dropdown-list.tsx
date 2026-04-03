@@ -59,6 +59,7 @@ export const pvConfig = {
   importPath: '@/components/ui/dropdown-list',
   defaultProps: 'width="md"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'DropdownGroupLabel', path: '@/components/ui/dropdown-group-label' },
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },

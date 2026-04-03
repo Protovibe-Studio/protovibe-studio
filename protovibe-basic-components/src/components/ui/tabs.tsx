@@ -77,6 +77,7 @@ export const pvConfig = {
   importPath: '@/components/ui/tabs',
   defaultProps: 'value="tab1"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'TabItem', path: '@/components/ui/tab-item' },
   ],

@@ -61,6 +61,7 @@ export const pvConfig = {
   importPath: '@/components/ui/segmented-control-item',
   defaultProps: 'label="Option 1" value="opt1"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -152,6 +152,7 @@ export const pvConfig = {
   importPath: '@/components/ui/dropdown-button',
   defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="ChevronDown"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
     { name: 'DropdownSeparator', path: '@/components/ui/dropdown-separator' },

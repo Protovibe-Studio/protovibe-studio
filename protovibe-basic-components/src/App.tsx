@@ -65,8 +65,9 @@ function DashboardPage() {
           color="primary"
           icon="Sparkles"
           primaryActionLabel="Review Requests"
-          actionsLayout="right"
-        />
+          actionsLayout="right">
+          
+        </InfoBoxBanner>
         {/* pv-block-end:i3b4c5 */}
         
         {/* pv-block-start:g6h7j8 */}
@@ -88,7 +89,9 @@ function DashboardPage() {
                 </div>
                 {/* pv-block-end:f2g3h4 */}
                 {/* pv-block-start:r5s6t7 */}
-                <TextBlock data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">142</TextBlock>
+                <TextBlock data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">
+                  25
+                </TextBlock>
                 {/* pv-block-end:r5s6t7 */}
                 {/* pv-block-start:u8v9w1 */}
                 <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
@@ -150,12 +153,18 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g6h7j8 */}
 
-        {/* pv-block-start:qsqb5b */}
-        <div className="min-h-4 mb-50 mx-50" data-pv-block="qsqb5b">
-          {/* pv-editable-zone-start:inside-qsqb5b */}
-          {/* pv-editable-zone-end:inside-qsqb5b */}
+        {/* pv-block-start:g0fqyb */}
+        <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
+          {/* pv-editable-zone-start:inside-g0fqyb */}
+
+            {/* pv-block-start:lw979w */}
+            <TextBlock data-pv-block="lw979w" typography="heading-md">
+              Witam serdecznie
+            </TextBlock>
+            {/* pv-block-end:lw979w */}
+          {/* pv-editable-zone-end:inside-g0fqyb */}
         </div>
-        {/* pv-block-end:qsqb5b */}
+        {/* pv-block-end:g0fqyb */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

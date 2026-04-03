@@ -61,6 +61,7 @@ export const pvConfig = {
   importPath: '@/components/ui/tab-item',
   defaultProps: 'label="Tab 1" value="tab1"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

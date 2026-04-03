@@ -40,6 +40,7 @@ export const pvConfig = {
   importPath: '@/components/ui/badge',
   defaultProps: 'label="Badge" color="primary"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     color: { type: 'select', options: ['primary', 'destructive', 'success', 'warning', 'info', 'neutral'] },

@@ -111,6 +111,7 @@ export const pvConfig = {
   importPath: '@/components/ui/dialog-trigger',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [
     { name: 'Button', path: '@/components/ui/button' },
     { name: 'DialogOverlay', path: '@/components/ui/dialog-overlay' },

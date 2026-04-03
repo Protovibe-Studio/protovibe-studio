@@ -104,6 +104,7 @@ export const pvConfig = {
   importPath: '@/components/ui/empty-state',
   defaultProps: 'icon="Inbox" iconSize="xl" heading="Nothing here yet" secondaryText="Get started by creating your first item."',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     icon: { type: 'select', options: Object.keys(LucideIcons) },
     iconSize: { type: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl'] },

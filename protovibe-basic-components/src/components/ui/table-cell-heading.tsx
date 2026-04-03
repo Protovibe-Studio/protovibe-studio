@@ -39,6 +39,7 @@ export const pvConfig = {
   importPath: '@/components/ui/table-cell-heading',
   defaultProps: 'label="Column"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Column' },
     prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },

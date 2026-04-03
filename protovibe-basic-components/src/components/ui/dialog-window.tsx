@@ -60,6 +60,7 @@ export const pvConfig = {
   importPath: '@/components/ui/dialog-window',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   additionalImportsForDefaultContent: [],
   props: {
     size: { type: 'select', options: ['sm', 'md', 'lg', 'xl', 'full'] },

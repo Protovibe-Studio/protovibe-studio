@@ -41,8 +41,9 @@ export const pvConfig = {
   displayName: 'Text Block',
   description: 'A text element with typography style variants, different heading sizes, body text, secondary text.',
   importPath: '@/components/ui/text-block',
-  defaultProps: 'label="Text block" typography="regular"',
-  defaultContent: '',
+  defaultProps: 'typography="regular"',
+  defaultContent: 'Text block',
+  allowTextInChildren: true,
   props: {
     label: { type: 'string' },
     typography: {

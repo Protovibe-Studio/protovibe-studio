@@ -80,6 +80,7 @@ export const pvConfig = {
   importPath: '@/components/ui/vertical-tabs-expandable-section',
   defaultProps: 'label="Section" value="section1" prefixIcon="FolderOpen"',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

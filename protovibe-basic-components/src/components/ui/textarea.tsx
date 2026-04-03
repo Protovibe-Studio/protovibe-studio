@@ -170,6 +170,7 @@ export const pvConfig = {
   importPath: '@/components/ui/textarea',
   defaultProps: 'placeholder="Enter text..."',
   defaultContent: '',
+  allowTextInChildren: false,
   props: {
     placeholder: { type: 'string', exampleValue: 'Enter text...' },
     disabled: { type: 'boolean' },

@@ -59,9 +59,7 @@ export function InfoBoxBanner({
           </p>
         )}
 
-        {/* pv-editable-zone-start */}
         {children}
-        {/* pv-editable-zone-end */}
 
         {actionsLayout === 'bottom' && (primaryActionLabel || secondaryActionLabel) && (
           <div className="mt-3 flex gap-2 flex-wrap">
@@ -124,6 +122,15 @@ export function InfoBoxBanner({
   );
 }
 
+export function PvDefaultContent() {
+  return (
+    <>
+      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-end */}
+    </>
+  );
+}
+
 export const pvConfig = {
   name: 'InfoBoxBanner',
   componentId: 'InfoBoxBanner',
@@ -131,7 +138,8 @@ export const pvConfig = {
   description: 'An alert banner with icon, heading, text, action buttons and a close button.',
   importPath: '@/components/ui/info-box-banner',
   defaultProps: 'icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true}',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   props: {
     icon: { type: 'select', options: Object.keys(LucideIcons) },
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },

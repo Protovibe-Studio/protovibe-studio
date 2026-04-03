@@ -32,5 +32,6 @@ export const pvConfig = {
   importPath: '@/components/ui/container',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   props: {},
 };
