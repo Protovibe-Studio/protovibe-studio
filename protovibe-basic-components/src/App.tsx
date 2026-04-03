@@ -55,8 +55,11 @@ const mockDepartments = [
 
 function DashboardPage() {
   return (
-    <div className="flex flex-col animate-in fade-in duration-300 gap-4">
+    <div className="flex flex-col animate-in fade-in duration-300 gap-6">
       {/* pv-editable-zone-start:d8z9a1 */}
+        {/* pv-block-start:da1sh2 */}
+        <TextBlock data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextBlock>
+        {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner className="bg-background-elevated"
           data-pv-block="i3b4c5"
@@ -182,6 +185,10 @@ function EmployeesPage() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
       {/* pv-editable-zone-start:e1z2x3 */}
 
+        {/* pv-block-start:em1pl2 */}
+        <TextBlock data-pv-block="em1pl2" typography="heading-lg">Employees</TextBlock>
+        {/* pv-block-end:em1pl2 */}
+
         {/* pv-block-start:h4e5k6 */}
         <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* pv-editable-zone-start:t5u6v7 */}
@@ -277,7 +284,7 @@ function PositionsPage() {
         <div data-pv-block="h4p5w6" className="flex justify-between items-center mb-2">
           {/* pv-editable-zone-start:e1f2g3 */}
             {/* pv-block-start:h3i4j5 */}
-            <TextBlock data-pv-block="h3i4j5" typography="heading-md">Open Positions</TextBlock>
+            <TextBlock data-pv-block="h3i4j5" typography="heading-lg">Open Positions</TextBlock>
             {/* pv-block-end:h3i4j5 */}
             {/* pv-block-start:k6l7m8 */}
             <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus"  color="primary" />
@@ -341,7 +348,7 @@ function DepartmentsPage() {
         <div data-pv-block="h4d5v6" className="flex justify-between items-center mb-2">
           {/* pv-editable-zone-start:n9o1p2 */}
             {/* pv-block-start:q3r4s5 */}
-            <TextBlock data-pv-block="q3r4s5" typography="heading-md">Departments</TextBlock>
+            <TextBlock data-pv-block="q3r4s5" typography="heading-lg">Departments</TextBlock>
             {/* pv-block-end:q3r4s5 */}
             {/* pv-block-start:t6u7v8 */}
             <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus"  color="primary" />
@@ -527,7 +534,7 @@ export default function App() {
     <div className="flex h-screen bg-background-default text-foreground-default font-sans overflow-hidden">
       {/* Sidebar */}
       <div className="w-64 border-r border-border-default bg-background-secondary flex flex-col shrink-0">
-        <div className="h-16 flex items-center px-6 border-b border-border-default gap-3">
+        <div className="h-16 flex items-center px-6 gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
             <Icon name="Hexagon" size="sm" />
           </div>
@@ -548,9 +555,7 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-16 border-b border-border-default flex items-center justify-between px-8 bg-background-default shrink-0">
-          <TextBlock typography="heading-lg">{pageTitle}</TextBlock>
-          
+        <header className="h-16 border-b border-border-default flex items-center justify-end px-8 shrink-0 bg-background-secondary">
           <div className="flex items-center gap-3">
             <div className="relative mr-2">
               <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="Bell" />
