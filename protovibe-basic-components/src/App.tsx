@@ -18,6 +18,7 @@ import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
 import { Table } from '@/components/ui/table';
 import { TableRowHeading } from '@/components/ui/table-row-heading';
+import { TableBody } from '@/components/ui/table-body';
 import { TableRowContent } from '@/components/ui/table-row-content';
 import { TableCellHeading } from '@/components/ui/table-cell-heading';
 import { TableCellContent } from '@/components/ui/table-cell-content';
@@ -185,28 +186,26 @@ function EmployeesPage() {
 
         {/* pv-block-start:t7m8n9 */}
         <Table data-pv-block="t7m8n9">
-          <thead>
-            <TableRowHeading>
-              {/* pv-editable-zone-start:h1e2a3 */}
-                {/* pv-block-start:d4e5f6 */}
-                <TableCellHeading data-pv-block="d4e5f6" label="Employee" />
-                {/* pv-block-end:d4e5f6 */}
-                {/* pv-block-start:g7h8i9 */}
-                <TableCellHeading data-pv-block="g7h8i9" label="Role" />
-                {/* pv-block-end:g7h8i9 */}
-                {/* pv-block-start:j1k2l3 */}
-                <TableCellHeading data-pv-block="j1k2l3" label="Department" />
-                {/* pv-block-end:j1k2l3 */}
-                {/* pv-block-start:m4n5o6 */}
-                <TableCellHeading data-pv-block="m4n5o6" label="Status" />
-                {/* pv-block-end:m4n5o6 */}
-                {/* pv-block-start:p7q8r9 */}
-                <TableCellHeading data-pv-block="p7q8r9" label="" />
-                {/* pv-block-end:p7q8r9 */}
-              {/* pv-editable-zone-end:h1e2a3 */}
-            </TableRowHeading>
-          </thead>
-          <tbody>
+          <TableRowHeading>
+            {/* pv-editable-zone-start:h1e2a3 */}
+              {/* pv-block-start:d4e5f6 */}
+              <TableCellHeading data-pv-block="d4e5f6" label="Employee" />
+              {/* pv-block-end:d4e5f6 */}
+              {/* pv-block-start:g7h8i9 */}
+              <TableCellHeading data-pv-block="g7h8i9" label="Role" />
+              {/* pv-block-end:g7h8i9 */}
+              {/* pv-block-start:j1k2l3 */}
+              <TableCellHeading data-pv-block="j1k2l3" label="Department" />
+              {/* pv-block-end:j1k2l3 */}
+              {/* pv-block-start:m4n5o6 */}
+              <TableCellHeading data-pv-block="m4n5o6" label="Status" />
+              {/* pv-block-end:m4n5o6 */}
+              {/* pv-block-start:p7q8r9 */}
+              <TableCellHeading data-pv-block="p7q8r9" label="" />
+              {/* pv-block-end:p7q8r9 */}
+            {/* pv-editable-zone-end:h1e2a3 */}
+          </TableRowHeading>
+          <TableBody>
             {mockEmployees.map(emp => (
               <TableRowContent key={emp.id} className="cursor-pointer hover:bg-background-secondary transition-colors group" onClick={() => setSelectedEmp(emp)}>
                 <TableCellContent>
@@ -235,7 +234,7 @@ function EmployeesPage() {
                 </TableCellContent>
               </TableRowContent>
             ))}
-          </tbody>
+          </TableBody>
         </Table>
         {/* pv-block-end:t7m8n9 */}
 

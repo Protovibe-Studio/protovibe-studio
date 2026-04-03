@@ -2,17 +2,19 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { TableCellHeading } from '@/components/ui/table-cell-heading';
 
-export interface TableRowHeadingProps extends React.HTMLAttributes<HTMLTableRowElement> {}
+export interface TableRowHeadingProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
 
 export function TableRowHeading({ className, children, ...props }: TableRowHeadingProps) {
   return (
-    <tr
-      className={cn("bg-background-secondary border-b border-border-default", className)}
+    <thead
+      className={className}
       {...props}
       data-pv-component-id="TableRowHeading"
     >
-      {children}
-    </tr>
+      <tr className="bg-background-secondary border-b border-border-default">
+        {children}
+      </tr>
+    </thead>
   );
 }
 

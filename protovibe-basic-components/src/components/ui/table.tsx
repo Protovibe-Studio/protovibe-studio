@@ -1,9 +1,10 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { TableRowHeading } from '@/components/ui/table-row-heading';
-import { TableRowContent } from '@/components/ui/table-row-content';
+import { TableBody } from '@/components/ui/table-body';
 import { TableCellHeading } from '@/components/ui/table-cell-heading';
 import { TableCellContent } from '@/components/ui/table-cell-content';
+import { TableRowContent } from '@/components/ui/table-row-content';
 import { TextBlock } from '@/components/ui/text-block';
 
 export interface TableProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -27,24 +28,22 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <thead data-pv-block="">
-          <TableRowHeading>
-            {/* pv-editable-zone-start */}
-              {/* pv-block-start */}
-              <TableCellHeading data-pv-block="" label="Name" />
-              {/* pv-block-end */}
-              {/* pv-block-start */}
-              <TableCellHeading data-pv-block="" label="Status" />
-              {/* pv-block-end */}
-              {/* pv-block-start */}
-              <TableCellHeading data-pv-block="" suffixIcon="SortAsc" label="Date" />
-              {/* pv-block-end */}
-            {/* pv-editable-zone-end */}
-          </TableRowHeading>
-        </thead>
+        <TableRowHeading data-pv-block="">
+          {/* pv-editable-zone-start */}
+            {/* pv-block-start */}
+            <TableCellHeading data-pv-block="" label="Name" />
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellHeading data-pv-block="" label="Status" />
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellHeading data-pv-block="" suffixIcon="SortAsc" label="Date" />
+            {/* pv-block-end */}
+          {/* pv-editable-zone-end */}
+        </TableRowHeading>
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <tbody data-pv-block="">
+        <TableBody data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
             <TableRowContent data-pv-block="">
@@ -146,7 +145,7 @@ export function PvDefaultContent() {
             </TableRowContent>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
-        </tbody>
+        </TableBody>
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
@@ -163,6 +162,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'TableRowHeading', path: '@/components/ui/table-row-heading' },
+    { name: 'TableBody', path: '@/components/ui/table-body' },
     { name: 'TableRowContent', path: '@/components/ui/table-row-content' },
     { name: 'TableCellHeading', path: '@/components/ui/table-cell-heading' },
     { name: 'TableCellContent', path: '@/components/ui/table-cell-content' },
