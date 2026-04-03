@@ -61,6 +61,7 @@ const Chip: React.FC<ChipProps> = ({ label, colors, onRemove }) => (
 export const Modifiers: React.FC = () => {
   const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -151,6 +152,8 @@ export const Modifiers: React.FC = () => {
       <div
         ref={fieldRef}
         onClick={() => setIsOpen(o => !o)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -159,11 +162,12 @@ export const Modifiers: React.FC = () => {
           minHeight: '24px',
           padding: hasAny ? '3px 28px 3px 8px' : '0 28px 0 8px',
           borderRadius: '6px',
-          border: `1px solid ${isOpen ? theme.border_accent : theme.border_default}`,
+          border: `1px solid ${isOpen ? theme.border_accent : isHovered ? theme.border_strong : theme.border_default}`,
           background: theme.bg_secondary,
           cursor: 'pointer',
           position: 'relative',
           boxSizing: 'border-box',
+          transition: 'border-color 0.15s',
         }}
       >
         {!hasAny && (

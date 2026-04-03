@@ -7,6 +7,7 @@ import { InspectorInput } from './InspectorInput';
 export const ClassesRaw: React.FC = () => {
   const { activeData, activeSourceId, runLockedMutation } = useProtovibe();
   const [newClass, setNewClass] = useState('');
+  const [copied, setCopied] = useState(false);
   
   // Initialize state from localStorage (defaulting to false/collapsed)
   const [isExpanded, setIsExpanded] = useState(() => {
@@ -153,8 +154,35 @@ export const ClassesRaw: React.FC = () => {
 
           <div style={{ ...detailsStyle, borderTop: `1px solid ${theme.border_default}` }}>
             <div style={summaryStyle}>Raw Code</div>
-            <div style={{ padding: '0 16px 16px 16px' }}>
-              <pre style={{ margin: 0, padding: '12px', border: `1px solid ${theme.border_default}`, borderRadius: '4px', color: theme.text_secondary, fontFamily: 'monospace', fontSize: '10px', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {activeData.file && (
+              <div style={{ padding: '0 16px 8px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'monospace', color: theme.text_tertiary, wordBreak: 'break-all' }}>
+                  {activeData.file}{activeData.startLine ? `:${activeData.startLine}` : ''}
+                </span>
+                <button
+                  onClick={() => {
+                    const line = activeData.startLine || 1;
+                    fetch(`/__open-in-editor?file=${encodeURIComponent(activeData.file)}&line=${line}&column=1`);
+                  }}
+                  style={{ alignSelf: 'flex-start', background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
+                >
+                  Open in editor
+                </button>
+              </div>
+            )}
+            <div style={{ padding: '0 16px 16px 16px', position: 'relative' }}>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(activeData.code || '');
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }}
+                style={{ position: 'absolute', top: '6px', right: '22px', background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '2px 6px', fontSize: '10px', color: theme.text_tertiary, cursor: 'pointer', zIndex: 1 }}
+                title="Copy code"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              <pre style={{ margin: 0, padding: '12px', border: `1px solid ${theme.border_default}`, borderRadius: '4px', color: theme.text_secondary, fontFamily: 'monospace', fontSize: '10px', overflowX: 'auto', whiteSpace: 'pre', wordBreak: 'normal' }}>
                 {activeData.code}
               </pre>
             </div>

@@ -75,8 +75,7 @@ export function parseThemeTokens(cssFilePath: string): ThemeToken[] {
   tokens.sort((a, b) => {
     const ai = categoryOrder.get(a.category) ?? Infinity;
     const bi = categoryOrder.get(b.category) ?? Infinity;
-    if (ai !== bi) return ai - bi;
-    return a.name.localeCompare(b.name);
+    return ai - bi;
   });
 
   return tokens;

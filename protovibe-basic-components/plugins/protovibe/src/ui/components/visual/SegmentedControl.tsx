@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/visual/SegmentedControl.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
 import { buildContextPrefix } from '../../utils/tailwind';
@@ -27,6 +27,7 @@ interface SegmentedControlProps {
 
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value, segments, originalClass, prefix = '', width = '100%', onChange, inheritedValue }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
+  const [hoveredVal, setHoveredVal] = useState<string | null>(null);
 
   const isNoneLike = (seg: Segment) => seg.val === 'none' || seg.val === '' || seg.label === 'All';
   const hasResetOption = segments.some(seg => seg.val === 'none' || seg.val === '');
@@ -79,11 +80,11 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
     flex: 1
   };
 
-  const btnStyle = (isActive: boolean, isInherited: boolean, seg: Segment): React.CSSProperties => {
+  const btnStyle = (isActive: boolean, isInherited: boolean, isHovered: boolean, seg: Segment): React.CSSProperties => {
     // If active and value is "None"-like, use grey. Else blue.
     const activeColor = isNoneLike(seg) ? theme.text_secondary : theme.accent_default;
-    const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_tertiary : 'transparent';
-    const color = isActive ? activeColor : isInherited ? theme.text_default : theme.text_tertiary;
+    const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_tertiary : isHovered ? theme.bg_low : 'transparent';
+    const color = isActive ? activeColor : isInherited ? theme.text_default : isHovered ? theme.text_secondary : theme.text_tertiary;
 
     return {
       flex: 1,
@@ -93,7 +94,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
       color,
       fontSize: '11px',
       cursor: 'pointer',
-      transition: 'all 0.2s',
+      transition: 'background 0.15s, color 0.15s',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -116,7 +117,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
               {idx > 0 && <div style={{ width: '1px', background: theme.border_default }}></div>}
               <button
                 onClick={() => handleSelect(seg.val, seg.prefix)}
-                style={btnStyle(isActive, isInherited, seg)}
+                onMouseEnter={() => setHoveredVal(seg.val)}
+                onMouseLeave={() => setHoveredVal(null)}
+                style={btnStyle(isActive, isInherited, hoveredVal === seg.val, seg)}
                 title={seg.title || seg.label}
               >
                 {seg.icon && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{seg.icon}</span>}

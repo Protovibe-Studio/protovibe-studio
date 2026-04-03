@@ -381,6 +381,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [triggerHovered, setTriggerHovered] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -468,7 +469,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     : hasInheritedDisplay
     ? theme.text_secondary
     : theme.text_tertiary;
-  const triggerBorderColor = theme.border_default;
+  const triggerBorderColor = isOpen ? theme.border_accent : triggerHovered ? theme.border_strong : theme.border_default;
 
   const renderTriggerIcon = () => {
     if (isFlexLike) {
@@ -672,7 +673,9 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <button
           onClick={handleClearAll}
           title="Clear all layout classes"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0, transition: 'background 0.15s, color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
         >
           <X size={13} />
         </button>
@@ -680,7 +683,9 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       <button
         ref={moreRef}
         onClick={() => setIsMoreOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0, transition: 'background 0.15s, color 0.15s' }}
+        onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
       >
         <MoreHorizontal size={13} />
       </button>
@@ -693,6 +698,8 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <button
           ref={triggerRef}
           onClick={() => setIsOpen(o => !o)}
+          onMouseEnter={() => setTriggerHovered(true)}
+          onMouseLeave={() => setTriggerHovered(false)}
           style={{
             width: '100%',
             display: 'flex',
@@ -704,6 +711,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             background: theme.bg_secondary,
             color: theme.text_default,
             cursor: 'pointer',
+            transition: 'border-color 0.15s',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

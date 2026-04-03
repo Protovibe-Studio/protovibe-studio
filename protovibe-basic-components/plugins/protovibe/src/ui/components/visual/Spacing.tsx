@@ -257,6 +257,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation, themeColors } = useProtovibe();
   const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [borderColorExpanded, setBorderColorExpanded] = useState(false);
+  const [borderColorHovered, setBorderColorHovered] = useState(false);
+  const [radiusHovered, setRadiusHovered] = useState(false);
 
   // ── Spacing update ──────────────────────────────────────────────────────────
 
@@ -631,10 +633,12 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <button
           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', height: '14px', width: 'fit-content' }}
           onClick={() => setBorderColorExpanded((x) => !x)}
+          onMouseEnter={() => setBorderColorHovered(true)}
+          onMouseLeave={() => setBorderColorHovered(false)}
           title={borderColorExpanded ? 'Collapse border colors' : 'Expand border colors'}
         >
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Border color</span>
-          <span style={{ color: theme.text_tertiary, display: 'flex', alignItems: 'center' }}>
+          <span style={{ fontSize: '9px', color: borderColorHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>Border color</span>
+          <span style={{ color: borderColorHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {borderColorExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>
         </button>
@@ -697,10 +701,12 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             width: 'fit-content',
           }}
           onClick={() => setRadiusExpanded((x) => !x)}
+          onMouseEnter={() => setRadiusHovered(true)}
+          onMouseLeave={() => setRadiusHovered(false)}
           title={radiusExpanded ? 'Collapse corners' : 'Expand corners'}
         >
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Border radius</span>
-          <span style={{ color: theme.text_tertiary, display: 'flex', alignItems: 'center' }}>
+          <span style={{ fontSize: '9px', color: radiusHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>Border radius</span>
+          <span style={{ color: radiusHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {radiusExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>
         </button>

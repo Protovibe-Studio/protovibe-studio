@@ -56,7 +56,6 @@ function DashboardPage() {
   return (
     <div className="flex flex-col animate-in fade-in duration-300 gap-4">
       {/* pv-editable-zone-start:d8z9a1 */}
-        
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner
           data-pv-block="i3b4c5"
@@ -72,7 +71,6 @@ function DashboardPage() {
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* pv-editable-zone-start:w2x3y4 */}
-
             {/* pv-block-start:z5a6b7 */}
             <Card data-pv-block="z5a6b7" variant="bordered" shadow="sm" className="bg-background-default">
               {/* pv-editable-zone-start:c8d9e1 */}
@@ -147,15 +145,9 @@ function DashboardPage() {
               {/* pv-editable-zone-end:y2z3a4 */}
             </Card>
             {/* pv-block-end:v8w9x1 */}
-
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
-        
-
-        {/* pv-block-start:mgkj3o */}
-        <TextBlock className="pt-1 pb-7 px-7" data-pv-block="mgkj3o" label="Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as  Text block asdasd asd asd asd asd asd as asd asd asd as "  />
-        {/* pv-block-end:mgkj3o */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

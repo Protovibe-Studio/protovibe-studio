@@ -18,7 +18,7 @@ type SidebarProps = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-  const { currentBaseTarget, activeData, isMutationLocked } = useProtovibe();
+  const { currentBaseTarget, activeData, isMutationLocked, isLoading } = useProtovibe();
 
   const stopScrollEventEscape = (event: React.UIEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -82,12 +82,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           <Tabs />
           <BlockEditor />
           {activeData && (
-            <>
+            <div style={{ opacity: isLoading ? 0.5 : 1, pointerEvents: isLoading ? 'none' : 'auto', transition: 'opacity 0.15s ease' }}>
               <ComponentProps />
               <Modifiers />
               <VisualEditor />
               <ClassesRaw />
-            </>
+            </div>
           )}
         </div>
         {isMutationLocked && (

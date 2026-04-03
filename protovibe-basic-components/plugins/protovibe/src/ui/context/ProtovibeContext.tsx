@@ -248,7 +248,6 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCurrentBaseTarget(el);
     setHighlightedElement(el);
     setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
-    setActiveSourceId(null);
     if (matchedIds.size > 0) {
       setSources(Array.from(matchedIds));
     }

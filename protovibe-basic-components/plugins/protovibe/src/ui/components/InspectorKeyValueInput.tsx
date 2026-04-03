@@ -41,6 +41,8 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
   }, [value]);
 
   const [textValue, setTextValue] = useState(initialTextValue);
+  const [selectHovered, setSelectHovered] = useState(false);
+  const [selectFocused, setSelectFocused] = useState(false);
 
   useEffect(() => {
     setTextValue(initialTextValue);
@@ -51,7 +53,6 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     minWidth: 0,
     width: '100%',
     background: theme.bg_secondary,
-    border: `1px solid ${theme.border_default}`,
     color: theme.text_default,
     padding: '4px 8px',
     borderRadius: '4px',
@@ -59,6 +60,8 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     outline: 'none',
     ...inputStyle
   };
+
+  const selectBorder = `1px solid ${selectFocused ? theme.accent_default : selectHovered ? theme.border_strong : theme.border_default}`;
 
   const rowStyle: React.CSSProperties = {
     display: 'flex',
@@ -119,7 +122,11 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
         value={selectValue}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.value)}
-        style={{ ...baseInputStyle, color: isSet ? theme.accent_default : theme.text_tertiary }}
+        onMouseEnter={() => setSelectHovered(true)}
+        onMouseLeave={() => setSelectHovered(false)}
+        onFocus={() => setSelectFocused(true)}
+        onBlur={() => setSelectFocused(false)}
+        style={{ ...baseInputStyle, border: selectBorder, color: isSet ? theme.accent_default : theme.text_tertiary, transition: 'border-color 0.15s' }}
       >
         <option value="">{unsetLabel}</option>
         {selectOptions.map((opt) => (
@@ -135,7 +142,11 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
         value={selectValue}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.value)}
-        style={{ ...baseInputStyle, color: isSet ? theme.accent_default : theme.text_tertiary }}
+        onMouseEnter={() => setSelectHovered(true)}
+        onMouseLeave={() => setSelectHovered(false)}
+        onFocus={() => setSelectFocused(true)}
+        onBlur={() => setSelectFocused(false)}
+        style={{ ...baseInputStyle, border: selectBorder, color: isSet ? theme.accent_default : theme.text_tertiary, transition: 'border-color 0.15s' }}
       >
         <option value="">{unsetLabel}</option>
         <option value="true">True</option>
