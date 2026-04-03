@@ -16,14 +16,17 @@ import { isElementAllowed } from './utils/traversal';
 })();
 
 const SELECTION_OUTLINE = '1.5px solid #18a0fb';
-const SELECTION_OFFSET = '2px';
+const SELECTION_OFFSET = '1px';
+const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
+const PARENT_PREVIEW_OFFSET = '2px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
-const HOVER_OFFSET = '2px';
+const HOVER_OFFSET = '1px';
 
 let isLocked = false;
 let isPreviewModeActive = false;
 let hoveredEl: HTMLElement | null = null;
 let selectedEl: HTMLElement | null = null;
+let selectedParentEl: HTMLElement | null = null;
 let suppressNextClickTarget: HTMLElement | null = null;
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
@@ -73,10 +76,34 @@ function collectPvLocs(el: HTMLElement): { name: string; value: string }[] {
   return locs;
 }
 
+function findInspectableParent(el: HTMLElement): HTMLElement | null {
+  const previewArea = el.closest('[data-pv-preview-area]') as HTMLElement | null;
+
+  let current = el.parentElement;
+  while (current && current !== document.documentElement) {
+    if (current.dataset?.pvUi === 'true') return null;
+    if (previewArea && current === previewArea) {
+      return isElementAllowed(current) ? current : null;
+    }
+    if (isElementAllowed(current)) return current;
+    current = current.parentElement;
+  }
+
+  return null;
+}
+
 // ─── Outline Manager ──────────────────────────────────────────────────────────
 
-function updateOutlines(oldHover: HTMLElement | null, oldSel: HTMLElement | null) {
-  const elementsToUpdate = new Set([oldHover, oldSel, hoveredEl, selectedEl].filter(Boolean));
+function updateOutlines(
+  oldHover: HTMLElement | null,
+  oldSel: HTMLElement | null,
+  oldParent: HTMLElement | null,
+) {
+  const elementsToUpdate = new Set(
+    [oldHover, oldSel, oldParent, hoveredEl, selectedEl, selectedParentEl].filter(
+      (el): el is HTMLElement => el !== null
+    )
+  );
   
   elementsToUpdate.forEach(el => {
     const elAny = el as any;
@@ -95,6 +122,9 @@ function updateOutlines(oldHover: HTMLElement | null, oldSel: HTMLElement | null
     if (el === selectedEl) {
       el.style.outline = SELECTION_OUTLINE;
       el.style.outlineOffset = SELECTION_OFFSET;
+    } else if (el === selectedParentEl) {
+      el.style.outline = PARENT_PREVIEW_OUTLINE;
+      el.style.outlineOffset = PARENT_PREVIEW_OFFSET;
     } else if (el === hoveredEl) {
       el.style.outline = HOVER_OUTLINE;
       el.style.outlineOffset = HOVER_OFFSET;
@@ -110,28 +140,32 @@ function setHoverOutline(el: HTMLElement) {
   if (hoveredEl === el) return;
   const oldHover = hoveredEl;
   hoveredEl = el;
-  updateOutlines(oldHover, selectedEl);
+  updateOutlines(oldHover, selectedEl, selectedParentEl);
 }
 
 function clearHoverOutline() {
   if (!hoveredEl) return;
   const oldHover = hoveredEl;
   hoveredEl = null;
-  updateOutlines(oldHover, selectedEl);
+  updateOutlines(oldHover, selectedEl, selectedParentEl);
 }
 
 function applySelectionOutline(el: HTMLElement) {
   if (selectedEl === el) return;
   const oldSel = selectedEl;
+  const oldParent = selectedParentEl;
   selectedEl = el;
-  updateOutlines(hoveredEl, oldSel);
+  selectedParentEl = findInspectableParent(el);
+  updateOutlines(hoveredEl, oldSel, oldParent);
 }
 
 function clearSelectionOutline() {
   if (!selectedEl) return;
   const oldSel = selectedEl;
+  const oldParent = selectedParentEl;
   selectedEl = null;
-  updateOutlines(hoveredEl, oldSel);
+  selectedParentEl = null;
+  updateOutlines(hoveredEl, oldSel, oldParent);
 }
 
 // ─── Event handlers ───────────────────────────────────────────────────────────
@@ -211,7 +245,7 @@ function handleMouseMove(e: MouseEvent) {
   }
 
   const target = findInspectableTarget(e.target);
-  if (!target || target === selectedEl) {
+  if (!target || target === selectedEl || target === selectedParentEl) {
     clearHoverOutline();
     return;
   }

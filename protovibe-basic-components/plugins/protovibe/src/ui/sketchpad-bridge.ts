@@ -3,8 +3,6 @@
 // tagged with data-pv-sketchpad-el (absolutely-positioned sketchpad components).
 // Supports selecting, dragging, and focusing them in the inspector.
 
-import { findAllowedAncestorOrSelf } from './utils/traversal';
-
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
   try {
@@ -19,6 +17,8 @@ import { findAllowedAncestorOrSelf } from './utils/traversal';
 
 const SELECTION_OUTLINE = '2px solid #18a0fb';
 const SELECTION_OFFSET = '2px';
+const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
+const PARENT_PREVIEW_OFFSET = '2px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '2px';
 const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
@@ -30,6 +30,7 @@ const RESIZE_EDGE_PX = 8;
 
 let hoveredEl: HTMLElement | null = null;
 let selectedEl: HTMLElement | null = null;
+let selectedParentEl: HTMLElement | null = null;
 
 let dragState: {
   target: HTMLElement;
@@ -118,6 +119,17 @@ function getNearestPvLocId(start: HTMLElement): string | null {
     if (uiId) return uiId;
 
     t = t.parentElement;
+  }
+  return null;
+}
+
+function findInspectableParent(el: HTMLElement): HTMLElement | null {
+  let current = el.parentElement;
+  while (current && current !== document.documentElement) {
+    if (current.hasAttribute('data-pv-sketchpad-el') || current.hasAttribute('data-pv-component-id')) {
+      return current;
+    }
+    current = current.parentElement;
   }
   return null;
 }
@@ -211,52 +223,81 @@ function isNearRightEdge(el: HTMLElement, clientX: number, clientY: number): boo
 
 // ─── Outline helpers ──────────────────────────────────────────────────────────
 
-function applyOutline(el: HTMLElement | null, style: string, offset: string) {
-  if (!el) return;
-  const a = el as any;
-  if (a._pvOrigOutline === undefined) {
-    a._pvOrigOutline = el.style.outline;
-    a._pvOrigOffset = el.style.outlineOffset;
-  }
-  el.style.outline = style;
-  el.style.outlineOffset = offset;
-}
+function updateOutlines(
+  oldHover: HTMLElement | null,
+  oldSelection: HTMLElement | null,
+  oldParent: HTMLElement | null,
+) {
+  const elementsToUpdate = new Set(
+    [oldHover, oldSelection, oldParent, hoveredEl, selectedEl, selectedParentEl].filter(
+      (el): el is HTMLElement => el !== null
+    )
+  );
 
-function restoreOutline(el: HTMLElement | null) {
-  if (!el) return;
-  const a = el as any;
-  if (a._pvOrigOutline !== undefined) {
-    el.style.outline = a._pvOrigOutline;
-    el.style.outlineOffset = a._pvOrigOffset;
-    delete a._pvOrigOutline;
-    delete a._pvOrigOffset;
-  }
+  elementsToUpdate.forEach((el) => {
+    const elAny = el as any;
+
+    if (elAny._pvOrigOutline === undefined) {
+      elAny._pvOrigOutline = el.style.outline;
+      elAny._pvOrigOffset = el.style.outlineOffset;
+    } else {
+      el.style.outline = elAny._pvOrigOutline;
+      el.style.outlineOffset = elAny._pvOrigOffset;
+    }
+
+    if (el === selectedEl) {
+      el.style.outline = SELECTION_OUTLINE;
+      el.style.outlineOffset = SELECTION_OFFSET;
+    } else if (el === selectedParentEl) {
+      el.style.outline = PARENT_PREVIEW_OUTLINE;
+      el.style.outlineOffset = PARENT_PREVIEW_OFFSET;
+    } else if (el === hoveredEl) {
+      el.style.outline = HOVER_OUTLINE;
+      el.style.outlineOffset = HOVER_OFFSET;
+    } else {
+      delete elAny._pvOrigOutline;
+      delete elAny._pvOrigOffset;
+    }
+  });
 }
 
 function setHover(el: HTMLElement) {
   if (hoveredEl === el) return;
-  if (hoveredEl && hoveredEl !== selectedEl) restoreOutline(hoveredEl);
+  const oldHover = hoveredEl;
   hoveredEl = el;
-  if (el !== selectedEl) applyOutline(el, HOVER_OUTLINE, HOVER_OFFSET);
+  updateOutlines(oldHover, selectedEl, selectedParentEl);
 }
 
 function clearHover() {
   if (!hoveredEl) return;
-  if (hoveredEl !== selectedEl) restoreOutline(hoveredEl);
+  const oldHover = hoveredEl;
   hoveredEl = null;
+  updateOutlines(oldHover, selectedEl, selectedParentEl);
+}
+
+function setSelectedParent(el: HTMLElement | null) {
+  if (selectedParentEl === el) return;
+  const oldParent = selectedParentEl;
+  selectedParentEl = el;
+  updateOutlines(hoveredEl, selectedEl, oldParent);
 }
 
 function setSelection(el: HTMLElement) {
   if (selectedEl === el) return;
-  if (selectedEl) restoreOutline(selectedEl);
+  const oldSelection = selectedEl;
+  const oldParent = selectedParentEl;
   selectedEl = el;
-  applyOutline(el, SELECTION_OUTLINE, SELECTION_OFFSET);
+  selectedParentEl = findInspectableParent(el);
+  updateOutlines(hoveredEl, oldSelection, oldParent);
 }
 
 function clearSelection() {
   if (!selectedEl) return;
-  restoreOutline(selectedEl);
+  const oldSelection = selectedEl;
+  const oldParent = selectedParentEl;
   selectedEl = null;
+  selectedParentEl = null;
+  updateOutlines(hoveredEl, oldSelection, oldParent);
 }
 
 // ─── Cursor override ──────────────────────────────────────────────────────────
@@ -444,7 +485,7 @@ function handlePointerMove(e: PointerEvent) {
 
   // Hover (only when not dragging)
   const el = findSketchpadElement(e.target);
-  if (!el || el === selectedEl) {
+  if (!el || el === selectedEl || el === selectedParentEl) {
     // If hovering over the right edge of the selected element, show resize cursor
     if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
       setForcedCursor('ew-resize');
