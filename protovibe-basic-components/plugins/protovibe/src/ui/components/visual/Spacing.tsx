@@ -52,7 +52,7 @@ const CornerBLIcon = () => (
 
 const SpacingAutocomplete: React.FC<{
   value: string;
-  onChange: (val: string) => void;
+  onChange: (val: string, prevVal?: string) => void;
   placeholder: string;
   posStyle: React.CSSProperties;
   inheritedPlaceholder?: string;
@@ -157,7 +157,7 @@ const BorderLIcon = () => (
 
 const RadiusAutocomplete: React.FC<{
   value: string;
-  onChange: (val: string) => void;
+  onChange: (val: string, prevVal?: string) => void;
   placeholder?: string;
   icon: React.ReactNode;
   inheritedValue?: string;
@@ -191,7 +191,7 @@ const RadiusAutocomplete: React.FC<{
 
 const BorderColorAutocomplete: React.FC<{
   value: string;
-  onChange: (val: string) => void;
+  onChange: (val: string, prevVal?: string) => void;
   icon: React.ReactNode;
   inheritedValue?: string;
   colorOptions: any[];
@@ -260,12 +260,36 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [borderColorHovered, setBorderColorHovered] = useState(false);
   const [radiusHovered, setRadiusHovered] = useState(false);
 
+  const uniqueClasses = (classes: string[]) => [...new Set(classes.filter(Boolean))];
+
+  const toBorderWidthClass = (val: string) => {
+    const clean = cleanVal(val);
+    if (!clean) return '';
+    return clean === 'DEFAULT' ? 'border' : `border-${clean}`;
+  };
+
+  const toRadiusClass = (corner: 'all' | 'tl' | 'tr' | 'br' | 'bl', val: string) => {
+    const clean = cleanVal(val);
+    if (!clean) return '';
+    if (corner === 'all') {
+      return clean === 'DEFAULT' ? 'rounded' : `rounded-${clean}`;
+    }
+    return `rounded-${corner}-${clean}`;
+  };
+
+  const toBorderColorClass = (side: 'all' | 't' | 'r' | 'b' | 'l', val: string) => {
+    const clean = cleanVal(val);
+    if (!clean) return '';
+    return side === 'all' ? `border-${clean}` : `border-${side}-${clean}`;
+  };
+
   // ── Spacing update ──────────────────────────────────────────────────────────
 
   const handleSpacingUpdate = async (
     type: 'm' | 'p',
     direction: 't' | 'r' | 'b' | 'l',
     newVal: string,
+    prevVal?: string,
   ) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
@@ -294,7 +318,21 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     const newClassesStr = computeOptimalSpacing(type, vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);
-    const origClasses = type === 'm' ? v.origMargin : v.origPadding;
+    const previousVals = {
+      ...vals,
+      [direction]: cleanVal(prevVal ?? vals[direction]) || '',
+    };
+    const reconstructedOrigClasses = computeOptimalSpacing(
+      type,
+      previousVals.t,
+      previousVals.r,
+      previousVals.b,
+      previousVals.l,
+    ).split(' ').filter(Boolean);
+    const origClasses = uniqueClasses([
+      ...((type === 'm' ? v.origMargin : v.origPadding) ?? []),
+      ...reconstructedOrigClasses,
+    ]);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
 
     await runLockedMutation(async () => {
@@ -314,7 +352,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   // ── Border-width update ─────────────────────────────────────────────────────
 
-  const handleBorderUpdate = async (newVal: string) => {
+  const handleBorderUpdate = async (newVal: string, prevVal?: string) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
@@ -329,7 +367,11 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
-      const origClass = v.borderWidth_original || '';
+      // Fall back to reconstructing original from current value if _original is missing
+      let origClass = v.borderWidth_original || '';
+      if (!origClass) {
+        origClass = toBorderWidthClass(prevVal ?? v.borderWidth);
+      }
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({
@@ -344,7 +386,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   // ── Per-side border-width update ────────────────────────────────────────────
 
-  const handleBorderSideUpdate = async (side: 't' | 'r' | 'b' | 'l', newVal: string) => {
+  const handleBorderSideUpdate = async (side: 't' | 'r' | 'b' | 'l', newVal: string, prevVal?: string) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
@@ -370,14 +412,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClasses = newClassesStr.split(' ').filter(Boolean);
     const prefixedNewClasses = newClasses.map((c: string) => `${currentContextPrefix}${c}`).join(' ');
 
+    const previousVals = {
+      t: side === 't' ? cleanVal(prevVal ?? '') || '' : effectiveT,
+      r: side === 'r' ? cleanVal(prevVal ?? '') || '' : effectiveR,
+      b: side === 'b' ? cleanVal(prevVal ?? '') || '' : effectiveB,
+      l: side === 'l' ? cleanVal(prevVal ?? '') || '' : effectiveL,
+    };
+    const reconstructedOrigClasses = computeOptimalBorder(
+      previousVals.t,
+      previousVals.r,
+      previousVals.b,
+      previousVals.l,
+    ).split(' ').filter(Boolean);
+
     // Collect ALL old border-width originals to replace
-    const origClasses = [
+    const origClasses = uniqueClasses([
       v.borderWidth_original,
       v.borderT_original,
       v.borderR_original,
       v.borderB_original,
       v.borderL_original,
-    ].filter(Boolean);
+      ...reconstructedOrigClasses,
+    ]);
 
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
@@ -396,15 +452,22 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const handleRadiusUpdate = async (
     corner: 'all' | 'tl' | 'tr' | 'br' | 'bl',
     newVal: string,
+    prevVal?: string,
   ) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
 
     const isAll = corner === 'all';
-    const origClass = isAll
+    let origClass = isAll
       ? v.radius_original || ''
       : v[`radius${corner.toUpperCase()}_original`] || '';
+
+    // Fall back to reconstructing original from current value if _original is missing
+    if (!origClass) {
+      const valKey = isAll ? 'radius' : `radius${corner.toUpperCase()}`;
+      origClass = toRadiusClass(corner, prevVal ?? v[valKey]);
+    }
 
     let newClass = '';
     if (safeVal && safeVal !== '-') {
@@ -432,14 +495,24 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   // ── Border-color update ─────────────────────────────────────────────────────
 
-  const handleBorderColorUpdate = async (side: 'all' | 't' | 'r' | 'b' | 'l', newVal: string) => {
+  const handleBorderColorUpdate = async (
+    side: 'all' | 't' | 'r' | 'b' | 'l',
+    newVal: string,
+    prevVal?: string,
+  ) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
 
     const isAll = side === 'all';
     const origKey = isAll ? 'borderColor_original' : `borderColor${side.toUpperCase()}_original`;
-    const origClass = v[origKey] || '';
+    const valKey = isAll ? 'borderColor' : `borderColor${side.toUpperCase()}`;
+    let origClass = v[origKey] || '';
+
+    // Fall back to reconstructing original from current value if _original is missing
+    if (!origClass) {
+      origClass = toBorderColorClass(side, prevVal ?? v[valKey]);
+    }
 
     let newClass = '';
     if (safeVal && safeVal !== '-') {
@@ -458,7 +531,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   // ── Gap update ──────────────────────────────────────────────────────────────
 
-  const handleGapUpdate = async (newVal: string) => {
+  const handleGapUpdate = async (newVal: string, prevVal?: string) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
@@ -467,7 +540,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
-      const origClass = v.gap_original || '';
+      let origClass = v.gap_original || '';
+      if (!origClass) origClass = cleanVal(prevVal ?? v.gap) ? `gap-${cleanVal(prevVal ?? v.gap)}` : '';
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({
@@ -513,28 +587,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centreH(7)}
           value={v.mt === '-' ? '' : v.mt}
-          onChange={(val) => handleSpacingUpdate('m', 't', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('m', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mt)}
         />
         <SpacingAutocomplete
           posStyle={centreH(93)}
           value={v.mb === '-' ? '' : v.mb}
-          onChange={(val) => handleSpacingUpdate('m', 'b', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('m', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mb)}
         />
         <SpacingAutocomplete
           posStyle={centre(7)}
           value={v.ml === '-' ? '' : v.ml}
-          onChange={(val) => handleSpacingUpdate('m', 'l', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('m', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.ml)}
         />
         <SpacingAutocomplete
           posStyle={centre(93)}
           value={v.mr === '-' ? '' : v.mr}
-          onChange={(val) => handleSpacingUpdate('m', 'r', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('m', 'r', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mr)}
         />
@@ -543,7 +617,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centreH(19)}
           value={borderSideVal('borderT')}
-          onChange={(val) => handleBorderSideUpdate('t', val)}
+          onChange={(val, prevVal) => handleBorderSideUpdate('t', val, prevVal)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderT')}
@@ -551,7 +625,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centreH(81)}
           value={borderSideVal('borderB')}
-          onChange={(val) => handleBorderSideUpdate('b', val)}
+          onChange={(val, prevVal) => handleBorderSideUpdate('b', val, prevVal)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderB')}
@@ -559,7 +633,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centre(19)}
           value={borderSideVal('borderL')}
-          onChange={(val) => handleBorderSideUpdate('l', val)}
+          onChange={(val, prevVal) => handleBorderSideUpdate('l', val, prevVal)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderL')}
@@ -567,7 +641,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centre(81)}
           value={borderSideVal('borderR')}
-          onChange={(val) => handleBorderSideUpdate('r', val)}
+          onChange={(val, prevVal) => handleBorderSideUpdate('r', val, prevVal)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderR')}
@@ -577,28 +651,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={centreH(30)}
           value={v.pt === '-' ? '' : v.pt}
-          onChange={(val) => handleSpacingUpdate('p', 't', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('p', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pt)}
         />
         <SpacingAutocomplete
           posStyle={centreH(70)}
           value={v.pb === '-' ? '' : v.pb}
-          onChange={(val) => handleSpacingUpdate('p', 'b', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('p', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pb)}
         />
         <SpacingAutocomplete
           posStyle={centre(30)}
           value={v.pl === '-' ? '' : v.pl}
-          onChange={(val) => handleSpacingUpdate('p', 'l', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('p', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pl)}
         />
         <SpacingAutocomplete
           posStyle={centre(70)}
           value={v.pr === '-' ? '' : v.pr}
-          onChange={(val) => handleSpacingUpdate('p', 'r', val)}
+          onChange={(val, prevVal) => handleSpacingUpdate('p', 'r', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pr)}
         />
@@ -607,7 +681,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           posStyle={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
           value={v.gap === '-' ? '' : v.gap}
-          onChange={handleGapUpdate}
+          onChange={(val, prevVal) => handleGapUpdate(val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.gap)}
         />
@@ -645,7 +719,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         <BorderColorAutocomplete
           value={cleanVal(v.borderColor)}
-          onChange={(val) => handleBorderColorUpdate('all', val)}
+          onChange={(val, prevVal) => handleBorderColorUpdate('all', val, prevVal)}
           icon={<BorderAllIcon />}
           inheritedValue={cleanVal(domV?.borderColor)}
           colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -655,28 +729,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorT)}
-              onChange={(val) => handleBorderColorUpdate('t', val)}
+              onChange={(val, prevVal) => handleBorderColorUpdate('t', val, prevVal)}
               icon={<BorderTIcon />}
               inheritedValue={cleanVal(domV?.borderColorT)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorR)}
-              onChange={(val) => handleBorderColorUpdate('r', val)}
+              onChange={(val, prevVal) => handleBorderColorUpdate('r', val, prevVal)}
               icon={<BorderRIcon />}
               inheritedValue={cleanVal(domV?.borderColorR)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorB)}
-              onChange={(val) => handleBorderColorUpdate('b', val)}
+              onChange={(val, prevVal) => handleBorderColorUpdate('b', val, prevVal)}
               icon={<BorderBIcon />}
               inheritedValue={cleanVal(domV?.borderColorB)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorL)}
-              onChange={(val) => handleBorderColorUpdate('l', val)}
+              onChange={(val, prevVal) => handleBorderColorUpdate('l', val, prevVal)}
               icon={<BorderLIcon />}
               inheritedValue={cleanVal(domV?.borderColorL)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -714,7 +788,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         {/* All corners */}
         <RadiusAutocomplete
           value={v.radius === '-' ? '' : v.radius}
-          onChange={(val) => handleRadiusUpdate('all', val)}
+          onChange={(val, prevVal) => handleRadiusUpdate('all', val, prevVal)}
           placeholder="—"
           icon={<CornerAllIcon />}
           inheritedValue={cleanVal(domV?.radius)}
@@ -725,28 +799,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             <RadiusAutocomplete
               value={cornerVal('TL')}
-              onChange={(val) => handleRadiusUpdate('tl', val)}
+              onChange={(val, prevVal) => handleRadiusUpdate('tl', val, prevVal)}
               placeholder="—"
               icon={<CornerTLIcon />}
               inheritedValue={cleanVal(domV?.radiusTL)}
             />
             <RadiusAutocomplete
               value={cornerVal('TR')}
-              onChange={(val) => handleRadiusUpdate('tr', val)}
+              onChange={(val, prevVal) => handleRadiusUpdate('tr', val, prevVal)}
               placeholder="—"
               icon={<CornerTRIcon />}
               inheritedValue={cleanVal(domV?.radiusTR)}
             />
             <RadiusAutocomplete
               value={cornerVal('BL')}
-              onChange={(val) => handleRadiusUpdate('bl', val)}
+              onChange={(val, prevVal) => handleRadiusUpdate('bl', val, prevVal)}
               placeholder="—"
               icon={<CornerBLIcon />}
               inheritedValue={cleanVal(domV?.radiusBL)}
             />
             <RadiusAutocomplete
               value={cornerVal('BR')}
-              onChange={(val) => handleRadiusUpdate('br', val)}
+              onChange={(val, prevVal) => handleRadiusUpdate('br', val, prevVal)}
               placeholder="—"
               icon={<CornerBRIcon />}
               inheritedValue={cleanVal(domV?.radiusBR)}

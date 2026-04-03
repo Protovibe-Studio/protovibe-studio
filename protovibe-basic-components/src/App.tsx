@@ -57,7 +57,7 @@ function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-4">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:i3b4c5 */}
-        <InfoBoxBanner
+        <InfoBoxBanner className="bg-background-elevated"
           data-pv-block="i3b4c5"
           heading="Welcome back, HR Admin!"
           secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."
@@ -72,7 +72,7 @@ function DashboardPage() {
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* pv-editable-zone-start:w2x3y4 */}
             {/* pv-block-start:z5a6b7 */}
-            <Card data-pv-block="z5a6b7" variant="bordered" shadow="sm" className="bg-background-default">
+            <Card data-pv-block="z5a6b7" variant="bordered" shadow="sm" className="">
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:f2g3h4 */}
                 <div data-pv-block="f2g3h4" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -97,7 +97,7 @@ function DashboardPage() {
             {/* pv-block-end:z5a6b7 */}
 
             {/* pv-block-start:x2y3z4 */}
-            <Card data-pv-block="x2y3z4" variant="bordered" shadow="sm" className="bg-background-default">
+            <Card data-pv-block="x2y3z4" variant="bordered" shadow="sm" className="">
               {/* pv-editable-zone-start:a5b6c7 */}
                 {/* pv-block-start:d8e9f1 */}
                 <div data-pv-block="d8e9f1" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -122,7 +122,7 @@ function DashboardPage() {
             {/* pv-block-end:x2y3z4 */}
 
             {/* pv-block-start:v8w9x1 */}
-            <Card data-pv-block="v8w9x1" variant="bordered" shadow="sm" className="bg-background-default">
+            <Card data-pv-block="v8w9x1" variant="bordered" shadow="sm" className="">
               {/* pv-editable-zone-start:y2z3a4 */}
                 {/* pv-block-start:b5c6d7 */}
                 <div data-pv-block="b5c6d7" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -148,6 +148,13 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
+
+        {/* pv-block-start:qsqb5b */}
+        <div className="min-h-4 mb-50 mx-50" data-pv-block="qsqb5b">
+          {/* pv-editable-zone-start:inside-qsqb5b */}
+          {/* pv-editable-zone-end:inside-qsqb5b */}
+        </div>
+        {/* pv-block-end:qsqb5b */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -557,7 +564,7 @@ export default function App() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8 bg-background-default">
+        <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto">
             {currentPath === '/dashboard' && <DashboardPage />}
             {currentPath === '/employees' && <EmployeesPage />}

@@ -82,7 +82,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <Button data-pv-block="" label="Open Dialog" variant="solid" color="primary" size="md" />
+        <Button data-pv-block="" variant="outline" iconOnly leftIcon="Pencil" />
         {/* pv-block-end */}
         {/* pv-block-start */}
         <DialogOverlay data-pv-block="">

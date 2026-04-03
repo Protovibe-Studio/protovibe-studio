@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { theme } from '../theme';
 
 interface InspectorInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
@@ -10,6 +10,14 @@ interface InspectorInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEl
 export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur, style, prefix, suffix, containerStyle, ...props }) => {
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Sync focused state with actual DOM focus to avoid stale visual state
+  useEffect(() => {
+    if (focused && inputRef.current && document.activeElement !== inputRef.current) {
+      setFocused(false);
+    }
+  });
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select();
@@ -40,7 +48,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
       transition: 'border-color 0.15s',
       ...style
     };
-    return <input {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={defaultStyle} />;
+    return <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={defaultStyle} />;
   }
 
   const inputStyle: React.CSSProperties = {
@@ -77,7 +85,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
           {prefix}
         </div>
       )}
-      <input {...props} onFocus={handleFocus} onBlur={handleBlur} style={inputStyle} />
+      <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} style={inputStyle} />
       {suffix && (
         <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '2px', paddingRight: '6px', flexShrink: 0, color: theme.text_tertiary }}>
           {suffix}

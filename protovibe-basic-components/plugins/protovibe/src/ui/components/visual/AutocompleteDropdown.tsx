@@ -18,7 +18,7 @@ export type ColorMode = 'light' | 'dark';
 interface AutocompleteDropdownProps {
   value: string;
   options: AutocompleteOption[];
-  onCommit: (val: string) => void;
+  onCommit: (val: string, prevVal?: string) => void;
   placeholder?: string;
   containerStyle?: React.CSSProperties;
   inputStyle?: React.CSSProperties;
@@ -139,8 +139,9 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
   const triggerCommit = (val: string) => {
     if (val !== lastCommittedValueRef.current) {
+      const prev = lastCommittedValueRef.current;
       lastCommittedValueRef.current = val;
-      onCommit(val);
+      onCommit(val, prev);
     }
   };
 
@@ -148,6 +149,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     pendingBlurValueRef.current = val;
     setLocalValue(val);
     setIsOpen(false);
+    triggerCommit(val);
     setTimeout(() => (blurTarget ?? inputElRef.current)?.blur(), 0);
   };
 
@@ -164,6 +166,17 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
       e.currentTarget.blur();
       setIsOpen(false);
       setLocalValue(lastCommittedValueRef.current);
+    }
+
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && options.length > 0) {
+      e.preventDefault();
+      const current = localValue || lastCommittedValueRef.current;
+      const idx = current ? options.findIndex(o => o.val === current) : -1;
+      const nextIdx = e.key === 'ArrowUp'
+        ? (idx === -1 ? 0 : Math.min(idx + 1, options.length - 1))
+        : (idx === -1 ? 0 : Math.max(idx - 1, 0));
+      setLocalValue(options[nextIdx].val);
+      setHasTyped(true);
     }
   };
 

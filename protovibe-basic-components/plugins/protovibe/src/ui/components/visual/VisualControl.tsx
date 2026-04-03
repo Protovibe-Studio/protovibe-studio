@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
-import { buildContextPrefix, makeSafe } from '../../utils/tailwind';
+import { buildContextPrefix, makeSafe, cleanVal } from '../../utils/tailwind';
 import { InspectorInput } from '../InspectorInput';
 import { theme } from '../../theme';
 import { AutocompleteDropdown, type AutocompleteOption, type ColorMode } from './AutocompleteDropdown';
@@ -33,12 +33,12 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
     setRawInputValue(value === '-' ? '' : value);
   }, [value]);
 
-  const handleChange = async (newVal: string) => {
+  const handleChange = async (newVal: string, prevVal?: string) => {
     if (!activeData?.file) return;
 
     const currentContextPrefix = buildContextPrefix(activeModifiers);
     const safeVal = makeSafe(newVal);
-    
+
     // If it's a dash or empty, we treat it as removal (no new class)
     let newClass = '';
     if (safeVal && safeVal !== '-') {
@@ -48,7 +48,16 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
         newClass = `${currentContextPrefix}${prefix}${safeVal}`;
       }
     }
-    
+
+    // Reconstruct original class: prefer _original, then prevVal from autocomplete, then current value
+    const reconstructFromVal = (v: string) => {
+      if (!v || v === '-') return '';
+      const cv = cleanVal(v);
+      if (!cv) return '';
+      if (cv === 'DEFAULT' && prefix.endsWith('-')) return prefix.slice(0, -1);
+      return `${prefix}${cv}`;
+    };
+
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
 
@@ -74,15 +83,17 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
           });
         }
       } else {
+        const effectiveOriginal = originalClass || reconstructFromVal(prevVal ?? '') || reconstructFromVal(value);
+
         let action = 'edit';
-        if (!originalClass && newClass) action = 'add';
-        if (originalClass && !newClass) action = 'remove';
-        if (originalClass === newClass) return;
+        if (!effectiveOriginal && newClass) action = 'add';
+        if (effectiveOriginal && !newClass) action = 'remove';
+        if (effectiveOriginal === newClass) return;
 
         await updateSource({
           ...activeData,
           id: activeSourceId!,
-          oldClass: originalClass || '',
+          oldClass: effectiveOriginal,
           newClass,
           action
         });
@@ -145,6 +156,14 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
             if (e.key === 'Escape') {
               setRawInputValue(value === '-' ? '' : value);
               e.currentTarget.blur();
+            }
+            if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && options && options.length > 0) {
+              e.preventDefault();
+              const idx = rawInputValue ? options.findIndex(o => o.val === rawInputValue) : -1;
+              const nextIdx = e.key === 'ArrowUp'
+                ? (idx === -1 ? 0 : Math.min(idx + 1, options.length - 1))
+                : (idx === -1 ? 0 : Math.max(idx - 1, 0));
+              setRawInputValue(options[nextIdx].val);
             }
           }}
           onBlur={() => handleChange(rawInputValue)}
