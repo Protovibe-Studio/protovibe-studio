@@ -57,17 +57,40 @@ let currentDropTarget: HTMLElement | null = null;
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 /**
- * Walk up from event target to find the nearest element with
- * `data-pv-sketchpad-el`. This is the only attribute the sketchpad bridge
- * cares about — it marks absolutely-positioned sketchpad components.
+ * Validates if an element's source is in the application code (app-level)
+ * rather than being an internal detail of a UI component.
  */
-function findSketchpadElement(start: EventTarget | null): HTMLElement | null {
+function isAppLevel(el: HTMLElement): boolean {
+  if (el.hasAttribute('data-pv-sketchpad-el')) return true;
+  for (let i = 0; i < el.attributes.length; i++) {
+    if (el.attributes[i].name.startsWith('data-pv-loc-app-')) return true;
+  }
+  return false;
+}
+
+/**
+ * Identifies if the element is the root layout wrapper for a frame.
+ */
+function isFrameRoot(el: HTMLElement): boolean {
+  return el.parentElement?.hasAttribute('data-sketchpad-frame') ?? false;
+}
+
+/**
+ * Walk up from event target and build a top-down path of all inspectable elements 
+ * (frame -> wrapper -> component -> ...) filtering out internal UI-level nodes and frame roots.
+ */
+function getInspectablePath(start: EventTarget | null): HTMLElement[] {
+  const path: HTMLElement[] = [];
   let t = start as HTMLElement | null;
   while (t && t !== document.documentElement) {
-    if (t.hasAttribute('data-pv-sketchpad-el')) return t;
+    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
+      if (isAppLevel(t) && !isFrameRoot(t)) {
+        path.unshift(t);
+      }
+    }
     t = t.parentElement;
   }
-  return null;
+  return path;
 }
 
 /** Find the enclosing frame container (`data-sketchpad-frame`). */
@@ -127,7 +150,9 @@ function findInspectableParent(el: HTMLElement): HTMLElement | null {
   let current = el.parentElement;
   while (current && current !== document.documentElement) {
     if (current.hasAttribute('data-pv-sketchpad-el') || current.hasAttribute('data-pv-component-id')) {
-      return current;
+      if (isAppLevel(current) && !isFrameRoot(current)) {
+        return current;
+      }
     }
     current = current.parentElement;
   }
@@ -357,25 +382,30 @@ function notifyInspector(el: HTMLElement) {
 function handlePointerDown(e: PointerEvent) {
   if (e.button !== 0) return;
 
-  // Build a top-down path of all inspectable elements (frame -> wrapper -> component -> ...)
-  const path: HTMLElement[] = [];
-  let t = e.target as HTMLElement | null;
-  while (t && t !== document.documentElement) {
-    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
-      path.unshift(t);
-    }
-    t = t.parentElement;
-  }
+  const path = getInspectablePath(e.target);
 
-  // Single click logic: select top-level, or maintain current selection if clicking inside it
-  let nextTarget: HTMLElement | null = path.length > 0 ? path[0] : null;
-  if (selectedEl && path.includes(selectedEl)) {
-    nextTarget = selectedEl; // Keep current selection on single click
+  // Determine click target based on hierarchy & modifiers
+  let nextTarget: HTMLElement | null = null;
+  if (path.length > 0) {
+    if (e.metaKey || e.ctrlKey) {
+      // Cmd/Ctrl + Click -> Direct deep selection
+      nextTarget = path[path.length - 1];
+    } else if (selectedEl && path.includes(selectedEl)) {
+      // Clicked inside current selection -> keep selection (double click handles drill-down)
+      nextTarget = selectedEl; 
+    } else if (selectedParentEl && path.includes(selectedParentEl)) {
+      // Clicked inside a sibling -> select at the sibling's depth level
+      const parentIdx = path.indexOf(selectedParentEl);
+      nextTarget = parentIdx + 1 < path.length ? path[parentIdx + 1] : path[parentIdx];
+    } else {
+      // Default -> top-most parent
+      nextTarget = path[0];
+    }
   }
 
   if (!nextTarget) {
     // If pointer is in the right-edge resize zone of the currently selected element
-    if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
+    if (selectedEl && selectedEl.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
       e.preventDefault();
       e.stopPropagation();
       const rect = selectedEl.getBoundingClientRect();
@@ -412,7 +442,7 @@ function handlePointerDown(e: PointerEvent) {
   setSelection(nextTarget);
   notifyInspector(nextTarget);
 
-  if (isNearRightEdge(nextTarget, e.clientX, e.clientY)) {
+  if (nextTarget.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(nextTarget, e.clientX, e.clientY)) {
     const rect = nextTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
     resizeState = {
@@ -484,10 +514,27 @@ function handlePointerMove(e: PointerEvent) {
   }
 
   // Hover (only when not dragging)
-  const el = findSketchpadElement(e.target);
-  if (!el || el === selectedEl || el === selectedParentEl) {
-    // If hovering over the right edge of the selected element, show resize cursor
-    if (selectedEl && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
+  const path = getInspectablePath(e.target);
+  let hoverTarget: HTMLElement | null = null;
+
+  if (path.length > 0) {
+    if (e.metaKey || e.ctrlKey) {
+      hoverTarget = path[path.length - 1];
+    } else if (selectedEl && path.includes(selectedEl)) {
+      // Hovering inside current selection -> single click would just keep selection
+      hoverTarget = selectedEl;
+    } else if (selectedParentEl && path.includes(selectedParentEl)) {
+      // Hovering sibling
+      const parentIdx = path.indexOf(selectedParentEl);
+      hoverTarget = parentIdx + 1 < path.length ? path[parentIdx + 1] : path[parentIdx];
+    } else {
+      // Hovering new top-level
+      hoverTarget = path[0];
+    }
+  }
+
+  if (!hoverTarget || hoverTarget === selectedEl || hoverTarget === selectedParentEl) {
+    if (selectedEl && selectedEl.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
       setForcedCursor('ew-resize');
     } else {
       clearForcedCursor();
@@ -495,13 +542,14 @@ function handlePointerMove(e: PointerEvent) {
     clearHover();
     return;
   }
-  // Show resize cursor when hovering right edge of any sketchpad element
-  if (isNearRightEdge(el, e.clientX, e.clientY)) {
+
+  if (hoverTarget.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(hoverTarget, e.clientX, e.clientY)) {
     setForcedCursor('ew-resize');
   } else {
     clearForcedCursor();
   }
-  setHover(el);
+  
+  setHover(hoverTarget);
 }
 
 function handlePointerUp(e: PointerEvent) {
@@ -616,7 +664,7 @@ function handlePointerUp(e: PointerEvent) {
 
 function handleClick(e: MouseEvent) {
   // Prevent clicks on sketchpad elements from bubbling to React handlers
-  if (findSketchpadElement(e.target)) {
+  if (getInspectablePath(e.target).length > 0) {
     e.stopPropagation();
   }
 }
@@ -624,14 +672,7 @@ function handleClick(e: MouseEvent) {
 function handleDoubleClick(e: MouseEvent) {
   if (e.button !== 0) return;
 
-  const path: HTMLElement[] = [];
-  let t = e.target as HTMLElement | null;
-  while (t && t !== document.documentElement) {
-    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
-      path.unshift(t);
-    }
-    t = t.parentElement;
-  }
+  const path = getInspectablePath(e.target);
 
   // Drill-down into the next child on double click
   if (selectedEl && path.includes(selectedEl)) {
