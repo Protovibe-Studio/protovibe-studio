@@ -695,10 +695,7 @@ export function ProtovibePreviewer() {
       ) : (
         <CatalogView
           entries={discovered}
-          onSelect={entry => {
-            setSelected(entry);
-            setSearch('');
-          }}
+          onSelect={entry => setSelected(entry)}
           search={search}
           onSearch={setSearch}
         />
