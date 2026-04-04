@@ -109,7 +109,7 @@ export const ComponentProps: React.FC = () => {
       <div style={{ padding: '12px 16px', fontSize: '10px', fontWeight: '600', color: theme.text_default, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Component properties</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button onClick={() => setShowAddForm(!showAddForm)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0, fontSize: '16px', lineHeight: 1 }} title="Add Prop">+</button>
+          {showAdvancedProps && <button onClick={() => setShowAddForm(!showAddForm)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0, fontSize: '16px', lineHeight: 1 }} title="Add Prop">+</button>}
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowMenu(!showMenu)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}><MoreHorizontal size={13} /></button>
             {showMenu && (

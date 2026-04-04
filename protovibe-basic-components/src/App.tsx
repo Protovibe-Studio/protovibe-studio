@@ -27,6 +27,7 @@ import { PopoverTrigger } from '@/components/ui/popover-trigger';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { DropdownSeparator } from '@/components/ui/dropdown-separator';
+import { TooltipProvider } from '@/components/ui/tooltip-provider';
 
 // --- MOCK DATA ---
 
@@ -73,6 +74,24 @@ function DashboardPage() {
         </InfoBoxBanner>
         {/* pv-block-end:i3b4c5 */}
         
+        {/* pv-block-start:g0fqyb */}
+        <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
+          {/* pv-editable-zone-start:inside-g0fqyb */}
+            {/* pv-block-start:lw979w */}
+            <TextBlock data-pv-block="lw979w" typography="heading-md">
+              Witam serdecznie!
+            </TextBlock>
+            {/* pv-block-end:lw979w */}
+          {/* pv-editable-zone-end:inside-g0fqyb */}
+        </div>
+        {/* pv-block-end:g0fqyb */}
+
+        {/* pv-block-start:krvk39 */}
+        <TextBlock  typography="small"   className="asd text-balance" test="sdfsdf"     data-pv-block="krvk39" >
+          Witam serdecznie
+        </TextBlock>
+        {/* pv-block-end:krvk39 */}
+
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* pv-editable-zone-start:w2x3y4 */}
@@ -155,24 +174,6 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
-
-        {/* pv-block-start:g0fqyb */}
-        <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
-          {/* pv-editable-zone-start:inside-g0fqyb */}
-            {/* pv-block-start:lw979w */}
-            <TextBlock data-pv-block="lw979w" typography="heading-md">
-              Witam serdecznie
-            </TextBlock>
-            {/* pv-block-end:lw979w */}
-          {/* pv-editable-zone-end:inside-g0fqyb */}
-        </div>
-        {/* pv-block-end:g0fqyb */}
-
-        {/* pv-block-start:krvk39 */}
-        <TextBlock data-pv-block="krvk39" typography="regular">
-          Witam serdecznie
-        </TextBlock>
-        {/* pv-block-end:krvk39 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -198,7 +199,7 @@ function EmployeesPage() {
             {/* pv-block-start:z2a3b4 */}
             <div data-pv-block="z2a3b4" className="flex gap-2">
               <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
-              <Button label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
+              <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
             </div>
             {/* pv-block-end:z2a3b4 */}
           {/* pv-editable-zone-end:t5u6v7 */}
@@ -532,6 +533,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-background-default text-foreground-default font-sans overflow-hidden">
+      <TooltipProvider />
       {/* Sidebar */}
       <div className="w-64 border-r border-border-default bg-background-secondary flex flex-col shrink-0">
         <div className="h-16 flex items-center px-6 gap-3">

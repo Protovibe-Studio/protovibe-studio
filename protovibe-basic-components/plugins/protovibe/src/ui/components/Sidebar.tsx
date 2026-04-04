@@ -8,6 +8,7 @@ import { ComponentProps } from './ComponentProps';
 import { Modifiers } from './Modifiers';
 import { VisualEditor } from './VisualEditor';
 import { ClassesRaw } from './ClassesRaw';
+import { TooltipEditor } from './TooltipEditor';
 import { theme } from '../theme';
 import { INSPECTOR_TRANSITION_EASING, INSPECTOR_TRANSITION_MS, INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { Paintbrush } from 'lucide-react';
@@ -86,6 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
               <ComponentProps />
               <Modifiers />
               <VisualEditor />
+              <TooltipEditor />
               <ClassesRaw />
             </div>
           )}

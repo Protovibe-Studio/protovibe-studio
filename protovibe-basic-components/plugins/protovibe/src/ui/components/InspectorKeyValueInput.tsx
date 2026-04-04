@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { X } from 'lucide-react';
 import { theme } from '../theme';
 import { InspectorInput } from './InspectorInput';
 
@@ -66,7 +67,7 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
   const rowStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'stretch',
-    gap: '8px',
+    gap: '4px',
     minHeight: '24px'
   };
 
@@ -94,13 +95,11 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
   const removeButtonStyle: React.CSSProperties = {
     background: 'transparent',
     border: 'none',
-    color: theme.destructive_default,
+    color: theme.text_tertiary,
     cursor: 'pointer',
-    fontWeight: 'bold',
     padding: 0,
     width: '20px',
     height: '100%',
-    lineHeight: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
@@ -178,7 +177,7 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
       <div style={actionSlotStyle}>
         {showRemove && !disabled && (
           <button onClick={onRemove} style={removeButtonStyle} title="Remove Prop">
-            &times;
+            <X size={12} />
           </button>
         )}
       </div>

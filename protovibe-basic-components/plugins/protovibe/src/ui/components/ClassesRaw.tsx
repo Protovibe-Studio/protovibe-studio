@@ -48,11 +48,6 @@ export const ClassesRaw: React.FC = () => {
     } catch (e) {}
   };
 
-  const detailsStyle: React.CSSProperties = {
-    borderTop: `1px solid ${theme.border_default}`,
-    background: theme.bg_default
-  };
-
   const summaryStyle: React.CSSProperties = {
     padding: '12px 16px',
     fontSize: '10px',
@@ -106,24 +101,38 @@ export const ClassesRaw: React.FC = () => {
       {isExpanded && (
         <div>
           {activeData.hasClass && activeData.parsedClasses && Object.keys(activeData.parsedClasses).length > 0 && (
-            <div style={detailsStyle}>
-              <div style={summaryStyle}>
+            <div style={{ padding: '12px 16px' }}>
+              <div style={{ ...summaryStyle, padding: '0 0 8px 0' }}>
                 Applied Classes ({Object.values(activeData.parsedClasses).flat().length})
               </div>
-              <div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                <InspectorInput
+                  type="text"
+                  placeholder="e.g. text-center"
+                  value={newClass}
+                  onChange={(e) => setNewClass(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
+                  style={{ fontFamily: 'monospace', color: theme.text_default }}
+                />
+                <button
+                  onClick={handleAddClass}
+                  style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, color: theme.text_default, padding: '4px 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}
+                >Add</button>
+              </div>
+              <div style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '6px', overflow: 'hidden', padding: '4px 0' }}>
                 {Object.entries(activeData.parsedClasses).map(([category, classes]: [string, any]) => (
                   <div key={category}>
-                    <div style={{ padding: '6px 16px', fontWeight: 'bold', fontSize: '10px', color: theme.text_tertiary }}>{String(category)}</div>
-                    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ padding: '6px 12px', fontWeight: 'normal', fontSize: '10px', color: theme.text_tertiary }}>{String(category)}</div>
+                    <div style={{ padding: '0 12px 8px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {classes.map((c: any) => (
                         <div key={c.cls} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <InspectorInput
                             type="text"
                             defaultValue={c.cls}
                             onBlur={(e) => handleUpdateClass(c.cls, e.target.value, 'edit')}
-                            style={{ fontFamily: 'monospace', color: theme.text_default }}
+                            style={{ fontFamily: 'monospace', color: theme.text_default, background: theme.bg_default }}
                           />
-                          <button 
+                          <button
                             onClick={() => handleUpdateClass(c.cls, '', 'remove')}
                             style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, fontWeight: 'bold', padding: '4px', cursor: 'pointer' }}
                             title="Remove Class"
@@ -137,22 +146,7 @@ export const ClassesRaw: React.FC = () => {
             </div>
           )}
 
-          <div style={{ padding: '12px 16px', background: theme.bg_default, display: 'flex', gap: '8px', alignItems: 'center', borderTop: `1px solid ${theme.border_default}` }}>
-            <InspectorInput
-              type="text"
-              placeholder="e.g. text-center"
-              value={newClass}
-              onChange={(e) => setNewClass(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
-              style={{ fontFamily: 'monospace', color: theme.text_default }}
-            />
-            <button 
-              onClick={handleAddClass}
-              style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, color: theme.text_default, padding: '4px 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}
-            >Add</button>
-          </div>
-
-          <div style={{ ...detailsStyle, borderTop: `1px solid ${theme.border_default}` }}>
+          <div style={{ background: theme.bg_strong }}>
             <div style={summaryStyle}>Raw Code</div>
             {activeData.file && (
               <div style={{ padding: '0 16px 8px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -165,7 +159,7 @@ export const ClassesRaw: React.FC = () => {
                       const line = activeData.startLine || 1;
                       fetch(`/__open-in-editor?file=${encodeURIComponent(activeData.file)}&line=${line}&column=1`);
                     }}
-                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
+                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '4px 8px', fontSize: '11px', minHeight: '24px', boxSizing: 'border-box', color: theme.text_default, cursor: 'pointer' }}
                   >
                     Open in editor
                   </button>
@@ -176,7 +170,7 @@ export const ClassesRaw: React.FC = () => {
                       const { absolutePath } = await res.json();
                       window.open(`vscode://file/${absolutePath}:${line}:1`, '_self');
                     }}
-                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '3px 10px', fontSize: '10px', color: theme.text_default, cursor: 'pointer' }}
+                    style={{ background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '4px 8px', fontSize: '11px', minHeight: '24px', boxSizing: 'border-box', color: theme.text_default, cursor: 'pointer' }}
                   >
                     Open in VS Code
                   </button>
@@ -195,7 +189,7 @@ export const ClassesRaw: React.FC = () => {
               >
                 {copied ? 'Copied!' : 'Copy'}
               </button>
-              <pre style={{ margin: 0, padding: '12px', border: `1px solid ${theme.border_default}`, borderRadius: '4px', color: theme.text_secondary, fontFamily: 'monospace', fontSize: '10px', overflowX: 'auto', whiteSpace: 'pre', wordBreak: 'normal' }}>
+              <pre style={{ margin: 0, padding: '12px', border: `1px solid ${theme.border_default}`, borderRadius: '4px', background: theme.bg_strong, color: theme.text_secondary, fontFamily: 'monospace', fontSize: '10px', overflowX: 'auto', whiteSpace: 'pre', wordBreak: 'normal' }}>
                 {activeData.code}
               </pre>
             </div>
