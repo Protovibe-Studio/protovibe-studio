@@ -207,7 +207,7 @@ export const ProtovibeApp: React.FC = () => {
                     const loc = appIframeRef.current?.contentWindow?.location;
                     if (loc) window.open(loc.href, '_blank');
                   } catch {
-                    window.open('/app.html', '_blank');
+                    window.open('/', '_blank');
                   }
                 }}
                 title="Open in new tab"
@@ -222,7 +222,7 @@ export const ProtovibeApp: React.FC = () => {
             </div>
             <iframe
               ref={appIframeRef}
-              src="/app.html"
+              src="/"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               title="App Preview"
               onLoad={() => handleIframeLoad(appIframeRef)}

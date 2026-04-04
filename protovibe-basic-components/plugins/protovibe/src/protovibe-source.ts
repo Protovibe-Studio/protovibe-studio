@@ -3,10 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken } from './backend/server';
-import { registerSketchpadMiddleware, getSketchpadHtmlInjections } from './sketchpad-source';
+import { registerSketchpadMiddleware } from './sketchpad-source';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Absolute path to the plugin's source directory (one level above dist/)
+const PLUGIN_DIR = path.resolve(__dirname, '..');
 
 export function protovibeSourcePlugin(): Plugin {
   return {
@@ -57,7 +60,36 @@ export function protovibeSourcePlugin(): Plugin {
         }
       });
 
-      // Pass the Vite server instance to handleGetSourceInfo so we can use its resolver
+      // --- Serve editor HTML pages from the plugin directory ---
+      const editorPages: Record<string, string> = {
+        '/protovibe.html': path.resolve(PLUGIN_DIR, 'src/ui/protovibe.html'),
+        '/components.html': path.resolve(PLUGIN_DIR, 'src/ui/components.html'),
+        '/sketchpad.html': path.resolve(PLUGIN_DIR, 'src/ui/sketchpad.html'),
+      };
+
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url || '';
+        // Strip query string for matching
+        const pathname = url.split('?')[0];
+        const htmlFile = editorPages[pathname];
+        if (!htmlFile) return next();
+
+        try {
+          let html = fs.readFileSync(htmlFile, 'utf-8');
+          // Replace the placeholder with the actual plugin directory path
+          html = html.replace(/\[PLUGIN_DIR\]/g, PLUGIN_DIR);
+          // Let Vite process the HTML (applies transformIndexHtml hooks, etc.)
+          html = await server.transformIndexHtml(url, html);
+          res.setHeader('Content-Type', 'text/html');
+          res.statusCode = 200;
+          res.end(html);
+        } catch (e) {
+          console.error(`[protovibe] Error serving ${pathname}:`, e);
+          next(e);
+        }
+      });
+
+      // API middleware
       server.middlewares.use('/__get-source-info', (req, res) => handleGetSourceInfo(req, res, server));
       server.middlewares.use('/__update-source', handleUpdateSource);
       server.middlewares.use('/__get-zones', handleGetZones);
@@ -88,22 +120,21 @@ export function protovibeSourcePlugin(): Plugin {
 
     transformIndexHtml: {
       order: 'pre',
-      handler(html, ctx) {
+      handler(_html, ctx) {
         const filename = ctx?.filename ?? '';
-        const isAppHtml = filename.endsWith('app.html');
+        const isIndexHtml = filename.endsWith('index.html');
         const isComponentsHtml = filename.endsWith('components.html');
         const isSketchpadHtml = filename.endsWith('sketchpad.html');
-        const isIndexHtml = !isAppHtml && !isComponentsHtml && !isSketchpadHtml && filename.endsWith('index.html');
 
-        if (isAppHtml || isComponentsHtml) {
-          // Inject the bridge script into the app/components iframe
+        // Inject bridge.js into the user app (index.html) and components.html
+        if (isIndexHtml || isComponentsHtml) {
           const bridgePath = path.resolve(__dirname, 'ui/bridge.js');
           if (!fs.existsSync(bridgePath)) {
             console.warn('⚠️ Protovibe bridge bundle not found at ' + bridgePath);
             return [];
           }
 
-          const injections: any[] = [
+          return [
             {
               tag: 'script',
               attrs: {},
@@ -111,42 +142,21 @@ export function protovibeSourcePlugin(): Plugin {
               injectTo: 'body',
             },
           ];
-
-          if (isComponentsHtml) {
-            // Inject the component previewer overlay.
-            // The source file lives next to the dist output (../src/ui/), and Vite
-            // serves it via @fs so that import.meta.glob and JSX transforms are applied.
-            const previewerEntryPath = path.resolve(__dirname, '../src/ui/previewer-entry.tsx');
-            if (fs.existsSync(previewerEntryPath)) {
-              injections.push({
-                tag: 'script',
-                attrs: { type: 'module', src: `/@fs${previewerEntryPath}` },
-                injectTo: 'body',
-              });
-            } else {
-              console.warn('⚠️ Protovibe previewer entry not found at ' + previewerEntryPath);
-            }
-          }
-
-          return injections;
         }
 
+        // Inject sketchpad-bridge.js into sketchpad.html
         if (isSketchpadHtml) {
-          return getSketchpadHtmlInjections(__dirname, path.resolve(__dirname, '../src'));
-        }
-
-        if (isIndexHtml) {
-          // Inject the Protovibe shell (inspector) into the parent page
-          const inspectorPath = path.resolve(__dirname, 'ui/inspector.js');
-          if (!fs.existsSync(inspectorPath)) {
-            console.warn('⚠️ Visual Editor UI bundle not found at ' + inspectorPath);
+          const sketchpadBridgePath = path.resolve(__dirname, 'ui/sketchpad-bridge.js');
+          if (!fs.existsSync(sketchpadBridgePath)) {
+            console.warn('⚠️ Protovibe sketchpad bridge bundle not found at ' + sketchpadBridgePath);
             return [];
           }
+
           return [
             {
               tag: 'script',
               attrs: {},
-              children: fs.readFileSync(inspectorPath, 'utf-8'),
+              children: fs.readFileSync(sketchpadBridgePath, 'utf-8'),
               injectTo: 'body',
             },
           ];
@@ -156,8 +166,6 @@ export function protovibeSourcePlugin(): Plugin {
       },
     },
 
-    // Suppress full-page reloads for sketchpad data files (_registry.json,
-    // frame .tsx files). These are written by the sketchpad backend and should
     // Suppress full-page reloads for non-HMR-able sketchpad data files
     // (e.g. _registry.json) while letting frame .tsx files hot-reload normally.
     handleHotUpdate({ file }) {

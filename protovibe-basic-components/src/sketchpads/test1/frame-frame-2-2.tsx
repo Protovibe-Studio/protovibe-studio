@@ -24,7 +24,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:hxwp0f */}
       {/* pv-block-start:qqn3dn */}
-            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 256, left: 71, top: 34 }}>
+            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 256, left: 115, top: 79 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
               {/* pv-block-start:58adeb */}
                 <div data-pv-block="58adeb" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
@@ -113,7 +113,7 @@ export default function Frame2() {
             {/* pv-block-end:aac2v5 */}
       
       {/* pv-block-start:f7lfn7 */}
-      <InfoBoxBanner data-pv-block="f7lfn7" data-pv-sketchpad-el="f7lfn7" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} style={{ position: 'absolute', left: 260, top: 496 }}>
+      <InfoBoxBanner data-pv-block="f7lfn7" data-pv-sketchpad-el="f7lfn7" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} style={{ position: 'absolute', left: 252, top: 540 }}>
         {/* pv-editable-zone-start:17kg7f */}
         {/* pv-editable-zone-end:17kg7f */}
       </InfoBoxBanner>
