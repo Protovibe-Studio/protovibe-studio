@@ -26,20 +26,41 @@ type StoreContextType = {
 const StoreContext = createContext<StoreContextType | null>(null);
 
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
-  const knownPaths = ['/dashboard', '/employees', '/positions', '/departments'];
-  const initialPath = knownPaths.includes(window.location.pathname) ? window.location.pathname : '/dashboard';
-  const [path, setPath] = useState(initialPath);
+  const knownPages = ['dashboard', 'employees', 'positions', 'departments'];
+
+  const getPageFromURL = () => {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page');
+    return page && knownPages.includes(page) ? `/${page}` : '/dashboard';
+  };
+
+  const [path, setPath] = useState(getPageFromURL);
   const [toast, setToast] = useState<ToastOptions | null>(null);
 
   useEffect(() => {
-    const handlePopState = () => setPath(window.location.pathname);
+    const handlePopState = () => {
+      setPath(getPageFromURL());
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'PV_URL_CHANGE',
+          path: window.location.pathname + window.location.search + window.location.hash,
+        }, '*');
+      }
+    };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const navigate = (newPath: string) => {
-    window.history.pushState({}, '', newPath);
+    const page = newPath.replace('/', '');
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.history.pushState({}, '', url.toString());
     setPath(newPath);
+    // Notify parent frame (Protovibe toolbar) of URL change
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'PV_URL_CHANGE', path: url.pathname + url.search + url.hash }, '*');
+    }
   };
 
   const showToast = useCallback((options: ToastOptions) => {
