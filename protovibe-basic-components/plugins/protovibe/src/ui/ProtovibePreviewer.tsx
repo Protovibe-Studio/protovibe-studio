@@ -412,24 +412,51 @@ const CatalogView: React.FC<{
           background: '#111',
         }}
       >
-        <input
-          type="text"
-          placeholder="Search components…"
-          value={search}
-          onChange={e => onSearch(e.target.value)}
-          autoFocus
-          style={{
-            flex: 1,
-            background: '#1a1a1a',
-            border: '1px solid #333',
-            borderRadius: 6,
-            color: '#e5e5e5',
-            fontSize: 12,
-            fontFamily: 'sans-serif',
-            padding: '6px 10px',
-            outline: 'none',
-          }}
-        />
+        <div style={{ flex: 1, position: 'relative' }}>
+          <input
+            type="text"
+            placeholder="Search components…"
+            value={search}
+            onChange={e => onSearch(e.target.value)}
+            autoFocus
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              background: '#1a1a1a',
+              border: '1px solid #333',
+              borderRadius: 6,
+              color: '#e5e5e5',
+              fontSize: 12,
+              fontFamily: 'sans-serif',
+              padding: '6px 10px',
+              paddingRight: search ? 28 : 10,
+              outline: 'none',
+            }}
+          />
+          {search && (
+            <button
+              onClick={() => onSearch('')}
+              style={{
+                position: 'absolute',
+                right: 6,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: 14,
+                lineHeight: 1,
+                padding: '2px 4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <span style={{ fontSize: 11, color: '#444', whiteSpace: 'nowrap' }}>
           {filtered.length} / {entries.length}
         </span>
@@ -526,25 +553,50 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
             {config.description}
           </span>
         )}
-        <input
-          type="text"
-          placeholder="Filter variants…"
-          value={variantSearch}
-          onChange={e => setVariantSearch(e.target.value)}
-          style={{
-            marginLeft: 'auto',
-            background: '#1a1a1a',
-            border: '1px solid #333',
-            borderRadius: 6,
-            color: '#e5e5e5',
-            fontSize: 12,
-            fontFamily: 'sans-serif',
-            padding: '5px 10px',
-            outline: 'none',
-            width: 180,
-            flexShrink: 0,
-          }}
-        />
+        <div style={{ marginLeft: 'auto', position: 'relative', width: 180, flexShrink: 0 }}>
+          <input
+            type="text"
+            placeholder="Filter variants…"
+            value={variantSearch}
+            onChange={e => setVariantSearch(e.target.value)}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              background: '#1a1a1a',
+              border: '1px solid #333',
+              borderRadius: 6,
+              color: '#e5e5e5',
+              fontSize: 12,
+              fontFamily: 'sans-serif',
+              padding: '5px 10px',
+              paddingRight: variantSearch ? 28 : 10,
+              outline: 'none',
+            }}
+          />
+          {variantSearch && (
+            <button
+              onClick={() => setVariantSearch('')}
+              style={{
+                position: 'absolute',
+                right: 6,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: 14,
+                lineHeight: 1,
+                padding: '2px 4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <span style={{ fontSize: 11, color: '#444', flexShrink: 0 }}>
           {visibleCombos.length}/{combos.length}
         </span>

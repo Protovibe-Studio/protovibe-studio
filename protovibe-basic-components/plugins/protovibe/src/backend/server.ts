@@ -1574,6 +1574,7 @@ export const handleGetComponents = (req: any, res: any, server: import('vite').V
     walkDirAsync(srcPath);
     // Wait for all ssrLoadModule promises to resolve
     Promise.all(tasks).then(() => {
+      components.sort((a, b) => (a.displayName || a.name).localeCompare(b.displayName || b.name));
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ components }));
     });
