@@ -1,3 +1,7 @@
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
+vite-error-overlay {
+  display: none !important;
+}
