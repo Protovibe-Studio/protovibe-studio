@@ -837,6 +837,12 @@ function init() {
   document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('message', handleParentMessage);
+
+  // Allow SketchpadApp to programmatically select an element by blockId
+  window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId: string }>) => {
+    const el = document.querySelector(`[data-pv-sketchpad-el="${e.detail.blockId}"]`) as HTMLElement | null;
+    if (el) setSelection(el);
+  }) as EventListener);
 }
 
 if (document.readyState === 'loading') {

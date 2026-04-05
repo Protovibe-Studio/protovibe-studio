@@ -32,10 +32,10 @@ export function PvDefaultContent() {
 export const pvConfig = {
   name: 'Rectangle',
   componentId: 'Rectangle',
-  displayName: 'Rectangle',
+  displayName: 'Sketchpad rectangle',
   description: 'A freely resizable container with absolute positioning for children.',
-  importPath: '@/components/ui/rectangle',
-  defaultProps: '',
+  importPath: '@/components/ui/sketchpad-rectangle',
+  defaultProps: 'className="w-[200px] h-[200px]"',
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {},

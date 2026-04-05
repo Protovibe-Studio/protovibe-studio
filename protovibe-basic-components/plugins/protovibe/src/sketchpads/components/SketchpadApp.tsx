@@ -8,6 +8,7 @@ import { SketchpadOverlayPanel } from './SketchpadOverlayPanel';
 import * as api from '../api';
 import { fetchSourceInfo, fetchZones, takeSnapshot, blockAction, addBlock } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
+import { ToastViewport } from '../../ui/components/ToastViewport';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -98,6 +99,7 @@ export function SketchpadApp() {
 
   const [showAddMenu, setShowAddMenu] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: 'add-rectangle'; comp: ComponentEntry } | null>(null);
 
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const mutationLockRef = useRef(false);
@@ -354,6 +356,22 @@ export function SketchpadApp() {
 
   // Element interactions — components are rendered from frame .tsx modules.
   // When an element is added, the backend writes to the frame file and we re-import the module.
+  // After adding an element, poll for it in the DOM and select it via the bridge
+  const focusNewBlock = useCallback((blockId: string) => {
+    let attempts = 0;
+    const maxAttempts = 20;
+    const interval = setInterval(() => {
+      attempts++;
+      const el = document.querySelector(`[data-pv-sketchpad-el="${blockId}"]`);
+      if (el || attempts >= maxAttempts) {
+        clearInterval(interval);
+        if (el) {
+          window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+        }
+      }
+    }, 50);
+  }, []);
+
   const handleAddComponent = useCallback(
     async (comp: ComponentEntry, frameId?: string, x?: number, y?: number) => {
       const targetFrame = frameId || selectedFrameId;
@@ -362,10 +380,7 @@ export function SketchpadApp() {
       const posX = x ?? 100;
       const posY = y ?? 100;
 
-      // Write element to the frame file via backend.
-      // Vite's file watcher will see this write, trigger HMR,
-      // and React Fast Refresh will instantly update the canvas.
-      await runLockedMutation(() => api.addElementToFrame(
+      const result = await runLockedMutation(() => api.addElementToFrame(
         activeSketchpadId,
         targetFrame,
         comp.name,
@@ -376,8 +391,9 @@ export function SketchpadApp() {
         posY,
         comp.additionalImportsForDefaultContent,
       ));
+      if (result?.blockId) focusNewBlock(result.blockId);
     },
-    [selectedFrameId, activeSketchpadId, runLockedMutation],
+    [selectedFrameId, activeSketchpadId, runLockedMutation, focusNewBlock],
   );
 
   const handleAddRectangleCentered = useCallback(async () => {
@@ -385,21 +401,8 @@ export function SketchpadApp() {
     const rectComp = components.find((c) => c.name === 'Rectangle');
     if (!rectComp) return;
 
-    const targetFrame = selectedFrameId;
-    if (!targetFrame) {
-      // Create a frame first, then add the rectangle into it
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const viewCx = rect.width / 2;
-      const viewCy = rect.height / 2;
-      const canvasX = (viewCx - transform.panX) / transform.zoom - 400;
-      const canvasY = (viewCy - transform.panY) / transform.zoom - 300;
-      await handleCreateFrame(canvasX, canvasY);
-      return;
-    }
-
-    await handleAddComponent(rectComp, targetFrame, 50, 50);
-  }, [activeSketchpadId, components, selectedFrameId, containerRef, transform, handleCreateFrame, handleAddComponent]);
+    setPendingAction({ type: 'add-rectangle', comp: rectComp });
+  }, [activeSketchpadId, components]);
 
   // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
   const reloadRegistry = useCallback(async () => {
@@ -410,6 +413,11 @@ export function SketchpadApp() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = async (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && pendingAction) {
+        setPendingAction(null);
+        return;
+      }
+
       // Zoom to fit
       if (e.key === '0' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -424,7 +432,7 @@ export function SketchpadApp() {
       }
 
       // Delete selected frame via keyboard (skip when an input is focused)
-      if (e.key === 'Delete' && selectedFrameId) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrameId) {
         const active = document.activeElement;
         if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
         handleDeleteFrame(selectedFrameId);
@@ -433,7 +441,7 @@ export function SketchpadApp() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [reloadRegistry, selectedFrameId, handleDeleteFrame]);
+  }, [reloadRegistry, selectedFrameId, handleDeleteFrame, pendingAction]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
@@ -656,6 +664,80 @@ export function SketchpadApp() {
         />
       </div>
 
+      {/* Pending action: click-to-place overlay + info bar */}
+      {pendingAction && (
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 250,
+              cursor: 'crosshair',
+            }}
+            onClick={(e) => {
+              if (!containerRef.current) return;
+              const rect = containerRef.current.getBoundingClientRect();
+              const canvasX = (e.clientX - rect.left - transform.panX) / transform.zoom;
+              const canvasY = (e.clientY - rect.top - transform.panY) / transform.zoom;
+
+              const targetFrame = activeSketchpad?.frames.find(
+                (f) =>
+                  canvasX >= f.canvasX &&
+                  canvasX <= f.canvasX + f.width &&
+                  canvasY >= f.canvasY &&
+                  canvasY <= f.canvasY + f.height,
+              );
+
+              if (targetFrame) {
+                const relX = canvasX - targetFrame.canvasX;
+                const relY = canvasY - targetFrame.canvasY;
+                handleAddComponent(pendingAction.comp, targetFrame.id, relX, relY);
+                setSelectedFrameId(targetFrame.id);
+                setPendingAction(null);
+              }
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              padding: '8px 16px',
+              background: 'rgba(24, 160, 251, 0.95)',
+              color: '#fff',
+              fontSize: 13,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontWeight: 500,
+              zIndex: 300,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}
+          >
+            <span>Click inside a frame to place the rectangle</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setPendingAction(null); }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 16,
+                padding: '0 4px',
+                lineHeight: 1,
+                opacity: 0.8,
+              }}
+              title="Cancel"
+            >
+              ✕
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Add menu dropdown */}
       {showAddMenu && createPortal(
         <>
@@ -781,6 +863,7 @@ export function SketchpadApp() {
           }}
         />
       )}
+      <ToastViewport />
     </div>
   );
 }

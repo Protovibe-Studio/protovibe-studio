@@ -3,62 +3,19 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button'
 import { RadioGroup } from '@/components/ui/radio-group';
 import { RadioItem } from '@/components/ui/radio-item';
+import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 
 export default function Frame2() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:7od17d */}
-      {/* pv-block-start:pqea2u */}
-      <Card data-pv-block="pqea2u"  shadow="none"  data-pv-sketchpad-el="pqea2u" style={{ position: 'absolute', width: 367, left: 105, top: 134 }}>
-        {/* pv-editable-zone-start:w7l84k */}
-        {/* pv-block-start:6ta5fg */}
-        <Button data-pv-block="6ta5fg"  label="Button" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:6ta5fg */}
-
-        {/* pv-block-start:rskouk */}
-      <Card data-pv-block="rskouk" variant="bordered" shadow="none" >
-        {/* pv-editable-zone-start:to5hka */}
-        {/* pv-editable-zone-end:to5hka */}
-      </Card>
-      {/* pv-block-end:rskouk */}
-
-        {/* pv-block-start:hlr8hv */}
-      <RadioGroup data-pv-block="hlr8hv" orientation="vertical" value="opt1" >
-        {/* pv-editable-zone-start:bmv50n */}
-          {/* pv-block-start:0uqani */}
-          <RadioItem data-pv-block="0uqani" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-          {/* pv-block-end:0uqani */}
-          {/* pv-block-start:bu9piz */}
-          <RadioItem data-pv-block="bu9piz" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-          {/* pv-block-end:bu9piz */}
-          {/* pv-block-start:o1wa3m */}
-          <RadioItem data-pv-block="o1wa3m" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-          {/* pv-block-end:o1wa3m */}
-        {/* pv-editable-zone-end:bmv50n */}
-      </RadioGroup>
-      {/* pv-block-end:hlr8hv */}
-
-        {/* pv-block-start:k0wayx */}
-      <Button data-pv-block="k0wayx" label="Button" variant="solid" color="primary" size="md"  />
-      {/* pv-block-end:k0wayx */}
-        {/* pv-editable-zone-end:w7l84k */}
-      </Card>
-      {/* pv-block-end:pqea2u */}
-      
       {/* pv-block-start:5wvchf */}
-      <Card className="rounded-2xl pt-10 pl-10 border-5 m-10" data-pv-block="5wvchf" data-pv-sketchpad-el="5wvchf" variant="bordered" shadow="none" style={{ position: 'absolute', left: 552, top: 200 }}>
+      <Card className="rounded-2xl pt-10 pl-10 border-5 m-10" data-pv-block="5wvchf" data-pv-sketchpad-el="5wvchf" variant="bordered" shadow="none" style={{ position: 'absolute', left: 484, top: 96 }}>
         {/* pv-editable-zone-start:xwoofe */}
         {/* pv-editable-zone-end:xwoofe */}
       </Card>
       {/* pv-block-end:5wvchf */}
 
-        {/* pv-block-start:dzyyy3 */}
-        <div className="flex flex-col min-h-4 m-10 p-20" data-pv-block="dzyyy3" data-pv-sketchpad-el="dzyyy3" style={{ position: 'absolute', left: 100, top: 100 }}>
-          {/* pv-editable-zone-start:inside-dzyyy3 */}
-          {/* pv-editable-zone-end:inside-dzyyy3 */}
-        </div>
-        {/* pv-block-end:dzyyy3 */}
-      
       {/* pv-block-start:avlhcz */}
       <Card className="pt-10" data-pv-block="avlhcz" data-pv-sketchpad-el="avlhcz" variant="bordered" shadow="none" style={{ position: 'absolute', left: 312, top: 28 }}>
         {/* pv-editable-zone-start:oht9ru */}
@@ -69,6 +26,49 @@ export default function Frame2() {
       {/* pv-block-start:yakgl0 */}
       <Button data-pv-block="yakgl0" data-pv-sketchpad-el="yakgl0" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 34, top: 540 }} />
       {/* pv-block-end:yakgl0 */}
+      
+      {/* pv-block-start:1nio13 */}
+      <Rectangle data-pv-block="1nio13" data-pv-sketchpad-el="1nio13"  style={{ position: 'absolute', height: 384, width: 379, left: 55, top: 95 }}>
+        {/* pv-editable-zone-start:m7ztjg */}
+        {/* pv-block-start:0w8hv1 */}
+      <Card data-pv-block="0w8hv1"  shadow="none"  data-pv-sketchpad-el="0w8hv1" style={{ position: 'absolute', left: 39, top: 29, width: 292 }}>
+        {/* pv-editable-zone-start:w7l84k */}
+        {/* pv-block-start:3yybwv */}
+        <Button data-pv-block="3yybwv"  label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:3yybwv */}
+
+        {/* pv-block-start:txweyi */}
+      <Card data-pv-block="txweyi" variant="bordered" shadow="none" >
+        {/* pv-editable-zone-start:to5hka */}
+        {/* pv-editable-zone-end:to5hka */}
+      </Card>
+      {/* pv-block-end:txweyi */}
+
+        {/* pv-block-start:5936dq */}
+      <RadioGroup data-pv-block="5936dq" orientation="vertical" value="opt1" >
+        {/* pv-editable-zone-start:bmv50n */}
+          {/* pv-block-start:5ugd72 */}
+          <RadioItem data-pv-block="5ugd72" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:5ugd72 */}
+          {/* pv-block-start:7noaeo */}
+          <RadioItem data-pv-block="7noaeo" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:7noaeo */}
+          {/* pv-block-start:hmc5pf */}
+          <RadioItem data-pv-block="hmc5pf" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:hmc5pf */}
+        {/* pv-editable-zone-end:bmv50n */}
+      </RadioGroup>
+      {/* pv-block-end:5936dq */}
+
+        {/* pv-block-start:vv7e8g */}
+      <Button data-pv-block="vv7e8g" label="Button" variant="solid" color="primary" size="md"  />
+      {/* pv-block-end:vv7e8g */}
+        {/* pv-editable-zone-end:w7l84k */}
+      </Card>
+      {/* pv-block-end:0w8hv1 */}
+        {/* pv-editable-zone-end:m7ztjg */}
+      </Rectangle>
+      {/* pv-block-end:1nio13 */}
       {/* pv-editable-zone-end:7od17d */}
     </div>
   );

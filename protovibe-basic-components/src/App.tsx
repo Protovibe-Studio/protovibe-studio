@@ -28,6 +28,7 @@ import { DropdownList } from '@/components/ui/dropdown-list';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 import { TooltipProvider } from '@/components/ui/tooltip-provider';
+import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 
 // --- MOCK DATA ---
 
