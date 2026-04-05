@@ -173,6 +173,25 @@ export async function updateThemeToken(tokenName: string, value: string): Promis
   if (!res.ok) throw new Error('Failed to update theme token');
 }
 
+export async function uploadImage(file: File): Promise<string> {
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch('/__upload-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, base64Data }),
+  });
+  if (!res.ok) throw new Error('Failed to upload image');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.url;
+}
+
 export async function fetchThemeColors(): Promise<ThemeColor[]> {
   const res = await fetch('/__get-theme-colors', {
     method: 'POST',

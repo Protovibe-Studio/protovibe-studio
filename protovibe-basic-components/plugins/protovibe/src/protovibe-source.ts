@@ -2,7 +2,7 @@ import { Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUploadImage } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -104,6 +104,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__update-theme-color', handleUpdateThemeColor);
       server.middlewares.use('/__get-theme-tokens', handleGetThemeTokens);
       server.middlewares.use('/__update-theme-token', handleUpdateThemeToken);
+      server.middlewares.use('/__upload-image', handleUploadImage);
 
       // Resolve a relative file path to its absolute path on disk
       server.middlewares.use('/__resolve-file-path', (req, res) => {

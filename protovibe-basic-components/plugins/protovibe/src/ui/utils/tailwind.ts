@@ -7,7 +7,25 @@ export interface ClassInfo {
 }
 
 export function parseModifiers(cls: string): ClassInfo {
-  const parts = cls.split(':');
+  // Split on ':' only when NOT inside square brackets (arbitrary values like
+  // bg-[length:100px_100px] or bg-[url('...')] contain colons that must be preserved).
+  const parts: string[] = [];
+  let current = '';
+  let depth = 0;
+  for (let i = 0; i < cls.length; i++) {
+    const ch = cls[i];
+    if (ch === '[') depth++;
+    else if (ch === ']') depth--;
+
+    if (ch === ':' && depth === 0) {
+      parts.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  parts.push(current);
+
   const base = parts.pop() || '';
   return { modifiers: parts, base, original: cls };
 }
@@ -89,10 +107,10 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     mt: '-', mr: '-', mb: '-', ml: '-', pt: '-', pr: '-', pb: '-', pl: '-',
     display: '', direction: '', justify: '', align: '', wrap: '', gap: '', spaceX: '', spaceY: '',
     gridCols: '', gridRows: '', gridFlow: '', justifyItems: '', alignContent: '',
-    w: '', h: '', minW: '', minH: '', maxW: '', maxH: '',
+    w: '', h: '', minW: '', minH: '', maxW: '', maxH: '', aspectRatio: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '', leading: '', tracking: '',
-    bg: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
+    bg: '', bgImage: '', bgSize: '', bgPosition: '', bgRepeat: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -146,6 +164,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     else if (cls.startsWith('min-h-')) { v.minH = cls.replace('min-h-', ''); orig.minH_original = originalClass; }
     else if (cls.startsWith('max-w-')) { v.maxW = cls.replace('max-w-', ''); orig.maxW_original = originalClass; }
     else if (cls.startsWith('max-h-')) { v.maxH = cls.replace('max-h-', ''); orig.maxH_original = originalClass; }
+    else if (cls.startsWith('aspect-')) { v.aspectRatio = cls; orig.aspectRatio_original = originalClass; }
     else if (positions.includes(cls)) { v.position = cls; orig.position_original = originalClass; }
     else if (cls.startsWith('top-')) { v.top = cls.replace('top-', ''); orig.top_original = originalClass; }
     else if (cls.startsWith('right-')) { v.right = cls.replace('right-', ''); orig.right_original = originalClass; }
@@ -183,6 +202,10 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
       else if (sizes.includes(val) || /^\[[0-9.]+(px|rem|em|%)\]$/.test(val)) { v.textSize = val; orig.textSize_original = originalClass; }
       else { v.textColor = val; orig.textColor_original = originalClass; }
     }
+    else if (['bg-auto', 'bg-cover', 'bg-contain'].includes(cls) || cls.startsWith('bg-[length:')) { v.bgSize = cls; orig.bgSize_original = originalClass; }
+    else if (['bg-bottom', 'bg-center', 'bg-left', 'bg-left-bottom', 'bg-left-top', 'bg-right', 'bg-right-bottom', 'bg-right-top', 'bg-top'].includes(cls)) { v.bgPosition = cls; orig.bgPosition_original = originalClass; }
+    else if (['bg-repeat', 'bg-no-repeat', 'bg-repeat-x', 'bg-repeat-y', 'bg-repeat-round', 'bg-repeat-space'].includes(cls)) { v.bgRepeat = cls; orig.bgRepeat_original = originalClass; }
+    else if (cls.startsWith('bg-[url(')) { const match = cls.match(/^bg-\[url\(['"]?(.*?)['"]?\)\]$/); if (match) { v.bgImage = match[1]; orig.bgImage_original = originalClass; } }
     else if (cls.startsWith('bg-')) { v.bg = cls.replace('bg-', ''); orig.bg_original = originalClass; }
     else if (cls.startsWith('fill-')) { v.fill = cls.replace('fill-', ''); orig.fill_original = originalClass; }
     else if (cls.startsWith('rounded-tl-')) { v.radiusTL = cls.replace('rounded-tl-', ''); orig.radiusTL_original = originalClass; }

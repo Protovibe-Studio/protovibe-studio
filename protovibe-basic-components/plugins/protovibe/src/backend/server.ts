@@ -1629,6 +1629,57 @@ export const handleGetThemeTokens: Connect.NextHandleFunction = (req, res) => {
   }
 };
 
+export const handleUploadImage: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { filename, base64Data } = JSON.parse(body);
+      if (!filename || !base64Data) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: 'Missing filename or base64Data' }));
+      }
+
+      const imagesDir = path.resolve(process.cwd(), 'src/images/from-protovibe');
+      if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true });
+      }
+
+      // Sanitize filename: lowercase, kebab-case, remove invalid chars
+      const ext = path.extname(filename).toLowerCase();
+      const baseName = path.basename(filename, path.extname(filename));
+      const sanitized = baseName
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || 'image';
+
+      // Auto-rename if file exists
+      let finalName = `${sanitized}${ext}`;
+      let counter = 1;
+      while (fs.existsSync(path.join(imagesDir, finalName))) {
+        finalName = `${sanitized}-${counter}${ext}`;
+        counter++;
+      }
+
+      // Strip base64 header (supports SVG and all image types)
+      const raw = base64Data.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
+      const buffer = Buffer.from(raw, 'base64');
+      fs.writeFileSync(path.join(imagesDir, finalName), buffer);
+
+      // Always use forward slashes in the URL
+      const url = `/src/images/from-protovibe/${finalName}`;
+
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, url }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
 export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });

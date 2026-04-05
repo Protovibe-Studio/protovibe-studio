@@ -9,6 +9,7 @@ import { Typography } from './visual/Typography';
 import { SizePosition } from './visual/SizePosition';
 import { Position } from './visual/Position';
 import { Effects } from './visual/Effects';
+import { BackgroundImage } from './visual/BackgroundImage';
 
 export const VisualEditor: React.FC = () => {
   const { activeData, activeModifiers, currentBaseTarget } = useProtovibe();
@@ -39,6 +40,7 @@ export const VisualEditor: React.FC = () => {
       <Spacing v={v} domV={domV} />
       <Typography v={v} domV={domV} />
       <SizePosition v={v} domV={domV} />
+      <BackgroundImage v={v} domV={domV} />
       <Position v={v} domV={domV} />
       <Effects v={v} domV={domV} />
     </div>
