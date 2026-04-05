@@ -1,6 +1,8 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, ArrowRight, RotateCw, ExternalLink } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowLeft, ArrowRight, RotateCw, ExternalLink, X, Undo2, MoreHorizontal } from 'lucide-react';
+import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { Sidebar } from './components/Sidebar';
@@ -10,6 +12,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProtovibe } from './context/ProtovibeContext';
 import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
+import { restartServer, undo } from './api/client';
 
 export const ProtovibeApp: React.FC = () => {
   const [activeIframeTab, setActiveIframeTab] = useState<IframeTab>('app');
@@ -21,16 +24,42 @@ export const ProtovibeApp: React.FC = () => {
     } catch {}
     return 'light';
   });
+  const [showErrorBanner, setShowErrorBanner] = useState(false);
 
   const updateIframeTheme = useCallback((t: 'light' | 'dark') => {
     setIframeTheme(t);
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
-  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize } = useProtovibe();
+  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize, runLockedMutation } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  const { style: moreMenuStyle } = useFloatingDropdownPosition({
+    isOpen: moreMenuOpen,
+    anchorRef: moreButtonRef,
+    dropdownRef: moreMenuRef,
+    preferredPlacement: 'top',
+    offset: 6,
+  });
+
+  // Close the "More" menu when clicking outside
+  useEffect(() => {
+    if (!moreMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        moreButtonRef.current?.contains(e.target as Node) ||
+        moreMenuRef.current?.contains(e.target as Node)
+      ) return;
+      setMoreMenuOpen(false);
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [moreMenuOpen]);
 
   // Inspector bridge targets all iframes — identifies source via e.source
   useIframeBridge(appIframeRef, sketchpadIframeRef, componentsIframeRef);
@@ -66,6 +95,16 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-open-component-preview', handler);
   }, [handleIframeTabChange]);
 
+  // Listen for Vite error overlay detection from iframe bridge
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_VITE_ERROR') setShowErrorBanner(true);
+      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') setShowErrorBanner(false);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
     ref.current?.contentWindow?.postMessage(
@@ -88,6 +127,23 @@ export const ProtovibeApp: React.FC = () => {
       } catch {}
     }
   }, [iframeTheme, inspectorOpen, setHtmlFontSize]);
+
+  // Undo the last operation with mutation locking
+  const handleUndo = useCallback(async () => {
+    await runLockedMutation(async () => {
+      await undo();
+    });
+  }, [runLockedMutation]);
+
+  // Restart the development server when the banner's restart button is clicked
+  const handleRestart = async () => {
+    try {
+      await restartServer();
+      setShowErrorBanner(false);
+    } catch (e) {
+      console.error('Restart failed', e);
+    }
+  };
 
   // Track app iframe URL changes (client-side navigation via postMessage)
   useEffect(() => {
@@ -130,6 +186,39 @@ export const ProtovibeApp: React.FC = () => {
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => toggleInspector()}
       />
+      {showErrorBanner && (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '16px 20px', background: theme.destructive_low,
+          borderBottom: `1px solid ${theme.destructive_default}`,
+          flexShrink: 0, zIndex: 50, gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
+            <span style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>⚠️</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ color: theme.destructive_default, fontSize: '15px', fontWeight: 600 }}>
+                The app crashed
+              </div>
+              <div style={{ color: theme.destructive_default, fontSize: '13px', fontWeight: 400, lineHeight: '1.4' }}>
+                Undo with Cmd+Z or restart the development. Ask your coding agent for help if the issue persists.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+            <button onClick={handleUndo} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Undo2 size={14} />
+              Undo
+            </button>
+            <button onClick={handleRestart} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <RotateCw size={14} />
+              Restart
+            </button>
+          </div>
+          <button onClick={() => setShowErrorBanner(false)} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ flex: 1, display: activeIframeTab === 'app' ? 'flex' : 'none', minHeight: 0, flexDirection: 'column' }}>
@@ -253,6 +342,7 @@ export const ProtovibeApp: React.FC = () => {
               borderTop: `1px solid ${theme.border_default}`,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'space-between',
               padding: '0 12px',
               gap: 8,
               flexShrink: 0,
@@ -290,7 +380,68 @@ export const ProtovibeApp: React.FC = () => {
                 </button>
               ))}
             </div>
+            <button
+              ref={moreButtonRef}
+              onClick={() => setMoreMenuOpen(v => !v)}
+              title="More actions"
+              style={{
+                width: 26,
+                height: 24,
+                border: 'none',
+                borderRadius: 4,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: moreMenuOpen ? theme.bg_tertiary : 'transparent',
+                color: moreMenuOpen ? theme.text_default : theme.text_tertiary,
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              <MoreHorizontal size={14} />
+            </button>
           </div>
+          {moreMenuOpen && createPortal(
+            <div
+              ref={moreMenuRef}
+              style={{
+                ...moreMenuStyle,
+                background: theme.bg_secondary,
+                border: `1px solid ${theme.border_default}`,
+                borderRadius: 6,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                padding: '4px 0',
+                zIndex: 9999,
+                minWidth: 180,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setMoreMenuOpen(false);
+                  handleRestart();
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: theme.text_default,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_tertiary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <RotateCw size={13} />
+                Restart dev server
+              </button>
+            </div>,
+            document.body,
+          )}
         </div>
 
         {activeSidebarTab === 'design' && (

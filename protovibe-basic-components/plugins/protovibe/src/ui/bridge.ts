@@ -359,6 +359,29 @@ function init() {
   document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('message', handleParentMessage);
+
+  // Check initial state in case the error is already there
+  if (document.querySelector('vite-error-overlay')) {
+    window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
+  }
+
+  // Observe DOM for added/removed error overlays
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeName && (node as HTMLElement).nodeName.toLowerCase() === 'vite-error-overlay') {
+          window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
+        }
+      }
+      for (const node of mutation.removedNodes) {
+        if (node.nodeName && (node as HTMLElement).nodeName.toLowerCase() === 'vite-error-overlay') {
+          window.parent.postMessage({ type: 'PV_VITE_ERROR_CLEARED' }, '*');
+        }
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, { childList: true, subtree: true });
 }
 
 if (document.readyState === 'loading') {

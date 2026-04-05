@@ -126,6 +126,16 @@ export function protovibeSourcePlugin(): Plugin {
 
       // Sketchpad endpoints
       registerSketchpadMiddleware(server);
+
+      // Manual server restart endpoint (triggered by error banner in UI)
+      server.middlewares.use('/__restart-server', async (req, res) => {
+        if (req.method === 'POST') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ success: true }));
+          console.log('[protovibe] Manual server restart triggered from UI...');
+          await server.restart();
+        }
+      });
     },
 
     transformIndexHtml: {

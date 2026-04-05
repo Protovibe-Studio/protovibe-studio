@@ -202,3 +202,9 @@ export async function fetchThemeColors(): Promise<ThemeColor[]> {
   const data = await res.json();
   return data.colors || [];
 }
+
+export async function restartServer() {
+  const res = await fetch('/__restart-server', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to restart server');
+  return await res.json();
+}
