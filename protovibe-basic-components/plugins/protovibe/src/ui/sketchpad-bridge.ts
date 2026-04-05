@@ -45,11 +45,18 @@ let dragState: {
   origTransform: string;
 } | null = null;
 
+type ResizeEdge = 'e' | 'w' | 'n' | 's' | 'ne' | 'nw' | 'se' | 'sw';
+
 let resizeState: {
   target: HTMLElement;
   pointerId: number;
   startX: number;
+  startY: number;
   origWidth: number;
+  origHeight: number;
+  origLeft: number;
+  origTop: number;
+  edge: ResizeEdge;
 } | null = null;
 
 let currentDropTarget: HTMLElement | null = null;
@@ -235,16 +242,42 @@ function collectPvLocs(el: HTMLElement): { name: string; value: string }[] {
   return locs;
 }
 
-/** Check if pointer is near the right edge of an element (8px on either side). */
-function isNearRightEdge(el: HTMLElement, clientX: number, clientY: number): boolean {
+/** Check if pointer is near any resizable edge/corner and return which one. */
+function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): ResizeEdge | null {
   const rect = el.getBoundingClientRect();
-  return (
-    clientX >= rect.right - RESIZE_EDGE_PX &&
-    clientX <= rect.right + RESIZE_EDGE_PX &&
-    clientY >= rect.top &&
-    clientY <= rect.bottom
-  );
+  const resizeBoth = el.getAttribute('data-pv-resizable') === 'both';
+
+  const nearRight = clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
+  const nearLeft = resizeBoth && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
+  const nearTop = resizeBoth && clientY >= rect.top - RESIZE_EDGE_PX && clientY <= rect.top + RESIZE_EDGE_PX;
+  const nearBottom = resizeBoth && clientY >= rect.bottom - RESIZE_EDGE_PX && clientY <= rect.bottom + RESIZE_EDGE_PX;
+
+  const withinX = clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
+  const withinY = clientY >= rect.top - RESIZE_EDGE_PX && clientY <= rect.bottom + RESIZE_EDGE_PX;
+
+  if (!withinX || !withinY) return null;
+
+  // Corners (check first — they overlap edges)
+  if (nearTop && nearLeft) return 'nw';
+  if (nearTop && nearRight) return 'ne';
+  if (nearBottom && nearLeft) return 'sw';
+  if (nearBottom && nearRight) return 'se';
+
+  // Edges
+  if (nearRight && clientY >= rect.top && clientY <= rect.bottom) return 'e';
+  if (nearLeft && clientY >= rect.top && clientY <= rect.bottom) return 'w';
+  if (nearTop && clientX >= rect.left && clientX <= rect.right) return 'n';
+  if (nearBottom && clientX >= rect.left && clientX <= rect.right) return 's';
+
+  return null;
 }
+
+const RESIZE_CURSOR_MAP: Record<ResizeEdge, string> = {
+  e: 'ew-resize', w: 'ew-resize',
+  n: 'ns-resize', s: 'ns-resize',
+  ne: 'nesw-resize', sw: 'nesw-resize',
+  nw: 'nwse-resize', se: 'nwse-resize',
+};
 
 // ─── Outline helpers ──────────────────────────────────────────────────────────
 
@@ -404,19 +437,26 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   if (!nextTarget) {
-    // If pointer is in the right-edge resize zone of the currently selected element
-    if (selectedEl && selectedEl.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
+    // If pointer is in a resize zone of the currently selected element
+    const selEdge = selectedEl?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(selectedEl!, e.clientX, e.clientY) : null;
+    if (selectedEl && selEdge) {
       e.preventDefault();
       e.stopPropagation();
       const rect = selectedEl.getBoundingClientRect();
       const zoom = getCanvasZoom();
+      const pos = getComputedPos(selectedEl);
       resizeState = {
         target: selectedEl,
         pointerId: e.pointerId,
         startX: e.clientX,
+        startY: e.clientY,
         origWidth: rect.width / zoom,
+        origHeight: rect.height / zoom,
+        origLeft: pos.left,
+        origTop: pos.top,
+        edge: selEdge,
       };
-      setForcedCursor('ew-resize');
+      setForcedCursor(RESIZE_CURSOR_MAP[selEdge]);
       selectedEl.style.transition = 'none';
       return;
     }
@@ -442,16 +482,23 @@ function handlePointerDown(e: PointerEvent) {
   setSelection(nextTarget);
   notifyInspector(nextTarget);
 
-  if (nextTarget.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(nextTarget, e.clientX, e.clientY)) {
+  const targetEdge = nextTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(nextTarget, e.clientX, e.clientY) : null;
+  if (targetEdge) {
     const rect = nextTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
+    const pos = getComputedPos(nextTarget);
     resizeState = {
       target: nextTarget,
       pointerId: e.pointerId,
       startX: e.clientX,
+      startY: e.clientY,
       origWidth: rect.width / zoom,
+      origHeight: rect.height / zoom,
+      origLeft: pos.left,
+      origTop: pos.top,
+      edge: targetEdge,
     };
-    setForcedCursor('ew-resize');
+    setForcedCursor(RESIZE_CURSOR_MAP[targetEdge]);
     nextTarget.style.transition = 'none';
     return;
   }
@@ -478,8 +525,26 @@ function handlePointerMove(e: PointerEvent) {
     e.stopPropagation();
     const zoom = getCanvasZoom();
     const dx = (e.clientX - resizeState.startX) / zoom;
-    const newWidth = Math.max(20, Math.round(resizeState.origWidth + dx));
-    resizeState.target.style.width = `${newWidth}px`;
+    const dy = (e.clientY - resizeState.startY) / zoom;
+    const edge = resizeState.edge;
+
+    // Width changes
+    if (edge.includes('e')) {
+      resizeState.target.style.width = `${Math.max(20, Math.round(resizeState.origWidth + dx))}px`;
+    } else if (edge.includes('w')) {
+      const delta = Math.min(dx, resizeState.origWidth - 20);
+      resizeState.target.style.width = `${Math.round(resizeState.origWidth - delta)}px`;
+      resizeState.target.style.left = `${Math.round(resizeState.origLeft + delta)}px`;
+    }
+
+    // Height changes
+    if (edge.includes('s')) {
+      resizeState.target.style.height = `${Math.max(20, Math.round(resizeState.origHeight + dy))}px`;
+    } else if (edge.includes('n')) {
+      const delta = Math.min(dy, resizeState.origHeight - 20);
+      resizeState.target.style.height = `${Math.round(resizeState.origHeight - delta)}px`;
+      resizeState.target.style.top = `${Math.round(resizeState.origTop + delta)}px`;
+    }
     return;
   }
 
@@ -534,8 +599,9 @@ function handlePointerMove(e: PointerEvent) {
   }
 
   if (!hoverTarget || hoverTarget === selectedEl || hoverTarget === selectedParentEl) {
-    if (selectedEl && selectedEl.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(selectedEl, e.clientX, e.clientY)) {
-      setForcedCursor('ew-resize');
+    const selHoverEdge = selectedEl?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(selectedEl!, e.clientX, e.clientY) : null;
+    if (selHoverEdge) {
+      setForcedCursor(RESIZE_CURSOR_MAP[selHoverEdge]);
     } else {
       clearForcedCursor();
     }
@@ -543,8 +609,9 @@ function handlePointerMove(e: PointerEvent) {
     return;
   }
 
-  if (hoverTarget.hasAttribute('data-pv-sketchpad-el') && isNearRightEdge(hoverTarget, e.clientX, e.clientY)) {
-    setForcedCursor('ew-resize');
+  const hoverEdge = hoverTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(hoverTarget, e.clientX, e.clientY) : null;
+  if (hoverEdge) {
+    setForcedCursor(RESIZE_CURSOR_MAP[hoverEdge]);
   } else {
     clearForcedCursor();
   }
@@ -560,15 +627,32 @@ function handlePointerUp(e: PointerEvent) {
     clearForcedCursor();
     resizeState.target.style.transition = '';
 
-    const newWidth = parseFloat(resizeState.target.style.width) || 0;
-    if (newWidth > 0) {
-      const frame = findFrameContainer(resizeState.target);
-      const frameId = frame?.getAttribute('data-sketchpad-frame');
-      const blockId = resizeState.target.getAttribute('data-pv-sketchpad-el');
-      const sketchpadId = getSketchpadId();
-      if (sketchpadId && frameId && blockId) {
+    const frame = findFrameContainer(resizeState.target);
+    const frameId = frame?.getAttribute('data-sketchpad-frame');
+    const blockId = resizeState.target.getAttribute('data-pv-sketchpad-el');
+    const sketchpadId = getSketchpadId();
+
+    if (sketchpadId && frameId && blockId) {
+      const newWidth = parseFloat(resizeState.target.style.width) || undefined;
+      const newHeight = parseFloat(resizeState.target.style.height) || undefined;
+      const newLeft = parseFloat(resizeState.target.style.left);
+      const newTop = parseFloat(resizeState.target.style.top);
+
+      // Persist position if it changed (top/left edge or corner resize)
+      const edge = resizeState.edge;
+      if (edge.includes('w') || edge.includes('n')) {
+        postApi('/__sketchpad-update-element-position', {
+          sketchpadId, frameId, blockId,
+          x: Math.round(newLeft), y: Math.round(newTop),
+        });
+      }
+
+      // Persist size
+      if (newWidth || newHeight) {
         postApi('/__sketchpad-update-element-size', {
-          sketchpadId, frameId, blockId, width: Math.round(newWidth),
+          sketchpadId, frameId, blockId,
+          width: newWidth ? Math.round(newWidth) : undefined,
+          height: newHeight ? Math.round(newHeight) : undefined,
         });
       }
     }

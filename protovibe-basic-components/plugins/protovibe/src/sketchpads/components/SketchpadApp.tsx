@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import type { Sketchpad, SketchpadFrame, CanvasTransform, ComponentEntry } from '../types';
 import { InfiniteCanvas } from './InfiniteCanvas';
 import { FrameContainer } from './FrameContainer';
@@ -94,6 +95,9 @@ export function SketchpadApp() {
 
   const [components, setComponents] = useState<ComponentEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const mutationLockRef = useRef(false);
@@ -243,6 +247,7 @@ export function SketchpadApp() {
     await handleCreateFrame(canvasX, canvasY);
   }, [activeSketchpadId, transform, containerRef, handleCreateFrame]);
 
+
   const handleDeleteFrame = useCallback(
     async (frameId: string) => {
       if (!activeSketchpadId) return;
@@ -374,6 +379,27 @@ export function SketchpadApp() {
     },
     [selectedFrameId, activeSketchpadId, runLockedMutation],
   );
+
+  const handleAddRectangleCentered = useCallback(async () => {
+    if (!activeSketchpadId) return;
+    const rectComp = components.find((c) => c.name === 'Rectangle');
+    if (!rectComp) return;
+
+    const targetFrame = selectedFrameId;
+    if (!targetFrame) {
+      // Create a frame first, then add the rectangle into it
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewCx = rect.width / 2;
+      const viewCy = rect.height / 2;
+      const canvasX = (viewCx - transform.panX) / transform.zoom - 400;
+      const canvasY = (viewCy - transform.panY) / transform.zoom - 300;
+      await handleCreateFrame(canvasX, canvasY);
+      return;
+    }
+
+    await handleAddComponent(rectComp, targetFrame, 50, 50);
+  }, [activeSketchpadId, components, selectedFrameId, containerRef, transform, handleCreateFrame, handleAddComponent]);
 
   // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
   const reloadRegistry = useCallback(async () => {
@@ -622,12 +648,62 @@ export function SketchpadApp() {
           onClick={() => setShowSketchpadPanel((p) => !p)}
         />
         <ToolbarButton
+          ref={addButtonRef}
           label="+"
-          title="Add Frame"
-          isActive={false}
-          onClick={handleAddFrameCentered}
+          title="Add"
+          isActive={showAddMenu}
+          onClick={() => setShowAddMenu((p) => !p)}
         />
       </div>
+
+      {/* Add menu dropdown */}
+      {showAddMenu && createPortal(
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+            onClick={() => setShowAddMenu(false)}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: (addButtonRef.current?.getBoundingClientRect().bottom ?? 48) + 4,
+              left: addButtonRef.current?.getBoundingClientRect().left ?? 54,
+              zIndex: 200,
+              background: 'rgba(42,42,62,0.95)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8,
+              padding: '4px 0',
+              minWidth: 160,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: 12,
+            }}
+          >
+            {[
+              { label: 'New frame', action: handleAddFrameCentered },
+              { label: 'New rectangle', action: handleAddRectangleCentered },
+            ].map((item) => (
+              <div
+                key={item.label}
+                onClick={() => {
+                  setShowAddMenu(false);
+                  item.action();
+                }}
+                style={{
+                  padding: '7px 12px',
+                  cursor: 'pointer',
+                  color: '#ddd',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </>,
+        document.body,
+      )}
 
       {/* Zoom indicator */}
       <div
@@ -711,19 +787,13 @@ export function SketchpadApp() {
 
 // ─── Toolbar button ────────────────────────────────────────────────────────
 
-function ToolbarButton({
-  label,
-  title,
-  isActive,
-  onClick,
-}: {
-  label: string;
-  title: string;
-  isActive: boolean;
-  onClick: () => void;
-}) {
+const ToolbarButton = React.forwardRef<
+  HTMLButtonElement,
+  { label: string; title: string; isActive: boolean; onClick: () => void }
+>(function ToolbarButton({ label, title, isActive, onClick }, ref) {
   return (
     <button
+      ref={ref}
       onClick={onClick}
       title={title}
       style={{
@@ -747,4 +817,4 @@ function ToolbarButton({
       {label}
     </button>
   );
-}
+});

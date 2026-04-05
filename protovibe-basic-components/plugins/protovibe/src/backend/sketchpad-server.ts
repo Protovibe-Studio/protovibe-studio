@@ -564,9 +564,9 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
 
 export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, width } = await parseBody(req);
-    if (!sketchpadId || !frameId || !blockId || width === undefined)
-      return sendError(res, 'sketchpadId, frameId, blockId, and width required');
+    const { sketchpadId, frameId, blockId, width, height } = await parseBody(req);
+    if (!sketchpadId || !frameId || !blockId || (width === undefined && height === undefined))
+      return sendError(res, 'sketchpadId, frameId, blockId, and width or height required');
 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
@@ -574,22 +574,25 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     snapshotFiles(path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
-    // Check if the element already has a width in its style
-    const widthExistsRe = new RegExp(
-      `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)width:\\s*\\d+(?:\\.\\d+)?`,
-    );
-    if (widthExistsRe.test(content)) {
-      // Update existing width
-      content = content.replace(widthExistsRe, `$1width: ${Math.round(width)}`);
-    } else {
-      // Insert width after position: 'absolute' in the style object
-      const insertRe = new RegExp(
-        `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?position:\\s*'absolute')`,
+    // Helper to update or insert a dimension in the style object
+    const updateDimension = (dim: 'width' | 'height', value: number) => {
+      const existsRe = new RegExp(
+        `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)${dim}:\\s*\\d+(?:\\.\\d+)?`,
       );
-      if (insertRe.test(content)) {
-        content = content.replace(insertRe, `$1, width: ${Math.round(width)}`);
+      if (existsRe.test(content)) {
+        content = content.replace(existsRe, `$1${dim}: ${Math.round(value)}`);
+      } else {
+        const insertRe = new RegExp(
+          `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?position:\\s*'absolute')`,
+        );
+        if (insertRe.test(content)) {
+          content = content.replace(insertRe, `$1, ${dim}: ${Math.round(value)}`);
+        }
       }
-    }
+    };
+
+    if (width !== undefined) updateDimension('width', width);
+    if (height !== undefined) updateDimension('height', height);
 
     fs.writeFileSync(filePath, content, 'utf-8');
     sendJson(res, { success: true });
