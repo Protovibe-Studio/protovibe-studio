@@ -492,3 +492,19 @@ Never add custom Tailwind classes for text styling. Instead, use the `TextBlock`
   ```tsx
   <TextBlock typography="all-caps">Section Title</TextBlock>
   ```
+
+### Rule: Use Tailwind Background Images Instead of `<img>` Tags
+
+When adding static images (PNG, JPG, SVG) as visual elements in application pages, use a `<div>` with Tailwind's `bg-[url(...)]` arbitrary value instead of an `<img>` tag. This allows the visual builder's Background Image inspector to manage the image — including replacing, repositioning, and removing it — without manual code edits. Images uploaded through Protovibe are stored in `src/images/from-protovibe/`.
+
+* **❌ BAD: Using an `<img>` tag for a decorative/layout image**
+
+  ```tsx
+  <img src="/src/images/from-protovibe/hero-bg.svg" width="400" height="300" alt="" />
+  ```
+
+* **✅ GOOD: Tailwind background image on a container `<div>`**
+
+  ```tsx
+  <div className="bg-[url('/src/images/from-protovibe/hero-bg.svg')] bg-contain bg-center bg-no-repeat aspect-[4/3]" />
+  ```
