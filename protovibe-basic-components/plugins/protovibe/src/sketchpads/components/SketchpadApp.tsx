@@ -375,13 +375,11 @@ export function SketchpadApp() {
     [selectedFrameId, activeSketchpadId, runLockedMutation],
   );
 
-  // Reload registry and affected frame modules after undo/redo
-  const reloadAfterUndoRedo = useCallback(async () => {
+  // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
+  const reloadRegistry = useCallback(async () => {
     const reg = await api.fetchRegistry();
     setSketchpads(reg.sketchpads);
-    const sp = reg.sketchpads.find((s) => s.id === activeSketchpadId);
-    if (sp) await loadAllFrameModules(activeSketchpadId, sp.frames);
-  }, [activeSketchpadId, loadAllFrameModules]);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -390,6 +388,12 @@ export function SketchpadApp() {
       if (e.key === '0' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setTransform(INITIAL_TRANSFORM);
+        return;
+      }
+
+      // Undo / Redo — re-read registry after the file reverts on disk
+      if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
+        setTimeout(reloadRegistry, 200);
         return;
       }
 
@@ -403,7 +407,7 @@ export function SketchpadApp() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [reloadAfterUndoRedo, selectedFrameId, handleDeleteFrame]);
+  }, [reloadRegistry, selectedFrameId, handleDeleteFrame]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
