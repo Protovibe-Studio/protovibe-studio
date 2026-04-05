@@ -366,7 +366,7 @@ function DepartmentsPage() {
               <div data-pv-block="q5r6s7" className="flex items-center gap-4">
                 {/* pv-editable-zone-start:r3s4t5 */}
                   {/* pv-block-start:u6v7w8 */}
-                  <Avatar data-pv-block="u6v7w8" icon="Building2" size="lg" bgColor="info" />
+                  <Avatar data-pv-block="u6v7w8" icon="Building2" size="md" bgColor="info" />
                   {/* pv-block-end:u6v7w8 */}
                   {/* pv-block-start:x9y1z2 */}
                   <div data-pv-block="x9y1z2">
