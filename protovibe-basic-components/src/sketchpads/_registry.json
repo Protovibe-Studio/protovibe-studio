@@ -6,14 +6,6 @@
       "createdAt": "2026-04-01T09:25:24.831Z",
       "frames": [
         {
-          "id": "frame-frame-2",
-          "name": "Frame 2",
-          "width": 800,
-          "height": 600,
-          "canvasX": 737,
-          "canvasY": -285
-        },
-        {
           "id": "frame-frame-2-2",
           "name": "Frame 2",
           "width": 831,
@@ -28,6 +20,14 @@
           "height": 600,
           "canvasX": -180,
           "canvasY": 493
+        },
+        {
+          "id": "frame-frame-3-2",
+          "name": "Frame 3",
+          "width": 800,
+          "height": 600,
+          "canvasX": 806,
+          "canvasY": -246
         }
       ]
     },

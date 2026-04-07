@@ -117,12 +117,14 @@ export const FloatingToolbar: React.FC = () => {
   const handleWrapBlocks = async () => {
     if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
 
+    const targetLayoutMode = currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+
     const res = await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
       const response = await fetch('/__wrap-blocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: activeData.file, blockIds: uniqueSelectedBlockIds }),
+        body: JSON.stringify({ file: activeData.file, blockIds: uniqueSelectedBlockIds, targetLayoutMode }),
       });
       if (!response.ok) throw new Error('Failed to wrap blocks');
       return await response.json();

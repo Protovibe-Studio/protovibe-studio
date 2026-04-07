@@ -29,7 +29,7 @@ const RESIZE_EDGE_PX = 8;
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let hoveredEl: HTMLElement | null = null;
-let selectedEl: HTMLElement | null = null;
+let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
 
 let dragState: {
@@ -283,11 +283,11 @@ const RESIZE_CURSOR_MAP: Record<ResizeEdge, string> = {
 
 function updateOutlines(
   oldHover: HTMLElement | null,
-  oldSelection: HTMLElement | null,
+  oldSelections: HTMLElement[],
   oldParent: HTMLElement | null,
 ) {
   const elementsToUpdate = new Set(
-    [oldHover, oldSelection, oldParent, hoveredEl, selectedEl, selectedParentEl].filter(
+    [oldHover, oldParent, hoveredEl, selectedParentEl, ...oldSelections, ...selectedEls].filter(
       (el): el is HTMLElement => el !== null
     )
   );
@@ -303,7 +303,7 @@ function updateOutlines(
       el.style.outlineOffset = elAny._pvOrigOffset;
     }
 
-    if (el === selectedEl) {
+    if (selectedEls.includes(el)) {
       el.style.outline = SELECTION_OUTLINE;
       el.style.outlineOffset = SELECTION_OFFSET;
     } else if (el === selectedParentEl) {
@@ -323,39 +323,48 @@ function setHover(el: HTMLElement) {
   if (hoveredEl === el) return;
   const oldHover = hoveredEl;
   hoveredEl = el;
-  updateOutlines(oldHover, selectedEl, selectedParentEl);
+  updateOutlines(oldHover, selectedEls, selectedParentEl);
 }
 
 function clearHover() {
   if (!hoveredEl) return;
   const oldHover = hoveredEl;
   hoveredEl = null;
-  updateOutlines(oldHover, selectedEl, selectedParentEl);
+  updateOutlines(oldHover, selectedEls, selectedParentEl);
 }
 
 function setSelectedParent(el: HTMLElement | null) {
   if (selectedParentEl === el) return;
   const oldParent = selectedParentEl;
   selectedParentEl = el;
-  updateOutlines(hoveredEl, selectedEl, oldParent);
+  updateOutlines(hoveredEl, selectedEls, oldParent);
 }
 
-function setSelection(el: HTMLElement) {
-  if (selectedEl === el) return;
-  const oldSelection = selectedEl;
+function setSelection(el: HTMLElement, isMulti = false) {
+  const oldSelections = [...selectedEls];
   const oldParent = selectedParentEl;
-  selectedEl = el;
-  selectedParentEl = findInspectableParent(el);
-  updateOutlines(hoveredEl, oldSelection, oldParent);
+
+  if (isMulti) {
+    if (selectedEls.includes(el)) {
+      selectedEls = selectedEls.filter(e => e !== el);
+    } else {
+      selectedEls.push(el);
+    }
+  } else {
+    selectedEls = [el];
+  }
+
+  selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+  updateOutlines(hoveredEl, oldSelections, oldParent);
 }
 
 function clearSelection() {
-  if (!selectedEl) return;
-  const oldSelection = selectedEl;
+  if (selectedEls.length === 0) return;
+  const oldSelections = [...selectedEls];
   const oldParent = selectedParentEl;
-  selectedEl = null;
+  selectedEls = [];
   selectedParentEl = null;
-  updateOutlines(hoveredEl, oldSelection, oldParent);
+  updateOutlines(hoveredEl, oldSelections, oldParent);
 }
 
 // ─── Cursor override ──────────────────────────────────────────────────────────
@@ -397,15 +406,21 @@ function postApi(url: string, body: Record<string, unknown>) {
 
 // ─── Inspector communication ──────────────────────────────────────────────────
 
-function notifyInspector(el: HTMLElement) {
-  const runtimeId = 'pv-' + Math.random().toString(36).substring(2);
-  el.setAttribute('data-pv-runtime-id', runtimeId);
+function notifyInspector(primaryTarget: HTMLElement) {
+  const runtimeIds = selectedEls.map(el => {
+    let rId = el.getAttribute('data-pv-runtime-id');
+    if (!rId) {
+      rId = 'pv-' + Math.random().toString(36).substring(2);
+      el.setAttribute('data-pv-runtime-id', rId);
+    }
+    return rId;
+  });
 
-  const pvLocs = collectPvLocs(el);
-  const componentId = el.getAttribute('data-pv-component-id') ?? null;
+  const pvLocs = collectPvLocs(primaryTarget);
+  const componentId = primaryTarget.getAttribute('data-pv-component-id') ?? null;
 
   window.parent.postMessage(
-    { type: 'PV_ELEMENT_CLICK', pvLocs, componentId, runtimeId },
+    { type: 'PV_ELEMENT_CLICK', pvLocs, componentId, runtimeIds },
     '*',
   );
 }
@@ -419,15 +434,17 @@ function handlePointerDown(e: PointerEvent) {
 
   const path = getInspectablePath(e.target);
 
+  const isMulti = e.shiftKey;
+
   // Determine click target based on hierarchy & modifiers
   let nextTarget: HTMLElement | null = null;
   if (path.length > 0) {
     if (e.metaKey || e.ctrlKey) {
       // Cmd/Ctrl + Click -> Direct deep selection
       nextTarget = path[path.length - 1];
-    } else if (selectedEl && path.includes(selectedEl)) {
-      // Clicked inside current selection -> keep selection (double click handles drill-down)
-      nextTarget = selectedEl; 
+    } else if (selectedEls.length === 1 && path.includes(selectedEls[0]) && !isMulti) {
+      // Clicked inside current single selection -> keep selection (double click handles drill-down)
+      nextTarget = selectedEls[0];
     } else if (selectedParentEl && path.includes(selectedParentEl)) {
       // Clicked inside a sibling -> select at the sibling's depth level
       const parentIdx = path.indexOf(selectedParentEl);
@@ -439,16 +456,17 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   if (!nextTarget) {
-    // If pointer is in a resize zone of the currently selected element
-    const selEdge = selectedEl?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(selectedEl!, e.clientX, e.clientY) : null;
-    if (selectedEl && selEdge) {
+    // If pointer is in a resize zone of the currently selected element (only if single selection)
+    const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
+    const selEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
+    if (primarySel && selEdge && !isMulti) {
       e.preventDefault();
       e.stopPropagation();
-      const rect = selectedEl.getBoundingClientRect();
+      const rect = primarySel.getBoundingClientRect();
       const zoom = getCanvasZoom();
-      const pos = getComputedPos(selectedEl);
+      const pos = getComputedPos(primarySel);
       resizeState = {
-        target: selectedEl,
+        target: primarySel,
         pointerId: e.pointerId,
         startX: e.clientX,
         startY: e.clientY,
@@ -459,7 +477,7 @@ function handlePointerDown(e: PointerEvent) {
         edge: selEdge,
       };
       setForcedCursor(RESIZE_CURSOR_MAP[selEdge]);
-      selectedEl.style.transition = 'none';
+      primarySel.style.transition = 'none';
       return;
     }
 
@@ -469,7 +487,7 @@ function handlePointerDown(e: PointerEvent) {
     // Fall back to frame root selection
     const frameRoot = findFrameRoot(e.target as HTMLElement);
     if (frameRoot) {
-      setSelection(frameRoot);
+      setSelection(frameRoot, false);
       notifyInspector(frameRoot);
     } else {
       window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
@@ -481,10 +499,10 @@ function handlePointerDown(e: PointerEvent) {
   e.stopPropagation();
 
   clearHover();
-  setSelection(nextTarget);
+  setSelection(nextTarget, isMulti);
   notifyInspector(nextTarget);
 
-  const targetEdge = nextTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(nextTarget, e.clientX, e.clientY) : null;
+  const targetEdge = !isMulti && nextTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(nextTarget, e.clientX, e.clientY) : null;
   if (targetEdge) {
     const rect = nextTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
@@ -587,9 +605,9 @@ function handlePointerMove(e: PointerEvent) {
   if (path.length > 0) {
     if (e.metaKey || e.ctrlKey) {
       hoverTarget = path[path.length - 1];
-    } else if (selectedEl && path.includes(selectedEl)) {
-      // Hovering inside current selection -> single click would just keep selection
-      hoverTarget = selectedEl;
+    } else if (selectedEls.length === 1 && path.includes(selectedEls[0])) {
+      // Hovering inside current single selection -> single click would just keep selection
+      hoverTarget = selectedEls[0];
     } else if (selectedParentEl && path.includes(selectedParentEl)) {
       // Hovering sibling
       const parentIdx = path.indexOf(selectedParentEl);
@@ -600,8 +618,9 @@ function handlePointerMove(e: PointerEvent) {
     }
   }
 
-  if (!hoverTarget || hoverTarget === selectedEl || hoverTarget === selectedParentEl) {
-    const selHoverEdge = selectedEl?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(selectedEl!, e.clientX, e.clientY) : null;
+  if (!hoverTarget || selectedEls.includes(hoverTarget) || hoverTarget === selectedParentEl) {
+    const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
+    const selHoverEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
     if (selHoverEdge) {
       setForcedCursor(RESIZE_CURSOR_MAP[selHoverEdge]);
     } else {
@@ -761,14 +780,14 @@ function handleDoubleClick(e: MouseEvent) {
   const path = getInspectablePath(e.target);
 
   // Drill-down into the next child on double click
-  if (selectedEl && path.includes(selectedEl)) {
-    const idx = path.indexOf(selectedEl);
+  if (selectedEls.length === 1 && path.includes(selectedEls[0])) {
+    const idx = path.indexOf(selectedEls[0]);
     if (idx >= 0 && idx < path.length - 1) {
       e.preventDefault();
       e.stopPropagation();
       const nextTarget = path[idx + 1];
       clearHover();
-      setSelection(nextTarget);
+      setSelection(nextTarget, false);
       notifyInspector(nextTarget);
     }
   }
@@ -780,7 +799,7 @@ function handleKeyDown(e: KeyboardEvent) {
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' ||
       active.tagName === 'SELECT' || active.isContentEditable)) return;
 
-  if (e.key === 'Escape' && selectedEl) {
+  if (e.key === 'Escape' && selectedEls.length > 0) {
     clearSelection();
     window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
     return;
@@ -797,15 +816,17 @@ function handleKeyDown(e: KeyboardEvent) {
     altKey: e.altKey,
   }, '*');
 
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEl) {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEls.length > 0) {
     e.preventDefault();
-    const frame = findFrameContainer(selectedEl);
-    const frameId = frame?.getAttribute('data-sketchpad-frame');
-    const blockId = selectedEl.getAttribute('data-pv-sketchpad-el');
-    const sketchpadId = getSketchpadId();
-    if (sketchpadId && frameId && blockId) {
-      postApi('/__sketchpad-delete-element', { sketchpadId, frameId, blockId });
-    }
+    selectedEls.forEach(el => {
+      const frame = findFrameContainer(el);
+      const frameId = frame?.getAttribute('data-sketchpad-frame');
+      const blockId = el.getAttribute('data-pv-sketchpad-el');
+      const sketchpadId = getSketchpadId();
+      if (sketchpadId && frameId && blockId) {
+        postApi('/__sketchpad-delete-element', { sketchpadId, frameId, blockId });
+      }
+    });
     clearSelection();
   }
 }
@@ -816,13 +837,20 @@ function handleParentMessage(e: MessageEvent) {
   if (!e.data || typeof e.data !== 'object') return;
   if (e.data.type === 'PV_CLEAR_SELECTION') clearSelection();
   if (e.data.type === 'PV_SET_SELECTION') {
-    const { runtimeId } = e.data;
-    if (!runtimeId) {
+    const { runtimeIds } = e.data;
+    if (!runtimeIds || !Array.isArray(runtimeIds) || runtimeIds.length === 0) {
       clearSelection();
       return;
     }
-    const el = document.querySelector(`[data-pv-runtime-id="${runtimeId}"]`) as HTMLElement | null;
-    if (el) setSelection(el);
+    const oldSelections = [...selectedEls];
+    const oldParent = selectedParentEl;
+    selectedEls = [];
+    runtimeIds.forEach((id: string) => {
+      const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
+      if (el) selectedEls.push(el);
+    });
+    selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+    updateOutlines(hoveredEl, oldSelections, oldParent);
   }
   if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
 }
@@ -843,7 +871,7 @@ function init() {
   // Allow SketchpadApp to programmatically select an element by blockId
   window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId: string }>) => {
     const el = document.querySelector(`[data-pv-sketchpad-el="${e.detail.blockId}"]`) as HTMLElement | null;
-    if (el) setSelection(el);
+    if (el) setSelection(el, false);
   }) as EventListener);
 }
 

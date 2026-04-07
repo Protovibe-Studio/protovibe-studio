@@ -671,7 +671,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockIds } = JSON.parse(body || '{}');
+      const { file, blockIds, targetLayoutMode } = JSON.parse(body || '{}');
       if (!file || !blockIds || blockIds.length === 0) {
         return res.end(JSON.stringify({ success: false, error: 'Missing parameters' }));
       }
@@ -719,15 +719,60 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
       const i = baseSpaces;
       const i2 = i + '  ';
 
-      const innerContent = extractedBlocks.map(b =>
+      let wrapperAttrs = `data-pv-block="${wrapperId}" className="flex flex-col gap-2"`;
+      
+      // Safely verify if the first block is actually positioned absolutely
+      const isFirstBlockAbsolute = extractedBlocks.length > 0 && /style=\{\s*\{[^}]*position:\s*['"]absolute['"]/.test(extractedBlocks[0]);
+
+      if (targetLayoutMode === 'absolute' && isFirstBlockAbsolute) {
+        // Calculate the top-left bounding box to position the new wrapper
+        let minLeft = Infinity;
+        let minTop = Infinity;
+        extractedBlocks.forEach(block => {
+          const leftMatch = block.match(/left:\s*(-?[\d.]+)/);
+          const topMatch = block.match(/top:\s*(-?[\d.]+)/);
+          if (leftMatch) minLeft = Math.min(minLeft, parseFloat(leftMatch[1]));
+          if (topMatch) minTop = Math.min(minTop, parseFloat(topMatch[1]));
+        });
+        const left = minLeft === Infinity ? 100 : minLeft;
+        const top = minTop === Infinity ? 100 : minTop;
+        wrapperAttrs += ` data-pv-sketchpad-el="${wrapperId}" style={{ position: 'absolute', left: ${left}, top: ${top} }}`;
+      }
+
+      const processedBlocks = extractedBlocks.map(block => {
+        let newBlock = block;
+        // Universally strip sketchpad draggable attribute from the children
+        newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
+
+        // Strip absolute positioning from the root element's style tag
+        const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
+        newBlock = newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
+          const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
+          if (styleRegex.test(attrs)) {
+            const newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+              const cleaned = innerStyles
+                .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
+                .trim()
+                .replace(/,$/, '')
+                .trim();
+              return cleaned ? `style={{ ${cleaned} }}` : '';
+            });
+            return `${tag}${newAttrs}${closing}`;
+          }
+          return match;
+        });
+        return newBlock;
+      });
+
+      const innerContent = processedBlocks.map(b =>
         b.split('\n').map(line => {
           const unindented = line.replace(new RegExp(`^${baseSpaces}`), '');
           return i2 + unindented.trimStart();
         }).join('\n')
       ).join('\n');
 
-      const wrapperHtml = `\n${i}{/* pv-block-start:${wrapperId} */}\n${i}<div data-pv-block="${wrapperId}" className="flex flex-col gap-2">\n${i2}{/* pv-editable-zone-start:${zoneId} */}\n${innerContent}\n${i2}{/* pv-editable-zone-end:${zoneId} */}\n${i}</div>\n${i}{/* pv-block-end:${wrapperId} */}\n`;
-
+      const wrapperHtml = `\n${i}{/* pv-block-start:${wrapperId} */}\n${i}<div ${wrapperAttrs}>\n${i2}{/* pv-editable-zone-start:${zoneId} */}\n${innerContent}\n${i2}{/* pv-editable-zone-end:${zoneId} */}\n${i}</div>\n${i}{/* pv-block-end:${wrapperId} */}\n`;
+            
       fileContent = fileContent.slice(0, insertIndex) + wrapperHtml + fileContent.slice(insertIndex);
 
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');

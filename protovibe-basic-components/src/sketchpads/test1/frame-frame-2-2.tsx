@@ -169,14 +169,6 @@ export default function Frame2() {
         {/* pv-editable-zone-end:1n9ihg */}
       </Rectangle>
       {/* pv-block-end:zb8bcv */}
-      
-      {/* pv-block-start:khenyq */}
-      <Button data-pv-block="khenyq" data-pv-sketchpad-el="khenyq" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 211, top: 448 }} />
-      {/* pv-block-end:khenyq */}
-      
-      {/* pv-block-start:3frgnx */}
-      <Button data-pv-block="3frgnx" data-pv-sketchpad-el="3frgnx" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 373, top: 451 }} />
-      {/* pv-block-end:3frgnx */}
 
       {/* pv-block-start:n2qffv */}
       <Rectangle data-pv-block="n2qffv" data-pv-sketchpad-el="n2qffv"  style={{ position: 'absolute', height: 40, width: 283, left: 169, top: 50 }}>

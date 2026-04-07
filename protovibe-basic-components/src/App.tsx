@@ -78,20 +78,27 @@ function DashboardPage() {
         {/* pv-block-start:g0fqyb */}
         <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
           {/* pv-editable-zone-start:inside-g0fqyb */}
-            {/* pv-block-start:lw979w */}
-            <TextBlock data-pv-block="lw979w" typography="heading-md">
+            {/* pv-block-start:q958wn */}
+            <div data-pv-block="q958wn" className="flex flex-col gap-1">
+              {/* pv-editable-zone-start:f7otuc */}
+              {/* pv-block-start:lw979w */}
+              <TextBlock data-pv-block="lw979w" typography="heading-md">
               Witam serdecznie!
-            </TextBlock>
-            {/* pv-block-end:lw979w */}
+              </TextBlock>
+              {/* pv-block-end:lw979w */}
+              {/* pv-block-start:krvk39 */}
+              <TextBlock  typography="small"   className="asd text-balance" test="sdfsdf"     data-pv-block="krvk39" >
+              Witam serdecznie
+              </TextBlock>
+              {/* pv-block-end:krvk39 */}
+              {/* pv-editable-zone-end:f7otuc */}
+            </div>
+            {/* pv-block-end:q958wn */}
+
           {/* pv-editable-zone-end:inside-g0fqyb */}
         </div>
         {/* pv-block-end:g0fqyb */}
 
-        {/* pv-block-start:krvk39 */}
-        <TextBlock  typography="small"   className="asd text-balance" test="sdfsdf"     data-pv-block="krvk39" >
-          Witam serdecznie
-        </TextBlock>
-        {/* pv-block-end:krvk39 */}
 
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -172,10 +179,6 @@ function DashboardPage() {
               {/* pv-editable-zone-end:y2z3a4 */}
             </Card>
             {/* pv-block-end:v8w9x1 */}
-              {/* pv-block-start:4b2t8k */}
-              <Button data-pv-block="4b2t8k" label="Button" variant="solid" color="primary" size="md" />
-              {/* pv-block-end:4b2t8k */}
-            
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
