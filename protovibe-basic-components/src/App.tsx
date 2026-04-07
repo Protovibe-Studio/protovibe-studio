@@ -105,7 +105,7 @@ function DashboardPage() {
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* pv-editable-zone-start:w2x3y4 */}
             {/* pv-block-start:z5a6b7 */}
-            <Card data-pv-block="z5a6b7" variant="bordered" shadow="sm" className="">
+            <Card data-pv-block="z5a6b7" className="">
               {/* pv-editable-zone-start:c8d9e1 */}
                 {/* pv-block-start:f2g3h4 */}
                 <div data-pv-block="f2g3h4" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -132,7 +132,7 @@ function DashboardPage() {
             {/* pv-block-end:z5a6b7 */}
 
             {/* pv-block-start:x2y3z4 */}
-            <Card data-pv-block="x2y3z4" variant="bordered" shadow="sm" className="">
+            <Card data-pv-block="x2y3z4" className="">
               {/* pv-editable-zone-start:a5b6c7 */}
                 {/* pv-block-start:d8e9f1 */}
                 <div data-pv-block="d8e9f1" className="flex gap-3 mb-2 text-foreground-secondary items-center">
@@ -157,7 +157,7 @@ function DashboardPage() {
             {/* pv-block-end:x2y3z4 */}
 
             {/* pv-block-start:v8w9x1 */}
-            <Card data-pv-block="v8w9x1" variant="bordered" shadow="sm" className="">
+            <Card data-pv-block="v8w9x1" className="">
               {/* pv-editable-zone-start:y2z3a4 */}
                 {/* pv-block-start:b5c6d7 */}
                 <div data-pv-block="b5c6d7" className="flex items-center gap-3 mb-2 text-foreground-secondary">
@@ -357,7 +357,7 @@ function PositionsPage() {
         {/* pv-block-end:h4p5w6 */}
         
         {mockPositions.map(pos => (
-          <Card key={pos.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+          <Card key={pos.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
             {/* pv-editable-zone-start:f2a3b4 */}
               {/* pv-block-start:c5d6e7 */}
               <div data-pv-block="c5d6e7" className="flex items-center gap-4">
@@ -421,7 +421,7 @@ function DepartmentsPage() {
         {/* pv-block-end:h4d5v6 */}
         
         {mockDepartments.map(dept => (
-          <Card key={dept.id} shadow="sm" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+          <Card key={dept.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
             {/* pv-editable-zone-start:m2n3p4 */}
               {/* pv-block-start:q5r6s7 */}
               <div data-pv-block="q5r6s7" className="flex items-center gap-4">
