@@ -94,17 +94,18 @@ export const Modifiers: React.FC = () => {
   const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
 
   const modifierGroups = useMemo(() => {
-    const groups: Record<string, { modifiers: string[], count: number }> = {};
+    const groups: Record<string, { modifiers: string[], count: number, classes: string[] }> = {};
     
     flatClasses.forEach((cls: string) => {
-      const { modifiers } = parseModifiers(cls);
+      const { modifiers, base } = parseModifiers(cls);
       if (modifiers.length === 0) return;
       
       const key = [...modifiers].sort().join(':');
       if (!groups[key]) {
-        groups[key] = { modifiers, count: 0 };
+        groups[key] = { modifiers, count: 0, classes: [] };
       }
       groups[key].count++;
+      groups[key].classes.push(base);
     });
     
     return Object.values(groups).sort((a, b) => b.count - a.count);
@@ -273,7 +274,10 @@ export const Modifiers: React.FC = () => {
         <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {[...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
             const label = group.modifiers.map(formatModifier).join(' & ');
-            const styleText = group.count === 1 ? '1 style' : `${group.count} styles`;
+            const SHOW = 2;
+            const visibleClasses = group.classes.slice(0, SHOW);
+            const remaining = group.classes.length - SHOW;
+            const classesLabel = visibleClasses.join(' • ') + (remaining > 0 ? ` • +${remaining}` : '');
             const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
             const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
 
@@ -303,6 +307,10 @@ export const Modifiers: React.FC = () => {
               <button
                 key={group.modifiers.join(':')}
                 onClick={() => {
+                  if (isActive) {
+                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+                    return;
+                  }
                   const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string> };
 
                   group.modifiers.forEach(mod => {
@@ -328,12 +336,21 @@ export const Modifiers: React.FC = () => {
                   borderRadius: '6px',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = isActive ? theme.accent_low : theme.bg_secondary}
-                onMouseLeave={e => e.currentTarget.style.background = isActive ? theme.accent_low : 'transparent'}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = isActive ? theme.accent_low : theme.bg_secondary;
+                  (e.currentTarget.querySelector('[data-label-primary]') as HTMLElement | null)?.style.setProperty('color', theme.text_default);
+                  (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', theme.text_secondary);
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = isActive ? theme.accent_low : 'transparent';
+                  (e.currentTarget.querySelector('[data-label-primary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_default : theme.text_secondary);
+                  (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_secondary : theme.text_low);
+                }}
               >
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.accent_default, marginRight: '8px', flexShrink: 0 }} />
-                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1 }}>
-                  {label} <span style={{ color: theme.text_tertiary }}>- {styleText}</span>
+                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span data-label-primary style={{ color: isActive ? theme.text_default : theme.text_secondary }}>{label}</span>
+                  <span data-label-secondary style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px' }}>{classesLabel}</span>
                 </span>
               </button>
             );

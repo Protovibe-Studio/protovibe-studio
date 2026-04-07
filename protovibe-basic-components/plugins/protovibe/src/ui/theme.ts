@@ -10,7 +10,8 @@ export const theme = {
   // Text
   text_default: '#FFFFFF',     // Active/Primary text
   text_secondary: '#B3B3B3',   // Standard text, labels
-  text_tertiary: '#8a8a8a',    // Muted text, placeholders
+  text_tertiary: '#7c7c7c',    // Muted text, placeholders
+  text_low: '#646464',         // Lowest text
 
   // Accents (Figma Blue)
   accent_default: '#18A0FB',
