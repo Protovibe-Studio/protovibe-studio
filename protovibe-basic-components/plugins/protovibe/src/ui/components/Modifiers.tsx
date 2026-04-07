@@ -62,6 +62,7 @@ export const Modifiers: React.FC = () => {
   const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -76,45 +77,15 @@ export const Modifiers: React.FC = () => {
   const lastProcessedTarget = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    // Wait until we have a target and its parsed AST data
-    if (!currentBaseTarget || !activeData?.parsedClasses) {
-      if (!currentBaseTarget) lastProcessedTarget.current = null;
-      return;
+    if (!currentBaseTarget) {
+      lastProcessedTarget.current = null;
     }
-    
-    // Only run once per selected element to allow users to toggle chips off manually later
-    if (lastProcessedTarget.current === currentBaseTarget) return;
-
-    // We only want to auto-select states inside the Components playground
-    const pathname = (currentBaseTarget.ownerDocument?.defaultView?.location?.pathname ?? '').toLowerCase();
-    const isComponentsTab = pathname.includes('components');
-
-    if (isComponentsTab) {
-      const flatClasses = Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls);
-      const domClasses = currentBaseTarget.getAttribute('class')?.split(/\s+/) || [];
-      const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
-
-      const nextDataAttrs: Record<string, string> = {};
-      let hasChanges = false;
-
-      // Check the DOM node for attributes that match our available Tailwind modifiers
-      Object.keys(availableDataAttrs).forEach(key => {
-        const domVal = currentBaseTarget.getAttribute(`data-${key}`);
-        if (domVal) {
-          nextDataAttrs[key] = domVal;
-          hasChanges = true;
-        }
-      });
-
-      if (hasChanges) {
-        setActiveModifiers(prev => ({ ...prev, dataAttrs: { ...prev.dataAttrs, ...nextDataAttrs } }));
-      }
-    }
-
-    lastProcessedTarget.current = currentBaseTarget;
-  }, [currentBaseTarget, activeData, setActiveModifiers]);
+  }, [currentBaseTarget]);
 
   if (!activeData) return null;
+
+  const pathname = (currentBaseTarget?.ownerDocument?.defaultView?.location?.pathname ?? '').toLowerCase();
+  const isComponentsTab = pathname.includes('components');
 
   const flatClasses = activeData.parsedClasses
     ? Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls)
@@ -138,6 +109,34 @@ export const Modifiers: React.FC = () => {
     
     return Object.values(groups).sort((a, b) => b.count - a.count);
   }, [flatClasses]);
+
+  // In the components tab, collect the element's actual data-attr values to filter matching groups
+  const elementDataAttrs = useMemo(() => {
+    if (!isComponentsTab || !currentBaseTarget) return null;
+    const attrs: Record<string, string> = {};
+    for (const attr of Array.from(currentBaseTarget.attributes)) {
+      if (attr.name.startsWith('data-') && !attr.name.startsWith('data-pv-')) {
+        attrs[attr.name.slice(5)] = attr.value;
+      }
+    }
+    return attrs;
+  }, [isComponentsTab, currentBaseTarget]);
+
+  const { matchingGroups, otherGroups } = useMemo(() => {
+    if (!elementDataAttrs) return { matchingGroups: modifierGroups, otherGroups: [] };
+    const matching: typeof modifierGroups = [];
+    const other: typeof modifierGroups = [];
+    modifierGroups.forEach(group => {
+      const isMatch = group.modifiers.every(mod => {
+        const m = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
+        if (m) return elementDataAttrs[m[1]] === m[2];
+        return true; // interactions and breakpoints always match
+      });
+      if (isMatch) matching.push(group);
+      else other.push(group);
+    });
+    return { matchingGroups: matching, otherGroups: other };
+  }, [modifierGroups, elementDataAttrs]);
 
   const formatModifier = (mod: string) => {
     if (mod.startsWith('data-[')) {
@@ -272,7 +271,7 @@ export const Modifiers: React.FC = () => {
       {/* ── Existing Modifiers List ── */}
       {modifierGroups.length > 0 && (
         <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {modifierGroups.map((group) => {
+          {[...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
             const label = group.modifiers.map(formatModifier).join(' & ');
             const styleText = group.count === 1 ? '1 style' : `${group.count} styles`;
             const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
@@ -339,6 +338,26 @@ export const Modifiers: React.FC = () => {
               </button>
             );
           })}
+          {otherGroups.length > 0 && (
+            <button
+              onClick={() => setShowMore(s => !s)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                color: theme.text_tertiary,
+                fontSize: '11px',
+                borderRadius: '6px',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = theme.text_secondary)}
+              onMouseLeave={e => (e.currentTarget.style.color = theme.text_tertiary)}
+            >
+              {showMore ? `Hide ${otherGroups.length} more` : `Show ${otherGroups.length} more`}
+            </button>
+          )}
         </div>
       )}
 
