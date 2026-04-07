@@ -1,9 +1,9 @@
 // plugins/protovibe/src/ui/components/Modifiers.tsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { extractAvailableModifiers } from '../utils/tailwind';
+import { extractAvailableModifiers, parseModifiers } from '../utils/tailwind';
 import { SegmentedControl } from './visual/SegmentedControl';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme } from '../theme';
@@ -121,6 +121,33 @@ export const Modifiers: React.FC = () => {
     : [];
   const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/) || [];
   const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
+
+  const modifierGroups = useMemo(() => {
+    const groups: Record<string, { modifiers: string[], count: number }> = {};
+    
+    flatClasses.forEach((cls: string) => {
+      const { modifiers } = parseModifiers(cls);
+      if (modifiers.length === 0) return;
+      
+      const key = [...modifiers].sort().join(':');
+      if (!groups[key]) {
+        groups[key] = { modifiers, count: 0 };
+      }
+      groups[key].count++;
+    });
+    
+    return Object.values(groups).sort((a, b) => b.count - a.count);
+  }, [flatClasses]);
+
+  const formatModifier = (mod: string) => {
+    if (mod.startsWith('data-[')) {
+      const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
+      if (match) {
+        return `${match[1].charAt(0).toUpperCase() + match[1].slice(1)}: ${match[2]}`;
+      }
+    }
+    return mod.charAt(0).toUpperCase() + mod.slice(1);
+  };
 
   const handleInteraction = (val: string) => {
     setActiveModifiers(prev => {
@@ -241,6 +268,79 @@ export const Modifiers: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* ── Existing Modifiers List ── */}
+      {modifierGroups.length > 0 && (
+        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {modifierGroups.map((group) => {
+            const label = group.modifiers.map(formatModifier).join(' & ');
+            const styleText = group.count === 1 ? '1 style' : `${group.count} styles`;
+            const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
+            const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
+
+            const isActive = (() => {
+              const expectedInteraction: string[] = [];
+              let expectedBreakpoint: string | null = null;
+              const expectedDataAttrs: Record<string, string> = {};
+              group.modifiers.forEach(mod => {
+                if (bps.includes(mod)) expectedBreakpoint = mod;
+                else if (interactions.includes(mod)) expectedInteraction.push(mod);
+                else {
+                  const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
+                  if (match) expectedDataAttrs[match[1]] = match[2];
+                }
+              });
+              const interactionMatch =
+                expectedInteraction.length === activeModifiers.interaction.length &&
+                expectedInteraction.every(i => activeModifiers.interaction.includes(i));
+              const breakpointMatch = expectedBreakpoint === activeModifiers.breakpoint;
+              const dataAttrsMatch =
+                Object.keys(expectedDataAttrs).length === Object.keys(activeModifiers.dataAttrs).length &&
+                Object.entries(expectedDataAttrs).every(([k, v]) => activeModifiers.dataAttrs[k] === v);
+              return interactionMatch && breakpointMatch && dataAttrsMatch;
+            })();
+
+            return (
+              <button
+                key={group.modifiers.join(':')}
+                onClick={() => {
+                  const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string> };
+
+                  group.modifiers.forEach(mod => {
+                    if (bps.includes(mod)) nextModifiers.breakpoint = mod;
+                    else if (interactions.includes(mod)) nextModifiers.interaction.push(mod);
+                    else {
+                      const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
+                      if (match) {
+                        nextModifiers.dataAttrs[match[1]] = match[2];
+                      }
+                    }
+                  });
+                  setActiveModifiers(nextModifiers);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: isActive ? theme.accent_low : 'transparent',
+                  border: 'none',
+                  padding: '6px 8px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  borderRadius: '6px',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = isActive ? theme.accent_low : theme.bg_secondary}
+                onMouseLeave={e => e.currentTarget.style.background = isActive ? theme.accent_low : 'transparent'}
+              >
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.accent_default, marginRight: '8px', flexShrink: 0 }} />
+                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1 }}>
+                  {label} <span style={{ color: theme.text_tertiary }}>- {styleText}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Popover ───────────────────────────────────────────────────────── */}
       {isOpen && typeof document !== 'undefined' && createPortal(
