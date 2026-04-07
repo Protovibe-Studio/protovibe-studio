@@ -95,6 +95,10 @@ export function ToastBox({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'ToastBox',
   componentId: 'ToastBox',
@@ -102,7 +106,7 @@ export const pvConfig = {
   description: 'A toast notification box with icon, heading, secondary text, action button and close button.',
   importPath: '@/components/ui/toast-box',
   defaultProps: 'variant="success" heading="Success!" secondaryText="Your changes have been saved."',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },

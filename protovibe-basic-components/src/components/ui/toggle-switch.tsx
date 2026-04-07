@@ -100,6 +100,10 @@ export function ToggleSwitch({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'ToggleSwitch',
   componentId: 'ToggleSwitch',
@@ -107,7 +111,7 @@ export const pvConfig = {
   description: 'A toggle switch with optional heading, primary/secondary text, icons, and error state.',
   importPath: '@/components/ui/toggle-switch',
   defaultProps: 'primaryText="Enable feature"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     checked: { type: 'boolean' },
     disabled: { type: 'boolean' },

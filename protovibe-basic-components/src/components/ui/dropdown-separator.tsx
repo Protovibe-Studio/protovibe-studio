@@ -14,6 +14,10 @@ export function DropdownSeparator({ className, ...props }: DropdownSeparatorProp
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'DropdownSeparator',
   componentId: 'DropdownSeparator',
@@ -21,6 +25,6 @@ export const pvConfig = {
   description: 'A horizontal divider line between dropdown items or groups.',
   importPath: '@/components/ui/dropdown-separator',
   defaultProps: '',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {},
 };

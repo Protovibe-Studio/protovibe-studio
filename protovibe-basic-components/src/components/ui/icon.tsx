@@ -24,6 +24,10 @@ export function Icon({ name, size = 'md', color, className, ...props }: IconProp
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Icon',
   componentId: 'Icon',
@@ -31,7 +35,7 @@ export const pvConfig = {
   description: 'A lucide-react icon',
   importPath: '@/components/ui/icon',
   defaultProps: 'name="Star" size="md"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     name: { type: 'select', options: Object.keys(LucideIcons) },

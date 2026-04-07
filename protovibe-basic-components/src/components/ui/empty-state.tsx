@@ -96,6 +96,10 @@ export function EmptyState({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'EmptyState',
   componentId: 'EmptyState',
@@ -103,7 +107,7 @@ export const pvConfig = {
   description: 'A centered empty state with optional icon, heading, description and action buttons.',
   importPath: '@/components/ui/empty-state',
   defaultProps: 'icon="Inbox" iconSize="xl" heading="Nothing here yet" secondaryText="Get started by creating your first item."',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     icon: { type: 'select', options: Object.keys(LucideIcons) },

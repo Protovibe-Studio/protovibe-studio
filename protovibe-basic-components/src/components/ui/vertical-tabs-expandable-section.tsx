@@ -72,6 +72,10 @@ export function VerticalTabsExpandableSection({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'VerticalTabsExpandableSection',
   componentId: 'VerticalTabsExpandableSection',
@@ -79,7 +83,7 @@ export const pvConfig = {
   description: 'A vertical tab item with a collapsible child section.',
   importPath: '@/components/ui/vertical-tabs-expandable-section',
   defaultProps: 'label="Section" value="section1" prefixIcon="FolderOpen"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

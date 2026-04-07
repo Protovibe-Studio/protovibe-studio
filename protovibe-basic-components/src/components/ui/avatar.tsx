@@ -80,6 +80,10 @@ export function Avatar({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Avatar',
   componentId: 'Avatar',
@@ -87,7 +91,7 @@ export const pvConfig = {
   description: 'A circular avatar with initials, icon, or image. Supports six sizes, semantic background colors, and an optional outline ring.',
   importPath: '@/components/ui/avatar',
   defaultProps: 'initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },
     initials: { type: 'string', exampleValue: 'MS' },

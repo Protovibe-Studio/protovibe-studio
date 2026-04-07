@@ -64,6 +64,10 @@ export function DropdownItem({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'DropdownItem',
   componentId: 'DropdownItem',
@@ -71,7 +75,7 @@ export const pvConfig = {
   description: 'A single item in a dropdown list, with optional prefix/suffix icons.',
   importPath: '@/components/ui/dropdown-item',
   defaultProps: 'label="Menu Item"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

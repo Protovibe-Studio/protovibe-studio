@@ -129,6 +129,10 @@ export function Input({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Input',
   componentId: 'Input',
@@ -136,7 +140,7 @@ export const pvConfig = {
   description: 'A text input field with optional prefix/suffix adornments',
   importPath: '@/components/ui/input',
   defaultProps: 'placeholder="Enter text..."',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     placeholder: { type: 'string', exampleValue: 'Enter text...' },

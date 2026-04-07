@@ -53,6 +53,10 @@ export function SegmentedControlItem({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'SegmentedControlItem',
   componentId: 'SegmentedControlItem',
@@ -60,7 +64,7 @@ export const pvConfig = {
   description: 'An item inside a SegmentedControl. Active state is derived from the parent context automatically.',
   importPath: '@/components/ui/segmented-control-item',
   defaultProps: 'label="Option 1" value="opt1"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

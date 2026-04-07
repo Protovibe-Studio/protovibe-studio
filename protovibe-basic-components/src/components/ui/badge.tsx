@@ -32,6 +32,10 @@ export function Badge({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Badge',
   componentId: 'Badge',
@@ -39,7 +43,7 @@ export const pvConfig = {
   description: 'A small badge with color variants and optional icons.',
   importPath: '@/components/ui/badge',
   defaultProps: 'label="Badge" color="primary"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

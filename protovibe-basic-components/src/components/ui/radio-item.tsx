@@ -80,6 +80,10 @@ export function RadioItem({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'RadioItem',
   componentId: 'RadioItem',
@@ -87,7 +91,7 @@ export const pvConfig = {
   description: 'A radio button composed of a radio icon and a super label.',
   importPath: '@/components/ui/radio-item',
   defaultProps: 'primaryText="Option 1" value="opt1"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

@@ -53,6 +53,10 @@ export function TabItem({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'TabItem',
   componentId: 'TabItem',
@@ -60,7 +64,7 @@ export const pvConfig = {
   description: 'A single tab item. Active state is derived from the parent Tabs context automatically.',
   importPath: '@/components/ui/tab-item',
   defaultProps: 'label="Tab 1" value="tab1"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

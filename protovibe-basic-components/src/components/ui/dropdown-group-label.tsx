@@ -20,6 +20,10 @@ export function DropdownGroupLabel({ label, className, ...props }: DropdownGroup
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'DropdownGroupLabel',
   componentId: 'DropdownGroupLabel',
@@ -27,7 +31,7 @@ export const pvConfig = {
   description: 'A small section header label inside a dropdown list.',
   importPath: '@/components/ui/dropdown-group-label',
   defaultProps: 'label="Section"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
   },

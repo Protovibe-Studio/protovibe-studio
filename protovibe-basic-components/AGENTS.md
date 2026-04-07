@@ -203,7 +203,7 @@ Every editable component must export a `pvConfig` object that defines how it is 
 | **`description`** | `string` | A short subtitle explaining what the component does. | 
 | **`importPath`** | `string` | The absolute or aliased path to inject (e.g., `"@/components/ui/button"`). | 
 | **`defaultProps`** | `string` | Default props injected into the opening tag (e.g., `variant="outline" label="New"`). | 
-| **`defaultContent`** | `string | JSX` | Inner JSX children injected when added. Use `''` for self-closing, string zone pairs for simple drop zones, or `<PvDefaultContent />` for complex JSX. | 
+| **`defaultContent`** | `JSX` | Always a JSX reference to an exported `<PvDefaultContent />` component defined in the same file.| 
 | **`additionalImportsForDefaultContent`** | `{ name, path }[]` | Component imports needed if `defaultContent` is complex JSX. | 
 | **`props`** | `object` | Schema defining which props are editable (`string`, `boolean`, `select`). | 
 | **`invalidCombinations`** | `array` | Optional array of predicates filtering broken states from the UI matrix. | 
@@ -223,6 +223,15 @@ Every editable component must export a `pvConfig` object that defines how it is 
   ```typescript
   import { icons } from 'lucide-react';
   
+  export function PvDefaultContent() {
+    return (
+      <>
+        {/* pv-editable-zone-start */}
+        {/* pv-editable-zone-end */}
+      </>
+    );
+  }
+  
   export const pvConfig = {
     name: "Button", 
     componentId: "Button",
@@ -230,7 +239,7 @@ Every editable component must export a `pvConfig` object that defines how it is 
     description: "A standard button with variants and icon support.",
     importPath: "@/components/ui/button", 
     defaultProps: `variant="default" label="Click me"`, 
-    defaultContent: '',
+    defaultContent: <PvDefaultContent />,
     props: {
       variant: { type: "select", options: ["default", "destructive", "outline", "ghost"] },
       size: { type: "select", options: ["default", "sm", "lg", "icon"] },
@@ -302,25 +311,57 @@ Use `invalidCombinations` in `pvConfig` to suppress nonsensical or visually brok
   ],
   ```
 
-### Rule: Hot-Reloadable Default Content
+### Rule: Always Use `PvDefaultContent` for `defaultContent`
 
-If `defaultContent` uses JSX, it MUST be an exported component named `PvDefaultContent` defined *before* `pvConfig` in the same file. Additionally, use **bare, ID-less** zone and block comments inside this function.
+To maintain consistency `defaultContent` in `pvConfig` MUST ALWAYS reference an exported component named `PvDefaultContent`, defined *before* `pvConfig` in the same file. Never use strings (like `''` or `'Text'`) or inline JSX.
 
-* **❌ BAD: Inline JSX or manual IDs in component definition**
+If the component is self-closing and has no default children, `PvDefaultContent` must return an empty fragment `<></>`.
+
+* **❌ BAD: String values or inline JSX**
 
   ```tsx
   export const pvConfig = {
-    defaultContent: <div data-pv-block="a1b2c3">Static</div> // Breaks HMR
+    defaultContent: '', // ❌ BAD: Empty string instead of component
+    // OR
+    defaultContent: 'Just text', // ❌ BAD: Text string instead of component
+    // OR
+    defaultContent: <div data-pv-block="">Static</div> // ❌ BAD: Inline JSX breaks HMR
   };
   ```
 
-* **✅ GOOD: Exported `PvDefaultContent` with bare tags**
+* **✅ GOOD: Empty `PvDefaultContent` (For self-closing components like Button or Icon)**
+
+  ```tsx
+  export function PvDefaultContent() {
+    return <></>;
+  }
+  export const pvConfig = { defaultContent: <PvDefaultContent /> };
+  ```
+
+* **✅ GOOD:  `PvDefaultContent` with bare ID-less pv tags (For containers like Card that expect other children elements)**
 
   ```tsx
   export function PvDefaultContent() {
     return (
       <>
         {/* pv-editable-zone-start */}
+        {/* pv-editable-zone-end */}
+      </>
+    );
+  }
+  export const pvConfig = { defaultContent: <PvDefaultContent /> };
+  ```
+
+* **✅ GOOD: Complex `PvDefaultContent` with bare ID-less pv tags (For components that should have multiple children composed from other components like Select dropdown)**
+
+  ```tsx
+  export function PvDefaultContent() {
+    return (
+      <>
+        {/* pv-editable-zone-start */}
+          {/* pv-block-start */}
+          <ChildComponent data-pv-block="" label="Example" />
+          {/* pv-block-end */}
           {/* pv-block-start */}
           <ChildComponent data-pv-block="" label="Example" />
           {/* pv-block-end */}

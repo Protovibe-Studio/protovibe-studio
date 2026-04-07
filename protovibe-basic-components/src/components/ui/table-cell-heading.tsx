@@ -31,6 +31,10 @@ export function TableCellHeading({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'TableCellHeading',
   componentId: 'TableCellHeading',
@@ -38,7 +42,7 @@ export const pvConfig = {
   description: 'A header cell (<th>) with label text and optional prefix/suffix icon.',
   importPath: '@/components/ui/table-cell-heading',
   defaultProps: 'label="Column"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Column' },

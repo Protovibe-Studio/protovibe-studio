@@ -45,6 +45,10 @@ export function SuperLabel({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'SuperLabel',
   componentId: 'SuperLabel',
@@ -52,7 +56,7 @@ export const pvConfig = {
   description: 'A rich label with optional heading, primary text, secondary text, and prefix/suffix icons.',
   importPath: '@/components/ui/super-label',
   defaultProps: 'primaryText="Label"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },

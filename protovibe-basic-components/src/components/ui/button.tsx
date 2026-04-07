@@ -44,6 +44,10 @@ export function Button({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Button',
   componentId: 'Button',
@@ -51,7 +55,7 @@ export const pvConfig = {
   description: 'A clickable button',
   importPath: '@/components/ui/button',
   defaultProps: 'label="Button" variant="solid" color="primary" size="md"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     variant: { type: 'select', options: ['solid', 'outline', 'ghost'] },

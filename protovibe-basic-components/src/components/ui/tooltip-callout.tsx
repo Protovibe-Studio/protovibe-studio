@@ -29,6 +29,10 @@ export function TooltipCallout({ text = 'Tooltip', direction = 'top', className,
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'TooltipCallout',
   componentId: 'TooltipCallout',
@@ -36,7 +40,7 @@ export const pvConfig = {
   description: 'The global tooltip design. Edit classes here to style all tooltips.',
   importPath: '@/components/ui/tooltip-callout',
   defaultProps: '',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     direction: { type: 'select', options: ['top', 'bottom', 'left', 'right'] },
   },

@@ -29,6 +29,10 @@ export function RadioIcon({ state = 'inherit', className, ...props }: RadioIconP
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'RadioIcon',
   componentId: 'RadioIcon',
@@ -36,7 +40,7 @@ export const pvConfig = {
   description: 'A radio button indicator showing selected, unselected, disabled, or error states.',
   importPath: '@/components/ui/radio-icon',
   defaultProps: 'state="unselected"',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     state: { type: 'select', options: ['selected', 'unselected', 'disabled', 'error', 'inherit'] },

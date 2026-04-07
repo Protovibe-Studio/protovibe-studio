@@ -162,6 +162,10 @@ export function Textarea({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'Textarea',
   componentId: 'Textarea',
@@ -169,7 +173,7 @@ export const pvConfig = {
   description: 'A multiline text input with auto-grow and adornment support',
   importPath: '@/components/ui/textarea',
   defaultProps: 'placeholder="Enter text..."',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
     placeholder: { type: 'string', exampleValue: 'Enter text...' },
