@@ -16,7 +16,7 @@ export default function Frame3() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:b399cq */}
       {/* pv-block-start:xn7mdg */}
-      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 79, top: 432 }}>
+      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 79, top: 429 }}>
         {/* pv-editable-zone-start:ni67pr */}
         {/* pv-block-start:m1moro */}
         <Avatar data-pv-block="m1moro" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
@@ -48,11 +48,11 @@ export default function Frame3() {
       {/* pv-block-end:xn7mdg */}
 
       {/* pv-block-start:c587un */}
-        <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 111, top: 337 }}/>
+        <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 172, top: 362 }}/>
         {/* pv-block-end:c587un */}
       
       {/* pv-block-start:ri3omq */}
-      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 287, left: 52, top: 60, width: 415 }}>
+      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 287, left: 76, top: 40, width: 415 }}>
         {/* pv-editable-zone-start:duvsah */}
         {/* pv-block-start:wjkjlt */}
         <div data-pv-block="wjkjlt" className="flex flex-col gap-2" data-pv-sketchpad-el="wjkjlt" style={{ position: 'absolute', left: 17, top: 18 }}>
@@ -88,9 +88,13 @@ export default function Frame3() {
       </Rectangle>
       {/* pv-block-end:6lxa53 */}
 
-        {/* pv-block-start:drkol8 */}
-      <Button data-pv-block="drkol8" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="drkol8" style={{ position: 'absolute', left: 31, top: 130 }}/>
-      {/* pv-block-end:drkol8 */}
+      {/* pv-block-start:6yknv7 */}
+        <Avatar data-pv-block="6yknv7" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  data-pv-sketchpad-el="6yknv7" style={{ position: 'absolute', left: 115, top: 203 }}/>
+        {/* pv-block-end:6yknv7 */}
+
+      {/* pv-block-start:cc5rmm */}
+        <Avatar data-pv-block="cc5rmm" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="cc5rmm" style={{ position: 'absolute', left: 221, top: 183 }}/>
+        {/* pv-block-end:cc5rmm */}
 
         {/* pv-block-start:vumf74 */}
       <Button data-pv-block="vumf74" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="vumf74" style={{ position: 'absolute', left: 285, top: 36 }}/>
@@ -99,12 +103,20 @@ export default function Frame3() {
         {/* pv-block-start:5ih57a */}
       <Button data-pv-block="5ih57a" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="5ih57a" style={{ position: 'absolute', left: 184, top: 51 }}/>
       {/* pv-block-end:5ih57a */}
+
+        {/* pv-block-start:njunpm */}
+                  <Button data-pv-block="njunpm" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="njunpm" style={{ position: 'absolute', left: 313, top: 193 }}/>
+                  {/* pv-block-end:njunpm */}
         {/* pv-editable-zone-end:duvsah */}
       </Rectangle>
       {/* pv-block-end:ri3omq */}
+      {/* pv-block-start:l3h2tm */}
+        <Avatar data-pv-block="l3h2tm" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  data-pv-sketchpad-el="l3h2tm" style={{ position: 'absolute', left: 42, top: 334 }}/>
+        {/* pv-block-end:l3h2tm */}
+      
       
       {/* pv-block-start:yeg1ow */}
-            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 510, top: 135, width: 256 }}>
+            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 513, top: 39, width: 256 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
               {/* pv-block-start:1r4vha */}
                 <div data-pv-block="1r4vha" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
@@ -133,6 +145,13 @@ export default function Frame3() {
               {/* pv-block-start:ttp0x0 */}
                 <Badge data-pv-block="ttp0x0" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
                 {/* pv-block-end:ttp0x0 */}
+                {/* pv-block-start:17etj5 */}
+      <Card className="" data-pv-block="17etj5" variant="bordered" shadow="none" border="default" >
+        {/* pv-editable-zone-start:xi74a7 */}
+        {/* pv-editable-zone-end:xi74a7 */}
+      </Card>
+      {/* pv-block-end:17etj5 */}
+                
 
               {/* pv-block-start:aow6j7 */}
                   <div className="flex flex-col min-h-4" data-pv-block="aow6j7">
@@ -142,26 +161,29 @@ export default function Frame3() {
                   </div>
                   {/* pv-block-end:aow6j7 */}
 
-              {/* pv-block-start:7jqt2x */}
-                  <Button data-pv-block="7jqt2x" label="Button" variant="solid" color="primary" size="md" />
-                  {/* pv-block-end:7jqt2x */}
-
               {/* pv-block-start:7pxhvw */}
       <Button data-pv-block="7pxhvw" label="Button" variant="solid" color="primary" size="md" />
       {/* pv-block-end:7pxhvw */}
+      {/* pv-block-start:fh4xr5 */}
+        <Avatar data-pv-block="fh4xr5" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="fh4xr5" style={{ position: 'absolute', left: 158, top: 247 }}/>
+        {/* pv-block-end:fh4xr5 */}
+      
+      {/* pv-block-start:ryhp4i */}
+                  <Button data-pv-block="ryhp4i" label="Button" variant="solid" color="primary" size="md" />
+                  {/* pv-block-end:ryhp4i */}
+                  {/* pv-block-start:o8itux */}
+        <Avatar data-pv-block="o8itux" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+        {/* pv-block-end:o8itux */}
 
-              {/* pv-block-start:nyopco */}
-      <Card className="" data-pv-block="nyopco" variant="bordered" shadow="none" border="default" >
-        {/* pv-editable-zone-start:xi74a7 */}
-        {/* pv-editable-zone-end:xi74a7 */}
-      </Card>
-      {/* pv-block-end:nyopco */}
+              {/* pv-block-start:ix5c3r */}
+      <Button data-pv-block="ix5c3r" label="Button" variant="solid" color="primary" size="md" />
+      {/* pv-block-end:ix5c3r */}
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
             {/* pv-block-end:yeg1ow */}
       
       {/* pv-block-start:m8d3jh */}
-          <div data-pv-block="m8d3jh" className="flex flex-col gap-2" data-pv-sketchpad-el="m8d3jh" style={{ position: 'absolute', left: 340, top: 456 }}>
+          <div data-pv-block="m8d3jh" className="flex flex-col gap-2" data-pv-sketchpad-el="m8d3jh" style={{ position: 'absolute', left: 257, top: 355 }}>
           {/* pv-editable-zone-start:bla8ry */}
           {/* pv-block-start:ki590k */}
           <Button data-pv-block="ki590k" label="Button" variant="solid" color="primary" size="md" />
@@ -169,6 +191,14 @@ export default function Frame3() {
           {/* pv-editable-zone-end:bla8ry */}
           </div>
           {/* pv-block-end:m8d3jh */}
+
+      {/* pv-block-start:rbuu92 */}
+        <Avatar data-pv-block="rbuu92" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="rbuu92" style={{ position: 'absolute', left: 28, top: 67 }}/>
+        {/* pv-block-end:rbuu92 */}
+      
+      {/* pv-block-start:0sc46q */}
+        <Avatar data-pv-block="0sc46q" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="0sc46q" style={{ position: 'absolute', left: 329, top: 435 }}/>
+        {/* pv-block-end:0sc46q */}
       {/* pv-editable-zone-end:b399cq */}
     </div>
   );

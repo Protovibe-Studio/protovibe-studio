@@ -158,7 +158,8 @@ export function useKeyboardShortcuts() {
             return;
           }
 
-          const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+          const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+          const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
 
           await runLockedMutation(async () => {
             await takeSnapshot(activeData.file, activeSourceId!);

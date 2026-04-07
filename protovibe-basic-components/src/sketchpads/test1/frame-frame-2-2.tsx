@@ -157,6 +157,18 @@ export default function Frame2() {
         {/* pv-editable-zone-end:wzfyo4 */}
       </Rectangle>
       {/* pv-block-end:7czgji */}
+      
+      {/* pv-block-start:47qrym */}
+      <Badge data-pv-block="47qrym" data-pv-sketchpad-el="47qrym" label="Badge" color="primary" style={{ position: 'absolute', left: 455, top: 436 }} />
+      {/* pv-block-end:47qrym */}
+      
+      {/* pv-block-start:sts5xo */}
+      <Badge data-pv-block="sts5xo" data-pv-sketchpad-el="sts5xo" label="Badge" color="primary" style={{ position: 'absolute', left: 487, top: 350 }} />
+      {/* pv-block-end:sts5xo */}
+      
+      {/* pv-block-start:m9cjkt */}
+      <Button data-pv-block="m9cjkt" data-pv-sketchpad-el="m9cjkt" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 96, top: 487 }} />
+      {/* pv-block-end:m9cjkt */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
   );
