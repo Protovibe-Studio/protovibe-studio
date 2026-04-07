@@ -44,6 +44,14 @@
           "height": 600,
           "canvasX": 837,
           "canvasY": 542
+        },
+        {
+          "id": "frame-frame-6",
+          "name": "Frame 6",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 1872,
+          "canvasY": 437
         }
       ]
     },
@@ -74,6 +82,29 @@
           "height": 600,
           "canvasX": 325,
           "canvasY": 154
+        }
+      ]
+    },
+    {
+      "id": "asdasd",
+      "name": "asdasd",
+      "createdAt": "2026-04-07T13:15:10.353Z",
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 717,
+          "height": 784,
+          "canvasX": 1335,
+          "canvasY": 406
+        },
+        {
+          "id": "frame-frame-2",
+          "name": "Frame 2",
+          "width": 413,
+          "height": 863,
+          "canvasX": 2239,
+          "canvasY": 396
         }
       ]
     }

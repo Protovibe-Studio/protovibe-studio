@@ -182,14 +182,23 @@ function generateCombinations(
   if (textPropKeys.length > 0) {
     combos = combos.filter(combo => textPropKeys.some(k => combo[k] != null && combo[k] !== ''));
   }
-  // Sort: more text labels filled → first
-  if (textPropKeys.length > 1) {
-    combos.sort((a, b) => {
+
+  // Sort: ascending by total number of props set (least set -> most set)
+  combos.sort((a, b) => {
+    const countProps = (c: Record<string, any>) => Object.keys(c).length;
+    const propDiff = countProps(a) - countProps(b);
+    
+    if (propDiff !== 0) return propDiff;
+    
+    // Tie-breaker: more text labels filled -> first
+    if (textPropKeys.length > 1) {
       const countFilled = (c: Record<string, any>) =>
         textPropKeys.filter(k => c[k] != null && c[k] !== '').length;
       return countFilled(b) - countFilled(a);
-    });
-  }
+    }
+    return 0;
+  });
+
   return combos;
 }
 
@@ -272,7 +281,7 @@ const PreviewCell: React.FC<{
               key={i}
               style={{
                 fontSize: 9,
-                color: '#555',
+                color: '#999',
                 fontFamily: 'monospace',
                 lineHeight: 1.4,
               }}

@@ -26,7 +26,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <button variant="outline"
+    <button
       data-variant={variant}
       data-color={color}
       data-size={size}

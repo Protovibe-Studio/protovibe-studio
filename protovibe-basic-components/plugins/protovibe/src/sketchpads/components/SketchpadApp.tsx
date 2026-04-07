@@ -234,7 +234,7 @@ export function SketchpadApp() {
       if (!activeSketchpadId) return;
       await runLockedMutation(async () => {
         const name = `Frame ${(activeSketchpad?.frames.length ?? 0) + 1}`;
-        const frame = await api.createFrame(activeSketchpadId, name, 800, 600, Math.round(canvasX), Math.round(canvasY));
+        const frame = await api.createFrame(activeSketchpadId, name, 1440, 900, Math.round(canvasX), Math.round(canvasY));
         setSketchpads((prev) =>
           prev.map((s) =>
             s.id === activeSketchpadId
@@ -255,8 +255,8 @@ export function SketchpadApp() {
     // Convert viewport center to canvas coordinates
     const viewCx = rect.width / 2;
     const viewCy = rect.height / 2;
-    const canvasX = (viewCx - transform.panX) / transform.zoom - 400; // center 800-wide frame
-    const canvasY = (viewCy - transform.panY) / transform.zoom - 300; // center 600-tall frame
+    const canvasX = (viewCx - transform.panX) / transform.zoom - 720; // center 1440-wide frame
+    const canvasY = (viewCy - transform.panY) / transform.zoom - 450; // center 900-tall frame
     await handleCreateFrame(canvasX, canvasY);
   }, [activeSketchpadId, transform, containerRef, handleCreateFrame]);
 

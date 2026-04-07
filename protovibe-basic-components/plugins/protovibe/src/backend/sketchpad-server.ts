@@ -328,8 +328,8 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
     const frame: Frame = {
       id: frameId,
       name,
-      width: width || 800,
-      height: height || 600,
+      width: width || 1440,
+      height: height || 900,
       canvasX: canvasX ?? 0,
       canvasY: canvasY ?? 0,
     };

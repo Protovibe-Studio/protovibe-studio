@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/Modifiers.tsx
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
@@ -72,6 +72,47 @@ export const Modifiers: React.FC = () => {
     preferredPlacement: 'bottom',
     updateDeps: [Object.keys(activeModifiers.dataAttrs).length],
   });
+
+  const lastProcessedTarget = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Wait until we have a target and its parsed AST data
+    if (!currentBaseTarget || !activeData?.parsedClasses) {
+      if (!currentBaseTarget) lastProcessedTarget.current = null;
+      return;
+    }
+    
+    // Only run once per selected element to allow users to toggle chips off manually later
+    if (lastProcessedTarget.current === currentBaseTarget) return;
+
+    // We only want to auto-select states inside the Components playground
+    const pathname = (currentBaseTarget.ownerDocument?.defaultView?.location?.pathname ?? '').toLowerCase();
+    const isComponentsTab = pathname.includes('components');
+
+    if (isComponentsTab) {
+      const flatClasses = Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls);
+      const domClasses = currentBaseTarget.getAttribute('class')?.split(/\s+/) || [];
+      const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
+
+      const nextDataAttrs: Record<string, string> = {};
+      let hasChanges = false;
+
+      // Check the DOM node for attributes that match our available Tailwind modifiers
+      Object.keys(availableDataAttrs).forEach(key => {
+        const domVal = currentBaseTarget.getAttribute(`data-${key}`);
+        if (domVal) {
+          nextDataAttrs[key] = domVal;
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        setActiveModifiers(prev => ({ ...prev, dataAttrs: { ...prev.dataAttrs, ...nextDataAttrs } }));
+      }
+    }
+
+    lastProcessedTarget.current = currentBaseTarget;
+  }, [currentBaseTarget, activeData, setActiveModifiers]);
 
   if (!activeData) return null;
 
