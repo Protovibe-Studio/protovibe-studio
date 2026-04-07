@@ -61,13 +61,13 @@ export function protovibeSourcePlugin(): Plugin {
       });
 
       // When a file is deleted, aggressively wipe it from Vite's module graph to prevent errors about missing files or stale cache entries. This is especially important for sketchpad data files that aren't HMR-able and would otherwise require a full server restart to clear out stale data.
-      server.watcher.on('unlink', (deletedFile) => {
-        const mod = server.moduleGraph.getModuleById(deletedFile);
-        if (mod) {
-          server.moduleGraph.invalidateModule(mod);
-          console.log(`[protovibe] File deleted, clearing cache: ${path.relative(process.cwd(), deletedFile)}`);
-        }
-      });
+      // server.watcher.on('unlink', (deletedFile) => {
+      //   const mod = server.moduleGraph.getModuleById(deletedFile);
+      //   if (mod) {
+      //     server.moduleGraph.invalidateModule(mod);
+      //     console.log(`[protovibe] File deleted, clearing cache: ${path.relative(process.cwd(), deletedFile)}`);
+      //   }
+      // });
 
       // --- Serve editor HTML pages from the plugin directory ---
       const editorPages: Record<string, string> = {
