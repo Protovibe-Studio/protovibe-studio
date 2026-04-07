@@ -62,10 +62,12 @@ export function useKeyboardShortcuts() {
       }
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
-        const canAdd = !!(activeData?.file && zones.length > 0);
-        if (canAdd) {
-          e.preventDefault();
-          window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
+        e.preventDefault();
+        if (e.shiftKey) {
+          window.dispatchEvent(new CustomEvent('pv:open-add-after-dialog'));
+        } else {
+          const canAdd = !!(activeData?.file && zones.length > 0);
+          if (canAdd) window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
         }
         return;
       }
@@ -73,21 +75,22 @@ export function useKeyboardShortcuts() {
       if (!currentBaseTarget) return;
 
       // Copy, Cut, Paste, Duplicate
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'd')) {
+      const key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'v' || key === 'd')) {
         e.preventDefault();
         const closestBlock = currentBaseTarget.closest('[data-pv-block]');
         const blockId = closestBlock?.getAttribute('data-pv-block');
         const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
-        
+
         if (!activeData?.file) return;
 
-        if (e.key === 'c' || e.key === 'x' || e.key === 'd') {
+        if (key === 'c' || key === 'x' || key === 'd') {
           if (!blockId || !isBlockInCurrentFile) {
-            emitToast(`Can't ${e.key === 'd' ? 'duplicate' : e.key === 'c' ? 'copy' : 'cut'} this element`);
+            emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
             return;
           }
 
-          if (e.key === 'd') {
+          if (key === 'd') {
             await runLockedMutation(async () => {
               await executeClipboardBlockAction({
                 action: 'duplicate',
@@ -102,7 +105,7 @@ export function useKeyboardShortcuts() {
             return;
           }
 
-          if (e.key === 'x') {
+          if (key === 'x') {
             await runLockedMutation(async () => {
               await executeClipboardBlockAction({
                 action: 'cut',
@@ -130,9 +133,16 @@ export function useKeyboardShortcuts() {
           }
           return;
         }
-        
-        if (e.key === 'v') {
-          if (zones.length === 0) {
+
+        if (key === 'v') {
+          const isPasteAfter = e.shiftKey;
+
+          if (isPasteAfter && (!blockId || !isBlockInCurrentFile)) {
+            emitToast({ message: "Can't paste after this element", variant: 'error' });
+            return;
+          }
+
+          if (!isPasteAfter && zones.length === 0) {
             emitToast({ message: "Can't paste inside this element", variant: 'error' });
             return;
           }
@@ -141,8 +151,8 @@ export function useKeyboardShortcuts() {
           // This allows pasting directly into pristine zones inside hardcoded elements!
           const expectedZoneId = blockId ? `inside-${blockId}` : null;
           const targetZone = (expectedZoneId ? zones.find(z => z.id === expectedZoneId) : null) || zones[0];
-          
-          if (!targetZone) {
+
+          if (!isPasteAfter && !targetZone) {
             emitToast({ message: "Can't paste inside this element", variant: 'error' });
             return;
           }
@@ -153,8 +163,9 @@ export function useKeyboardShortcuts() {
             await takeSnapshot(activeData.file, activeSourceId!);
             const res = await addBlock({
               file: activeData.file,
-              zoneId: targetZone.id,
-              isPristine: targetZone.isPristine,
+              zoneId: isPasteAfter ? undefined : targetZone.id,
+              afterBlockId: isPasteAfter ? blockId! : undefined,
+              isPristine: isPasteAfter ? false : targetZone.isPristine,
               elementType: 'paste',
               targetStartLine: activeData.startLine,
               targetEndLine: activeData.endLine,

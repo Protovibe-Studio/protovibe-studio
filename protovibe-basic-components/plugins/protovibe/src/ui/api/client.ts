@@ -42,8 +42,9 @@ export async function blockAction(action: string, blockId: string, file: string,
 
 export async function addBlock(params: {
   file: string;
-  zoneId: string;
-  isPristine: boolean;
+  zoneId?: string;
+  afterBlockId?: string;
+  isPristine?: boolean;
   elementType: string;
   compName?: string;
   importPath?: string;

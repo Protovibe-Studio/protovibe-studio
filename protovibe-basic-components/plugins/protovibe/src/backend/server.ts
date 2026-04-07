@@ -671,7 +671,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode } = JSON.parse(body || '{}');
+      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -982,13 +982,19 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const spaces = (fileContent.substring(lineStartPos, zoneEndIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
           const blockHtml = generateBlockHtml(spaces);
           
-          // generateBlockHtml already appends the correct trailing \n + spaces.
-          // We must NOT append spaces again, or it will double the indentation on every paste.
           fileContent =
             fileContent.slice(0, zoneEndIdx) +
             blockHtml +
             fileContent.slice(zoneEndIdx);
         }
+      } else if (afterBlockId) {
+        const endRegex = new RegExp(`(^[ \\t]*)\\{\\/\\*\\s*pv-block-end:${afterBlockId}\\s*\\*\\/\\}`, 'gm');
+        let hasReplaced = false;
+        fileContent = fileContent.replace(endRegex, (match, spaces) => {
+          if (hasReplaced) return match;
+          hasReplaced = true;
+          return match + generateBlockHtml(spaces);
+        });
       } else {
         // Changed to 'gm' flag to allow offset checking
         const endRegex = new RegExp(`(^[ \\t]*)\\{\\/\\*\\s*pv-editable-zone-end:${zoneId}\\s*\\*\\/\\}`, 'gm');

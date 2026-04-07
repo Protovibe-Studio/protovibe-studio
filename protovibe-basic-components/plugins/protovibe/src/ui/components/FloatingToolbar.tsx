@@ -16,7 +16,8 @@ export const FloatingToolbar: React.FC = () => {
     runLockedMutation, isMutationLocked, inspectorOpen,
   } = useProtovibe();
 
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addMode, setAddMode] = useState<'child' | 'after' | null>(null);
+  const showAddDialog = addMode !== null;
   const [addSearch, setAddSearch] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedZone, setSelectedZone] = useState<string>('');
@@ -47,23 +48,40 @@ export const FloatingToolbar: React.FC = () => {
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
-      setShowAddDialog(true);
-      setTimeout(() => addSearchRef.current?.focus(), 0);
+      setAddMode('child');
     };
     window.addEventListener('pv:open-add-dialog', handler);
     return () => window.removeEventListener('pv:open-add-dialog', handler);
   }, [canAdd, refreshComponents]);
+
+  // Open "add after" dialog via keyboard shortcut (Cmd+Shift+E)
+  useEffect(() => {
+    const handler = () => {
+      if (!canBlockAction) return;
+      refreshComponents();
+      setAddSearch('');
+      setActiveIndex(0);
+      setAddMode('after');
+    };
+    window.addEventListener('pv:open-add-after-dialog', handler);
+    return () => window.removeEventListener('pv:open-add-after-dialog', handler);
+  }, [canBlockAction, refreshComponents]);
+
+  // Focus search input after dialog opens (after React re-renders the input into the DOM)
+  useEffect(() => {
+    if (addMode !== null) addSearchRef.current?.focus();
+  }, [addMode]);
 
   // Close add dialog on outside click or Escape
   useEffect(() => {
     if (!showAddDialog) return;
     const handleMouse = (e: MouseEvent) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
-        setShowAddDialog(false);
+        setAddMode(null);
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAddDialog(false);
+      if (e.key === 'Escape') setAddMode(null);
     };
     document.addEventListener('mousedown', handleMouse);
     document.addEventListener('keydown', handleKey);
@@ -76,7 +94,7 @@ export const FloatingToolbar: React.FC = () => {
   if (!inspectorOpen || (!canAdd && !canBlockAction)) return null;
 
   const handleBlockAction = async (action: string) => {
-    setShowAddDialog(false);
+    setAddMode(null);
     if (!closestBlockId || !activeData?.file) return;
     await runLockedMutation(async () => {
       await executeBlockAction({
@@ -91,16 +109,19 @@ export const FloatingToolbar: React.FC = () => {
   };
 
   const handleAddBlock = async (type: 'block' | 'component' | 'text', comp?: any) => {
-    if (!activeData?.file || !selectedZone) return;
-    const zone = zones.find(z => z.id === selectedZone);
-    if (!zone) return;
-      const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+    if (!activeData?.file) return;
+    if (addMode === 'child' && !selectedZone) return;
+
+    const zone = addMode === 'child' ? zones.find(z => z.id === selectedZone) : undefined;
+    const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+
     const res = await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
       return addBlock({
         file: activeData.file,
-        zoneId: selectedZone,
-        isPristine: zone.isPristine,
+        zoneId: addMode === 'child' ? selectedZone : undefined,
+        afterBlockId: addMode === 'after' ? closestBlockId! : undefined,
+        isPristine: addMode === 'child' ? zone?.isPristine : false,
         elementType: type,
         compName: comp?.name,
         importPath: comp?.importPath,
@@ -109,12 +130,12 @@ export const FloatingToolbar: React.FC = () => {
         additionalImportsForDefaultContent: comp?.additionalImportsForDefaultContent,
         targetStartLine: activeData.startLine,
         targetEndLine: activeData.endLine,
-          targetLayoutMode,
-          pasteX: 100,
-          pasteY: 100,
+        targetLayoutMode,
+        pasteX: 100,
+        pasteY: 100,
       });
     });
-    setShowAddDialog(false);
+    setAddMode(null);
     if (res?.blockId) focusNewBlock(res.blockId, { maxAttempts: 20 });
   };
 
@@ -312,31 +333,62 @@ export const FloatingToolbar: React.FC = () => {
             <button
               disabled={locked}
               onClick={() => {
-                if (!showAddDialog) {
+                if (addMode !== 'child') {
                   refreshComponents();
                   setAddSearch('');
                   setActiveIndex(0);
-                  setTimeout(() => addSearchRef.current?.focus(), 0);
                 }
-                setShowAddDialog(v => !v);
+                setAddMode(prev => prev === 'child' ? null : 'child');
               }}
-              onMouseEnter={() => setHoveredBtn('add')}
+              onMouseEnter={() => setHoveredBtn('add-child')}
               onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('add', {
-                minWidth: '180px',
+              style={mkBtnStyle('add-child', {
+                minWidth: canBlockAction ? '120px' : '180px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '5px',
-                color: showAddDialog ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                background: showAddDialog ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
               })}
               title="Add child element"
             >
               <Plus size={13} strokeWidth={2.5} />
-              Add child element
+              Add child
             </button>
             {canBlockAction && divider}
+          </>
+        )}
+
+        {canBlockAction && (
+          <>
+            <button
+              disabled={locked}
+              onClick={() => {
+                if (addMode !== 'after') {
+                  refreshComponents();
+                  setAddSearch('');
+                  setActiveIndex(0);
+                }
+                setAddMode(prev => prev === 'after' ? null : 'after');
+              }}
+              onMouseEnter={() => setHoveredBtn('add-after')}
+              onMouseLeave={() => setHoveredBtn(null)}
+              style={mkBtnStyle('add-after', {
+                minWidth: '120px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+              })}
+              title="Add element after"
+            >
+              <Plus size={13} strokeWidth={2.5} />
+              Add after
+            </button>
+            {divider}
           </>
         )}
 
