@@ -113,7 +113,7 @@ function DashboardPage() {
                     <Icon data-pv-block="l8m9n1" name="Users" size="sm" />
                     {/* pv-block-end:l8m9n1 */}
                     {/* pv-block-start:o2p3q4 */}
-                    <TextBlock data-pv-block="o2p3q4" typography="all-caps" className="uppercase tracking-wider">Total Headcount</TextBlock>
+                    <TextBlock typography="secondary" data-pv-block="o2p3q4"  className="">Total Headcount</TextBlock>
                     {/* pv-block-end:o2p3q4 */}
                   {/* pv-editable-zone-end:i5j6k7 */}
                 </div>
@@ -134,13 +134,13 @@ function DashboardPage() {
             <Card data-pv-block="x2y3z4" variant="bordered" shadow="sm" className="">
               {/* pv-editable-zone-start:a5b6c7 */}
                 {/* pv-block-start:d8e9f1 */}
-                <div data-pv-block="d8e9f1" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                <div data-pv-block="d8e9f1" className="flex gap-3 mb-2 text-foreground-secondary items-center">
                   {/* pv-editable-zone-start:g2h3i4 */}
                     {/* pv-block-start:j5k6l7 */}
                     <Icon data-pv-block="j5k6l7" name="Briefcase" size="sm" />
                     {/* pv-block-end:j5k6l7 */}
                     {/* pv-block-start:m8n9o1 */}
-                    <TextBlock data-pv-block="m8n9o1" typography="all-caps" className="uppercase tracking-wider">Open Roles</TextBlock>
+                    <TextBlock typography="secondary" data-pv-block="m8n9o1"  className="">Open Roles</TextBlock>
                     {/* pv-block-end:m8n9o1 */}
                   {/* pv-editable-zone-end:g2h3i4 */}
                 </div>
@@ -165,7 +165,7 @@ function DashboardPage() {
                     <Icon data-pv-block="h2i3j4" name="CalendarHeart" size="sm" />
                     {/* pv-block-end:h2i3j4 */}
                     {/* pv-block-start:k5l6m7 */}
-                    <TextBlock data-pv-block="k5l6m7" typography="all-caps" className="uppercase tracking-wider">On Leave</TextBlock>
+                    <TextBlock typography="secondary" data-pv-block="k5l6m7"  className="">On Leave</TextBlock>
                     {/* pv-block-end:k5l6m7 */}
                   {/* pv-editable-zone-end:e8f9g1 */}
                 </div>
