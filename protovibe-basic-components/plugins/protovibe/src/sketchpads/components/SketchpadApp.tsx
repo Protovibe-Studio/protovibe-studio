@@ -84,6 +84,7 @@ type SketchpadDropDetail = {
   targetLayoutMode: 'flow' | 'absolute' | string;
   x: number;
   y: number;
+  isDuplicate?: boolean;
 };
 
 export function SketchpadApp() {
@@ -459,6 +460,7 @@ export function SketchpadApp() {
         targetLayoutMode,
         x,
         y,
+        isDuplicate,
       } = data;
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockId) return;
@@ -533,8 +535,10 @@ export function SketchpadApp() {
               targetEndLine: currentTargetEndLine,
           });
 
-            // 4. Delete the original block
-          await blockAction('delete', draggedBlockId, sourceFile);
+            // 4. Delete the original block (if not duplicating)
+            if (!isDuplicate) {
+              await blockAction('delete', draggedBlockId, sourceFile);
+            }
         });
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);

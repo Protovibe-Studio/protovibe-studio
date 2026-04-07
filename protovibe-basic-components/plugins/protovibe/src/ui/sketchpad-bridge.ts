@@ -60,6 +60,27 @@ let resizeState: {
 } | null = null;
 
 let currentDropTarget: HTMLElement | null = null;
+let ghostEl: HTMLElement | null = null;
+
+function updateGhost(isAltHeld: boolean) {
+  if (!dragState) return;
+
+  if (isAltHeld && !ghostEl) {
+    ghostEl = dragState.target.cloneNode(true) as HTMLElement;
+    ghostEl.style.opacity = '0.3';
+    ghostEl.style.pointerEvents = 'none';
+    ghostEl.style.transform = dragState.origTransform;
+    ghostEl.style.transition = 'none';
+    // Strip identifying attributes so the bridge ignores this fake element entirely
+    ghostEl.removeAttribute('data-pv-sketchpad-el');
+    ghostEl.removeAttribute('data-pv-block');
+    ghostEl.removeAttribute('data-pv-runtime-id');
+    dragState.target.parentElement?.insertBefore(ghostEl, dragState.target);
+  } else if (!isAltHeld && ghostEl) {
+    ghostEl.remove();
+    ghostEl = null;
+  }
+}
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
@@ -606,6 +627,10 @@ function handlePointerMove(e: PointerEvent) {
     latestClientX = e.clientX;
     latestClientY = e.clientY;
 
+    if (dragState) {
+      updateGhost(e.altKey);
+    }
+
     if (pointerMoveRafId === null) {
       pointerMoveRafId = requestAnimationFrame(applyPointerMoveUpdate);
     }
@@ -740,10 +765,10 @@ function handlePointerUp(e: PointerEvent) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
 
-      if (dragState.isFlow && dropContainer === currentContainer) {
+      if (dragState.isFlow && dropContainer === currentContainer && !e.altKey) {
         // Dropped inside its own flow container -> revert transform cleanly.
         dragState.target.style.transform = dragState.origTransform;
-      } else if (!dragState.isFlow && dropContainer === currentContainer) {
+      } else if (!dragState.isFlow && dropContainer === currentContainer && !e.altKey) {
         // Same-container absolute move - revert transform, then immediately pin final left/top
         dragState.target.style.transform = dragState.origTransform;
         const newLeft = dragState.origLeft + dx;
@@ -757,11 +782,15 @@ function handlePointerUp(e: PointerEvent) {
           sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
         });
       } else {
-        // Dragged to a different container — leave the transform in place so the element
-        // stays frozen at the drop location while HMR processes the AST update.
+        // Dragged to a different container OR duplicating
         const containerRect = dropContainer.getBoundingClientRect();
         const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
         const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
+
+        if (e.altKey) {
+          // Revert original element immediately so it doesn't look like it moved
+          dragState.target.style.transform = dragState.origTransform;
+        }
 
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
@@ -778,6 +807,7 @@ function handlePointerUp(e: PointerEvent) {
             x: newLeft,
             y: newTop,
             targetLayoutMode: layoutMode,
+            isDuplicate: e.altKey,
           },
         }));
 
@@ -790,20 +820,42 @@ function handlePointerUp(e: PointerEvent) {
       const newLeft = dragState.origLeft + dx;
       const newTop = dragState.origTop + dy;
 
-      // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
-      dragState.target.style.left = `${newLeft}px`;
-      dragState.target.style.top = `${newTop}px`;
+      if (e.altKey && sketchpadId && sourceFrameId && draggedBlockId) {
+        window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
+          detail: {
+            sketchpadId,
+            sourceFrameId,
+            targetFrameId: sourceFrameId,
+            draggedBlockId,
+            targetLocatorId: null,
+            targetBlockId: null,
+            isFrameTarget: true,
+            x: newLeft,
+            y: newTop,
+            targetLayoutMode: 'absolute',
+            isDuplicate: true,
+          },
+        }));
+      } else {
+        // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
+        dragState.target.style.left = `${newLeft}px`;
+        dragState.target.style.top = `${newTop}px`;
 
-      if (sketchpadId && sourceFrameId && draggedBlockId) {
-        postApi('/__sketchpad-update-element-position', {
-          sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
-        });
+        if (sketchpadId && sourceFrameId && draggedBlockId) {
+          postApi('/__sketchpad-update-element-position', {
+            sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
+          });
+        }
       }
     }
   }
 
   clearCurrentDropTarget();
   dragState = null;
+  if (ghostEl) {
+    ghostEl.remove();
+    ghostEl = null;
+  }
 }
 
 function handleClick(e: MouseEvent) {
@@ -833,6 +885,10 @@ function handleDoubleClick(e: MouseEvent) {
 }
 
 function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Alt' && dragState) {
+    updateGhost(true);
+  }
+
   // Ignore when typing in inputs
   const active = document.activeElement as HTMLElement | null;
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' ||
@@ -867,6 +923,12 @@ function handleKeyDown(e: KeyboardEvent) {
       }
     });
     clearSelection();
+  }
+}
+
+function handleKeyUp(e: KeyboardEvent) {
+  if (e.key === 'Alt') {
+    updateGhost(false);
   }
 }
 
@@ -905,6 +967,7 @@ function init() {
   document.addEventListener('click', handleClick, true);
   document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
+  window.addEventListener('keyup', handleKeyUp, true);
   window.addEventListener('message', handleParentMessage);
 
   // Allow SketchpadApp to programmatically select an element by blockId

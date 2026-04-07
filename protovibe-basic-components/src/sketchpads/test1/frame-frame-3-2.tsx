@@ -47,22 +47,12 @@ export default function Frame3() {
       </div>
       {/* pv-block-end:xn7mdg */}
 
-      {/* pv-block-start:fn7w4v */}
-          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 531, top: 137 }}>
-          {/* pv-editable-zone-start:bla8ry */}
-          {/* pv-block-start:rasx0h */}
-          <Button data-pv-block="rasx0h" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:rasx0h */}
-          {/* pv-editable-zone-end:bla8ry */}
-          </div>
-          {/* pv-block-end:fn7w4v */}
-
       {/* pv-block-start:c587un */}
-        <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 114, top: 283 }}/>
+        <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 111, top: 337 }}/>
         {/* pv-block-end:c587un */}
       
       {/* pv-block-start:ri3omq */}
-      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 58, top: 40, width: 415 }}>
+      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 54, top: 80, width: 415 }}>
         {/* pv-editable-zone-start:duvsah */}
         {/* pv-block-start:wjkjlt */}
         <div data-pv-block="wjkjlt" className="flex flex-col gap-2" data-pv-sketchpad-el="wjkjlt" style={{ position: 'absolute', left: 17, top: 18 }}>
@@ -92,17 +82,25 @@ export default function Frame3() {
         {/* pv-block-end:d9hg1z */}
 
         {/* pv-block-start:6lxa53 */}
-      <Rectangle data-pv-block="6lxa53" data-pv-sketchpad-el="6lxa53"  style={{ position: 'absolute', left: 30, top: 121, height: 38, width: 235 }}>
+      <Rectangle data-pv-block="6lxa53" data-pv-sketchpad-el="6lxa53"  style={{ position: 'absolute', left: 121, top: 116, height: 38, width: 235 }}>
         {/* pv-editable-zone-start:csc7wf */}
         {/* pv-editable-zone-end:csc7wf */}
       </Rectangle>
       {/* pv-block-end:6lxa53 */}
+
+        {/* pv-block-start:drkol8 */}
+      <Button data-pv-block="drkol8" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="drkol8" style={{ position: 'absolute', left: 31, top: 130 }}/>
+      {/* pv-block-end:drkol8 */}
+
+        {/* pv-block-start:vumf74 */}
+      <Button data-pv-block="vumf74" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="vumf74" style={{ position: 'absolute', left: 285, top: 36 }}/>
+      {/* pv-block-end:vumf74 */}
         {/* pv-editable-zone-end:duvsah */}
       </Rectangle>
       {/* pv-block-end:ri3omq */}
       
       {/* pv-block-start:yeg1ow */}
-            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 403, top: 274, width: 256 }}>
+            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 510, top: 135, width: 256 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
               {/* pv-block-start:1r4vha */}
                 <div data-pv-block="1r4vha" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
@@ -132,10 +130,6 @@ export default function Frame3() {
                 <Badge data-pv-block="ttp0x0" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
                 {/* pv-block-end:ttp0x0 */}
 
-              {/* pv-block-start:kqae4n */}
-      <Button data-pv-block="kqae4n" label="Button" variant="solid" color="primary" size="md"  />
-      {/* pv-block-end:kqae4n */}
-
               {/* pv-block-start:aow6j7 */}
                   <div className="flex flex-col min-h-4" data-pv-block="aow6j7">
                   Test
@@ -150,6 +144,18 @@ export default function Frame3() {
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
             {/* pv-block-end:yeg1ow */}
+      
+      {/* pv-block-start:ismtaz */}
+      <Button data-pv-block="ismtaz" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="ismtaz" style={{ position: 'absolute', left: 239, top: 338 }}/>
+      {/* pv-block-end:ismtaz */}
+      
+      {/* pv-block-start:6y2bx4 */}
+      <Button data-pv-block="6y2bx4" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="6y2bx4" style={{ position: 'absolute', left: 524, top: 448 }}/>
+      {/* pv-block-end:6y2bx4 */}
+      
+      {/* pv-block-start:nze8tq */}
+      <Button data-pv-block="nze8tq" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="nze8tq" style={{ position: 'absolute', left: 372, top: 365 }}/>
+      {/* pv-block-end:nze8tq */}
       {/* pv-editable-zone-end:b399cq */}
     </div>
   );
