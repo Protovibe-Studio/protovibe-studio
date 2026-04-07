@@ -16,7 +16,7 @@ export default function Frame3() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:b399cq */}
       {/* pv-block-start:xn7mdg */}
-      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 75, top: 371 }}>
+      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 79, top: 432 }}>
         {/* pv-editable-zone-start:ni67pr */}
         {/* pv-block-start:m1moro */}
         <Avatar data-pv-block="m1moro" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
@@ -48,14 +48,11 @@ export default function Frame3() {
       {/* pv-block-end:xn7mdg */}
 
       {/* pv-block-start:fn7w4v */}
-          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 546, top: 72 }}>
+          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 531, top: 137 }}>
           {/* pv-editable-zone-start:bla8ry */}
           {/* pv-block-start:rasx0h */}
           <Button data-pv-block="rasx0h" label="Button" variant="solid" color="primary" size="md" />
           {/* pv-block-end:rasx0h */}
-          {/* pv-block-start:xdn4xb */}
-          <Button data-pv-block="xdn4xb" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:xdn4xb */}
           {/* pv-editable-zone-end:bla8ry */}
           </div>
           {/* pv-block-end:fn7w4v */}
@@ -105,7 +102,7 @@ export default function Frame3() {
       {/* pv-block-end:ri3omq */}
       
       {/* pv-block-start:yeg1ow */}
-            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 330, top: 288, width: 256 }}>
+            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 403, top: 274, width: 256 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
               {/* pv-block-start:1r4vha */}
                 <div data-pv-block="1r4vha" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
@@ -139,13 +136,17 @@ export default function Frame3() {
       <Button data-pv-block="kqae4n" label="Button" variant="solid" color="primary" size="md"  />
       {/* pv-block-end:kqae4n */}
 
-                {/* pv-block-start:4d0ssj */}
-                <div className="flex flex-col min-h-4" data-pv-block="4d0ssj">
+              {/* pv-block-start:aow6j7 */}
+                  <div className="flex flex-col min-h-4" data-pv-block="aow6j7">
                   Test
-                  {/* pv-editable-zone-start:inside-4d0ssj */}
-                  {/* pv-editable-zone-end:inside-4d0ssj */}
-                </div>
-                {/* pv-block-end:4d0ssj */}
+                  {/* pv-editable-zone-start:inside-aow6j7 */}
+                  {/* pv-editable-zone-end:inside-aow6j7 */}
+                  </div>
+                  {/* pv-block-end:aow6j7 */}
+
+              {/* pv-block-start:7jqt2x */}
+                  <Button data-pv-block="7jqt2x" label="Button" variant="solid" color="primary" size="md" />
+                  {/* pv-block-end:7jqt2x */}
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
             {/* pv-block-end:yeg1ow */}

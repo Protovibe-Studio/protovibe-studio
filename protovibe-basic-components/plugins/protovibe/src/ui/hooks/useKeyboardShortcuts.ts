@@ -17,7 +17,8 @@ import {
 export function useKeyboardShortcuts() {
   const { 
     inspectorOpen, 
-    currentBaseTarget, 
+    currentBaseTarget,
+    selectedTargets,
     activeSourceId,
     activeData,
     refreshActiveData,
@@ -185,7 +186,41 @@ export function useKeyboardShortcuts() {
         }
       }
 
-      // 3. Delete or Move Block
+      // 3. Wrap Block(s) — Shift+A
+      if (e.shiftKey && e.key === 'A') {
+        if (!activeData?.file) return;
+        const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+        const blockIds = [...new Set(
+          targets
+            .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+            .filter(Boolean) as string[]
+        )];
+        if (blockIds.length === 0) {
+          emitToast({ message: "Can't wrap this element", variant: 'error' });
+          return;
+        }
+        const isNested = targets.some(t1 => targets.some(t2 => t1 !== t2 && t1.contains(t2)));
+        if (isNested) {
+          emitToast({ message: "Can't wrap these elements", variant: 'error' });
+          return;
+        }
+        e.preventDefault();
+        const targetLayoutMode = currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+        const res = await runLockedMutation(async () => {
+          await takeSnapshot(activeData.file, activeSourceId!);
+          const response = await fetch('/__wrap-blocks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: activeData.file, blockIds, targetLayoutMode }),
+          });
+          if (!response.ok) throw new Error('Failed to wrap blocks');
+          return await response.json();
+        });
+        if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
+        return;
+      }
+
+      // 4. Delete or Move Block
       if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '[' || e.key === ']') {
         const closestBlock = currentBaseTarget.closest('[data-pv-block]');
         const blockId = closestBlock?.getAttribute('data-pv-block');
@@ -216,7 +251,7 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // 4. Traversal
+      // 5. Traversal
       const handleNavigate = (newTarget: HTMLElement | null) => {
         if (newTarget) {
           e.preventDefault();
