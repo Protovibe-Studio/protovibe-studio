@@ -6,6 +6,10 @@ import { SuperLabel } from '@/components/ui/super-label';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar } from '@/components/ui/avatar'
+import { Card } from '@/components/ui/card'
+import { Icon } from '@/components/ui/icon'
+import { TextBlock } from '@/components/ui/text-block'
+import { Badge } from '@/components/ui/badge'
 
 export default function Frame4() {
   return (
@@ -19,7 +23,7 @@ export default function Frame4() {
       {/* pv-block-end:qndewo */}
       
       {/* pv-block-start:lv8rzw */}
-      <div data-pv-block="lv8rzw" className="flex flex-col gap-2" data-pv-sketchpad-el="lv8rzw" style={{ position: 'absolute', width: 374, left: 111, top: 97 }}>
+      <div data-pv-block="lv8rzw" className="flex flex-col gap-2" data-pv-sketchpad-el="lv8rzw" style={{ position: 'absolute', width: 401, left: 61, top: 58 }}>
         {/* pv-editable-zone-start:i7bwgp */}
         {/* pv-block-start:yzabkm */}
       <SuperLabel secondaryText="Uważaj co wpisujesz!" heading="Wybierz co tam chcesz!" data-pv-block="yzabkm" primaryText=""  />
@@ -31,22 +35,52 @@ export default function Frame4() {
         {/* pv-block-start:hnanzk */}
         <Button data-pv-block="hnanzk" label="Button" variant="solid" color="primary" size="md" />
         {/* pv-block-end:hnanzk */}
+
+        {/* pv-block-start:f61y5m */}
+      <div data-pv-block="f61y5m" className="flex gap-2 flex-row" >
+        {/* pv-editable-zone-start:e0x6wo */}
+        {/* pv-block-start:szmlt9 */}
+        <Avatar data-pv-block="szmlt9" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:szmlt9 */}
+        {/* pv-block-start:z7lprl */}
+        <Avatar data-pv-block="z7lprl" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:z7lprl */}
+        {/* pv-editable-zone-end:e0x6wo */}
+      </div>
+      {/* pv-block-end:f61y5m */}
         {/* pv-editable-zone-end:i7bwgp */}
       </div>
       {/* pv-block-end:lv8rzw */}
+
+      {/* pv-block-start:scxs8b */}
+      <div data-pv-block="scxs8b" className="flex flex-col gap-2" data-pv-sketchpad-el="scxs8b" style={{ position: 'absolute', left: 78, top: 377, width: 287 }}>
+        {/* pv-editable-zone-start:i7bwgp */}
+        {/* pv-block-start:f4pt37 */}
+      <SuperLabel secondaryText="Uważaj co wpisujesz!" heading="Wybierz co tam chcesz!" data-pv-block="f4pt37" primaryText=""  />
+      {/* pv-block-end:f4pt37 */}
+        {/* pv-block-start:4mqcma */}
+        <Input data-pv-block="4mqcma" placeholder="Enter text..."  />
+        {/* pv-block-end:4mqcma */}
+        {/* pv-editable-zone-end:i7bwgp */}
+      </div>
+      {/* pv-block-end:scxs8b */}
       
-      {/* pv-block-start:1a41sf */}
-      <div data-pv-block="1a41sf" className="flex flex-col gap-2" data-pv-sketchpad-el="1a41sf" style={{ position: 'absolute', left: 92, top: 299 }}>
+      {/* pv-block-start:txjw3m */}
+        <Button data-pv-block="txjw3m" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="txjw3m" style={{ position: 'absolute', left: 59, top: 289 }}/>
+        {/* pv-block-end:txjw3m */}
+      
+      {/* pv-block-start:m3347o */}
+      <div data-pv-block="m3347o" className="flex gap-2 flex-row"  data-pv-sketchpad-el="m3347o" style={{ position: 'absolute', left: 569, top: 74 }}>
         {/* pv-editable-zone-start:e0x6wo */}
-        {/* pv-block-start:8uh2vh */}
-        <Avatar data-pv-block="8uh2vh" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:8uh2vh */}
-        {/* pv-block-start:fn5ugj */}
-        <Avatar data-pv-block="fn5ugj" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:fn5ugj */}
+        {/* pv-block-start:g6s64f */}
+        <Avatar data-pv-block="g6s64f" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:g6s64f */}
+        {/* pv-block-start:yrq73t */}
+        <Avatar data-pv-block="yrq73t" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:yrq73t */}
         {/* pv-editable-zone-end:e0x6wo */}
       </div>
-      {/* pv-block-end:1a41sf */}
+      {/* pv-block-end:m3347o */}
       {/* pv-editable-zone-end:6g9nd2 */}
     </div>
   );

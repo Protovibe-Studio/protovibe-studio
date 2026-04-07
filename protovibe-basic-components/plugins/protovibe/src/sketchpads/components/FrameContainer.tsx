@@ -80,8 +80,8 @@ export function FrameContainer({
       if (!isDragging || !frameRef.current) return;
       const dx = (e.clientX - dragStartRef.current.x) / zoom;
       const dy = (e.clientY - dragStartRef.current.y) / zoom;
-      frameRef.current.style.left = `${dragStartRef.current.frameX + dx}px`;
-      frameRef.current.style.top = `${dragStartRef.current.frameY + dy}px`;
+      // GPU-accelerated translation during drag
+      frameRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
     },
     [isDragging, zoom],
   );
@@ -91,11 +91,20 @@ export function FrameContainer({
       if (isDragging) {
         setIsDragging(false);
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
         const dx = (e.clientX - dragStartRef.current.x) / zoom;
         const dy = (e.clientY - dragStartRef.current.y) / zoom;
         const newX = dragStartRef.current.frameX + dx;
         const newY = dragStartRef.current.frameY + dy;
 
+        if (frameRef.current) {
+          // Clear the temporary drag transform and immediately set exact left/top to prevent a 1-frame micro-stutter
+          frameRef.current.style.transform = '';
+          frameRef.current.style.left = `${newX}px`;
+          frameRef.current.style.top = `${newY}px`;
+        }
+
+        // Commit the final position to React state
         onMove(frameId, newX, newY);
         onMoveEnd(frameId, newX, newY);
       }

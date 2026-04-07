@@ -26,16 +26,16 @@
           "name": "Frame 3",
           "width": 800,
           "height": 600,
-          "canvasX": 762,
-          "canvasY": -254
+          "canvasX": 810,
+          "canvasY": -306
         },
         {
           "id": "frame-frame-4",
           "name": "Frame 4",
           "width": 800,
           "height": 600,
-          "canvasX": 1687,
-          "canvasY": -227
+          "canvasX": 1861,
+          "canvasY": -279
         }
       ]
     },

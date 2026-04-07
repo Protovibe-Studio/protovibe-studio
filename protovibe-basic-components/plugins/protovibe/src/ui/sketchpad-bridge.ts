@@ -427,6 +427,65 @@ function notifyInspector(primaryTarget: HTMLElement) {
 
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
+let pointerMoveRafId: number | null = null;
+let latestClientX = 0;
+let latestClientY = 0;
+
+function applyPointerMoveUpdate() {
+  pointerMoveRafId = null;
+
+  // Handle resize
+  if (resizeState) {
+    const zoom = getCanvasZoom();
+    const dx = (latestClientX - resizeState.startX) / zoom;
+    const dy = (latestClientY - resizeState.startY) / zoom;
+    const edge = resizeState.edge;
+
+    // Width changes
+    if (edge.includes('e')) {
+      resizeState.target.style.width = `${Math.max(20, Math.round(resizeState.origWidth + dx))}px`;
+    } else if (edge.includes('w')) {
+      const delta = Math.min(dx, resizeState.origWidth - 20);
+      resizeState.target.style.width = `${Math.round(resizeState.origWidth - delta)}px`;
+      resizeState.target.style.left = `${Math.round(resizeState.origLeft + delta)}px`;
+    }
+
+    // Height changes
+    if (edge.includes('s')) {
+      resizeState.target.style.height = `${Math.max(20, Math.round(resizeState.origHeight + dy))}px`;
+    } else if (edge.includes('n')) {
+      const delta = Math.min(dy, resizeState.origHeight - 20);
+      resizeState.target.style.height = `${Math.round(resizeState.origHeight - delta)}px`;
+      resizeState.target.style.top = `${Math.round(resizeState.origTop + delta)}px`;
+    }
+    return;
+  }
+
+  // Handle drag
+  if (dragState) {
+    const zoom = getCanvasZoom();
+    const dx = (latestClientX - dragState.startX) / zoom;
+    const dy = (latestClientY - dragState.startY) / zoom;
+
+    if (!dragState.moved) {
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      dragState.moved = true;
+      setForcedCursor('grabbing');
+      dragState.target.style.transition = 'none';
+      dragState.target.style.zIndex = '2147483647';
+    }
+
+    // Universally use GPU-accelerated transform for BOTH flow and absolute elements during drag
+    const existingTransform = dragState.origTransform && dragState.origTransform !== 'none'
+      ? dragState.origTransform + ' '
+      : '';
+    dragState.target.style.transform = `${existingTransform}translate(${dx}px, ${dy}px)`;
+
+    const dropContainer = findDropContainerAtPoint(latestClientX, latestClientY, dragState.target);
+    setCurrentDropTarget(dropContainer);
+  }
+}
+
 function handlePointerDown(e: PointerEvent) {
   window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
 
@@ -539,66 +598,21 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handlePointerMove(e: PointerEvent) {
-  // Handle resize
-  if (resizeState && e.pointerId === resizeState.pointerId) {
+  if ((resizeState && e.pointerId === resizeState.pointerId) ||
+      (dragState && e.pointerId === dragState.pointerId)) {
     e.preventDefault();
     e.stopPropagation();
-    const zoom = getCanvasZoom();
-    const dx = (e.clientX - resizeState.startX) / zoom;
-    const dy = (e.clientY - resizeState.startY) / zoom;
-    const edge = resizeState.edge;
 
-    // Width changes
-    if (edge.includes('e')) {
-      resizeState.target.style.width = `${Math.max(20, Math.round(resizeState.origWidth + dx))}px`;
-    } else if (edge.includes('w')) {
-      const delta = Math.min(dx, resizeState.origWidth - 20);
-      resizeState.target.style.width = `${Math.round(resizeState.origWidth - delta)}px`;
-      resizeState.target.style.left = `${Math.round(resizeState.origLeft + delta)}px`;
-    }
+    latestClientX = e.clientX;
+    latestClientY = e.clientY;
 
-    // Height changes
-    if (edge.includes('s')) {
-      resizeState.target.style.height = `${Math.max(20, Math.round(resizeState.origHeight + dy))}px`;
-    } else if (edge.includes('n')) {
-      const delta = Math.min(dy, resizeState.origHeight - 20);
-      resizeState.target.style.height = `${Math.round(resizeState.origHeight - delta)}px`;
-      resizeState.target.style.top = `${Math.round(resizeState.origTop + delta)}px`;
+    if (pointerMoveRafId === null) {
+      pointerMoveRafId = requestAnimationFrame(applyPointerMoveUpdate);
     }
     return;
   }
 
-  if (dragState && e.pointerId === dragState.pointerId) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const zoom = getCanvasZoom();
-    const dx = (e.clientX - dragState.startX) / zoom;
-    const dy = (e.clientY - dragState.startY) / zoom;
-
-    if (!dragState.moved) {
-      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
-      dragState.moved = true;
-      setForcedCursor('grabbing');
-      dragState.target.style.transition = 'none';
-      dragState.target.style.zIndex = '2147483647';
-    }
-
-    if (dragState.isFlow) {
-      // Visually translate flow elements on the canvas
-      dragState.target.style.transform = `translate(${dx}px, ${dy}px)`;
-    } else {
-      // Standard position updates for absolute elements
-      dragState.target.style.left = `${Math.round(dragState.origLeft + dx)}px`;
-      dragState.target.style.top = `${Math.round(dragState.origTop + dy)}px`;
-    }
-
-    const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
-    setCurrentDropTarget(dropContainer);
-    return;
-  }
-
-  // Hover (only when not dragging)
+  // Hover (only when not dragging/resizing)
   const path = getInspectablePath(e.target);
   let hoverTarget: HTMLElement | null = null;
 
@@ -641,6 +655,15 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function handlePointerUp(e: PointerEvent) {
+  // Force final sync of coordinates if a frame is pending
+  if (pointerMoveRafId !== null) {
+    cancelAnimationFrame(pointerMoveRafId);
+    pointerMoveRafId = null;
+    latestClientX = e.clientX;
+    latestClientY = e.clientY;
+    applyPointerMoveUpdate();
+  }
+
   // Handle resize end
   if (resizeState && e.pointerId === resizeState.pointerId) {
     e.preventDefault();
@@ -694,11 +717,10 @@ function handlePointerUp(e: PointerEvent) {
   // Capture the bounding rect BEFORE resetting the transform so we know where it was dropped
   const draggedRect = dragState.target.getBoundingClientRect();
 
-  if (dragState.isFlow) {
-    dragState.target.style.transform = dragState.origTransform; // Remove visual translate
-  }
-
-  if (dragState.moved) {
+  if (!dragState.moved) {
+    // No actual movement — revert transform and bail
+    dragState.target.style.transform = dragState.origTransform;
+  } else if (dragState.moved) {
     const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
     clearCurrentDropTarget();
 
@@ -709,23 +731,35 @@ function handlePointerUp(e: PointerEvent) {
 
     const currentContainer = dragState.target.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
 
+    // Calculate final drop delta
+    const zoom = getCanvasZoom();
+    const dx = (e.clientX - dragState.startX) / zoom;
+    const dy = (e.clientY - dragState.startY) / zoom;
+
     if (sketchpadId && draggedBlockId && sourceFrameId && targetFrameId && dropContainer && dropContainer !== dragState.target) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
-      
+
       if (dragState.isFlow && dropContainer === currentContainer) {
-        // Dropped inside its own flow container -> transform revert handles this cleanly.
+        // Dropped inside its own flow container -> revert transform cleanly.
+        dragState.target.style.transform = dragState.origTransform;
       } else if (!dragState.isFlow && sourceFrameId === targetFrameId && isFrameTarget) {
-        // Same-frame absolute move
-        const newLeft = parseFloat(dragState.target.style.left) || 0;
-        const newTop = parseFloat(dragState.target.style.top) || 0;
+        // Same-frame absolute move - revert transform, then immediately pin final left/top
+        dragState.target.style.transform = dragState.origTransform;
+        const newLeft = dragState.origLeft + dx;
+        const newTop = dragState.origTop + dy;
+
+        // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
+        dragState.target.style.left = `${newLeft}px`;
+        dragState.target.style.top = `${newTop}px`;
+
         postApi('/__sketchpad-update-element-position', {
           sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
         });
       } else {
-        // Dragged to a different container, OR a flow element being moved somewhere else
+        // Dragged to a different container — leave the transform in place so the element
+        // stays frozen at the drop location while HMR processes the AST update.
         const containerRect = dropContainer.getBoundingClientRect();
-        const zoom = getCanvasZoom();
         const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
         const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
 
@@ -752,8 +786,13 @@ function handlePointerUp(e: PointerEvent) {
       }
     } else if (!dragState.isFlow) {
       // Fallback for same-frame move on empty canvas
-      const newLeft = parseFloat(dragState.target.style.left) || 0;
-      const newTop = parseFloat(dragState.target.style.top) || 0;
+      dragState.target.style.transform = dragState.origTransform;
+      const newLeft = dragState.origLeft + dx;
+      const newTop = dragState.origTop + dy;
+
+      // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
+      dragState.target.style.left = `${newLeft}px`;
+      dragState.target.style.top = `${newTop}px`;
 
       if (sketchpadId && sourceFrameId && draggedBlockId) {
         postApi('/__sketchpad-update-element-position', {

@@ -24,100 +24,15 @@ export default function Frame2() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:hxwp0f */}
-      {/* pv-block-start:qqn3dn */}
-            <Card data-pv-block="qqn3dn" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="qqn3dn" style={{ position: 'absolute', width: 256, left: 113, top: 129 }}>
-              {/* pv-editable-zone-start:c8d9e1 */}
-              {/* pv-block-start:58adeb */}
-                <div data-pv-block="58adeb" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
-                  {/* pv-editable-zone-start:i5j6k7 */}
-                    {/* pv-block-start:f5s2st */}
-                    <Icon data-pv-block="f5s2st" name="Users" size="sm" />
-                    {/* pv-block-end:f5s2st */}
-                    {/* pv-block-start:kgex7n */}
-                    <TextBlock data-pv-block="kgex7n" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
-                    {/* pv-block-end:kgex7n */}
-                  {/* pv-editable-zone-end:i5j6k7 */}
-                </div>
-                {/* pv-block-end:58adeb */}
-
-                {/* pv-block-start:fg76az */}
-                <div className="flex flex-col min-h-4" data-pv-block="fg76az">
-                  {/* pv-editable-zone-start:inside-fg76az */}
-                  {/* pv-editable-zone-end:inside-fg76az */}
-                </div>
-                {/* pv-block-end:fg76az */}
-
-              {/* pv-block-start:4peq2b */}
-      <SuperLabel heading="Test" data-pv-block="4peq2b" primaryText="Label"  />
-      {/* pv-block-end:4peq2b */}
-
-              {/* pv-block-start:forrs6 */}
-                <Badge data-pv-block="forrs6" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
-                {/* pv-block-end:forrs6 */}
-
-              {/* pv-block-start:maw5ms */}
-      <Button data-pv-block="maw5ms" label="Button" variant="solid" color="primary" size="md"  />
-      {/* pv-block-end:maw5ms */}
-
-                {/* pv-block-start:jol8rt */}
-                <div className="flex flex-col min-h-4" data-pv-block="jol8rt">
-                  Test
-                  {/* pv-editable-zone-start:inside-jol8rt */}
-                  {/* pv-editable-zone-end:inside-jol8rt */}
-                </div>
-                {/* pv-block-end:jol8rt */}
-              {/* pv-editable-zone-end:c8d9e1 */}
-            </Card>
-            {/* pv-block-end:qqn3dn */}
-
-      {/* pv-block-start:aac2v5 */}
-            <Card data-pv-block="aac2v5" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="aac2v5" style={{ position: 'absolute', left: 490, top: 45, width: 206 }}>
-              {/* pv-editable-zone-start:c8d9e1 */}
-                {/* pv-block-start:pgsa7t */}
-                <div data-pv-block="pgsa7t" className="flex items-center gap-3 mb-2 text-foreground-secondary">
-                  {/* pv-editable-zone-start:i5j6k7 */}
-                    {/* pv-block-start:tjb27b */}
-                    <TextBlock data-pv-block="tjb27b" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
-                    {/* pv-block-end:tjb27b */}
-                  {/* pv-editable-zone-end:i5j6k7 */}
-                </div>
-                {/* pv-block-end:pgsa7t */}
-                {/* pv-block-start:zqhd2f */}
-                <TextBlock data-pv-block="zqhd2f" typography="heading-xxl" className="mb-2">142</TextBlock>
-                {/* pv-block-end:zqhd2f */}
-
-              {/* pv-block-start:n7lm06 */}
-                    <RadioGroup data-pv-block="n7lm06" orientation="vertical" value="opt1">
-                      {/* pv-editable-zone-start:5sm697 */}
-                        {/* pv-block-start:rp26ok */}
-                        <RadioItem data-pv-block="rp26ok" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                        {/* pv-block-end:rp26ok */}
-                        {/* pv-block-start:7isxwo */}
-                        <RadioItem data-pv-block="7isxwo" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                        {/* pv-block-end:7isxwo */}
-                        {/* pv-block-start:74dvpv */}
-                        <RadioItem data-pv-block="74dvpv" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                        {/* pv-block-end:74dvpv */}
-                      {/* pv-editable-zone-end:5sm697 */}
-                    </RadioGroup>
-                    {/* pv-block-end:n7lm06 */}
-
-              {/* pv-block-start:x4hugl */}
-                <Badge data-pv-block="x4hugl" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
-                {/* pv-block-end:x4hugl */}
-              {/* pv-editable-zone-end:c8d9e1 */}
-            </Card>
-            {/* pv-block-end:aac2v5 */}
-      
       {/* pv-block-start:f7lfn7 */}
-      <InfoBoxBanner data-pv-block="f7lfn7" data-pv-sketchpad-el="f7lfn7" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} style={{ position: 'absolute', left: 100, top: 540 }}>
+      <InfoBoxBanner data-pv-block="f7lfn7" data-pv-sketchpad-el="f7lfn7" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} style={{ position: 'absolute', left: 52, top: 540 }}>
         {/* pv-editable-zone-start:17kg7f */}
         {/* pv-editable-zone-end:17kg7f */}
       </InfoBoxBanner>
       {/* pv-block-end:f7lfn7 */}
 
       {/* pv-block-start:iq38ka */}
-      <SuperLabel heading="Dupa" data-pv-block="iq38ka" data-pv-sketchpad-el="iq38ka" primaryText="Label" style={{ position: 'absolute', left: 75, top: 493 }} />
+      <SuperLabel heading="Dupa" data-pv-block="iq38ka" data-pv-sketchpad-el="iq38ka" primaryText="Label" style={{ position: 'absolute', width: 179, left: 118, top: 414 }} />
       {/* pv-block-end:iq38ka */}
       
       {/* pv-block-start:5ybvj3 */}
@@ -127,28 +42,6 @@ export default function Frame2() {
       </Rectangle>
       {/* pv-block-end:5ybvj3 */}
 
-      {/* pv-block-start:hmhzu9 */}
-      <Rectangle data-pv-block="hmhzu9" data-pv-sketchpad-el="hmhzu9"  style={{ position: 'absolute', height: 171, width: 262, left: 495, top: 413 }}>
-        {/* pv-editable-zone-start:x4yctj */}
-        {/* pv-block-start:12g1xo */}
-      <Tabs data-pv-block="12g1xo" data-pv-sketchpad-el="12g1xo" value="tab1" style={{ position: 'absolute', left: 22, top: 20 }}>
-        {/* pv-editable-zone-start:47jhz6 */}
-          {/* pv-block-start:2aec45 */}
-          <TabItem data-pv-block="2aec45" label="Tab 1" value="tab1" />
-          {/* pv-block-end:2aec45 */}
-          {/* pv-block-start:8yuw5u */}
-          <TabItem data-pv-block="8yuw5u" label="Tab 2" value="tab2" />
-          {/* pv-block-end:8yuw5u */}
-          {/* pv-block-start:wwp4v0 */}
-          <TabItem data-pv-block="wwp4v0" label="Tab 3" value="tab3" />
-          {/* pv-block-end:wwp4v0 */}
-        {/* pv-editable-zone-end:47jhz6 */}
-      </Tabs>
-      {/* pv-block-end:12g1xo */}
-        {/* pv-editable-zone-end:x4yctj */}
-      </Rectangle>
-      {/* pv-block-end:hmhzu9 */}
-      
       {/* pv-block-start:16xx1w */}
       <Rectangle data-pv-block="16xx1w" data-pv-sketchpad-el="16xx1w"  style={{ position: 'absolute', left: 50, top: 171 }}>
         {/* pv-editable-zone-start:znd5i5 */}
@@ -162,13 +55,6 @@ export default function Frame2() {
         {/* pv-editable-zone-end:csc7wf */}
       </Rectangle>
       {/* pv-block-end:cwlx0h */}
-      
-      {/* pv-block-start:zb8bcv */}
-      <Rectangle data-pv-block="zb8bcv" data-pv-sketchpad-el="zb8bcv"  style={{ position: 'absolute', left: 269, top: 486 }}>
-        {/* pv-editable-zone-start:1n9ihg */}
-        {/* pv-editable-zone-end:1n9ihg */}
-      </Rectangle>
-      {/* pv-block-end:zb8bcv */}
 
       {/* pv-block-start:n2qffv */}
       <Rectangle data-pv-block="n2qffv" data-pv-sketchpad-el="n2qffv"  style={{ position: 'absolute', height: 40, width: 283, left: 169, top: 50 }}>
@@ -192,11 +78,69 @@ export default function Frame2() {
       {/* pv-block-end:3blium */}
 
       {/* pv-block-start:tha28r */}
-      <Rectangle data-pv-block="tha28r" data-pv-sketchpad-el="tha28r" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 50, top: 50 }}>
+      <Rectangle data-pv-block="tha28r" data-pv-sketchpad-el="tha28r" className="w-[200px] h-[200px]" style={{ position: 'absolute', width: 532, height: 235, left: 202, top: 259 }}>
         {/* pv-editable-zone-start:ncq2df */}
+        {/* pv-block-start:i8y5r2 */}
+          <Card data-pv-block="i8y5r2" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 78, top: 166, width: 365 }} data-pv-sketchpad-el="i8y5r2">
+          {/* pv-editable-zone-start:taxyss */}
+          {/* pv-block-start:2uef2p */}
+          <div data-pv-block="2uef2p" className="flex gap-2 flex-row" >
+          {/* pv-editable-zone-start:x6aovb */}
+          {/* pv-editable-zone-end:x6aovb */}
+          </div>
+          {/* pv-block-end:2uef2p */}
+          
+          {/* pv-block-start:aspw66 */}
+          <div className="flex flex-col min-h-4" data-pv-block="aspw66">
+          {/* pv-editable-zone-start:inside-aspw66 */}
+          {/* pv-editable-zone-end:inside-aspw66 */}
+          </div>
+          {/* pv-block-end:aspw66 */}
+          {/* pv-editable-zone-end:taxyss */}
+          </Card>
+          {/* pv-block-end:i8y5r2 */}
         {/* pv-editable-zone-end:ncq2df */}
       </Rectangle>
       {/* pv-block-end:tha28r */}
+      
+      {/* pv-block-start:tscni6 */}
+            <Card data-pv-block="tscni6" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="tscni6" style={{ position: 'absolute', left: 502, top: 17, width: 206 }}>
+              {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:mln1cr */}
+                <div data-pv-block="mln1cr" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:vzgy90 */}
+                    <TextBlock data-pv-block="vzgy90" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    {/* pv-block-end:vzgy90 */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:mln1cr */}
+                {/* pv-block-start:jzjxjw */}
+                <TextBlock data-pv-block="jzjxjw" typography="heading-xxl" className="mb-2">142</TextBlock>
+                {/* pv-block-end:jzjxjw */}
+
+              {/* pv-block-start:jeytoi */}
+                    <RadioGroup data-pv-block="jeytoi" orientation="vertical" value="opt1">
+                      {/* pv-editable-zone-start:5sm697 */}
+                        {/* pv-block-start:e1a82h */}
+                        <RadioItem data-pv-block="e1a82h" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+                        {/* pv-block-end:e1a82h */}
+                        {/* pv-block-start:069lca */}
+                        <RadioItem data-pv-block="069lca" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+                        {/* pv-block-end:069lca */}
+                        {/* pv-block-start:zs0cuc */}
+                        <RadioItem data-pv-block="zs0cuc" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+                        {/* pv-block-end:zs0cuc */}
+                      {/* pv-editable-zone-end:5sm697 */}
+                    </RadioGroup>
+                    {/* pv-block-end:jeytoi */}
+
+              {/* pv-block-start:7gd011 */}
+                <Badge data-pv-block="7gd011" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                {/* pv-block-end:7gd011 */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:tscni6 */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
   );

@@ -4,119 +4,144 @@ import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar } from '@/components/ui/avatar';
+import { TextBlock } from '@/components/ui/text-block'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Badge } from '@/components/ui/badge'
+import { Icon } from '@/components/ui/icon'
+import { SuperLabel } from '@/components/ui/super-label'
 
 export default function Frame3() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:b399cq */}
-      {/* pv-block-start:yaxdsw */}
-        <div data-pv-block="yaxdsw" className="flex flex-col gap-2" data-pv-sketchpad-el="yaxdsw" style={{ position: 'absolute', left: 301, top: 287 }}>
-          {/* pv-editable-zone-start:2iatij */}
-          {/* pv-block-start:7bn38j */}
-          <div data-pv-block="7bn38j" className="flex flex-col gap-2" >
-          {/* pv-editable-zone-start:qubfhb */}
-          {/* pv-block-start:1pn92h */}
-          <div data-pv-block="1pn92h" className="flex flex-col gap-10" >
-          {/* pv-editable-zone-start:c2rycc */}
-          {/* pv-block-start:y36krk */}
-          <Button data-pv-block="y36krk" label="Button" variant="solid" color="primary" size="md"  />
-          {/* pv-block-end:y36krk */}
-          {/* pv-editable-zone-end:c2rycc */}
-          </div>
-          {/* pv-block-end:1pn92h */}
-          {/* pv-block-start:ez9n6g */}
-          <div data-pv-block="ez9n6g" className="flex flex-col gap-10" >
-          {/* pv-editable-zone-start:c2rycc */}
-          {/* pv-block-start:slb28e */}
-          <Button data-pv-block="slb28e" label="Button" variant="solid" color="primary" size="md"  />
-          {/* pv-block-end:slb28e */}
-          {/* pv-editable-zone-end:c2rycc */}
-          </div>
-          {/* pv-block-end:ez9n6g */}
-          {/* pv-editable-zone-end:qubfhb */}
-          </div>
-          {/* pv-block-end:7bn38j */}
-          {/* pv-block-start:ea2u73 */}
-          <Card data-pv-block="ea2u73" variant="bordered" shadow="none" border="default" style={{ width: 365 }}>
-          {/* pv-editable-zone-start:taxyss */}
-          {/* pv-block-start:mbnudg */}
-          <div data-pv-block="mbnudg" className="flex flex-col gap-2">
-          {/* pv-editable-zone-start:bla8ry */}
-          {/* pv-block-start:dhmpzm */}
-          <Button data-pv-block="dhmpzm" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:dhmpzm */}
-          {/* pv-block-start:ym0xe7 */}
-          <Button data-pv-block="ym0xe7" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:ym0xe7 */}
-          {/* pv-editable-zone-end:bla8ry */}
-          </div>
-          {/* pv-block-end:mbnudg */}
-          
-          {/* pv-block-start:5cicpj */}
-          <div data-pv-block="5cicpj" className="flex gap-2 flex-row" >
-          {/* pv-editable-zone-start:x6aovb */}
-          {/* pv-editable-zone-end:x6aovb */}
-          </div>
-          {/* pv-block-end:5cicpj */}
-          
-          {/* pv-block-start:iad00c */}
-          <div className="flex flex-col min-h-4" data-pv-block="iad00c">
-          {/* pv-editable-zone-start:inside-iad00c */}
-          {/* pv-editable-zone-end:inside-iad00c */}
-          </div>
-          {/* pv-block-end:iad00c */}
-          {/* pv-editable-zone-end:taxyss */}
-          </Card>
-          {/* pv-block-end:ea2u73 */}
-          {/* pv-editable-zone-end:2iatij */}
-        </div>
-        {/* pv-block-end:yaxdsw */}
-      
-      {/* pv-block-start:1iqw1i */}
-      <Rectangle data-pv-block="1iqw1i" data-pv-sketchpad-el="1iqw1i" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 66, top: 53, width: 415 }}>
-        {/* pv-editable-zone-start:duvsah */}
-        {/* pv-block-start:5xsc2z */}
-        <div data-pv-block="5xsc2z" className="flex flex-col gap-2" data-pv-sketchpad-el="5xsc2z" style={{ position: 'absolute', left: 17, top: 18 }}>
-          {/* pv-editable-zone-start:kwz2ry */}
-          {/* pv-editable-zone-end:kwz2ry */}
-        </div>
-        {/* pv-block-end:5xsc2z */}
-
-        {/* pv-block-start:1s6knh */}
-        <div data-pv-block="1s6knh" className="flex flex-col gap-4" data-pv-sketchpad-el="1s6knh" style={{ position: 'absolute', left: 41, top: 24 }}>
-          {/* pv-editable-zone-start:9rdg7j */}
-          {/* pv-editable-zone-end:9rdg7j */}
-        </div>
-        {/* pv-block-end:1s6knh */}
-
-        {/* pv-block-start:5ofe11 */}
-        <div data-pv-block="5ofe11" className="flex flex-col gap-4" data-pv-sketchpad-el="5ofe11" style={{ position: 'absolute', left: 50, top: 26 }}>
-          {/* pv-editable-zone-start:8xrqx0 */}
-          {/* pv-block-start:2fv2vg */}
-          <Checkbox data-pv-block="2fv2vg" primaryText="Accept terms" />
-          {/* pv-block-end:2fv2vg */}
-          {/* pv-block-start:ymny8x */}
-          <Checkbox data-pv-block="ymny8x" primaryText="Accept terms" />
-          {/* pv-block-end:ymny8x */}
-          {/* pv-editable-zone-end:8xrqx0 */}
-        </div>
-        {/* pv-block-end:5ofe11 */}
-        {/* pv-editable-zone-end:duvsah */}
-      </Rectangle>
-      {/* pv-block-end:1iqw1i */}
-      
       {/* pv-block-start:xn7mdg */}
-      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 55, top: 345 }}>
+      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 75, top: 371 }}>
         {/* pv-editable-zone-start:ni67pr */}
         {/* pv-block-start:m1moro */}
         <Avatar data-pv-block="m1moro" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
         {/* pv-block-end:m1moro */}
-        {/* pv-block-start:5z7ffx */}
-        <Avatar data-pv-block="5z7ffx" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:5z7ffx */}
+
+        {/* pv-block-start:zxz1lq */}
+        <div data-pv-block="zxz1lq" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:2iatij */}
+          {/* pv-block-start:c7keys */}
+          <div data-pv-block="c7keys" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:qubfhb */}
+          {/* pv-block-start:hx6ptm */}
+          <div data-pv-block="hx6ptm" className="flex flex-col gap-10" >
+          {/* pv-editable-zone-start:c2rycc */}
+          {/* pv-block-start:720a3j */}
+          <Button data-pv-block="720a3j" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:720a3j */}
+          {/* pv-editable-zone-end:c2rycc */}
+          </div>
+          {/* pv-block-end:hx6ptm */}
+          {/* pv-editable-zone-end:qubfhb */}
+          </div>
+          {/* pv-block-end:c7keys */}
+          {/* pv-editable-zone-end:2iatij */}
+        </div>
+        {/* pv-block-end:zxz1lq */}
         {/* pv-editable-zone-end:ni67pr */}
       </div>
       {/* pv-block-end:xn7mdg */}
+
+      {/* pv-block-start:fn7w4v */}
+          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 552, top: 114 }}>
+          {/* pv-editable-zone-start:bla8ry */}
+          {/* pv-block-start:rasx0h */}
+          <Button data-pv-block="rasx0h" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:rasx0h */}
+          {/* pv-block-start:xdn4xb */}
+          <Button data-pv-block="xdn4xb" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:xdn4xb */}
+          {/* pv-editable-zone-end:bla8ry */}
+          </div>
+          {/* pv-block-end:fn7w4v */}
+
+      {/* pv-block-start:c587un */}
+        <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 114, top: 283 }}/>
+        {/* pv-block-end:c587un */}
+      
+      {/* pv-block-start:ri3omq */}
+      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 58, top: 40, width: 415 }}>
+        {/* pv-editable-zone-start:duvsah */}
+        {/* pv-block-start:wjkjlt */}
+        <div data-pv-block="wjkjlt" className="flex flex-col gap-2" data-pv-sketchpad-el="wjkjlt" style={{ position: 'absolute', left: 17, top: 18 }}>
+          {/* pv-editable-zone-start:kwz2ry */}
+          {/* pv-editable-zone-end:kwz2ry */}
+        </div>
+        {/* pv-block-end:wjkjlt */}
+
+        {/* pv-block-start:8eoc96 */}
+        <div data-pv-block="8eoc96" className="flex flex-col gap-4" data-pv-sketchpad-el="8eoc96" style={{ position: 'absolute', left: 41, top: 24 }}>
+          {/* pv-editable-zone-start:9rdg7j */}
+          {/* pv-editable-zone-end:9rdg7j */}
+        </div>
+        {/* pv-block-end:8eoc96 */}
+
+        {/* pv-block-start:d9hg1z */}
+        <div data-pv-block="d9hg1z" className="flex flex-col gap-4" data-pv-sketchpad-el="d9hg1z" style={{ position: 'absolute', left: 50, top: 26 }}>
+          {/* pv-editable-zone-start:8xrqx0 */}
+          {/* pv-block-start:m2cqiv */}
+          <Checkbox data-pv-block="m2cqiv" primaryText="Accept terms" />
+          {/* pv-block-end:m2cqiv */}
+          {/* pv-block-start:jnbdk7 */}
+          <Checkbox data-pv-block="jnbdk7" primaryText="Accept terms" />
+          {/* pv-block-end:jnbdk7 */}
+          {/* pv-editable-zone-end:8xrqx0 */}
+        </div>
+        {/* pv-block-end:d9hg1z */}
+        {/* pv-editable-zone-end:duvsah */}
+      </Rectangle>
+      {/* pv-block-end:ri3omq */}
+      
+      {/* pv-block-start:yeg1ow */}
+            <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 330, top: 288, width: 256 }}>
+              {/* pv-editable-zone-start:c8d9e1 */}
+              {/* pv-block-start:1r4vha */}
+                <div data-pv-block="1r4vha" className="flex items-center gap-3 mb-2 text-foreground-secondary" >
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:g7w603 */}
+                    <Icon data-pv-block="g7w603" name="Users" size="sm" />
+                    {/* pv-block-end:g7w603 */}
+                    {/* pv-block-start:nk8d96 */}
+                    <TextBlock data-pv-block="nk8d96" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    {/* pv-block-end:nk8d96 */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:1r4vha */}
+
+                {/* pv-block-start:jvp5ts */}
+                <div className="flex flex-col min-h-4" data-pv-block="jvp5ts">
+                  {/* pv-editable-zone-start:inside-jvp5ts */}
+                  {/* pv-editable-zone-end:inside-jvp5ts */}
+                </div>
+                {/* pv-block-end:jvp5ts */}
+
+              {/* pv-block-start:1yo64s */}
+      <SuperLabel heading="Test" data-pv-block="1yo64s" primaryText="Label"  />
+      {/* pv-block-end:1yo64s */}
+
+              {/* pv-block-start:ttp0x0 */}
+                <Badge data-pv-block="ttp0x0" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                {/* pv-block-end:ttp0x0 */}
+
+              {/* pv-block-start:kqae4n */}
+      <Button data-pv-block="kqae4n" label="Button" variant="solid" color="primary" size="md"  />
+      {/* pv-block-end:kqae4n */}
+
+                {/* pv-block-start:4d0ssj */}
+                <div className="flex flex-col min-h-4" data-pv-block="4d0ssj">
+                  Test
+                  {/* pv-editable-zone-start:inside-4d0ssj */}
+                  {/* pv-editable-zone-end:inside-4d0ssj */}
+                </div>
+                {/* pv-block-end:4d0ssj */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:yeg1ow */}
       {/* pv-editable-zone-end:b399cq */}
     </div>
   );
