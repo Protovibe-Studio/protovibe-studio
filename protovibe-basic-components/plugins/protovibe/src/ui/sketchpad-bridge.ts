@@ -90,7 +90,7 @@ function getInspectablePath(start: EventTarget | null): HTMLElement[] {
   const path: HTMLElement[] = [];
   let t = start as HTMLElement | null;
   while (t && t !== document.documentElement) {
-    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id')) {
+    if (t.hasAttribute('data-pv-sketchpad-el') || t.hasAttribute('data-pv-component-id') || t.hasAttribute('data-pv-block')) {
       if (isAppLevel(t) && !isFrameRoot(t)) {
         path.unshift(t);
       }
@@ -156,7 +156,7 @@ function getNearestPvLocId(start: HTMLElement): string | null {
 function findInspectableParent(el: HTMLElement): HTMLElement | null {
   let current = el.parentElement;
   while (current && current !== document.documentElement) {
-    if (current.hasAttribute('data-pv-sketchpad-el') || current.hasAttribute('data-pv-component-id')) {
+    if (current.hasAttribute('data-pv-sketchpad-el') || current.hasAttribute('data-pv-component-id') || current.hasAttribute('data-pv-block')) {
       if (isAppLevel(current) && !isFrameRoot(current)) {
         return current;
       }

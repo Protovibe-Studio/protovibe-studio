@@ -49,7 +49,7 @@ export function isElementAllowed(el: HTMLElement): boolean {
   }
 
   if (env === 'sketchpad') {
-    return el.hasAttribute('data-pv-sketchpad-el') || el.hasAttribute('data-pv-component-id');
+    return el.hasAttribute('data-pv-sketchpad-el') || el.hasAttribute('data-pv-component-id') || el.hasAttribute('data-pv-block');
   }
 
   return false;
