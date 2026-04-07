@@ -7,6 +7,7 @@ import { addBlock, takeSnapshot } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
 import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
+import { emitToast } from '../events/toast';
 
 export const FloatingToolbar: React.FC = () => {
   const {
@@ -116,6 +117,15 @@ export const FloatingToolbar: React.FC = () => {
 
   const handleWrapBlocks = async () => {
     if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+
+    // Check if any selected element is an ancestor/descendant of another selected element
+    const isNested = selectedTargets.some(t1 =>
+      selectedTargets.some(t2 => t1 !== t2 && t1.contains(t2))
+    );
+    if (isNested) {
+      emitToast({ message: "Can't wrap these elements", variant: 'error' });
+      return;
+    }
 
     const targetLayoutMode = currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
 

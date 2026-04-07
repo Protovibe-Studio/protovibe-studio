@@ -26,30 +26,69 @@ export default function Frame3() {
         </div>
         {/* pv-block-end:j8uwhl */}
 
-        {/* pv-block-start:620yoe */}
-      <div data-pv-block="620yoe" className="flex flex-col gap-2" data-pv-sketchpad-el="620yoe" style={{ position: 'absolute', left: 46, top: 100 }}>
-        {/* pv-editable-zone-start:qubfhb */}
-        {/* pv-block-start:zo01w0 */}
-        <div data-pv-block="zo01w0" className="flex flex-col gap-10" >
-        {/* pv-editable-zone-start:c2rycc */}
-        {/* pv-block-start:ygoeyn */}
-        <Button data-pv-block="ygoeyn" label="Button" variant="solid" color="primary" size="md"  />
-        {/* pv-block-end:ygoeyn */}
-        {/* pv-editable-zone-end:c2rycc */}
+        {/* pv-block-start:nbppx3 */}
+        <div data-pv-block="nbppx3" className="flex flex-col gap-2" data-pv-sketchpad-el="nbppx3" style={{ position: 'absolute', left: 296, top: 222 }}>
+          {/* pv-editable-zone-start:2iatij */}
+          {/* pv-block-start:620yoe */}
+          <div data-pv-block="620yoe" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:qubfhb */}
+          {/* pv-block-start:zo01w0 */}
+          <div data-pv-block="zo01w0" className="flex flex-col gap-10" >
+          {/* pv-editable-zone-start:c2rycc */}
+          {/* pv-block-start:ygoeyn */}
+          <Button data-pv-block="ygoeyn" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:ygoeyn */}
+          {/* pv-editable-zone-end:c2rycc */}
+          </div>
+          {/* pv-block-end:zo01w0 */}
+          {/* pv-block-start:9ng0bu */}
+          <div data-pv-block="9ng0bu" className="flex flex-col gap-10" >
+          {/* pv-editable-zone-start:c2rycc */}
+          {/* pv-block-start:n9mz0k */}
+          <Button data-pv-block="n9mz0k" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:n9mz0k */}
+          {/* pv-editable-zone-end:c2rycc */}
+          </div>
+          {/* pv-block-end:9ng0bu */}
+          {/* pv-editable-zone-end:qubfhb */}
+          </div>
+          {/* pv-block-end:620yoe */}
+          {/* pv-block-start:o5jjlj */}
+          <Card data-pv-block="o5jjlj" variant="bordered" shadow="none" border="default" style={{ width: 365 }}>
+          {/* pv-editable-zone-start:taxyss */}
+          {/* pv-block-start:85og1m */}
+          <div data-pv-block="85og1m" className="flex flex-col gap-2">
+          {/* pv-editable-zone-start:bla8ry */}
+          {/* pv-block-start:7mnwm3 */}
+          <Button data-pv-block="7mnwm3" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:7mnwm3 */}
+          {/* pv-block-start:scirda */}
+          <Button data-pv-block="scirda" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:scirda */}
+          {/* pv-editable-zone-end:bla8ry */}
+          </div>
+          {/* pv-block-end:85og1m */}
+          
+          {/* pv-block-start:aeiiwc */}
+          <div data-pv-block="aeiiwc" className="flex gap-2 flex-row" >
+          {/* pv-editable-zone-start:x6aovb */}
+          {/* pv-editable-zone-end:x6aovb */}
+          </div>
+          {/* pv-block-end:aeiiwc */}
+          
+          {/* pv-block-start:7yz2s2 */}
+          <div className="flex flex-col min-h-4" data-pv-block="7yz2s2">
+          {/* pv-editable-zone-start:inside-7yz2s2 */}
+          {/* pv-editable-zone-end:inside-7yz2s2 */}
+          </div>
+          {/* pv-block-end:7yz2s2 */}
+          {/* pv-editable-zone-end:taxyss */}
+          </Card>
+          {/* pv-block-end:o5jjlj */}
+          {/* pv-editable-zone-end:2iatij */}
         </div>
-        {/* pv-block-end:zo01w0 */}
-        {/* pv-block-start:9ng0bu */}
-        <div data-pv-block="9ng0bu" className="flex flex-col gap-10" >
-        {/* pv-editable-zone-start:c2rycc */}
-        {/* pv-block-start:n9mz0k */}
-        <Button data-pv-block="n9mz0k" label="Button" variant="solid" color="primary" size="md"  />
-        {/* pv-block-end:n9mz0k */}
-        {/* pv-editable-zone-end:c2rycc */}
-        </div>
-        {/* pv-block-end:9ng0bu */}
-        {/* pv-editable-zone-end:qubfhb */}
-      </div>
-      {/* pv-block-end:620yoe */}
+        {/* pv-block-end:nbppx3 */}
+
 
         {/* pv-block-start:o7aomf */}
         <div data-pv-block="o7aomf" className="flex flex-col gap-4" data-pv-sketchpad-el="o7aomf" style={{ position: 'absolute', left: 50, top: 26 }}>
@@ -67,41 +106,9 @@ export default function Frame3() {
       </Rectangle>
       {/* pv-block-end:h8t4x5 */}
 
-      {/* pv-block-start:o5jjlj */}
-      <Card data-pv-block="o5jjlj" data-pv-sketchpad-el="o5jjlj" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', width: 365, left: 128, top: 270 }}>
-        {/* pv-editable-zone-start:taxyss */}
-        {/* pv-block-start:85og1m */}
-        <div data-pv-block="85og1m" className="flex flex-col gap-2">
-          {/* pv-editable-zone-start:bla8ry */}
-          {/* pv-block-start:7mnwm3 */}
-          <Button data-pv-block="7mnwm3" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:7mnwm3 */}
-          {/* pv-block-start:scirda */}
-          <Button data-pv-block="scirda" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:scirda */}
-          {/* pv-editable-zone-end:bla8ry */}
-        </div>
-        {/* pv-block-end:85og1m */}
-
-        {/* pv-block-start:aeiiwc */}
-        <div data-pv-block="aeiiwc" className="flex gap-2 flex-row" >
-          {/* pv-editable-zone-start:x6aovb */}
-          {/* pv-editable-zone-end:x6aovb */}
-        </div>
-        {/* pv-block-end:aeiiwc */}
-
-          {/* pv-block-start:7yz2s2 */}
-          <div className="flex flex-col min-h-4" data-pv-block="7yz2s2">
-            {/* pv-editable-zone-start:inside-7yz2s2 */}
-            {/* pv-editable-zone-end:inside-7yz2s2 */}
-          </div>
-          {/* pv-block-end:7yz2s2 */}
-        {/* pv-editable-zone-end:taxyss */}
-      </Card>
-      {/* pv-block-end:o5jjlj */}
       
       {/* pv-block-start:5v51ea */}
-      <div data-pv-block="5v51ea" className="flex flex-col gap-2" data-pv-sketchpad-el="5v51ea" style={{ position: 'absolute', left: 250, top: 465 }}>
+      <div data-pv-block="5v51ea" className="flex flex-col gap-2" data-pv-sketchpad-el="5v51ea" style={{ position: 'absolute', left: 68, top: 317 }}>
         {/* pv-editable-zone-start:ni67pr */}
         {/* pv-block-start:q8ymbx */}
         <Avatar data-pv-block="q8ymbx" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
@@ -116,7 +123,7 @@ export default function Frame3() {
       
       
       {/* pv-block-start:7pjeqd */}
-      <div data-pv-block="7pjeqd" className="flex flex-col gap-2" data-pv-sketchpad-el="7pjeqd" style={{ position: 'absolute', left: 329, top: 468 }}>
+      <div data-pv-block="7pjeqd" className="flex flex-col gap-2" data-pv-sketchpad-el="7pjeqd" style={{ position: 'absolute', left: 139, top: 323 }}>
         {/* pv-editable-zone-start:e0x6wo */}
         {/* pv-block-start:1l188n */}
         <Avatar data-pv-block="1l188n" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
