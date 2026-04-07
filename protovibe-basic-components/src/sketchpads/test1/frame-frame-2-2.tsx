@@ -46,7 +46,7 @@ export default function Frame2() {
       {/* pv-block-end:65mrdq */}
       
       {/* pv-block-start:3blium */}
-      <Rectangle data-pv-block="3blium" data-pv-sketchpad-el="3blium"  style={{ position: 'absolute', height: 219, width: 513, left: 203, top: 46 }}>
+      <Rectangle data-pv-block="3blium" data-pv-sketchpad-el="3blium"  style={{ position: 'absolute', height: 219, width: 513, left: 218, top: 54 }}>
         {/* pv-editable-zone-start:bddck1 */}
         {/* pv-block-start:izab1l */}
         <div data-pv-block="izab1l" className="flex flex-col gap-4" data-pv-sketchpad-el="izab1l" style={{ position: 'absolute', width: 416, left: 36, top: 61 }}>
@@ -79,44 +79,14 @@ export default function Frame2() {
           {/* pv-editable-zone-end:bla8ry */}
           </div>
           {/* pv-block-end:pro48d */}
-      
-      {/* pv-block-start:lw7jcj */}
-          <Card data-pv-block="lw7jcj" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 93, top: 429, width: 365 }} data-pv-sketchpad-el="lw7jcj">
-          {/* pv-editable-zone-start:taxyss */}
-          {/* pv-block-start:g8gfu5 */}
-          <div data-pv-block="g8gfu5" className="flex gap-2 flex-row" >
-          {/* pv-editable-zone-start:x6aovb */}
-          {/* pv-editable-zone-end:x6aovb */}
-          </div>
-          {/* pv-block-end:g8gfu5 */}
-          
-          {/* pv-block-start:t2jnzv */}
-          <div className="flex flex-col min-h-4" data-pv-block="t2jnzv">
-          {/* pv-editable-zone-start:inside-t2jnzv */}
-          {/* pv-editable-zone-end:inside-t2jnzv */}
-          </div>
-          {/* pv-block-end:t2jnzv */}
-          {/* pv-editable-zone-end:taxyss */}
-          </Card>
-          {/* pv-block-end:lw7jcj */}
-      
+
       {/* pv-block-start:t4hjjq */}
           <div data-pv-block="t4hjjq" className="flex flex-col gap-2" data-pv-sketchpad-el="t4hjjq" style={{ position: 'absolute', left: 390, top: 550 }}>
           {/* pv-editable-zone-start:bla8ry */}
           {/* pv-editable-zone-end:bla8ry */}
           </div>
           {/* pv-block-end:t4hjjq */}
-      
-      {/* pv-block-start:fhdocy */}
-          <div data-pv-block="fhdocy" className="flex flex-col gap-2" data-pv-sketchpad-el="fhdocy" style={{ position: 'absolute', left: 631, top: 386 }}>
-          {/* pv-editable-zone-start:bla8ry */}
-          {/* pv-block-start:zzojkg */}
-          <Button data-pv-block="zzojkg" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:zzojkg */}
-          {/* pv-editable-zone-end:bla8ry */}
-          </div>
-          {/* pv-block-end:fhdocy */}
-      
+
       {/* pv-block-start:oz8gbk */}
       <div data-pv-block="oz8gbk" className="flex gap-2 flex-row" data-pv-sketchpad-el="oz8gbk" style={{ position: 'absolute', left: 234, top: 535 }}>
         {/* pv-editable-zone-start:1cxv9v */}
@@ -130,7 +100,63 @@ export default function Frame2() {
       </div>
       {/* pv-block-end:oz8gbk */}
 
+      {/* pv-block-start:r220ba */}
+          <Card data-pv-block="r220ba" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 177, top: 327, width: 365 }} data-pv-sketchpad-el="r220ba">
+          {/* pv-editable-zone-start:taxyss */}
+          {/* pv-block-start:h4p0vu */}
+      <Card data-pv-block="h4p0vu" variant="bordered" shadow="none" border="default" >
+        {/* pv-editable-zone-start:xi74a7 */}
+        {/* pv-editable-zone-end:xi74a7 */}
+      </Card>
+      {/* pv-block-end:h4p0vu */}
+
+          {/* pv-block-start:o8izl4 */}
+      <Card data-pv-block="o8izl4" variant="bordered" shadow="none" border="default" >
+        {/* pv-editable-zone-start:xi74a7 */}
+        {/* pv-editable-zone-end:xi74a7 */}
+      </Card>
+      {/* pv-block-end:o8izl4 */}
+
+          {/* pv-block-start:rkwpcs */}
+      <Card data-pv-block="rkwpcs" variant="bordered" shadow="none" border="default" >
+        {/* pv-editable-zone-start:xi74a7 */}
+        {/* pv-editable-zone-end:xi74a7 */}
+      </Card>
+      {/* pv-block-end:rkwpcs */}
+          {/* pv-editable-zone-end:taxyss */}
+          </Card>
+          {/* pv-block-end:r220ba */}
+
+      {/* pv-block-start:7bkjyx */}
+      <Button data-pv-block="7bkjyx" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="7bkjyx" style={{ position: 'absolute', left: 100, top: 100 }}/>
+      {/* pv-block-end:7bkjyx */}
       
+      {/* pv-block-start:f3cl7i */}
+          <Card data-pv-block="f3cl7i" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 183, top: 423, width: 365 }} data-pv-sketchpad-el="f3cl7i">
+          {/* pv-editable-zone-start:taxyss */}
+          {/* pv-block-start:2o75vk */}
+          <div data-pv-block="2o75vk" className="flex gap-2 flex-row" >
+          {/* pv-editable-zone-start:x6aovb */}
+          {/* pv-editable-zone-end:x6aovb */}
+          </div>
+          {/* pv-block-end:2o75vk */}
+          
+          {/* pv-block-start:qab5st */}
+          <div className="flex flex-col min-h-4" data-pv-block="qab5st">
+          {/* pv-editable-zone-start:inside-qab5st */}
+          {/* pv-editable-zone-end:inside-qab5st */}
+          </div>
+          {/* pv-block-end:qab5st */}
+          {/* pv-editable-zone-end:taxyss */}
+          </Card>
+          {/* pv-block-end:f3cl7i */}
+
+      {/* pv-block-start:7czgji */}
+      <Rectangle data-pv-block="7czgji" data-pv-sketchpad-el="7czgji" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 579, top: 298 }}>
+        {/* pv-editable-zone-start:wzfyo4 */}
+        {/* pv-editable-zone-end:wzfyo4 */}
+      </Rectangle>
+      {/* pv-block-end:7czgji */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
   );

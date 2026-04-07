@@ -52,7 +52,7 @@ export default function Frame3() {
         {/* pv-block-end:c587un */}
       
       {/* pv-block-start:ri3omq */}
-      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 54, top: 80, width: 415 }}>
+      <Rectangle data-pv-block="ri3omq" data-pv-sketchpad-el="ri3omq" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 287, left: 52, top: 60, width: 415 }}>
         {/* pv-editable-zone-start:duvsah */}
         {/* pv-block-start:wjkjlt */}
         <div data-pv-block="wjkjlt" className="flex flex-col gap-2" data-pv-sketchpad-el="wjkjlt" style={{ position: 'absolute', left: 17, top: 18 }}>
@@ -95,6 +95,10 @@ export default function Frame3() {
         {/* pv-block-start:vumf74 */}
       <Button data-pv-block="vumf74" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="vumf74" style={{ position: 'absolute', left: 285, top: 36 }}/>
       {/* pv-block-end:vumf74 */}
+
+        {/* pv-block-start:5ih57a */}
+      <Button data-pv-block="5ih57a" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="5ih57a" style={{ position: 'absolute', left: 184, top: 51 }}/>
+      {/* pv-block-end:5ih57a */}
         {/* pv-editable-zone-end:duvsah */}
       </Rectangle>
       {/* pv-block-end:ri3omq */}
@@ -141,21 +145,30 @@ export default function Frame3() {
               {/* pv-block-start:7jqt2x */}
                   <Button data-pv-block="7jqt2x" label="Button" variant="solid" color="primary" size="md" />
                   {/* pv-block-end:7jqt2x */}
+
+              {/* pv-block-start:7pxhvw */}
+      <Button data-pv-block="7pxhvw" label="Button" variant="solid" color="primary" size="md" />
+      {/* pv-block-end:7pxhvw */}
+
+              {/* pv-block-start:nyopco */}
+      <Card className="" data-pv-block="nyopco" variant="bordered" shadow="none" border="default" >
+        {/* pv-editable-zone-start:xi74a7 */}
+        {/* pv-editable-zone-end:xi74a7 */}
+      </Card>
+      {/* pv-block-end:nyopco */}
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
             {/* pv-block-end:yeg1ow */}
       
-      {/* pv-block-start:ismtaz */}
-      <Button data-pv-block="ismtaz" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="ismtaz" style={{ position: 'absolute', left: 239, top: 338 }}/>
-      {/* pv-block-end:ismtaz */}
-      
-      {/* pv-block-start:6y2bx4 */}
-      <Button data-pv-block="6y2bx4" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="6y2bx4" style={{ position: 'absolute', left: 524, top: 448 }}/>
-      {/* pv-block-end:6y2bx4 */}
-      
-      {/* pv-block-start:nze8tq */}
-      <Button data-pv-block="nze8tq" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="nze8tq" style={{ position: 'absolute', left: 372, top: 365 }}/>
-      {/* pv-block-end:nze8tq */}
+      {/* pv-block-start:m8d3jh */}
+          <div data-pv-block="m8d3jh" className="flex flex-col gap-2" data-pv-sketchpad-el="m8d3jh" style={{ position: 'absolute', left: 340, top: 456 }}>
+          {/* pv-editable-zone-start:bla8ry */}
+          {/* pv-block-start:ki590k */}
+          <Button data-pv-block="ki590k" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:ki590k */}
+          {/* pv-editable-zone-end:bla8ry */}
+          </div>
+          {/* pv-block-end:m8d3jh */}
       {/* pv-editable-zone-end:b399cq */}
     </div>
   );

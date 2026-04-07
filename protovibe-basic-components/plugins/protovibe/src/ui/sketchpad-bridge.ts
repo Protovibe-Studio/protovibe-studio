@@ -972,8 +972,11 @@ function init() {
 
   // Allow SketchpadApp to programmatically select an element by blockId
   window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId: string }>) => {
-    const el = document.querySelector(`[data-pv-sketchpad-el="${e.detail.blockId}"]`) as HTMLElement | null;
-    if (el) setSelection(el, false);
+    const el = document.querySelector(`[data-pv-block="${e.detail.blockId}"]`) as HTMLElement | null;
+    if (el) {
+      setSelection(el, false);
+      notifyInspector(el);
+    }
   }) as EventListener);
 }
 

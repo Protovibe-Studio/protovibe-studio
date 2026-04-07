@@ -368,19 +368,17 @@ export function SketchpadApp() {
   // Element interactions — components are rendered from frame .tsx modules.
   // When an element is added, the backend writes to the frame file and we re-import the module.
   // After adding an element, poll for it in the DOM and select it via the bridge
-  const focusNewBlock = useCallback((blockId: string) => {
-    let attempts = 0;
+  const focusNewBlock = useCallback(async (blockId: string) => {
+    const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
     const maxAttempts = 20;
-    const interval = setInterval(() => {
-      attempts++;
-      const el = document.querySelector(`[data-pv-sketchpad-el="${blockId}"]`);
-      if (el || attempts >= maxAttempts) {
-        clearInterval(interval);
-        if (el) {
-          window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
-        }
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      const el = document.querySelector(`[data-pv-block="${blockId}"]`);
+      if (el) {
+        window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+        return;
       }
-    }, 50);
+      await wait(50);
+    }
   }, []);
 
   const handleAddComponent = useCallback(
@@ -391,18 +389,20 @@ export function SketchpadApp() {
       const posX = x ?? 100;
       const posY = y ?? 100;
 
-      const result = await runLockedMutation(() => api.addElementToFrame(
-        activeSketchpadId,
-        targetFrame,
-        comp.name,
-        comp.importPath,
-        comp.defaultProps,
-        comp.defaultContent,
-        posX,
-        posY,
-        comp.additionalImportsForDefaultContent,
-      ));
-      if (result?.blockId) focusNewBlock(result.blockId);
+      await runLockedMutation(async () => {
+        const result = await api.addElementToFrame(
+          activeSketchpadId,
+          targetFrame,
+          comp.name,
+          comp.importPath,
+          comp.defaultProps,
+          comp.defaultContent,
+          posX,
+          posY,
+          comp.additionalImportsForDefaultContent,
+        );
+        if (result?.blockId) await focusNewBlock(result.blockId);
+      });
     },
     [selectedFrameId, activeSketchpadId, runLockedMutation, focusNewBlock],
   );
@@ -533,21 +533,25 @@ export function SketchpadApp() {
             await takeSnapshot(sourceFile, '', extraFiles);
 
             // 3. Paste into the freshly fetched target
-          await addBlock({
+            const res = await addBlock({
               file: currentTargetFile,
               zoneId: currentTargetZoneId,
               isPristine: currentTargetIsPristine,
-            elementType: 'paste',
-            targetLayoutMode,
-            pasteX: Math.round(x),
-            pasteY: Math.round(y),
+              elementType: 'paste',
+              targetLayoutMode,
+              pasteX: Math.round(x),
+              pasteY: Math.round(y),
               targetStartLine: currentTargetStartLine,
               targetEndLine: currentTargetEndLine,
-          });
+            });
 
             // 4. Delete the original block (if not duplicating)
             if (!isDuplicate) {
               await blockAction('delete', draggedBlockId, sourceFile);
+            }
+
+            if (res?.blockId) {
+              await focusNewBlock(res.blockId);
             }
         });
       } catch (err) {
@@ -557,7 +561,7 @@ export function SketchpadApp() {
 
     window.addEventListener('pv-sketchpad-drop-element', handleDropElement);
     return () => window.removeEventListener('pv-sketchpad-drop-element', handleDropElement);
-  }, [runLockedMutation]);
+  }, [runLockedMutation, focusNewBlock]);
 
   // Drop handler for drag from palette
   const handleDrop = useCallback(
