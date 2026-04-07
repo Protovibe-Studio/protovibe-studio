@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Sketchpad } from '../types';
+import { ConfirmDialog } from '../../ui/components/ConfirmDialog';
 
 interface SketchpadOverlayPanelProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function SketchpadOverlayPanel({
   const [renameValue, setRenameValue] = useState('');
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -50,6 +52,18 @@ export function SketchpadOverlayPanel({
       <div
         style={{ position: 'fixed', inset: 0, zIndex: 9996 }}
         onClick={onClose}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title="Delete sketchpad"
+        message={`This will permanently delete "${sketchpads.find((s) => s.id === deleteConfirmId)?.name}" and all its frames.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (deleteConfirmId) onDelete(deleteConfirmId);
+          setDeleteConfirmId(null);
+        }}
+        onCancel={() => setDeleteConfirmId(null)}
       />
 
       {/* Panel */}
@@ -186,6 +200,7 @@ export function SketchpadOverlayPanel({
                 />
               ) : (
                 <>
+                  <FileIcon color={activeSketchpadId === sp.id ? '#18a0fb' : '#888'} />
                   <span
                     style={{
                       fontSize: 12,
@@ -194,38 +209,39 @@ export function SketchpadOverlayPanel({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      flex: 1,
+                      marginLeft: 6,
                     }}
                   >
                     {sp.name}
                   </span>
-                  <span style={{ fontSize: 10, color: '#666', marginLeft: 8, flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, color: '#999', marginLeft: 8, flexShrink: 0 }}>
                     {sp.frames.length} frame{sp.frames.length !== 1 ? 's' : ''}
                   </span>
                 </>
               )}
 
               {/* Delete button */}
-              {sketchpads.length > 1 && renamingId !== sp.id && (
+              {renamingId !== sp.id && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(sp.id);
+                    setDeleteConfirmId(sp.id);
                   }}
+                  title="Delete sketchpad"
                   style={{
                     marginLeft: 4,
                     background: 'transparent',
                     border: 'none',
-                    color: '#666',
+                    color: '#e05252',
                     cursor: 'pointer',
-                    fontSize: 14,
-                    padding: '0 4px',
-                    opacity: 0.5,
-                    transition: 'opacity 0.15s',
+                    padding: '2px 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.5')}
                 >
-                  ×
+                  <TrashIcon />
                 </button>
               )}
             </div>
@@ -233,5 +249,26 @@ export function SketchpadOverlayPanel({
         </div>
       </div>
     </>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="10" x2="10" y1="11" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="14" x2="14" y1="11" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function FileIcon({ color }: { color: string }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   );
 }

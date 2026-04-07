@@ -23,14 +23,20 @@ export default function Frame4() {
       {/* pv-block-end:qndewo */}
       
       {/* pv-block-start:lv8rzw */}
-      <div data-pv-block="lv8rzw" className="flex flex-col gap-2" data-pv-sketchpad-el="lv8rzw" style={{ position: 'absolute', width: 401, left: 61, top: 58 }}>
+      <div data-pv-block="lv8rzw" className="flex flex-col gap-2 items-start" data-pv-sketchpad-el="lv8rzw" style={{ position: 'absolute', width: 401, left: 61, top: 58 }}>
         {/* pv-editable-zone-start:i7bwgp */}
-        {/* pv-block-start:yzabkm */}
-      <SuperLabel secondaryText="Uważaj co wpisujesz!" heading="Wybierz co tam chcesz!" data-pv-block="yzabkm" primaryText=""  />
-      {/* pv-block-end:yzabkm */}
-        {/* pv-block-start:ie8zg7 */}
-        <Input data-pv-block="ie8zg7" placeholder="Enter text..."  />
-        {/* pv-block-end:ie8zg7 */}
+        {/* pv-block-start:dzjdi1 */}
+        <div data-pv-block="dzjdi1" className="flex flex-col gap-2 w-full">
+          {/* pv-editable-zone-start:tdwfpa */}
+          {/* pv-block-start:yzabkm */}
+          <SuperLabel secondaryText="Uważaj co wpisujesz!" heading="Wybierz co tam chcesz!" data-pv-block="yzabkm" primaryText=""  />
+          {/* pv-block-end:yzabkm */}
+          {/* pv-block-start:ie8zg7 */}
+          <Input data-pv-block="ie8zg7" placeholder="Enter text..."  />
+          {/* pv-block-end:ie8zg7 */}
+          {/* pv-editable-zone-end:tdwfpa */}
+        </div>
+        {/* pv-block-end:dzjdi1 */}
 
         {/* pv-block-start:hnanzk */}
         <Button data-pv-block="hnanzk" label="Button" variant="solid" color="primary" size="md" />
@@ -64,14 +70,10 @@ export default function Frame4() {
         {/* pv-editable-zone-end:i7bwgp */}
       </div>
       {/* pv-block-end:scxs8b */}
-      
-      {/* pv-block-start:txjw3m */}
-        <Button data-pv-block="txjw3m" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="txjw3m" style={{ position: 'absolute', left: 59, top: 289 }}/>
-        {/* pv-block-end:txjw3m */}
-      
+
       {/* pv-block-start:m3347o */}
       <div data-pv-block="m3347o" className="flex gap-2 flex-row"  data-pv-sketchpad-el="m3347o" style={{ position: 'absolute', left: 569, top: 74 }}>
-        {/* pv-editable-zone-start:e0x6wo */}
+        {/* pv- className="p-5"editable-zone-start:e0x6wo */}
         {/* pv-block-start:g6s64f */}
         <Avatar data-pv-block="g6s64f" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
         {/* pv-block-end:g6s64f */}

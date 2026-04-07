@@ -168,13 +168,17 @@ export function SketchpadApp() {
     [],
   );
 
-  // Load registry on mount
+  // Load registry on mount — auto-create a default sketchpad if none exist
   useEffect(() => {
-    api.fetchRegistry().then((reg) => {
+    api.fetchRegistry().then(async (reg) => {
       if (reg.sketchpads?.length > 0) {
         setSketchpads(reg.sketchpads);
         setActiveSketchpadId(reg.sketchpads[0].id);
         loadAllFrameModules(reg.sketchpads[0].id, reg.sketchpads[0].frames);
+      } else {
+        const sp = await api.createSketchpad('Sketchpad 1');
+        setSketchpads([sp]);
+        setActiveSketchpadId(sp.id);
       }
     });
   }, [loadAllFrameModules]);
@@ -197,16 +201,22 @@ export function SketchpadApp() {
     async (id: string) => {
       await runLockedMutation(async () => {
         await api.deleteSketchpad(id);
-        setSketchpads((prev) => {
-          const next = prev.filter((s) => s.id !== id);
-          if (activeSketchpadId === id && next.length > 0) {
-            setActiveSketchpadId(next[0].id);
+        const remaining = sketchpads.filter((s) => s.id !== id);
+        if (remaining.length === 0) {
+          // Auto-create a default sketchpad so the canvas is never empty
+          const sp = await api.createSketchpad('Sketchpad 1');
+          setSketchpads([sp]);
+          setActiveSketchpadId(sp.id);
+        } else {
+          setSketchpads(remaining);
+          if (activeSketchpadId === id) {
+            setActiveSketchpadId(remaining[0].id);
+            loadAllFrameModules(remaining[0].id, remaining[0].frames);
           }
-          return next;
-        });
+        }
       });
     },
-    [activeSketchpadId, runLockedMutation],
+    [activeSketchpadId, sketchpads, loadAllFrameModules, runLockedMutation],
   );
 
   const handleRenameSketchpad = useCallback(async (id: string, name: string) => {

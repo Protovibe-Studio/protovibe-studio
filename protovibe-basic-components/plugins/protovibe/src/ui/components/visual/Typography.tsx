@@ -6,7 +6,7 @@ import { SegmentedControl } from './SegmentedControl';
 import { cleanVal } from '../../utils/tailwind';
 import { useScales } from '../../hooks/useScales';
 import { prioritizeColors } from '../../constants/tailwind';
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting, Italic, ArrowBigUpDash, ArrowDownNarrowWide } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 
@@ -40,36 +40,77 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Align</span>
-          <SegmentedControl
-            label=""
-            value={v.textAlign}
-            originalClass={v.textAlign_original}
-            prefix="text-"
-            inheritedValue={domV?.textAlign}
-            width="100%"
-            segments={[
-              { icon: <AlignLeft size={14} />, val: 'left', title: 'Left' },
-              { icon: <AlignCenter size={14} />, val: 'center', title: 'Center' },
-              { icon: <AlignRight size={14} />, val: 'right', title: 'Right' },
-              { icon: <AlignJustify size={14} />, val: 'justify', title: 'Justify' }
-            ]}
-          />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <SegmentedControl
+                label=""
+                value={v.textAlign}
+                originalClass={v.textAlign_original}
+                prefix="text-"
+                inheritedValue={domV?.textAlign}
+                width="100%"
+                segments={[
+                  { icon: <AlignLeft size={14} />, val: 'left', title: 'Left' },
+                  { icon: <AlignCenter size={14} />, val: 'center', title: 'Center' },
+                  { icon: <AlignRight size={14} />, val: 'right', title: 'Right' },
+                  { icon: <AlignJustify size={14} />, val: 'justify', title: 'Justify' }
+                ]}
+              />
+            </div>
+            <SegmentedControl
+              label=""
+              value={v.textWrap}
+              originalClass={v.textWrap_original}
+              prefix="text-"
+              inheritedValue={domV?.textWrap}
+              width="auto"
+              segments={[
+                { icon: <ArrowDownNarrowWide size={14} />, val: 'balance', title: 'Text balance' }
+              ]}
+            />
+          </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Decor</span>
-          <SegmentedControl
-            label=""
-            value={v.textDecoration}
-            originalClass={v.textDecoration_original}
-            inheritedValue={domV?.textDecoration}
-            width="100%"
-            segments={[
-              { icon: <RemoveFormatting size={14} />, val: 'no-underline', title: 'None' },
-              { icon: <Underline size={14} />, val: 'underline', title: 'Underline' },
-              { icon: <Strikethrough size={14} />, val: 'line-through', title: 'Strikethrough' }
-            ]}
-          />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <SegmentedControl
+                label=""
+                value={v.textDecoration}
+                originalClass={v.textDecoration_original}
+                inheritedValue={domV?.textDecoration}
+                width="100%"
+                segments={[
+                  { icon: <RemoveFormatting size={14} />, val: 'no-underline', title: 'None' },
+                  { icon: <Underline size={14} />, val: 'underline', title: 'Underline' },
+                  { icon: <Strikethrough size={14} />, val: 'line-through', title: 'Strikethrough' }
+                ]}
+              />
+            </div>
+            <SegmentedControl
+              label=""
+              value={v.fontStyle}
+              originalClass={v.fontStyle_original}
+              prefix=""
+              inheritedValue={domV?.fontStyle}
+              width="auto"
+              segments={[
+                { icon: <Italic size={14} />, val: 'italic', title: 'Italic' }
+              ]}
+            />
+            <SegmentedControl
+              label=""
+              value={v.textTransform}
+              originalClass={v.textTransform_original}
+              prefix=""
+              inheritedValue={domV?.textTransform}
+              width="auto"
+              segments={[
+                { icon: <ArrowBigUpDash size={14} />, val: 'uppercase', title: 'All caps' }
+              ]}
+            />
+          </div>
         </div>
       </div>
     </VisualSection>

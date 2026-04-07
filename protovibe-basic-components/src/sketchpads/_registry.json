@@ -51,7 +51,31 @@
       "id": "dsfsdf",
       "name": "dsfsdf",
       "createdAt": "2026-04-05T06:28:55.278Z",
-      "frames": []
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 800,
+          "height": 600,
+          "canvasX": -175,
+          "canvasY": 91
+        }
+      ]
+    },
+    {
+      "id": "test1-2",
+      "name": "Test1",
+      "createdAt": "2026-04-07T11:59:42.295Z",
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 800,
+          "height": 600,
+          "canvasX": 325,
+          "canvasY": 154
+        }
+      ]
     }
   ]
 }

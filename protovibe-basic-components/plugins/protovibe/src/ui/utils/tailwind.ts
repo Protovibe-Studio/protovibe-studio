@@ -109,7 +109,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     gridCols: '', gridRows: '', gridFlow: '', justifyItems: '', alignContent: '',
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '', aspectRatio: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
-    fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', textSize: '', textColor: '', leading: '', tracking: '',
+    fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', fontStyle: '', textTransform: '', textWrap: '', textSize: '', textColor: '', leading: '', tracking: '',
     bg: '', bgImage: '', bgSize: '', bgPosition: '', bgRepeat: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
@@ -189,6 +189,8 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
     else if (cls.startsWith('space-x-')) { v.spaceX = cls.replace('space-x-', ''); orig.spaceX_original = originalClass; }
     else if (cls.startsWith('space-y-')) { v.spaceY = cls.replace('space-y-', ''); orig.spaceY_original = originalClass; }
     else if (decors.includes(cls)) { v.textDecoration = cls; orig.textDecoration_original = originalClass; }
+    else if (cls === 'italic' || cls === 'not-italic') { v.fontStyle = cls; orig.fontStyle_original = originalClass; }
+    else if (['uppercase', 'lowercase', 'capitalize', 'normal-case'].includes(cls)) { v.textTransform = cls; orig.textTransform_original = originalClass; }
     else if (cls.startsWith('font-')) {
       const val = cls.replace('font-', '');
       if (weights.includes(val) || val.startsWith('[')) { v.fontWeight = val; orig.fontWeight_original = originalClass; }
@@ -200,6 +202,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
       const val = cls.replace('text-', '');
       if (textAligns.includes(val)) { v.textAlign = val; orig.textAlign_original = originalClass; }
       else if (sizes.includes(val) || /^\[[0-9.]+(px|rem|em|%)\]$/.test(val)) { v.textSize = val; orig.textSize_original = originalClass; }
+      else if (['balance', 'pretty', 'nowrap', 'wrap'].includes(val)) { v.textWrap = val; orig.textWrap_original = originalClass; }
       else { v.textColor = val; orig.textColor_original = originalClass; }
     }
     else if (['bg-auto', 'bg-cover', 'bg-contain'].includes(cls) || cls.startsWith('bg-[length:')) { v.bgSize = cls; orig.bgSize_original = originalClass; }
