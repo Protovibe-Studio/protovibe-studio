@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
@@ -10,7 +10,7 @@ import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 
 export const FloatingToolbar: React.FC = () => {
   const {
-    currentBaseTarget, activeData, activeSourceId,
+    currentBaseTarget, selectedTargets, activeData, activeSourceId,
     zones, availableComponents, refreshComponents,
     refreshActiveData, focusElement, focusNewBlock,
     runLockedMutation, isMutationLocked, inspectorOpen,
@@ -32,6 +32,12 @@ export const FloatingToolbar: React.FC = () => {
 
   const canAdd = !!(activeData?.file && zones.length > 0);
   const canBlockAction = !!(closestBlockId && isBlockInCurrentFile);
+  const isMultiSelect = selectedTargets && selectedTargets.length > 1;
+
+  const selectedBlockIds = (selectedTargets || [])
+    .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+    .filter(Boolean) as string[];
+  const uniqueSelectedBlockIds = [...new Set(selectedBlockIds)];
 
   useEffect(() => {
     if (zones.length > 0) {
@@ -106,6 +112,23 @@ export const FloatingToolbar: React.FC = () => {
         refreshActiveData,
       });
     });
+  };
+
+  const handleWrapBlocks = async () => {
+    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+
+    const res = await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const response = await fetch('/__wrap-blocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: activeData.file, blockIds: uniqueSelectedBlockIds }),
+      });
+      if (!response.ok) throw new Error('Failed to wrap blocks');
+      return await response.json();
+    });
+
+    if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
   };
 
   const handleAddBlock = async (type: 'block' | 'component' | 'text', comp?: any) => {
@@ -328,111 +351,133 @@ export const FloatingToolbar: React.FC = () => {
           overflow: 'hidden',
         }}
       >
-        {canAdd && (
-          <>
+          {isMultiSelect ? (
             <button
               disabled={locked}
-              onClick={() => {
-                if (addMode !== 'child') {
-                  refreshComponents();
-                  setAddSearch('');
-                  setActiveIndex(0);
-                }
-                setAddMode(prev => prev === 'child' ? null : 'child');
-              }}
-              onMouseEnter={() => setHoveredBtn('add-child')}
+              onClick={handleWrapBlocks}
+              onMouseEnter={() => setHoveredBtn('wrap')}
               onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('add-child', {
-                minWidth: canBlockAction ? '120px' : '180px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '5px',
-                color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-              })}
-              title="Add child element"
+              style={mkBtnStyle('wrap', { minWidth: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: 'rgba(255,255,255,1)' })}
             >
-              <Plus size={13} strokeWidth={2.5} />
-              Add child
+              <SquareDashed size={13} strokeWidth={2.5} />
+              Wrap {selectedTargets.length} elements
             </button>
-            {canBlockAction && divider}
-          </>
-        )}
+          ) : (
+            <>
+              {canAdd && (
+                <>
+                  <button
+                    disabled={locked}
+                    onClick={() => {
+                      if (addMode !== 'child') {
+                        refreshComponents();
+                        setAddSearch('');
+                        setActiveIndex(0);
+                      }
+                      setAddMode(prev => prev === 'child' ? null : 'child');
+                    }}
+                    onMouseEnter={() => setHoveredBtn('add-child')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('add-child', {
+                      minWidth: canBlockAction ? '120px' : '180px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                      background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                    })}
+                    title="Add child element"
+                  >
+                    <Plus size={13} strokeWidth={2.5} />
+                    Add child
+                  </button>
+                  {canBlockAction && divider}
+                </>
+              )}
 
-        {canBlockAction && (
-          <>
-            <button
-              disabled={locked}
-              onClick={() => {
-                if (addMode !== 'after') {
-                  refreshComponents();
-                  setAddSearch('');
-                  setActiveIndex(0);
-                }
-                setAddMode(prev => prev === 'after' ? null : 'after');
-              }}
-              onMouseEnter={() => setHoveredBtn('add-after')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('add-after', {
-                minWidth: '120px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '5px',
-                color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-              })}
-              title="Add element after"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              Add after
-            </button>
-            {divider}
-          </>
-        )}
-
-        {canBlockAction && (
-          <>
-            <button
-              disabled={locked}
-              onClick={() => handleBlockAction('move-up')}
-              onMouseEnter={() => setHoveredBtn('up')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('up')}
-              title="Move up"
-            >
-              <ChevronUp size={13} strokeWidth={2.5} />
-              Move up
-            </button>
-            {divider}
-            <button
-              disabled={locked}
-              onClick={() => handleBlockAction('move-down')}
-              onMouseEnter={() => setHoveredBtn('down')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('down')}
-              title="Move down"
-            >
-              <ChevronDown size={13} strokeWidth={2.5} />
-              Move down
-            </button>
-            {divider}
-            <button
-              disabled={locked}
-              onClick={() => handleBlockAction('delete')}
-              onMouseEnter={() => setHoveredBtn('del')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              style={mkBtnStyle('del', {
-                padding: '0 14px',
-                color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
-              })}
-              title="Delete block"
-            >
-              <Trash2 size={13} strokeWidth={2} />
-            </button>
-          </>
-        )}
+              {canBlockAction && (
+                <>
+                  <button
+                    disabled={locked}
+                    onClick={() => {
+                      if (addMode !== 'after') {
+                        refreshComponents();
+                        setAddSearch('');
+                        setActiveIndex(0);
+                      }
+                      setAddMode(prev => prev === 'after' ? null : 'after');
+                    }}
+                    onMouseEnter={() => setHoveredBtn('add-after')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('add-after', {
+                      minWidth: '120px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                      background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                    })}
+                    title="Add element after"
+                  >
+                    <Plus size={13} strokeWidth={2.5} />
+                    Add after
+                  </button>
+                  {divider}
+                  <button
+                    disabled={locked}
+                    onClick={handleWrapBlocks}
+                    onMouseEnter={() => setHoveredBtn('wrap')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
+                    title="Wrap in div"
+                  >
+                    <SquareDashed size={13} strokeWidth={2.5} />
+                    Wrap
+                  </button>
+                  {divider}
+                  <button
+                    disabled={locked}
+                    onClick={() => handleBlockAction('move-up')}
+                    onMouseEnter={() => setHoveredBtn('up')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('up')}
+                    title="Move up"
+                  >
+                    <ChevronUp size={13} strokeWidth={2.5} />
+                    Move up
+                  </button>
+                  {divider}
+                  <button
+                    disabled={locked}
+                    onClick={() => handleBlockAction('move-down')}
+                    onMouseEnter={() => setHoveredBtn('down')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('down')}
+                    title="Move down"
+                  >
+                    <ChevronDown size={13} strokeWidth={2.5} />
+                    Move down
+                  </button>
+                  {divider}
+                  <button
+                    disabled={locked}
+                    onClick={() => handleBlockAction('delete')}
+                    onMouseEnter={() => setHoveredBtn('del')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('del', {
+                      padding: '0 14px',
+                      color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
+                    })}
+                    title="Delete block"
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
+                </>
+              )}
+            </>
+          )}
       </div>
     </div>
   );

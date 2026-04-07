@@ -10,14 +10,14 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:7od17d */}
       {/* pv-block-start:5wvchf */}
-      <Card className="rounded-2xl pt-10 pl-10 border-5 m-10" data-pv-block="5wvchf" data-pv-sketchpad-el="5wvchf" variant="bordered" shadow="none" style={{ position: 'absolute', left: 484, top: 96 }}>
+      <Card className="rounded-2xl pt-10 pl-10 border-5 m-10" data-pv-block="5wvchf" data-pv-sketchpad-el="5wvchf" variant="bordered" shadow="none" style={{ position: 'absolute', left: 508, top: 112 }}>
         {/* pv-editable-zone-start:xwoofe */}
         {/* pv-editable-zone-end:xwoofe */}
       </Card>
       {/* pv-block-end:5wvchf */}
 
       {/* pv-block-start:avlhcz */}
-      <Card className="pt-10" data-pv-block="avlhcz" data-pv-sketchpad-el="avlhcz" variant="bordered" shadow="none" style={{ position: 'absolute', left: 312, top: 28 }}>
+      <Card className="pt-10" data-pv-block="avlhcz" data-pv-sketchpad-el="avlhcz" variant="bordered" shadow="none" style={{ position: 'absolute', left: 478, top: 148 }}>
         {/* pv-editable-zone-start:oht9ru */}
         {/* pv-editable-zone-end:oht9ru */}
       </Card>
@@ -44,25 +44,25 @@ export default function Frame2() {
       </Card>
       {/* pv-block-end:txweyi */}
 
-        {/* pv-block-start:5936dq */}
-      <RadioGroup data-pv-block="5936dq" orientation="vertical" value="opt1" >
-        {/* pv-editable-zone-start:bmv50n */}
-          {/* pv-block-start:5ugd72 */}
-          <RadioItem data-pv-block="5ugd72" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-          {/* pv-block-end:5ugd72 */}
-          {/* pv-block-start:7noaeo */}
-          <RadioItem data-pv-block="7noaeo" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-          {/* pv-block-end:7noaeo */}
-          {/* pv-block-start:hmc5pf */}
-          <RadioItem data-pv-block="hmc5pf" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-          {/* pv-block-end:hmc5pf */}
-        {/* pv-editable-zone-end:bmv50n */}
-      </RadioGroup>
-      {/* pv-block-end:5936dq */}
-
         {/* pv-block-start:vv7e8g */}
       <Button data-pv-block="vv7e8g" label="Button" variant="solid" color="primary" size="md"  />
       {/* pv-block-end:vv7e8g */}
+
+        {/* pv-block-start:ldqhas */}
+      <RadioGroup data-pv-block="ldqhas" orientation="vertical" value="opt1" >
+        {/* pv-editable-zone-start:bmv50n */}
+          {/* pv-block-start:e7ehiy */}
+          <RadioItem data-pv-block="e7ehiy" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:e7ehiy */}
+          {/* pv-block-start:fwvybc */}
+          <RadioItem data-pv-block="fwvybc" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:fwvybc */}
+          {/* pv-block-start:oqm26i */}
+          <RadioItem data-pv-block="oqm26i" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:oqm26i */}
+        {/* pv-editable-zone-end:bmv50n */}
+      </RadioGroup>
+      {/* pv-block-end:ldqhas */}
         {/* pv-editable-zone-end:w7l84k */}
       </Card>
       {/* pv-block-end:0w8hv1 */}

@@ -15,7 +15,7 @@ interface PvElementClickMessage {
   type: 'PV_ELEMENT_CLICK';
   pvLocs: PvLoc[];
   componentId: string | null;
-  runtimeId: string;
+  runtimeIds: string[];
 }
 
 interface PvDoubleClickMessage {
@@ -43,22 +43,17 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
       if (!e.data || typeof e.data !== 'object') return;
 
       if (e.data.type === 'PV_ELEMENT_CLICK') {
-        const { pvLocs, componentId, runtimeId } = e.data;
-        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeId });
+        const { pvLocs, componentId, runtimeIds } = e.data;
+        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeIds });
 
-        // Identify which iframe sent the message by matching e.source
         const sourceRef = iframeRefs.find(ref => ref.current?.contentWindow === e.source);
         const iframeDoc = sourceRef?.current?.contentDocument;
         if (!iframeDoc) return;
 
-        // Use the exact runtimeId to avoid the "first matched element" bug
-        const el = iframeDoc.querySelector<HTMLElement>(`[data-pv-runtime-id="${runtimeId}"]`);
-        if (!el) {
-          console.warn('[Protovibe Shell] Could not resolve element with runtimeId:', runtimeId);
-          return;
-        }
+        const els = runtimeIds.map(id => iframeDoc.querySelector<HTMLElement>(`[data-pv-runtime-id="${id}"]`)).filter(Boolean) as HTMLElement[];
+        if (els.length === 0) return;
 
-        focusElement(el);
+        focusElement(els);
       }
 
       if (e.data.type === 'PV_ELEMENT_DESELECT') {

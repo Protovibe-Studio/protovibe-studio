@@ -25,7 +25,7 @@ const HOVER_OFFSET = '1px';
 let isLocked = false;
 let isPreviewModeActive = false;
 let hoveredEl: HTMLElement | null = null;
-let selectedEl: HTMLElement | null = null;
+let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
 let suppressNextClickTarget: HTMLElement | null = null;
 
@@ -96,11 +96,11 @@ function findInspectableParent(el: HTMLElement): HTMLElement | null {
 
 function updateOutlines(
   oldHover: HTMLElement | null,
-  oldSel: HTMLElement | null,
+  oldSels: HTMLElement[],
   oldParent: HTMLElement | null,
 ) {
   const elementsToUpdate = new Set(
-    [oldHover, oldSel, oldParent, hoveredEl, selectedEl, selectedParentEl].filter(
+    [oldHover, oldParent, hoveredEl, selectedParentEl, ...oldSels, ...selectedEls].filter(
       (el): el is HTMLElement => el !== null
     )
   );
@@ -119,7 +119,7 @@ function updateOutlines(
     }
 
     // 2. Apply new outlines (Selection wins over Hover)
-    if (el === selectedEl) {
+    if (selectedEls.includes(el)) {
       el.style.outline = SELECTION_OUTLINE;
       el.style.outlineOffset = SELECTION_OFFSET;
     } else if (el === selectedParentEl) {
@@ -140,32 +140,41 @@ function setHoverOutline(el: HTMLElement) {
   if (hoveredEl === el) return;
   const oldHover = hoveredEl;
   hoveredEl = el;
-  updateOutlines(oldHover, selectedEl, selectedParentEl);
+  updateOutlines(oldHover, selectedEls, selectedParentEl);
 }
 
 function clearHoverOutline() {
   if (!hoveredEl) return;
   const oldHover = hoveredEl;
   hoveredEl = null;
-  updateOutlines(oldHover, selectedEl, selectedParentEl);
+  updateOutlines(oldHover, selectedEls, selectedParentEl);
 }
 
-function applySelectionOutline(el: HTMLElement) {
-  if (selectedEl === el) return;
-  const oldSel = selectedEl;
+function applySelectionOutline(el: HTMLElement, multi = false) {
+  const oldSels = [...selectedEls];
   const oldParent = selectedParentEl;
-  selectedEl = el;
-  selectedParentEl = findInspectableParent(el);
-  updateOutlines(hoveredEl, oldSel, oldParent);
+
+  if (multi) {
+    if (selectedEls.includes(el)) {
+      selectedEls = selectedEls.filter(e => e !== el);
+    } else {
+      selectedEls.push(el);
+    }
+  } else {
+    selectedEls = [el];
+  }
+
+  selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+  updateOutlines(hoveredEl, oldSels, oldParent);
 }
 
 function clearSelectionOutline() {
-  if (!selectedEl) return;
-  const oldSel = selectedEl;
+  if (selectedEls.length === 0) return;
+  const oldSels = [...selectedEls];
   const oldParent = selectedParentEl;
-  selectedEl = null;
+  selectedEls = [];
   selectedParentEl = null;
-  updateOutlines(hoveredEl, oldSel, oldParent);
+  updateOutlines(hoveredEl, oldSels, oldParent);
 }
 
 // ─── Event handlers ───────────────────────────────────────────────────────────
@@ -183,7 +192,8 @@ function handlePointerDown(e: PointerEvent) {
   const target = findInspectableTarget(e.target);
   if (!target) return;
 
-  if (target === selectedEl) {
+  const isMulti = e.shiftKey;
+  if (target === selectedEls[0] && !isMulti && selectedEls.length === 1) {
     suppressNextClickTarget = null;
     clearHoverOutline();
     return;
@@ -194,20 +204,24 @@ function handlePointerDown(e: PointerEvent) {
   suppressNextClickTarget = target;
   clearHoverOutline();
 
-  // Instantly apply outline inside the iframe for snappier feedback
-  applySelectionOutline(target);
+  applySelectionOutline(target, isMulti);
 
-  // Assign a unique runtime ID to prevent the parent from querying the wrong instance
-  const runtimeId = 'pv-' + Math.random().toString(36).substring(2);
-  target.setAttribute('data-pv-runtime-id', runtimeId);
+  const runtimeIds = selectedEls.map(element => {
+    let rId = element.getAttribute('data-pv-runtime-id');
+    if (!rId) {
+      rId = 'pv-' + Math.random().toString(36).substring(2);
+      element.setAttribute('data-pv-runtime-id', rId);
+    }
+    return rId;
+  });
 
-  const pvLocs = collectPvLocs(target);
-  const componentId = target.getAttribute('data-pv-component-id') ?? null;
+  const primaryLocs = collectPvLocs(target);
+  const primaryComponentId = target.getAttribute('data-pv-component-id') ?? null;
 
-  console.log('[Protovibe Bridge] Clicked Element:', target.tagName, pvLocs);
+  console.log('[Protovibe Bridge] Clicked Element:', target.tagName, primaryLocs);
 
   window.parent.postMessage(
-    { type: 'PV_ELEMENT_CLICK', pvLocs, componentId, runtimeId },
+    { type: 'PV_ELEMENT_CLICK', pvLocs: primaryLocs, componentId: primaryComponentId, runtimeIds },
     '*'
   );
 }
@@ -230,7 +244,7 @@ function handleClick(e: MouseEvent) {
     return;
   }
 
-  if (target === selectedEl) {
+  if (selectedEls.includes(target) && !e.shiftKey && selectedEls.length === 1) {
     clearHoverOutline();
     return;
   }
@@ -247,7 +261,7 @@ function handleMouseMove(e: MouseEvent) {
   }
 
   const target = findInspectableTarget(e.target);
-  if (!target || target === selectedEl || target === selectedParentEl) {
+  if (!target || selectedEls.includes(target) || target === selectedParentEl) {
     clearHoverOutline();
     return;
   }
@@ -299,8 +313,8 @@ function handleDoubleClick(e: MouseEvent) {
   }
 
   const target = findInspectableTarget(e.target);
-  if (!target || !selectedEl) return;
-  if (target !== selectedEl) return;
+  if (!target || selectedEls.length !== 1) return;
+  if (target !== selectedEls[0]) return;
 
   e.preventDefault();
   e.stopPropagation();
@@ -314,14 +328,20 @@ function handleParentMessage(e: MessageEvent) {
 
   switch (e.data.type) {
     case 'PV_SET_SELECTION': {
-      // Called by parent during Keyboard Navigation traversal
-      const { runtimeId } = e.data;
-      if (!runtimeId) {
+      const { runtimeIds } = e.data;
+      if (!runtimeIds || !Array.isArray(runtimeIds) || runtimeIds.length === 0) {
         clearSelectionOutline();
         break;
       }
-      const el = document.querySelector(`[data-pv-runtime-id="${runtimeId}"]`) as HTMLElement | null;
-      if (el) applySelectionOutline(el);
+      const oldSels = [...selectedEls];
+      const oldParent = selectedParentEl;
+      selectedEls = [];
+      runtimeIds.forEach((id: string) => {
+        const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
+        if (el) selectedEls.push(el);
+      });
+      selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+      updateOutlines(hoveredEl, oldSels, oldParent);
       break;
     }
     case 'PV_CLEAR_SELECTION':

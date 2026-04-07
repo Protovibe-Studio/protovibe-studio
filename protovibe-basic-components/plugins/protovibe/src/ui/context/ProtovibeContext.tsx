@@ -21,6 +21,7 @@ interface ProtovibeContextType {
   setActiveSourceId: (id: string | null) => void;
   currentBaseTarget: HTMLElement | null;
   setCurrentBaseTarget: (el: HTMLElement | null) => void;
+  selectedTargets: HTMLElement[];
   activeModifiers: ActiveModifiers;
   setActiveModifiers: React.Dispatch<React.SetStateAction<ActiveModifiers>>;
   availableComponents: any[];
@@ -54,6 +55,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
   const [currentBaseTarget, setCurrentBaseTarget] = useState<HTMLElement | null>(null);
+  const [selectedTargets, setSelectedTargets] = useState<HTMLElement[]>([]);
   const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {} });
   const [availableComponents, setAvailableComponents] = useState<any[]>([]);
   const [sourceDataList, setSourceDataList] = useState<SourceData[]>([]);
@@ -220,24 +222,20 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const focusElement = useCallback((el: HTMLElement) => {
-    // Flush any pending uncommitted inspector input before switching elements.
-    // React does not fire onBlur when a component unmounts, so we must blur
-    // imperatively here — while the old inspector fields are still mounted.
+  const focusElement = useCallback((inputEl: HTMLElement | HTMLElement[]) => {
     (document.activeElement as HTMLElement | null)?.blur?.();
 
-    let t = el;
+    const els = Array.isArray(inputEl) ? inputEl : [inputEl];
+    if (els.length === 0) return;
+
+    const primaryEl = els[els.length - 1];
+    let t: HTMLElement | null = primaryEl;
     let matchedIds = new Set<string>();
-    // Use the element's own document root as the walk boundary so this works
-    // whether the element lives in the parent frame or an iframe.
-    const docRoot = el.ownerDocument?.documentElement ?? document.documentElement;
+    const docRoot = primaryEl.ownerDocument?.documentElement ?? document.documentElement;
     while (t && t !== docRoot) {
       if (t.attributes) {
         for (let i = 0; i < t.attributes.length; i++) {
           if (t.attributes[i].name.startsWith('data-pv-loc-')) {
-            // Strip the base prefix, then also strip the optional environment
-            // sub-prefix ('app-' or 'ui-') introduced by the jsx-locator plugin
-            // so the hash passed to the server matches the locatorMap key.
             const rawId = t.attributes[i].name.replace('data-pv-loc-', '');
             const id = rawId.replace(/^(app|ui)-/, '');
             matchedIds.add(id);
@@ -247,34 +245,35 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (matchedIds.size > 0) break;
       t = t.parentElement as HTMLElement;
     }
-    // Read componentId from the matched element for pvConfig lookup (works with barrel imports)
     componentIdOverrideRef.current = t?.getAttribute?.('data-pv-component-id') ?? null;
-    
-    // Assign a runtime ID if missing (critical for keyboard traversal)
-    let runtimeId = el.getAttribute('data-pv-runtime-id');
-    if (!runtimeId) {
-      runtimeId = 'pv-' + Math.random().toString(36).substring(2);
-      el.setAttribute('data-pv-runtime-id', runtimeId);
-    }
 
-    setCurrentBaseTarget(el);
-    setHighlightedElement(el);
+    const runtimeIds = els.map(element => {
+      let rId = element.getAttribute('data-pv-runtime-id');
+      if (!rId) {
+        rId = 'pv-' + Math.random().toString(36).substring(2);
+        element.setAttribute('data-pv-runtime-id', rId);
+      }
+      return rId;
+    });
+
+    setCurrentBaseTarget(primaryEl);
+    setSelectedTargets(els);
+    setHighlightedElement(primaryEl);
     setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
     if (matchedIds.size > 0) {
       setSources(Array.from(matchedIds));
     }
 
-    // Tell bridge to move the outline visually (for keyboard navigation)
-    // Find the iframe that owns this element's document.
     const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
-    const iframeEl = allIframes.find(f => f.contentDocument === el.ownerDocument) ?? null;
-    iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeId }, '*');
+    const iframeEl = allIframes.find(f => f.contentDocument === primaryEl.ownerDocument) ?? null;
+    iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeIds }, '*');
 
   }, [setHighlightedElement]);
 
   const clearFocus = useCallback(() => {
     setHighlightedElement(null);
     setCurrentBaseTarget(null);
+    setSelectedTargets([]);
     setActiveSourceId(null);
     setSources([]);
     // Clear outline in all iframes
@@ -353,6 +352,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       inspectorOpen, setInspectorOpen,
       activeSourceId, setActiveSourceId,
       currentBaseTarget, setCurrentBaseTarget,
+      selectedTargets,
       activeModifiers, setActiveModifiers,
       availableComponents,
       refreshComponents,

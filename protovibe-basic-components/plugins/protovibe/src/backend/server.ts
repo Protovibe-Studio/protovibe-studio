@@ -666,6 +666,80 @@ export const handleGetZones: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, blockIds } = JSON.parse(body || '{}');
+      if (!file || !blockIds || blockIds.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Missing parameters' }));
+      }
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      const extractedBlocks: string[] = [];
+      let insertIndex = -1;
+      let baseSpaces = '';
+
+      const blockMatches: { id: string, index: number, content: string, length: number }[] = [];
+
+      for (const blockId of blockIds) {
+        const regex = new RegExp(`(?:\\n?)([ \\t]*)\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}(?:\\n?)`);
+        const match = fileContent.match(regex);
+        if (match) {
+          blockMatches.push({
+            id: blockId,
+            index: match.index!,
+            content: match[0],
+            length: match[0].length
+          });
+          if (insertIndex === -1 || match.index! < insertIndex) {
+            insertIndex = match.index!;
+            baseSpaces = match[1] || '';
+          }
+        }
+      }
+
+      if (blockMatches.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Blocks not found' }));
+      }
+
+      // Sort reverse so we delete from bottom up without invalidating earlier indices
+      blockMatches.sort((a, b) => b.index - a.index);
+
+      for (const match of blockMatches) {
+        extractedBlocks.unshift(match.content.trim());
+        fileContent = fileContent.slice(0, match.index) + '\n' + fileContent.slice(match.index + match.length);
+      }
+
+      const wrapperId = Math.random().toString(36).substring(2, 8);
+      const zoneId = Math.random().toString(36).substring(2, 8);
+      const i = baseSpaces;
+      const i2 = i + '  ';
+
+      const innerContent = extractedBlocks.map(b =>
+        b.split('\n').map(line => {
+          const unindented = line.replace(new RegExp(`^${baseSpaces}`), '');
+          return i2 + unindented.trimStart();
+        }).join('\n')
+      ).join('\n');
+
+      const wrapperHtml = `\n${i}{/* pv-block-start:${wrapperId} */}\n${i}<div data-pv-block="${wrapperId}" className="flex flex-col gap-2">\n${i2}{/* pv-editable-zone-start:${zoneId} */}\n${innerContent}\n${i2}{/* pv-editable-zone-end:${zoneId} */}\n${i}</div>\n${i}{/* pv-block-end:${wrapperId} */}\n`;
+
+      fileContent = fileContent.slice(0, insertIndex) + wrapperHtml + fileContent.slice(insertIndex);
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, wrapperId }));
+
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
 export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });

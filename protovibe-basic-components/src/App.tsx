@@ -172,6 +172,10 @@ function DashboardPage() {
               {/* pv-editable-zone-end:y2z3a4 */}
             </Card>
             {/* pv-block-end:v8w9x1 */}
+              {/* pv-block-start:4b2t8k */}
+              <Button data-pv-block="4b2t8k" label="Button" variant="solid" color="primary" size="md" />
+              {/* pv-block-end:4b2t8k */}
+            
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}

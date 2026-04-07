@@ -19,7 +19,7 @@ type SidebarProps = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-  const { currentBaseTarget, activeData, isMutationLocked, isLoading } = useProtovibe();
+  const { currentBaseTarget, selectedTargets, activeData, isMutationLocked, isLoading } = useProtovibe();
 
   const stopScrollEventEscape = (event: React.UIEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     transition: `width ${INSPECTOR_TRANSITION_MS}ms ${INSPECTOR_TRANSITION_EASING}`,
   };
 
-  if (!currentBaseTarget) {
+  if (!currentBaseTarget || selectedTargets.length > 1) {
     return (
       <>
         <div
@@ -60,7 +60,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifySelf: 'center', padding: '32px', textAlign: 'center', color: theme.text_tertiary, flexDirection: 'column', gap: '12px', justifyContent: 'center' }}>
             <Paintbrush size={48} strokeWidth={1.5} style={{ opacity: 0.5 }} aria-hidden="true" />
-            <span style={{ fontSize: '14px' }}>Click anything on the page to edit</span>
+            <span style={{ fontSize: '14px' }}>
+              {selectedTargets?.length > 1 ? `${selectedTargets.length} items selected` : 'Click anything on the page to edit'}
+            </span>
           </div>
         </div>
         <FloatingToolbar />

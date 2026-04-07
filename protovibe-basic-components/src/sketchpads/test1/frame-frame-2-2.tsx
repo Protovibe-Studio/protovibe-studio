@@ -198,20 +198,7 @@ export default function Frame2() {
         {/* pv-editable-zone-end:bddck1 */}
       </Rectangle>
       {/* pv-block-end:3blium */}
-      
-      {/* pv-block-start:294bge */}
-      <Rectangle data-pv-block="294bge" data-pv-sketchpad-el="294bge" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 319, top: 278 }}>
-        {/* pv-editable-zone-start:2cxs0c */}
-        {/* pv-block-start:pl2h2d */}
-          <Rectangle data-pv-block="pl2h2d" data-pv-sketchpad-el="pl2h2d" style={{ position: 'absolute', left: 372, top: -130, height: 140, width: 134 }} className="w-[200px] h-[200px]">
-            {/* pv-editable-zone-start:c48c9e */}
-            {/* pv-editable-zone-end:c48c9e */}
-          </Rectangle>
-          {/* pv-block-end:pl2h2d */}
-        {/* pv-editable-zone-end:2cxs0c */}
-      </Rectangle>
-      {/* pv-block-end:294bge */}
-      
+
       {/* pv-block-start:tha28r */}
       <Rectangle data-pv-block="tha28r" data-pv-sketchpad-el="tha28r" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 50, top: 50 }}>
         {/* pv-editable-zone-start:ncq2df */}
