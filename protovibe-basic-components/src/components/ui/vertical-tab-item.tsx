@@ -98,6 +98,15 @@ export function VerticalTabItem({
   );
 }
 
+export function PvDefaultContent() {
+  return (
+    <>
+      {/* pv-editable-zone-start */}
+      {/* pv-editable-zone-end */}
+    </>
+  );
+}
+
 export const pvConfig = {
   name: 'VerticalTabItem',
   componentId: 'VerticalTabItem',
@@ -105,7 +114,7 @@ export const pvConfig = {
   description: 'A vertical tab item with optional icons, active state, and an expandable content zone.',
   importPath: '@/components/ui/vertical-tab-item',
   defaultProps: 'label="Tab 1" value="tab1"',
-  defaultContent: '{/* pv-editable-zone-start */}\n{/* pv-editable-zone-end */}',
+  defaultContent: <PvDefaultContent />,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },

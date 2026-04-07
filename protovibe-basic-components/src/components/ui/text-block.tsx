@@ -75,6 +75,12 @@ export function TextBlock({
   );
 }
 
+export function PvDefaultContent() {
+  return (
+    <>Text block</>
+  );
+}
+
 export const pvConfig = {
   name: 'TextBlock',
   componentId: 'TextBlock',
@@ -82,7 +88,7 @@ export const pvConfig = {
   description: 'A text element with typography style variants, different heading sizes, body text, secondary text.',
   importPath: '@/components/ui/text-block',
   defaultProps: 'typography="regular"',
-  defaultContent: 'Text block',
+  defaultContent: <PvDefaultContent />,
   allowTextInChildren: true,
   props: {
     typography: {
