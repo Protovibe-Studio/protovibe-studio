@@ -24,7 +24,7 @@ export function SelectDropdownSearch({
   return (
     <div
       {...props}
-      className={cn("flex items-center gap-2 border-b min-h-9 pt-0.5 pb-1.5 pl-3 pr-2 border-border-secondary", className)}
+      className={cn("flex items-center gap-2 border-b min-h-9 border-border-secondary pt-0.5 pb-1.5 px-3", className)}
       data-pv-component-id="SelectDropdownSearch"
       // Stop click from bubbling up to the SelectDropdown trigger
       onMouseDown={(e) => e.stopPropagation()}
@@ -50,7 +50,7 @@ export function SelectDropdownSearch({
           type="button"
           tabIndex={-1}
           onMouseDown={(e) => { e.preventDefault(); ctx.setQuery(''); inputRef.current?.focus(); }}
-          className="shrink-0 flex items-center text-foreground-tertiary hover:text-foreground-default"
+          className="shrink-0 flex items-center cursor-pointer text-foreground-tertiary hover:text-foreground-default"
         >
           <Icon name="X" size="sm" />
         </button>

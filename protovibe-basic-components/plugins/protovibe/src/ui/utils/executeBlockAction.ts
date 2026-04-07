@@ -87,10 +87,10 @@ export async function executeBlockAction({
         await wait(100);
         continue;
       }
-      if (prevSiblingBlockId) {
-        focusTarget = findBlockElement(prevSiblingBlockId);
-      } else if (nextSiblingBlockId) {
+      if (nextSiblingBlockId) {
         focusTarget = findBlockElement(nextSiblingBlockId);
+      } else if (prevSiblingBlockId) {
+        focusTarget = findBlockElement(prevSiblingBlockId);
       } else if (parentBlockId) {
         focusTarget = findBlockElement(parentBlockId);
       }
