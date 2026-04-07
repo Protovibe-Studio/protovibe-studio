@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
 import { TabItem } from '@/components/ui/tab-item'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
 
 export default function Frame3() {
   return (
@@ -36,11 +38,50 @@ export default function Frame3() {
       {/* pv-block-end:ctjldf */}
 
       {/* pv-block-start:0bjh21 */}
-        <Rectangle data-pv-block="0bjh21" className="w-[200px] h-[200px]" data-pv-sketchpad-el="0bjh21" style={{ position: 'absolute', left: 460, top: 32 }}>
+        <Rectangle data-pv-block="0bjh21" className="w-[200px] h-[200px]" data-pv-sketchpad-el="0bjh21" style={{ position: 'absolute', height: 171, left: 338, top: 48 }}>
           {/* pv-editable-zone-start:fn1xxk */}
           {/* pv-block-start:8anhjk */}
                     <TextBlock data-pv-block="8anhjk" typography="heading-md" className="uppercase tracking-wider" data-pv-sketchpad-el="8anhjk" style={{ position: 'absolute', left: 25, top: 25 }}>Total Headcount</TextBlock>
                     {/* pv-block-end:8anhjk */}
+
+          {/* pv-block-start:z1dpck */}
+            <Card data-pv-block="z1dpck" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="z1dpck" style={{ position: 'absolute', left: 200, top: 13, width: 206 }}>
+              {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:w0gg5g */}
+                <div data-pv-block="w0gg5g" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:9sa77t */}
+                    <TextBlock data-pv-block="9sa77t" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
+                    {/* pv-block-end:9sa77t */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:w0gg5g */}
+                {/* pv-block-start:c7nv20 */}
+                <TextBlock data-pv-block="c7nv20" typography="heading-xxl" className="mb-2">142</TextBlock>
+                {/* pv-block-end:c7nv20 */}
+
+              {/* pv-block-start:xunrbt */}
+                    <RadioGroup data-pv-block="xunrbt" orientation="vertical" value="opt1">
+                      {/* pv-editable-zone-start:5sm697 */}
+                        {/* pv-block-start:7qo11s */}
+                        <RadioItem data-pv-block="7qo11s" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+                        {/* pv-block-end:7qo11s */}
+                        {/* pv-block-start:xh2jx3 */}
+                        <RadioItem data-pv-block="xh2jx3" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+                        {/* pv-block-end:xh2jx3 */}
+                        {/* pv-block-start:ezdjrf */}
+                        <RadioItem data-pv-block="ezdjrf" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+                        {/* pv-block-end:ezdjrf */}
+                      {/* pv-editable-zone-end:5sm697 */}
+                    </RadioGroup>
+                    {/* pv-block-end:xunrbt */}
+
+              {/* pv-block-start:723erd */}
+                <Badge data-pv-block="723erd" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                {/* pv-block-end:723erd */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:z1dpck */}
           {/* pv-editable-zone-end:fn1xxk */}
         </Rectangle>
         {/* pv-block-end:0bjh21 */}

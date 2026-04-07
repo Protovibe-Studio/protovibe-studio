@@ -24,19 +24,8 @@ export default function Frame2() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:hxwp0f */}
-      {/* pv-block-start:f7lfn7 */}
-      <InfoBoxBanner data-pv-block="f7lfn7" data-pv-sketchpad-el="f7lfn7" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} style={{ position: 'absolute', left: 52, top: 540 }}>
-        {/* pv-editable-zone-start:17kg7f */}
-        {/* pv-editable-zone-end:17kg7f */}
-      </InfoBoxBanner>
-      {/* pv-block-end:f7lfn7 */}
-
-      {/* pv-block-start:iq38ka */}
-      <SuperLabel heading="Dupa" data-pv-block="iq38ka" data-pv-sketchpad-el="iq38ka" primaryText="Label" style={{ position: 'absolute', width: 179, left: 118, top: 414 }} />
-      {/* pv-block-end:iq38ka */}
-      
       {/* pv-block-start:5ybvj3 */}
-      <Rectangle data-pv-block="5ybvj3" data-pv-sketchpad-el="5ybvj3"  style={{ position: 'absolute', height: 79, left: 47, top: 48 }}>
+      <Rectangle data-pv-block="5ybvj3" data-pv-sketchpad-el="5ybvj3"  style={{ position: 'absolute', height: 79, left: 37, top: 84 }}>
         {/* pv-editable-zone-start:6xj4g5 */}
         {/* pv-editable-zone-end:6xj4g5 */}
       </Rectangle>
@@ -48,16 +37,9 @@ export default function Frame2() {
         {/* pv-editable-zone-end:znd5i5 */}
       </Rectangle>
       {/* pv-block-end:16xx1w */}
-      
-      {/* pv-block-start:cwlx0h */}
-      <Rectangle data-pv-block="cwlx0h" data-pv-sketchpad-el="cwlx0h"  style={{ position: 'absolute', left: 52, top: 309 }}>
-        {/* pv-editable-zone-start:csc7wf */}
-        {/* pv-editable-zone-end:csc7wf */}
-      </Rectangle>
-      {/* pv-block-end:cwlx0h */}
 
       {/* pv-block-start:n2qffv */}
-      <Rectangle data-pv-block="n2qffv" data-pv-sketchpad-el="n2qffv"  style={{ position: 'absolute', height: 40, width: 283, left: 169, top: 50 }}>
+      <Rectangle data-pv-block="n2qffv" data-pv-sketchpad-el="n2qffv"  style={{ position: 'absolute', height: 129, width: 460, left: -1083, top: 805 }}>
         {/* pv-editable-zone-start:no6vhn */}
         {/* pv-editable-zone-end:no6vhn */}
       </Rectangle>
@@ -71,76 +53,58 @@ export default function Frame2() {
       {/* pv-block-end:65mrdq */}
       
       {/* pv-block-start:3blium */}
-      <Rectangle data-pv-block="3blium" data-pv-sketchpad-el="3blium"  style={{ position: 'absolute', left: 406, top: 154 }}>
+      <Rectangle data-pv-block="3blium" data-pv-sketchpad-el="3blium"  style={{ position: 'absolute', height: 219, width: 513, left: 192, top: 102 }}>
         {/* pv-editable-zone-start:bddck1 */}
+        {/* pv-block-start:izab1l */}
+        <div data-pv-block="izab1l" className="flex flex-col gap-4" data-pv-sketchpad-el="izab1l" style={{ position: 'absolute', width: 416, left: 36, top: 61 }}>
+          {/* pv-editable-zone-start:aj26iu */}
+          {/* pv-block-start:nryq47 */}
+          <InfoBoxBanner data-pv-block="nryq47" icon="Info" heading="Heads up" secondaryText="Something needs your attention." color="info" showCloseButton={true} >
+          {/* pv-editable-zone-start:17kg7f */}
+          {/* pv-editable-zone-end:17kg7f */}
+          </InfoBoxBanner>
+          {/* pv-block-end:nryq47 */}
+          {/* pv-block-start:szk8tq */}
+          <SuperLabel heading="Dupa" data-pv-block="szk8tq" primaryText="Label" style={{ width: 179 }} />
+          {/* pv-block-end:szk8tq */}
+          {/* pv-editable-zone-end:aj26iu */}
+        </div>
+        {/* pv-block-end:izab1l */}
+
+        {/* pv-block-start:tenj4v */}
+      <TextBlock data-pv-block="tenj4v" data-pv-sketchpad-el="tenj4v" typography="heading-md" style={{ position: 'absolute', left: 33, top: 21 }}>
+        Text block
+      </TextBlock>
+      {/* pv-block-end:tenj4v */}
         {/* pv-editable-zone-end:bddck1 */}
       </Rectangle>
       {/* pv-block-end:3blium */}
 
       {/* pv-block-start:tha28r */}
-      <Rectangle data-pv-block="tha28r" data-pv-sketchpad-el="tha28r" className="w-[200px] h-[200px]" style={{ position: 'absolute', width: 532, height: 235, left: 202, top: 259 }}>
+      <Rectangle data-pv-block="tha28r" data-pv-sketchpad-el="tha28r" className="w-[200px] h-[200px]" style={{ position: 'absolute', width: 532, height: 235, left: -903, top: 651 }}>
         {/* pv-editable-zone-start:ncq2df */}
-        {/* pv-block-start:i8y5r2 */}
-          <Card data-pv-block="i8y5r2" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 78, top: 166, width: 365 }} data-pv-sketchpad-el="i8y5r2">
+        {/* pv-block-start:q38jxq */}
+          <Card data-pv-block="q38jxq" variant="bordered" shadow="none" border="default" style={{ position: 'absolute', left: 71, top: 56, width: 365 }} data-pv-sketchpad-el="q38jxq">
           {/* pv-editable-zone-start:taxyss */}
-          {/* pv-block-start:2uef2p */}
-          <div data-pv-block="2uef2p" className="flex gap-2 flex-row" >
+          {/* pv-block-start:uzl0f1 */}
+          <div data-pv-block="uzl0f1" className="flex gap-2 flex-row" >
           {/* pv-editable-zone-start:x6aovb */}
           {/* pv-editable-zone-end:x6aovb */}
           </div>
-          {/* pv-block-end:2uef2p */}
+          {/* pv-block-end:uzl0f1 */}
           
-          {/* pv-block-start:aspw66 */}
-          <div className="flex flex-col min-h-4" data-pv-block="aspw66">
-          {/* pv-editable-zone-start:inside-aspw66 */}
-          {/* pv-editable-zone-end:inside-aspw66 */}
+          {/* pv-block-start:p6yq3q */}
+          <div className="flex flex-col min-h-4" data-pv-block="p6yq3q">
+          {/* pv-editable-zone-start:inside-p6yq3q */}
+          {/* pv-editable-zone-end:inside-p6yq3q */}
           </div>
-          {/* pv-block-end:aspw66 */}
+          {/* pv-block-end:p6yq3q */}
           {/* pv-editable-zone-end:taxyss */}
           </Card>
-          {/* pv-block-end:i8y5r2 */}
+          {/* pv-block-end:q38jxq */}
         {/* pv-editable-zone-end:ncq2df */}
       </Rectangle>
       {/* pv-block-end:tha28r */}
-      
-      {/* pv-block-start:tscni6 */}
-            <Card data-pv-block="tscni6" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="tscni6" style={{ position: 'absolute', left: 502, top: 17, width: 206 }}>
-              {/* pv-editable-zone-start:c8d9e1 */}
-                {/* pv-block-start:mln1cr */}
-                <div data-pv-block="mln1cr" className="flex items-center gap-3 mb-2 text-foreground-secondary">
-                  {/* pv-editable-zone-start:i5j6k7 */}
-                    {/* pv-block-start:vzgy90 */}
-                    <TextBlock data-pv-block="vzgy90" typography="small" className="font-semibold uppercase tracking-wider">Total Headcount</TextBlock>
-                    {/* pv-block-end:vzgy90 */}
-                  {/* pv-editable-zone-end:i5j6k7 */}
-                </div>
-                {/* pv-block-end:mln1cr */}
-                {/* pv-block-start:jzjxjw */}
-                <TextBlock data-pv-block="jzjxjw" typography="heading-xxl" className="mb-2">142</TextBlock>
-                {/* pv-block-end:jzjxjw */}
-
-              {/* pv-block-start:jeytoi */}
-                    <RadioGroup data-pv-block="jeytoi" orientation="vertical" value="opt1">
-                      {/* pv-editable-zone-start:5sm697 */}
-                        {/* pv-block-start:e1a82h */}
-                        <RadioItem data-pv-block="e1a82h" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                        {/* pv-block-end:e1a82h */}
-                        {/* pv-block-start:069lca */}
-                        <RadioItem data-pv-block="069lca" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                        {/* pv-block-end:069lca */}
-                        {/* pv-block-start:zs0cuc */}
-                        <RadioItem data-pv-block="zs0cuc" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                        {/* pv-block-end:zs0cuc */}
-                      {/* pv-editable-zone-end:5sm697 */}
-                    </RadioGroup>
-                    {/* pv-block-end:jeytoi */}
-
-              {/* pv-block-start:7gd011 */}
-                <Badge data-pv-block="7gd011" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
-                {/* pv-block-end:7gd011 */}
-              {/* pv-editable-zone-end:c8d9e1 */}
-            </Card>
-            {/* pv-block-end:tscni6 */}
       {/* pv-editable-zone-end:hxwp0f */}
     </div>
   );

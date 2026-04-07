@@ -743,8 +743,8 @@ function handlePointerUp(e: PointerEvent) {
       if (dragState.isFlow && dropContainer === currentContainer) {
         // Dropped inside its own flow container -> revert transform cleanly.
         dragState.target.style.transform = dragState.origTransform;
-      } else if (!dragState.isFlow && sourceFrameId === targetFrameId && isFrameTarget) {
-        // Same-frame absolute move - revert transform, then immediately pin final left/top
+      } else if (!dragState.isFlow && dropContainer === currentContainer) {
+        // Same-container absolute move - revert transform, then immediately pin final left/top
         dragState.target.style.transform = dragState.origTransform;
         const newLeft = dragState.origLeft + dx;
         const newTop = dragState.origTop + dy;

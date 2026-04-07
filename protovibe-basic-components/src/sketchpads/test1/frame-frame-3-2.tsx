@@ -48,7 +48,7 @@ export default function Frame3() {
       {/* pv-block-end:xn7mdg */}
 
       {/* pv-block-start:fn7w4v */}
-          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 552, top: 114 }}>
+          <div data-pv-block="fn7w4v" className="flex flex-col gap-2" data-pv-sketchpad-el="fn7w4v" style={{ position: 'absolute', left: 546, top: 72 }}>
           {/* pv-editable-zone-start:bla8ry */}
           {/* pv-block-start:rasx0h */}
           <Button data-pv-block="rasx0h" label="Button" variant="solid" color="primary" size="md" />
@@ -93,6 +93,13 @@ export default function Frame3() {
           {/* pv-editable-zone-end:8xrqx0 */}
         </div>
         {/* pv-block-end:d9hg1z */}
+
+        {/* pv-block-start:6lxa53 */}
+      <Rectangle data-pv-block="6lxa53" data-pv-sketchpad-el="6lxa53"  style={{ position: 'absolute', left: 30, top: 121, height: 38, width: 235 }}>
+        {/* pv-editable-zone-start:csc7wf */}
+        {/* pv-editable-zone-end:csc7wf */}
+      </Rectangle>
+      {/* pv-block-end:6lxa53 */}
         {/* pv-editable-zone-end:duvsah */}
       </Rectangle>
       {/* pv-block-end:ri3omq */}
