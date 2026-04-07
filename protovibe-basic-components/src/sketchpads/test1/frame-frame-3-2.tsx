@@ -10,6 +10,8 @@ import { RadioItem } from '@/components/ui/radio-item'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
 import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown';
+import { DropdownItem } from '@/components/ui/dropdown-item';
 
 export default function Frame3() {
   return (
@@ -46,6 +48,70 @@ export default function Frame3() {
         {/* pv-editable-zone-end:ni67pr */}
       </div>
       {/* pv-block-end:xn7mdg */}
+
+      {/* pv-block-start:actnnw */}
+      <div data-pv-block="actnnw" className="flex flex-col gap-2" data-pv-sketchpad-el="actnnw" style={{ position: 'absolute', width: 131, left: 229, top: 494 }}>
+        {/* pv-editable-zone-start:ni67pr */}
+        {/* pv-block-start:i44eri */}
+        <Avatar data-pv-block="i44eri" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:i44eri */}
+
+        {/* pv-block-start:p745g9 */}
+        <div data-pv-block="p745g9" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:2iatij */}
+          {/* pv-block-start:7e1r3h */}
+          <div data-pv-block="7e1r3h" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:qubfhb */}
+          {/* pv-block-start:fuleui */}
+          <div data-pv-block="fuleui" className="flex flex-col gap-10" >
+          {/* pv-editable-zone-start:c2rycc */}
+          {/* pv-block-start:k938ao */}
+          <Button data-pv-block="k938ao" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:k938ao */}
+          {/* pv-editable-zone-end:c2rycc */}
+          </div>
+          {/* pv-block-end:fuleui */}
+          {/* pv-editable-zone-end:qubfhb */}
+          </div>
+          {/* pv-block-end:7e1r3h */}
+          {/* pv-editable-zone-end:2iatij */}
+        </div>
+        {/* pv-block-end:p745g9 */}
+        {/* pv-editable-zone-end:ni67pr */}
+      </div>
+      {/* pv-block-end:actnnw */}
+
+      {/* pv-block-start:hqmnfc */}
+      <div data-pv-block="hqmnfc" className="flex flex-col gap-2" data-pv-sketchpad-el="hqmnfc" style={{ position: 'absolute', width: 131, left: 390, top: 497 }}>
+        {/* pv-editable-zone-start:ni67pr */}
+        {/* pv-block-start:r82nu7 */}
+        <Avatar data-pv-block="r82nu7" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:r82nu7 */}
+
+        {/* pv-block-start:q3rzwk */}
+        <div data-pv-block="q3rzwk" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:2iatij */}
+          {/* pv-block-start:i2jxbr */}
+          <div data-pv-block="i2jxbr" className="flex flex-col gap-2" >
+          {/* pv-editable-zone-start:qubfhb */}
+          {/* pv-block-start:hkk5oo */}
+          <div data-pv-block="hkk5oo" className="flex flex-col gap-10" >
+          {/* pv-editable-zone-start:c2rycc */}
+          {/* pv-block-start:aaubt8 */}
+          <Button data-pv-block="aaubt8" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:aaubt8 */}
+          {/* pv-editable-zone-end:c2rycc */}
+          </div>
+          {/* pv-block-end:hkk5oo */}
+          {/* pv-editable-zone-end:qubfhb */}
+          </div>
+          {/* pv-block-end:i2jxbr */}
+          {/* pv-editable-zone-end:2iatij */}
+        </div>
+        {/* pv-block-end:q3rzwk */}
+        {/* pv-editable-zone-end:ni67pr */}
+      </div>
+      {/* pv-block-end:hqmnfc */}
 
       {/* pv-block-start:c587un */}
         <Avatar data-pv-block="c587un" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="c587un" style={{ position: 'absolute', left: 172, top: 362 }}/>
@@ -113,8 +179,7 @@ export default function Frame3() {
       {/* pv-block-start:l3h2tm */}
         <Avatar data-pv-block="l3h2tm" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  data-pv-sketchpad-el="l3h2tm" style={{ position: 'absolute', left: 42, top: 334 }}/>
         {/* pv-block-end:l3h2tm */}
-      
-      
+
       {/* pv-block-start:yeg1ow */}
             <Card data-pv-block="yeg1ow" variant="bordered" shadow="sm" className="bg-background-default" data-pv-sketchpad-el="yeg1ow" style={{ position: 'absolute', left: 513, top: 39, width: 256 }}>
               {/* pv-editable-zone-start:c8d9e1 */}
@@ -151,7 +216,6 @@ export default function Frame3() {
         {/* pv-editable-zone-end:xi74a7 */}
       </Card>
       {/* pv-block-end:17etj5 */}
-                
 
               {/* pv-block-start:aow6j7 */}
                   <div className="flex flex-col min-h-4" data-pv-block="aow6j7">
@@ -161,9 +225,6 @@ export default function Frame3() {
                   </div>
                   {/* pv-block-end:aow6j7 */}
 
-              {/* pv-block-start:7pxhvw */}
-      <Button data-pv-block="7pxhvw" label="Button" variant="solid" color="primary" size="md" />
-      {/* pv-block-end:7pxhvw */}
       {/* pv-block-start:fh4xr5 */}
         <Avatar data-pv-block="fh4xr5" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"   data-pv-sketchpad-el="fh4xr5" style={{ position: 'absolute', left: 158, top: 247 }}/>
         {/* pv-block-end:fh4xr5 */}

@@ -7,6 +7,8 @@ import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import type { DropdownItemProps } from '@/components/ui/dropdown-item';
 import { DropdownItem } from '@/components/ui/dropdown-item';
+import { SelectDropdownSearchContext } from '@/components/ui/select-dropdown-context';
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
 
 export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Currently selected value (controlled) */
@@ -48,6 +50,7 @@ export function SelectDropdown({
 }: SelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentValue, setCurrentValue] = useState<string | undefined>(value);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setCurrentValue(value);
@@ -87,6 +90,11 @@ export function SelectDropdown({
     align,
   });
 
+  // Reset search when dropdown closes
+  useEffect(() => {
+    if (!isOpen) setSearchQuery('');
+  }, [isOpen]);
+
   const handleSelect = (val: string) => {
     setCurrentValue(val);
     onSelectionChange?.(val);
@@ -105,18 +113,28 @@ export function SelectDropdown({
     }
   });
 
-  // Clone each child to inject selected state and click handler
+  // Clone each child to inject selected state, click handler, and search-based visibility
+  const lowerQuery = searchQuery.toLowerCase();
   const enhancedChildren = React.Children.map(children, (child) => {
     if (!React.isValidElement<DropdownItemProps>(child)) return child;
     const itemValue = child.props.value ?? child.props.label;
-    if (itemValue === undefined) return child;
-    return React.cloneElement(child, {
-      selected: itemValue === currentValue,
-      onClick: (e: React.MouseEvent<HTMLDivElement>) => {
-        child.props.onClick?.(e);
-        if (!child.props.disabled) handleSelect(itemValue);
-      },
-    });
+
+    // For DropdownItems, apply search filtering
+    if (itemValue !== undefined) {
+      if (lowerQuery && !(child.props.label ?? itemValue).toLowerCase().includes(lowerQuery)) {
+        return null;
+      }
+      return React.cloneElement(child, {
+        selected: itemValue === currentValue,
+        onClick: (e: React.MouseEvent<HTMLDivElement>) => {
+          child.props.onClick?.(e);
+          if (!child.props.disabled) handleSelect(itemValue);
+        },
+      });
+    }
+
+    // Non-DropdownItem children (e.g. SelectDropdownSearch) pass through unchanged
+    return child;
   });
 
   const portalTarget =
@@ -159,14 +177,16 @@ export function SelectDropdown({
 
       {isOpen && portalTarget
         ? createPortal(
-            <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
-              <DropdownList
-                width={width}
-                style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
-              >
-                {enhancedChildren}
-              </DropdownList>
-            </div>,
+            <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
+              <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
+                <DropdownList
+                  width={width}
+                  style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
+                >
+                  {enhancedChildren}
+                </DropdownList>
+              </div>
+            </SelectDropdownSearchContext.Provider>,
             portalTarget
           )
         : null}
@@ -178,6 +198,9 @@ export function PvDefaultContent() {
   return (
     <>
       {/* pv-editable-zone-start */}
+        {/* pv-block-start */}
+        <SelectDropdownSearch data-pv-block="" placeholder="Search..." />
+        {/* pv-block-end */}
         {/* pv-block-start */}
         <DropdownItem data-pv-block="" value="opt1" label="Option One" selected={false} />
         {/* pv-block-end */}
@@ -202,6 +225,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
+    { name: 'SelectDropdownSearch', path: '@/components/ui/select-dropdown-search' },
   ],
   props: {
     placeholder: { type: 'string', exampleValue: 'Select an option' },

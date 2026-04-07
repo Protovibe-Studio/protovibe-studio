@@ -11,7 +11,7 @@ export function TooltipCallout({ text = 'Tooltip', direction = 'top', className,
     <div
       data-direction={direction}
       style={style}
-      className={cn("relative px-2.5 py-1.5 rounded shadow-md bg-background-strong text-foreground-inverse max-w-xs text-left text-sm", className)}
+      className={cn("relative px-2.5 py-1.5 rounded shadow-md bg-background-strong text-foreground-inverse max-w-xs text-left text-base", className)}
       {...props}
       data-pv-component-id="TooltipCallout"
     >
