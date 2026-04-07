@@ -24,13 +24,37 @@ export function InfiniteCanvas({
   const innerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
+
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const currentTransform = useRef(transform);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const applyTransformToDOM = useCallback(() => {
+    if (!containerRef.current || !innerRef.current) return;
+    const { zoom, panX, panY } = currentTransform.current;
+
+    const gridSpacing = GRID_SIZE * zoom;
+    const offsetX = panX % gridSpacing;
+    const offsetY = panY % gridSpacing;
+    const dotOpacity = Math.min(1, Math.max(0.15, zoom * 0.5));
+
+    containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
+    containerRef.current.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
+    containerRef.current.style.backgroundImage = `radial-gradient(circle, rgba(150,150,150,${dotOpacity}) 1px, transparent 1px)`;
+
+    innerRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    innerRef.current.setAttribute('data-sketchpad-zoom', String(zoom));
+  }, []);
+
+  useEffect(() => {
+    currentTransform.current = transform;
+    requestAnimationFrame(applyTransformToDOM);
+  }, [transform, applyTransformToDOM]);
 
   const isBackgroundTarget = useCallback((target: EventTarget | null) => {
     return target === containerRef.current || target === innerRef.current;
   }, []);
 
-  // Zoom centered on cursor
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       e.preventDefault();
@@ -42,16 +66,24 @@ export function InfiniteCanvas({
       const cursorY = e.clientY - rect.top;
 
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, transform.zoom * delta));
-      const ratio = newZoom / transform.zoom;
+      const t = currentTransform.current;
+      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, t.zoom * delta));
+      const ratio = newZoom / t.zoom;
 
-      onTransformChange({
+      currentTransform.current = {
         zoom: newZoom,
-        panX: cursorX - ratio * (cursorX - transform.panX),
-        panY: cursorY - ratio * (cursorY - transform.panY),
-      });
+        panX: cursorX - ratio * (cursorX - t.panX),
+        panY: cursorY - ratio * (cursorY - t.panY),
+      };
+
+      requestAnimationFrame(applyTransformToDOM);
+
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(() => {
+        onTransformChange(currentTransform.current);
+      }, 100);
     },
-    [transform, onTransformChange],
+    [applyTransformToDOM, onTransformChange],
   );
 
   useEffect(() => {
@@ -85,20 +117,19 @@ export function InfiniteCanvas({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Middle mouse button, space+left click, or left click on background starts pan
       if (e.button === 1 || (e.button === 0 && spaceHeld) || (e.button === 0 && isBackgroundTarget(e.target))) {
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = {
           x: e.clientX,
           y: e.clientY,
-          panX: transform.panX,
-          panY: transform.panY,
+          panX: currentTransform.current.panX,
+          panY: currentTransform.current.panY,
         };
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
       }
     },
-    [spaceHeld, isBackgroundTarget, transform.panX, transform.panY],
+    [spaceHeld, isBackgroundTarget],
   );
 
   const handlePointerMove = useCallback(
@@ -106,13 +137,16 @@ export function InfiniteCanvas({
       if (!isPanning) return;
       const dx = e.clientX - panStartRef.current.x;
       const dy = e.clientY - panStartRef.current.y;
-      onTransformChange({
-        zoom: transform.zoom,
+
+      currentTransform.current = {
+        ...currentTransform.current,
         panX: panStartRef.current.panX + dx,
         panY: panStartRef.current.panY + dy,
-      });
+      };
+
+      requestAnimationFrame(applyTransformToDOM);
     },
-    [isPanning, transform.zoom, onTransformChange],
+    [isPanning, applyTransformToDOM],
   );
 
   const handlePointerUp = useCallback(
@@ -120,28 +154,23 @@ export function InfiniteCanvas({
       if (isPanning) {
         setIsPanning(false);
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+        onTransformChange(currentTransform.current);
       }
     },
-    [isPanning],
+    [isPanning, onTransformChange],
   );
 
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
-      // Only on the canvas background, not on frames
       if (e.target !== containerRef.current && e.target !== containerRef.current?.firstElementChild) return;
       const rect = containerRef.current!.getBoundingClientRect();
-      const canvasX = (e.clientX - rect.left - transform.panX) / transform.zoom;
-      const canvasY = (e.clientY - rect.top - transform.panY) / transform.zoom;
+      const t = currentTransform.current;
+      const canvasX = (e.clientX - rect.left - t.panX) / t.zoom;
+      const canvasY = (e.clientY - rect.top - t.panY) / t.zoom;
       onCanvasDoubleClick(canvasX, canvasY);
     },
-    [transform, onCanvasDoubleClick],
+    [onCanvasDoubleClick],
   );
-
-  // Generate dot grid pattern
-  const gridSpacing = GRID_SIZE * transform.zoom;
-  const offsetX = transform.panX % gridSpacing;
-  const offsetY = transform.panY % gridSpacing;
-  const dotOpacity = Math.min(1, Math.max(0.15, transform.zoom * 0.5));
 
   return (
     <div
@@ -157,22 +186,17 @@ export function InfiniteCanvas({
         overflow: 'hidden',
         position: 'relative',
         cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'move',
-        backgroundImage: `radial-gradient(circle, rgba(150,150,150,${dotOpacity}) 1px, transparent 1px)`,
-        backgroundSize: `${gridSpacing}px ${gridSpacing}px`,
-        backgroundPosition: `${offsetX}px ${offsetY}px`,
         backgroundColor: '#1a1a2e',
         touchAction: 'none',
       }}
     >
       <div
         ref={innerRef}
-        data-sketchpad-zoom={transform.zoom}
         style={{
           position: 'absolute',
           left: 0,
           top: 0,
           transformOrigin: '0 0',
-          transform: `translate(${transform.panX}px, ${transform.panY}px) scale(${transform.zoom})`,
           willChange: 'transform',
         }}
       >

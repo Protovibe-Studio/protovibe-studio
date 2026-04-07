@@ -77,12 +77,13 @@ export function FrameContainer({
 
   const handleTitlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!isDragging) return;
+      if (!isDragging || !frameRef.current) return;
       const dx = (e.clientX - dragStartRef.current.x) / zoom;
       const dy = (e.clientY - dragStartRef.current.y) / zoom;
-      onMove(frameId, dragStartRef.current.frameX + dx, dragStartRef.current.frameY + dy);
+      frameRef.current.style.left = `${dragStartRef.current.frameX + dx}px`;
+      frameRef.current.style.top = `${dragStartRef.current.frameY + dy}px`;
     },
-    [isDragging, zoom, frameId, onMove],
+    [isDragging, zoom],
   );
 
   const handleTitlePointerUp = useCallback(
@@ -92,10 +93,14 @@ export function FrameContainer({
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         const dx = (e.clientX - dragStartRef.current.x) / zoom;
         const dy = (e.clientY - dragStartRef.current.y) / zoom;
-        onMoveEnd(frameId, dragStartRef.current.frameX + dx, dragStartRef.current.frameY + dy);
+        const newX = dragStartRef.current.frameX + dx;
+        const newY = dragStartRef.current.frameY + dy;
+
+        onMove(frameId, newX, newY);
+        onMoveEnd(frameId, newX, newY);
       }
     },
-    [isDragging, zoom, frameId, onMoveEnd],
+    [isDragging, zoom, frameId, onMove, onMoveEnd],
   );
 
   // Resize handle (bottom-right corner)
@@ -113,14 +118,15 @@ export function FrameContainer({
 
   const handleResizePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!isResizing) return;
+      if (!isResizing || !frameRef.current) return;
       const dx = (e.clientX - resizeStartRef.current.x) / zoom;
       const dy = (e.clientY - resizeStartRef.current.y) / zoom;
       const newW = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.w + dx);
       const newH = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.h + dy);
-      onResize(frameId, Math.round(newW), Math.round(newH));
+      frameRef.current.style.width = `${Math.round(newW)}px`;
+      frameRef.current.style.height = `${Math.round(newH)}px`;
     },
-    [isResizing, zoom, frameId, onResize],
+    [isResizing, zoom],
   );
 
   const handleResizePointerUp = useCallback(
@@ -132,10 +138,12 @@ export function FrameContainer({
         const dy = (e.clientY - resizeStartRef.current.y) / zoom;
         const newW = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.w + dx);
         const newH = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.h + dy);
+
+        onResize(frameId, Math.round(newW), Math.round(newH));
         onResizeEnd(frameId, Math.round(newW), Math.round(newH));
       }
     },
-    [isResizing, zoom, frameId, onResizeEnd],
+    [isResizing, zoom, frameId, onResize, onResizeEnd],
   );
 
   const handleContextMenu = useCallback(

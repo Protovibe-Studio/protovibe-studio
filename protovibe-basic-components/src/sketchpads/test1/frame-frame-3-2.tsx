@@ -9,133 +9,114 @@ export default function Frame3() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:b399cq */}
-      {/* pv-block-start:h8t4x5 */}
-      <Rectangle data-pv-block="h8t4x5" data-pv-sketchpad-el="h8t4x5" className="w-[200px] h-[200px]" style={{ position: 'absolute', width: 415, left: 98, top: 27 }}>
-        {/* pv-editable-zone-start:duvsah */}
-        {/* pv-block-start:p0gfxe */}
-        <div data-pv-block="p0gfxe" className="flex flex-col gap-2" data-pv-sketchpad-el="p0gfxe" style={{ position: 'absolute', left: 17, top: 18 }}>
-          {/* pv-editable-zone-start:kwz2ry */}
-          {/* pv-editable-zone-end:kwz2ry */}
-        </div>
-        {/* pv-block-end:p0gfxe */}
-
-        {/* pv-block-start:j8uwhl */}
-        <div data-pv-block="j8uwhl" className="flex flex-col gap-4" data-pv-sketchpad-el="j8uwhl" style={{ position: 'absolute', left: 41, top: 24 }}>
-          {/* pv-editable-zone-start:9rdg7j */}
-          {/* pv-editable-zone-end:9rdg7j */}
-        </div>
-        {/* pv-block-end:j8uwhl */}
-
-        {/* pv-block-start:nbppx3 */}
-        <div data-pv-block="nbppx3" className="flex flex-col gap-2" data-pv-sketchpad-el="nbppx3" style={{ position: 'absolute', left: 296, top: 222 }}>
+      {/* pv-block-start:yaxdsw */}
+        <div data-pv-block="yaxdsw" className="flex flex-col gap-2" data-pv-sketchpad-el="yaxdsw" style={{ position: 'absolute', left: 301, top: 287 }}>
           {/* pv-editable-zone-start:2iatij */}
-          {/* pv-block-start:620yoe */}
-          <div data-pv-block="620yoe" className="flex flex-col gap-2" >
+          {/* pv-block-start:7bn38j */}
+          <div data-pv-block="7bn38j" className="flex flex-col gap-2" >
           {/* pv-editable-zone-start:qubfhb */}
-          {/* pv-block-start:zo01w0 */}
-          <div data-pv-block="zo01w0" className="flex flex-col gap-10" >
+          {/* pv-block-start:1pn92h */}
+          <div data-pv-block="1pn92h" className="flex flex-col gap-10" >
           {/* pv-editable-zone-start:c2rycc */}
-          {/* pv-block-start:ygoeyn */}
-          <Button data-pv-block="ygoeyn" label="Button" variant="solid" color="primary" size="md"  />
-          {/* pv-block-end:ygoeyn */}
+          {/* pv-block-start:y36krk */}
+          <Button data-pv-block="y36krk" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:y36krk */}
           {/* pv-editable-zone-end:c2rycc */}
           </div>
-          {/* pv-block-end:zo01w0 */}
-          {/* pv-block-start:9ng0bu */}
-          <div data-pv-block="9ng0bu" className="flex flex-col gap-10" >
+          {/* pv-block-end:1pn92h */}
+          {/* pv-block-start:ez9n6g */}
+          <div data-pv-block="ez9n6g" className="flex flex-col gap-10" >
           {/* pv-editable-zone-start:c2rycc */}
-          {/* pv-block-start:n9mz0k */}
-          <Button data-pv-block="n9mz0k" label="Button" variant="solid" color="primary" size="md"  />
-          {/* pv-block-end:n9mz0k */}
+          {/* pv-block-start:slb28e */}
+          <Button data-pv-block="slb28e" label="Button" variant="solid" color="primary" size="md"  />
+          {/* pv-block-end:slb28e */}
           {/* pv-editable-zone-end:c2rycc */}
           </div>
-          {/* pv-block-end:9ng0bu */}
+          {/* pv-block-end:ez9n6g */}
           {/* pv-editable-zone-end:qubfhb */}
           </div>
-          {/* pv-block-end:620yoe */}
-          {/* pv-block-start:o5jjlj */}
-          <Card data-pv-block="o5jjlj" variant="bordered" shadow="none" border="default" style={{ width: 365 }}>
+          {/* pv-block-end:7bn38j */}
+          {/* pv-block-start:ea2u73 */}
+          <Card data-pv-block="ea2u73" variant="bordered" shadow="none" border="default" style={{ width: 365 }}>
           {/* pv-editable-zone-start:taxyss */}
-          {/* pv-block-start:85og1m */}
-          <div data-pv-block="85og1m" className="flex flex-col gap-2">
+          {/* pv-block-start:mbnudg */}
+          <div data-pv-block="mbnudg" className="flex flex-col gap-2">
           {/* pv-editable-zone-start:bla8ry */}
-          {/* pv-block-start:7mnwm3 */}
-          <Button data-pv-block="7mnwm3" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:7mnwm3 */}
-          {/* pv-block-start:scirda */}
-          <Button data-pv-block="scirda" label="Button" variant="solid" color="primary" size="md" />
-          {/* pv-block-end:scirda */}
+          {/* pv-block-start:dhmpzm */}
+          <Button data-pv-block="dhmpzm" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:dhmpzm */}
+          {/* pv-block-start:ym0xe7 */}
+          <Button data-pv-block="ym0xe7" label="Button" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:ym0xe7 */}
           {/* pv-editable-zone-end:bla8ry */}
           </div>
-          {/* pv-block-end:85og1m */}
+          {/* pv-block-end:mbnudg */}
           
-          {/* pv-block-start:aeiiwc */}
-          <div data-pv-block="aeiiwc" className="flex gap-2 flex-row" >
+          {/* pv-block-start:5cicpj */}
+          <div data-pv-block="5cicpj" className="flex gap-2 flex-row" >
           {/* pv-editable-zone-start:x6aovb */}
           {/* pv-editable-zone-end:x6aovb */}
           </div>
-          {/* pv-block-end:aeiiwc */}
+          {/* pv-block-end:5cicpj */}
           
-          {/* pv-block-start:7yz2s2 */}
-          <div className="flex flex-col min-h-4" data-pv-block="7yz2s2">
-          {/* pv-editable-zone-start:inside-7yz2s2 */}
-          {/* pv-editable-zone-end:inside-7yz2s2 */}
+          {/* pv-block-start:iad00c */}
+          <div className="flex flex-col min-h-4" data-pv-block="iad00c">
+          {/* pv-editable-zone-start:inside-iad00c */}
+          {/* pv-editable-zone-end:inside-iad00c */}
           </div>
-          {/* pv-block-end:7yz2s2 */}
+          {/* pv-block-end:iad00c */}
           {/* pv-editable-zone-end:taxyss */}
           </Card>
-          {/* pv-block-end:o5jjlj */}
+          {/* pv-block-end:ea2u73 */}
           {/* pv-editable-zone-end:2iatij */}
         </div>
-        {/* pv-block-end:nbppx3 */}
+        {/* pv-block-end:yaxdsw */}
+      
+      {/* pv-block-start:1iqw1i */}
+      <Rectangle data-pv-block="1iqw1i" data-pv-sketchpad-el="1iqw1i" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 66, top: 53, width: 415 }}>
+        {/* pv-editable-zone-start:duvsah */}
+        {/* pv-block-start:5xsc2z */}
+        <div data-pv-block="5xsc2z" className="flex flex-col gap-2" data-pv-sketchpad-el="5xsc2z" style={{ position: 'absolute', left: 17, top: 18 }}>
+          {/* pv-editable-zone-start:kwz2ry */}
+          {/* pv-editable-zone-end:kwz2ry */}
+        </div>
+        {/* pv-block-end:5xsc2z */}
 
+        {/* pv-block-start:1s6knh */}
+        <div data-pv-block="1s6knh" className="flex flex-col gap-4" data-pv-sketchpad-el="1s6knh" style={{ position: 'absolute', left: 41, top: 24 }}>
+          {/* pv-editable-zone-start:9rdg7j */}
+          {/* pv-editable-zone-end:9rdg7j */}
+        </div>
+        {/* pv-block-end:1s6knh */}
 
-        {/* pv-block-start:o7aomf */}
-        <div data-pv-block="o7aomf" className="flex flex-col gap-4" data-pv-sketchpad-el="o7aomf" style={{ position: 'absolute', left: 50, top: 26 }}>
+        {/* pv-block-start:5ofe11 */}
+        <div data-pv-block="5ofe11" className="flex flex-col gap-4" data-pv-sketchpad-el="5ofe11" style={{ position: 'absolute', left: 50, top: 26 }}>
           {/* pv-editable-zone-start:8xrqx0 */}
-          {/* pv-block-start:eo9kz8 */}
-          <Checkbox data-pv-block="eo9kz8" primaryText="Accept terms" />
-          {/* pv-block-end:eo9kz8 */}
-          {/* pv-block-start:4nghu0 */}
-          <Checkbox data-pv-block="4nghu0" primaryText="Accept terms" />
-          {/* pv-block-end:4nghu0 */}
+          {/* pv-block-start:2fv2vg */}
+          <Checkbox data-pv-block="2fv2vg" primaryText="Accept terms" />
+          {/* pv-block-end:2fv2vg */}
+          {/* pv-block-start:ymny8x */}
+          <Checkbox data-pv-block="ymny8x" primaryText="Accept terms" />
+          {/* pv-block-end:ymny8x */}
           {/* pv-editable-zone-end:8xrqx0 */}
         </div>
-        {/* pv-block-end:o7aomf */}
+        {/* pv-block-end:5ofe11 */}
         {/* pv-editable-zone-end:duvsah */}
       </Rectangle>
-      {/* pv-block-end:h8t4x5 */}
-
+      {/* pv-block-end:1iqw1i */}
       
-      {/* pv-block-start:5v51ea */}
-      <div data-pv-block="5v51ea" className="flex flex-col gap-2" data-pv-sketchpad-el="5v51ea" style={{ position: 'absolute', left: 68, top: 317 }}>
+      {/* pv-block-start:xn7mdg */}
+      <div data-pv-block="xn7mdg" className="flex flex-col gap-2" data-pv-sketchpad-el="xn7mdg" style={{ position: 'absolute', width: 131, left: 55, top: 345 }}>
         {/* pv-editable-zone-start:ni67pr */}
-        {/* pv-block-start:q8ymbx */}
-        <Avatar data-pv-block="q8ymbx" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:q8ymbx */}
-        {/* pv-block-start:mbae5b */}
-        <Avatar data-pv-block="mbae5b" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:mbae5b */}
+        {/* pv-block-start:m1moro */}
+        <Avatar data-pv-block="m1moro" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:m1moro */}
+        {/* pv-block-start:5z7ffx */}
+        <Avatar data-pv-block="5z7ffx" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
+        {/* pv-block-end:5z7ffx */}
         {/* pv-editable-zone-end:ni67pr */}
       </div>
-      {/* pv-block-end:5v51ea */}
-
-      
-      
-      {/* pv-block-start:7pjeqd */}
-      <div data-pv-block="7pjeqd" className="flex flex-col gap-2" data-pv-sketchpad-el="7pjeqd" style={{ position: 'absolute', left: 139, top: 323 }}>
-        {/* pv-editable-zone-start:e0x6wo */}
-        {/* pv-block-start:1l188n */}
-        <Avatar data-pv-block="1l188n" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:1l188n */}
-        {/* pv-block-start:tpufcj */}
-        <Avatar data-pv-block="tpufcj" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60"  />
-        {/* pv-block-end:tpufcj */}
-        {/* pv-editable-zone-end:e0x6wo */}
-      </div>
-      {/* pv-block-end:7pjeqd */}
-
-      
+      {/* pv-block-end:xn7mdg */}
       {/* pv-editable-zone-end:b399cq */}
     </div>
   );
