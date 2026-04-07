@@ -96,10 +96,12 @@ export const Modifiers: React.FC = () => {
     setActiveModifiers(prev => ({ ...prev, breakpoint: val === 'none' ? null : val }));
   };
 
+  const UNSET_SENTINEL = '__unset__';
+
   const handleDataAttr = (key: string, val: string) => {
     setActiveModifiers(prev => {
       const dataAttrs = { ...prev.dataAttrs };
-      if (val === 'none') delete dataAttrs[key];
+      if (val === UNSET_SENTINEL || val === '') delete dataAttrs[key];
       else dataAttrs[key] = val;
       return { ...prev, dataAttrs };
     });
@@ -136,7 +138,7 @@ export const Modifiers: React.FC = () => {
       key: `data-${key}`,
       label,
       colors: CHIP_VARIANT,
-      onRemove: () => handleDataAttr(key, 'none'),
+      onRemove: () => handleDataAttr(key, '__unset__'),
     });
   });
 
@@ -257,10 +259,10 @@ export const Modifiers: React.FC = () => {
 
             {/* Dynamic data-attr variants */}
             {Object.entries(availableDataAttrs).map(([key, values]) => {
-              const activeVal = activeModifiers.dataAttrs[key] || 'none';
+              const activeVal = activeModifiers.dataAttrs[key] || '__unset__';
               const domVal = currentBaseTarget?.getAttribute(`data-${key}`);
               const segments = [{
-                label: 'None', val: 'none',
+                label: 'Unset', val: '__unset__',
                 shadow: !domVal ? `inset 0 -2px 0 0 ${theme.success_default}` : undefined,
               }];
               values.forEach(v => segments.push({

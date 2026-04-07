@@ -208,6 +208,18 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     fetchThemeTokens().then(setThemeTokens).catch(() => {});
   }, []);
 
+  // When the user clicks inside any iframe, dispatch a synthetic mousedown on the
+  // shell document so all click-outside handlers (dropdowns, menus, etc.) close automatically.
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_IFRAME_POINTER_DOWN') {
+        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const focusElement = useCallback((el: HTMLElement) => {
     // Flush any pending uncommitted inspector input before switching elements.
     // React does not fire onBlur when a component unmounts, so we must blur

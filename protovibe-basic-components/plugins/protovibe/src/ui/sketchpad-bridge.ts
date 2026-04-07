@@ -413,6 +413,8 @@ function notifyInspector(el: HTMLElement) {
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
 function handlePointerDown(e: PointerEvent) {
+  window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
+
   if (e.button !== 0) return;
 
   const path = getInspectablePath(e.target);

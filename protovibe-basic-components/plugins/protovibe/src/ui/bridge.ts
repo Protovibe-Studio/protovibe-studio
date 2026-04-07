@@ -171,6 +171,8 @@ function clearSelectionOutline() {
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
 function handlePointerDown(e: PointerEvent) {
+  window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
+
   if (!isPreviewModeActive) return;
   if (isLocked) {
     e.preventDefault();

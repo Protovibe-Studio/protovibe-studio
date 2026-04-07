@@ -30,7 +30,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
   const [hoveredVal, setHoveredVal] = useState<string | null>(null);
 
   const isNoneLike = (seg: Segment) => seg.val === 'none' || seg.val === '' || seg.label === 'All';
-  const hasResetOption = segments.some(seg => seg.val === 'none' || seg.val === '');
+  const hasResetOption = segments.some(seg => seg.val === 'none' || seg.val === '' || seg.val === '__unset__');
 
   const handleSelect = async (val: string, segmentPrefix?: string) => {
     let finalVal = val;
@@ -81,8 +81,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
   };
 
   const btnStyle = (isActive: boolean, isInherited: boolean, isHovered: boolean, seg: Segment): React.CSSProperties => {
-    // If active and value is "None"-like, use grey. Else blue.
-    const activeColor = isNoneLike(seg) ? theme.text_secondary : theme.accent_default;
+    const activeColor = theme.accent_default;
     const bg = isActive ? theme.bg_tertiary : isInherited ? theme.bg_tertiary : isHovered ? theme.bg_low : 'transparent';
     const color = isActive ? activeColor : isInherited ? theme.text_default : isHovered ? theme.text_secondary : theme.text_tertiary;
 

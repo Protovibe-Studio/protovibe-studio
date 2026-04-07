@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/ComponentProps.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { theme } from '../theme';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { updateProp, takeSnapshot } from '../api/client';
@@ -13,6 +13,18 @@ export const ComponentProps: React.FC = () => {
   const [showAdvancedProps, setShowAdvancedProps] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
   const [newPropKey, setNewPropKey] = useState('');
   const [newPropValue, setNewPropValue] = useState('');
 
@@ -110,7 +122,7 @@ export const ComponentProps: React.FC = () => {
         <span>Component properties</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {showAdvancedProps && <button onClick={() => setShowAddForm(!showAddForm)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0, fontSize: '16px', lineHeight: 1 }} title="Add Prop">+</button>}
-          <div style={{ position: 'relative' }}>
+          <div ref={menuRef} style={{ position: 'relative' }}>
             <button onClick={() => setShowMenu(!showMenu)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}><MoreHorizontal size={13} /></button>
             {showMenu && (
               <div style={{ position: 'absolute', right: 0, top: '100%', background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: '4px', padding: '4px', zIndex: 10, width: 'max-content', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
