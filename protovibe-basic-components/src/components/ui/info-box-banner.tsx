@@ -54,7 +54,7 @@ export function InfoBoxBanner({
           </p>
         )}
         {secondaryText && (
-          <p className="mt-0.5 text-sm text-foreground-secondary">
+          <p className="text-sm text-foreground-secondary mt-1">
             {secondaryText}
           </p>
         )}

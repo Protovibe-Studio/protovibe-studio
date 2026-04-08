@@ -76,6 +76,7 @@ const SpacingAutocomplete: React.FC<{
       width: '100%',
       height: '100%',
       minHeight: '22px',
+      padding: '0 7px',
       background: focused ? theme.bg_secondary : hovered ? 'rgba(255,255,255,0.1)' : 'transparent',
       border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : 'transparent'}`,
       borderRadius: '4px',
@@ -235,9 +236,9 @@ const centreH = (pct: number): React.CSSProperties => ({
 // ── Box model input positions (% of container) ──────────────────────────────
 // Edit these values to reposition inputs when the SVG background changes.
 const pos = {
-  margin:  { top:  5, bottom: 90, left:  7, right: 94 },
-  border:  { top: 17, bottom: 79, left: 18, right: 82 },
-  padding: { top: 28, bottom: 67, left: 30, right: 70 },
+  margin:  { top:  5, bottom: 91, left:  7, right: 94 },
+  border:  { top: 17, bottom: 80, left: 18, right: 82 },
+  padding: { top: 28, bottom: 68, left: 30, right: 70 },
 };
 
 // ─── Essentials section ────────────────────────────────────────────────────────
@@ -688,6 +689,23 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           originalClass={v.bg_original}
           type="input"
           inheritedValue={cleanVal(domV?.bg)}
+          emptyPlaceholder="—"
+          inputPrefix={
+            !cleanVal(v.bg)
+              ? (
+                <div
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '2px',
+                    border: `1px solid ${theme.border_default}`,
+                    backgroundImage: `repeating-linear-gradient(135deg, ${theme.text_tertiary} 0, ${theme.text_tertiary} 1px, transparent 1px, transparent 2px)`,
+                    flexShrink: 0,
+                  }}
+                />
+              )
+              : undefined
+          }
         />
       </div>
 

@@ -66,7 +66,7 @@ function DashboardPage() {
         <TextHeading data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
-        <InfoBoxBanner className="bg-background-elevated"
+        <InfoBoxBanner className=""
           data-pv-block="i3b4c5"
           heading="Welcome back, HR Admin!"
           secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."
@@ -230,21 +230,14 @@ function DashboardPage() {
         </SelectDropdown>
         {/* pv-block-end:ov5gmp */}
 
-        {/* pv-block-start:aa30v8 */}
-        <TextHeading className="" data-pv-block="aa30v8" typography="heading-lg">
-          Test!<br />
-        </TextHeading>
-        {/* pv-block-end:aa30v8 */}
-
-        {/* pv-block-start:8d7psd */}
-        <TextHeading typography="heading-sm" data-pv-block="8d7psd" >
+        {/* pv-block-start:u73zt9 */}
+        <Container className="mt-1 mb-32 mx-32 p-20 border bg-background-secondary rounded border-border-default" data-pv-block="u73zt9">
+          {/* pv-editable-zone-start:saohri */}
+          {/* pv-block-start:5pcvni */}
+        <TextHeading typography="heading-sm" data-pv-block="5pcvni" >
           Text block as
         </TextHeading>
-        {/* pv-block-end:8d7psd */}
-
-        {/* pv-block-start:u73zt9 */}
-        <Container className="mt-1 mb-32 mx-32" data-pv-block="u73zt9">
-          {/* pv-editable-zone-start:saohri */}
+        {/* pv-block-end:5pcvni */}
           {/* pv-editable-zone-end:saohri */}
         </Container>
         {/* pv-block-end:u73zt9 */}

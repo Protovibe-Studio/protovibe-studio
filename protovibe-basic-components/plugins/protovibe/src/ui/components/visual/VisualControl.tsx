@@ -23,9 +23,11 @@ interface VisualControlProps {
   width?: string;
   inheritedValue?: string;
   strictOptions?: boolean;
+  inputPrefix?: React.ReactNode;
+  emptyPlaceholder?: string;
 }
 
-export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue, strictOptions = false }) => {
+export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue, strictOptions = false, inputPrefix, emptyPlaceholder }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
   const [rawInputValue, setRawInputValue] = useState(value === '-' ? '' : value);
 
@@ -106,10 +108,11 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
       {options && options.length > 0 ? (
         <AutocompleteDropdown
           value={value === '-' ? '' : value}
-          placeholder={inheritedValue && !(value && value !== '-') ? inheritedValue : undefined}
+          placeholder={inheritedValue && !(value && value !== '-') ? inheritedValue : emptyPlaceholder}
           options={options}
           onCommit={handleChange}
           zIndex={9999999}
+          prefix={inputPrefix}
           strictOptions={strictOptions}
           showColorModeToggle={options.some(o => (o as Option).lightValue !== undefined || (o as Option).darkValue !== undefined || (o as Option).hex !== undefined)}
           renderOption={(opt, colorMode?: ColorMode) => {
