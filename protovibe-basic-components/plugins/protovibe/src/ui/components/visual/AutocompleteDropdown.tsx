@@ -22,21 +22,19 @@ interface AutocompleteDropdownProps {
   placeholder?: string;
   containerStyle?: React.CSSProperties;
   inputStyle?: React.CSSProperties;
+  inputContainerStyle?: React.CSSProperties;
   dropdownStyle?: React.CSSProperties;
   noneLabel?: string;
   showNoneOption?: boolean;
   zIndex?: number;
-  filterOptions?: (options: AutocompleteOption[], query: string, hasTyped: boolean) => AutocompleteOption[];
-  /** Called with (option, colorMode) when showColorModeToggle is true, otherwise (option) */
   renderOption?: (option: AutocompleteOption, colorMode?: ColorMode) => React.ReactNode;
   showColorModeToggle?: boolean;
   onInputFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onInputBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onInputMouseEnter?: (e: React.MouseEvent<HTMLInputElement>) => void;
-  onInputMouseLeave?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  onInputMouseEnter?: (e: React.MouseEvent<HTMLElement>) => void;
+  onInputMouseLeave?: (e: React.MouseEvent<HTMLElement>) => void;
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
-  /** When true, only values present in options can be committed. Typed values not matching any option are reset on blur. */
   strictOptions?: boolean;
 }
 
@@ -47,11 +45,11 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   placeholder,
   containerStyle,
   inputStyle,
+  inputContainerStyle,
   dropdownStyle,
   noneLabel = 'Unset',
   showNoneOption = true,
   zIndex = 9999999,
-  filterOptions,
   renderOption,
   showColorModeToggle = false,
   onInputFocus,
@@ -64,8 +62,8 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
-  const [hasTyped, setHasTyped] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('light');
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const inputElRef = useRef<HTMLInputElement | null>(null);
   const dropdownElRef = useRef<HTMLDivElement | null>(null);
@@ -75,19 +73,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
   const safeDropdownStyle = useMemo(() => {
     if (!dropdownStyle) return undefined;
-
-    const disallowedKeys = new Set([
-      'top',
-      'left',
-      'right',
-      'bottom',
-      'position',
-      'transform',
-      'maxHeight',
-      'minWidth',
-      'maxWidth',
-    ]);
-
+    const disallowedKeys = new Set(['top', 'left', 'right', 'bottom', 'position', 'transform', 'maxHeight', 'minWidth', 'maxWidth']);
     const entries = Object.entries(dropdownStyle).filter(([key]) => !disallowedKeys.has(key));
     return Object.fromEntries(entries) as React.CSSProperties;
   }, [dropdownStyle]);
@@ -98,26 +84,70 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     lastCommittedValueRef.current = cleanValue;
   }, [value]);
 
-  const filteredOptions = useMemo(() => {
-    const query = localValue.toLowerCase().trim();
-
-    if (filterOptions) {
-      return filterOptions(options, query, hasTyped);
-    }
-
-    if (!hasTyped) return options;
-    return options.filter((opt) => opt.val.toLowerCase().startsWith(query));
-  }, [filterOptions, hasTyped, localValue, options]);
-
-  // Split into semantic (has lightValue/darkValue) and palette for color mode toggle
+  // Split into semantic and palette for color mode toggle processing
   const { semanticOptions, paletteOptions, hasColorGroups } = useMemo(() => {
     if (!showColorModeToggle) return { semanticOptions: [], paletteOptions: [], hasColorGroups: false };
-    const semantic = filteredOptions.filter(o => o.lightValue !== undefined || o.darkValue !== undefined);
-    const palette = filteredOptions.filter(o => o.lightValue === undefined && o.darkValue === undefined);
+    const semantic = options.filter(o => o.lightValue !== undefined || o.darkValue !== undefined);
+    const palette = options.filter(o => o.lightValue === undefined && o.darkValue === undefined);
     return { semanticOptions: semantic, paletteOptions: palette, hasColorGroups: semantic.length > 0 };
-  }, [showColorModeToggle, filteredOptions]);
+  }, [showColorModeToggle, options]);
 
-  // Resolve swatch for the currently committed value (uses full options list, not filtered)
+  // Unified list that dynamically injects Custom values at the best semantic/numeric index
+  const renderableOptions = useMemo(() => {
+    const baseOpts = showColorModeToggle && hasColorGroups ? [...semanticOptions, ...paletteOptions] : [...options];
+
+    if (localValue) {
+      const query = localValue.toLowerCase().trim();
+      const exactMatch = baseOpts.some(o => o.val.toLowerCase() === query);
+
+      if (!exactMatch) {
+        const customOpt = { val: localValue, desc: 'Custom' };
+
+        // 1. Try to find the exact alphabetical or string match first
+        let insertIdx = baseOpts.findIndex(o => o.val.toLowerCase().startsWith(query));
+
+        // 2. If it's a number, place it in numeric order (e.g., between 10 and 12)
+        if (insertIdx === -1) {
+          const num = parseFloat(query);
+          if (!isNaN(num) && /^[0-9.-]+(px|rem|em|%)?$/.test(query)) {
+            insertIdx = baseOpts.findIndex(o => {
+              const oNum = parseFloat(o.val);
+              return !isNaN(oNum) && oNum > num;
+            });
+          }
+        }
+
+        // 3. Fallback to includes
+        if (insertIdx === -1) {
+          insertIdx = baseOpts.findIndex(o => o.val.toLowerCase().includes(query));
+        }
+
+        // 4. Default to top
+        if (insertIdx === -1) insertIdx = 0;
+
+        baseOpts.splice(insertIdx, 0, customOpt);
+      }
+    }
+    return baseOpts;
+  }, [options, localValue, showColorModeToggle, hasColorGroups, semanticOptions, paletteOptions]);
+
+  // Sync activeIndex
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveIndex(-1);
+      return;
+    }
+    if (localValue) {
+      const query = localValue.toLowerCase().trim();
+      const exactIdx = renderableOptions.findIndex(o => o.val.toLowerCase() === query);
+      if (exactIdx !== -1) {
+        setActiveIndex(exactIdx);
+      }
+    } else {
+      setActiveIndex(-1);
+    }
+  }, [localValue, isOpen, renderableOptions]);
+
   const currentSwatchColor = useMemo(() => {
     if (!showColorModeToggle) return undefined;
     const match = options.find(o => o.val === localValue);
@@ -134,7 +164,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     anchorRef: inputElRef,
     dropdownRef: dropdownElRef,
     preferredPlacement: 'bottom',
-    updateDeps: [filteredOptions.length, localValue, showNoneOption],
+    updateDeps: [renderableOptions.length, localValue, showNoneOption],
   });
 
   const triggerCommit = (val: string) => {
@@ -153,12 +183,24 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     setTimeout(() => (blurTarget ?? inputElRef.current)?.blur(), 0);
   };
 
+  // Scroll to active index
+  useEffect(() => {
+    if (activeIndex >= 0 && dropdownElRef.current) {
+      const activeEl = dropdownElRef.current.querySelector(`[data-index="${activeIndex}"]`) as HTMLElement;
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const top = filteredOptions[0];
-      const val = hasTyped && localValue && top ? top.val : localValue;
-      selectValue(val, e.currentTarget);
+      if (activeIndex >= 0 && activeIndex < renderableOptions.length) {
+        selectValue(renderableOptions[activeIndex].val, e.currentTarget);
+      } else {
+        selectValue(localValue, e.currentTarget);
+      }
       return;
     }
 
@@ -166,55 +208,58 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
       e.currentTarget.blur();
       setIsOpen(false);
       setLocalValue(lastCommittedValueRef.current);
+      return;
     }
 
-    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && options.length > 0) {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const current = localValue || lastCommittedValueRef.current;
-      const idx = current ? options.findIndex(o => o.val === current) : -1;
-      const nextIdx = e.key === 'ArrowUp'
-        ? (idx === -1 ? 0 : Math.min(idx + 1, options.length - 1))
-        : (idx === -1 ? 0 : Math.max(idx - 1, 0));
-      setLocalValue(options[nextIdx].val);
-      setHasTyped(true);
+      if (!isOpen) setIsOpen(true);
+      const next = activeIndex === -1 ? 0 : Math.min(activeIndex + 1, renderableOptions.length - 1);
+      setLocalValue(renderableOptions[next].val);
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) setIsOpen(true);
+      const prev = activeIndex === -1 ? 0 : Math.max(activeIndex - 1, 0);
+      setLocalValue(renderableOptions[prev].val);
     }
   };
 
-  const renderRow = (opt: AutocompleteOption) => (
-    <div
-      key={opt.val}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={() => selectValue(opt.val)}
-      style={{
-        padding: '6px 10px',
-        fontSize: '11px',
-        color: theme.text_default,
-        cursor: 'pointer',
-        fontFamily: 'monospace',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: `1px solid ${theme.border_secondary}`,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = theme.accent_default;
-        e.currentTarget.style.color = theme.text_default;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent';
-        e.currentTarget.style.color = theme.text_default;
-      }}
-    >
-      {renderOption ? (
-        renderOption(opt, showColorModeToggle ? colorMode : undefined)
-      ) : (
-        <>
-          <span style={{ fontWeight: 'bold' }}>{String(opt.val)}</span>
-          <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{String(opt.desc ?? '')}</span>
-        </>
-      )}
-    </div>
-  );
+  const renderRow = (opt: AutocompleteOption, index: number) => {
+    const isActive = index === activeIndex;
+    return (
+      <div
+        key={opt.val + index}
+        data-index={index}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => selectValue(opt.val)}
+        style={{
+          padding: '6px 10px',
+          fontSize: '11px',
+          color: theme.text_default,
+          cursor: 'pointer',
+          fontFamily: 'monospace',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `1px solid ${theme.border_secondary}`,
+          background: isActive ? theme.accent_default : 'transparent',
+        }}
+        onMouseEnter={() => setActiveIndex(index)}
+        onMouseLeave={() => setActiveIndex(-1)}
+      >
+        {renderOption ? (
+          renderOption(opt, showColorModeToggle ? colorMode : undefined)
+        ) : (
+          <>
+            <span style={{ fontWeight: 'bold' }}>{String(opt.val)}</span>
+            <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{String(opt.desc ?? '')}</span>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const modeBtnStyle = (isActive: boolean): React.CSSProperties => ({
     flex: 1,
@@ -234,12 +279,10 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         value={localValue}
         onChange={(e) => {
           setLocalValue(e.target.value);
-          setHasTyped(true);
         }}
         onKeyDown={handleKeyDown}
         onFocus={(e) => {
           inputElRef.current = e.currentTarget;
-          setHasTyped(false);
           setIsOpen(true);
           onInputFocus?.(e);
         }}
@@ -258,13 +301,14 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         onMouseLeave={(e) => onInputMouseLeave?.(e)}
         placeholder={placeholder}
         style={inputStyle}
+        containerStyle={inputContainerStyle}
         prefix={currentSwatchColor
           ? <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: currentSwatchColor, border: `1px solid rgba(255,255,255,0.15)`, flexShrink: 0 }} />
           : prefix}
         suffix={suffix}
       />
 
-      {isOpen && canUseDOM && (filteredOptions.length > 0 || !hasTyped) && createPortal(
+      {isOpen && canUseDOM && renderableOptions.length > 0 && createPortal(
         <div
           ref={dropdownElRef}
           data-pv-overlay="true"
@@ -284,7 +328,6 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             ...safeDropdownStyle,
           }}
         >
-          {/* Light / Dark mode toggle — shown only when color groups are present */}
           {showColorModeToggle && hasColorGroups && (
             <div
               onMouseDown={(e) => e.preventDefault()}
@@ -310,7 +353,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             </div>
           )}
 
-          {strictOptions && hasTyped && localValue && !options.some(o => o.val === localValue) && (
+          {strictOptions && localValue && !options.some(o => o.val === localValue) && (
             <div
               style={{
                 padding: '5px 10px',
@@ -347,54 +390,47 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             </div>
           )}
 
-          {showColorModeToggle && hasColorGroups ? (
-            <>
-              {/* Semantic color tokens */}
-              {semanticOptions.length > 0 && (
-                <>
-                  <div
-                    style={{
-                      padding: '4px 10px 2px',
-                      fontSize: '9px',
-                      fontFamily: 'sans-serif',
-                      color: theme.text_tertiary,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      background: theme.bg_secondary,
-                      borderBottom: `1px solid ${theme.border_secondary}`,
-                    }}
-                  >
-                    Semantic
-                  </div>
-                  {semanticOptions.map(renderRow)}
-                </>
-              )}
+          {(() => {
+            let currentGroup = '';
 
-              {/* Palette / static color tokens */}
-              {paletteOptions.length > 0 && (
-                <>
-                  <div
-                    style={{
-                      padding: '4px 10px 2px',
-                      fontSize: '9px',
-                      fontFamily: 'sans-serif',
-                      color: theme.text_tertiary,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      background: theme.bg_secondary,
-                      borderTop: `1px solid ${theme.border_default}`,
-                      borderBottom: `1px solid ${theme.border_secondary}`,
-                    }}
-                  >
-                    Palette
-                  </div>
-                  {paletteOptions.map(renderRow)}
-                </>
-              )}
-            </>
-          ) : (
-            filteredOptions.map(renderRow)
-          )}
+            return renderableOptions.map((opt, i) => {
+              let group = '';
+              if (showColorModeToggle && hasColorGroups) {
+                const isSemantic = semanticOptions.some(so => so.val === opt.val) || opt.lightValue !== undefined || opt.darkValue !== undefined;
+                const isPalette = paletteOptions.some(po => po.val === opt.val) || (!isSemantic && opt.desc !== 'Custom');
+
+                if (isSemantic) group = 'Semantic';
+                else if (isPalette) group = 'Palette';
+                else group = currentGroup || 'Semantic'; // Custom inherits surrounding group
+              }
+
+              const showHeader = group && group !== currentGroup;
+              if (showHeader) currentGroup = group;
+
+              return (
+                <React.Fragment key={opt.val + i}>
+                  {showHeader && (
+                    <div
+                      style={{
+                        padding: '4px 10px 2px',
+                        fontSize: '9px',
+                        fontFamily: 'sans-serif',
+                        color: theme.text_tertiary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        background: theme.bg_secondary,
+                        borderTop: i > 0 ? `1px solid ${theme.border_default}` : 'none',
+                        borderBottom: `1px solid ${theme.border_secondary}`,
+                      }}
+                    >
+                      {group}
+                    </div>
+                  )}
+                  {renderRow(opt, i)}
+                </React.Fragment>
+              );
+            });
+          })()}
         </div>,
         document.body
       )}

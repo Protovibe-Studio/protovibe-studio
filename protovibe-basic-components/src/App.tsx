@@ -60,7 +60,7 @@ const mockDepartments = [
 
 function DashboardPage() {
   return (
-    <div className="flex flex-col animate-in fade-in duration-300 gap-6">
+    <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
         <TextHeading data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
@@ -185,7 +185,7 @@ function DashboardPage() {
         {/* pv-block-end:g6h7j8 */}
 
       {/* pv-block-start:0kb4oi */}
-      <SelectDropdown data-pv-block="0kb4oi" placeholder="Select an option" >
+      <SelectDropdown className="" data-pv-block="0kb4oi" placeholder="Select an option" >
         {/* pv-editable-zone-start:6odf34 */}
             {/* pv-block-start:ml6ipb */}
             <div data-pv-block="ml6ipb" className="flex flex-col gap-2 border-b border-border-default pt-0.5 pb-1.5 px-1.5">
@@ -231,7 +231,7 @@ function DashboardPage() {
         {/* pv-block-end:ov5gmp */}
 
         {/* pv-block-start:aa30v8 */}
-        <TextHeading data-pv-block="aa30v8" typography="heading-lg">
+        <TextHeading className="" data-pv-block="aa30v8" typography="heading-lg">
           Test!<br />
         </TextHeading>
         {/* pv-block-end:aa30v8 */}

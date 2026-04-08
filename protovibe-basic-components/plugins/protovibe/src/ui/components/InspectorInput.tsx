@@ -1,13 +1,25 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { theme } from '../theme';
 
-interface InspectorInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
+interface InspectorInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix' | 'onMouseEnter' | 'onMouseLeave'> {
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
   containerStyle?: React.CSSProperties;
+  onMouseEnter?: React.MouseEventHandler<HTMLElement>;
+  onMouseLeave?: React.MouseEventHandler<HTMLElement>;
 }
 
-export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur, style, prefix, suffix, containerStyle, ...props }) => {
+export const InspectorInput: React.FC<InspectorInputProps> = ({
+  onFocus,
+  onBlur,
+  onMouseEnter,
+  onMouseLeave,
+  style,
+  prefix,
+  suffix,
+  containerStyle,
+  ...props
+}) => {
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -33,29 +45,12 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
   const valStr = String(props.value || '').trim();
   const hasValue = valStr !== '' && valStr !== '-';
 
-  if (!prefix && !suffix) {
-    const defaultStyle: React.CSSProperties = {
-      background: theme.bg_secondary,
-      border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : theme.border_default}`,
-      color: hasValue ? theme.accent_default : theme.text_tertiary,
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontSize: '11px',
-      outline: 'none',
-      width: '100%',
-      minHeight: '24px',
-      boxSizing: 'border-box',
-      transition: 'border-color 0.15s',
-      ...style
-    };
-    return <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={(e) => { setHovered(true); props.onMouseEnter?.(e); }} onMouseLeave={(e) => { setHovered(false); props.onMouseLeave?.(e); }} style={defaultStyle} />;
-  }
-
   const inputStyle: React.CSSProperties = {
     background: 'transparent',
     border: 'none',
     color: hasValue ? theme.accent_default : theme.text_tertiary,
-    padding: '4px 4px',
+    // Dynamically adjust inner padding if there are no adornments
+    padding: !prefix && !suffix ? '4px 8px' : '4px 4px',
     fontSize: '11px',
     outline: 'none',
     width: '100%',
@@ -66,8 +61,14 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={(e) => {
+        setHovered(true);
+        onMouseEnter?.(e);
+      }}
+      onMouseLeave={(e) => {
+        setHovered(false);
+        onMouseLeave?.(e);
+      }}
       style={{
         background: theme.bg_secondary,
         border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : theme.border_default}`,
@@ -77,6 +78,8 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
         minHeight: '24px',
         overflow: 'hidden',
         transition: 'border-color 0.15s',
+        width: '100%',
+        boxSizing: 'border-box',
         ...containerStyle,
       }}
     >
@@ -85,7 +88,13 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
           {prefix}
         </div>
       )}
-      <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} style={inputStyle} />
+      <input
+        ref={inputRef}
+        {...props}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        style={inputStyle}
+      />
       {suffix && (
         <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '2px', paddingRight: '6px', flexShrink: 0, color: theme.text_tertiary }}>
           {suffix}

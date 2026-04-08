@@ -72,24 +72,29 @@ const SpacingAutocomplete: React.FC<{
     }
     zIndex={999999}
     containerStyle={{ ...posStyle, position: 'absolute', width: '36px', height: '16px' }}
-    inputStyle={{
+    inputContainerStyle={{
       width: '100%',
       height: '100%',
+      minHeight: '22px',
       background: focused ? theme.bg_secondary : hovered ? 'rgba(255,255,255,0.1)' : 'transparent',
       border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : 'transparent'}`,
+      borderRadius: '4px',
+      transition: 'all 0.1s',
+      boxSizing: 'border-box',
+    }}
+    inputStyle={{
       fontWeight: 'bold',
       fontSize: '10px',
       textAlign: 'center',
       outline: 'none',
-      borderRadius: '4px',
       display: 'block',
-      transition: 'all 0.1s',
+      padding: 0,
+      height: '100%',
+      width: '100%',
+      boxSizing: 'border-box',
+      background: 'transparent',
     }}
     dropdownStyle={{ minWidth: '100px', maxHeight: '200px' }}
-    filterOptions={(opts, query, hasTyped) => {
-      if (!hasTyped) return opts;
-      return opts.filter((opt) => opt.val.toLowerCase().startsWith(query));
-    }}
     renderOption={(opt) => (
       <>
         <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
@@ -161,10 +166,6 @@ const RadiusAutocomplete: React.FC<{
     placeholder={inheritedValue && !value ? inheritedValue : (placeholder ?? '—')}
     zIndex={999999}
     prefix={icon}
-    filterOptions={(opts, query, hasTyped) => {
-      if (!hasTyped) return opts;
-      return opts.filter((opt) => opt.val.toLowerCase().startsWith(query));
-    }}
     renderOption={(opt) => (
       <>
         <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
@@ -192,13 +193,6 @@ const BorderColorAutocomplete: React.FC<{
     zIndex={9999999}
     prefix={icon}
     showColorModeToggle={colorOptions.some((o: any) => o.lightValue !== undefined || o.darkValue !== undefined || o.hex !== undefined)}
-    filterOptions={(opts, query, hasTyped) => {
-      if (!hasTyped) return opts;
-      return opts.filter((opt) =>
-        opt.val.toLowerCase().startsWith(query) ||
-        opt.val.toLowerCase().includes(`-${query}`)
-      );
-    }}
     renderOption={(opt: any, colorMode?: any) => {
       let swatchColor: string | undefined;
       if (colorMode === 'light' && opt.lightValue) swatchColor = opt.lightValue;

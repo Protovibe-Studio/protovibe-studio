@@ -112,13 +112,6 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
           zIndex={9999999}
           strictOptions={strictOptions}
           showColorModeToggle={options.some(o => (o as Option).lightValue !== undefined || (o as Option).darkValue !== undefined || (o as Option).hex !== undefined)}
-          filterOptions={(opts, query, hasTyped) => {
-            if (!hasTyped) return opts;
-            return opts.filter((opt) =>
-              opt.val.toLowerCase().startsWith(query) ||
-              opt.val.toLowerCase().includes(`-${query}`)
-            );
-          }}
           renderOption={(opt, colorMode?: ColorMode) => {
             const typedOpt = opt as Option;
             // Resolve color: prefer mode-aware lightValue/darkValue, fall back to hex
