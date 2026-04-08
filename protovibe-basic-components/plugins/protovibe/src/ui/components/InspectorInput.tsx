@@ -48,7 +48,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({ onFocus, onBlur,
       transition: 'border-color 0.15s',
       ...style
     };
-    return <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={defaultStyle} />;
+    return <input ref={inputRef} {...props} onFocus={handleFocus} onBlur={handleBlur} onMouseEnter={(e) => { setHovered(true); props.onMouseEnter?.(e); }} onMouseLeave={(e) => { setHovered(false); props.onMouseLeave?.(e); }} style={defaultStyle} />;
   }
 
   const inputStyle: React.CSSProperties = {

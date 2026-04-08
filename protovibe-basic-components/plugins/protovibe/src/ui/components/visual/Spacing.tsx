@@ -60,6 +60,8 @@ const SpacingAutocomplete: React.FC<{
 }> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.spacing;
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   return (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
@@ -73,13 +75,13 @@ const SpacingAutocomplete: React.FC<{
     inputStyle={{
       width: '100%',
       height: '100%',
-      background: 'transparent',
-      border: '1px solid transparent',
+      background: focused ? theme.bg_secondary : hovered ? 'rgba(255,255,255,0.1)' : 'transparent',
+      border: `1px solid ${focused ? theme.accent_default : hovered ? theme.border_strong : 'transparent'}`,
       fontWeight: 'bold',
       fontSize: '10px',
       textAlign: 'center',
       outline: 'none',
-      borderRadius: '2px',
+      borderRadius: '4px',
       display: 'block',
       transition: 'all 0.1s',
     }}
@@ -94,24 +96,10 @@ const SpacingAutocomplete: React.FC<{
         <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
       </>
     )}
-    onInputFocus={(e) => {
-      e.currentTarget.style.background = theme.bg_secondary;
-      e.currentTarget.style.borderColor = theme.accent_default;
-    }}
-    onInputBlur={(e) => {
-      e.currentTarget.style.background = 'transparent';
-      e.currentTarget.style.borderColor = 'transparent';
-    }}
-    onInputMouseEnter={(e) => {
-      if (document.activeElement !== e.currentTarget) {
-        e.currentTarget.style.borderColor = theme.border_strong;
-      }
-    }}
-    onInputMouseLeave={(e) => {
-      if (document.activeElement !== e.currentTarget) {
-        e.currentTarget.style.borderColor = 'transparent';
-      }
-    }}
+    onInputFocus={() => setFocused(true)}
+    onInputBlur={() => { setFocused(false); setHovered(false); }}
+    onInputMouseEnter={() => setHovered(true)}
+    onInputMouseLeave={() => setHovered(false)}
   />
   );
 };
