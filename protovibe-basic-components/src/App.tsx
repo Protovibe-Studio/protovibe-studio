@@ -8,7 +8,8 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { InfoBoxBanner } from '@/components/ui/info-box-banner';
 import { Card } from '@/components/ui/card';
-import { TextBlock } from '@/components/ui/text-block';
+import { TextHeading } from '@/components/ui/text-heading';
+import { TextParagraph } from '@/components/ui/text-paragraph';
 import { Tabs } from '@/components/ui/tabs';
 import { TabItem } from '@/components/ui/tab-item';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
@@ -30,6 +31,7 @@ import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 import { TooltipProvider } from '@/components/ui/tooltip-provider';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { Container } from '@/components/ui/container'
 
 // --- MOCK DATA ---
 
@@ -61,7 +63,7 @@ function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
-        <TextBlock data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextBlock>
+        <TextHeading data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner className="bg-background-elevated"
@@ -83,23 +85,21 @@ function DashboardPage() {
             <div data-pv-block="q958wn" className="flex flex-col gap-1">
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
-              <TextBlock className="" data-pv-block="lw979w" typography="heading-md">
-                Witam serdecznie! Witam serdecznie Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie 
-              </TextBlock>
+              <TextHeading className="" data-pv-block="lw979w" typography="heading-md">
+                Witam serdecznie! Witam serdecznie Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie
+              </TextHeading>
               {/* pv-block-end:lw979w */}
               {/* pv-block-start:krvk39 */}
-              <TextBlock  typography="small"   className="asd text-balance" test="sdfsdf"     data-pv-block="krvk39" >
+              <TextParagraph typography="small" className="asd text-balance" data-pv-block="krvk39">
               Witam serdecznie
-              </TextBlock>
+              </TextParagraph>
               {/* pv-block-end:krvk39 */}
               {/* pv-editable-zone-end:f7otuc */}
             </div>
             {/* pv-block-end:q958wn */}
-
           {/* pv-editable-zone-end:inside-g0fqyb */}
         </div>
         {/* pv-block-end:g0fqyb */}
-
 
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -114,15 +114,15 @@ function DashboardPage() {
                     <Icon data-pv-block="l8m9n1" name="Users" size="sm" />
                     {/* pv-block-end:l8m9n1 */}
                     {/* pv-block-start:o2p3q4 */}
-                    <TextBlock typography="secondary" data-pv-block="o2p3q4"  className="">Total Headcount</TextBlock>
+                    <TextParagraph typography="secondary" data-pv-block="o2p3q4" className="">Total Headcount</TextParagraph>
                     {/* pv-block-end:o2p3q4 */}
                   {/* pv-editable-zone-end:i5j6k7 */}
                 </div>
                 {/* pv-block-end:f2g3h4 */}
                 {/* pv-block-start:r5s6t7 */}
-                <TextBlock data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">
+                <TextHeading data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">
                   25
-                </TextBlock>
+                </TextHeading>
                 {/* pv-block-end:r5s6t7 */}
                 {/* pv-block-start:u8v9w1 */}
                 <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
@@ -141,13 +141,13 @@ function DashboardPage() {
                     <Icon data-pv-block="j5k6l7" name="Briefcase" size="sm" />
                     {/* pv-block-end:j5k6l7 */}
                     {/* pv-block-start:m8n9o1 */}
-                    <TextBlock typography="secondary" data-pv-block="m8n9o1"  className="">Open Roles</TextBlock>
+                    <TextParagraph typography="secondary" data-pv-block="m8n9o1" className="">Open Roles</TextParagraph>
                     {/* pv-block-end:m8n9o1 */}
                   {/* pv-editable-zone-end:g2h3i4 */}
                 </div>
                 {/* pv-block-end:d8e9f1 */}
                 {/* pv-block-start:p2q3r4 */}
-                <TextBlock data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextBlock>
+                <TextHeading data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextHeading>
                 {/* pv-block-end:p2q3r4 */}
                 {/* pv-block-start:s5t6u7 */}
                 <Badge data-pv-block="s5t6u7" label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
@@ -166,13 +166,13 @@ function DashboardPage() {
                     <Icon data-pv-block="h2i3j4" name="CalendarHeart" size="sm" />
                     {/* pv-block-end:h2i3j4 */}
                     {/* pv-block-start:k5l6m7 */}
-                    <TextBlock typography="secondary" data-pv-block="k5l6m7"  className="">On Leave</TextBlock>
+                    <TextParagraph typography="secondary" data-pv-block="k5l6m7" className="">On Leave</TextParagraph>
                     {/* pv-block-end:k5l6m7 */}
                   {/* pv-editable-zone-end:e8f9g1 */}
                 </div>
                 {/* pv-block-end:b5c6d7 */}
                 {/* pv-block-start:n8o9p1 */}
-                <TextBlock data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextBlock>
+                <TextHeading data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextHeading>
                 {/* pv-block-end:n8o9p1 */}
                 {/* pv-block-start:q2r3s4 */}
                 <Badge data-pv-block="q2r3s4" label="2 returning this week" color="info" prefixIcon="Clock" />
@@ -231,11 +231,27 @@ function DashboardPage() {
         {/* pv-block-end:ov5gmp */}
 
         {/* pv-block-start:aa30v8 */}
-        <TextBlock data-pv-block="aa30v8" typography="heading-lg">
+        <TextHeading data-pv-block="aa30v8" typography="heading-lg">
           Test!<br />
-          
-        </TextBlock>
+        </TextHeading>
         {/* pv-block-end:aa30v8 */}
+
+        {/* pv-block-start:8d7psd */}
+        <TextHeading typography="heading-sm" data-pv-block="8d7psd" >
+          Text block as
+        </TextHeading>
+        {/* pv-block-end:8d7psd */}
+
+        {/* pv-block-start:ze96ri */}
+        <Container data-pv-block="ze96ri">
+          {/* pv-editable-zone-start:yksnqt */}
+
+          {/* pv-block-start:s16ynt */}
+          <Button variant="solid" data-pv-block="s16ynt" label="Button"  color="primary" size="md" />
+          {/* pv-block-end:s16ynt */}
+          {/* pv-editable-zone-end:yksnqt */}
+        </Container>
+        {/* pv-block-end:ze96ri */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -249,7 +265,7 @@ function EmployeesPage() {
       {/* pv-editable-zone-start:e1z2x3 */}
 
         {/* pv-block-start:em1pl2 */}
-        <TextBlock data-pv-block="em1pl2" typography="heading-lg">Employees</TextBlock>
+        <TextHeading data-pv-block="em1pl2" typography="heading-lg">Employees</TextHeading>
         {/* pv-block-end:em1pl2 */}
 
         {/* pv-block-start:h4e5k6 */}
@@ -296,16 +312,16 @@ function EmployeesPage() {
                   <div className="flex items-center gap-3">
                     <Avatar initials={emp.name} size="md" bgColor="primary" />
                     <div className="flex flex-col">
-                      <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{emp.name}</TextBlock>
-                      <TextBlock typography="small">{emp.email}</TextBlock>
+                      <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{emp.name}</TextHeading>
+                      <TextParagraph typography="small">{emp.email}</TextParagraph>
                     </div>
                   </div>
                 </TableCellContent>
                 <TableCellContent>
-                  <TextBlock typography="regular">{emp.role}</TextBlock>
+                  <TextParagraph typography="regular">{emp.role}</TextParagraph>
                 </TableCellContent>
                 <TableCellContent>
-                  <TextBlock typography="regular">{emp.department}</TextBlock>
+                  <TextParagraph typography="regular">{emp.department}</TextParagraph>
                 </TableCellContent>
                 <TableCellContent>
                   <Badge
@@ -347,7 +363,7 @@ function PositionsPage() {
         <div data-pv-block="h4p5w6" className="flex justify-between items-center mb-2">
           {/* pv-editable-zone-start:e1f2g3 */}
             {/* pv-block-start:h3i4j5 */}
-            <TextBlock data-pv-block="h3i4j5" typography="heading-lg">Open Positions</TextBlock>
+            <TextHeading data-pv-block="h3i4j5" typography="heading-lg">Open Positions</TextHeading>
             {/* pv-block-end:h3i4j5 */}
             {/* pv-block-start:k6l7m8 */}
             <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus"  color="primary" />
@@ -369,11 +385,11 @@ function PositionsPage() {
                   {/* pv-block-end:z3a4b5 */}
                   {/* pv-block-start:c6d7e8 */}
                   <div data-pv-block="c6d7e8">
-                    <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextBlock>
+                    <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextHeading>
                     <div className="flex items-center mt-1 gap-1">
-                      <TextBlock typography="small">{pos.department}</TextBlock>
+                      <TextParagraph typography="small">{pos.department}</TextParagraph>
                       <span className="text-foreground-tertiary text-xs">•</span>
-                      <TextBlock typography="small">{pos.location}</TextBlock>
+                      <TextParagraph typography="small">{pos.location}</TextParagraph>
                     </div>
                   </div>
                   {/* pv-block-end:c6d7e8 */}
@@ -411,7 +427,7 @@ function DepartmentsPage() {
         <div data-pv-block="h4d5v6" className="flex justify-between items-center mb-2">
           {/* pv-editable-zone-start:n9o1p2 */}
             {/* pv-block-start:q3r4s5 */}
-            <TextBlock data-pv-block="q3r4s5" typography="heading-lg">Departments</TextBlock>
+            <TextHeading data-pv-block="q3r4s5" typography="heading-lg">Departments</TextHeading>
             {/* pv-block-end:q3r4s5 */}
             {/* pv-block-start:t6u7v8 */}
             <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus"  color="primary" />
@@ -431,8 +447,8 @@ function DepartmentsPage() {
                   {/* pv-block-end:u6v7w8 */}
                   {/* pv-block-start:x9y1z2 */}
                   <div data-pv-block="x9y1z2">
-                    <TextBlock typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextBlock>
-                    <TextBlock typography="small" className="mt-1">Manager: {dept.manager}</TextBlock>
+                    <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextHeading>
+                    <TextParagraph typography="small" className="mt-1">Manager: {dept.manager}</TextParagraph>
                   </div>
                   {/* pv-block-end:x9y1z2 */}
                 {/* pv-editable-zone-end:r3s4t5 */}
@@ -444,8 +460,8 @@ function DepartmentsPage() {
                 {/* pv-editable-zone-start:a3b4c5 */}
                   {/* pv-block-start:d6e7f8 */}
                   <div data-pv-block="d6e7f8" className="flex flex-col items-start sm:items-end">
-                    <TextBlock typography="heading-sm">{dept.headcount}</TextBlock>
-                    <TextBlock typography="small">Employees</TextBlock>
+                    <TextHeading typography="heading-sm">{dept.headcount}</TextHeading>
+                    <TextParagraph typography="small">Employees</TextParagraph>
                   </div>
                   {/* pv-block-end:d6e7f8 */}
                   {/* pv-block-start:j3k4l5 */}
@@ -476,8 +492,8 @@ function EmployeeDetailsDialog({ emp }: { emp: any }) {
         <div className="flex items-center gap-5">
           <Avatar initials={emp.name} size="2xl" bgColor="primary" />
           <div className="flex flex-col gap-1">
-            <TextBlock typography="heading-lg">{emp.name}</TextBlock>
-            <TextBlock typography="secondary">{emp.role}</TextBlock>
+            <TextHeading typography="heading-lg">{emp.name}</TextHeading>
+            <TextParagraph typography="secondary">{emp.role}</TextParagraph>
             <Badge 
               label={emp.status} 
               color={emp.status === 'Active' ? 'success' : emp.status === 'On Leave' ? 'warning' : 'neutral'} 
@@ -563,7 +579,7 @@ function DetailField({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <TextBlock typography="all-caps">{label}</TextBlock>
+      <TextParagraph typography="all-caps">{label}</TextParagraph>
       
       {isEditing ? (
         type === 'select' ? (
@@ -577,7 +593,7 @@ function DetailField({
         )
       ) : (
         <div className="h-10 flex items-center">
-          <TextBlock typography="regular" className="font-medium">{value}</TextBlock>
+          <TextParagraph typography="regular" className="font-medium">{value}</TextParagraph>
         </div>
       )}
     </div>
@@ -602,11 +618,11 @@ export default function App() {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
             <Icon name="Hexagon" size="sm" />
           </div>
-          <TextBlock typography="heading-sm" className="tracking-tight">CoreHR</TextBlock>
+          <TextHeading typography="heading-sm" className="tracking-tight">CoreHR</TextHeading>
         </div>
         
         <div className="p-4 flex-1">
-          <TextBlock typography="all-caps" className="mb-3 px-3">Main Menu</TextBlock>
+          <TextParagraph typography="all-caps" className="mb-3 px-3">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
             <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="LayoutDashboard" />
             <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
@@ -630,7 +646,7 @@ export default function App() {
             <PopoverTrigger placement="bottom" align="right">
               <button className="flex items-center gap-2 hover:bg-background-secondary p-1.5 pr-3 rounded-full border border-transparent hover:border-border-default transition-all focus:outline-none">
                 <Avatar initials="JD" bgColor="info" size="sm" />
-                <TextBlock typography="small" className="font-medium hidden sm:block">Jane Doe</TextBlock>
+                <TextParagraph typography="small" className="font-medium hidden sm:block">Jane Doe</TextParagraph>
                 <Icon name="ChevronDown" size="sm" className="text-foreground-tertiary hidden sm:block" />
               </button>
               

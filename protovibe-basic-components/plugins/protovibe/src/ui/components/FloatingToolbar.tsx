@@ -203,8 +203,8 @@ export const FloatingToolbar: React.FC = () => {
   const renderAddDialog = () => {
     const q = addSearch.toLowerCase();
     const builtins: Array<{ type: 'block' | 'text'; name: string; description: string }> = [
-      { type: 'block', name: 'Empty Block', description: 'A plain &lt;div&gt; with flex layout' },
-      { type: 'text', name: 'Text Node', description: 'A span element with text' },
+      { type: 'block', name: 'Empty Div Block', description: 'A plain &lt;div&gt; with flex layout' },
+      { type: 'text', name: 'Empty Text Span', description: 'A span element with text' },
     ];
     const rankItems = <T extends { name: string; description: string }>(
       items: T[],

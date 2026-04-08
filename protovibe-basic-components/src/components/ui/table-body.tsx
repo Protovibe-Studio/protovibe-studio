@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableRowContent } from '@/components/ui/table-row-content';
 import { TableCellContent } from '@/components/ui/table-cell-content';
-import { TextBlock } from '@/components/ui/text-block';
+import { TextParagraph } from '@/components/ui/text-paragraph';
 
 export interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
 
@@ -27,7 +27,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Value</TextBlock>
+                <TextParagraph data-pv-block="">Value</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -36,7 +36,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Active</TextBlock>
+                <TextParagraph data-pv-block="">Active</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -45,40 +45,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Jan 1, 2024</TextBlock>
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-          {/* pv-editable-zone-end */}
-        </TableRowContent>
-        {/* pv-block-end */}
-        {/* pv-block-start */}
-        <TableRowContent data-pv-block="">
-          {/* pv-editable-zone-start */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="">Value 2</TextBlock>
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="">Inactive</TextBlock>
-                {/* pv-block-end */}
-              {/* pv-editable-zone-end */}
-            </TableCellContent>
-            {/* pv-block-end */}
-            {/* pv-block-start */}
-            <TableCellContent data-pv-block="">
-              {/* pv-editable-zone-start */}
-                {/* pv-block-start */}
-                <TextBlock data-pv-block="">Jan 2, 2024</TextBlock>
+                <TextParagraph data-pv-block="">Jan 1, 2024</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -93,7 +60,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Value 3</TextBlock>
+                <TextParagraph data-pv-block="">Value 2</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -102,7 +69,7 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Active</TextBlock>
+                <TextParagraph data-pv-block="">Inactive</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -111,7 +78,40 @@ export function PvDefaultContent() {
             <TableCellContent data-pv-block="">
               {/* pv-editable-zone-start */}
                 {/* pv-block-start */}
-                <TextBlock data-pv-block="">Jan 3, 2024</TextBlock>
+                <TextParagraph data-pv-block="">Jan 2, 2024</TextParagraph>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+          {/* pv-editable-zone-end */}
+        </TableRowContent>
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <TableRowContent data-pv-block="">
+          {/* pv-editable-zone-start */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextParagraph data-pv-block="">Value 3</TextParagraph>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextParagraph data-pv-block="">Active</TextParagraph>
+                {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </TableCellContent>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <TableCellContent data-pv-block="">
+              {/* pv-editable-zone-start */}
+                {/* pv-block-start */}
+                <TextParagraph data-pv-block="">Jan 3, 2024</TextParagraph>
                 {/* pv-block-end */}
               {/* pv-editable-zone-end */}
             </TableCellContent>
@@ -136,7 +136,7 @@ export const pvConfig = {
   additionalImportsForDefaultContent: [
     { name: 'TableRowContent', path: '@/components/ui/table-row-content' },
     { name: 'TableCellContent', path: '@/components/ui/table-cell-content' },
-    { name: 'TextBlock', path: '@/components/ui/text-block' },
+    { name: 'TextParagraph', path: '@/components/ui/text-paragraph' },
   ],
   props: {},
 };

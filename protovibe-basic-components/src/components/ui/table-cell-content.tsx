@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { TextBlock } from '@/components/ui/text-block';
+import { TextParagraph } from '@/components/ui/text-paragraph';
 
 export interface TableCellContentProps extends React.TdHTMLAttributes<HTMLTableCellElement> {}
 
@@ -21,7 +21,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <TextBlock data-pv-block="">Value</TextBlock>
+        <TextParagraph data-pv-block="">Value</TextParagraph>
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
@@ -37,7 +37,7 @@ export const pvConfig = {
   defaultProps: '',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
-    { name: 'TextBlock', path: '@/components/ui/text-block' },
+    { name: 'TextParagraph', path: '@/components/ui/text-paragraph' },
   ],
   props: {},
 };

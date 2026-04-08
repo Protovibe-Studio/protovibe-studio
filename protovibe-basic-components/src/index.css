@@ -24,7 +24,7 @@
 
  /* Text */
  --foreground-default: oklch(14% 0.01 260); /* body */
- --foreground-secondary: oklch(40% 0.01 260); /* muted labels */
+ --foreground-secondary: oklch(42.4% 0.01 260); /* muted labels */
  --foreground-tertiary: oklch(58% 0.01 260); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
  --foreground-disabled: oklch(68% 0.01 260);

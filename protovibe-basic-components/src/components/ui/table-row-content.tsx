@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { TableCellContent } from '@/components/ui/table-cell-content';
-import { TextBlock } from '@/components/ui/text-block';
+import { TextParagraph } from '@/components/ui/text-paragraph';
 
 export interface TableRowContentProps extends React.HTMLAttributes<HTMLTableRowElement> {}
 
@@ -25,7 +25,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="">Value</TextBlock>
+            <TextParagraph data-pv-block="">Value</TextParagraph>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>
@@ -34,7 +34,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="">Active</TextBlock>
+            <TextParagraph data-pv-block="">Active</TextParagraph>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>
@@ -43,7 +43,7 @@ export function PvDefaultContent() {
         <TableCellContent data-pv-block="">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <TextBlock data-pv-block="">Jan 1, 2024</TextBlock>
+            <TextParagraph data-pv-block="">Jan 1, 2024</TextParagraph>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </TableCellContent>
@@ -63,7 +63,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'TableCellContent', path: '@/components/ui/table-cell-content' },
-    { name: 'TextBlock', path: '@/components/ui/text-block' },
+    { name: 'TextParagraph', path: '@/components/ui/text-paragraph' },
   ],
   props: {},
 };
