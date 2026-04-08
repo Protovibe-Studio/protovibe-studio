@@ -104,6 +104,7 @@ export function SketchpadApp() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const [pendingAction, setPendingAction] = useState<{ type: 'add-rectangle'; comp: ComponentEntry } | null>(null);
+  const [isZoomControlsHovered, setIsZoomControlsHovered] = useState(false);
 
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const mutationLockRef = useRef(false);
@@ -808,8 +809,52 @@ export function SketchpadApp() {
         document.body,
       )}
 
-      {/* Zoom indicator */}
+      <style>
+        {`
+          .sketchpad-zoom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            border-radius: 999px;
+            background: #6b7280;
+          }
+
+          .sketchpad-zoom-slider:focus,
+          .sketchpad-zoom-slider:focus-visible {
+            outline: none;
+            box-shadow: none;
+          }
+
+          .sketchpad-zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: #d1d5db;
+            border: 1px solid #9ca3af;
+          }
+
+          .sketchpad-zoom-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: #d1d5db;
+            border: 1px solid #9ca3af;
+          }
+
+          .sketchpad-zoom-slider::-moz-range-track {
+            height: 4px;
+            border-radius: 999px;
+            background: #6b7280;
+          }
+        `}
+      </style>
+
+      {/* Zoom controls */}
       <div
+        onMouseEnter={() => setIsZoomControlsHovered(true)}
+        onMouseLeave={() => setIsZoomControlsHovered(false)}
         style={{
           position: 'fixed',
           bottom: 12,
@@ -817,15 +862,100 @@ export function SketchpadApp() {
           background: 'rgba(42,42,62,0.9)',
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: 6,
-          padding: '4px 10px',
-          fontSize: 11,
-          color: '#999',
-          fontFamily: 'Inter, system-ui, sans-serif',
-          userSelect: 'none',
+          padding: isZoomControlsHovered ? '6px 12px' : '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: isZoomControlsHovered ? '12px' : 0,
           zIndex: 100,
+          backdropFilter: 'blur(12px)',
+          minWidth: isZoomControlsHovered ? 'auto' : 34,
+          minHeight: 34,
         }}
       >
-        {Math.round(transform.zoom * 100)}%
+        {isZoomControlsHovered ? (
+          <>
+            <input
+              className="sketchpad-zoom-slider"
+              type="range"
+              min={0.1}
+              max={3}
+              step={0.01}
+              value={transform.zoom}
+              onChange={(e) => {
+                let val = parseFloat(e.target.value);
+                // Magnetic snap to exactly 100% when close
+                if (val > 0.92 && val < 1.08) val = 1;
+
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                // Slider zooms towards the center of the viewport
+                const viewCx = rect.width / 2;
+                const viewCy = rect.height / 2;
+                const ratio = val / transform.zoom;
+
+                setTransform(prev => ({
+                  zoom: val,
+                  panX: viewCx - ratio * (viewCx - prev.panX),
+                  panY: viewCy - ratio * (viewCy - prev.panY),
+                }));
+              }}
+              style={{
+                width: '80px',
+                cursor: 'pointer'
+              }}
+              title="Zoom Level"
+            />
+            <span
+              style={{
+                fontSize: 11,
+                color: '#ccc',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                userSelect: 'none',
+                minWidth: '32px',
+                textAlign: 'right',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                // Reset to 100% on click
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const viewCx = rect.width / 2;
+                const viewCy = rect.height / 2;
+                const ratio = 1 / transform.zoom;
+
+                setTransform(prev => ({
+                  zoom: 1,
+                  panX: viewCx - ratio * (viewCx - prev.panX),
+                  panY: viewCy - ratio * (viewCy - prev.panY),
+                }));
+              }}
+              title="Reset to 100%"
+            >
+              {Math.round(transform.zoom * 100)}%
+            </span>
+          </>
+        ) : (
+          <div
+            title="Zoom controls"
+            style={{
+              width: 16,
+              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#d1d5db',
+              pointerEvents: 'none',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+              <path d="M11 8V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M8 11H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M20 20L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* Empty state when no frames */}

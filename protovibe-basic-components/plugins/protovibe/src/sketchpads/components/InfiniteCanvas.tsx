@@ -57,24 +57,42 @@ export function InfiniteCanvas({
 
   const handleWheel = useCallback(
     (e: WheelEvent) => {
-      e.preventDefault();
+      e.preventDefault(); // Prevents browser zoom/scroll
       const container = containerRef.current;
       if (!container) return;
 
-      const rect = container.getBoundingClientRect();
-      const cursorX = e.clientX - rect.left;
-      const cursorY = e.clientY - rect.top;
-
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const t = currentTransform.current;
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, t.zoom * delta));
-      const ratio = newZoom / t.zoom;
 
-      currentTransform.current = {
-        zoom: newZoom,
-        panX: cursorX - ratio * (cursorX - t.panX),
-        panY: cursorY - ratio * (cursorY - t.panY),
-      };
+      // Normalize delta based on scroll mode (pixels vs lines)
+      // Standard mice use lines (mode 1), trackpads use pixels (mode 0)
+      const multiplier = e.deltaMode === 1 ? 40 : 1;
+      const deltaX = e.deltaX * multiplier;
+      const deltaY = e.deltaY * multiplier;
+
+      if (e.ctrlKey || e.metaKey) {
+        // Zooming
+        const rect = container.getBoundingClientRect();
+        const cursorX = e.clientX - rect.left;
+        const cursorY = e.clientY - rect.top;
+
+        // Smooth zoom factor, handles both stepped mouse wheels and trackpad pinches
+        const zoomFactor = Math.exp(-deltaY / 300);
+        const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, t.zoom * zoomFactor));
+        const ratio = newZoom / t.zoom;
+
+        currentTransform.current = {
+          zoom: newZoom,
+          panX: cursorX - ratio * (cursorX - t.panX),
+          panY: cursorY - ratio * (cursorY - t.panY),
+        };
+      } else {
+        // Panning (Shift+Scroll naturally populates e.deltaX in modern browsers)
+        currentTransform.current = {
+          ...t,
+          panX: t.panX - deltaX,
+          panY: t.panY - deltaY,
+        };
+      }
 
       requestAnimationFrame(applyTransformToDOM);
 

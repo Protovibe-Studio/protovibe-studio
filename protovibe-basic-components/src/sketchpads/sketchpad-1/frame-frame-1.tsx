@@ -10,7 +10,7 @@ export default function Frame1() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:d3dvka */}
       {/* pv-block-start:k4hnkm */}
-      <Container data-pv-block="k4hnkm" data-pv-sketchpad-el="k4hnkm"  style={{ position: 'absolute', width: 152, left: 87, top: 88 }}>
+      <Container data-pv-block="k4hnkm" data-pv-sketchpad-el="k4hnkm"  style={{ position: 'absolute', width: 152, left: 87, top: 102 }}>
         {/* pv-editable-zone-start:qqn7ay */}
         {/* pv-editable-zone-end:qqn7ay */}
       </Container>
