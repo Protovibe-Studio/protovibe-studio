@@ -168,10 +168,9 @@ export function SelectDropdown({
           {displayLabel || placeholder}
         </span>
         <span
-          data-open={isOpen}
-          className="shrink-0 opacity-50 text-foreground-default transition-transform duration-150 data-[open=true]:rotate-180"
+          className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default"
         >
-          <Icon name="ChevronDown" size="sm" />
+          <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
         </span>
       </button>
 
