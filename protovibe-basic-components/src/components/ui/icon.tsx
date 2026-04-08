@@ -15,7 +15,7 @@ export function Icon({ name, size = 'md', color, className, ...props }: IconProp
     <div
       data-size={size}
       style={{ color }}
-      className={cn('inline-flex items-center justify-center data-[size=xs]:w-3 data-[size=xs]:h-3 data-[size=sm]:w-4 data-[size=sm]:h-4 data-[size=md]:w-5 data-[size=md]:h-5 data-[size=lg]:w-6 data-[size=lg]:h-6 data-[size=xl]:w-8 data-[size=xl]:h-8 data-[size=2xl]:w-10 data-[size=2xl]:h-10', className)}
+      className={cn("items-center justify-center data-[size=xs]:w-3 data-[size=xs]:h-3 data-[size=sm]:w-4 data-[size=sm]:h-4 data-[size=md]:w-5 data-[size=md]:h-5 data-[size=lg]:w-6 data-[size=lg]:h-6 data-[size=xl]:w-8 data-[size=xl]:h-8 data-[size=2xl]:w-10 data-[size=2xl]:h-10 flex", className)}
       {...props}
       data-pv-component-id="Icon"
     >

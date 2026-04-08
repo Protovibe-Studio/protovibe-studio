@@ -101,6 +101,25 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g0fqyb */}
 
+        {/* pv-block-start:ov5gmp */}
+        <SelectDropdown data-pv-block="ov5gmp" placeholder="Select an option">
+          {/* pv-editable-zone-start:4sb9vj */}
+            {/* pv-block-start:6rhtns */}
+            <SelectDropdownSearch data-pv-block="6rhtns" placeholder="Search..." />
+            {/* pv-block-end:6rhtns */}
+            {/* pv-block-start:ezzsb2 */}
+            <DropdownItem data-pv-block="ezzsb2" value="opt1" label="Option One" selected={false} />
+            {/* pv-block-end:ezzsb2 */}
+            {/* pv-block-start:cethbv */}
+            <DropdownItem data-pv-block="cethbv" value="opt2" label="Option Two" selected={false} />
+            {/* pv-block-end:cethbv */}
+            {/* pv-block-start:h8xhhk */}
+            <DropdownItem data-pv-block="h8xhhk" value="opt3" label="Option Three" selected={false} />
+            {/* pv-block-end:h8xhhk */}
+          {/* pv-editable-zone-end:4sb9vj */}
+        </SelectDropdown>
+        {/* pv-block-end:ov5gmp */}
+
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* pv-editable-zone-start:w2x3y4 */}
@@ -183,64 +202,6 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
-
-      {/* pv-block-start:0kb4oi */}
-      <SelectDropdown className="" data-pv-block="0kb4oi" placeholder="Select an option" >
-        {/* pv-editable-zone-start:6odf34 */}
-            {/* pv-block-start:ml6ipb */}
-            <div data-pv-block="ml6ipb" className="flex flex-col gap-2 border-b border-border-default pt-0.5 pb-1.5 px-1.5">
-              {/* pv-editable-zone-start:y9vtw4 */}
-              {/* pv-block-start:6m9cu5 */}
-              <Input className="h-8" prefixIcon="Search" data-pv-block="6m9cu5" placeholder="Search..." />
-              {/* pv-block-end:6m9cu5 */}
-              {/* pv-editable-zone-end:y9vtw4 */}
-            </div>
-            {/* pv-block-end:ml6ipb */}
-
-          {/* pv-block-start:qe0or6 */}
-          <DropdownItem data-pv-block="qe0or6" value="opt1" label="Option One" selected={false} />
-          {/* pv-block-end:qe0or6 */}
-          
-          {/* pv-block-start:t7pgzx */}
-          <DropdownItem data-pv-block="t7pgzx" value="opt2" label="Option Two" selected={false} />
-          {/* pv-block-end:t7pgzx */}
-          {/* pv-block-start:scgh6h */}
-          <DropdownItem data-pv-block="scgh6h" value="opt3" label="Option Three" selected={false} />
-          {/* pv-block-end:scgh6h */}
-        {/* pv-editable-zone-end:6odf34 */}
-      </SelectDropdown>
-      {/* pv-block-end:0kb4oi */}
-
-        {/* pv-block-start:ov5gmp */}
-        <SelectDropdown data-pv-block="ov5gmp" placeholder="Select an option">
-          {/* pv-editable-zone-start:4sb9vj */}
-            {/* pv-block-start:6rhtns */}
-            <SelectDropdownSearch data-pv-block="6rhtns" placeholder="Search..." />
-            {/* pv-block-end:6rhtns */}
-            {/* pv-block-start:ezzsb2 */}
-            <DropdownItem data-pv-block="ezzsb2" value="opt1" label="Option One" selected={false} />
-            {/* pv-block-end:ezzsb2 */}
-            {/* pv-block-start:cethbv */}
-            <DropdownItem data-pv-block="cethbv" value="opt2" label="Option Two" selected={false} />
-            {/* pv-block-end:cethbv */}
-            {/* pv-block-start:h8xhhk */}
-            <DropdownItem data-pv-block="h8xhhk" value="opt3" label="Option Three" selected={false} />
-            {/* pv-block-end:h8xhhk */}
-          {/* pv-editable-zone-end:4sb9vj */}
-        </SelectDropdown>
-        {/* pv-block-end:ov5gmp */}
-
-        {/* pv-block-start:u73zt9 */}
-        <Container className="mt-1 mb-32 mx-32 p-20 border bg-background-secondary rounded border-border-default" data-pv-block="u73zt9">
-          {/* pv-editable-zone-start:saohri */}
-          {/* pv-block-start:5pcvni */}
-        <TextHeading typography="heading-sm" data-pv-block="5pcvni" >
-          Text block as
-        </TextHeading>
-        {/* pv-block-end:5pcvni */}
-          {/* pv-editable-zone-end:saohri */}
-        </Container>
-        {/* pv-block-end:u73zt9 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

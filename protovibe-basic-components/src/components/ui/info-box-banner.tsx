@@ -37,24 +37,24 @@ export function InfoBoxBanner({
     <div
       data-color={color}
       data-actions-layout={actionsLayout}
-      className={cn("relative flex gap-3 p-4 data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded", className)}
+      className={cn("relative flex gap-3 data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start p-3", className)}
       {...props}
       data-pv-component-id="InfoBoxBanner"
     >
       {/* Left icon */}
-      <div className="mt-0.5 shrink-0 data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-secondary" data-color={color}>
+      <div className="shrink-0 data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-secondary p-0.5" data-color={color}>
         <Icon name={icon} size="md" />
       </div>
 
       {/* Middle: heading + secondary text + optional zone + (bottom) action buttons */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 pr-2 flex-1">
         {heading && (
-          <p className="text-sm font-semibold data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-default" data-color={color}>
+          <p className="text-sm font-semibold data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-default pt-1" data-color={color}>
             {heading}
           </p>
         )}
         {secondaryText && (
-          <p className="text-sm text-foreground-secondary mt-1">
+          <p className="text-sm text-foreground-secondary py-1">
             {secondaryText}
           </p>
         )}
@@ -62,7 +62,7 @@ export function InfoBoxBanner({
         {children}
 
         {actionsLayout === 'bottom' && (primaryActionLabel || secondaryActionLabel) && (
-          <div className="mt-3 flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap py-1">
             {primaryActionLabel && (
               <Button
                 label={primaryActionLabel}
@@ -85,7 +85,7 @@ export function InfoBoxBanner({
 
       {/* Right action buttons (when actionsLayout === 'right') */}
       {actionsLayout === 'right' && (primaryActionLabel || secondaryActionLabel) && (
-        <div className="shrink-0 self-center flex gap-2">
+        <div className="shrink-0 self-center flex gap-2 px-2">
           {primaryActionLabel && (
             <Button
               label={primaryActionLabel}
