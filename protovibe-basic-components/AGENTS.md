@@ -389,6 +389,10 @@ Most components should NOT define `PvPreviewWrapper`. Leave it out by default, a
     return <table className="w-full"><tbody><tr>{children}</tr></tbody></table>;
   }
 
+  export function PvDefaultContent() {
+    ...
+  }
+
   export const pvConfig = {
     ...
   };
