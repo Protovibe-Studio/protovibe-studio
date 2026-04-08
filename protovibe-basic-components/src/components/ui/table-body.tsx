@@ -16,6 +16,10 @@ export function TableBody({ children, ...props }: TableBodyProps) {
   );
 }
 
+export function PvPreviewWrapper({ children }: { children: React.ReactNode }) {
+  return <table className="w-full">{children}</table>;
+}
+
 export function PvDefaultContent() {
   return (
     <>

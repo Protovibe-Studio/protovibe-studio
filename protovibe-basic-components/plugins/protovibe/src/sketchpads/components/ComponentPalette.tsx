@@ -98,9 +98,17 @@ const ComponentPreview: React.FC<{ comp: ComponentEntry }> = ({ comp }) => {
         }}
       >
         <PreviewErrorBoundary>
-          <comp.Component {...defaultProps}>
-            {renderDefaultContent(comp)}
-          </comp.Component>
+          {comp.PreviewWrapper ? (
+            <comp.PreviewWrapper>
+              <comp.Component {...defaultProps}>
+                {renderDefaultContent(comp)}
+              </comp.Component>
+            </comp.PreviewWrapper>
+          ) : (
+            <comp.Component {...defaultProps}>
+              {renderDefaultContent(comp)}
+            </comp.Component>
+          )}
         </PreviewErrorBoundary>
       </div>
     </div>

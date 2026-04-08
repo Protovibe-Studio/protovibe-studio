@@ -43,4 +43,5 @@ export interface ComponentEntry {
   props: Record<string, { type: string; options?: string[] }>;
   Component: React.ComponentType<any>;
   DefaultContent?: React.ComponentType<any>;
+  PreviewWrapper?: React.ComponentType<any>;
 }

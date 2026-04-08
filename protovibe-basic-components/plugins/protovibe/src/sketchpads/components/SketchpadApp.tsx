@@ -13,15 +13,16 @@ import { ToastViewport } from '../../ui/components/ToastViewport';
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
 
-// Build a map of component name → { Component, DefaultContent } from client-side modules
-function getComponentRefs(): Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any> }> {
-  const refs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any> }> = {};
+// Build a map of component name → { Component, DefaultContent, PreviewWrapper } from client-side modules
+function getComponentRefs(): Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; PreviewWrapper?: React.ComponentType<any> }> {
+  const refs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; PreviewWrapper?: React.ComponentType<any> }> = {};
   for (const [, mod] of Object.entries(allModules)) {
     const cfg = mod?.pvConfig;
     if (!cfg?.name || !mod[cfg.name]) continue;
     refs[cfg.name] = {
       Component: mod[cfg.name],
       DefaultContent: typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined,
+      PreviewWrapper: typeof mod.PvPreviewWrapper === 'function' ? mod.PvPreviewWrapper : undefined,
     };
   }
   return refs;
@@ -47,6 +48,7 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
         props: c.props || {},
         Component: refs[c.name].Component,
         DefaultContent: refs[c.name].DefaultContent,
+        PreviewWrapper: refs[c.name].PreviewWrapper,
       }));
   } catch {
     // Fallback to client-side discovery if server is unavailable
@@ -65,6 +67,7 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
         props: cfg.props || {},
         Component: mod[cfg.name],
         DefaultContent: typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined,
+        PreviewWrapper: typeof mod.PvPreviewWrapper === 'function' ? mod.PvPreviewWrapper : undefined,
       });
     }
     return discovered;

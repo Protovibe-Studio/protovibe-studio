@@ -28,19 +28,21 @@ interface ComponentEntry {
   config: PvConfig;
   Component: React.ComponentType<any>;
   DefaultContent?: React.ComponentType<any>;
+  PreviewWrapper?: React.ComponentType<any>;
   filePath: string;
 }
 
 async function discoverComponents(): Promise<ComponentEntry[]> {
   // Build a name → refs map from the static glob (these get HMR updates).
-  const globRefs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; filePath: string; config: PvConfig }> = {};
+  const globRefs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; PreviewWrapper?: React.ComponentType<any>; filePath: string; config: PvConfig }> = {};
   for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
     const pvConfig = mod?.pvConfig as PvConfig | undefined;
     if (!pvConfig?.name) continue;
     const Component = mod[pvConfig.name];
     if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
     const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
-    globRefs[pvConfig.name] = { Component, DefaultContent, filePath, config: pvConfig };
+    const PreviewWrapper = typeof mod.PvPreviewWrapper === 'function' ? mod.PvPreviewWrapper : undefined;
+    globRefs[pvConfig.name] = { Component, DefaultContent, PreviewWrapper, filePath, config: pvConfig };
   }
 
   // Ask the server for the authoritative component list (includes newly-added files).
@@ -51,7 +53,7 @@ async function discoverComponents(): Promise<ComponentEntry[]> {
     serverComponents = data.components ?? [];
   } catch {
     // Server unavailable — fall back to glob-only list.
-    return Object.values(globRefs).map(r => ({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, filePath: r.filePath }));
+    return Object.values(globRefs).map(r => ({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, PreviewWrapper: r.PreviewWrapper, filePath: r.filePath }));
   }
 
   const entries: ComponentEntry[] = [];
@@ -60,7 +62,7 @@ async function discoverComponents(): Promise<ComponentEntry[]> {
     if (globRefs[c.name]) {
       // Component is in the static glob: use glob refs so HMR works.
       const r = globRefs[c.name];
-      entries.push({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, filePath: r.filePath });
+      entries.push({ config: r.config, Component: r.Component, DefaultContent: r.DefaultContent, PreviewWrapper: r.PreviewWrapper, filePath: r.filePath });
     } else {
       // New file not yet in the glob: dynamic import (no HMR, but visible immediately).
       const resolvedPath = c.importPath.startsWith('@/') ? c.importPath.replace('@/', '/src/') : c.importPath;
@@ -71,7 +73,8 @@ async function discoverComponents(): Promise<ComponentEntry[]> {
         const Component = mod[pvConfig.name];
         if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
         const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
-        entries.push({ config: pvConfig, Component, DefaultContent, filePath: resolvedPath });
+        const PreviewWrapper = typeof mod.PvPreviewWrapper === 'function' ? mod.PvPreviewWrapper : undefined;
+        entries.push({ config: pvConfig, Component, DefaultContent, PreviewWrapper, filePath: resolvedPath });
       } catch (e) {
         console.warn(`[Previewer] Failed to import ${resolvedPath}:`, e);
       }
@@ -89,7 +92,8 @@ async function discoverComponents(): Promise<ComponentEntry[]> {
  */
 function renderDefaultContent(entry: { DefaultContent?: React.ComponentType<any>; config: PvConfig }): React.ReactNode {
   if (entry.DefaultContent) {
-    const result = entry.DefaultContent({});
+    const DefaultContent = entry.DefaultContent as React.FC<any>;
+    const result = DefaultContent({});
     if (result && typeof result === 'object' && 'type' in result && result.type === React.Fragment) {
       return result.props.children;
     }
@@ -142,7 +146,7 @@ function iconExampleForKey(key: string): string | null {
 }
 
 function generateCombinations(
-  propsSchema: Record<string, { type: string; options?: string[] }>,
+  propsSchema: Record<string, { type: string; options?: string[]; exampleValue?: string }>,
   baseProps: Record<string, any>
 ): Record<string, any>[] {
   const varyEntries: [string, any[]][] = [];
@@ -203,7 +207,7 @@ function generateCombinations(
 }
 
 /** Build a short human-readable label for a variant combination. */
-function comboLabel(combo: Record<string, any>, propsSchema: Record<string, { type: string; options?: string[] }>): string {
+function comboLabel(combo: Record<string, any>, propsSchema: Record<string, { type: string; options?: string[]; exampleValue?: string }>): string {
   const variantKeys = Object.keys(propsSchema || {}).filter(k => {
     const s = propsSchema[k];
     if (s.type === 'boolean') return true;
@@ -268,9 +272,17 @@ const PreviewCell: React.FC<{
         }}
       >
         <ErrorBoundary>
-          <entry.Component {...props}>
-            {renderDefaultContent(entry)}
-          </entry.Component>
+          {entry.PreviewWrapper ? (
+            <entry.PreviewWrapper>
+              <entry.Component {...props}>
+                {renderDefaultContent(entry)}
+              </entry.Component>
+            </entry.PreviewWrapper>
+          ) : (
+            <entry.Component {...props}>
+              {renderDefaultContent(entry)}
+            </entry.Component>
+          )}
         </ErrorBoundary>
       </div>
       {propTokens.length > 0 && (
@@ -395,9 +407,17 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
         }}
       >
         <ErrorBoundary>
-          <Component {...defaultProps}>
-            {renderDefaultContent(entry)}
-          </Component>
+          {entry.PreviewWrapper ? (
+            <entry.PreviewWrapper>
+              <Component {...defaultProps}>
+                {renderDefaultContent(entry)}
+              </Component>
+            </entry.PreviewWrapper>
+          ) : (
+            <Component {...defaultProps}>
+              {renderDefaultContent(entry)}
+            </Component>
+          )}
         </ErrorBoundary>
       </div>
     </div>

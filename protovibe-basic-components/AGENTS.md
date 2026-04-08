@@ -372,6 +372,29 @@ If the component is self-closing and has no default children, `PvDefaultContent`
   export const pvConfig = { defaultContent: <PvDefaultContent /> };
   ```
 
+### Rule: Optional Protovibe Preview Wrapper for Special Cases
+
+If previewing a component requires semantic parent HTML (for example, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<li>`), export `PvPreviewWrapper` in the same file as `pvConfig`.
+
+Most components should NOT define `PvPreviewWrapper`. Leave it out by default, and add it only when standalone preview markup would be invalid.
+
+* **✅ GOOD: Add PvPreviewWrapper only for semantic-context components**
+
+  ```tsx
+  export function TableCellContent({ children, ...props }: TableCellContentProps) {
+    return <td {...props}>{children}</td>;
+  }
+
+  export function PvPreviewWrapper({ children }: { children: React.ReactNode }) {
+    return <table className="w-full"><tbody><tr>{children}</tr></tbody></table>;
+  }
+
+  export const pvConfig = {
+    name: 'TableCellContent',
+    defaultContent: <PvDefaultContent />,
+  };
+  ```
+
 ## 3. Styling Elements
 
 The visual editor directly manipulates Tailwind class strings in the AST.

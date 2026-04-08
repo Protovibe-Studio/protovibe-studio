@@ -31,6 +31,10 @@ export function TableCellHeading({
   );
 }
 
+export function PvPreviewWrapper({ children }: { children: React.ReactNode }) {
+  return <table className="w-full"><tbody><tr>{children}</tr></tbody></table>;
+}
+
 export function PvDefaultContent() {
   return <></>;
 }
