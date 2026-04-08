@@ -801,10 +801,10 @@ function handlePointerUp(e: PointerEvent) {
         const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
         const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
 
-        if (e.altKey) {
-          // Revert original element immediately so it doesn't look like it moved
-          dragState.target.style.transform = dragState.origTransform;
-        }
+        // Always revert original element's transform immediately.
+        // If we don't, React's index-based reconciliation during the HMR update
+        // will reuse this DOM node for a different sibling, leaking the drag offset.
+        dragState.target.style.transform = dragState.origTransform;
 
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
