@@ -251,6 +251,14 @@ const centreH = (pct: number): React.CSSProperties => ({
   transform: 'translate(-50%, -50%)',
 });
 
+// ── Box model input positions (% of container) ──────────────────────────────
+// Edit these values to reposition inputs when the SVG background changes.
+const pos = {
+  margin:  { top:  5, bottom: 90, left:  7, right: 94 },
+  border:  { top: 17, bottom: 79, left: 18, right: 82 },
+  padding: { top: 27, bottom: 67, left: 30, right: 70 },
+};
+
 // ─── Essentials section ────────────────────────────────────────────────────────
 
 export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
@@ -585,28 +593,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Margin – top / bottom / left / right */}
         <SpacingAutocomplete
-          posStyle={centreH(7)}
+          posStyle={centreH(pos.margin.top)}
           value={v.mt === '-' ? '' : v.mt}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mt)}
         />
         <SpacingAutocomplete
-          posStyle={centreH(93)}
+          posStyle={centreH(pos.margin.bottom)}
           value={v.mb === '-' ? '' : v.mb}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mb)}
         />
         <SpacingAutocomplete
-          posStyle={centre(7)}
+          posStyle={centre(pos.margin.left)}
           value={v.ml === '-' ? '' : v.ml}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.ml)}
         />
         <SpacingAutocomplete
-          posStyle={centre(93)}
+          posStyle={centre(pos.margin.right)}
           value={v.mr === '-' ? '' : v.mr}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'r', val, prevVal)}
           placeholder="-"
@@ -615,7 +623,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Border sides – top / bottom / left / right */}
         <SpacingAutocomplete
-          posStyle={centreH(19)}
+          posStyle={centreH(pos.border.top)}
           value={borderSideVal('borderT')}
           onChange={(val, prevVal) => handleBorderSideUpdate('t', val, prevVal)}
           placeholder="-"
@@ -623,7 +631,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderT')}
         />
         <SpacingAutocomplete
-          posStyle={centreH(81)}
+          posStyle={centreH(pos.border.bottom)}
           value={borderSideVal('borderB')}
           onChange={(val, prevVal) => handleBorderSideUpdate('b', val, prevVal)}
           placeholder="-"
@@ -631,7 +639,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderB')}
         />
         <SpacingAutocomplete
-          posStyle={centre(19)}
+          posStyle={centre(pos.border.left)}
           value={borderSideVal('borderL')}
           onChange={(val, prevVal) => handleBorderSideUpdate('l', val, prevVal)}
           placeholder="-"
@@ -639,7 +647,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderL')}
         />
         <SpacingAutocomplete
-          posStyle={centre(81)}
+          posStyle={centre(pos.border.right)}
           value={borderSideVal('borderR')}
           onChange={(val, prevVal) => handleBorderSideUpdate('r', val, prevVal)}
           placeholder="-"
@@ -649,28 +657,28 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Padding – top / bottom / left / right */}
         <SpacingAutocomplete
-          posStyle={centreH(30)}
+          posStyle={centreH(pos.padding.top)}
           value={v.pt === '-' ? '' : v.pt}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pt)}
         />
         <SpacingAutocomplete
-          posStyle={centreH(70)}
+          posStyle={centreH(pos.padding.bottom)}
           value={v.pb === '-' ? '' : v.pb}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pb)}
         />
         <SpacingAutocomplete
-          posStyle={centre(30)}
+          posStyle={centre(pos.padding.left)}
           value={v.pl === '-' ? '' : v.pl}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pl)}
         />
         <SpacingAutocomplete
-          posStyle={centre(70)}
+          posStyle={centre(pos.padding.right)}
           value={v.pr === '-' ? '' : v.pr}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'r', val, prevVal)}
           placeholder="-"

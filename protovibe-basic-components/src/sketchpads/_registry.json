@@ -4,7 +4,16 @@
       "id": "sketchpad-1",
       "name": "Sketchpad 1",
       "createdAt": "2026-04-08T06:27:12.445Z",
-      "frames": []
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 176,
+          "canvasY": 43
+        }
+      ]
     }
   ]
 }
