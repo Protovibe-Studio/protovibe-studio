@@ -244,7 +244,7 @@ const centreH = (pct: number): React.CSSProperties => ({
 const pos = {
   margin:  { top:  5, bottom: 90, left:  7, right: 94 },
   border:  { top: 17, bottom: 79, left: 18, right: 82 },
-  padding: { top: 27, bottom: 67, left: 30, right: 70 },
+  padding: { top: 28, bottom: 67, left: 30, right: 70 },
 };
 
 // ─── Essentials section ────────────────────────────────────────────────────────

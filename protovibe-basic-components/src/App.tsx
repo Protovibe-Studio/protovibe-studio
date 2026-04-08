@@ -85,8 +85,8 @@ function DashboardPage() {
             <div data-pv-block="q958wn" className="flex flex-col gap-1">
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
-              <TextHeading className="" data-pv-block="lw979w" typography="heading-md">
-                Witam serdecznie! Witam serdecznie Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie  Witam serdecznie
+              <TextHeading className="p-0.5" data-pv-block="lw979w" typography="heading-md">
+                Czołem!
               </TextHeading>
               {/* pv-block-end:lw979w */}
               {/* pv-block-start:krvk39 */}
