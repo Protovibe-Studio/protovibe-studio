@@ -390,8 +390,7 @@ Most components should NOT define `PvPreviewWrapper`. Leave it out by default, a
   }
 
   export const pvConfig = {
-    name: 'TableCellContent',
-    defaultContent: <PvDefaultContent />,
+    ...
   };
   ```
 
