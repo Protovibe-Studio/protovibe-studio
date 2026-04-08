@@ -242,16 +242,12 @@ function DashboardPage() {
         </TextHeading>
         {/* pv-block-end:8d7psd */}
 
-        {/* pv-block-start:ze96ri */}
-        <Container data-pv-block="ze96ri">
-          {/* pv-editable-zone-start:yksnqt */}
-
-          {/* pv-block-start:s16ynt */}
-          <Button variant="solid" data-pv-block="s16ynt" label="Button"  color="primary" size="md" />
-          {/* pv-block-end:s16ynt */}
-          {/* pv-editable-zone-end:yksnqt */}
+        {/* pv-block-start:u73zt9 */}
+        <Container data-pv-block="u73zt9">
+          {/* pv-editable-zone-start:saohri */}
+          {/* pv-editable-zone-end:saohri */}
         </Container>
-        {/* pv-block-end:ze96ri */}
+        {/* pv-block-end:u73zt9 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
