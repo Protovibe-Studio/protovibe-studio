@@ -243,7 +243,7 @@ function DashboardPage() {
         {/* pv-block-end:8d7psd */}
 
         {/* pv-block-start:u73zt9 */}
-        <Container data-pv-block="u73zt9">
+        <Container className="mt-1 mb-32 mx-32" data-pv-block="u73zt9">
           {/* pv-editable-zone-start:saohri */}
           {/* pv-editable-zone-end:saohri */}
         </Container>

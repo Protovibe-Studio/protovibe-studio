@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle';
+import { Icon } from '@/components/ui/icon';
 
 export default function Frame1() {
   return (
@@ -32,39 +33,52 @@ export default function Frame1() {
       </Container>
       {/* pv-block-end:439g8m */}
 
-      {/* pv-block-start:nqesfb */}
-      <TextHeading data-pv-block="nqesfb" data-pv-sketchpad-el="nqesfb" typography="heading-md" style={{ position: 'absolute', left: 103, top: 78 }}>
+      {/* pv-block-start:6fbfof */}
+      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 117, top: 401 }}>
+        {/* pv-editable-zone-start:wlrv4v */}
+        {/* pv-block-start:db2730 */}
+      <Button data-pv-block="db2730" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="db2730" style={{ position: 'absolute', left: 41, top: 101 }}/>
+      {/* pv-block-end:db2730 */}
+
+        {/* pv-block-start:y24u2v */}
+      <Button data-pv-block="y24u2v" label="Button" variant="outline" color="primary" size="md"  data-pv-sketchpad-el="y24u2v" style={{ position: 'absolute', left: 124, top: 104 }}/>
+      {/* pv-block-end:y24u2v */}
+
+        {/* pv-block-start:4ntft8 */}
+      <TextHeading data-pv-block="4ntft8" data-pv-sketchpad-el="4ntft8" typography="heading-md" style={{ position: 'absolute', left: 39, top: 32 }}>
         Heading
       </TextHeading>
-      {/* pv-block-end:nqesfb */}
+      {/* pv-block-end:4ntft8 */}
 
-      {/* pv-block-start:lkarup */}
-      <Button data-pv-block="lkarup" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="lkarup" style={{ position: 'absolute', left: 675, top: 150 }}/>
-      {/* pv-block-end:lkarup */}
+        {/* pv-block-start:m7prs9 */}
+      <TextParagraph data-pv-block="m7prs9" data-pv-sketchpad-el="m7prs9" typography="regular" style={{ position: 'absolute', left: 41, top: 61 }}>
+        Paragraph text
+      </TextParagraph>
+      {/* pv-block-end:m7prs9 */}
 
-      
-      {/* pv-block-start:6fbfof */}
-      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 198, top: 419 }}>
-        {/* pv-editable-zone-start:wlrv4v */}
-        {/* pv-block-start:zfsmer */}
-      <div data-pv-block="zfsmer" className="flex flex-col gap-2" data-pv-sketchpad-el="zfsmer" style={{ position: 'absolute', left: 31, top: 30 }}>
-        {/* pv-editable-zone-start:geeh4m */}
-        {/* pv-block-start:v1rx7d */}
-        <Button data-pv-block="v1rx7d" label="Button" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:v1rx7d */}
-        {/* pv-block-start:fda4t2 */}
-        <Button data-pv-block="fda4t2" label="Button" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:fda4t2 */}
-        {/* pv-editable-zone-end:geeh4m */}
-      </div>
-      {/* pv-block-end:zfsmer */}
-
-        {/* pv-block-start:db2730 */}
-      <Button data-pv-block="db2730" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="db2730" style={{ position: 'absolute', left: 39, top: 139 }}/>
-      {/* pv-block-end:db2730 */}
+        {/* pv-block-start:dqix6a */}
+      <Icon data-pv-block="dqix6a" data-pv-sketchpad-el="dqix6a" name="Edit" size="md" style={{ position: 'absolute', left: 579, top: 23 }} />
+      {/* pv-block-end:dqix6a */}
         {/* pv-editable-zone-end:wlrv4v */}
       </Rectangle>
       {/* pv-block-end:6fbfof */}
+      
+      {/* pv-block-start:461oj5 */}
+      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 873, top: 191 }}>
+        {/* pv-editable-zone-start:geeh4m */}
+        {/* pv-block-start:4cz22a */}
+        <Button data-pv-block="4cz22a" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:4cz22a */}
+        {/* pv-block-start:v9gasx */}
+        <Button data-pv-block="v9gasx" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:v9gasx */}
+        {/* pv-editable-zone-end:geeh4m */}
+      </div>
+      {/* pv-block-end:461oj5 */}
+      
+      {/* pv-block-start:bbx8bi */}
+      <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 620, top: 184 }}/>
+      {/* pv-block-end:bbx8bi */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

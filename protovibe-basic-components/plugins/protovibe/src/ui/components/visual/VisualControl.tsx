@@ -116,8 +116,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
             if (!hasTyped) return opts;
             return opts.filter((opt) =>
               opt.val.toLowerCase().startsWith(query) ||
-              opt.val.toLowerCase().includes(`-${query}`) ||
-              (opt.desc && opt.desc.toLowerCase().includes(query))
+              opt.val.toLowerCase().includes(`-${query}`)
             );
           }}
           renderOption={(opt, colorMode?: ColorMode) => {
