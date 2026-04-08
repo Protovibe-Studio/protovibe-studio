@@ -39,6 +39,10 @@ let dragState: {
   startY: number;
   origLeft: number;
   origTop: number;
+  origOffsetLeft: number;
+  origOffsetTop: number;
+  origWidth: number;
+  origHeight: number;
   origZIndex: string;
   moved: boolean;
   isFlow: boolean;
@@ -71,6 +75,12 @@ function updateGhost(isAltHeld: boolean) {
     ghostEl.style.pointerEvents = 'none';
     ghostEl.style.transform = dragState.origTransform;
     ghostEl.style.transition = 'none';
+    ghostEl.style.position = 'absolute';
+    ghostEl.style.left = `${dragState.origOffsetLeft}px`;
+    ghostEl.style.top = `${dragState.origOffsetTop}px`;
+    ghostEl.style.width = `${dragState.origWidth}px`;
+    ghostEl.style.height = `${dragState.origHeight}px`;
+    ghostEl.style.margin = '0';
     // Strip identifying attributes so the bridge ignores this fake element entirely
     ghostEl.removeAttribute('data-pv-sketchpad-el');
     ghostEl.removeAttribute('data-pv-block');
@@ -611,6 +621,10 @@ function handlePointerDown(e: PointerEvent) {
     startY: e.clientY,
     origLeft: pos.left,
     origTop: pos.top,
+    origOffsetLeft: nextTarget.offsetLeft,
+    origOffsetTop: nextTarget.offsetTop,
+    origWidth: nextTarget.offsetWidth,
+    origHeight: nextTarget.offsetHeight,
     origZIndex: nextTarget.style.zIndex,
     moved: false,
     isFlow: !nextTarget.hasAttribute('data-pv-sketchpad-el'),

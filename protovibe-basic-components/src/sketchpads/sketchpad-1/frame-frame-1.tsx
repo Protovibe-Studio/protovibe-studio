@@ -9,12 +9,45 @@ export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:d3dvka */}
-      {/* pv-block-start:k4hnkm */}
-      <Container data-pv-block="k4hnkm" data-pv-sketchpad-el="k4hnkm"  style={{ position: 'absolute', width: 152, left: 87, top: 102 }}>
+      {/* pv-block-start:439g8m */}
+      <Container data-pv-block="439g8m" data-pv-sketchpad-el="439g8m"  style={{ position: 'absolute', left: 96, top: 133, width: 264 }}>
         {/* pv-editable-zone-start:qqn7ay */}
+        {/* pv-block-start:yd778w */}
+      <Button data-pv-block="yd778w" label="Button" variant="solid" color="primary" size="md"  />
+      {/* pv-block-end:yd778w */}
+
+        {/* pv-block-start:2s2ojs */}
+      <Button data-pv-block="2s2ojs" label="Button" variant="solid" color="primary" size="md"  />
+      {/* pv-block-end:2s2ojs */}
         {/* pv-editable-zone-end:qqn7ay */}
       </Container>
-      {/* pv-block-end:k4hnkm */}
+      {/* pv-block-end:439g8m */}
+
+      {/* pv-block-start:nqesfb */}
+      <TextHeading data-pv-block="nqesfb" data-pv-sketchpad-el="nqesfb" typography="heading-md" style={{ position: 'absolute', left: 103, top: 78 }}>
+        Heading
+      </TextHeading>
+      {/* pv-block-end:nqesfb */}
+      
+      {/* pv-block-start:2tncke */}
+      <Button data-pv-block="2tncke" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="2tncke" style={{ position: 'absolute', left: 1052, top: 456 }}/>
+      {/* pv-block-end:2tncke */}
+      
+      {/* pv-block-start:v1ooi6 */}
+      <Button data-pv-block="v1ooi6" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="v1ooi6" style={{ position: 'absolute', left: 288, top: 76 }}/>
+      {/* pv-block-end:v1ooi6 */}
+      
+      {/* pv-block-start:lkarup */}
+      <Button data-pv-block="lkarup" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="lkarup" style={{ position: 'absolute', left: 795, top: 143 }}/>
+      {/* pv-block-end:lkarup */}
+      
+      {/* pv-block-start:u7vzq8 */}
+      <Button data-pv-block="u7vzq8" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="u7vzq8" style={{ position: 'absolute', left: 674, top: 315 }}/>
+      {/* pv-block-end:u7vzq8 */}
+      
+      {/* pv-block-start:mqfr18 */}
+      <Button data-pv-block="mqfr18" label="Button" variant="solid" color="primary" size="md"   data-pv-sketchpad-el="mqfr18" style={{ position: 'absolute', left: 538, top: 420 }}/>
+      {/* pv-block-end:mqfr18 */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );
