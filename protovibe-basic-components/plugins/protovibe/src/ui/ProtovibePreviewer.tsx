@@ -223,6 +223,13 @@ function comboLabel(combo: Record<string, any>, propsSchema: Record<string, { ty
     .join('  ');
 }
 
+function activateOnEnterOrSpace(e: React.KeyboardEvent<HTMLElement>, onActivate: () => void) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    onActivate();
+  }
+}
+
 // ─── Preview theme context ────────────────────────────────────────────────────
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -301,8 +308,12 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
   const defaultProps = parseDefaultProps(config.defaultProps || '');
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${displayName} variants`}
       onClick={onClick}
+      onKeyDown={e => activateOnEnterOrSpace(e, onClick)}
       style={{
         background: '#161616',
         border: '1px solid #262626',
@@ -314,8 +325,6 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
         flexDirection: 'row',
         width: '100%',
         transition: 'border-color 0.15s, transform 0.1s',
-        appearance: 'none',
-        WebkitAppearance: 'none',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = '#3a7bfd';
@@ -391,7 +400,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
           </Component>
         </ErrorBoundary>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -443,8 +452,12 @@ const CatalogView: React.FC<{
             }}
           />
           {search && (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Clear search"
               onClick={() => onSearch('')}
+              onKeyDown={e => activateOnEnterOrSpace(e, () => onSearch(''))}
               style={{
                 position: 'absolute',
                 right: 6,
@@ -463,7 +476,7 @@ const CatalogView: React.FC<{
               }}
             >
               ✕
-            </button>
+            </div>
           )}
         </div>
         <span style={{ fontSize: 11, color: '#444', whiteSpace: 'nowrap' }}>
@@ -540,8 +553,12 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
           background: '#111',
         }}
       >
-        <button
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Back to components list"
           onClick={onBack}
+          onKeyDown={e => activateOnEnterOrSpace(e, onBack)}
           style={{
             background: '#222',
             border: 'none',
@@ -555,7 +572,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
           }}
         >
           ← Back
-        </button>
+        </div>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#e5e5e5' }}>{displayName}</span>
         {config.description && (
           <span style={{ fontSize: 12, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -583,8 +600,12 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
             }}
           />
           {variantSearch && (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Clear variant filter"
               onClick={() => setVariantSearch('')}
+              onKeyDown={e => activateOnEnterOrSpace(e, () => setVariantSearch(''))}
               style={{
                 position: 'absolute',
                 right: 6,
@@ -603,7 +624,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
               }}
             >
               ✕
-            </button>
+            </div>
           )}
         </div>
         <span style={{ fontSize: 11, color: '#444', flexShrink: 0 }}>
