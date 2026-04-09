@@ -203,6 +203,13 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
+
+        {/* pv-block-start:qfi67i */}
+        <div className="flex-col min-h-4 flex" data-pv-block="qfi67i">
+          {/* pv-editable-zone-start:inside-qfi67i */}
+          {/* pv-editable-zone-end:inside-qfi67i */}
+        </div>
+        {/* pv-block-end:qfi67i */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

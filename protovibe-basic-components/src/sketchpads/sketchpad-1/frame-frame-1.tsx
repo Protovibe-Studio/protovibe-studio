@@ -35,7 +35,7 @@ export default function Frame1() {
       {/* pv-block-end:439g8m */}
 
       {/* pv-block-start:6fbfof */}
-      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 86, top: 365 }}>
+      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 87, top: 341 }}>
         {/* pv-editable-zone-start:wlrv4v */}
         {/* pv-block-start:db2730 */}
       <Button data-pv-block="db2730" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="db2730" style={{ position: 'absolute', left: 41, top: 101 }}/>
@@ -80,7 +80,7 @@ export default function Frame1() {
       {/* pv-block-start:bbx8bi */}
       <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 620, top: 184 }}/>
       {/* pv-block-end:bbx8bi */}
-      
+
       {/* pv-block-start:mzyjzo */}
       <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 793, top: 85 }} />
       {/* pv-block-end:mzyjzo */}
@@ -98,8 +98,22 @@ export default function Frame1() {
       {/* pv-block-end:rs0fdw */}
       
       {/* pv-block-start:iqwlv3 */}
-      <Image randomImage data-pv-block="iqwlv3" data-pv-sketchpad-el="iqwlv3" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 805, top: 433, width: 349 }} />
+      <Image randomImage data-pv-block="iqwlv3" data-pv-sketchpad-el="iqwlv3" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 981, top: 421, width: 349 }} />
       {/* pv-block-end:iqwlv3 */}
+      
+      {/* pv-block-start:s4leqk */}
+      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 330, left: 661, top: 654 }}>
+        {/* pv-editable-zone-start:jxr5ey */}
+        {/* pv-block-start:6qhmpi */}
+      <Button data-pv-block="6qhmpi" label="Button" variant="solid" color="primary" size="md" />
+      {/* pv-block-end:6qhmpi */}
+
+        {/* pv-block-start:wmxcu2 */}
+      <Button data-pv-block="wmxcu2" label="Button" variant="solid" color="primary" size="md" />
+      {/* pv-block-end:wmxcu2 */}
+        {/* pv-editable-zone-end:jxr5ey */}
+      </Card>
+      {/* pv-block-end:s4leqk */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

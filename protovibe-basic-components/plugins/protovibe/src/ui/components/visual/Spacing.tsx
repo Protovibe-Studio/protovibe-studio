@@ -291,20 +291,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       l: cleanVal(type === 'm' ? v.ml : v.pl),
     };
 
-    // If no padding/margin is set or inherited on any side, spread the new value to all sides.
-    const noSource = !vals.t && !vals.r && !vals.b && !vals.l;
-    const domSides = type === 'm'
-      ? [domV?.mt, domV?.mr, domV?.mb, domV?.ml]
-      : [domV?.pt, domV?.pr, domV?.pb, domV?.pl];
-    const noInherited = domSides.every((s) => !cleanVal(s));
-    if (noSource && noInherited && safeVal) {
-      vals.t = safeVal;
-      vals.r = safeVal;
-      vals.b = safeVal;
-      vals.l = safeVal;
-    } else {
-      vals[direction] = safeVal || '';
-    }
+    vals[direction] = safeVal || '';
 
     const newClassesStr = computeOptimalSpacing(type, vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);

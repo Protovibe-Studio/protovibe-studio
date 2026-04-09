@@ -24,6 +24,7 @@ export function useKeyboardShortcuts() {
     refreshActiveData,
     zones,
     focusElement,
+    clearFocus,
     focusNewBlock,
     isMutationLocked,
     runLockedMutation
@@ -31,6 +32,44 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     if (!inspectorOpen) return;
+
+    const focusRestoredElement = (sourceId: string | undefined) => {
+      if (!sourceId) {
+        clearFocus();
+        refreshActiveData();
+        return;
+      }
+
+      let attempts = 0;
+      const maxAttempts = 15;
+      
+      const tryFocus = () => {
+        const selector = `[data-pv-loc-app-${sourceId}], [data-pv-loc-ui-${sourceId}]`;
+        const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+        let target: HTMLElement | null = null;
+
+        for (const iframe of allIframes) {
+          target = (iframe.contentDocument?.querySelector(selector) as HTMLElement | null) ?? null;
+          if (target) break;
+        }
+        
+        if (!target) target = document.querySelector(selector) as HTMLElement | null;
+
+        if (target) {
+          focusElement(target);
+        } else {
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(tryFocus, 100);
+          } else {
+            clearFocus();
+            refreshActiveData();
+          }
+        }
+      };
+      
+      setTimeout(tryFocus, 100);
+    };
 
     const handleKeyDown = async (e: KeyboardEvent) => {
       if (isMutationLocked) {
@@ -48,8 +87,13 @@ export function useKeyboardShortcuts() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();
         await runLockedMutation(async () => {
-          if (e.shiftKey) await redo();
-          else await undo();
+          let res;
+          if (e.shiftKey) {
+            res = await redo();
+          } else {
+            res = await undo();
+          }
+          focusRestoredElement(res?.activeId);
         });
         return;
       }
@@ -57,7 +101,8 @@ export function useKeyboardShortcuts() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
         e.preventDefault();
         await runLockedMutation(async () => {
-          await redo();
+          const res = await redo();
+          focusRestoredElement(res?.activeId);
         });
         return;
       }
