@@ -781,7 +781,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             }}
           >
             {/* Display type — reuse SegmentedControl for correct source/inherited/unset colours */}
-            <div style={{ padding: '12px 12px 0' }}>
+            <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid) ? '0' : '12px' }}>
               <span style={{ display: 'block', fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Display</span>
               <SegmentedControl
                 label=""
