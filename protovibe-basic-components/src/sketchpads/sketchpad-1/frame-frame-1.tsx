@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 import { Icon } from '@/components/ui/icon';
+import { Image } from '@/components/ui/image';
 
 export default function Frame1() {
   return (
@@ -34,7 +35,7 @@ export default function Frame1() {
       {/* pv-block-end:439g8m */}
 
       {/* pv-block-start:6fbfof */}
-      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 117, top: 401 }}>
+      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 86, top: 365 }}>
         {/* pv-editable-zone-start:wlrv4v */}
         {/* pv-block-start:db2730 */}
       <Button data-pv-block="db2730" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="db2730" style={{ position: 'absolute', left: 41, top: 101 }}/>
@@ -64,7 +65,7 @@ export default function Frame1() {
       {/* pv-block-end:6fbfof */}
       
       {/* pv-block-start:461oj5 */}
-      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 873, top: 191 }}>
+      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 405, top: 63 }}>
         {/* pv-editable-zone-start:geeh4m */}
         {/* pv-block-start:4cz22a */}
         <Button data-pv-block="4cz22a" label="Button" variant="solid" color="primary" size="md" />
@@ -79,6 +80,26 @@ export default function Frame1() {
       {/* pv-block-start:bbx8bi */}
       <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 620, top: 184 }}/>
       {/* pv-block-end:bbx8bi */}
+      
+      {/* pv-block-start:mzyjzo */}
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 793, top: 85 }} />
+      {/* pv-block-end:mzyjzo */}
+
+      {/* pv-block-start:wxd41l */}
+      <Image randomImage data-pv-block="wxd41l" data-pv-sketchpad-el="wxd41l" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 92, top: 576, width: 406 }} />
+      {/* pv-block-end:wxd41l */}
+
+      {/* pv-block-start:qa89kp */}
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 797, top: 246, width: 213 }} />
+      {/* pv-block-end:qa89kp */}
+      
+      {/* pv-block-start:rs0fdw */}
+      <Image randomImage data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1063, top: 84, width: 238 }} />
+      {/* pv-block-end:rs0fdw */}
+      
+      {/* pv-block-start:iqwlv3 */}
+      <Image randomImage data-pv-block="iqwlv3" data-pv-sketchpad-el="iqwlv3" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 805, top: 433, width: 349 }} />
+      {/* pv-block-end:iqwlv3 */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

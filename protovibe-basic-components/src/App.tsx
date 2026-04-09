@@ -32,6 +32,7 @@ import { TooltipProvider } from '@/components/ui/tooltip-provider';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
 import { Container } from '@/components/ui/container'
+import { Image } from '@/components/ui/image'
 
 // --- MOCK DATA ---
 
