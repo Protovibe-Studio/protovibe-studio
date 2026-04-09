@@ -5,9 +5,11 @@ import { DialogWindow } from '@/components/ui/dialog-window';
 
 export interface DialogOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
+  /** Top padding in vh units before the dialog window */
+  customDistanceFromTopEdge?: number;
 }
 
-export function DialogOverlay({ children, className, ...props }: DialogOverlayProps) {
+export function DialogOverlay({ children, className, customDistanceFromTopEdge = 22, ...props }: DialogOverlayProps) {
   const dialog = useDialogContext();
 
   // Lock body scroll while overlay is mounted
@@ -27,12 +29,15 @@ export function DialogOverlay({ children, className, ...props }: DialogOverlayPr
 
   return (
     <div
-      className={cn('fixed top-0 right-0 bottom-0 left-0 overflow-hidden flex items-center justify-center bg-background-overlay', className)}
+      className={cn('fixed top-0 right-0 bottom-0 left-0 overflow-y-auto bg-background-overlay', className)}
       onClick={handleBackdropClick}
       {...props}
       data-pv-component-id="DialogOverlay"
     >
-      <div className="overflow-y-auto max-h-screen w-full flex justify-center items-start p-8 pointer-events-none">
+      <div
+        className="w-full flex justify-center px-8 pb-8 pointer-events-none"
+        style={{ paddingTop: `${customDistanceFromTopEdge}vh` }}
+      >
         <div className="pointer-events-auto w-full flex justify-center">
           {children}
         </div>
@@ -61,5 +66,7 @@ export const pvConfig = {
   additionalImportsForDefaultContent: [
     { name: 'DialogWindow', path: '@/components/ui/dialog-window' },
   ],
-  props: {},
+  props: {
+    customDistanceFromTopEdge: { type: 'string' },
+  },
 };

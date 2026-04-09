@@ -292,7 +292,7 @@ function EmployeesPage() {
 
       {selectedEmp && createPortal(
         <DialogContext.Provider value={{ isOpen: true, close: () => setSelectedEmp(null) }}>
-          <DialogOverlay>
+          <DialogOverlay >
             <DialogWindow size="lg" className="bg-background-default">
               <EmployeeDetailsDialog emp={selectedEmp} />
             </DialogWindow>
