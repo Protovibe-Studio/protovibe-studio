@@ -35,7 +35,7 @@ interface PvKeyDownMessage {
 type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvKeyDownMessage;
 
 export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | null>[]) {
-  const { focusElement, clearFocus, isMutationLocked, highlightedElement, inspectorOpen } = useProtovibe();
+  const { focusElement, clearFocus, isMutationLocked, highlightedElement, inspectorOpen, activeSourceId } = useProtovibe();
 
   // Handle incoming messages from any iframe
   useEffect(() => {
@@ -102,4 +102,14 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
       }
     });
   }, [inspectorOpen, ...iframeRefs]);
+
+  // Sync activeSourceId into all iframes
+  useEffect(() => {
+    iframeRefs.forEach(ref => {
+      ref.current?.contentWindow?.postMessage(
+        { type: 'PV_SET_ACTIVE_SOURCE_ID', activeSourceId },
+        '*'
+      );
+    });
+  }, [activeSourceId, ...iframeRefs]);
 }

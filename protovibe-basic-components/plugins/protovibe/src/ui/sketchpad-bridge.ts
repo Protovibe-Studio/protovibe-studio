@@ -65,6 +65,7 @@ let resizeState: {
 
 let currentDropTarget: HTMLElement | null = null;
 let ghostEl: HTMLElement | null = null;
+let currentActiveSourceId: string | null = null;
 
 function updateGhost(isAltHeld: boolean) {
   if (!dragState) return;
@@ -727,6 +728,7 @@ function handlePointerUp(e: PointerEvent) {
         postApi('/__sketchpad-update-element-position', {
           sketchpadId, frameId, blockId,
           x: Math.round(newLeft), y: Math.round(newTop),
+          activeSourceId: currentActiveSourceId
         });
       }
 
@@ -736,6 +738,7 @@ function handlePointerUp(e: PointerEvent) {
           sketchpadId, frameId, blockId,
           width: newWidth ? Math.round(newWidth) : undefined,
           height: newHeight ? Math.round(newHeight) : undefined,
+          activeSourceId: currentActiveSourceId
         });
       }
     }
@@ -794,6 +797,7 @@ function handlePointerUp(e: PointerEvent) {
 
         postApi('/__sketchpad-update-element-position', {
           sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
+          activeSourceId: currentActiveSourceId
         });
       } else {
         // Dragged to a different container OR duplicating
@@ -822,6 +826,7 @@ function handlePointerUp(e: PointerEvent) {
             y: newTop,
             targetLayoutMode: layoutMode,
             isDuplicate: e.altKey,
+            activeSourceId: currentActiveSourceId,
           },
         }));
 
@@ -848,6 +853,7 @@ function handlePointerUp(e: PointerEvent) {
             y: newTop,
             targetLayoutMode: 'absolute',
             isDuplicate: true,
+            activeSourceId: currentActiveSourceId,
           },
         }));
       } else {
@@ -858,6 +864,7 @@ function handlePointerUp(e: PointerEvent) {
         if (sketchpadId && sourceFrameId && draggedBlockId) {
           postApi('/__sketchpad-update-element-position', {
             sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
+            activeSourceId: currentActiveSourceId
           });
         }
       }
@@ -968,6 +975,9 @@ function handleParentMessage(e: MessageEvent) {
     updateOutlines(hoveredEl, oldSelections, oldParent);
   }
   if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
+  if (e.data.type === 'PV_SET_ACTIVE_SOURCE_ID') {
+    currentActiveSourceId = e.data.activeSourceId;
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────

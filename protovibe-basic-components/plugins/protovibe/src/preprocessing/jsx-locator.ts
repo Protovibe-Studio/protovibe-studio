@@ -44,6 +44,12 @@ export function jsxLocatorPlugin(): Plugin {
 
                   const hasClass = !!(classAttr && classAttr.value && classAttr.value.loc);
 
+                  // Extract block ID to make the hash robust against structural shifting
+                  const blockAttr = opening.attributes.find(
+                    (attr: any) => t.isJSXAttribute(attr) && attr.name.name === 'data-pv-block'
+                  );
+                  const blockId = blockAttr && t.isStringLiteral(blockAttr.value) ? blockAttr.value.value : '';
+
                   let compName = '';
                   if (t.isJSXIdentifier(opening.name)) {
                     compName = opening.name.name;
@@ -55,7 +61,7 @@ export function jsxLocatorPlugin(): Plugin {
                   if (!nameEndLoc) return;
 
                   const cLoc = hasClass ? classAttr.value.loc : null;
-                  
+
                   const payload: any = {
                     file: relativeFilePath,
                     bStart: [loc.start.line, loc.start.column],
@@ -68,7 +74,7 @@ export function jsxLocatorPlugin(): Plugin {
                   };
 
                   // Generate Deterministic ID
-                  const uniqueString = `${relativeFilePath}:${loc.start.line}:${loc.start.column}`;
+                  const uniqueString = `${relativeFilePath}:${blockId}:${compName || 'HTMLElement'}:${loc.start.line}:${loc.start.column}`;
                   let hash = 0;
                   for (let i = 0; i < uniqueString.length; i++) {
                     hash = ((hash << 5) - hash) + uniqueString.charCodeAt(i);

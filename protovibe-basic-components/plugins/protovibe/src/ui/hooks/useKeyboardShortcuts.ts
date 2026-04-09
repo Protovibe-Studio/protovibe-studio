@@ -33,42 +33,45 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     if (!inspectorOpen) return;
 
-    const focusRestoredElement = (sourceId: string | undefined) => {
-      if (!sourceId) {
-        clearFocus();
-        refreshActiveData();
-        return;
-      }
-
-      let attempts = 0;
-      const maxAttempts = 15;
-      
-      const tryFocus = () => {
-        const selector = `[data-pv-loc-app-${sourceId}], [data-pv-loc-ui-${sourceId}]`;
-        const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
-        let target: HTMLElement | null = null;
-
-        for (const iframe of allIframes) {
-          target = (iframe.contentDocument?.querySelector(selector) as HTMLElement | null) ?? null;
-          if (target) break;
+    const focusRestoredElement = (sourceId: string | undefined): Promise<void> => {
+      return new Promise((resolve) => {
+        if (!sourceId) {
+          clearFocus();
+          refreshActiveData().finally(resolve);
+          return;
         }
-        
-        if (!target) target = document.querySelector(selector) as HTMLElement | null;
 
-        if (target) {
-          focusElement(target);
-        } else {
-          attempts++;
-          if (attempts < maxAttempts) {
-            setTimeout(tryFocus, 100);
-          } else {
-            clearFocus();
-            refreshActiveData();
+        let attempts = 0;
+        const maxAttempts = 15;
+
+        const tryFocus = () => {
+          const selector = `[data-pv-loc-app-${sourceId}], [data-pv-loc-ui-${sourceId}]`;
+          const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+          let target: HTMLElement | null = null;
+
+          for (const iframe of allIframes) {
+            target = (iframe.contentDocument?.querySelector(selector) as HTMLElement | null) ?? null;
+            if (target) break;
           }
-        }
-      };
-      
-      setTimeout(tryFocus, 100);
+
+          if (!target) target = document.querySelector(selector) as HTMLElement | null;
+
+          if (target) {
+            focusElement(target);
+            resolve();
+          } else {
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(tryFocus, 100);
+            } else {
+              clearFocus();
+              refreshActiveData().finally(resolve);
+            }
+          }
+        };
+
+        setTimeout(tryFocus, 300);
+      });
     };
 
     const handleKeyDown = async (e: KeyboardEvent) => {
@@ -93,7 +96,7 @@ export function useKeyboardShortcuts() {
           } else {
             res = await undo();
           }
-          focusRestoredElement(res?.activeId);
+          await focusRestoredElement(res?.activeId);
         });
         return;
       }
@@ -102,7 +105,7 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         await runLockedMutation(async () => {
           const res = await redo();
-          focusRestoredElement(res?.activeId);
+          await focusRestoredElement(res?.activeId);
         });
         return;
       }

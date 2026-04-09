@@ -7,13 +7,15 @@ import { Container } from '@/components/ui/container';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image';
+import { RadioGroup } from '@/components/ui/radio-group';
+import { RadioItem } from '@/components/ui/radio-item';
 
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:d3dvka */}
       {/* pv-block-start:439g8m */}
-      <Container data-pv-block="439g8m" data-pv-sketchpad-el="439g8m"  style={{ position: 'absolute', left: 106, top: 156, width: 264 }}>
+      <Container data-pv-block="439g8m" data-pv-sketchpad-el="439g8m"  style={{ position: 'absolute', left: 121, top: 168, width: 264 }}>
         {/* pv-editable-zone-start:qqn7ay */}
         {/* pv-block-start:yd778w */}
       <Button data-pv-block="yd778w" label="Button" variant="solid" color="primary" size="md"  />
@@ -34,38 +36,8 @@ export default function Frame1() {
       </Container>
       {/* pv-block-end:439g8m */}
 
-      {/* pv-block-start:6fbfof */}
-      <Rectangle data-pv-block="6fbfof" data-pv-sketchpad-el="6fbfof" className="w-[200px] h-[200px]" style={{ position: 'absolute', height: 181, width: 622, left: 87, top: 341 }}>
-        {/* pv-editable-zone-start:wlrv4v */}
-        {/* pv-block-start:db2730 */}
-      <Button data-pv-block="db2730" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="db2730" style={{ position: 'absolute', left: 41, top: 101 }}/>
-      {/* pv-block-end:db2730 */}
-
-        {/* pv-block-start:y24u2v */}
-      <Button data-pv-block="y24u2v" label="Button" variant="outline" color="primary" size="md"  data-pv-sketchpad-el="y24u2v" style={{ position: 'absolute', left: 124, top: 104 }}/>
-      {/* pv-block-end:y24u2v */}
-
-        {/* pv-block-start:4ntft8 */}
-      <TextHeading data-pv-block="4ntft8" data-pv-sketchpad-el="4ntft8" typography="heading-md" style={{ position: 'absolute', left: 39, top: 32 }}>
-        Heading
-      </TextHeading>
-      {/* pv-block-end:4ntft8 */}
-
-        {/* pv-block-start:m7prs9 */}
-      <TextParagraph data-pv-block="m7prs9" data-pv-sketchpad-el="m7prs9" typography="regular" style={{ position: 'absolute', left: 41, top: 61 }}>
-        Paragraph text
-      </TextParagraph>
-      {/* pv-block-end:m7prs9 */}
-
-        {/* pv-block-start:dqix6a */}
-      <Icon data-pv-block="dqix6a" data-pv-sketchpad-el="dqix6a" name="Edit" size="md" style={{ position: 'absolute', left: 579, top: 23 }} />
-      {/* pv-block-end:dqix6a */}
-        {/* pv-editable-zone-end:wlrv4v */}
-      </Rectangle>
-      {/* pv-block-end:6fbfof */}
-      
       {/* pv-block-start:461oj5 */}
-      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 405, top: 63 }}>
+      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 434, top: 144 }}>
         {/* pv-editable-zone-start:geeh4m */}
         {/* pv-block-start:4cz22a */}
         <Button data-pv-block="4cz22a" label="Button" variant="solid" color="primary" size="md" />
@@ -85,24 +57,16 @@ export default function Frame1() {
       <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 793, top: 85 }} />
       {/* pv-block-end:mzyjzo */}
 
-      {/* pv-block-start:wxd41l */}
-      <Image randomImage data-pv-block="wxd41l" data-pv-sketchpad-el="wxd41l" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 92, top: 576, width: 406 }} />
-      {/* pv-block-end:wxd41l */}
-
       {/* pv-block-start:qa89kp */}
       <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 797, top: 246, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
-      <Image randomImage data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1063, top: 84, width: 238 }} />
+      <Image  data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1099, top: 89, width: 238 }} />
       {/* pv-block-end:rs0fdw */}
-      
-      {/* pv-block-start:iqwlv3 */}
-      <Image randomImage data-pv-block="iqwlv3" data-pv-sketchpad-el="iqwlv3" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 981, top: 421, width: 349 }} />
-      {/* pv-block-end:iqwlv3 */}
-      
+
       {/* pv-block-start:s4leqk */}
-      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 330, left: 661, top: 654 }}>
+      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 797, top: 387 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:6qhmpi */}
       <Button data-pv-block="6qhmpi" label="Button" variant="solid" color="primary" size="md" />
@@ -111,9 +75,80 @@ export default function Frame1() {
         {/* pv-block-start:wmxcu2 */}
       <Button data-pv-block="wmxcu2" label="Button" variant="solid" color="primary" size="md" />
       {/* pv-block-end:wmxcu2 */}
+
+        {/* pv-block-start:zppmsv */}
+      <Image randomImage data-pv-block="zppmsv" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full"  />
+      {/* pv-block-end:zppmsv */}
         {/* pv-editable-zone-end:jxr5ey */}
       </Card>
       {/* pv-block-end:s4leqk */}
+
+        {/* pv-block-start:2g8vkk */}
+        <div className="flex flex-col min-h-4" data-pv-block="2g8vkk" data-pv-sketchpad-el="2g8vkk" style={{ position: 'absolute', left: 160, top: 59 }}>
+          {/* pv-editable-zone-start:inside-2g8vkk */}
+            {/* pv-block-start:dd6bm5 */}
+            <span data-pv-block="dd6bm5">Lorem ipsum</span>
+            {/* pv-block-end:dd6bm5 */}
+          {/* pv-editable-zone-end:inside-2g8vkk */}
+        </div>
+        {/* pv-block-end:2g8vkk */}
+      
+      {/* pv-block-start:y0csap */}
+      <Rectangle data-pv-block="y0csap" data-pv-sketchpad-el="y0csap" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 74, top: 414, height: 450, width: 661 }}>
+        {/* pv-editable-zone-start:wlrv4v */}
+        {/* pv-block-start:w11xb3 */}
+      <Button data-pv-block="w11xb3" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="w11xb3" style={{ position: 'absolute', left: 41, top: 101 }}/>
+      {/* pv-block-end:w11xb3 */}
+
+        {/* pv-block-start:m9hvoh */}
+      <Button data-pv-block="m9hvoh" label="Button" variant="outline" color="primary" size="md"  data-pv-sketchpad-el="m9hvoh" style={{ position: 'absolute', left: 124, top: 104 }}/>
+      {/* pv-block-end:m9hvoh */}
+
+        {/* pv-block-start:dmnvft */}
+      <TextHeading data-pv-block="dmnvft" data-pv-sketchpad-el="dmnvft" typography="heading-md" style={{ position: 'absolute', left: 39, top: 32 }}>
+        Heading
+      </TextHeading>
+      {/* pv-block-end:dmnvft */}
+
+        {/* pv-block-start:2s4xyi */}
+      <TextParagraph data-pv-block="2s4xyi" data-pv-sketchpad-el="2s4xyi" typography="regular" style={{ position: 'absolute', left: 41, top: 61 }}>
+        Paragraph text
+      </TextParagraph>
+      {/* pv-block-end:2s4xyi */}
+
+        {/* pv-block-start:v6iaql */}
+      <Icon data-pv-block="v6iaql" data-pv-sketchpad-el="v6iaql" name="Edit" size="md" style={{ position: 'absolute', width: 20, left: 618, top: 22 }} />
+      {/* pv-block-end:v6iaql */}
+
+        {/* pv-block-start:oyjiq2 */}
+      <Image randomImage data-pv-block="oyjiq2" data-pv-sketchpad-el="oyjiq2" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 45, top: 168, width: 406 }} />
+      {/* pv-block-end:oyjiq2 */}
+
+        {/* pv-block-start:pv1ak2 */}
+      <RadioGroup data-pv-block="pv1ak2" data-pv-sketchpad-el="pv1ak2" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 230, top: 30 }}>
+        {/* pv-editable-zone-start:jfm4b2 */}
+          {/* pv-block-start:x08a9y */}
+          <RadioItem data-pv-block="x08a9y" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+          {/* pv-block-end:x08a9y */}
+          {/* pv-block-start:kz79gf */}
+          <RadioItem data-pv-block="kz79gf" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+          {/* pv-block-end:kz79gf */}
+          {/* pv-block-start:pk2f8v */}
+          <RadioItem data-pv-block="pk2f8v" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+          {/* pv-block-end:pk2f8v */}
+        {/* pv-editable-zone-end:jfm4b2 */}
+      </RadioGroup>
+      {/* pv-block-end:pv1ak2 */}
+        {/* pv-editable-zone-end:wlrv4v */}
+      </Rectangle>
+      {/* pv-block-end:y0csap */}
+      
+      {/* pv-block-start:1963um */}
+      <Container data-pv-block="1963um" data-pv-sketchpad-el="1963um"  style={{ position: 'absolute', left: 1095, top: 275 }}>
+        {/* pv-editable-zone-start:eyutv0 */}
+        {/* pv-editable-zone-end:eyutv0 */}
+      </Container>
+      {/* pv-block-end:1963um */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

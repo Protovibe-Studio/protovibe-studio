@@ -88,6 +88,7 @@ type SketchpadDropDetail = {
   x: number;
   y: number;
   isDuplicate?: boolean;
+  activeSourceId?: string | null;
 };
 
 export function SketchpadApp() {
@@ -475,6 +476,7 @@ export function SketchpadApp() {
         x,
         y,
         isDuplicate,
+        activeSourceId,
       } = data;
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockId) return;
@@ -534,7 +536,7 @@ export function SketchpadApp() {
             }
 
             const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
-            await takeSnapshot(sourceFile, '', extraFiles);
+            await takeSnapshot(sourceFile, activeSourceId || '', extraFiles);
 
             // 3. Paste into the freshly fetched target
             const res = await addBlock({

@@ -14,7 +14,7 @@ function logUndoDebug(event: string, details: Record<string, unknown>): void {
 }
 
 // Snapshot one or more files into the undo stack before mutating them.
-function snapshotFiles(...relPaths: string[]): void {
+function snapshotFiles(activeId: string | null, ...relPaths: string[]): void {
   const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
   const files = uniquePaths
     .map((f) => {
@@ -40,7 +40,7 @@ function snapshotFiles(...relPaths: string[]): void {
     }
   }
 
-  undoStack.push({ files, activeId: '' });
+  undoStack.push({ files, activeId: activeId || '' });
   redoStack.length = 0;
   logUndoDebug('snapshot-created', {
     source: 'sketchpad-server',
@@ -276,7 +276,7 @@ export const handleSketchpadDelete: Connect.NextHandleFunction = async (req, res
     const framePaths = (sp?.frames ?? []).map(
       (f) => path.relative(process.cwd(), path.join(SKETCHPADS_DIR, id, `${f.id}.tsx`)),
     );
-    snapshotFiles('src/sketchpads/_registry.json', ...framePaths);
+    snapshotFiles(null, 'src/sketchpads/_registry.json', ...framePaths);
 
     reg.sketchpads = reg.sketchpads.filter((s) => s.id !== id);
     writeRegistry(reg);
@@ -301,7 +301,7 @@ export const handleSketchpadRename: Connect.NextHandleFunction = async (req, res
     const sp = reg.sketchpads.find((s) => s.id === id);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
-    snapshotFiles('src/sketchpads/_registry.json');
+    snapshotFiles(null, 'src/sketchpads/_registry.json');
     sp.name = name;
     writeRegistry(reg);
 
@@ -336,7 +336,7 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
 
     const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
     // Snapshot both the registry and the tsx (tsx doesn't exist yet → stored as '' so undo deletes it)
-    snapshotFiles('src/sketchpads/_registry.json', frameRelPath);
+    snapshotFiles(null, 'src/sketchpads/_registry.json', frameRelPath);
     sp.frames.push(frame);
     writeRegistry(reg);
 
@@ -362,7 +362,7 @@ export const handleFrameDelete: Connect.NextHandleFunction = async (req, res) =>
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
     const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
-    snapshotFiles('src/sketchpads/_registry.json', frameRelPath);
+    snapshotFiles(null, 'src/sketchpads/_registry.json', frameRelPath);
     sp.frames = sp.frames.filter((f) => f.id !== frameId);
     writeRegistry(reg);
 
@@ -387,7 +387,7 @@ export const handleFrameRename: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles('src/sketchpads/_registry.json');
+    snapshotFiles(null, 'src/sketchpads/_registry.json');
     frame.name = name;
     writeRegistry(reg);
 
@@ -409,7 +409,7 @@ export const handleFrameResize: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles('src/sketchpads/_registry.json');
+    snapshotFiles(null, 'src/sketchpads/_registry.json');
     if (width) frame.width = width;
     if (height) frame.height = height;
     writeRegistry(reg);
@@ -432,7 +432,7 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles('src/sketchpads/_registry.json');
+    snapshotFiles(null, 'src/sketchpads/_registry.json');
     if (canvasX !== undefined) frame.canvasX = canvasX;
     if (canvasY !== undefined) frame.canvasY = canvasY;
     writeRegistry(reg);
@@ -453,7 +453,7 @@ export const handleSketchpadAddElement: Connect.NextHandleFunction = async (req,
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(path.relative(process.cwd(), filePath));
+    snapshotFiles(null, path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Collect all imports to add (component + additional imports for default content)
@@ -528,14 +528,14 @@ ${indented}
 
 export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, x, y } = await parseBody(req);
+    const { sketchpadId, frameId, blockId, x, y, activeSourceId } = await parseBody(req);
     if (!sketchpadId || !frameId || !blockId)
       return sendError(res, 'sketchpadId, frameId, and blockId required');
 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(path.relative(process.cwd(), filePath));
+    snapshotFiles(activeSourceId, path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Independently update left and top to avoid regex failures if code formatting changes
@@ -564,14 +564,14 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
 
 export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, width, height } = await parseBody(req);
+    const { sketchpadId, frameId, blockId, width, height, activeSourceId } = await parseBody(req);
     if (!sketchpadId || !frameId || !blockId || (width === undefined && height === undefined))
       return sendError(res, 'sketchpadId, frameId, blockId, and width or height required');
 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(path.relative(process.cwd(), filePath));
+    snapshotFiles(activeSourceId, path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Helper to update or insert a dimension in the style object
@@ -595,48 +595,6 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     if (height !== undefined) updateDimension('height', height);
 
     fs.writeFileSync(filePath, content, 'utf-8');
-    sendJson(res, { success: true });
-  } catch (err) {
-    sendError(res, String(err), 500);
-  }
-};
-
-export const handleSketchpadDuplicateElement: Connect.NextHandleFunction = async (req, res) => {
-  try {
-    const { sketchpadId, frameId, blockId } = await parseBody(req);
-    if (!sketchpadId || !frameId || !blockId)
-      return sendError(res, 'sketchpadId, frameId, and blockId required');
-
-    // For now, duplication is handled client-side with a new addElement call
-    const newBlockId = Math.random().toString(36).slice(2, 8);
-    sendJson(res, { blockId: newBlockId });
-  } catch (err) {
-    sendError(res, String(err), 500);
-  }
-};
-
-export const handleSketchpadDeleteElement: Connect.NextHandleFunction = async (req, res) => {
-  try {
-    const { sketchpadId, frameId, blockId } = await parseBody(req);
-    if (!sketchpadId || !frameId || !blockId)
-      return sendError(res, 'sketchpadId, frameId, and blockId required');
-
-    // Element deletion would be handled by removing the pv-block from the file
-    // For MVP, this is a placeholder
-    sendJson(res, { success: true });
-  } catch (err) {
-    sendError(res, String(err), 500);
-  }
-};
-
-export const handleSketchpadReorderElement: Connect.NextHandleFunction = async (req, res) => {
-  try {
-    const { sketchpadId, frameId, blockId, direction } = await parseBody(req);
-    if (!sketchpadId || !frameId || !blockId || !direction)
-      return sendError(res, 'sketchpadId, frameId, blockId, and direction required');
-
-    // Z-order reordering would reorder pv-block entries in the file
-    // For MVP, this is a placeholder
     sendJson(res, { success: true });
   } catch (err) {
     sendError(res, String(err), 500);
