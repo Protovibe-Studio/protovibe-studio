@@ -91,7 +91,7 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
   useEffect(() => {
     iframeRefs.forEach(ref => {
       ref.current?.contentWindow?.postMessage(
-        { type: 'PV_SET_PREVIEW_MODE', active: inspectorOpen },
+        { type: 'PV_SET_INSPECTOR_ACTIVE', active: inspectorOpen },
         '*'
       );
       if (!inspectorOpen) {

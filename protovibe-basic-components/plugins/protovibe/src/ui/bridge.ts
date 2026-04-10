@@ -23,7 +23,32 @@ const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '1px';
 
 let isLocked = false;
-let isPreviewModeActive = false;
+let isInspectorActive = false;
+
+// ─── Editing-mode stylesheet ──────────────────────────────────────────────────
+// Injected once. Styles activate/deactivate via the [pv-editor-mode]
+// attribute on <html>, toggled whenever preview mode changes.
+(function injectEditingStyles() {
+  const style = document.createElement('style');
+  style.id = 'pv-editing-style';
+  style.textContent = `
+    [pv-editor-mode="inspector"] [disabled],
+    [pv-editor-mode="inspector"] [data-disabled],
+    [pv-editor-mode="inspector"] [aria-disabled="true"] {
+      pointer-events: auto !important;
+      cursor: default !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+function setEditingStylesheet(enabled: boolean) {
+  if (enabled) {
+    document.documentElement.setAttribute('pv-editor-mode', 'inspector');
+  } else {
+    document.documentElement.removeAttribute('pv-editor-mode');
+  }
+}
 let hoveredEl: HTMLElement | null = null;
 let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
@@ -182,7 +207,7 @@ function clearSelectionOutline() {
 function handlePointerDown(e: PointerEvent) {
   window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
 
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -227,7 +252,7 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handleClick(e: MouseEvent) {
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -254,7 +279,7 @@ function handleClick(e: MouseEvent) {
 }
 
 function handleMouseMove(e: MouseEvent) {
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   if (isLocked) {
     clearHoverOutline();
     return;
@@ -270,12 +295,12 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function handleMouseLeave() {
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   clearHoverOutline();
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   // Let the iframe handle key events that target real text-entry elements.
   const active = document.activeElement as HTMLElement | null;
   if (
@@ -305,7 +330,7 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 function handleDoubleClick(e: MouseEvent) {
-  if (!isPreviewModeActive) return;
+  if (!isInspectorActive) return;
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -347,9 +372,10 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_CLEAR_SELECTION':
       clearSelectionOutline();
       break;
-    case 'PV_SET_PREVIEW_MODE': {
+    case 'PV_SET_INSPECTOR_ACTIVE': {
       const active = !!e.data.active;
-      isPreviewModeActive = active;
+      isInspectorActive = active;
+      setEditingStylesheet(active);
       if (!active) {
         clearHoverOutline();
         clearSelectionOutline();
@@ -374,6 +400,7 @@ function init() {
   // Protovibe shell iframe). In that case window.parent === window.
   if (window.parent === window) return;
 
+  setEditingStylesheet(isInspectorActive);
   document.addEventListener('pointerdown', handlePointerDown, true);
   document.addEventListener('click', handleClick, true);
   document.addEventListener('mousemove', handleMouseMove, true);
