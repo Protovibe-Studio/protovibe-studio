@@ -17,8 +17,10 @@ const sizingScale = [
   { val: 'min-content', desc: '' }, { val: 'max-content', desc: '' }, { val: 'fit-content', desc: '' },
   { val: '1/2', desc: '50%' }, { val: '1/3', desc: '33%' }, { val: '2/3', desc: '66%' },
   { val: '1/4', desc: '25%' }, { val: '3/4', desc: '75%' },
-  { val: '0', desc: '0px' }, { val: 'px', desc: '1px' }, { val: '1', desc: '4px' }, { val: '2', desc: '8px' }, 
-  { val: '4', desc: '16px' }, { val: '6', desc: '24px' }, { val: '8', desc: '32px' }, { val: '12', desc: '48px' }, 
+  { val: '0', desc: '0px' }, { val: 'px', desc: '1px' }, { val: '1', desc: '4px' }, { val: '2', desc: '8px' },
+  { val: '4', desc: '16px' }, { val: '6', desc: '24px' }, { val: '7', desc: '28px' }, { val: '8', desc: '32px' },
+  { val: '9', desc: '36px' }, { val: '10', desc: '40px' }, { val: '11', desc: '44px' },
+  { val: '12', desc: '48px' },
   { val: '16', desc: '64px' }, { val: '24', desc: '96px' }, { val: '32', desc: '128px' }, { val: '48', desc: '192px' },
   { val: '64', desc: '256px' }, { val: '96', desc: '384px' }
 ];
@@ -28,7 +30,7 @@ export const SCALES = {
     { val: '0', desc: '0px' }, { val: 'px', desc: '1px' }, { val: '0.5', desc: '2px' }, { val: '1', desc: '4px' }, 
     { val: '1.5', desc: '6px' }, { val: '2', desc: '8px' }, { val: '2.5', desc: '10px' }, { val: '3', desc: '12px' }, 
     { val: '4', desc: '16px' }, { val: '5', desc: '20px' }, { val: '6', desc: '24px' }, { val: '7', desc: '28px' }, { val: '8', desc: '32px' },
-    { val: '10', desc: '40px' }, { val: '12', desc: '48px' }, { val: '16', desc: '64px' }, { val: '20', desc: '80px' }, 
+    { val: '9', desc: '36px' }, { val: '10', desc: '40px' }, { val: '11', desc: '44px' }, { val: '12', desc: '48px' }, { val: '16', desc: '64px' }, { val: '20', desc: '80px' }, 
     { val: '24', desc: '96px' }, { val: '32', desc: '128px' }, { val: '40', desc: '160px' }, { val: '48', desc: '192px' }, 
     { val: '64', desc: '256px' }, { val: 'auto', desc: 'auto' }
   ],
@@ -70,7 +72,7 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
   const spacingEntries: [string, number | null][] = [
     ['0', 0], ['px', 1], ['0.5', unit * 0.5], ['1', unit], ['1.5', unit * 1.5],
     ['2', unit * 2], ['2.5', unit * 2.5], ['3', unit * 3], ['4', unit * 4],
-    ['5', unit * 5], ['6', unit * 6], ['7', unit * 7], ['8', unit * 8], ['10', unit * 10],
+    ['5', unit * 5], ['6', unit * 6], ['7', unit * 7], ['8', unit * 8], ['9', unit * 9], ['10', unit * 10], ['11', unit * 11],
     ['12', unit * 12], ['16', unit * 16], ['20', unit * 20], ['24', unit * 24],
     ['32', unit * 32], ['40', unit * 40], ['48', unit * 48], ['64', unit * 64],
     ['auto', null],
@@ -82,7 +84,8 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
 
   const sizingNumeric: [string, number | null][] = [
     ['0', 0], ['px', 1], ['1', unit], ['2', unit * 2], ['4', unit * 4],
-    ['6', unit * 6], ['8', unit * 8], ['12', unit * 12], ['16', unit * 16],
+    ['6', unit * 6], ['7', unit * 7], ['8', unit * 8], ['9', unit * 9], ['10', unit * 10], ['11', unit * 11],
+    ['12', unit * 12], ['16', unit * 16],
     ['24', unit * 24], ['32', unit * 32], ['48', unit * 48], ['64', unit * 64], ['96', unit * 96],
   ];
   const size = [
