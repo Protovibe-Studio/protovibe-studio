@@ -82,10 +82,23 @@ function updateGhost(isAltHeld: boolean) {
     ghostEl.style.width = `${dragState.origWidth}px`;
     ghostEl.style.height = `${dragState.origHeight}px`;
     ghostEl.style.margin = '0';
+    
     // Strip identifying attributes so the bridge ignores this fake element entirely
-    ghostEl.removeAttribute('data-pv-sketchpad-el');
-    ghostEl.removeAttribute('data-pv-block');
-    ghostEl.removeAttribute('data-pv-runtime-id');
+    const stripIdentifiers = (el: Element) => {
+      el.removeAttribute('data-pv-sketchpad-el');
+      el.removeAttribute('data-pv-block');
+      el.removeAttribute('data-pv-runtime-id');
+      
+      Array.from(el.attributes).forEach(attr => {
+        if (attr.name.startsWith('data-pv-loc-')) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    };
+
+    stripIdentifiers(ghostEl);
+    ghostEl.querySelectorAll('*').forEach(stripIdentifiers);
+
     dragState.target.parentElement?.insertBefore(ghostEl, dragState.target);
   } else if (!isAltHeld && ghostEl) {
     ghostEl.remove();

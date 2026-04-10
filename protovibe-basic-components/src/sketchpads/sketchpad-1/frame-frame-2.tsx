@@ -12,7 +12,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:jr37z0 */}
       {/* pv-block-start:j94omq */}
-      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 165, top: 256, width: 330 }}>
+      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 174, top: 260, width: 330 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:3linjw */}
       <Button data-pv-block="3linjw" label="Button" variant="solid" color="primary" size="md" />
@@ -26,7 +26,7 @@ export default function Frame2() {
       {/* pv-block-end:j94omq */}
       
       {/* pv-block-start:r8citb */}
-      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 376, top: 455 }}>
+      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 234, top: 537 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:uqlav5 */}
         <Image randomImage data-pv-block="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -34,6 +34,46 @@ export default function Frame2() {
         {/* pv-editable-zone-end:1r8mze */}
       </div>
       {/* pv-block-end:r8citb */}
+      
+      {/* pv-block-start:g3lj6s */}
+      <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 920, top: 340 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:ip7d8c */}
+        <Image randomImage data-pv-block="ip7d8c" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:ip7d8c */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:g3lj6s */}
+      
+      {/* pv-block-start:yw7158 */}
+      <div data-pv-block="yw7158" className="flex flex-col gap-2" data-pv-sketchpad-el="yw7158" style={{ position: 'absolute', left: 693, top: 522 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:x5b3rz */}
+        <Image randomImage data-pv-block="x5b3rz" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:x5b3rz */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:yw7158 */}
+      
+      {/* pv-block-start:2tq36f */}
+      <div data-pv-block="2tq36f" className="flex flex-col gap-2" data-pv-sketchpad-el="2tq36f" style={{ position: 'absolute', left: 606, top: 277 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:aj0qjh */}
+        <Image randomImage data-pv-block="aj0qjh" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:aj0qjh */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:2tq36f */}
+      
+      {/* pv-block-start:44told */}
+      <div data-pv-block="44told" className="flex flex-col gap-2" data-pv-sketchpad-el="44told" style={{ position: 'absolute', left: 1012, top: 82 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:gao1dk */}
+        <Image randomImage data-pv-block="gao1dk" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:gao1dk */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:44told */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );
