@@ -12,7 +12,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:jr37z0 */}
       {/* pv-block-start:j94omq */}
-      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 145, top: 89, width: 330 }}>
+      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 103, top: 78, width: 330 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:3linjw */}
       <Button data-pv-block="3linjw" label="Button" variant="solid" color="primary" size="md" />
@@ -40,7 +40,7 @@ export default function Frame2() {
       {/* pv-block-end:j94omq */}
       
       {/* pv-block-start:r8citb */}
-      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 234, top: 537 }}>
+      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 111, top: 441 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:uqlav5 */}
         <Image randomImage data-pv-block="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -50,7 +50,7 @@ export default function Frame2() {
       {/* pv-block-end:r8citb */}
       
       {/* pv-block-start:g3lj6s */}
-      <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 1074, top: 312 }}>
+      <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 690, top: 91 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:ip7d8c */}
         <Image randomImage data-pv-block="ip7d8c" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -60,7 +60,7 @@ export default function Frame2() {
       {/* pv-block-end:g3lj6s */}
       
       {/* pv-block-start:yw7158 */}
-      <div data-pv-block="yw7158" className="flex flex-col gap-2" data-pv-sketchpad-el="yw7158" style={{ position: 'absolute', left: 693, top: 522 }}>
+      <div data-pv-block="yw7158" className="flex flex-col gap-2" data-pv-sketchpad-el="yw7158" style={{ position: 'absolute', left: 355, top: 454 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:x5b3rz */}
         <Image randomImage data-pv-block="x5b3rz" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -70,7 +70,7 @@ export default function Frame2() {
       {/* pv-block-end:yw7158 */}
 
       {/* pv-block-start:44told */}
-      <div data-pv-block="44told" className="flex flex-col gap-2" data-pv-sketchpad-el="44told" style={{ position: 'absolute', left: 1012, top: 82 }}>
+      <div data-pv-block="44told" className="flex flex-col gap-2" data-pv-sketchpad-el="44told" style={{ position: 'absolute', left: 515, top: 267 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:gao1dk */}
         <Image randomImage data-pv-block="gao1dk" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -80,7 +80,7 @@ export default function Frame2() {
       {/* pv-block-end:44told */}
       
       {/* pv-block-start:b12ofv */}
-      <div data-pv-block="b12ofv" className="flex flex-col gap-2" data-pv-sketchpad-el="b12ofv" style={{ position: 'absolute', left: 1064, top: 625 }}>
+      <div data-pv-block="b12ofv" className="flex flex-col gap-2" data-pv-sketchpad-el="b12ofv" style={{ position: 'absolute', left: 576, top: 647 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:n9aiev */}
         <Image randomImage data-pv-block="n9aiev" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -90,7 +90,7 @@ export default function Frame2() {
       {/* pv-block-end:b12ofv */}
       
       {/* pv-block-start:7kg73j */}
-      <div data-pv-block="7kg73j" className="flex flex-col gap-2" data-pv-sketchpad-el="7kg73j" style={{ position: 'absolute', left: 982, top: 487 }}>
+      <div data-pv-block="7kg73j" className="flex flex-col gap-2" data-pv-sketchpad-el="7kg73j" style={{ position: 'absolute', left: 579, top: 441 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:ffvgdj */}
         <Image randomImage data-pv-block="ffvgdj" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -100,11 +100,11 @@ export default function Frame2() {
       {/* pv-block-end:7kg73j */}
       
       {/* pv-block-start:slc31y */}
-      <Button data-pv-block="slc31y" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="slc31y" style={{ position: 'absolute', left: 803, top: 116 }}/>
+      <Button data-pv-block="slc31y" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="slc31y" style={{ position: 'absolute', left: 568, top: 86 }}/>
       {/* pv-block-end:slc31y */}
       
       {/* pv-block-start:cii084 */}
-      <Button data-pv-block="cii084" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="cii084" style={{ position: 'absolute', left: 602, top: 293 }}/>
+      <Button data-pv-block="cii084" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="cii084" style={{ position: 'absolute', left: 468, top: 85 }}/>
       {/* pv-block-end:cii084 */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>

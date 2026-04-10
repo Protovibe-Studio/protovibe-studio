@@ -998,7 +998,7 @@ function handleParentMessage(e: MessageEvent) {
   if (e.data.type === 'PV_NUDGE_KEYDOWN') {
     if (selectedEls.length === 0) return;
     const { key, shiftKey } = e.data;
-    const shiftMultiplier = shiftKey ? 10 : 1;
+    const shiftMultiplier = shiftKey ? 8 : 1;
 
     if (!nudgeState) {
       const targets = selectedEls.map(el => {
