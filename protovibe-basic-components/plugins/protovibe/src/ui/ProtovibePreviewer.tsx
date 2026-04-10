@@ -686,6 +686,15 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
 
 // ─── Root Overlay ──────────────────────────────────────────────────────────────
 
+const PREVIEWER_STYLE = `
+  [data-pv-preview-area] [disabled],
+  [data-pv-preview-area] [data-disabled],
+  [data-pv-preview-area] [aria-disabled="true"] {
+    pointer-events: auto !important;
+    cursor: default !important;
+  }
+`;
+
 export function ProtovibePreviewer() {
   const [discovered, setDiscovered] = useState<ComponentEntry[]>([]);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
@@ -739,6 +748,8 @@ export function ProtovibePreviewer() {
   }, [discovered]);
 
   return (
+    <>
+    <style>{PREVIEWER_STYLE}</style>
     <div
       style={{
         position: 'fixed',
@@ -804,5 +815,6 @@ export function ProtovibePreviewer() {
         />
       )}
     </div>
+    </>
   );
 }

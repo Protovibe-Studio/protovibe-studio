@@ -64,7 +64,7 @@ function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
-        <TextHeading data-pv-block="da1sh2" typography="heading-sm">Dashboard</TextHeading>
+        <TextHeading data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner className=""
@@ -90,6 +90,10 @@ function DashboardPage() {
                 Czołem!
               </TextHeading>
               {/* pv-block-end:lw979w */}
+                {/* pv-block-start:bjj6al */}
+                <Button disabled data-pv-block="bjj6al" label="Button" variant="solid" color="primary" size="md" />
+                {/* pv-block-end:bjj6al */}
+              
               {/* pv-block-start:krvk39 */}
               <TextParagraph typography="small" className="asd text-balance" data-pv-block="krvk39">
               Witam serdecznie
