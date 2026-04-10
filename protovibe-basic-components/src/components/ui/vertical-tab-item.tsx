@@ -124,4 +124,7 @@ export const pvConfig = {
     suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
     expandable: { type: 'select', options: ['not-expandable', 'expandable', 'expanded', 'collapsed'] },
   },
+  invalidCombinations: [
+    (props: Record<string, any>) => !props.label || props.label.trim() === '',
+  ],
 };
