@@ -52,11 +52,11 @@ export default function Frame1() {
       {/* pv-block-end:439g8m */}
 
       {/* pv-block-start:bbx8bi */}
-      <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 620, top: 184 }}/>
+      <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 614, top: 191 }}/>
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 688, top: 28 }} />
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 741, top: 35 }} />
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}
@@ -191,7 +191,7 @@ export default function Frame1() {
       {/* pv-block-end:93y9w3 */}
       
       {/* pv-block-start:hq6ukf */}
-      <Rectangle data-pv-block="hq6ukf" data-pv-sketchpad-el="hq6ukf" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 465, top: 251 }}>
+      <Rectangle data-pv-block="hq6ukf" data-pv-sketchpad-el="hq6ukf" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 483, top: 289 }}>
         {/* pv-editable-zone-start:rkdn2p */}
         {/* pv-editable-zone-end:rkdn2p */}
       </Rectangle>

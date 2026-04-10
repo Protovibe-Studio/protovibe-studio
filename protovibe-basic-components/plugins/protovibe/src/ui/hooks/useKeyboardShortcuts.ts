@@ -318,6 +318,24 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // 4.5. Nudge Absolute Elements
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        const isAbsolute = currentBaseTarget?.style.position === 'absolute' || currentBaseTarget?.hasAttribute('data-pv-sketchpad-el');
+        const inAbsoluteContainer = currentBaseTarget?.parentElement?.closest('[data-layout-mode="absolute"]');
+        
+        if (isAbsolute && inAbsoluteContainer) {
+          e.preventDefault();
+          Array.from(document.querySelectorAll('iframe')).forEach(iframe => {
+            iframe.contentWindow?.postMessage({
+              type: 'PV_NUDGE_ELEMENT',
+              key: e.key,
+              shiftKey: e.shiftKey
+            }, '*');
+          });
+          return;
+        }
+      }
+
       // 5. Traversal
       const handleNavigate = (newTarget: HTMLElement | null) => {
         if (newTarget) {

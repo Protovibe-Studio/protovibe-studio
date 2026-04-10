@@ -975,6 +975,50 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function handleParentMessage(e: MessageEvent) {
   if (!e.data || typeof e.data !== 'object') return;
+
+  if (e.data.type === 'PV_NUDGE_ELEMENT') {
+    if (selectedEls.length === 0) return;
+    const { key, shiftKey } = e.data;
+    const shiftMultiplier = shiftKey ? 10 : 1;
+
+    selectedEls.forEach(el => {
+      const container = el.parentElement?.closest('[data-layout-mode="absolute"]');
+      const isAbsolute = el.style.position === 'absolute' || el.hasAttribute('data-pv-sketchpad-el');
+
+      if (container && isAbsolute) {
+        const frame = findFrameContainer(el);
+        const frameId = frame?.getAttribute('data-sketchpad-frame');
+        const blockId = el.getAttribute('data-pv-sketchpad-el') || el.getAttribute('data-pv-block');
+        const sketchpadId = getSketchpadId();
+
+        if (sketchpadId && frameId && blockId) {
+          const pos = getComputedPos(el);
+          let newLeft = pos.left;
+          let newTop = pos.top;
+
+          if (key === 'ArrowLeft') newLeft -= shiftMultiplier;
+          if (key === 'ArrowRight') newLeft += shiftMultiplier;
+          if (key === 'ArrowUp') newTop -= shiftMultiplier;
+          if (key === 'ArrowDown') newTop += shiftMultiplier;
+
+          el.style.left = `${newLeft}px`;
+          el.style.top = `${newTop}px`;
+
+          const elAny = el as any;
+          if (elAny._nudgeTimeout) clearTimeout(elAny._nudgeTimeout);
+          elAny._nudgeTimeout = setTimeout(() => {
+            postApi('/__sketchpad-update-element-position', {
+              sketchpadId, frameId, blockId,
+              x: newLeft, y: newTop,
+              activeSourceId: currentActiveSourceId
+            });
+          }, 300);
+        }
+      }
+    });
+    return;
+  }
+
   if (e.data.type === 'PV_CLEAR_SELECTION') clearSelection();
   if (e.data.type === 'PV_SET_SELECTION') {
     const { runtimeIds } = e.data;
