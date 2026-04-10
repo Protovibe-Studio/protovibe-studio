@@ -14,8 +14,21 @@ import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 
+function parseTabParam(search: string): IframeTab {
+  const tab = new URLSearchParams(search).get('tab');
+  return tab === 'components' || tab === 'sketchpad' ? tab : 'app';
+}
+
+function syncTabToURL(tab: IframeTab) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('tab', tab);
+  window.history.pushState({}, '', url.toString());
+}
+
 export const ProtovibeApp: React.FC = () => {
-  const [activeIframeTab, setActiveIframeTab] = useState<IframeTab>('app');
+  const [activeIframeTab, setActiveIframeTab] = useState<IframeTab>(
+    () => parseTabParam(window.location.search)
+  );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
   const [iframeTheme, setIframeTheme] = useState<'light' | 'dark'>(() => {
     try {
@@ -70,6 +83,7 @@ export const ProtovibeApp: React.FC = () => {
   const handleIframeTabChange = useCallback((tab: IframeTab) => {
     clearFocus();
     setActiveIframeTab(tab);
+    syncTabToURL(tab);
     [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
       ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
     });
@@ -78,6 +92,30 @@ export const ProtovibeApp: React.FC = () => {
       componentsIframeRef.current?.contentWindow?.postMessage({ type: 'PV_REFRESH_COMPONENTS' }, '*');
     }
   }, [clearFocus, refreshComponents]);
+
+  // Ensure ?tab param is always present in the URL on initial load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('tab')) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', activeIframeTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
+  // Sync tab when the user navigates with browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const tab = parseTabParam(window.location.search);
+      setActiveIframeTab(tab);
+      clearFocus();
+      [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
+        ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
+      });
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [clearFocus]);
 
   // When a ui-source tab is clicked in the inspector, switch to the Components
   // iframe and tell the previewer to open that component's playground view.
