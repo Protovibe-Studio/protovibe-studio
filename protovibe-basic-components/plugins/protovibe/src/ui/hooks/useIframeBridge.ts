@@ -43,8 +43,8 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
       if (!e.data || typeof e.data !== 'object') return;
 
       if (e.data.type === 'PV_ELEMENT_CLICK') {
-        const { pvLocs, componentId, runtimeIds } = e.data;
-        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeIds });
+        const { pvLocs, componentId, runtimeIds, skipSnapshot } = e.data;
+        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeIds, skipSnapshot });
 
         const sourceRef = iframeRefs.find(ref => ref.current?.contentWindow === e.source);
         const iframeDoc = sourceRef?.current?.contentDocument;
@@ -53,7 +53,7 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
         const els = runtimeIds.map(id => iframeDoc.querySelector<HTMLElement>(`[data-pv-runtime-id="${id}"]`)).filter(Boolean) as HTMLElement[];
         if (els.length === 0) return;
 
-        focusElement(els);
+        focusElement(els, skipSnapshot);
       }
 
       if (e.data.type === 'PV_ELEMENT_DESELECT') {

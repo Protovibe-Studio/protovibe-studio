@@ -438,7 +438,7 @@ function postApi(url: string, body: Record<string, unknown>) {
 
 // ─── Inspector communication ──────────────────────────────────────────────────
 
-function notifyInspector(primaryTarget: HTMLElement) {
+function notifyInspector(primaryTarget: HTMLElement, skipSnapshot = false) {
   const runtimeIds = selectedEls.map(el => {
     let rId = el.getAttribute('data-pv-runtime-id');
     if (!rId) {
@@ -452,7 +452,7 @@ function notifyInspector(primaryTarget: HTMLElement) {
   const componentId = primaryTarget.getAttribute('data-pv-component-id') ?? null;
 
   window.parent.postMessage(
-    { type: 'PV_ELEMENT_CLICK', pvLocs, componentId, runtimeIds },
+    { type: 'PV_ELEMENT_CLICK', pvLocs, componentId, runtimeIds, skipSnapshot },
     '*',
   );
 }
@@ -999,7 +999,7 @@ function init() {
     const el = document.querySelector(`[data-pv-block="${e.detail.blockId}"]`) as HTMLElement | null;
     if (el) {
       setSelection(el, false);
-      notifyInspector(el);
+      notifyInspector(el, true); // skipSnapshot = true
     }
   }) as EventListener);
 }

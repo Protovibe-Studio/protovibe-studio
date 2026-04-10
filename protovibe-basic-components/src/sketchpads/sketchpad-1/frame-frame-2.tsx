@@ -12,7 +12,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:jr37z0 */}
       {/* pv-block-start:j94omq */}
-      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 186, top: 406, width: 330 }}>
+      <Card data-pv-block="j94omq" data-pv-sketchpad-el="j94omq"  style={{ position: 'absolute', left: 165, top: 256, width: 330 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:3linjw */}
       <Button data-pv-block="3linjw" label="Button" variant="solid" color="primary" size="md" />
@@ -26,7 +26,7 @@ export default function Frame2() {
       {/* pv-block-end:j94omq */}
       
       {/* pv-block-start:r8citb */}
-      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 60, top: 108 }}>
+      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 376, top: 455 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:uqlav5 */}
         <Image randomImage data-pv-block="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
