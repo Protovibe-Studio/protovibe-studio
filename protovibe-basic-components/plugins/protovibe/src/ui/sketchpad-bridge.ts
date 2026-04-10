@@ -63,6 +63,20 @@ let resizeState: {
   edge: ResizeEdge;
 } | null = null;
 
+let nudgeState: {
+  activeKeys: Set<string>;
+  dx: number;
+  dy: number;
+  targets: {
+    el: HTMLElement;
+    origLeft: number;
+    origTop: number;
+    origTransform: string;
+    frameId: string;
+    blockId: string;
+  }[];
+} | null = null;
+
 let currentDropTarget: HTMLElement | null = null;
 let ghostEl: HTMLElement | null = null;
 let currentActiveSourceId: string | null = null;
@@ -969,6 +983,11 @@ function handleKeyUp(e: KeyboardEvent) {
   if (e.key === 'Alt') {
     updateGhost(false);
   }
+  window.parent.postMessage({
+    type: 'PV_KEYUP',
+    key: e.key,
+    code: e.code,
+  }, '*');
 }
 
 // ─── Messages from parent shell ───────────────────────────────────────────────
@@ -976,50 +995,92 @@ function handleKeyUp(e: KeyboardEvent) {
 function handleParentMessage(e: MessageEvent) {
   if (!e.data || typeof e.data !== 'object') return;
 
-  if (e.data.type === 'PV_NUDGE_ELEMENT') {
+  if (e.data.type === 'PV_NUDGE_KEYDOWN') {
     if (selectedEls.length === 0) return;
     const { key, shiftKey } = e.data;
     const shiftMultiplier = shiftKey ? 10 : 1;
 
-    selectedEls.forEach(el => {
-      const container = el.parentElement?.closest('[data-layout-mode="absolute"]');
-      const isAbsolute = el.style.position === 'absolute' || el.hasAttribute('data-pv-sketchpad-el');
+    if (!nudgeState) {
+      const targets = selectedEls.map(el => {
+        const container = el.parentElement?.closest('[data-layout-mode="absolute"]');
+        const isAbsolute = el.style.position === 'absolute' || el.hasAttribute('data-pv-sketchpad-el');
+        if (!container || !isAbsolute) return null;
 
-      if (container && isAbsolute) {
         const frame = findFrameContainer(el);
         const frameId = frame?.getAttribute('data-sketchpad-frame');
         const blockId = el.getAttribute('data-pv-sketchpad-el') || el.getAttribute('data-pv-block');
-        const sketchpadId = getSketchpadId();
+        if (!frameId || !blockId) return null;
 
-        if (sketchpadId && frameId && blockId) {
-          const pos = getComputedPos(el);
-          let newLeft = pos.left;
-          let newTop = pos.top;
+        const pos = getComputedPos(el);
+        return {
+          el,
+          origLeft: pos.left,
+          origTop: pos.top,
+          origTransform: el.style.transform || '',
+          frameId,
+          blockId
+        };
+      }).filter(Boolean) as any[];
 
-          if (key === 'ArrowLeft') newLeft -= shiftMultiplier;
-          if (key === 'ArrowRight') newLeft += shiftMultiplier;
-          if (key === 'ArrowUp') newTop -= shiftMultiplier;
-          if (key === 'ArrowDown') newTop += shiftMultiplier;
+      if (targets.length === 0) return;
 
-          el.style.left = `${newLeft}px`;
-          el.style.top = `${newTop}px`;
+      nudgeState = {
+        activeKeys: new Set(),
+        dx: 0,
+        dy: 0,
+        targets
+      };
+    }
 
-          const elAny = el as any;
-          if (elAny._nudgeTimeout) clearTimeout(elAny._nudgeTimeout);
-          elAny._nudgeTimeout = setTimeout(() => {
-            postApi('/__sketchpad-update-element-position', {
-              sketchpadId, frameId, blockId,
-              x: newLeft, y: newTop,
-              activeSourceId: currentActiveSourceId
-            });
-          }, 300);
-        }
-      }
+    nudgeState.activeKeys.add(key);
+
+    if (key === 'ArrowLeft') nudgeState.dx -= shiftMultiplier;
+    if (key === 'ArrowRight') nudgeState.dx += shiftMultiplier;
+    if (key === 'ArrowUp') nudgeState.dy -= shiftMultiplier;
+    if (key === 'ArrowDown') nudgeState.dy += shiftMultiplier;
+
+    nudgeState.targets.forEach(t => {
+      const existingTransform = t.origTransform && t.origTransform !== 'none' ? t.origTransform + ' ' : '';
+      t.el.style.transform = `${existingTransform}translate(${nudgeState!.dx}px, ${nudgeState!.dy}px)`;
     });
     return;
   }
 
-  if (e.data.type === 'PV_CLEAR_SELECTION') clearSelection();
+  if (e.data.type === 'PV_NUDGE_KEYUP') {
+    if (!nudgeState) return;
+    const { key } = e.data;
+    nudgeState.activeKeys.delete(key);
+
+    if (nudgeState.activeKeys.size === 0) {
+      const sketchpadId = getSketchpadId();
+      nudgeState.targets.forEach(t => {
+        const newLeft = t.origLeft + nudgeState!.dx;
+        const newTop = t.origTop + nudgeState!.dy;
+
+        t.el.style.transform = t.origTransform;
+        t.el.style.left = `${newLeft}px`;
+        t.el.style.top = `${newTop}px`;
+
+        if (sketchpadId) {
+          postApi('/__sketchpad-update-element-position', {
+            sketchpadId,
+            frameId: t.frameId,
+            blockId: t.blockId,
+            x: newLeft,
+            y: newTop,
+            activeSourceId: currentActiveSourceId
+          });
+        }
+      });
+      nudgeState = null;
+    }
+    return;
+  }
+
+  if (e.data.type === 'PV_CLEAR_SELECTION') {
+    clearSelection();
+    nudgeState = null;
+  }
   if (e.data.type === 'PV_SET_SELECTION') {
     const { runtimeIds } = e.data;
     if (!runtimeIds || !Array.isArray(runtimeIds) || runtimeIds.length === 0) {

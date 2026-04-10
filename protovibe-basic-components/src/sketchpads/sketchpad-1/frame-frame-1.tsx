@@ -52,15 +52,15 @@ export default function Frame1() {
       {/* pv-block-end:439g8m */}
 
       {/* pv-block-start:bbx8bi */}
-      <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 614, top: 191 }}/>
+      <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 520, top: 145 }}/>
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 741, top: 35 }} />
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 676, top: 83 }} />
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}
-      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 723, top: 262, width: 213 }} />
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 815, top: 263, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
@@ -153,7 +153,7 @@ export default function Frame1() {
       {/* pv-block-end:1963um */}
       
       {/* pv-block-start:20210x */}
-      <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 452, top: 70 }}>
+      <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 516, top: 95 }}>
         Heading
       </TextHeading>
       {/* pv-block-end:20210x */}

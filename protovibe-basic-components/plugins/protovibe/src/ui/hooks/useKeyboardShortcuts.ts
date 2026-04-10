@@ -322,17 +322,17 @@ export function useKeyboardShortcuts() {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         const isAbsolute = currentBaseTarget?.style.position === 'absolute' || currentBaseTarget?.hasAttribute('data-pv-sketchpad-el');
         const inAbsoluteContainer = currentBaseTarget?.parentElement?.closest('[data-layout-mode="absolute"]');
-        
+
         if (isAbsolute && inAbsoluteContainer) {
           e.preventDefault();
           Array.from(document.querySelectorAll('iframe')).forEach(iframe => {
             iframe.contentWindow?.postMessage({
-              type: 'PV_NUDGE_ELEMENT',
+              type: 'PV_NUDGE_KEYDOWN',
               key: e.key,
               shiftKey: e.shiftKey
             }, '*');
           });
-          return;
+          return; // Do not fall through to traversal
         }
       }
 
@@ -351,7 +351,22 @@ export function useKeyboardShortcuts() {
       else if (navKey === 'd') handleNavigate(getAllowedSibling(currentBaseTarget, 'next'));
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        Array.from(document.querySelectorAll('iframe')).forEach(iframe => {
+          iframe.contentWindow?.postMessage({
+            type: 'PV_NUDGE_KEYUP',
+            key: e.key
+          }, '*');
+        });
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
 }

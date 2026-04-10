@@ -22,6 +22,10 @@ interface PvDoubleClickMessage {
   type: 'PV_DOUBLE_CLICK';
 }
 
+interface PvElementDeselectMessage {
+  type: 'PV_ELEMENT_DESELECT';
+}
+
 interface PvKeyDownMessage {
   type: 'PV_KEYDOWN';
   key: string;
@@ -32,7 +36,13 @@ interface PvKeyDownMessage {
   altKey: boolean;
 }
 
-type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvKeyDownMessage;
+interface PvKeyUpMessage {
+  type: 'PV_KEYUP';
+  key: string;
+  code: string;
+}
+
+type BridgeMessage = PvElementClickMessage | PvDoubleClickMessage | PvElementDeselectMessage | PvKeyDownMessage | PvKeyUpMessage;
 
 export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | null>[]) {
   const { focusElement, clearFocus, isMutationLocked, highlightedElement, inspectorOpen, activeSourceId } = useProtovibe();
@@ -68,6 +78,14 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
         const { key, code, metaKey, ctrlKey, shiftKey, altKey } = e.data;
         window.dispatchEvent(new KeyboardEvent('keydown', {
           key, code, metaKey, ctrlKey, shiftKey, altKey,
+          bubbles: true, cancelable: true,
+        }));
+      }
+
+      if (e.data.type === 'PV_KEYUP') {
+        const { key, code } = e.data;
+        window.dispatchEvent(new KeyboardEvent('keyup', {
+          key, code,
           bubbles: true, cancelable: true,
         }));
       }
