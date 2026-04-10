@@ -44,6 +44,7 @@ export function InfiniteCanvas({
 
     innerRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     innerRef.current.setAttribute('data-sketchpad-zoom', String(zoom));
+    innerRef.current.style.setProperty('--frame-label-scale', String(1 / zoom));
   }, []);
 
   useEffect(() => {

@@ -238,7 +238,15 @@ export function FrameContainer({
               letterSpacing: '-0.2px',
             }}
           >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                transform: 'scale(var(--frame-label-scale))',
+                transformOrigin: '0 100%',
+              }}
+            >
               {name}
               <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 11, marginLeft: 6 }}>
                 ({width} × {height})
@@ -297,7 +305,16 @@ export function FrameContainer({
             gap: 4,
           }}
         >
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              transform: 'scale(var(--frame-label-scale))',
+              transformOrigin: '0 100%',
+            }}
+          >
             {name}
             <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 11, marginLeft: 6 }}>
               ({width} × {height})
@@ -325,6 +342,8 @@ export function FrameContainer({
               flexShrink: 0,
               lineHeight: 1,
               boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+              transform: 'scale(var(--frame-label-scale))',
+              transformOrigin: '100% 100%',
             }}
           >
             ⋮
