@@ -637,6 +637,7 @@
 
 
 *, *::before, *::after { box-sizing: border-box; }
+button { cursor: pointer; }
 
 body {
  margin: 0;

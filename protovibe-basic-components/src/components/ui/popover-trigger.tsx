@@ -1,5 +1,6 @@
 import React, { createContext, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/utils';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import { Button } from '@/components/ui/button';
 import { DropdownList } from '@/components/ui/dropdown-list';
@@ -37,6 +38,7 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
   zIndex = 9999,
   closeOnClickOutside = true,
   children,
+  className,
   ...props
 }, ref) {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,7 +97,8 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
     <PopoverContext.Provider value={{ close: () => setIsOpen(false) }}>
       <span
         ref={anchorRef}
-        style={{ display: 'inline-flex', cursor: 'pointer' }}
+        style={{ display: 'inline-flex' }}
+        className={cn('cursor-pointer', className)}
         onClick={() => setIsOpen((prev) => !prev)}
         {...props}
         data-pv-component-id="PopoverTrigger"
