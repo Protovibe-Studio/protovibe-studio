@@ -64,7 +64,7 @@ function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
-        <TextHeading data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
+        <TextHeading data-pv-block="da1sh2" typography="heading-sm">Dashboard</TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner className=""

@@ -13,17 +13,17 @@ export function TextHeading({
 }: TextHeadingProps) {
   if (typography === 'heading-sm') {
     return (
-      <h4 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-base text-foreground-default leading-normal font-bold", className)}>
+      <h1 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-base text-foreground-default leading-normal font-bold", className)}>
         {children}
-      </h4>
+      </h1>
     );
   }
 
   if (typography === 'heading-lg') {
     return (
-      <h2 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-2xl text-foreground-default leading-snug font-bold", className)}>
+      <h1 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-2xl text-foreground-default leading-snug font-bold", className)}>
         {children}
-      </h2>
+      </h1>
     );
   }
 
@@ -37,9 +37,9 @@ export function TextHeading({
 
   // default: 'heading-md'
   return (
-    <h3 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-xl text-foreground-default leading-snug font-bold", className)}>
+    <h1 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-xl text-foreground-default leading-snug font-bold", className)}>
       {children}
-    </h3>
+    </h1>
   );
 }
 

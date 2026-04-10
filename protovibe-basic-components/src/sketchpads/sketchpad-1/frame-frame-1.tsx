@@ -149,6 +149,12 @@ export default function Frame1() {
         {/* pv-editable-zone-end:eyutv0 */}
       </Container>
       {/* pv-block-end:1963um */}
+      
+      {/* pv-block-start:20210x */}
+      <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 452, top: 70 }}>
+        Heading
+      </TextHeading>
+      {/* pv-block-end:20210x */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );
