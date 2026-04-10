@@ -129,16 +129,30 @@ export function ComponentPalette({
   onClickAdd,
 }: ComponentPaletteProps) {
   const [search, setSearch] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  const filtered = useMemo(
-    () =>
-      components.filter(
-        (c) =>
-          !search ||
-          (c.displayName ?? c.name).toLowerCase().includes(search.toLowerCase()),
-      ),
-    [components, search],
-  );
+  const filtered = useMemo(() => {
+    if (!search) return components;
+    const q = search.toLowerCase();
+    const exact: ComponentEntry[] = [];
+    const nameIncludes: ComponentEntry[] = [];
+    const descOnly: ComponentEntry[] = [];
+    for (const c of components) {
+      const name = (c.displayName ?? c.name).toLowerCase();
+      const desc = (c.description ?? '').toLowerCase();
+      if (name.startsWith(q)) exact.push(c);
+      else if (name.includes(q)) nameIncludes.push(c);
+      else if (desc.includes(q)) descOnly.push(c);
+    }
+    return [...exact, ...nameIncludes, ...descOnly];
+  }, [components, search]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    listRef.current?.scrollTo({ top: 0 });
+    requestAnimationFrame(() => searchRef.current?.focus());
+  };
 
   return (
     <div
@@ -183,8 +197,9 @@ export function ComponentPalette({
         <input
           type="text"
           placeholder="Search…"
+          ref={searchRef}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           style={{
             width: '100%',
             background: 'rgba(255,255,255,0.06)',
@@ -202,6 +217,11 @@ export function ComponentPalette({
 
       {/* Component list */}
       <div
+        ref={listRef}
+        onFocusCapture={(e) => {
+          e.target.blur();
+          requestAnimationFrame(() => searchRef.current?.focus());
+        }}
         style={{
           flex: 1,
           overflowY: 'auto',
