@@ -693,6 +693,26 @@ const PREVIEWER_STYLE = `
     pointer-events: auto !important;
     cursor: default !important;
   }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #222222;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 4px;
+    border: 2px solid #222222;
+  }
+  ::-webkit-scrollbar-thumb:hover,
+  *:hover::-webkit-scrollbar-thumb {
+    background: #6a6a6a;
+  }
+  ::-webkit-scrollbar-corner {
+    background: #222222;
+  }
 `;
 
 export function ProtovibePreviewer() {

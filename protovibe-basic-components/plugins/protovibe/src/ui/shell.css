@@ -2,6 +2,30 @@
   box-sizing: border-box;
 }
 
+/* Scrollbars — dark shell theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #222222; /* bg_secondary */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444444; /* bg_tertiary */
+  border-radius: 4px;
+  border: 2px solid #222222; /* inset effect against track */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6a6a6a; /* border_strong */
+}
+
+::-webkit-scrollbar-corner {
+  background: #222222;
+}
+
 vite-error-overlay {
   display: none !important;
 }

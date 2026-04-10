@@ -189,6 +189,13 @@ export default function Frame1() {
         {/* pv-editable-zone-end:wdq1jz */}
       </DropdownButton>
       {/* pv-block-end:93y9w3 */}
+      
+      {/* pv-block-start:hq6ukf */}
+      <Rectangle data-pv-block="hq6ukf" data-pv-sketchpad-el="hq6ukf" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 465, top: 251 }}>
+        {/* pv-editable-zone-start:rkdn2p */}
+        {/* pv-editable-zone-end:rkdn2p */}
+      </Rectangle>
+      {/* pv-block-end:hq6ukf */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

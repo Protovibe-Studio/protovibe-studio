@@ -196,12 +196,10 @@ export function ComponentPalette({
             style={{
               fontSize: 10,
               fontWeight: 600,
-              color: '#666',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
+              color: '#fff',
             }}
           >
-            Drag components
+            Drag & drop components
           </div>
           {onClose && (
             <button

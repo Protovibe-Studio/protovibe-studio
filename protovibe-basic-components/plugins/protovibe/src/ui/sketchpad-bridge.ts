@@ -1003,6 +1003,16 @@ function handleParentMessage(e: MessageEvent) {
 function init() {
   if (window.parent === window) return;
 
+  const scrollbarStyle = document.createElement('style');
+  scrollbarStyle.textContent = `
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #222222; }
+    ::-webkit-scrollbar-thumb { background: #444444; border-radius: 4px; border: 2px solid #222222; }
+    ::-webkit-scrollbar-thumb:hover, *:hover::-webkit-scrollbar-thumb { background: #6a6a6a; }
+    ::-webkit-scrollbar-corner { background: #222222; }
+  `;
+  document.head.appendChild(scrollbarStyle);
+
   document.addEventListener('pointerdown', handlePointerDown, true);
   document.addEventListener('pointermove', handlePointerMove, true);
   document.addEventListener('pointerup', handlePointerUp, true);
