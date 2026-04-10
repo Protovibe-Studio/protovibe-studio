@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useLayoutEffect, Component } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect, useEffect, Component } from 'react';
 import type { ComponentEntry } from '../types';
 import { parseDefaultProps } from '../utils';
 
@@ -72,7 +72,10 @@ const ComponentPreview: React.FC<{ comp: ComponentEntry }> = ({ comp }) => {
 
   return (
     <div
-      ref={wrapRef}
+      ref={(el) => {
+        (wrapRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+        el?.setAttribute('inert', '');
+      }}
       style={{
         width: PREVIEW_WIDTH,
         height: PREVIEW_HEIGHT,
@@ -121,16 +124,22 @@ interface ComponentPaletteProps {
   components: ComponentEntry[];
   onDragStart: (comp: ComponentEntry) => void;
   onClickAdd: (comp: ComponentEntry) => void;
+  onClose?: () => void;
 }
 
 export function ComponentPalette({
   components,
   onDragStart,
   onClickAdd,
+  onClose,
 }: ComponentPaletteProps) {
   const [search, setSearch] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return components;
@@ -182,17 +191,36 @@ export function ComponentPalette({
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: '#666',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            marginBottom: 8,
-          }}
-        >
-          Drag components
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: '#666',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Drag components
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                padding: '2px 4px',
+                lineHeight: 1,
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
         <input
           type="text"
@@ -220,6 +248,7 @@ export function ComponentPalette({
         ref={listRef}
         onFocusCapture={(e) => {
           e.target.blur();
+          if (listRef.current) listRef.current.scrollTop = 0;
           requestAnimationFrame(() => searchRef.current?.focus());
         }}
         style={{

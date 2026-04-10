@@ -393,6 +393,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
       {/* Preview area — fills remaining width */}
       <div
         className="bg-background-default"
+        ref={(el) => el?.setAttribute('inert', '')}
         style={{
           color: 'var(--foreground-default)',
           flex: 1,

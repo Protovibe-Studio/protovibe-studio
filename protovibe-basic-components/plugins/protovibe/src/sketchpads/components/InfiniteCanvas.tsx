@@ -115,6 +115,8 @@ export function InfiniteCanvas({
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable)) return;
         e.preventDefault();
         setSpaceHeld(true);
       }

@@ -9,14 +9,29 @@ import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { RadioItem } from '@/components/ui/radio-item';
+import { DropdownButton } from '@/components/ui/dropdown-button';
+import { DropdownItem } from '@/components/ui/dropdown-item';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:d3dvka */}
       {/* pv-block-start:439g8m */}
-      <Container data-pv-block="439g8m" data-pv-sketchpad-el="439g8m"  style={{ position: 'absolute', left: 121, top: 168, width: 264 }}>
+      <Container data-pv-block="439g8m" data-pv-sketchpad-el="439g8m"  style={{ position: 'absolute', left: 81, top: 113, width: 264 }}>
         {/* pv-editable-zone-start:qqn7ay */}
+        {/* pv-block-start:qiistx */}
+      <TextHeading data-pv-block="qiistx" typography="heading-md" >
+        Heading
+      </TextHeading>
+      {/* pv-block-end:qiistx */}
+
+        {/* pv-block-start:133jjb */}
+      <TextParagraph data-pv-block="133jjb" typography="regular" >
+        Paragraph text Paragraph text Paragraph text Paragraph text Paragraph text Paragraph text Paragraph text Paragraph text 
+      </TextParagraph>
+      {/* pv-block-end:133jjb */}
+
         {/* pv-block-start:yd778w */}
       <Button data-pv-block="yd778w" label="Button" variant="solid" color="primary" size="md"  />
       {/* pv-block-end:yd778w */}
@@ -36,25 +51,12 @@ export default function Frame1() {
       </Container>
       {/* pv-block-end:439g8m */}
 
-      {/* pv-block-start:461oj5 */}
-      <div data-pv-block="461oj5" className="flex flex-col gap-2" data-pv-sketchpad-el="461oj5" style={{ position: 'absolute', left: 434, top: 144 }}>
-        {/* pv-editable-zone-start:geeh4m */}
-        {/* pv-block-start:4cz22a */}
-        <Button data-pv-block="4cz22a" label="Button" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:4cz22a */}
-        {/* pv-block-start:v9gasx */}
-        <Button data-pv-block="v9gasx" label="Button" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:v9gasx */}
-        {/* pv-editable-zone-end:geeh4m */}
-      </div>
-      {/* pv-block-end:461oj5 */}
-      
       {/* pv-block-start:bbx8bi */}
       <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 620, top: 184 }}/>
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 793, top: 85 }} />
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 794, top: 55 }} />
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}
@@ -155,6 +157,38 @@ export default function Frame1() {
         Heading
       </TextHeading>
       {/* pv-block-end:20210x */}
+      
+      {/* pv-block-start:4nt458 */}
+      <div data-pv-block="4nt458" className="flex flex-col gap-2"  data-pv-sketchpad-el="4nt458" style={{ position: 'absolute', left: 428, top: 174 }}>
+        {/* pv-editable-zone-start:geeh4m */}
+        {/* pv-block-start:04yrq2 */}
+        <Button data-pv-block="04yrq2" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:04yrq2 */}
+        {/* pv-block-start:ailiov */}
+        <Button data-pv-block="ailiov" label="Button" variant="solid" color="primary" size="md" />
+        {/* pv-block-end:ailiov */}
+        {/* pv-editable-zone-end:geeh4m */}
+      </div>
+      {/* pv-block-end:4nt458 */}
+      
+      {/* pv-block-start:93y9w3 */}
+      <DropdownButton data-pv-block="93y9w3" data-pv-sketchpad-el="93y9w3" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown" style={{ position: 'absolute', left: 322, top: 313 }}>
+        {/* pv-editable-zone-start:wdq1jz */}
+          {/* pv-block-start:11mk00 */}
+          <DropdownItem data-pv-block="11mk00" label="Edit" prefixIcon="Edit2" />
+          {/* pv-block-end:11mk00 */}
+          {/* pv-block-start:sjtki7 */}
+          <DropdownItem data-pv-block="sjtki7" label="Duplicate" prefixIcon="Copy" />
+          {/* pv-block-end:sjtki7 */}
+          {/* pv-block-start:pjpi9b */}
+          <DropdownSeparator data-pv-block="pjpi9b" />
+          {/* pv-block-end:pjpi9b */}
+          {/* pv-block-start:pxxcwh */}
+          <DropdownItem data-pv-block="pxxcwh" label="Delete" prefixIcon="Trash2" destructive={true} />
+          {/* pv-block-end:pxxcwh */}
+        {/* pv-editable-zone-end:wdq1jz */}
+      </DropdownButton>
+      {/* pv-block-end:93y9w3 */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

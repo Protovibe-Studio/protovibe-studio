@@ -103,6 +103,7 @@ export function SketchpadApp() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showComponentPalette, setShowComponentPalette] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const [pendingAction, setPendingAction] = useState<{ type: 'add-rectangle'; comp: ComponentEntry } | null>(null);
   const [isZoomControlsHovered, setIsZoomControlsHovered] = useState(false);
@@ -429,6 +430,10 @@ export function SketchpadApp() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = async (e: KeyboardEvent) => {
+      const active = document.activeElement;
+      const inputFocused = !!(active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable));
+      if (inputFocused) return;
+
       if (e.key === 'Escape' && pendingAction) {
         setPendingAction(null);
         return;
@@ -447,10 +452,8 @@ export function SketchpadApp() {
         return;
       }
 
-      // Delete selected frame via keyboard (skip when an input is focused)
+      // Delete selected frame via keyboard
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrameId) {
-        const active = document.activeElement;
-        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
         handleDeleteFrame(selectedFrameId);
         return;
       }
@@ -788,6 +791,7 @@ export function SketchpadApp() {
             {[
               { label: 'New frame', action: handleAddFrameCentered },
               { label: 'New rectangle', action: handleAddRectangleCentered },
+              { label: 'Add component', action: () => setShowComponentPalette(true) },
             ].map((item) => (
               <div
                 key={item.label}
@@ -982,11 +986,14 @@ export function SketchpadApp() {
         </div>
       )}
 
-      <ComponentPalette
-        components={components}
-        onDragStart={setDragComp}
-        onClickAdd={(comp) => handleAddComponent(comp)}
-      />
+      {showComponentPalette && (
+        <ComponentPalette
+          components={components}
+          onDragStart={setDragComp}
+          onClickAdd={(comp) => handleAddComponent(comp)}
+          onClose={() => setShowComponentPalette(false)}
+        />
+      )}
 
       <SketchpadOverlayPanel
         isOpen={showSketchpadPanel}
