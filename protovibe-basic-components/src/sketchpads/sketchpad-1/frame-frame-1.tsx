@@ -56,7 +56,7 @@ export default function Frame1() {
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 794, top: 55 }} />
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 714, top: 34 }} />
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}

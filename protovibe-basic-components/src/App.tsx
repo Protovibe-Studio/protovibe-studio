@@ -90,9 +90,6 @@ function DashboardPage() {
                 Czołem!
               </TextHeading>
               {/* pv-block-end:lw979w */}
-                {/* pv-block-start:bjj6al */}
-                <Button disabled data-pv-block="bjj6al" label="Button" variant="solid" color="primary" size="md" />
-                {/* pv-block-end:bjj6al */}
               
               {/* pv-block-start:krvk39 */}
               <TextParagraph typography="small" className="asd text-balance" data-pv-block="krvk39">

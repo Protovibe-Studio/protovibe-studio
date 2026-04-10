@@ -108,9 +108,10 @@ export async function updateProp(params: {
 }
 
 export async function takeSnapshot(file: string, activeId: string, extraFiles?: string[]) {
+  const currentURLQueryString = window.location.search;
   const body = extraFiles?.length
-    ? { files: [file, ...extraFiles], activeId }
-    : { file, activeId };
+    ? { files: [file, ...extraFiles], activeId, currentURLQueryString }
+    : { file, activeId, currentURLQueryString };
   const res = await fetch('/__take-snapshot', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

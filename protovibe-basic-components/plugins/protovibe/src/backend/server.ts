@@ -16,7 +16,7 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, files: filesArr, activeId } = JSON.parse(body || '{}');
+      const { file, files: filesArr, activeId, currentURLQueryString } = JSON.parse(body || '{}');
       // Deduplicate to prevent double-restores corrupting the redo stack
       const toSnapshot: string[] = Array.from(new Set(filesArr ?? (file ? [file] : [])));
       const files = toSnapshot.map((f: string) => {
@@ -36,7 +36,7 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
         }
 
         if (!isIdentical) {
-          undoStack.push({ files, activeId: activeId || '' });
+          undoStack.push({ files, activeId: activeId || '', currentURLQueryString });
           redoStack.length = 0;
           logUndoDebug('snapshot-created', {
             source: 'server',
@@ -75,7 +75,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
     }
 
-    const { files, activeId } = lastState;
+    const { files, activeId, currentURLQueryString } = lastState;
     logUndoDebug('undo-start', {
       activeId,
       files: files.map((file) => file.file),
@@ -101,7 +101,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
       });
       return { file, content: currentContent };
     });
-    redoStack.push({ files: currentFiles, activeId });
+    redoStack.push({ files: currentFiles, activeId, currentURLQueryString });
     logUndoDebug('undo-complete', {
       activeId,
       files: currentFiles.map((file) => file.file),
@@ -110,7 +110,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
     });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));
@@ -124,7 +124,7 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to redo.' }));
     }
 
-    const { files, activeId } = nextState;
+    const { files, activeId, currentURLQueryString } = nextState;
     const currentFiles = files.map(({ file, content: savedContent }) => {
       const absolutePath = path.resolve(process.cwd(), file);
       const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
@@ -136,10 +136,10 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
       }
       return { file, content: currentContent };
     });
-    undoStack.push({ files: currentFiles, activeId });
+    undoStack.push({ files: currentFiles, activeId, currentURLQueryString });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));

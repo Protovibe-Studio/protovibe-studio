@@ -96,6 +96,10 @@ export function useKeyboardShortcuts() {
           } else {
             res = await undo();
           }
+          if (res?.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+            window.history.pushState({}, '', res.currentURLQueryString);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           await focusRestoredElement(res?.activeId);
         });
         return;
@@ -105,6 +109,10 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         await runLockedMutation(async () => {
           const res = await redo();
+          if (res?.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+            window.history.pushState({}, '', res.currentURLQueryString);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           await focusRestoredElement(res?.activeId);
         });
         return;

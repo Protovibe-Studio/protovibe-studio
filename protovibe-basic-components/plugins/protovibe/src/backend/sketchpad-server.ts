@@ -14,7 +14,7 @@ function logUndoDebug(event: string, details: Record<string, unknown>): void {
 }
 
 // Snapshot one or more files into the undo stack before mutating them.
-function snapshotFiles(activeId: string | null, ...relPaths: string[]): void {
+function snapshotFiles(activeId: string | null, currentURLQueryString: string, ...relPaths: string[]): void {
   const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
   const files = uniquePaths
     .map((f) => {
@@ -40,7 +40,7 @@ function snapshotFiles(activeId: string | null, ...relPaths: string[]): void {
     }
   }
 
-  undoStack.push({ files, activeId: activeId || '' });
+  undoStack.push({ files, activeId: activeId || '', currentURLQueryString });
   redoStack.length = 0;
   logUndoDebug('snapshot-created', {
     source: 'sketchpad-server',
@@ -276,7 +276,7 @@ export const handleSketchpadDelete: Connect.NextHandleFunction = async (req, res
     const framePaths = (sp?.frames ?? []).map(
       (f) => path.relative(process.cwd(), path.join(SKETCHPADS_DIR, id, `${f.id}.tsx`)),
     );
-    snapshotFiles(null, 'src/sketchpads/_registry.json', ...framePaths);
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...framePaths);
 
     reg.sketchpads = reg.sketchpads.filter((s) => s.id !== id);
     writeRegistry(reg);
@@ -301,7 +301,7 @@ export const handleSketchpadRename: Connect.NextHandleFunction = async (req, res
     const sp = reg.sketchpads.find((s) => s.id === id);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
-    snapshotFiles(null, 'src/sketchpads/_registry.json');
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json');
     sp.name = name;
     writeRegistry(reg);
 
@@ -336,7 +336,7 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
 
     const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
     // Snapshot both the registry and the tsx (tsx doesn't exist yet → stored as '' so undo deletes it)
-    snapshotFiles(null, 'src/sketchpads/_registry.json', frameRelPath);
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', frameRelPath);
     sp.frames.push(frame);
     writeRegistry(reg);
 
@@ -444,7 +444,7 @@ export const handleFrameDuplicate: Connect.NextHandleFunction = async (req, res)
     const newRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${newFrameId}.tsx`));
 
     // Snapshot before mutation — new file doesn't exist yet so it's stored as '' (undo will delete it)
-    snapshotFiles(null, 'src/sketchpads/_registry.json', newRelPath);
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', newRelPath);
 
     // Copy and transform the source TSX
     const sourceContent = fs.readFileSync(path.resolve(process.cwd(), sourceRelPath), 'utf-8');
@@ -482,7 +482,7 @@ export const handleFrameDelete: Connect.NextHandleFunction = async (req, res) =>
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
     const frameRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
-    snapshotFiles(null, 'src/sketchpads/_registry.json', frameRelPath);
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', frameRelPath);
     sp.frames = sp.frames.filter((f) => f.id !== frameId);
     writeRegistry(reg);
 
@@ -507,7 +507,7 @@ export const handleFrameRename: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles(null, 'src/sketchpads/_registry.json');
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json');
     frame.name = name;
     writeRegistry(reg);
 
@@ -529,7 +529,7 @@ export const handleFrameResize: Connect.NextHandleFunction = async (req, res) =>
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles(null, 'src/sketchpads/_registry.json');
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json');
     if (width) frame.width = width;
     if (height) frame.height = height;
     writeRegistry(reg);
@@ -552,7 +552,7 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
     const frame = sp.frames.find((f) => f.id === frameId);
     if (!frame) return sendError(res, 'Frame not found', 404);
 
-    snapshotFiles(null, 'src/sketchpads/_registry.json');
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json');
     if (canvasX !== undefined) frame.canvasX = canvasX;
     if (canvasY !== undefined) frame.canvasY = canvasY;
     writeRegistry(reg);
@@ -655,7 +655,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(activeSourceId, path.relative(process.cwd(), filePath));
+    snapshotFiles(activeSourceId, '?tab=sketchpad', path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Independently update left and top to avoid regex failures if code formatting changes
@@ -691,7 +691,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(activeSourceId, path.relative(process.cwd(), filePath));
+    snapshotFiles(activeSourceId, '?tab=sketchpad', path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Helper to update or insert a dimension in the style object

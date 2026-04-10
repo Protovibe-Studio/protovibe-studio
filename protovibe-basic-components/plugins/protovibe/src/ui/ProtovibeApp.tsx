@@ -169,7 +169,11 @@ export const ProtovibeApp: React.FC = () => {
   // Undo the last operation with mutation locking
   const handleUndo = useCallback(async () => {
     await runLockedMutation(async () => {
-      await undo();
+      const res = await undo();
+      if (res.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+        window.history.pushState({}, '', res.currentURLQueryString);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
     });
   }, [runLockedMutation]);
 
