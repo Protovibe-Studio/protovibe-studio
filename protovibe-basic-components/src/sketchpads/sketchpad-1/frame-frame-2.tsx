@@ -25,9 +25,16 @@ export default function Frame2() {
       </Card>
       {/* pv-block-end:j94omq */}
       
-      {/* pv-block-start:uqlav5 */}
-      <Image randomImage data-pv-block="uqlav5" data-pv-sketchpad-el="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 60, top: 108, width: 178 }} />
-      {/* pv-block-end:uqlav5 */}
+      {/* pv-block-start:r8citb */}
+      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 60, top: 108 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:uqlav5 */}
+        <Image randomImage data-pv-block="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:uqlav5 */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:r8citb */}
+
       
       {/* pv-block-start:yeyj9q */}
       <Image randomImage data-pv-block="yeyj9q" data-pv-sketchpad-el="yeyj9q" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 82, top: 278, width: 406 }} />

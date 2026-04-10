@@ -14,6 +14,8 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
   onBlur,
   onMouseEnter,
   onMouseLeave,
+  onMouseDown,
+  onMouseUp,
   style,
   prefix,
   suffix,
@@ -23,6 +25,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const shouldSelectOnMouseUpRef = useRef(false);
 
   // Sync focused state with actual DOM focus to avoid stale visual state
   useEffect(() => {
@@ -39,7 +42,21 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setFocused(false);
+    shouldSelectOnMouseUpRef.current = false;
     if (onBlur) onBlur(e);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+    shouldSelectOnMouseUpRef.current = document.activeElement !== e.currentTarget;
+    onMouseDown?.(e);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (shouldSelectOnMouseUpRef.current) {
+      e.currentTarget.select();
+      shouldSelectOnMouseUpRef.current = false;
+    }
+    onMouseUp?.(e);
   };
 
   const valStr = String(props.value || '').trim();
@@ -93,6 +110,8 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
         {...props}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
         style={inputStyle}
       />
       {suffix && (

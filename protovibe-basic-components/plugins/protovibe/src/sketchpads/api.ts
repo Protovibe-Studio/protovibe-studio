@@ -36,6 +36,15 @@ export async function createFrame(
   return post('/__frame-create', { sketchpadId, name, width, height, canvasX, canvasY });
 }
 
+export async function duplicateFrame(
+  sketchpadId: string,
+  frameId: string,
+  canvasX: number,
+  canvasY: number,
+): Promise<{ ok: boolean; frame: SketchpadFrame }> {
+  return post('/__frame-duplicate', { sketchpadId, frameId, canvasX, canvasY });
+}
+
 export async function deleteFrame(sketchpadId: string, frameId: string): Promise<void> {
   await post('/__frame-delete', { sketchpadId, frameId });
 }

@@ -17,6 +17,7 @@ interface FrameContainerProps {
   onResize: (frameId: string, w: number, h: number) => void;
   onResizeEnd: (frameId: string, w: number, h: number) => void;
   onSelect: (frameId: string) => void;
+  onDuplicate: (frameId: string, canvasX: number, canvasY: number) => void;
   onDelete: (frameId: string) => void;
   onRename: (frameId: string) => void;
 }
@@ -38,11 +39,14 @@ export function FrameContainer({
   onMoveEnd,
   onResize,
   onResizeEnd,
+  onDuplicate,
   onSelect,
   onDelete,
   onRename,
 }: FrameContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isAltDragging, setIsAltDragging] = useState(false);
+  const isDuplicateDragRef = useRef(false);
   const [isResizing, setIsResizing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, frameX: 0, frameY: 0 });
@@ -65,6 +69,8 @@ export function FrameContainer({
       if (e.button !== 0) return;
       e.stopPropagation();
       e.preventDefault();
+      isDuplicateDragRef.current = e.altKey;
+      setIsAltDragging(e.altKey);
       setIsDragging(true);
       dragStartRef.current = { x: e.clientX, y: e.clientY, frameX: canvasX, frameY: canvasY };
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -82,6 +88,10 @@ export function FrameContainer({
       const dy = (e.clientY - dragStartRef.current.y) / zoom;
       // GPU-accelerated translation during drag
       frameRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+      // Track alt key state mid-drag (mirrors sketchpad-bridge pattern)
+      const altHeld = e.altKey;
+      isDuplicateDragRef.current = altHeld;
+      setIsAltDragging(altHeld);
     },
     [isDragging, zoom],
   );
@@ -97,19 +107,33 @@ export function FrameContainer({
         const newX = dragStartRef.current.frameX + dx;
         const newY = dragStartRef.current.frameY + dy;
 
-        if (frameRef.current) {
-          // Clear the temporary drag transform and immediately set exact left/top to prevent a 1-frame micro-stutter
-          frameRef.current.style.transform = '';
-          frameRef.current.style.left = `${newX}px`;
-          frameRef.current.style.top = `${newY}px`;
-        }
+        setIsAltDragging(false);
 
-        // Commit the final position to React state
-        onMove(frameId, newX, newY);
-        onMoveEnd(frameId, newX, newY);
+        if (isDuplicateDragRef.current) {
+          // Alt+drag: restore source frame to its original position, create duplicate at drop position
+          isDuplicateDragRef.current = false;
+          if (frameRef.current) {
+            frameRef.current.style.transform = '';
+            frameRef.current.style.left = `${dragStartRef.current.frameX}px`;
+            frameRef.current.style.top = `${dragStartRef.current.frameY}px`;
+          }
+          onMove(frameId, dragStartRef.current.frameX, dragStartRef.current.frameY);
+          onDuplicate(frameId, newX, newY);
+        } else {
+          if (frameRef.current) {
+            // Clear the temporary drag transform and immediately set exact left/top to prevent a 1-frame micro-stutter
+            frameRef.current.style.transform = '';
+            frameRef.current.style.left = `${newX}px`;
+            frameRef.current.style.top = `${newY}px`;
+          }
+
+          // Commit the final position to React state
+          onMove(frameId, newX, newY);
+          onMoveEnd(frameId, newX, newY);
+        }
       }
     },
-    [isDragging, zoom, frameId, onMove, onMoveEnd],
+    [isDragging, zoom, frameId, onMove, onMoveEnd, onDuplicate],
   );
 
   // Resize handle (bottom-right corner)
@@ -182,11 +206,61 @@ export function FrameContainer({
 
   const menuItems = [
     { label: 'Rename', action: () => onRename(frameId) },
+    { label: 'Duplicate', action: () => onDuplicate(frameId, canvasX + 40, canvasY + 40) },
     { label: 'Delete', action: () => onDelete(frameId) },
   ];
 
   return (
     <>
+      {/* Ghost — shown at original position when alt is held during drag */}
+      {isDragging && isAltDragging && (
+        <div
+          style={{
+            position: 'absolute',
+            left: canvasX,
+            top: canvasY,
+            width,
+            pointerEvents: 'none',
+            opacity: 0.4,
+            userSelect: 'none',
+          }}
+        >
+          <div
+            style={{
+              height: TITLE_BAR_HEIGHT,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0',
+              fontSize: 12,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontWeight: 600,
+              color: '#999',
+              letterSpacing: '-0.2px',
+            }}
+          >
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {name}
+              <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 11, marginLeft: 6 }}>
+                ({width} × {height})
+              </span>
+            </span>
+          </div>
+          <div
+            className="bg-background-default"
+            style={{
+              width,
+              height,
+              position: 'relative',
+              borderRadius: 4,
+              border: '1px solid rgba(255,255,255,0.1)',
+              overflow: 'hidden',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      )}
       <div
         ref={frameRef}
         tabIndex={-1}

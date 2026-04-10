@@ -267,6 +267,27 @@ export function SketchpadApp() {
   }, [activeSketchpadId, transform, containerRef, handleCreateFrame]);
 
 
+  const handleDuplicateFrame = useCallback(
+    async (frameId: string, canvasX: number, canvasY: number) => {
+      if (!activeSketchpadId) return;
+      await runLockedMutation(async () => {
+        const result = await api.duplicateFrame(activeSketchpadId, frameId, Math.round(canvasX), Math.round(canvasY));
+        if (result?.ok) {
+          await loadFrameModule(activeSketchpadId, result.frame.id);
+          setSketchpads((prev) =>
+            prev.map((s) =>
+              s.id === activeSketchpadId
+                ? { ...s, frames: [...s.frames, result.frame] }
+                : s,
+            ),
+          );
+          setSelectedFrameId(result.frame.id);
+        }
+      });
+    },
+    [activeSketchpadId, loadFrameModule, runLockedMutation],
+  );
+
   const handleDeleteFrame = useCallback(
     async (frameId: string) => {
       if (!activeSketchpadId) return;
@@ -638,6 +659,7 @@ export function SketchpadApp() {
             onResize={handleResizeFrame}
             onResizeEnd={handleResizeFrameEnd}
             onSelect={setSelectedFrameId}
+            onDuplicate={handleDuplicateFrame}
             onDelete={handleDeleteFrame}
             onRename={handleRenameFrame}
           >

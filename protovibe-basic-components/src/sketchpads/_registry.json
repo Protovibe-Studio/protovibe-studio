@@ -18,8 +18,24 @@
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 1842,
-          "canvasY": 57
+          "canvasX": 1829,
+          "canvasY": 32
+        },
+        {
+          "id": "frame-frame-2-copy",
+          "name": "Frame 2 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 1837,
+          "canvasY": 1123
+        },
+        {
+          "id": "frame-frame-2-copy-2",
+          "name": "Frame 2 Copy 2",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 3608,
+          "canvasY": -35
         }
       ]
     }

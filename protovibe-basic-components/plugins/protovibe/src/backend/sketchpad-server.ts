@@ -352,6 +352,126 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
   }
 };
 
+function generateCopyName(baseName: string, existingNames: string[]): string {
+  const candidate = `${baseName} Copy`;
+  if (!existingNames.includes(candidate)) return candidate;
+  let i = 2;
+  while (existingNames.includes(`${baseName} Copy ${i}`)) i++;
+  return `${baseName} Copy ${i}`;
+}
+
+function toPascalCase(id: string): string {
+  return id
+    .split(/[-_\s]+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join('');
+}
+
+function renameComponentInContent(content: string, oldId: string, newId: string): string {
+  const oldName = toPascalCase(oldId);
+  const newName = toPascalCase(newId);
+  // Replace function declaration and default export references
+  return content
+    .replace(new RegExp(`\\bfunction ${oldName}\\b`, 'g'), `function ${newName}`)
+    .replace(new RegExp(`\\bexport default ${oldName}\\b`, 'g'), `export default ${newName}`);
+}
+
+// Replace all existing pv-block and pv-editable-zone IDs with fresh ones
+function reassignIds(content: string): string {
+  // Replace zone IDs
+  content = content.replace(/pv-editable-zone-start:(\w+)/g, () => `pv-editable-zone-start:${Math.random().toString(36).substring(2, 8)}`);
+  content = content.replace(/pv-editable-zone-end:(\w+)/g, (_m, oldId) => {
+    // We need to match start and end pairs — easier to do a two-pass approach
+    return `pv-editable-zone-end:${oldId}`; // placeholder; handled below
+  });
+
+  // For zone pairs: replace IDs consistently so start/end match
+  const zoneStartRe = /pv-editable-zone-start:(\w+)/g;
+  const idMap = new Map<string, string>();
+  let m: RegExpExecArray | null;
+  while ((m = zoneStartRe.exec(content)) !== null) {
+    if (!idMap.has(m[1])) {
+      idMap.set(m[1], Math.random().toString(36).substring(2, 8));
+    }
+  }
+  for (const [oldId, newId] of idMap) {
+    content = content
+      .replace(new RegExp(`pv-editable-zone-start:${oldId}`, 'g'), `pv-editable-zone-start:${newId}`)
+      .replace(new RegExp(`pv-editable-zone-end:${oldId}`, 'g'), `pv-editable-zone-end:${newId}`);
+  }
+
+  // Replace block IDs (in comments and data-pv-block attributes)
+  const blockStartRe = /pv-block-start:(\w+)/g;
+  const blockIdMap = new Map<string, string>();
+  while ((m = blockStartRe.exec(content)) !== null) {
+    if (!blockIdMap.has(m[1])) {
+      blockIdMap.set(m[1], Math.random().toString(36).substring(2, 8));
+    }
+  }
+  for (const [oldId, newId] of blockIdMap) {
+    content = content
+      .replace(new RegExp(`pv-block-start:${oldId}`, 'g'), `pv-block-start:${newId}`)
+      .replace(new RegExp(`pv-block-end:${oldId}`, 'g'), `pv-block-end:${newId}`)
+      .replace(new RegExp(`data-pv-block="${oldId}"`, 'g'), `data-pv-block="${newId}"`)
+      .replace(new RegExp(`data-pv-sketchpad-el="${oldId}"`, 'g'), `data-pv-sketchpad-el="${newId}"`);
+  }
+
+  return content;
+}
+
+export const handleFrameDuplicate: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frameId, canvasX, canvasY } = await parseBody(req);
+    if (!sketchpadId || !frameId) return sendError(res, 'sketchpadId and frameId required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    const sourceFrame = sp.frames.find((f) => f.id === frameId);
+    if (!sourceFrame) return sendError(res, 'Frame not found', 404);
+
+    const baseName = sourceFrame.name.replace(/ Copy( \d+)?$/, '');
+    const existingNames = sp.frames.map((f) => f.name);
+    const newName = generateCopyName(baseName, existingNames);
+
+    const newFrameId = uniqueSlug(
+      'frame-' + slugify(newName),
+      sp.frames.map((f) => f.id),
+    );
+
+    const sourceRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
+    const newRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${newFrameId}.tsx`));
+
+    // Snapshot before mutation — new file doesn't exist yet so it's stored as '' (undo will delete it)
+    snapshotFiles(null, 'src/sketchpads/_registry.json', newRelPath);
+
+    // Copy and transform the source TSX
+    const sourceContent = fs.readFileSync(path.resolve(process.cwd(), sourceRelPath), 'utf-8');
+    const renamedContent = renameComponentInContent(sourceContent, frameId, newFrameId);
+    const freshContent = reassignIds(renamedContent);
+
+    const dirPath = path.join(SKETCHPADS_DIR, sketchpadId);
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.resolve(process.cwd(), newRelPath), freshContent);
+
+    const newFrame: Frame = {
+      id: newFrameId,
+      name: newName,
+      width: sourceFrame.width,
+      height: sourceFrame.height,
+      canvasX: canvasX ?? sourceFrame.canvasX + 40,
+      canvasY: canvasY ?? sourceFrame.canvasY + 40,
+    };
+    sp.frames.push(newFrame);
+    writeRegistry(reg);
+
+    sendJson(res, { ok: true, frame: newFrame });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
 export const handleFrameDelete: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { sketchpadId, frameId } = await parseBody(req);
