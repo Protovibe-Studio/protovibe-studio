@@ -39,6 +39,10 @@ export default function Frame2() {
       {/* pv-block-start:pw45wb */}
       <Image randomImage data-pv-block="pw45wb" data-pv-sketchpad-el="pw45wb" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 82, top: 278, width: 406 }} />
       {/* pv-block-end:pw45wb */}
+      
+      {/* pv-block-start:0m35yi */}
+      <Image randomImage data-pv-block="0m35yi" data-pv-sketchpad-el="0m35yi" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 819, top: 86, width: 406 }} />
+      {/* pv-block-end:0m35yi */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );

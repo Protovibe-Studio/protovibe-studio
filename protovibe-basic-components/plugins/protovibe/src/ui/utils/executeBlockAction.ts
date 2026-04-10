@@ -17,7 +17,7 @@ interface ExecuteBlockActionParams {
   blockId: string;
   file: string;
   activeSourceId: string;
-  focusElement: (el: HTMLElement) => void;
+  focusElement: (el: HTMLElement, skipSnapshot?: boolean) => void;
   refreshActiveData: () => Promise<void>;
 }
 
@@ -26,7 +26,7 @@ interface ExecuteClipboardBlockActionParams {
   blockId: string;
   file: string;
   activeSourceId: string;
-  focusElement: (el: HTMLElement) => void;
+  focusElement: (el: HTMLElement, skipSnapshot?: boolean) => void;
   refreshActiveData: () => Promise<void>;
 }
 
@@ -105,7 +105,7 @@ export async function executeBlockAction({
     }
 
     if (focusTarget) {
-      focusElement(focusTarget);
+      focusElement(focusTarget, true);
       return;
     } else {
       await refreshActiveData();
@@ -142,7 +142,7 @@ export async function executeClipboardBlockAction({
   const parent = oldTarget?.parentElement as HTMLElement | null;
   await wait(300);
   if (parent) {
-    focusElement(parent);
+    focusElement(parent, true);
   } else {
     await refreshActiveData();
   }

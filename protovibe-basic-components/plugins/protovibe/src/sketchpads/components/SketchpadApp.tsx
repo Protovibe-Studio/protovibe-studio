@@ -448,6 +448,17 @@ export function SketchpadApp() {
     setSketchpads(reg.sketchpads);
   }, []);
 
+  // Listen for undo/redo completion from the parent shell
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
+        reloadRegistry();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [reloadRegistry]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = async (e: KeyboardEvent) => {
@@ -467,12 +478,6 @@ export function SketchpadApp() {
         return;
       }
 
-      // Undo / Redo — re-read registry after the file reverts on disk
-      if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
-        setTimeout(reloadRegistry, 200);
-        return;
-      }
-
       // Delete selected frame via keyboard
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrameId) {
         handleDeleteFrame(selectedFrameId);
@@ -481,7 +486,7 @@ export function SketchpadApp() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [reloadRegistry, selectedFrameId, handleDeleteFrame, pendingAction]);
+  }, [selectedFrameId, handleDeleteFrame, pendingAction]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {

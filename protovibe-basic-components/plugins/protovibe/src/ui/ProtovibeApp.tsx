@@ -170,9 +170,14 @@ export const ProtovibeApp: React.FC = () => {
   const handleUndo = useCallback(async () => {
     await runLockedMutation(async () => {
       const res = await undo();
-      if (res.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
-        window.history.pushState({}, '', res.currentURLQueryString);
-        window.dispatchEvent(new PopStateEvent('popstate'));
+      if (res?.success) {
+        if (res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+          window.history.pushState({}, '', res.currentURLQueryString);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+        Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+          iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
+        });
       }
     });
   }, [runLockedMutation]);

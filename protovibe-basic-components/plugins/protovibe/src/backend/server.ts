@@ -35,7 +35,7 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
           });
         }
 
-        if (!isIdentical) {
+        if (!isIdentical || (lastState && lastState.activeId !== (activeId || ''))) {
           undoStack.push({ files, activeId: activeId || '', currentURLQueryString });
           redoStack.length = 0;
           logUndoDebug('snapshot-created', {

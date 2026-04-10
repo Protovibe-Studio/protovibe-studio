@@ -23,14 +23,14 @@ function snapshotFiles(activeId: string | null, currentURLQueryString: string, .
     });
   if (files.length === 0) return;
 
-  // Deduplicate: Don't push if the top of the stack has the exact same content
+  // Deduplicate: Don't push if the top of the stack has the exact same content AND same activeId
   const lastState = undoStack[undoStack.length - 1];
   if (lastState && lastState.files.length === files.length) {
     const isIdentical = files.every(f => {
       const match = lastState.files.find(lf => lf.file === f.file);
       return match && match.content === f.content;
     });
-    if (isIdentical) {
+    if (isIdentical && lastState.activeId === (activeId || '')) {
       logUndoDebug('snapshot-skipped-identical', {
         source: 'sketchpad-server',
         files: files.map((file) => file.file),

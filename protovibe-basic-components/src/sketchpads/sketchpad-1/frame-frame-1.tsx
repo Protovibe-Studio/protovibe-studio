@@ -56,19 +56,19 @@ export default function Frame1() {
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 714, top: 34 }} />
+      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 688, top: 28 }} />
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}
-      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 797, top: 246, width: 213 }} />
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 723, top: 262, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
-      <Image  data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1099, top: 89, width: 238 }} />
+      <Image  data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1096, top: 30, width: 238 }} />
       {/* pv-block-end:rs0fdw */}
 
       {/* pv-block-start:s4leqk */}
-      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 797, top: 387 }}>
+      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 775, top: 452 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:6qhmpi */}
       <Button data-pv-block="6qhmpi" label="Button" variant="solid" color="primary" size="md" />

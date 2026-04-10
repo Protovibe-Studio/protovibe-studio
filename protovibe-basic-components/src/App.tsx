@@ -83,7 +83,7 @@ function DashboardPage() {
         <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
           {/* pv-editable-zone-start:inside-g0fqyb */}
             {/* pv-block-start:q958wn */}
-            <div data-pv-block="q958wn" className="flex flex-col gap-1">
+            <div data-pv-block="q958wn" className="flex flex-col gap-4">
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">

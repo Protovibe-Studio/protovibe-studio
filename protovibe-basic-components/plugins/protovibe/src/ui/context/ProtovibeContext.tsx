@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/context/ProtovibeContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { ActiveModifiers } from '../utils/tailwind';
-import { fetchSourceInfo, fetchComponents, fetchZones, fetchThemeColors, fetchThemeTokens, type ThemeColor, type ThemeToken } from '../api/client';
+import { fetchSourceInfo, fetchComponents, fetchZones, fetchThemeColors, fetchThemeTokens, takeSnapshot, type ThemeColor, type ThemeToken } from '../api/client';
 
 interface SourceData {
   id: string;
@@ -36,7 +36,7 @@ interface ProtovibeContextType {
   sources: string[];
   setSources: (ids: string[]) => void;
   zones: Zone[];
-  focusElement: (el: HTMLElement) => void;
+  focusElement: (el: HTMLElement | HTMLElement[], skipSnapshot?: boolean) => void;
   clearFocus: () => void;
   focusNewBlock: (blockId: string, options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
   isMutationLocked: boolean;
@@ -71,6 +71,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const activeSourceIdRef = useRef<string | null>(null);
   const componentIdOverrideRef = useRef<string | null>(null);
   const mutationLockRef = useRef(false);
+  const sourceDataListRef = useRef<SourceData[]>([]);
 
   useEffect(() => {
     sourcesRef.current = sources;
@@ -79,6 +80,10 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     activeSourceIdRef.current = activeSourceId;
   }, [activeSourceId]);
+
+  useEffect(() => {
+    sourceDataListRef.current = sourceDataList;
+  }, [sourceDataList]);
 
   const setHighlightedElement = useCallback((el: HTMLElement | null) => {
     // In iframe architecture, the actual DOM manipulation for outlines 
@@ -222,7 +227,15 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const focusElement = useCallback((inputEl: HTMLElement | HTMLElement[]) => {
+  const focusElement = useCallback((inputEl: HTMLElement | HTMLElement[], skipSnapshot = false) => {
+    const prevSourceId = activeSourceIdRef.current;
+    if (!skipSnapshot && prevSourceId) {
+      const prevData = sourceDataListRef.current.find(s => s.id === prevSourceId)?.data;
+      if (prevData?.file) {
+        takeSnapshot(prevData.file, prevSourceId).catch(console.error);
+      }
+    }
+
     (document.activeElement as HTMLElement | null)?.blur?.();
 
     const els = Array.isArray(inputEl) ? inputEl : [inputEl];
@@ -296,14 +309,14 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (!target) target = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
       const hasPvLoc = !!target && Array.from(target.attributes).some(a => a.name.startsWith('data-pv-loc-'));
       if (hasPvLoc) {
-        focusElement(target);
+        focusElement(target, true);
       } else {
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(tryFocus, interval);
           return;
         }
-        if (target) focusElement(target);
+        if (target) focusElement(target, true);
         refreshActiveData();
       }
     };

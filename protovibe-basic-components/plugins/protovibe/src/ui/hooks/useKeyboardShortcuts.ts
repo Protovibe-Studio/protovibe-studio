@@ -57,7 +57,7 @@ export function useKeyboardShortcuts() {
           if (!target) target = document.querySelector(selector) as HTMLElement | null;
 
           if (target) {
-            focusElement(target);
+            focusElement(target, true);
             resolve();
           } else {
             attempts++;
@@ -96,9 +96,14 @@ export function useKeyboardShortcuts() {
           } else {
             res = await undo();
           }
-          if (res?.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
-            window.history.pushState({}, '', res.currentURLQueryString);
-            window.dispatchEvent(new PopStateEvent('popstate'));
+          if (res?.success) {
+            if (res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+              window.history.pushState({}, '', res.currentURLQueryString);
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+            Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+              iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
+            });
           }
           await focusRestoredElement(res?.activeId);
         });
@@ -109,9 +114,14 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         await runLockedMutation(async () => {
           const res = await redo();
-          if (res?.success && res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
-            window.history.pushState({}, '', res.currentURLQueryString);
-            window.dispatchEvent(new PopStateEvent('popstate'));
+          if (res?.success) {
+            if (res.currentURLQueryString && res.currentURLQueryString !== window.location.search) {
+              window.history.pushState({}, '', res.currentURLQueryString);
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+            Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+              iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
+            });
           }
           await focusRestoredElement(res?.activeId);
         });
