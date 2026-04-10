@@ -36,7 +36,7 @@ export default function Frame2() {
       {/* pv-block-end:r8citb */}
       
       {/* pv-block-start:g3lj6s */}
-      <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 920, top: 340 }}>
+      <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 1074, top: 312 }}>
         {/* pv-editable-zone-start:1r8mze */}
         {/* pv-block-start:ip7d8c */}
         <Image randomImage data-pv-block="ip7d8c" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
@@ -74,6 +74,26 @@ export default function Frame2() {
         {/* pv-editable-zone-end:1r8mze */}
       </div>
       {/* pv-block-end:44told */}
+      
+      {/* pv-block-start:b12ofv */}
+      <div data-pv-block="b12ofv" className="flex flex-col gap-2" data-pv-sketchpad-el="b12ofv" style={{ position: 'absolute', left: 1064, top: 625 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:n9aiev */}
+        <Image randomImage data-pv-block="n9aiev" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:n9aiev */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:b12ofv */}
+      
+      {/* pv-block-start:7kg73j */}
+      <div data-pv-block="7kg73j" className="flex flex-col gap-2" data-pv-sketchpad-el="7kg73j" style={{ position: 'absolute', left: 982, top: 487 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:ffvgdj */}
+        <Image randomImage data-pv-block="ffvgdj" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:ffvgdj */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:7kg73j */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );

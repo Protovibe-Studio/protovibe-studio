@@ -843,7 +843,12 @@ function handlePointerUp(e: PointerEvent) {
           },
         }));
 
+        clearCurrentDropTarget();
         dragState = null;
+        if (ghostEl) {
+          ghostEl.remove();
+          ghostEl = null;
+        }
         return;
       }
     } else if (!dragState.isFlow) {
