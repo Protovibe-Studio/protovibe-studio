@@ -326,10 +326,11 @@ export function useKeyboardShortcuts() {
         }
       };
 
-      if (e.key === 'ArrowUp') handleNavigate(getAllowedParent(currentBaseTarget));
-      else if (e.key === 'ArrowDown') handleNavigate(getAllowedChild(currentBaseTarget));
-      else if (e.key === 'ArrowLeft') handleNavigate(getAllowedSibling(currentBaseTarget, 'prev'));
-      else if (e.key === 'ArrowRight') handleNavigate(getAllowedSibling(currentBaseTarget, 'next'));
+      const navKey = e.key.toLowerCase();
+      if (navKey === 'w') handleNavigate(getAllowedParent(currentBaseTarget));
+      else if (navKey === 's') handleNavigate(getAllowedChild(currentBaseTarget));
+      else if (navKey === 'a') handleNavigate(getAllowedSibling(currentBaseTarget, 'prev'));
+      else if (navKey === 'd') handleNavigate(getAllowedSibling(currentBaseTarget, 'next'));
     };
 
     window.addEventListener('keydown', handleKeyDown);

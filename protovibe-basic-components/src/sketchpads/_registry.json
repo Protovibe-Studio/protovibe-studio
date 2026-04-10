@@ -10,24 +10,24 @@
           "name": "Frame 1",
           "width": 1440,
           "height": 900,
-          "canvasX": 175,
-          "canvasY": 59
+          "canvasX": 202,
+          "canvasY": 61
         },
         {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 1829,
-          "canvasY": 32
+          "canvasX": 1805,
+          "canvasY": 59
         },
         {
           "id": "frame-frame-2-copy",
           "name": "Frame 2 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 1732,
-          "canvasY": 1233
+          "canvasX": 1846,
+          "canvasY": 1128
         },
         {
           "id": "frame-frame-2-copy-2",

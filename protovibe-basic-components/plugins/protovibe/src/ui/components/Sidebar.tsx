@@ -55,9 +55,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           onWheelCapture={stopScrollEventEscape}
           onTouchMoveCapture={stopScrollEventEscape}
         >
-          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <strong style={{ fontSize: '14px', color: theme.text_default }}>Protovibe Editor</strong>
-          </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifySelf: 'center', padding: '32px', textAlign: 'center', color: theme.text_tertiary, flexDirection: 'column', gap: '12px', justifyContent: 'center' }}>
             <Paintbrush size={48} strokeWidth={1.5} style={{ opacity: 0.5 }} aria-hidden="true" />
             <span style={{ fontSize: '14px' }}>
