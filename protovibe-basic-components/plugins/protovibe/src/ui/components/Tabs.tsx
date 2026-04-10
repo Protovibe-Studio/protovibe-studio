@@ -39,7 +39,7 @@ const SourceFileButton: React.FC<{
         boxShadow: isActive ? (isCompFolder ? '0 2px 8px rgba(168, 85, 247, 0.25)' : '0 2px 8px rgba(0,0,0,0.2)') : 'none'
       }}
     >
-      <span style={{ fontSize: '9px', color: topLabelColor, marginBottom: '4px', fontFamily: 'monospace', fontWeight: isCompFolder ? 'bold' : 'normal', letterSpacing: isCompFolder ? '0.5px' : '0' }}>
+      <span style={{ fontSize: '10px', color: topLabelColor, marginBottom: '4px', fontWeight: 'bold'}}>
         {locationText}
       </span>
       <span style={{ color: isActive ? theme.text_default : hovered ? theme.text_default : theme.text_secondary, fontSize: '12px', fontWeight: isActive ? '600' : '500', transition: 'color 0.15s' }}>
@@ -66,22 +66,20 @@ export const Tabs: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, flexShrink: 0 }}>
       <div style={{ padding: '12px 16px 0' }}>
         <span style={{ fontSize: '10px', fontWeight: '600', color: theme.text_default }}>
-          Source files
+          Multiple source files
         </span>
       </div>
       <div style={{ display: 'flex', padding: '8px 16px 12px', gap: '8px', overflowX: 'auto' }}>
       {sourceDataList.map((source) => {
         const isActive = source.id === activeSourceId;
-        const defaultDisplayName = source.data?.configSchema?.displayName || source.data?.configSchema?.name || source.data?.compName || 'Block';
-        
         // Extract folder and file for context
         const filePath = source.data?.file || '';
         const parts = normalizePath(filePath).split('/');
         const fileName = parts.pop() || 'Unknown';
         
         const isCompFolder = isComponentsFolderSource(filePath);
-        const locationText = isCompFolder ? 'Component' : fileName;
-        const displayName = isCompFolder ? getFileStem(fileName) : defaultDisplayName;
+        const locationText = isCompFolder ? 'Component' : 'File';
+        const displayName = fileName;
 
         const activeBg = isCompFolder ? 'rgba(168, 85, 247, 0.15)' : theme.bg_secondary;
         const activeBorder = isCompFolder ? '#A855F7' : theme.accent_default;

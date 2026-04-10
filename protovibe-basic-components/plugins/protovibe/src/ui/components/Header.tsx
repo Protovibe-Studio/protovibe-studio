@@ -10,13 +10,15 @@ import {
 } from '../utils/traversal';
 
 export const Header: React.FC = () => {
-  const { currentBaseTarget, focusElement } = useProtovibe();
+  const { currentBaseTarget, focusElement, activeData } = useProtovibe();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
 
   if (!currentBaseTarget) return null;
 
-  const nodeName = currentBaseTarget.nodeName.toLowerCase();
+  const astCompName = activeData?.configSchema?.displayName || activeData?.configSchema?.name || activeData?.compName;
+  const isComponent = astCompName && /^[A-Z]/.test(astCompName);
+  const displayName = isComponent ? astCompName : currentBaseTarget.nodeName.toLowerCase();
   const parentTarget  = getAllowedParent(currentBaseTarget);
   const childTarget   = getAllowedChild(currentBaseTarget);
   const prevTarget    = getAllowedSibling(currentBaseTarget, 'prev');
@@ -48,7 +50,7 @@ export const Header: React.FC = () => {
   return (
     <div style={{ padding: '8px 12px 8px 16px', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: '8px' }}>
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-        <strong style={{ fontSize: '14px', color: theme.text_default, whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'block' }}>{nodeName}</strong>
+        <strong style={{ fontSize: '14px', color: theme.text_default, whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'block' }}>{displayName}</strong>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 16px)', gridTemplateRows: 'repeat(2, 16px)', gap: '2px', flexShrink: 0 }}>
