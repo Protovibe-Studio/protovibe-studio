@@ -55,12 +55,10 @@ export default function Frame1() {
       <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 520, top: 145 }}/>
       {/* pv-block-end:bbx8bi */}
 
-      {/* pv-block-start:mzyjzo */}
-      <Image randomImage data-pv-block="mzyjzo" data-pv-sketchpad-el="mzyjzo" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', width: 237, left: 676, top: 83 }} />
-      {/* pv-block-end:mzyjzo */}
+
 
       {/* pv-block-start:qa89kp */}
-      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 862, top: 313, width: 213 }} />
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 780, top: 157, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
@@ -68,7 +66,7 @@ export default function Frame1() {
       {/* pv-block-end:rs0fdw */}
 
       {/* pv-block-start:s4leqk */}
-      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 775, top: 452 }}>
+      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 777, top: 345 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:6qhmpi */}
       <Button data-pv-block="6qhmpi" label="Button" variant="solid" color="primary" size="md" />
@@ -78,10 +76,17 @@ export default function Frame1() {
       <Button data-pv-block="wmxcu2" label="Button" variant="solid" color="primary" size="md" />
       {/* pv-block-end:wmxcu2 */}
 
+        {/* pv-block-start:p6i999 */}
+      <Container data-pv-block="p6i999"  >
+        {/* pv-editable-zone-start:eyutv0 */}
+        {/* pv-editable-zone-end:eyutv0 */}
+      </Container>
+      {/* pv-block-end:p6i999 */}
+
+
         {/* pv-block-start:zppmsv */}
       <Image randomImage data-pv-block="zppmsv" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full"  />
-      {/* pv-block-end:zppmsv */}
-        {/* pv-editable-zone-end:jxr5ey */}
+      {/* pv-block-end:zppmsv */}        {/* pv-editable-zone-end:jxr5ey */}
       </Card>
       {/* pv-block-end:s4leqk */}
 
@@ -145,12 +150,7 @@ export default function Frame1() {
       </Rectangle>
       {/* pv-block-end:y0csap */}
       
-      {/* pv-block-start:1963um */}
-      <Container data-pv-block="1963um" data-pv-sketchpad-el="1963um"  style={{ position: 'absolute', left: 1095, top: 275 }}>
-        {/* pv-editable-zone-start:eyutv0 */}
-        {/* pv-editable-zone-end:eyutv0 */}
-      </Container>
-      {/* pv-block-end:1963um */}
+
       
       {/* pv-block-start:20210x */}
       <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 516, top: 95 }}>
