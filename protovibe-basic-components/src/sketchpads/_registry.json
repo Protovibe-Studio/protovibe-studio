@@ -7,27 +7,27 @@
       "frames": [
         {
           "id": "frame-frame-1",
-          "name": "Frame 1",
+          "name": "23sdfsdfsd",
           "width": 1440,
           "height": 900,
-          "canvasX": -75,
-          "canvasY": 63
+          "canvasX": -779,
+          "canvasY": -83
         },
         {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 1805,
-          "canvasY": 59
+          "canvasX": 1375,
+          "canvasY": 61
         },
         {
           "id": "frame-frame-2-copy",
           "name": "Frame 2 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 1846,
-          "canvasY": 1128
+          "canvasX": 1974,
+          "canvasY": 1244
         },
         {
           "id": "frame-frame-2-copy-2",
@@ -42,8 +42,8 @@
           "name": "Frame 5",
           "width": 1440,
           "height": 900,
-          "canvasX": -64,
-          "canvasY": 1190
+          "canvasX": -558,
+          "canvasY": 958
         }
       ]
     }

@@ -68,7 +68,6 @@ export function FrameContainer({
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
       e.stopPropagation();
-      e.preventDefault();
       isDuplicateDragRef.current = e.altKey;
       setIsAltDragging(e.altKey);
       setIsDragging(true);
@@ -76,7 +75,7 @@ export function FrameContainer({
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       onSelect(frameId);
       // Focus the frame div so keyboard Delete works after clicking title bar
-      frameRef.current?.focus();
+      frameRef.current?.focus({ preventScroll: true });
     },
     [canvasX, canvasY, frameId, onSelect],
   );
@@ -246,6 +245,7 @@ export function FrameContainer({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                maxWidth: 'calc(100% / var(--frame-label-scale))',
                 transform: 'scale(var(--frame-label-scale))',
                 transformOrigin: '0 100%',
               }}
@@ -297,6 +297,7 @@ export function FrameContainer({
             height: TITLE_BAR_HEIGHT,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             padding: '0',
             fontSize: 12,
             fontFamily: 'Inter, system-ui, sans-serif',
@@ -313,7 +314,7 @@ export function FrameContainer({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              flex: 1,
+              maxWidth: 'calc(100% / var(--frame-label-scale) - 16px)',
               transform: 'scale(var(--frame-label-scale))',
               transformOrigin: '0 100%',
             }}

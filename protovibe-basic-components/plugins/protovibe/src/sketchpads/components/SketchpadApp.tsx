@@ -104,6 +104,7 @@ export function SketchpadApp() {
 
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showComponentPalette, setShowComponentPalette] = useState(false);
+  const [renamePrompt, setRenamePrompt] = useState<{ frameId: string, name: string } | null>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const [pendingAction, setPendingAction] = useState<{ type: 'add-rectangle'; comp: ComponentEntry } | null>(null);
   const [isZoomControlsHovered, setIsZoomControlsHovered] = useState(false);
@@ -315,28 +316,32 @@ export function SketchpadApp() {
     (frameId: string) => {
       const frame = activeSketchpad?.frames.find((f) => f.id === frameId);
       if (!frame) return;
-      const newName = prompt('Rename frame:', frame.name);
-      if (newName && newName.trim()) {
-        const trimmed = newName.trim();
-        runLockedMutation(async () => {
-          setSketchpads((prev) =>
-            prev.map((s) =>
-              s.id === activeSketchpadId
-                ? {
-                    ...s,
-                    frames: s.frames.map((f) =>
-                      f.id === frameId ? { ...f, name: trimmed } : f,
-                    ),
-                  }
-                : s,
-            ),
-          );
-          await api.renameFrame(activeSketchpadId, frameId, trimmed);
-        });
-      }
+      setRenamePrompt({ frameId, name: frame.name });
     },
-    [activeSketchpad, activeSketchpadId, runLockedMutation],
+    [activeSketchpad],
   );
+
+  const executeRenameFrame = useCallback((frameId: string, newName: string) => {
+    setRenamePrompt(null);
+    if (newName && newName.trim()) {
+      const trimmed = newName.trim();
+      runLockedMutation(async () => {
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId
+              ? {
+                  ...s,
+                  frames: s.frames.map((f) =>
+                    f.id === frameId ? { ...f, name: trimmed } : f,
+                  ),
+                }
+              : s,
+          ),
+        );
+        await api.renameFrame(activeSketchpadId, frameId, trimmed);
+      });
+    }
+  }, [activeSketchpadId, runLockedMutation]);
 
   const handleMoveFrame = useCallback(
     (frameId: string, x: number, y: number) => {
@@ -1051,6 +1056,52 @@ export function SketchpadApp() {
         />
       )}
       <ToastViewport />
+
+      {renamePrompt && createPortal(
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,0.55)' }}
+            onClick={() => setRenamePrompt(null)}
+          />
+          <div
+            style={{
+              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              zIndex: 99999, background: '#2a2a3e', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12, padding: '20px 24px', width: 320, boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
+              fontFamily: 'Inter, system-ui, sans-serif'
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Rename Frame</div>
+            <input
+              autoFocus
+              defaultValue={renamePrompt.name}
+              onFocus={(e) => e.currentTarget.select()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') executeRenameFrame(renamePrompt.frameId, e.currentTarget.value);
+                if (e.key === 'Escape') setRenamePrompt(null);
+              }}
+              style={{
+                width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(24,160,251,0.3)',
+                borderRadius: 6, padding: '8px 12px', color: '#eee', fontSize: 13, outline: 'none', marginBottom: 20
+              }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setRenamePrompt(null)}
+                style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#ccc', cursor: 'pointer', fontSize: 12 }}
+              >Cancel</button>
+              <button
+                onClick={(e) => {
+                  const input = e.currentTarget.parentElement?.previousElementSibling as HTMLInputElement;
+                  executeRenameFrame(renamePrompt.frameId, input.value);
+                }}
+                style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#18a0fb', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+              >Rename</button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 }

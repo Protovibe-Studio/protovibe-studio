@@ -68,7 +68,7 @@ export default function Frame1() {
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
-      <Image  data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1096, top: 30, width: 238 }} />
+      <Image  data-pv-block="rs0fdw" data-pv-sketchpad-el="rs0fdw" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 1098, top: 79, width: 238 }} />
       {/* pv-block-end:rs0fdw */}
 
       {/* pv-block-start:s4leqk */}
@@ -97,7 +97,7 @@ export default function Frame1() {
       {/* pv-block-end:s4leqk */}
 
         {/* pv-block-start:2g8vkk */}
-        <div className="flex flex-col min-h-4" data-pv-block="2g8vkk" data-pv-sketchpad-el="2g8vkk" style={{ position: 'absolute', left: 160, top: 59 }}>
+        <div className="flex flex-col min-h-4" data-pv-block="2g8vkk" data-pv-sketchpad-el="2g8vkk" style={{ position: 'absolute', left: 86, top: 49 }}>
           {/* pv-editable-zone-start:inside-2g8vkk */}
             {/* pv-block-start:dd6bm5 */}
             <span data-pv-block="dd6bm5">Lorem ipsum</span>
