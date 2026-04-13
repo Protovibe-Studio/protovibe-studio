@@ -33,6 +33,7 @@ import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
 import { Container } from '@/components/ui/container'
 import { Image } from '@/components/ui/image'
+import { Textarea } from '@/components/ui/textarea'
 
 // --- MOCK DATA ---
 
@@ -204,6 +205,10 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
+
+        {/* pv-block-start:e6x5fm */}
+        <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
+        {/* pv-block-end:e6x5fm */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

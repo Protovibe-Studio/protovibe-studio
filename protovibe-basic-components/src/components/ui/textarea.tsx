@@ -86,6 +86,9 @@ export function Textarea({
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current;
     if (!el || !autoHeight) return;
+    // Skip when the element has no layout (e.g. inside a display:none container such as
+    // an inactive Protovibe tab). The ResizeObserver below will re-trigger once visible.
+    if (el.offsetWidth === 0) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [autoHeight]);
@@ -94,6 +97,16 @@ export function Textarea({
   useEffect(() => {
     adjustHeight();
   }, [adjustHeight, value]);
+
+  // Re-adjust when the element gains layout dimensions (e.g. hidden tab becomes visible)
+  useEffect(() => {
+    if (!autoHeight) return;
+    const el = textareaRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => adjustHeight());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [adjustHeight, autoHeight]);
 
   const hasAdornments = prefixIcon || prefixText || suffixText || suffixIcon;
 
