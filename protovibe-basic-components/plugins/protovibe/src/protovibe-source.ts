@@ -1,4 +1,4 @@
-import { Plugin } from 'vite';
+import { Plugin, normalizePath } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -189,8 +189,9 @@ export function protovibeSourcePlugin(): Plugin {
 
     // Suppress full-page reloads for non-HMR-able sketchpad data files
     // (e.g. _registry.json) while letting frame .tsx files hot-reload normally.
+    // Use normalizePath so the forward-slash form from Vite matches on Windows too.
     handleHotUpdate({ file }) {
-      const sketchpadsDir = path.resolve(process.cwd(), 'src/sketchpads');
+      const sketchpadsDir = normalizePath(path.resolve(process.cwd(), 'src/sketchpads'));
       if (file.startsWith(sketchpadsDir) && !file.endsWith('.tsx') && !file.endsWith('.jsx')) {
         return [];
       }

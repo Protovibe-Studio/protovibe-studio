@@ -60,7 +60,7 @@ export default function Frame1() {
       {/* pv-block-end:mzyjzo */}
 
       {/* pv-block-start:qa89kp */}
-      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 815, top: 263, width: 213 }} />
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 862, top: 313, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}

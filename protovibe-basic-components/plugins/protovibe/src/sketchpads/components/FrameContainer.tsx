@@ -127,9 +127,12 @@ export function FrameContainer({
             frameRef.current.style.top = `${newY}px`;
           }
 
-          // Commit the final position to React state
-          onMove(frameId, newX, newY);
-          onMoveEnd(frameId, newX, newY);
+          // Only persist position if the frame actually moved; a plain click has dx=dy=0
+          // and calling onMoveEnd would trigger an unnecessary _registry.json write.
+          if (dx !== 0 || dy !== 0) {
+            onMove(frameId, newX, newY);
+            onMoveEnd(frameId, newX, newY);
+          }
         }
       }
     },
