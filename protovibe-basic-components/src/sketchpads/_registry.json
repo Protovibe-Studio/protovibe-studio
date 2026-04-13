@@ -8,8 +8,8 @@
         {
           "id": "frame-frame-1",
           "name": "23sdfsdfsd",
-          "width": 1440,
-          "height": 900,
+          "width": 1591,
+          "height": 945,
           "canvasX": -876,
           "canvasY": -190
         },
@@ -32,10 +32,10 @@
         {
           "id": "frame-frame-5",
           "name": "Frame 5",
-          "width": 1440,
-          "height": 900,
-          "canvasX": -889,
-          "canvasY": 969
+          "width": 1182,
+          "height": 1137,
+          "canvasX": -1313,
+          "canvasY": 926
         }
       ]
     }

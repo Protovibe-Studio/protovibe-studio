@@ -52,6 +52,7 @@ export function FrameContainer({
   const dragStartRef = useRef({ x: 0, y: 0, frameX: 0, frameY: 0 });
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const frameRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -153,13 +154,19 @@ export function FrameContainer({
 
   const handleResizePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!isResizing || !frameRef.current) return;
+      if (!isResizing) return;
       const dx = (e.clientX - resizeStartRef.current.x) / zoom;
       const dy = (e.clientY - resizeStartRef.current.y) / zoom;
       const newW = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.w + dx);
       const newH = Math.max(MIN_FRAME_SIZE, resizeStartRef.current.h + dy);
-      frameRef.current.style.width = `${Math.round(newW)}px`;
-      frameRef.current.style.height = `${Math.round(newH)}px`;
+
+      // Optimistic DOM update for instant 60fps visual feedback
+      if (frameRef.current && contentRef.current) {
+        frameRef.current.style.width = `${Math.round(newW)}px`;
+        frameRef.current.style.height = `${Math.round(newH) + TITLE_BAR_HEIGHT}px`;
+        contentRef.current.style.width = `${Math.round(newW)}px`;
+        contentRef.current.style.height = `${Math.round(newH)}px`;
+      }
     },
     [isResizing, zoom],
   );
@@ -280,6 +287,7 @@ export function FrameContainer({
           left: canvasX,
           top: canvasY,
           width,
+          height: height + TITLE_BAR_HEIGHT,
           userSelect: 'none',
           cursor: 'default',
           outline: 'none',
@@ -356,6 +364,7 @@ export function FrameContainer({
 
         {/* Frame content area */}
         <div
+          ref={contentRef}
           data-sketchpad-frame={frameId}
           data-layout-mode="absolute"
           className="bg-background-default"

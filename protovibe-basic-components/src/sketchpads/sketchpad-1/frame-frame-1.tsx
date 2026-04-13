@@ -61,8 +61,6 @@ export default function Frame1() {
       <Button data-pv-block="bbx8bi" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="bbx8bi" style={{ position: 'absolute', left: 520, top: 145 }}/>
       {/* pv-block-end:bbx8bi */}
 
-
-
       {/* pv-block-start:qa89kp */}
       <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 798, top: 81, width: 213 }} />
       {/* pv-block-end:qa89kp */}
@@ -89,7 +87,6 @@ export default function Frame1() {
       </Container>
       {/* pv-block-end:p6i999 */}
 
-
         {/* pv-block-start:zppmsv */}
       <Image randomImage data-pv-block="zppmsv" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full"  />
       {/* pv-block-end:zppmsv */}        {/* pv-editable-zone-end:jxr5ey */}
@@ -105,57 +102,6 @@ export default function Frame1() {
           {/* pv-editable-zone-end:inside-2g8vkk */}
         </div>
         {/* pv-block-end:2g8vkk */}
-      
-      {/* pv-block-start:y0csap */}
-      <Rectangle data-pv-block="y0csap" data-pv-sketchpad-el="y0csap" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 74, top: 414, height: 450, width: 661 }}>
-        {/* pv-editable-zone-start:wlrv4v */}
-        {/* pv-block-start:w11xb3 */}
-      <Button data-pv-block="w11xb3" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="w11xb3" style={{ position: 'absolute', left: 41, top: 101 }}/>
-      {/* pv-block-end:w11xb3 */}
-
-        {/* pv-block-start:m9hvoh */}
-      <Button data-pv-block="m9hvoh" label="Button" variant="outline" color="primary" size="md"  data-pv-sketchpad-el="m9hvoh" style={{ position: 'absolute', left: 124, top: 104 }}/>
-      {/* pv-block-end:m9hvoh */}
-
-        {/* pv-block-start:dmnvft */}
-      <TextHeading data-pv-block="dmnvft" data-pv-sketchpad-el="dmnvft" typography="heading-md" style={{ position: 'absolute', left: 39, top: 32 }}>
-        Heading
-      </TextHeading>
-      {/* pv-block-end:dmnvft */}
-
-        {/* pv-block-start:2s4xyi */}
-      <TextParagraph data-pv-block="2s4xyi" data-pv-sketchpad-el="2s4xyi" typography="regular" style={{ position: 'absolute', left: 41, top: 61 }}>
-        Paragraph text
-      </TextParagraph>
-      {/* pv-block-end:2s4xyi */}
-
-        {/* pv-block-start:v6iaql */}
-      <Icon data-pv-block="v6iaql" data-pv-sketchpad-el="v6iaql" name="Edit" size="md" style={{ position: 'absolute', width: 20, left: 618, top: 22 }} />
-      {/* pv-block-end:v6iaql */}
-
-        {/* pv-block-start:oyjiq2 */}
-      <Image randomImage data-pv-block="oyjiq2" data-pv-sketchpad-el="oyjiq2" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 45, top: 168, width: 406 }} />
-      {/* pv-block-end:oyjiq2 */}
-
-        {/* pv-block-start:pv1ak2 */}
-      <RadioGroup data-pv-block="pv1ak2" data-pv-sketchpad-el="pv1ak2" orientation="vertical" value="opt1" style={{ position: 'absolute', left: 230, top: 30 }}>
-        {/* pv-editable-zone-start:jfm4b2 */}
-          {/* pv-block-start:x08a9y */}
-          <RadioItem data-pv-block="x08a9y" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-          {/* pv-block-end:x08a9y */}
-          {/* pv-block-start:kz79gf */}
-          <RadioItem data-pv-block="kz79gf" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-          {/* pv-block-end:kz79gf */}
-          {/* pv-block-start:pk2f8v */}
-          <RadioItem data-pv-block="pk2f8v" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-          {/* pv-block-end:pk2f8v */}
-        {/* pv-editable-zone-end:jfm4b2 */}
-      </RadioGroup>
-      {/* pv-block-end:pv1ak2 */}
-        {/* pv-editable-zone-end:wlrv4v */}
-      </Rectangle>
-      {/* pv-block-end:y0csap */}
-      
 
       
       {/* pv-block-start:20210x */}
