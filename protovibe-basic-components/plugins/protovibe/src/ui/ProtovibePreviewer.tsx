@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibePreviewer.tsx
 // Runs INSIDE the user's app iframe. Listens for PV_TOGGLE_COMPONENTS_OVERLAY
 // and shows a full-screen catalog + variant-matrix playground.
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 // ─── Component discovery ───────────────────────────────────────────────────────
@@ -238,15 +238,17 @@ function activateOnEnterOrSpace(e: React.KeyboardEvent<HTMLElement>, onActivate:
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
 const PreviewCell: React.FC<{
+  index: number;
   entry: ComponentEntry;
   props: Record<string, any>;
   label: string;
-}> = memo(({ entry, props, label }) => {
+}> = memo(({ index, entry, props, label }) => {
   // Split label into individual "key=value" tokens for display
   const propTokens = label === 'default' ? [] : label.split('  ').filter(Boolean);
 
   return (
     <div
+      data-combo-index={index}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -543,7 +545,7 @@ const CatalogView: React.FC<{
   );
 };
 
-const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = ({ entry, onBack }) => {
+const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<string, any> | null; onBack: () => void }> = ({ entry, targetProps, onBack }) => {
   const { config } = entry;
   const displayName = config.displayName || config.name;
   const baseProps = parseDefaultProps(config.defaultProps || '');
@@ -553,12 +555,83 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
     ? allCombos.filter(combo => !checkers.some(fn => fn(combo)))
     : allCombos;
   const [variantSearch, setVariantSearch] = useState('');
+  const lastTargetPropsRef = useRef<Record<string, any> | null>(null);
 
   const visibleCombos = variantSearch.trim()
     ? combos.filter(combo =>
         comboLabel(combo, config.props || {}).toLowerCase().includes(variantSearch.toLowerCase())
       )
     : combos;
+
+  useEffect(() => {
+    // Only run if we have target props, we haven't processed THESE exact props yet, and there are combos to check
+    if (!targetProps || lastTargetPropsRef.current === targetProps || visibleCombos.length === 0) return;
+
+    console.log('--- [ProtovibePreviewer] Auto-Focus Triggered ---');
+    console.log('1. Target Props from Source:', targetProps);
+
+    lastTargetPropsRef.current = targetProps;
+    let bestMatchIndex = 0;
+    let maxScore = -1;
+
+    visibleCombos.forEach((combo, i) => {
+      let score = 0;
+
+      for (const [key, schema] of Object.entries(config.props || {})) {
+        const tVal = targetProps[key];
+        const cVal = combo[key];
+
+        // Normalize to strings for comparison
+        const normTarget = (tVal === undefined || tVal === null) ? '' : String(tVal);
+        const normCombo = (cVal === undefined || cVal === null) ? '' : String(cVal);
+
+        if (schema.type === 'string') {
+          // For strings, we just care about presence vs absence
+          const tHasText = normTarget !== '';
+          const cHasText = normCombo !== '';
+          if (tHasText === cHasText) {
+            score += 1;
+          }
+        } else {
+          // For selects and booleans, exact match gets 2 points
+          if (normTarget === normCombo) {
+            score += 2;
+          }
+          // Partial match: Target is unset, but combo explicitly sets it to 'default'
+          else if (normTarget === '' && normCombo === 'default') {
+            score += 1;
+          }
+        }
+      }
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestMatchIndex = i;
+      }
+    });
+
+    console.log(`2. Best Match Found: Index [${bestMatchIndex}] with Score: ${maxScore}`);
+    console.log('3. Winning Combo Data:', visibleCombos[bestMatchIndex]);
+
+    // Delay the focus to ensure PV_CLEAR_SELECTION from the tab switch is fully processed
+    setTimeout(() => {
+      const cell = document.querySelector(`[data-combo-index="${bestMatchIndex}"]`);
+      console.log(`4. Found Wrapper Cell in DOM:`, cell);
+
+      if (cell) {
+        const targetEl = cell.querySelector(`[data-pv-component-id="${config.name}"]`) || cell.querySelector('[data-pv-component-id]');
+        console.log(`5. Found Component Element inside Cell:`, targetEl);
+
+        if (targetEl) {
+          targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          console.log(`6. ✅ Successfully dispatched pointerdown!`);
+        } else {
+          console.warn(`6. ❌ Could not find [data-pv-component-id] inside the cell wrapper.`);
+        }
+      }
+    }, 250); // Increased delay to 250ms to outrun the tab-switch race condition
+  }, [targetProps, visibleCombos, config]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -673,6 +746,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; onBack: () => void }> = (
           {visibleCombos.map((combo, i) => (
             <PreviewCell
               key={i}
+              index={i}
               entry={entry}
               props={combo}
               label={comboLabel(combo, config.props || {})}
@@ -718,6 +792,7 @@ const PREVIEWER_STYLE = `
 export function ProtovibePreviewer() {
   const [discovered, setDiscovered] = useState<ComponentEntry[]>([]);
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
+  const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
 
   const refresh = useCallback(async () => {
@@ -753,7 +828,7 @@ export function ProtovibePreviewer() {
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (!e.data || e.data.type !== 'PV_OPEN_COMPONENT') return;
-      const { filePath } = e.data as { filePath: string };
+      const { filePath, currentProps } = e.data as { filePath: string, currentProps?: any };
       if (!filePath) return;
       // Normalise both sides: forward-slashes, strip leading slash, and strip file extensions
       const normalised = filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
@@ -761,7 +836,10 @@ export function ProtovibePreviewer() {
         const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
         return entryPath === normalised;
       });
-      if (match) setSelected(match);
+      if (match) {
+        setSelected(match);
+        setTargetProps(currentProps || null);
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
@@ -825,7 +903,7 @@ export function ProtovibePreviewer() {
       </div>
 
       {selected ? (
-        <VariantMatrix entry={selected} onBack={() => setSelected(null)} />
+        <VariantMatrix entry={selected} targetProps={targetProps} onBack={() => setSelected(null)} />
       ) : (
         <CatalogView
           entries={discovered}

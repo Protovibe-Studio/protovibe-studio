@@ -122,10 +122,10 @@ export const ProtovibeApp: React.FC = () => {
   // Route through handleIframeTabChange so focus + outlines are always cleared.
   useEffect(() => {
     const handler = (e: Event) => {
-      const { filePath } = (e as CustomEvent<{ filePath: string }>).detail;
+      const { filePath, currentProps } = (e as CustomEvent<{ filePath: string, currentProps: any }>).detail;
       handleIframeTabChange('components');
       componentsIframeRef.current?.contentWindow?.postMessage(
-        { type: 'PV_OPEN_COMPONENT', filePath },
+        { type: 'PV_OPEN_COMPONENT', filePath, currentProps },
         '*'
       );
     };

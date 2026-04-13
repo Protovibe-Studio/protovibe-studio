@@ -50,7 +50,7 @@ const SourceFileButton: React.FC<{
 };
 
 export const Tabs: React.FC = () => {
-  const { sourceDataList, activeSourceId, setActiveSourceId, setActiveModifiers } = useProtovibe();
+  const { sourceDataList, activeSourceId, setActiveSourceId, setActiveModifiers, activeData } = useProtovibe();
 
   const normalizePath = (filePath: string) => filePath.replace(/\\/g, '/');
   const isComponentsFolderSource = (filePath: string) => {
@@ -97,11 +97,18 @@ export const Tabs: React.FC = () => {
             displayName={displayName}
             filePath={filePath}
             onSelect={() => {
+              // Extract props from the CURRENTLY active source (the consumer file)
+              // before we switch the view to the component definition file.
+              const currentProps = activeData?.componentProps?.reduce((acc: any, p: any) => {
+                acc[p.name] = p.value;
+                return acc;
+              }, {}) || {};
+
               setActiveSourceId(source.id);
               setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
               if (isCompFolder && filePath) {
                 window.dispatchEvent(
-                  new CustomEvent('pv-open-component-preview', { detail: { filePath } })
+                  new CustomEvent('pv-open-component-preview', { detail: { filePath, currentProps } })
                 );
               }
             }}
