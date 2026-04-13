@@ -933,6 +933,11 @@ function handleDoubleClick(e: MouseEvent) {
       clearHover();
       setSelection(nextTarget, false);
       notifyInspector(nextTarget);
+    } else if (idx === path.length - 1) {
+      // No more children to drill down into; trigger text edit
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({ type: 'PV_DOUBLE_CLICK' }, '*');
     }
   }
 }

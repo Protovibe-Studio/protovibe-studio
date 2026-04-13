@@ -47,6 +47,12 @@ export default function Frame1() {
         {/* pv-block-start:5wvp6d */}
       <Button data-pv-block="5wvp6d" label="Button" variant="solid" color="primary" size="md" />
       {/* pv-block-end:5wvp6d */}
+
+          {/* pv-block-start:ajgck6 */}
+          <span data-pv-block="ajgck6">
+            adasdasd
+          </span>
+          {/* pv-block-end:ajgck6 */}
         {/* pv-editable-zone-end:qqn7ay */}
       </Container>
       {/* pv-block-end:439g8m */}
@@ -154,7 +160,7 @@ export default function Frame1() {
       
       {/* pv-block-start:20210x */}
       <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 516, top: 95 }}>
-        Heading
+        asdasdad
       </TextHeading>
       {/* pv-block-end:20210x */}
       
