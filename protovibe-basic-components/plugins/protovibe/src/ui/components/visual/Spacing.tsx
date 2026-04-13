@@ -1,8 +1,7 @@
 // plugins/protovibe/src/ui/components/visual/Spacing.tsx
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { VisualSection } from './VisualSection';
-import { VisualControl } from './VisualControl';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
 import { SpacingBoxSVG } from './SpacingBoxSVG';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -249,6 +248,9 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [borderColorExpanded, setBorderColorExpanded] = useState(false);
   const [borderColorHovered, setBorderColorHovered] = useState(false);
   const [radiusHovered, setRadiusHovered] = useState(false);
+  const [bgExpanded, setBgExpanded] = useState(false);
+  const [bgHovered, setBgHovered] = useState(false);
+  const [localBgOpacity, setLocalBgOpacity] = useState<number | null>(null);
 
   const uniqueClasses = (classes: string[]) => [...new Set(classes.filter(Boolean))];
 
@@ -531,6 +533,51 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     });
   };
 
+  // ── BG color/opacity parsing ────────────────────────────────────────────────
+
+  const bgFull = cleanVal(v.bg); // e.g. 'red-500/50' or 'red-500'
+  const bgSlashIdx = bgFull.lastIndexOf('/');
+  const bgColor = bgSlashIdx !== -1 ? bgFull.slice(0, bgSlashIdx) : bgFull;
+  const bgOpacityNum = localBgOpacity ?? (bgSlashIdx !== -1 ? parseInt(bgFull.slice(bgSlashIdx + 1), 10) : 100);
+
+  // ── BG color update (preserves opacity) ────────────────────────────────────
+
+  const handleBgColorChange = async (newColorVal: string, prevVal?: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newColorVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+    const oldClass = v.bg_original || (bgFull ? `bg-${bgFull}` : '');
+    let newClass = '';
+    if (safeVal && safeVal !== '-') {
+      const opacitySuffix = bgOpacityNum !== 100 ? `/${bgOpacityNum}` : '';
+      newClass = `${currentContextPrefix}bg-${safeVal}${opacitySuffix}`;
+    }
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
+      if (oldClass === newClass) return;
+      await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });
+    });
+  };
+
+  // ── BG opacity update ───────────────────────────────────────────────────────
+
+  const handleBgOpacityCommit = async (opacity: number) => {
+    if (!activeData?.file || !bgColor) return;
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+    const oldClass = v.bg_original || (bgFull ? `bg-${bgFull}` : '');
+    const effectiveOpacity = opacity <= 0 ? 0 : opacity;
+    const opacitySuffix = effectiveOpacity === 100 ? '' : `/${effectiveOpacity}`;
+    const newClass = `${currentContextPrefix}bg-${bgColor}${opacitySuffix}`;
+    setLocalBgOpacity(null);
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
+      if (oldClass === newClass) return;
+      await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });
+    });
+  };
+
   // ── Corner radius values ────────────────────────────────────────────────────
 
   const cornerVal = (key: 'TL' | 'TR' | 'BR' | 'BL') => {
@@ -668,32 +715,93 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
       {/* ── BG Color ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <VisualControl
-          label="BG Color"
-          prefix="bg-"
-          value={cleanVal(v.bg)}
+        <button
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', height: '14px', width: 'fit-content' }}
+          onClick={() => setBgExpanded(x => !x)}
+          onMouseEnter={() => setBgHovered(true)}
+          onMouseLeave={() => setBgHovered(false)}
+        >
+          <span style={{ fontSize: '9px', color: bgHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>BG Color</span>
+          <span style={{ color: bgHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
+            {bgExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          </span>
+        </button>
+
+        <AutocompleteDropdown
+          value={bgColor}
+          placeholder={cleanVal(domV?.bg) ? cleanVal(domV?.bg).split('/')[0] : '—'}
           options={prioritizeColors(themeColors as any[], 'background-')}
-          originalClass={v.bg_original}
-          type="input"
-          inheritedValue={cleanVal(domV?.bg)}
-          emptyPlaceholder="—"
-          inputPrefix={
-            !cleanVal(v.bg)
+          onCommit={handleBgColorChange}
+          zIndex={9999999}
+          showColorModeToggle={(themeColors as any[]).some((o: any) => o.lightValue !== undefined || o.darkValue !== undefined || o.hex !== undefined)}
+          prefix={
+            !bgColor
               ? (
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '2px',
-                    border: `1px solid ${theme.border_default}`,
-                    backgroundImage: `repeating-linear-gradient(135deg, ${theme.text_tertiary} 0, ${theme.text_tertiary} 1px, transparent 1px, transparent 2px)`,
-                    flexShrink: 0,
-                  }}
-                />
+                <div style={{ width: '10px', height: '10px', borderRadius: '2px', border: `1px solid ${theme.border_default}`, backgroundImage: `repeating-linear-gradient(135deg, ${theme.text_tertiary} 0, ${theme.text_tertiary} 1px, transparent 1px, transparent 2px)`, flexShrink: 0 }} />
               )
               : undefined
           }
+          renderOption={(opt: any, colorMode?: any) => {
+            let swatchColor: string | undefined;
+            if (colorMode === 'light' && opt.lightValue) swatchColor = opt.lightValue;
+            else if (colorMode === 'dark' && opt.darkValue) swatchColor = opt.darkValue;
+            else if (opt.hex) swatchColor = opt.hex;
+            if (swatchColor) {
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: swatchColor, border: `1px solid ${theme.border_default}`, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
+                </div>
+              );
+            }
+            return (
+              <>
+                <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
+                <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
+              </>
+            );
+          }}
         />
+
+        {bgExpanded && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opacity</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: theme.bg_tertiary, borderRadius: '3px', padding: bgOpacityNum !== 100 ? '2px 2px 2px 6px' : '2px 6px' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'monospace', color: bgOpacityNum !== 100 ? theme.accent_default : theme.border_strong, minWidth: '24px', textAlign: 'center' }}>
+                  {localBgOpacity ?? bgOpacityNum}%
+                </span>
+                {bgOpacityNum !== 100 && bgColor && (
+                  <button
+                    onClick={() => handleBgOpacityCommit(100)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '2px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = theme.text_secondary)}
+                    onMouseLeave={e => (e.currentTarget.style.color = theme.text_tertiary)}
+                  >
+                    <X size={9} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div style={{ position: 'relative', height: '16px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', left: 0, right: 0, height: '3px', borderRadius: '2px', background: theme.bg_tertiary, pointerEvents: 'none' }}>
+                <div style={{ height: '100%', width: `${localBgOpacity ?? bgOpacityNum}%`, background: bgColor ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={localBgOpacity ?? bgOpacityNum}
+                disabled={!bgColor}
+                onChange={e => setLocalBgOpacity(Number(e.target.value))}
+                onMouseUp={() => handleBgOpacityCommit(localBgOpacity ?? bgOpacityNum)}
+                onTouchEnd={() => handleBgOpacityCommit(localBgOpacity ?? bgOpacityNum)}
+                style={{ position: 'relative', width: '100%', margin: 0, cursor: bgColor ? 'pointer' : 'not-allowed', accentColor: theme.accent_default, background: 'transparent', WebkitAppearance: 'none', appearance: 'none', height: '16px' } as React.CSSProperties}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Border color ── */}
