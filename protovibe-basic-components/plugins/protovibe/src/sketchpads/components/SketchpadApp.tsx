@@ -450,8 +450,22 @@ export function SketchpadApp() {
   // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
   const reloadRegistry = useCallback(async () => {
     const reg = await api.fetchRegistry();
+    
+    if (activeSketchpadId && activeSketchpad) {
+      const nextSp = reg.sketchpads.find(s => s.id === activeSketchpadId);
+      if (nextSp) {
+        // Only load modules for frames that were just restored/added by the undo/redo
+        const restoredFrames = nextSp.frames.filter(
+          (nf) => !activeSketchpad.frames.some((pf) => pf.id === nf.id)
+        );
+        for (const frame of restoredFrames) {
+          loadFrameModule(activeSketchpadId, frame.id);
+        }
+      }
+    }
+    
     setSketchpads(reg.sketchpads);
-  }, []);
+  }, [activeSketchpadId, activeSketchpad, loadFrameModule]);
 
   // Listen for undo/redo completion from the parent shell
   useEffect(() => {

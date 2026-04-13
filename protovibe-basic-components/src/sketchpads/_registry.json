@@ -10,40 +10,32 @@
           "name": "23sdfsdfsd",
           "width": 1440,
           "height": 900,
-          "canvasX": -779,
-          "canvasY": -83
+          "canvasX": -876,
+          "canvasY": -190
         },
         {
           "id": "frame-frame-2",
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 1375,
-          "canvasY": 61
+          "canvasX": 887,
+          "canvasY": -191
         },
         {
           "id": "frame-frame-2-copy",
           "name": "Frame 2 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 1974,
-          "canvasY": 1244
-        },
-        {
-          "id": "frame-frame-2-copy-2",
-          "name": "Frame 2 Copy 2",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 3608,
-          "canvasY": -35
+          "canvasX": 885,
+          "canvasY": 960
         },
         {
           "id": "frame-frame-5",
           "name": "Frame 5",
           "width": 1440,
           "height": 900,
-          "canvasX": -558,
-          "canvasY": 958
+          "canvasX": -889,
+          "canvasY": 969
         }
       ]
     }
