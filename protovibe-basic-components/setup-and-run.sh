@@ -33,6 +33,10 @@ detect_rc_file() {
   esac
 }
 
+# ── 0. Resolve project root early (needed by nvm install to find .nvmrc) ─────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # ── 1. Ensure nvm is installed ────────────────────────────────────────────────
 NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 
@@ -73,18 +77,15 @@ else
   echo "nvm is already configured in $RC_FILE — skipping."
 fi
 
-# ── 3. Install & activate the latest Node.js ─────────────────────────────────
-echo "Installing latest Node.js via nvm..."
-nvm install node      # "node" alias = latest release
-nvm use node
-nvm alias default node  # persist as the default for new shells
+# ── 3. Install & activate the Node.js version from .nvmrc ────────────────────
+echo "Installing Node.js $(cat "$SCRIPT_DIR/.nvmrc") (from .nvmrc) via nvm..."
+nvm install           # reads .nvmrc automatically
+nvm use               # activates the version from .nvmrc
+nvm alias default "$(nvm version)"  # persist as the default for new shells
 
 echo "Using Node $(node --version) / npm $(npm --version)"
 
 # ── 4. Install project dependencies ──────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-cd "$SCRIPT_DIR"
-
 echo "Running npm install..."
 npm install
 
