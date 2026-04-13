@@ -387,7 +387,7 @@ export const Modifiers: React.FC = () => {
             data-pv-overlay="true"
             data-pv-ui="true"
             style={{
-              background: theme.bg_secondary,
+              background: theme.bg_default,
               border: `1px solid ${theme.border_default}`,
               borderRadius: '8px',
               zIndex: 9999999,
@@ -438,14 +438,14 @@ export const Modifiers: React.FC = () => {
             {Object.entries(availableDataAttrs).map(([key, values]) => {
               const activeVal = activeModifiers.dataAttrs[key] || '__unset__';
               const domVal = currentBaseTarget?.getAttribute(`data-${key}`);
-              const segments = [{
+              const segments: any[] = [{
                 label: 'Unset', val: '__unset__',
-                shadow: !domVal ? `inset 0 -2px 0 0 ${theme.success_default}` : undefined,
+                dashedHighlight: !domVal,
               }];
               values.forEach(v => segments.push({
                 label: v.charAt(0).toUpperCase() + v.slice(1),
                 val: v,
-                shadow: domVal === v ? `inset 0 -2px 0 0 ${theme.success_default}` : undefined,
+                dashedHighlight: domVal === v,
               }));
               return (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -459,6 +459,15 @@ export const Modifiers: React.FC = () => {
                 </div>
               );
             })}
+
+            {Object.keys(availableDataAttrs).length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '16px' }}>
+                <div style={{ width: '16px', borderBottom: `2px dashed ${theme.success_default}`, flexShrink: 0 }} />
+                <span style={{ fontSize: '10px', color: theme.text_secondary, lineHeight: 1.3 }}>
+                  Indicates the current state of the selected element
+                </span>
+              </div>
+            )}
           </div>
         </>,
         document.body

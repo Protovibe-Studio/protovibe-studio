@@ -62,7 +62,7 @@ export default function Frame1() {
       {/* pv-block-end:bbx8bi */}
 
       {/* pv-block-start:qa89kp */}
-      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 798, top: 81, width: 213 }} />
+      <Image randomImage data-pv-block="qa89kp" data-pv-sketchpad-el="qa89kp" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ position: 'absolute', left: 768, top: 76, width: 213 }} />
       {/* pv-block-end:qa89kp */}
       
       {/* pv-block-start:rs0fdw */}
@@ -70,7 +70,7 @@ export default function Frame1() {
       {/* pv-block-end:rs0fdw */}
 
       {/* pv-block-start:s4leqk */}
-      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 795, top: 276 }}>
+      <Card data-pv-block="s4leqk" data-pv-sketchpad-el="s4leqk"  style={{ position: 'absolute', width: 526, left: 762, top: 341 }}>
         {/* pv-editable-zone-start:jxr5ey */}
         {/* pv-block-start:6qhmpi */}
       <Button data-pv-block="6qhmpi" label="Button" variant="solid" color="primary" size="md" />
@@ -143,7 +143,7 @@ export default function Frame1() {
       {/* pv-block-end:93y9w3 */}
       
       {/* pv-block-start:hq6ukf */}
-      <Rectangle data-pv-block="hq6ukf" data-pv-sketchpad-el="hq6ukf" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 483, top: 289 }}>
+      <Rectangle data-pv-block="hq6ukf" data-pv-sketchpad-el="hq6ukf" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 522, top: 313 }}>
         {/* pv-editable-zone-start:rkdn2p */}
         {/* pv-editable-zone-end:rkdn2p */}
       </Rectangle>

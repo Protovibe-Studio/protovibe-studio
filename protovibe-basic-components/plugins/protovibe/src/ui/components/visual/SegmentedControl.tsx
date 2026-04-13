@@ -12,6 +12,7 @@ interface Segment {
   title?: string;
   prefix?: string;
   shadow?: string;
+  dashedHighlight?: boolean;
 }
 
 interface SegmentedControlProps {
@@ -97,7 +98,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      boxShadow: seg.shadow || (seg.highlight ? `inset 0 -2px 0 0 ${theme.success_default}` : 'none')
+      position: 'relative',
+      boxShadow: seg.shadow || ((seg as any).highlight ? `inset 0 -2px 0 0 ${theme.success_default}` : 'none')
     };
   };
 
@@ -123,6 +125,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
               >
                 {seg.icon && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{seg.icon}</span>}
                 {seg.label && <span style={{ marginLeft: seg.icon ? '4px' : '0' }}>{seg.label}</span>}
+                {seg.dashedHighlight && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 4, right: 4, borderBottom: `2px dashed ${theme.success_default}` }} />
+                )}
               </button>
             </React.Fragment>
           );
