@@ -2,20 +2,18 @@
   "name": "vite-plugin-protovibe",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
     "dev": "concurrently \"pnpm run watch:node\" \"pnpm run watch:ui\"",
-    "build": "tsup src/index.ts --format esm,cjs --dts && esbuild src/ui/inspector.tsx --bundle --minify --outfile=dist/ui/inspector.js && esbuild src/ui/bridge.ts --bundle --minify --outfile=dist/ui/bridge.js && esbuild src/ui/sketchpad-bridge.ts --bundle --minify --outfile=dist/ui/sketchpad-bridge.js",
-    "watch:node": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts --format esm --dts && esbuild src/ui/inspector.tsx --bundle --minify --outfile=dist/ui/inspector.js && esbuild src/ui/bridge.ts --bundle --minify --outfile=dist/ui/bridge.js && esbuild src/ui/sketchpad-bridge.ts --bundle --minify --outfile=dist/ui/sketchpad-bridge.js",
+    "watch:node": "tsup src/index.ts --format esm --dts --watch",
     "watch:ui": "node scripts/watch-ui.js"
   },
   "dependencies": {
