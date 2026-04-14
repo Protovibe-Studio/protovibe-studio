@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.2.2",
     "tree-kill": "^1.2.2",
     "vite": "^6.2.0"
   }

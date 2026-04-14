@@ -85,9 +85,13 @@ nvm alias default "$(nvm version)"  # persist as the default for new shells
 
 echo "Using Node $(node --version) / npm $(npm --version)"
 
-# ── 4. Install project dependencies ──────────────────────────────────────────
-echo "Running npm install..."
-npm install
+# ── 4. Enable pnpm via corepack ──────────────────────────────────────────────
+corepack enable pnpm
+corepack prepare pnpm@9.15.0 --activate
+
+# ── 5. Install project dependencies ──────────────────────────────────────────
+echo "Running pnpm install..."
+pnpm install
 
 # ── 5. Reload nvm in the current terminal if possible ────────────────────────
 # A script runs in a child process and cannot modify the parent shell's
@@ -117,4 +121,4 @@ fi
 
 # ── 6. Start the dev server ───────────────────────────────────────────────────
 echo "Starting dev server..."
-npm run dev
+pnpm run dev

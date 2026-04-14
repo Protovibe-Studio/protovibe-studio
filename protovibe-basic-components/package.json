@@ -3,14 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "plugins/protovibe"
-  ],
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "concat:all": "node scripts/concat.js all",
     "concat:plugins": "node scripts/concat.js plugins",
     "concat:no-ui": "node scripts/concat.js no-ui",
-    "dev": "npm run build --workspace=plugins/protovibe && concurrently \"npm run dev --workspace=plugins/protovibe\" \"vite --port=3000 --host=0.0.0.0\"",
+    "dev": "pnpm --filter vite-plugin-protovibe run build && concurrently \"pnpm --filter vite-plugin-protovibe run dev\" \"vite --port=3000 --host=0.0.0.0\"",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -18,33 +16,6 @@
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
-    "@radix-ui/react-accordion": "^1.2.12",
-    "@radix-ui/react-alert-dialog": "^1.1.15",
-    "@radix-ui/react-aspect-ratio": "^1.1.8",
-    "@radix-ui/react-avatar": "^1.1.11",
-    "@radix-ui/react-checkbox": "^1.3.3",
-    "@radix-ui/react-collapsible": "^1.1.12",
-    "@radix-ui/react-context-menu": "^2.2.16",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-hover-card": "^1.1.15",
-    "@radix-ui/react-label": "^2.1.8",
-    "@radix-ui/react-menubar": "^1.1.16",
-    "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@radix-ui/react-popover": "^1.1.15",
-    "@radix-ui/react-progress": "^1.1.8",
-    "@radix-ui/react-radio-group": "^1.3.8",
-    "@radix-ui/react-scroll-area": "^1.2.10",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-separator": "^1.1.8",
-    "@radix-ui/react-slider": "^1.3.6",
-    "@radix-ui/react-slot": "^1.2.4",
-    "@radix-ui/react-switch": "^1.2.6",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toast": "^1.2.15",
-    "@radix-ui/react-toggle": "^1.1.10",
-    "@radix-ui/react-toggle-group": "^1.1.11",
-    "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "babel": "^5.8.38",
@@ -67,6 +38,6 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-protovibe": "*"
+    "vite-plugin-protovibe": "workspace:*"
   }
 }

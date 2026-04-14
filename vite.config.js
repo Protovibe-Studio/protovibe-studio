@@ -219,7 +219,7 @@ function handleStart(_req, res, id) {
     return sendJson(res, 409, { error: 'Project is already running.' })
   }
 
-  const proc = spawn('npm', ['run', 'dev'], {
+  const proc = spawn('pnpm', ['run', 'dev'], {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
@@ -227,7 +227,7 @@ function handleStart(_req, res, id) {
   })
 
   const state = { proc, logs: existing?.logs ?? [], port: null, status: 'starting' }
-  state.logs.push(`--- starting npm run dev ---`)
+  state.logs.push(`--- starting pnpm run dev ---`)
   processes.set(id, state)
 
   const onData = (chunk) => {
@@ -286,7 +286,7 @@ function handleInstall(_req, res, id) {
     return sendJson(res, 409, { error: 'Install already in progress.' })
   }
 
-  const proc = spawn('npm', ['install'], {
+  const proc = spawn('pnpm', ['install'], {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
@@ -294,7 +294,7 @@ function handleInstall(_req, res, id) {
   })
 
   const state = { proc, logs: existing?.logs ?? [], port: null, status: 'installing' }
-  state.logs.push('--- starting npm install ---')
+  state.logs.push('--- starting pnpm install ---')
   processes.set(id, state)
 
   const onData = (chunk) => {
@@ -308,7 +308,7 @@ function handleInstall(_req, res, id) {
 
   proc.on('exit', (code) => {
     state.status = 'stopped'
-    state.logs.push(`--- npm install exited with code ${code} ---`)
+    state.logs.push(`--- pnpm install exited with code ${code} ---`)
   })
 
   proc.on('error', (err) => {
@@ -439,10 +439,10 @@ function handleSetup(req, res, id) {
     if (!aborted) { try { res.end() } catch {} }
   }
 
-  // Phase 1: npm install
+  // Phase 1: pnpm install
   send('stage', { stage: 'installing' })
 
-  const install = spawn('npm', ['install'], {
+  const install = spawn('pnpm', ['install'], {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
@@ -450,7 +450,7 @@ function handleSetup(req, res, id) {
   })
 
   const state = { proc: install, logs: [], port: null, status: 'installing' }
-  state.logs.push('--- starting npm install ---')
+  state.logs.push('--- starting pnpm install ---')
   processes.set(id, state)
 
   const pipeOutput = (chunk) => {
@@ -473,19 +473,19 @@ function handleSetup(req, res, id) {
   })
 
   install.on('exit', (code) => {
-    state.logs.push(`--- npm install exited with code ${code} ---`)
+    state.logs.push(`--- pnpm install exited with code ${code} ---`)
 
     if (code !== 0) {
       state.status = 'stopped'
-      send('fail', { message: `npm install failed (exit code ${code})` })
+      send('fail', { message: `pnpm install failed (exit code ${code})` })
       end()
       return
     }
 
-    // Phase 2: npm run dev
+    // Phase 2: pnpm run dev
     send('stage', { stage: 'starting' })
 
-    const dev = spawn('npm', ['run', 'dev'], {
+    const dev = spawn('pnpm', ['run', 'dev'], {
       cwd: project.path,
       stdio: 'pipe',
       shell: process.platform === 'win32',
@@ -494,7 +494,7 @@ function handleSetup(req, res, id) {
 
     state.proc = dev
     state.status = 'starting'
-    state.logs.push('--- starting npm run dev ---')
+    state.logs.push('--- starting pnpm run dev ---')
 
     const devOutput = (chunk) => {
       const text = chunk.toString()
