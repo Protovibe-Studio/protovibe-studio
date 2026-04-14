@@ -17,6 +17,23 @@ export function protovibeSourcePlugin(): Plugin {
     apply: 'serve',
 
     configureServer(server) {
+      const originalPrintUrls = server.printUrls.bind(server);
+      server.printUrls = () => {
+        originalPrintUrls();
+        const local = server.resolvedUrls?.local?.[0];
+        if (local) {
+          const url = `${local.replace(/\/$/, '')}/protovibe.html`;
+          const bar = '─'.repeat(url.length + 4);
+          const cyan = '\x1b[36m';
+          const bold = '\x1b[1m';
+          const reset = '\x1b[0m';
+          console.log(`\n${cyan}┌${bar}┐${reset}`);
+          console.log(`${cyan}│${reset}  ${bold}Protovibe editor:${reset}${' '.repeat(Math.max(0, url.length - 17))}  ${cyan}│${reset}`);
+          console.log(`${cyan}│${reset}  ${cyan}${url}${reset}  ${cyan}│${reset}`);
+          console.log(`${cyan}└${bar}┘${reset}\n`);
+        }
+      };
+
       // Watch the compiled inspector UI bundle — send a full reload when esbuild rebuilds it
       const inspectorPath = path.resolve(__dirname, 'ui/inspector.js');
       const bridgePath = path.resolve(__dirname, 'ui/bridge.js');
@@ -34,11 +51,19 @@ export function protovibeSourcePlugin(): Plugin {
         server.watcher.add(pluginIndexPath);
       }
 
+      // Skip the first plugin-index change event: tsup's watch mode always does an
+      // initial rebuild right after startup, which would race with the inspector's
+      // component scan (ssrLoadModule) and disconnect its transport mid-Promise.all.
+      const startupGraceUntil = Date.now() + 3000;
+
       server.watcher.on('change', async (changedFile) => {
         if (changedFile === inspectorPath || changedFile === bridgePath) {
           // UI-only change: just reload the browser so the new inlined script is served
           server.ws.send({ type: 'full-reload' });
         } else if (changedFile === pluginIndexPath) {
+          if (Date.now() < startupGraceUntil) {
+            return;
+          }
           // Backend / plugin code changed: restart the whole Vite server
           console.log('[protovibe] Plugin code changed — restarting Vite server…');
           await server.restart();

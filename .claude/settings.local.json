@@ -6,7 +6,8 @@
       "Bash(npx vite:*)",
       "Bash(perl -i -pe \"s/spawn\\\\\\('npm'/spawn\\('pnpm'/g; s/npm install/pnpm install/g; s/npm run dev/pnpm run dev/g\" vite.config.js)",
       "Bash(pnpm run:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(pkill -f \"concurrently\\\\|vite-plugin-protovibe\\\\|vite --port=3000\")"
     ]
   }
 }
