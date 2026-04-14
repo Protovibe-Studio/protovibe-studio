@@ -81,7 +81,7 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
     es.addEventListener('ready', (e) => {
       const { port } = JSON.parse(e.data)
       es.close()
-      redirectUrlRef.current = `http://localhost:${port}`
+      redirectUrlRef.current = `http://localhost:${port}/protovibe.html`
       setStage('ready')
       setCountdown(3)
     })

@@ -148,10 +148,10 @@ export default function ProjectPage({ project, onBack, onSetup }) {
               <div className="flex gap-3 flex-shrink-0">
                 {port && (
                   <a
-                    href={`http://localhost:${port}`}
+                    href={`http://localhost:${port}/protovibe.html`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-primary/50 hover:text-foreground-primary transition-colors cursor-pointer"
+                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-primary cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                       <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -211,7 +211,7 @@ export default function ProjectPage({ project, onBack, onSetup }) {
               {/* Right: run button as card */}
               <button
                 onClick={() => setSetupMode(true)}
-                className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary/50 hover:text-foreground-primary transition-colors flex-shrink-0 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary flex-shrink-0 cursor-pointer"
               >
                 <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                   <path d="M5 3.5l11 6-11 6V3.5z" fill="currentColor" />
