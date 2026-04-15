@@ -237,7 +237,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 <div className="flex gap-3">
                   <button
                     onClick={() => setSetupMode(true)}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
+                    className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                       <path d="M5 3.5l11 6-11 6V3.5z" fill="currentColor" />
