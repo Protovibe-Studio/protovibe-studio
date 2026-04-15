@@ -17,10 +17,20 @@
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
  --background-primary-subtle: oklch(93% 0.05 296.6);
+ --background-primary-subtle-hover: oklch(89% 0.07 296.6);
+ --background-primary-subtle-pressed: oklch(84% 0.09 296.6);
  --background-destructive-subtle: oklch(96% 0.03 25);
+ --background-destructive-subtle-hover: oklch(93% 0.05 25);
+ --background-destructive-subtle-pressed: oklch(89% 0.08 25);
  --background-success-subtle: oklch(96% 0.03 145);
+ --background-success-subtle-hover: oklch(93% 0.05 145);
+ --background-success-subtle-pressed: oklch(89% 0.08 145);
  --background-warning-subtle: oklch(97% 0.04 80);
+ --background-warning-subtle-hover: oklch(94% 0.06 80);
+ --background-warning-subtle-pressed: oklch(90% 0.09 80);
  --background-info-subtle: oklch(95% 0.03 220);
+ --background-info-subtle-hover: oklch(92% 0.05 220);
+ --background-info-subtle-pressed: oklch(88% 0.08 220);
 
  /* Text */
  --foreground-default: oklch(14% 0.01 260); /* body */
@@ -50,8 +60,10 @@
  /* Solid accent fills */
  --primary: oklch(39.7% 0.28 260);
  --primary-hover: oklch(47% 0.22 260);
+ --primary-pressed: oklch(34% 0.28 260);
  --destructive: oklch(55% 0.22 25);
  --destructive-hover: oklch(50% 0.22 25);
+ --destructive-pressed: oklch(45% 0.22 25);
  --destructive-foreground: oklch(98% 0.01 0);
  --success: oklch(58% 0.18 145);
  --success-foreground: oklch(10% 0.01 145);
@@ -76,10 +88,20 @@
 
  /* Tinted semantic backgrounds */
  --background-primary-subtle: oklch(19% 0.09 260);
+ --background-primary-subtle-hover: oklch(22% 0.11 260);
+ --background-primary-subtle-pressed: oklch(26% 0.13 260);
  --background-destructive-subtle: oklch(19% 0.07 25);
+ --background-destructive-subtle-hover: oklch(22% 0.09 25);
+ --background-destructive-subtle-pressed: oklch(26% 0.12 25);
  --background-success-subtle: oklch(19% 0.07 145);
+ --background-success-subtle-hover: oklch(22% 0.09 145);
+ --background-success-subtle-pressed: oklch(26% 0.12 145);
  --background-warning-subtle: oklch(19% 0.07 80);
+ --background-warning-subtle-hover: oklch(22% 0.09 80);
+ --background-warning-subtle-pressed: oklch(26% 0.12 80);
  --background-info-subtle: oklch(19% 0.07 220);
+ --background-info-subtle-hover: oklch(22% 0.09 220);
+ --background-info-subtle-pressed: oklch(26% 0.12 220);
 
  /* Text */
  --foreground-default: oklch(94% 0.01 260);
@@ -109,8 +131,10 @@
  /* Solid accent fills */
  --primary: oklch(55% 0.22 260);
  --primary-hover: oklch(50% 0.22 260);
+ --primary-pressed: oklch(45% 0.22 260);
  --destructive: oklch(60% 0.22 25);
  --destructive-hover: oklch(55% 0.22 25);
+ --destructive-pressed: oklch(50% 0.22 25);
  --destructive-foreground: oklch(98% 0.01 0);
  --success: oklch(65% 0.18 145);
  --success-foreground: oklch(10% 0.01 145);
@@ -137,10 +161,20 @@
  --color-background-overlay: var(--background-overlay);
  --color-background-disabled: var(--background-disabled);
  --color-background-primary-subtle: var(--background-primary-subtle);
+ --color-background-primary-subtle-hover: var(--background-primary-subtle-hover);
+ --color-background-primary-subtle-pressed: var(--background-primary-subtle-pressed);
  --color-background-destructive-subtle: var(--background-destructive-subtle);
+ --color-background-destructive-subtle-hover: var(--background-destructive-subtle-hover);
+ --color-background-destructive-subtle-pressed: var(--background-destructive-subtle-pressed);
  --color-background-success-subtle: var(--background-success-subtle);
+ --color-background-success-subtle-hover: var(--background-success-subtle-hover);
+ --color-background-success-subtle-pressed: var(--background-success-subtle-pressed);
  --color-background-warning-subtle: var(--background-warning-subtle);
+ --color-background-warning-subtle-hover: var(--background-warning-subtle-hover);
+ --color-background-warning-subtle-pressed: var(--background-warning-subtle-pressed);
  --color-background-info-subtle: var(--background-info-subtle);
+ --color-background-info-subtle-hover: var(--background-info-subtle-hover);
+ --color-background-info-subtle-pressed: var(--background-info-subtle-pressed);
 
  /* Text */
  --color-foreground-default: var(--foreground-default);
@@ -170,8 +204,10 @@
  /* Solid accents */
  --color-primary: var(--primary);
  --color-primary-hover: var(--primary-hover);
+ --color-primary-pressed: var(--primary-pressed);
  --color-destructive: var(--destructive);
  --color-destructive-hover: var(--destructive-hover);
+ --color-destructive-pressed: var(--destructive-pressed);
  --color-destructive-foreground: var(--destructive-foreground);
  --color-success: var(--success);
  --color-success-foreground: var(--success-foreground);
