@@ -119,9 +119,10 @@ Sketch source:
 Conversion rules:
 - Preserve the intent of the sketch's styling, visual hierarchy, and element ordering.
 - The sketchpad uses absolute positioning for layout. Convert every \`position: absolute\` / top/left/width/height placement into normal document flow using Flexbox, Grid, padding, margin, and gap. Infer reasonable spacing values from the visual gaps in the sketch.
-- Replace sketch-only primitives with the proper components from \`@/components/ui/\` where equivalents exist.
+- Replace sketch-only primitives like "rectangle" with the proper components from \`@/components/ui/\` where equivalents exist.
 - Rebuild the pv-block / pv-editable-zone structure with granular blocks per the AGENTS.md conventions so the result is editable in the normal app canvas.
 - Keep text content identical to the sketch unless the user asks otherwise.
+- Add any interactions or dynamic behavior needed to make this a real, working part of the app — but do not add extra features beyond what the user asked for.
 
 Additional user instructions: {{input}}
 

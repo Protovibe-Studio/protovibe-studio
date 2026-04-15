@@ -95,13 +95,13 @@ export default function Frame2() {
       {/* pv-block-end:cii084 */}
 
       {/* pv-block-start:rk4eze */}
-      <Rectangle data-pv-block="rk4eze" data-pv-sketchpad-el="rk4eze" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 911, top: 83, height: 405, width: 398 }}>
+      <Rectangle data-pv-block="rk4eze" data-pv-sketchpad-el="rk4eze" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 926, top: 95, height: 405, width: 398 }}>
         {/* pv-editable-zone-start:lgg850 */}
         {/* pv-block-start:f50wjy */}
-      <Rectangle data-pv-block="f50wjy" data-pv-sketchpad-el="f50wjy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 19, top: 27, height: 224, width: 336 }}>
+      <Rectangle data-pv-block="f50wjy" data-pv-sketchpad-el="f50wjy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 19, top: 27, height: 224, width: 242 }}>
         {/* pv-editable-zone-start:0dyfc5 */}
         {/* pv-block-start:m6aplx */}
-      <Button data-pv-block="m6aplx" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="m6aplx" style={{ position: 'absolute', width: 249, left: 31, top: 25 }}/>
+      <Button data-pv-block="m6aplx" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="m6aplx" style={{ position: 'absolute', width: 163, left: 31, top: 25 }}/>
       {/* pv-block-end:m6aplx */}
 
         {/* pv-block-start:wxhw3h */}
@@ -121,7 +121,7 @@ export default function Frame2() {
       {/* pv-block-end:rk4eze */}
       
       {/* pv-block-start:q2qzgb */}
-      <Card data-pv-block="q2qzgb" data-pv-sketchpad-el="q2qzgb"  style={{ position: 'absolute', width: 321, left: 914, top: 545 }}>
+      <Card data-pv-block="q2qzgb" data-pv-sketchpad-el="q2qzgb"  style={{ position: 'absolute', width: 321, left: 922, top: 556 }}>
         {/* pv-editable-zone-start:d3mff8 */}
 
         {/* pv-block-start:k7m9p2 */}
