@@ -69,7 +69,7 @@ export function VerticalTabItem({
         onClick={handleClick}
         className={cn(
           'w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md',
-          'text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary cursor-pointer',
+          'text-foreground-secondary hover:text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed cursor-pointer',
           'data-[state=active]:bg-background-primary-subtle data-[state=active]:text-foreground-primary',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',

@@ -8,12 +8,25 @@
  color-scheme: light;
  /* Backgrounds */
  --background-default: oklch(100% 0.006 260); /* page canvas */
+ --background-default-hover: oklch(97.5% 0.007 259);
+ --background-default-pressed: oklch(95% 0.009 258.5);
  --background-secondary: oklch(97% 0.008 257.5); /* cards, panels */
+ --background-secondary-hover: oklch(94% 0.009 258);
+ --background-secondary-pressed: oklch(90.5% 0.01 259);
  --background-tertiary: oklch(92% 0.01 260); /* code blocks, elevated */
+ --background-tertiary-hover: oklch(88.5% 0.012 260);
+ --background-tertiary-pressed: oklch(85% 0.014 260);
  --background-elevated: oklch(100% 0 0); /* floating surfaces, pure white */
+ --background-elevated-hover: oklch(97.5% 0.007 259);
+ --background-elevated-pressed: oklch(95% 0.009 258.5);
  --background-strong: oklch(12% 0.01 260); /* inverse chip / tooltip */
+ --background-strong-hover: oklch(18% 0.01 260);
+ --background-strong-pressed: oklch(8% 0.01 260);
  --background-overlay: oklch(12% 0.01 260 / 40%); /* dialog backdrop */
  --background-disabled: oklch(93% 0.005 260);
+ --background-transparent: transparent;
+ --background-transparent-hover: oklch(0% 0 0 / 6%); /* alpha tint for elements with no base background */
+ --background-transparent-pressed: oklch(0% 0 0 / 12%);
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
  --background-primary-subtle: oklch(93% 0.05 296.6);
@@ -79,12 +92,25 @@
 
  /* Backgrounds */
  --background-default: oklch(0% 0.095 260);
+ --background-default-hover: oklch(14% 0.01 260);
+ --background-default-pressed: oklch(19% 0.01 260);
  --background-secondary: oklch(17% 0.01 260);
+ --background-secondary-hover: oklch(21% 0.01 260);
+ --background-secondary-pressed: oklch(25% 0.01 260);
  --background-tertiary: oklch(22% 0.01 260);
+ --background-tertiary-hover: oklch(26.5% 0.01 260);
+ --background-tertiary-pressed: oklch(31% 0.01 260);
  --background-elevated: oklch(20% 0.01 260); /* lighter than background-default */
+ --background-elevated-hover: oklch(24% 0.01 260);
+ --background-elevated-pressed: oklch(28% 0.01 260);
  --background-strong: oklch(95% 0.01 260);
+ --background-strong-hover: oklch(91% 0.01 260);
+ --background-strong-pressed: oklch(87% 0.01 260);
  --background-overlay: oklch(6% 0.01 260 / 70%);
  --background-disabled: oklch(19% 0.01 260);
+ --background-transparent: transparent;
+ --background-transparent-hover: oklch(100% 0 0 / 8%); /* alpha tint for elements with no base background */
+ --background-transparent-pressed: oklch(100% 0 0 / 16%);
 
  /* Tinted semantic backgrounds */
  --background-primary-subtle: oklch(19% 0.09 260);
@@ -154,12 +180,25 @@
 
  /* Backgrounds */
  --color-background-default: var(--background-default);
+ --color-background-default-hover: var(--background-default-hover);
+ --color-background-default-pressed: var(--background-default-pressed);
  --color-background-secondary: var(--background-secondary);
+ --color-background-secondary-hover: var(--background-secondary-hover);
+ --color-background-secondary-pressed: var(--background-secondary-pressed);
  --color-background-tertiary: var(--background-tertiary);
+ --color-background-tertiary-hover: var(--background-tertiary-hover);
+ --color-background-tertiary-pressed: var(--background-tertiary-pressed);
  --color-background-elevated: var(--background-elevated);
+ --color-background-elevated-hover: var(--background-elevated-hover);
+ --color-background-elevated-pressed: var(--background-elevated-pressed);
  --color-background-strong: var(--background-strong);
+ --color-background-strong-hover: var(--background-strong-hover);
+ --color-background-strong-pressed: var(--background-strong-pressed);
  --color-background-overlay: var(--background-overlay);
  --color-background-disabled: var(--background-disabled);
+ --color-background-transparent: var(--background-transparent);
+ --color-background-transparent-hover: var(--background-transparent-hover);
+ --color-background-transparent-pressed: var(--background-transparent-pressed);
  --color-background-primary-subtle: var(--background-primary-subtle);
  --color-background-primary-subtle-hover: var(--background-primary-subtle-hover);
  --color-background-primary-subtle-pressed: var(--background-primary-subtle-pressed);
