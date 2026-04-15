@@ -635,6 +635,5 @@ export default defineConfig({
     watch: {
       ignored: ['**/projects/**', '**/projects.json'],
     },
-    hmr: false,
   },
 })
