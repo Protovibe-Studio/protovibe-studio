@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
-import { PROMPTS, PromptDef, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/registry';
+import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/registry';
 
 type Step = 1 | 2 | 3;
 
@@ -460,35 +460,6 @@ export const PromptsTab: React.FC = () => {
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {!ctx.file && (
-          <div
-            style={{
-              display: 'flex', alignItems: 'flex-start', gap: 10,
-              padding: '12px 14px',
-              background: theme.bg_secondary,
-              border: `1px dashed ${theme.border_default}`,
-              borderRadius: 8,
-            }}
-          >
-            <div style={{
-              width: 28, height: 28, borderRadius: 6,
-              background: theme.bg_tertiary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, color: theme.text_default,
-            }}>
-              <MousePointer2 size={14} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600, color: theme.text_default }}>
-                Select an element on the canvas
-              </div>
-              <div style={{ fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary, marginTop: 3, lineHeight: 1.4 }}>
-                Pick an element in the preview to attach its file path, source code, and block id to the prompt. Without a selection your agent will have no context.
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Step 1 — describe */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SectionHeading n={1} state={step === 1 ? 'active' : 'done'}>
@@ -508,17 +479,46 @@ export const PromptsTab: React.FC = () => {
               lineHeight: 1.4,
             }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500, color: theme.text_tertiary }}>
-              Will be attached to the prompt
+          {selectedPrompt.requiresSelection !== false && !ctx.file ? (
+            <div
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '10px 12px',
+                background: theme.bg_secondary,
+                border: `1px dashed ${theme.border_default}`,
+                borderRadius: 8,
+              }}
+            >
+              <div style={{
+                width: 24, height: 24, borderRadius: 5,
+                background: theme.bg_tertiary,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, color: theme.text_default,
+              }}>
+                <MousePointer2 size={13} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600, color: theme.text_default }}>
+                  Select an element on the canvas
+                </div>
+                <div style={{ fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary, marginTop: 2, lineHeight: 1.4 }}>
+                  This prompt needs a selection to attach the file, source code, and block id.
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {selectedPrompt.references.map(r => (
-                <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
-              ))}
-              <RefChip label="rules" value="AGENTS.md" />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500, color: theme.text_tertiary }}>
+                Will be attached to the prompt
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {selectedPrompt.references.map(r => (
+                  <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
+                ))}
+                <RefChip label="rules" value="AGENTS.md" />
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Step 2 — copy */}
