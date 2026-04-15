@@ -9,9 +9,10 @@ import { createRequire } from 'node:module'
 const treeKill = createRequire(import.meta.url)('tree-kill')
 
 const ROOT = path.resolve(import.meta.dirname)
-const PROJECTS_DIR = path.join(ROOT, 'projects')
+const REPO_ROOT = path.resolve(ROOT, '..')
+const PROJECTS_DIR = path.join(REPO_ROOT, 'projects')
 const PROJECTS_JSON = path.join(PROJECTS_DIR, 'projects.json')
-const TEMPLATE_DIR = path.join(ROOT, 'protovibe-basic-components')
+const TEMPLATE_DIR = path.join(REPO_ROOT, 'protovibe-basic-components')
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
 const PORT_RE = /Local:\s+http:\/\/localhost:(\d+)/
 
