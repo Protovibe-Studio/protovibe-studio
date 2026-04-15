@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, RotateCw, ExternalLink, X, Undo2, MoreHorizontal
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
+import { PromptsTab } from './components/PromptsTab';
 import { Sidebar } from './components/Sidebar';
 import { ToastViewport } from './components/ToastViewport';
 import { useIframeBridge } from './hooks/useIframeBridge';
@@ -506,6 +507,20 @@ export const ProtovibeApp: React.FC = () => {
             }}
           >
             <TokensTab />
+          </div>
+        )}
+
+        {activeSidebarTab === 'prompts' && inspectorOpen && (
+          <div
+            style={{
+              width: `${INSPECTOR_WIDTH_PX}px`,
+              flexShrink: 0,
+              borderLeft: `1px solid ${theme.border_default}`,
+              overflow: 'hidden',
+              display: 'flex',
+            }}
+          >
+            <PromptsTab />
           </div>
         )}
 

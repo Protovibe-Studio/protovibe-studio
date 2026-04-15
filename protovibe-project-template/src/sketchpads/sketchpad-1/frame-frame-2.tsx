@@ -18,10 +18,6 @@ export default function Frame2() {
       <Button data-pv-block="3linjw" label="Button" variant="solid" color="primary" size="md" />
       {/* pv-block-end:3linjw */}
 
-        {/* pv-block-start:wca2ok */}
-      <Button data-pv-block="wca2ok" label="Button" variant="solid" color="primary" size="md" />
-      {/* pv-block-end:wca2ok */}
-
         {/* pv-block-start:uu2qp0 */}
       <div data-pv-block="uu2qp0" className="flex flex-col gap-2" >
         {/* pv-editable-zone-start:1r8mze */}
@@ -38,17 +34,7 @@ export default function Frame2() {
         {/* pv-editable-zone-end:jxr5ey */}
       </Card>
       {/* pv-block-end:j94omq */}
-      
-      {/* pv-block-start:r8citb */}
-      <div data-pv-block="r8citb" className="flex flex-col gap-2" data-pv-sketchpad-el="r8citb" style={{ position: 'absolute', left: 111, top: 441 }}>
-        {/* pv-editable-zone-start:1r8mze */}
-        {/* pv-block-start:uqlav5 */}
-        <Image randomImage data-pv-block="uqlav5" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
-        {/* pv-block-end:uqlav5 */}
-        {/* pv-editable-zone-end:1r8mze */}
-      </div>
-      {/* pv-block-end:r8citb */}
-      
+
       {/* pv-block-start:g3lj6s */}
       <div data-pv-block="g3lj6s" className="flex flex-col gap-2" data-pv-sketchpad-el="g3lj6s" style={{ position: 'absolute', left: 690, top: 91 }}>
         {/* pv-editable-zone-start:1r8mze */}
@@ -106,6 +92,32 @@ export default function Frame2() {
       {/* pv-block-start:cii084 */}
       <Button data-pv-block="cii084" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="cii084" style={{ position: 'absolute', left: 468, top: 85 }}/>
       {/* pv-block-end:cii084 */}
+
+      {/* pv-block-start:rk4eze */}
+      <Rectangle data-pv-block="rk4eze" data-pv-sketchpad-el="rk4eze" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 824, top: 336, height: 405, width: 398 }}>
+        {/* pv-editable-zone-start:lgg850 */}
+        {/* pv-block-start:f50wjy */}
+      <Rectangle data-pv-block="f50wjy" data-pv-sketchpad-el="f50wjy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 19, top: 27, height: 224, width: 336 }}>
+        {/* pv-editable-zone-start:0dyfc5 */}
+        {/* pv-block-start:m6aplx */}
+      <Button data-pv-block="m6aplx" label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="m6aplx" style={{ position: 'absolute', width: 249, left: 31, top: 25 }}/>
+      {/* pv-block-end:m6aplx */}
+
+        {/* pv-block-start:wxhw3h */}
+      <div data-pv-block="wxhw3h" className="flex flex-col gap-2" data-pv-sketchpad-el="wxhw3h" style={{ position: 'absolute', left: 37, top: 79, width: 245 }}>
+        {/* pv-editable-zone-start:1r8mze */}
+        {/* pv-block-start:qulzoh */}
+        <Image randomImage data-pv-block="qulzoh" className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" style={{ width: 178 }} />
+        {/* pv-block-end:qulzoh */}
+        {/* pv-editable-zone-end:1r8mze */}
+      </div>
+      {/* pv-block-end:wxhw3h */}
+        {/* pv-editable-zone-end:0dyfc5 */}
+      </Rectangle>
+      {/* pv-block-end:f50wjy */}
+        {/* pv-editable-zone-end:lgg850 */}
+      </Rectangle>
+      {/* pv-block-end:rk4eze */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );

@@ -1,6 +1,7 @@
 import { Plugin, normalizePath } from 'vite';
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUploadImage } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
@@ -148,6 +149,30 @@ export function protovibeSourcePlugin(): Plugin {
         const absolutePath = path.resolve(process.cwd(), file);
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({ absolutePath }));
+      });
+
+      // Reveal a folder in the OS file manager (Finder / Explorer / xdg-open)
+      server.middlewares.use('/__reveal-folder', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        try {
+          const url = new URL(req.url || '', 'http://localhost');
+          const targetRaw = url.searchParams.get('path') || process.cwd();
+          const target = path.resolve(targetRaw);
+          if (!fs.existsSync(target)) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({ ok: false, error: 'Path does not exist' }));
+            return;
+          }
+          const platform = process.platform;
+          const cmd = platform === 'darwin' ? 'open'
+                    : platform === 'win32' ? 'explorer'
+                    : 'xdg-open';
+          spawn(cmd, [target], { detached: true, stdio: 'ignore' }).unref();
+          res.end(JSON.stringify({ ok: true }));
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ ok: false, error: err?.message ?? 'Failed to reveal folder' }));
+        }
       });
 
       // Sketchpad endpoints
