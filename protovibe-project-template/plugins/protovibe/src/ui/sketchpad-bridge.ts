@@ -550,9 +550,36 @@ function handlePointerDown(e: PointerEvent) {
 
   if (e.button !== 0) return;
 
-  const path = getInspectablePath(e.target);
-
   const isMulti = e.shiftKey;
+
+  // EARLY RESIZE INTERCEPT: Prioritize resizing the active selection over selecting background elements.
+  // We check this BEFORE evaluating e.target, so clicking the 8px safe-margin works perfectly.
+  const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
+  const selEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
+
+  if (primarySel && selEdge && !isMulti) {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = primarySel.getBoundingClientRect();
+    const zoom = getCanvasZoom();
+    const pos = getComputedPos(primarySel);
+    resizeState = {
+      target: primarySel,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      origWidth: rect.width / zoom,
+      origHeight: rect.height / zoom,
+      origLeft: pos.left,
+      origTop: pos.top,
+      edge: selEdge,
+    };
+    setForcedCursor(RESIZE_CURSOR_MAP[selEdge]);
+    primarySel.style.transition = 'none';
+    return;
+  }
+
+  const path = getInspectablePath(e.target);
 
   // Determine click target based on hierarchy & modifiers
   let nextTarget: HTMLElement | null = null;
@@ -574,31 +601,6 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   if (!nextTarget) {
-    // If pointer is in a resize zone of the currently selected element (only if single selection)
-    const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
-    const selEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
-    if (primarySel && selEdge && !isMulti) {
-      e.preventDefault();
-      e.stopPropagation();
-      const rect = primarySel.getBoundingClientRect();
-      const zoom = getCanvasZoom();
-      const pos = getComputedPos(primarySel);
-      resizeState = {
-        target: primarySel,
-        pointerId: e.pointerId,
-        startX: e.clientX,
-        startY: e.clientY,
-        origWidth: rect.width / zoom,
-        origHeight: rect.height / zoom,
-        origLeft: pos.left,
-        origTop: pos.top,
-        edge: selEdge,
-      };
-      setForcedCursor(RESIZE_CURSOR_MAP[selEdge]);
-      primarySel.style.transition = 'none';
-      return;
-    }
-
     clearHover();
     clearSelection();
 
