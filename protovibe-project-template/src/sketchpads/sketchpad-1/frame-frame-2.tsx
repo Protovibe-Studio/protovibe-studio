@@ -94,7 +94,7 @@ export default function Frame2() {
       {/* pv-block-end:cii084 */}
 
       {/* pv-block-start:rk4eze */}
-      <Rectangle data-pv-block="rk4eze" data-pv-sketchpad-el="rk4eze" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 824, top: 336, height: 405, width: 398 }}>
+      <Rectangle data-pv-block="rk4eze" data-pv-sketchpad-el="rk4eze" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 911, top: 83, height: 405, width: 398 }}>
         {/* pv-editable-zone-start:lgg850 */}
         {/* pv-block-start:f50wjy */}
       <Rectangle data-pv-block="f50wjy" data-pv-sketchpad-el="f50wjy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 19, top: 27, height: 224, width: 336 }}>
@@ -118,6 +118,13 @@ export default function Frame2() {
         {/* pv-editable-zone-end:lgg850 */}
       </Rectangle>
       {/* pv-block-end:rk4eze */}
+      
+      {/* pv-block-start:q2qzgb */}
+      <Card data-pv-block="q2qzgb" data-pv-sketchpad-el="q2qzgb"  style={{ position: 'absolute', width: 282, left: 885, top: 564 }}>
+        {/* pv-editable-zone-start:d3mff8 */}
+        {/* pv-editable-zone-end:d3mff8 */}
+      </Card>
+      {/* pv-block-end:q2qzgb */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );

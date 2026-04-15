@@ -116,9 +116,11 @@ interface SplitButtonAction {
 function SplitButton({
   options,
   storageKey,
+  disabled: sectionDisabled = false,
 }: {
   options: SplitButtonAction[];
   storageKey: string;
+  disabled?: boolean;
 }) {
   const [activeId, setActiveId] = useState<string>(() => {
     try {
@@ -131,7 +133,10 @@ function SplitButton({
     try { localStorage.setItem(storageKey, activeId); } catch {}
   }, [activeId, storageKey]);
 
-  const primary = options.find(o => o.id === activeId) ?? options[0];
+  const rawPrimary = options.find(o => o.id === activeId) ?? options[0];
+  const primary: SplitButtonAction = sectionDisabled
+    ? { ...rawPrimary, disabled: true }
+    : rawPrimary;
   const alternates = options.filter(o => o.id !== primary.id);
 
   const [open, setOpen] = useState(false);
@@ -177,14 +182,13 @@ function SplitButton({
           style={{
             flex: 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '8px 12px',
-            background: theme.text_default,
-            color: theme.bg_strong,
+            padding: '10px 14px',
+            background: primary.disabled ? theme.bg_tertiary : theme.text_default,
+            color: primary.disabled ? theme.text_tertiary : theme.bg_strong,
             border: 'none',
             borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
             cursor: primary.disabled ? 'not-allowed' : 'pointer',
             fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
-            opacity: primary.disabled ? 0.5 : 1,
             transition: 'background 0.15s ease',
           }}
         >
@@ -193,15 +197,16 @@ function SplitButton({
         </button>
         <button
           onClick={() => setOpen(o => !o)}
+          disabled={primary.disabled}
           title="More options"
           style={{
-            padding: '0 8px',
-            background: theme.text_default,
-            color: theme.bg_strong,
+            padding: '0 10px',
+            background: primary.disabled ? theme.bg_tertiary : theme.text_default,
+            color: primary.disabled ? theme.text_tertiary : theme.bg_strong,
             border: 'none',
-            borderLeft: `1px solid ${theme.border_default}`,
+            borderLeft: `1px solid ${primary.disabled ? theme.border_default : theme.bg_strong}`,
             borderTopRightRadius: 6, borderBottomRightRadius: 6,
-            cursor: 'pointer',
+            cursor: primary.disabled ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center',
           }}
         >
@@ -463,8 +468,11 @@ export const PromptsTab: React.FC = () => {
         {/* Step 1 — describe */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SectionHeading n={1} state={step === 1 ? 'active' : 'done'}>
-            {selectedPrompt.inputLabel}
+            Write a prompt
           </SectionHeading>
+          <label style={{ fontFamily: 'sans-serif', fontSize: 12, fontWeight: 500, color: theme.text_secondary }}>
+            {selectedPrompt.inputLabel}
+          </label>
           <textarea
             value={userInput}
             onChange={e => { setUserInput(e.target.value); if (step !== 1) setStep(1); }}
@@ -545,16 +553,17 @@ export const PromptsTab: React.FC = () => {
         </section>
 
         {/* Step 3 — open project */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: 10, opacity: step >= 3 ? 1 : 0.55 }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SectionHeading n={3} state={step >= 3 ? 'active' : 'pending'}>
             Open project folder in your coding agent
           </SectionHeading>
           <SplitButton
             storageKey="pv-prompts-open-action"
+            disabled={step < 3 || !projectRoot}
             options={[
-              { id: 'vscode', label: 'Open project in VS Code', icon: <ExternalLink size={14} />, onClick: openInVsCode, disabled: !projectRoot },
-              { id: 'cd', label: 'Copy terminal cd path', icon: <Terminal size={13} />, onClick: copyCdPath, disabled: !projectRoot, successLabel: 'Copied!' },
-              { id: 'reveal', label: 'Reveal folder in Finder', icon: <FolderOpen size={13} />, onClick: revealFolder, disabled: !projectRoot },
+              { id: 'vscode', label: 'Open project in VS Code', icon: <ExternalLink size={14} />, onClick: openInVsCode },
+              { id: 'cd', label: 'Copy terminal cd path', icon: <Terminal size={13} />, onClick: copyCdPath, successLabel: 'Copied!' },
+              { id: 'reveal', label: 'Reveal folder in Finder', icon: <FolderOpen size={13} />, onClick: revealFolder },
             ]}
           />
           {projectRoot && (
