@@ -29,9 +29,6 @@ export default function App() {
   // Search
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Theme
-  const [theme, setTheme] = useState(() => window.ThemeManager?.getPreference() ?? 'auto')
-
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname
@@ -68,18 +65,6 @@ export default function App() {
     const interval = setInterval(fetchProjects, 2000)
     return () => clearInterval(interval)
   }, [fetchProjects])
-
-  useEffect(() => {
-    const handler = () => setTheme(window.ThemeManager?.getPreference() ?? 'auto')
-    window.addEventListener('themechange', handler)
-    return () => window.removeEventListener('themechange', handler)
-  }, [])
-
-  const handleThemeToggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    window.ThemeManager?.setTheme(next)
-    setTheme(next)
-  }
 
   // ── Navigation helpers ──
 
@@ -156,7 +141,6 @@ export default function App() {
   // ── Derived state ──
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
-  const activeTheme = window.ThemeManager?.getActiveTheme() ?? 'light'
 
   const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
@@ -273,24 +257,6 @@ export default function App() {
             </div>
             <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Home</h1>
           </button>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleThemeToggle}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors"
-              title={`Switch to ${activeTheme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              {activeTheme === 'dark' ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M13.5 10.5A6 6 0 015.5 2.5a6 6 0 108 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
-          </div>
         </div>
       </header>
 
