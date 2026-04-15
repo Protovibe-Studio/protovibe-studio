@@ -264,7 +264,7 @@ function EmployeesPage() {
           </TableRowHeading>
           <TableBody>
             {mockEmployees.map(emp => (
-              <TableRowContent key={emp.id} className="cursor-pointer hover:bg-background-secondary transition-colors group" onClick={() => setSelectedEmp(emp)}>
+              <TableRowContent key={emp.id} className="cursor-pointer group" onClick={() => setSelectedEmp(emp)}>
                 <TableCellContent>
                   <div className="flex items-center gap-3">
                     <Avatar initials={emp.name} size="md" bgColor="primary" />

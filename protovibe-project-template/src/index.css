@@ -10,6 +10,9 @@
  --background-default: oklch(100% 0.006 260); /* page canvas */
  --background-default-hover: oklch(97.5% 0.007 259);
  --background-default-pressed: oklch(95% 0.009 258.5);
+ --background-subtle: oklch(98.5% 0.007 258.5); /* zebra rows, ghost cards — between default and secondary */
+ --background-subtle-hover: oklch(96.5% 0.008 258);
+ --background-subtle-pressed: oklch(93.5% 0.009 259);
  --background-secondary: oklch(97% 0.008 257.5); /* cards, panels */
  --background-secondary-hover: oklch(94% 0.009 258);
  --background-secondary-pressed: oklch(90.5% 0.01 259);
@@ -94,6 +97,9 @@
  --background-default: oklch(0% 0.095 260);
  --background-default-hover: oklch(14% 0.01 260);
  --background-default-pressed: oklch(19% 0.01 260);
+ --background-subtle: oklch(8.5% 0.01 260); /* zebra rows, ghost cards — between default and secondary */
+ --background-subtle-hover: oklch(12% 0.01 260);
+ --background-subtle-pressed: oklch(16% 0.01 260);
  --background-secondary: oklch(17% 0.01 260);
  --background-secondary-hover: oklch(21% 0.01 260);
  --background-secondary-pressed: oklch(25% 0.01 260);
@@ -182,6 +188,9 @@
  --color-background-default: var(--background-default);
  --color-background-default-hover: var(--background-default-hover);
  --color-background-default-pressed: var(--background-default-pressed);
+ --color-background-subtle: var(--background-subtle);
+ --color-background-subtle-hover: var(--background-subtle-hover);
+ --color-background-subtle-pressed: var(--background-subtle-pressed);
  --color-background-secondary: var(--background-secondary);
  --color-background-secondary-hover: var(--background-secondary-hover);
  --color-background-secondary-pressed: var(--background-secondary-pressed);
