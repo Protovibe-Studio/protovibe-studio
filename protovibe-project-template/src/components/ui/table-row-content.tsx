@@ -8,7 +8,7 @@ export interface TableRowContentProps extends React.HTMLAttributes<HTMLTableRowE
 export function TableRowContent({ className, children, ...props }: TableRowContentProps) {
   return (
     <tr
-      className={cn("border-b border-border-default bg-background-default even:bg-background-subtle hover:bg-background-primary-subtle-hover/40 transition-colors", className)}
+      className={cn("border-b border-border-default bg-background-default even:bg-background-subtle transition-colors hover:bg-background-primary-subtle-hover/30", className)}
       {...props}
       data-pv-component-id="TableRowContent"
     >
