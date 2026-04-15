@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.tsx$|^d\")",
+      "Bash(grep -rn \"/__get-components\\\\|__get-components\" /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-template/plugins/protovibe/src/backend --include=*.ts --include=*.tsx)",
+      "Bash(grep -rn \"HMR\\\\|hot\\\\.\\\\|websocket\\\\|import\\\\.meta\\\\.hot\" /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-template/plugins/protovibe/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -n \"handleGetComponents\\\\|__get-components\\\\|\\\\.use\\(\" /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-template/plugins/protovibe/src/backend -r --include=*.ts)",
+      "Bash(npx tsc:*)"
+    ]
+  },
+  "outputStyle": "Explanatory"
+}

@@ -14,17 +14,18 @@ pnpm install
 pnpm dev
 ```
 
-### protovibe-basic-components && vite-plugin-protovibe (`protovibe-basic-components/plugins/protovibe`)
+### protovibe-project-template && vite-plugin-protovibe (`protovibe-project-template/plugins/protovibe`)
 
 The template that gets copied when you create a new project. It is a React + Vite app with Tailwind and the `vite-plugin-protovibe` plugin pre-wired.
-And a vite plugin that powers the in-browser AI editor (inspector, sketchpad, component hot-reload). It lives inside `protovibe-basic-components` as a pnpm workspace package and gets copied along with the rest of the template when a new project is created — each project has its own independent copy.
+And a vite plugin that powers the in-browser AI editor (inspector, sketchpad, component hot-reload). It lives inside `protovibe-project-template` as a pnpm workspace package and gets copied along with the rest of the template when a new project is created — each project has its own independent copy.
+The plugin has it's own bundler and package.json but it is automatically bundled and watched when the template project is run by 'pnpm run dev'
 
 ```bash
-cd protovibe-basic-components
+cd protovibe-project-template
 pnpm install
 pnpm dev
 ```
 
 ### projects/
 
-Created and managed by the project manager at runtime. Each subdirectory is an independent copy of `protovibe-basic-components`. Do not edit these by hand — use the project manager UI instead to run the projects. *When developing with coding agents, open just the single project folder.*
+Created and managed by the project manager at runtime. Each subdirectory is an independent copy of `protovibe-project-template`. Do not edit these by hand — use the project manager UI instead to run the projects. *When developing with coding agents, open just the single project folder.*
