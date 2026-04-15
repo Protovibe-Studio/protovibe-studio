@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 
-export default function ProjectPage({ project, onBack, onSetup }) {
+export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode }) {
   const [lines, setLines] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
@@ -145,40 +145,64 @@ export default function ProjectPage({ project, onBack, onSetup }) {
               </div>
 
               {/* Right: action cards */}
-              <div className="flex gap-3 flex-shrink-0">
-                {port && (
-                  <a
-                    href={`http://localhost:${port}/protovibe.html`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-primary cursor-pointer"
+              <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex gap-3">
+                  {port && (
+                    <a
+                      href={`http://localhost:${port}/protovibe.html`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-primary cursor-pointer"
+                    >
+                      <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                        <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-xs font-semibold text-center">Open app</span>
+                    </a>
+                  )}
+
+                  <button
+                    onClick={callRestart}
+                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all relative overflow-hidden text-foreground-tertiary hover:text-foreground-default transition-colors cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M3 9.5a6.5 6.5 0 1 0 1.5-4.15M3 4v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-xs font-semibold text-center">Open app</span>
-                  </a>
-                )}
+                    <span className="text-xs font-semibold">Restart</span>
+                  </button>
 
-                <button
-                  onClick={callRestart}
-                  className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all relative overflow-hidden text-foreground-tertiary hover:text-foreground-default transition-colors cursor-pointer"
-                >
-                  <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                    <path d="M3 9.5a6.5 6.5 0 1 0 1.5-4.15M3 4v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="text-xs font-semibold">Restart</span>
-                </button>
+                  <button
+                    onClick={() => callAction('stop')}
+                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-destructive/50 hover:text-foreground-destructive transition-colors cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
+                    </svg>
+                    <span className="text-xs font-semibold">Stop</span>
+                  </button>
+                </div>
 
-                <button
-                  onClick={() => callAction('stop')}
-                  className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-destructive/50 hover:text-foreground-destructive transition-colors cursor-pointer"
-                >
-                  <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                    <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
-                  </svg>
-                  <span className="text-xs font-semibold">Stop</span>
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={onShowFolder}
+                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-xs font-semibold">Show folder</span>
+                  </button>
+
+                  <button
+                    onClick={onOpenVSCode}
+                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-xs font-semibold">VS Code</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -208,16 +232,42 @@ export default function ProjectPage({ project, onBack, onSetup }) {
                 </div>
               </div>
 
-              {/* Right: run button as card */}
-              <button
-                onClick={() => setSetupMode(true)}
-                className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary flex-shrink-0 cursor-pointer"
-              >
-                <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                  <path d="M5 3.5l11 6-11 6V3.5z" fill="currentColor" />
-                </svg>
-                <span className="text-xs font-semibold">Run project</span>
-              </button>
+              {/* Right: action cards */}
+              <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setSetupMode(true)}
+                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <path d="M5 3.5l11 6-11 6V3.5z" fill="currentColor" />
+                    </svg>
+                    <span className="text-xs font-semibold">Run project</span>
+                  </button>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={onShowFolder}
+                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-xs font-semibold">Show folder</span>
+                  </button>
+
+                  <button
+                    onClick={onOpenVSCode}
+                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-xs font-semibold">VS Code</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

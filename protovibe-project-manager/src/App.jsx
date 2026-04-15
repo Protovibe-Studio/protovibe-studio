@@ -138,6 +138,18 @@ export default function App() {
     }
   }
 
+  const handleShowFolder = async (id) => {
+    try {
+      await apiFetch('POST', `/projects/${id}/show-folder`)
+    } catch {}
+  }
+
+  const handleOpenVSCode = async (id) => {
+    try {
+      await apiFetch('POST', `/projects/${id}/open-vscode`)
+    } catch {}
+  }
+
   // ── Derived state ──
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
@@ -156,7 +168,7 @@ export default function App() {
 
   const renderContent = () => {
     if (view === 'project' && activeProject) {
-      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} />
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} />
     }
 
     // ── List view ──
@@ -234,6 +246,8 @@ export default function App() {
                     onDuplicate={() => handleDuplicate(project.id)}
                     onDelete={() => handleDelete(project.id)}
                     onStop={() => handleStop(project.id)}
+                    onShowFolder={() => handleShowFolder(project.id)}
+                    onOpenVSCode={() => handleOpenVSCode(project.id)}
                   />
                 ))}
               </div>

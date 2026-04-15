@@ -40,11 +40,10 @@
 :root {
   color-scheme: dark;
 
-  /* Backgrounds — from theme.ts */
-  --background-default: #131313;
+  --background-default: #0a0a0a;
   --background-secondary: #222222;
   --background-tertiary: #343434;
-  --background-elevated: #0a0a0a;
+  --background-elevated: #131313;
   --background-primary-subtle: rgba(24, 160, 251, 0.15);
   --background-destructive-subtle: rgba(242, 72, 34, 0.15);
   --background-success-subtle: rgba(26, 188, 156, 0.15);

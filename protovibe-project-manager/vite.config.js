@@ -260,6 +260,46 @@ function handleStart(_req, res, id) {
   sendJson(res, 200, { ok: true })
 }
 
+function handleShowFolder(_req, res, id) {
+  const projects = readProjects()
+  const project = projects.find((p) => p.id === id)
+  if (!project) return sendJson(res, 404, { error: 'Project not found.' })
+  if (!fs.existsSync(project.path)) return sendJson(res, 404, { error: 'Project folder not found on disk.' })
+
+  const platform = process.platform
+  let cmd, args
+  if (platform === 'darwin') {
+    cmd = 'open'; args = [project.path]
+  } else if (platform === 'win32') {
+    cmd = 'explorer'; args = [project.path]
+  } else {
+    cmd = 'xdg-open'; args = [project.path]
+  }
+
+  spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref()
+  sendJson(res, 200, { ok: true })
+}
+
+function handleOpenVSCode(_req, res, id) {
+  const projects = readProjects()
+  const project = projects.find((p) => p.id === id)
+  if (!project) return sendJson(res, 404, { error: 'Project not found.' })
+  if (!fs.existsSync(project.path)) return sendJson(res, 404, { error: 'Project folder not found on disk.' })
+
+  const uri = `vscode://file/${project.path}/`
+  let cmd, args
+  if (process.platform === 'darwin') {
+    cmd = 'open'; args = [uri]
+  } else if (process.platform === 'win32') {
+    cmd = 'cmd'; args = ['/c', 'start', '', uri]
+  } else {
+    cmd = 'xdg-open'; args = [uri]
+  }
+
+  spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref()
+  sendJson(res, 200, { ok: true })
+}
+
 function handleStop(_req, res, id) {
   const proc = processes.get(id)
   if (!proc?.proc?.pid) {
@@ -567,6 +607,8 @@ function projectManagerPlugin() {
             if (method === 'POST' && action === 'start') return handleStart(req, res, id)
             if (method === 'POST' && action === 'stop') return handleStop(req, res, id)
             if (method === 'POST' && action === 'install') return handleInstall(req, res, id)
+            if (method === 'POST' && action === 'show-folder') return handleShowFolder(req, res, id)
+            if (method === 'POST' && action === 'open-vscode') return handleOpenVSCode(req, res, id)
             if (method === 'GET' && action === 'logs') return handleLogs(req, res, id)
             if (method === 'GET' && action === 'setup') return handleSetup(req, res, id)
           }
