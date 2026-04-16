@@ -7,6 +7,7 @@ import {
   saveCloudflareProjectName,
   startCloudflarePublish,
   fetchCloudflarePublishStatus,
+  startCloudflareLogin,
   type CloudflarePublishStatus,
 } from '../api/client';
 
@@ -154,6 +155,8 @@ function PublishButton() {
 
   // UI state
   const [editingName, setEditingName] = useState(false);
+  const [apiToken, setApiToken] = useState('');
+  const [authUrl, setAuthUrl] = useState('');
 
   // Publish state
   const [status, setStatus] = useState<CloudflarePublishStatus['status']>('idle');
@@ -183,10 +186,13 @@ function PublishButton() {
         setStatusMessage(s.message ?? '');
         if (s.accounts) { setAccounts(s.accounts); setSelectedAccount(s.accounts[0]?.id ?? ''); }
         if (s.url) setPublishedUrl(s.url);
+        if (s.authUrl) setAuthUrl(s.authUrl);
         // On success, refresh history and return to the idle "home" view
         if (s.status === 'success') {
           setStatus('idle');
           setStatusMessage('');
+          setAuthUrl('');
+          setApiToken('');
           fetchCloudflarePublishMetadata().then((m) => setDeployHistory(m.deployHistory ?? [])).catch(() => {});
         }
         if (s.error) setErrorText(s.error);
@@ -241,12 +247,12 @@ function PublishButton() {
     } catch (err) { setErrorText(String(err)); }
   };
 
-  const handlePublish = async (accountId?: string) => {
+  const handlePublish = async (accountId?: string, token?: string) => {
     setErrorText('');
     setStatus('publishing');
     setStatusMessage('Starting…');
     try {
-      await startCloudflarePublish(accountId);
+      await startCloudflarePublish(accountId, token);
     } catch (err) {
       setStatus('error');
       setErrorText(String(err));
@@ -259,6 +265,8 @@ function PublishButton() {
     setErrorText('');
     setAccounts([]);
     setSelectedAccount('');
+    setAuthUrl('');
+    setApiToken('');
   };
 
   const btnRect = btnRef.current?.getBoundingClientRect();
@@ -293,16 +301,96 @@ function PublishButton() {
 
   // ── popover body ───────────────────────────────────────────────────────────
   const renderBody = () => {
+    if (status === 'not-logged-in') {
+      return (
+        <>
+          <div style={labelStyle}>Login Required</div>
+          <div style={subStyle}>
+            You need to authenticate with Cloudflare to publish your app.
+          </div>
+          <button
+            onClick={async () => {
+              setStatus('waiting-for-browser-approval');
+              await startCloudflareLogin();
+            }}
+            style={actionBtnBase}
+            onMouseEnter={hoverOn}
+            onMouseLeave={hoverOff}
+          >
+            <CloudflareLogo size={16} />
+            Login to Cloudflare
+          </button>
+          <button
+            style={{ ...actionBtnBase, marginTop: '8px', backgroundColor: 'transparent', border: 'none', color: theme.text_tertiary }}
+            onClick={handleReset}
+          >
+            Cancel
+          </button>
+        </>
+      );
+    }
+
     // In-progress states
     if (status === 'waiting-for-browser-approval') {
       return (
         <>
-          <div style={labelStyle}>Waiting for Cloudflare login</div>
-          <div style={subStyle}>Approve the login in your browser, then the deploy will continue automatically.</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px' }}>
-            <Loader2 size={14} style={spinStyle} />
-            Waiting for browser approval…
+          <div style={labelStyle}>Cloudflare Login</div>
+          <div style={subStyle}>
+            {authUrl ? 'Please click the link below to authorize Wrangler.' : (statusMessage || 'Working...')}
           </div>
+          {authUrl ? (
+            <a href={authUrl} target="_blank" rel="noreferrer" style={{ ...actionBtnBase, textDecoration: 'none', backgroundColor: theme.accent_default, color: '#fff', border: 'none' }}>
+              Open Login Page
+            </a>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px' }}>
+              <Loader2 size={14} style={spinStyle} />
+              Generating link…
+            </div>
+          )}
+        </>
+      );
+    }
+
+    if (status === 'needs-api-token') {
+      return (
+        <>
+          <div style={labelStyle}>API Token Required</div>
+          <div style={subStyle}>
+            Your environment requires a Cloudflare API Token.
+            <br /><br />
+            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" style={{ color: theme.accent_default, textDecoration: 'none' }}>
+              Get your token here
+            </a>
+            <br />
+            (Use the "Edit Cloudflare Workers" template)
+          </div>
+          <input
+            type="password"
+            style={{ ...inputStyle, marginBottom: '12px' }}
+            placeholder="Paste API Token..."
+            value={apiToken}
+            onChange={(e) => setApiToken(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handlePublish(undefined, apiToken); }}
+            autoFocus
+          />
+          <button
+            onClick={() => handlePublish(undefined, apiToken)}
+            disabled={!apiToken.trim()}
+            style={{
+              ...actionBtnBase,
+              opacity: !apiToken.trim() ? 0.4 : 1,
+              cursor: !apiToken.trim() ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Submit & Deploy
+          </button>
+          <button
+            style={{ ...actionBtnBase, marginTop: '8px', backgroundColor: 'transparent', border: 'none', color: theme.text_tertiary }}
+            onClick={handleReset}
+          >
+            Cancel
+          </button>
         </>
       );
     }

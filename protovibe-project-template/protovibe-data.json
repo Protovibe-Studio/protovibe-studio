@@ -1,3 +1,7 @@
 {
-  "cloudflare-wrangler-project-name": "protovibe-html-v310"
+  "cloudflare-wrangler-project-name": "protovibe-html-v310",
+  "cloudflare-pages-url": "https://protovibe-html-v310.pages.dev",
+  "cloudflare-deploy-history": [
+    "https://d916524a.protovibe-html-v310.pages.dev"
+  ]
 }

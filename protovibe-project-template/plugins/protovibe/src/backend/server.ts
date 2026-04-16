@@ -1835,7 +1835,9 @@ type CfPublishStatus =
   | 'building'
   | 'publishing'
   | 'waiting-for-browser-approval'
+  | 'needs-api-token'
   | 'account-selection'
+  | 'not-logged-in'
   | 'success'
   | 'error';
 
@@ -1843,6 +1845,7 @@ interface CfPublishState {
   status: CfPublishStatus;
   message: string;
   url?: string;
+  authUrl?: string;
   accounts?: Array<{ id: string; name: string }>;
   error?: string;
 }
@@ -1860,10 +1863,6 @@ function writePublishMeta(data: Record<string, any>): void {
   fs.writeFileSync(PUBLISH_META_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
 }
 
-function openUrl(url: string): void {
-  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-  spawn(cmd, [url], { detached: true, stdio: 'ignore' }).unref();
-}
 
 function parseWranglerAccounts(output: string): Array<{ id: string; name: string }> {
   const accounts: Array<{ id: string; name: string }> = [];
@@ -1898,46 +1897,37 @@ function spawnCmd(
   });
 }
 
-async function runCloudflarePublish(projectName: string, accountId?: string): Promise<void> {
+async function runCloudflarePublish(projectName: string, accountId?: string, apiToken?: string): Promise<void> {
   const cwd = process.cwd();
-
-  // 1. Ensure wrangler is available
-  cfState = { status: 'installing-wrangler', message: 'Checking wrangler…' };
-  try {
-    await spawnCmd('pnpm', ['exec', 'wrangler', '--version'], { cwd, env: { ...process.env, CI: '1' } });
-  } catch {
-    cfState = { status: 'installing-wrangler', message: 'Installing wrangler…' };
-    try {
-      await spawnCmd('pnpm', ['add', '-D', 'wrangler@latest'], { cwd });
-    } catch (err) {
-      cfState = { status: 'error', message: 'Failed to install wrangler.', error: String(err) };
-      return;
-    }
+  const baseEnv = { ...process.env };
+  if (apiToken) {
+    baseEnv.CLOUDFLARE_API_TOKEN = apiToken;
   }
 
-  // 2. Verify auth / get account list
+  // 1. Verify auth / get account list
   cfState = { status: 'publishing', message: 'Checking Cloudflare login…' };
   let whoami = '';
   try {
-    whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...process.env, CI: '1' } });
-  } catch {
-    cfState = { status: 'waiting-for-browser-approval', message: 'Waiting for Cloudflare login in your browser…' };
-    try {
-      await spawnCmd('pnpm', ['exec', 'wrangler', 'login'], {
-        cwd,
-        onData: (chunk) => {
-          const m = chunk.match(/https?:\/\/\S+/);
-          if (m) openUrl(m[0]);
-        },
-      });
-      whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...process.env, CI: '1' } });
-    } catch (err) {
-      cfState = { status: 'error', message: 'Cloudflare login failed.', error: String(err) };
+    whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...baseEnv, CI: '1' } });
+    
+    if (whoami.includes('You are not authenticated')) {
+      if (apiToken) {
+        cfState = { status: 'error', message: 'Invalid Cloudflare API Token.', error: whoami };
+        return;
+      }
+      cfState = { status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' };
       return;
     }
+  } catch (whoamiErr) {
+    if (apiToken) {
+      cfState = { status: 'error', message: 'Invalid Cloudflare API Token.', error: String(whoamiErr) };
+      return;
+    }
+    cfState = { status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' };
+    return;
   }
 
-  // 3. Account selection (only when no explicit account provided)
+  // 2. Account selection (only when no explicit account provided)
   const accounts = parseWranglerAccounts(whoami);
   if (!accountId && accounts.length > 1) {
     cfState = { status: 'account-selection', message: 'Select a Cloudflare account to deploy to.', accounts };
@@ -1945,7 +1935,7 @@ async function runCloudflarePublish(projectName: string, accountId?: string): Pr
   }
   const resolvedAccount = accountId ?? accounts[0]?.id;
 
-  // 4. Build
+  // 3. Build
   cfState = { status: 'building', message: 'Building project…' };
   try {
     await spawnCmd('pnpm', ['build'], { cwd });
@@ -1954,9 +1944,9 @@ async function runCloudflarePublish(projectName: string, accountId?: string): Pr
     return;
   }
 
-  // 5. Ensure the Pages project exists (create if missing; ignore "already exists" errors)
+  // 4. Ensure the Pages project exists (create if missing; ignore "already exists" errors)
   cfState = { status: 'publishing', message: 'Ensuring Cloudflare Pages project exists…' };
-  const projectEnv: NodeJS.ProcessEnv = { ...process.env, CI: '1' };
+  const projectEnv: NodeJS.ProcessEnv = { ...baseEnv, CI: '1' };
   if (resolvedAccount) projectEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
   try {
     await spawnCmd(
@@ -1972,9 +1962,9 @@ async function runCloudflarePublish(projectName: string, accountId?: string): Pr
     }
   }
 
-  // 6. Deploy
+  // 5. Deploy
   cfState = { status: 'publishing', message: 'Deploying to Cloudflare Pages…' };
-  const deployEnv: NodeJS.ProcessEnv = { ...process.env, CI: '1' };
+  const deployEnv: NodeJS.ProcessEnv = { ...baseEnv, CI: '1' };
   if (resolvedAccount) deployEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
 
   try {
@@ -2045,7 +2035,7 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
   req.on('data', (c) => { body += c; });
   req.on('end', () => {
     try {
-      const { accountId } = JSON.parse(body || '{}');
+      const { accountId, apiToken } = JSON.parse(body || '{}');
       const active: CfPublishStatus[] = ['installing-wrangler', 'building', 'publishing', 'waiting-for-browser-approval'];
       if (active.includes(cfState.status)) {
         res.statusCode = 409;
@@ -2057,7 +2047,7 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
         res.statusCode = 400;
         return res.end(JSON.stringify({ error: 'Project name not set.' }));
       }
-      runCloudflarePublish(projectName, accountId || undefined).catch((err) => {
+      runCloudflarePublish(projectName, accountId || undefined, apiToken || undefined).catch((err) => {
         cfState = { status: 'error', message: 'Unexpected error.', error: String(err) };
       });
       res.setHeader('Content-Type', 'application/json');
@@ -2072,4 +2062,91 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
 export const handleCloudflarePublishStatus: Connect.NextHandleFunction = (_req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(cfState));
+};
+
+export const handleCloudflareLoginStart: Connect.NextHandleFunction = (req, res) => {
+  try {
+    console.log('\n[protovibe:cloudflare] === Starting Login Process ===');
+    cfState = { status: 'waiting-for-browser-approval', message: 'Generating login link…' };
+    
+    const cwd = process.cwd();
+    
+    // 1. Write a temporary CommonJS pre-loader script to spoof the TTY environment
+    const spoofScriptPath = path.join(cwd, '.pv-spoof-tty.cjs');
+    const spoofScriptContent = `
+      Object.defineProperty(process.stdout, 'isTTY', { value: true });
+      Object.defineProperty(process.stderr, 'isTTY', { value: true });
+      Object.defineProperty(process.stdin, 'isTTY', { value: true });
+      process.stdout.columns = 80;
+      process.stdout.rows = 24;
+      process.stdin.setRawMode = function() {};
+    `;
+    fs.writeFileSync(spoofScriptPath, spoofScriptContent, 'utf-8');
+
+    // 2. Set up environment variables to inject the script and suppress browser launch
+    const existingNodeOptions = process.env.NODE_OPTIONS || '';
+    const env = { 
+      ...process.env,
+      BROWSER: 'none',
+      FORCE_COLOR: '0',
+      NODE_OPTIONS: `${existingNodeOptions} --require "${spoofScriptPath}"`.trim()
+    };
+    delete env.CI; // Must unset CI to force interactive behavior
+
+    console.log('[protovibe:cloudflare] Spawning pnpm exec wrangler login...');
+    
+    // 3. Spawn the standard CLI command (letting pnpm handle the binary resolution)
+    const child = spawn('pnpm', ['exec', 'wrangler', 'login'], {
+      cwd,
+      env,
+      stdio: 'pipe',
+      shell: process.platform === 'win32'
+    });
+
+    let out = '';
+    const onChunk = (buf: Buffer) => {
+      const t = buf.toString();
+      out += t;
+      console.log('[wrangler]:', t.trim());
+      
+      const lower = t.toLowerCase();
+      // Wait for the permission prompt before sending the affirmative response
+      if (lower.includes('allow wrangler to open a page') || lower.includes('open a page in your browser')) {
+        console.log('[protovibe:cloudflare] Saw prompt! Writing "y" to stdin...');
+        child.stdin.write('y\n');
+      }
+      
+      // Capture the OAuth URL to present in the UI
+      const match = out.match(/(https:\/\/dash\.cloudflare\.com\/oauth2\/[^\s]+)/);
+      if (match && cfState.status === 'waiting-for-browser-approval' && !cfState.authUrl) {
+        console.log('[protovibe:cloudflare] ✅ OAuth URL captured successfully!');
+        cfState = { ...cfState, authUrl: match[1] };
+      }
+    };
+
+    child.stdout.on('data', onChunk);
+    child.stderr.on('data', onChunk);
+
+    child.on('close', (code) => {
+      console.log(`[protovibe:cloudflare] Process exited with code ${code}`);
+      
+      // Clean up the temporary script
+      if (fs.existsSync(spoofScriptPath)) {
+        fs.unlinkSync(spoofScriptPath);
+      }
+
+      if (code === 0) {
+        cfState = { status: 'idle', message: 'Logged in successfully.' };
+      } else if (cfState.status === 'waiting-for-browser-approval') {
+        cfState = { status: 'error', message: 'Login failed.', error: out };
+      }
+    });
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ success: true }));
+  } catch (err) {
+    console.error('[protovibe:cloudflare] Server exception during login:', err);
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
 };

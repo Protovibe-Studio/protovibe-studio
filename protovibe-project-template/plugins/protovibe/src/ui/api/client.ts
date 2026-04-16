@@ -229,11 +229,11 @@ export async function saveCloudflareProjectName(projectName: string): Promise<vo
   }
 }
 
-export async function startCloudflarePublish(accountId?: string): Promise<void> {
+export async function startCloudflarePublish(accountId?: string, apiToken?: string): Promise<void> {
   const res = await fetch('/__cloudflare-publish-start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accountId: accountId ?? null }),
+    body: JSON.stringify({ accountId: accountId ?? null, apiToken: apiToken ?? null }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -241,10 +241,16 @@ export async function startCloudflarePublish(accountId?: string): Promise<void> 
   }
 }
 
+export async function startCloudflareLogin(): Promise<void> {
+  const res = await fetch('/__cloudflare-login-start', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to start login');
+}
+
 export interface CloudflarePublishStatus {
-  status: 'idle' | 'installing-wrangler' | 'building' | 'publishing' | 'waiting-for-browser-approval' | 'account-selection' | 'success' | 'error';
+  status: 'idle' | 'installing-wrangler' | 'building' | 'publishing' | 'waiting-for-browser-approval' | 'needs-api-token' | 'account-selection' | 'not-logged-in' | 'success' | 'error';
   message: string;
   url?: string;
+  authUrl?: string;
   accounts?: Array<{ id: string; name: string }>;
   error?: string;
 }
