@@ -152,7 +152,20 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
         .map(val => ({ val, desc: trackingMap[val] ?? '' }))
     : SCALES.tracking;
 
-  return { ...SCALES, spacing, size, radius, textSize, leading, tracking };
+  // ── Font family ────────────────────────────────────────────────────────────
+  // Token names: --font-sans, --font-serif, --font-mono, --font-secondary, …
+  const fontFamilyTokens = tokens.filter(t => t.category === 'Font Family');
+  const fontFamily = fontFamilyTokens.length > 0
+    ? fontFamilyTokens.map(t => {
+        const val = t.name.replace(/^font-/, '');
+        // Extract the first font name from the CSS value for a readable label
+        const quoted = t.value.match(/^["']([^"']+)["']/);
+        const desc = quoted ? quoted[1] : t.value.split(',')[0].trim();
+        return { val, desc };
+      })
+    : SCALES.fontFamily;
+
+  return { ...SCALES, spacing, size, radius, textSize, leading, tracking, fontFamily };
 }
 
 /** Re-orders a color options array so tokens whose `val` starts with `prefix` appear first. */
