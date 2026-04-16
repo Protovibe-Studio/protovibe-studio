@@ -1,6 +1,7 @@
 // plugins/protovibe/backend/server.ts
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import { Connect } from 'vite';
 import * as babel from '@babel/core';
 import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
@@ -1824,4 +1825,251 @@ export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => 
       res.end(JSON.stringify({ error: String(err) }));
     }
   });
+};
+
+// ─── Cloudflare Pages publish ─────────────────────────────────────────────────
+
+type CfPublishStatus =
+  | 'idle'
+  | 'installing-wrangler'
+  | 'building'
+  | 'publishing'
+  | 'waiting-for-browser-approval'
+  | 'account-selection'
+  | 'success'
+  | 'error';
+
+interface CfPublishState {
+  status: CfPublishStatus;
+  message: string;
+  url?: string;
+  accounts?: Array<{ id: string; name: string }>;
+  error?: string;
+}
+
+let cfState: CfPublishState = { status: 'idle', message: '' };
+
+const PUBLISH_META_PATH = path.resolve(process.cwd(), 'protovibe-data.json');
+
+function readPublishMeta(): Record<string, any> {
+  if (!fs.existsSync(PUBLISH_META_PATH)) return {};
+  try { return JSON.parse(fs.readFileSync(PUBLISH_META_PATH, 'utf-8')); } catch { return {}; }
+}
+
+function writePublishMeta(data: Record<string, any>): void {
+  fs.writeFileSync(PUBLISH_META_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+}
+
+function openUrl(url: string): void {
+  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+  spawn(cmd, [url], { detached: true, stdio: 'ignore' }).unref();
+}
+
+function parseWranglerAccounts(output: string): Array<{ id: string; name: string }> {
+  const accounts: Array<{ id: string; name: string }> = [];
+  let seenHeader = false;
+  for (const line of output.split('\n')) {
+    if (line.includes('Account Name') && line.includes('Account ID')) { seenHeader = true; continue; }
+    if (!seenHeader) continue;
+    if (/^[-|⎯\s]+$/.test(line)) continue;
+    const parts = line.split('|');
+    if (parts.length >= 2) {
+      const name = parts[0].trim();
+      const id = parts[1].trim();
+      if (name && /^[a-f0-9]{32}$/i.test(id)) accounts.push({ id, name });
+    }
+  }
+  return accounts;
+}
+
+function spawnCmd(
+  cmd: string,
+  args: string[],
+  opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void },
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe' });
+    let out = '';
+    const onChunk = (buf: Buffer) => { const t = buf.toString(); out += t; opts.onData?.(t); };
+    child.stdout.on('data', onChunk);
+    child.stderr.on('data', onChunk);
+    child.on('close', (code) => (code === 0 ? resolve(out) : reject(new Error(`[exit ${code}] ${out.slice(-600)}`))));
+    child.on('error', reject);
+  });
+}
+
+async function runCloudflarePublish(projectName: string, accountId?: string): Promise<void> {
+  const cwd = process.cwd();
+
+  // 1. Ensure wrangler is available
+  cfState = { status: 'installing-wrangler', message: 'Checking wrangler…' };
+  try {
+    await spawnCmd('pnpm', ['exec', 'wrangler', '--version'], { cwd, env: { ...process.env, CI: '1' } });
+  } catch {
+    cfState = { status: 'installing-wrangler', message: 'Installing wrangler…' };
+    try {
+      await spawnCmd('pnpm', ['add', '-D', 'wrangler@latest'], { cwd });
+    } catch (err) {
+      cfState = { status: 'error', message: 'Failed to install wrangler.', error: String(err) };
+      return;
+    }
+  }
+
+  // 2. Verify auth / get account list
+  cfState = { status: 'publishing', message: 'Checking Cloudflare login…' };
+  let whoami = '';
+  try {
+    whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...process.env, CI: '1' } });
+  } catch {
+    cfState = { status: 'waiting-for-browser-approval', message: 'Waiting for Cloudflare login in your browser…' };
+    try {
+      await spawnCmd('pnpm', ['exec', 'wrangler', 'login'], {
+        cwd,
+        onData: (chunk) => {
+          const m = chunk.match(/https?:\/\/\S+/);
+          if (m) openUrl(m[0]);
+        },
+      });
+      whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...process.env, CI: '1' } });
+    } catch (err) {
+      cfState = { status: 'error', message: 'Cloudflare login failed.', error: String(err) };
+      return;
+    }
+  }
+
+  // 3. Account selection (only when no explicit account provided)
+  const accounts = parseWranglerAccounts(whoami);
+  if (!accountId && accounts.length > 1) {
+    cfState = { status: 'account-selection', message: 'Select a Cloudflare account to deploy to.', accounts };
+    return;
+  }
+  const resolvedAccount = accountId ?? accounts[0]?.id;
+
+  // 4. Build
+  cfState = { status: 'building', message: 'Building project…' };
+  try {
+    await spawnCmd('pnpm', ['build'], { cwd });
+  } catch (err) {
+    cfState = { status: 'error', message: 'Build failed.', error: String(err) };
+    return;
+  }
+
+  // 5. Ensure the Pages project exists (create if missing; ignore "already exists" errors)
+  cfState = { status: 'publishing', message: 'Ensuring Cloudflare Pages project exists…' };
+  const projectEnv: NodeJS.ProcessEnv = { ...process.env, CI: '1' };
+  if (resolvedAccount) projectEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
+  try {
+    await spawnCmd(
+      'pnpm',
+      ['exec', 'wrangler', 'pages', 'project', 'create', projectName, '--production-branch', 'main'],
+      { cwd, env: projectEnv },
+    );
+  } catch (err) {
+    // "already exists" is expected on subsequent deploys — any other error is surfaced below
+    const msg = String(err).toLowerCase();
+    if (!msg.includes('already exists') && !msg.includes('a project with this name')) {
+      console.warn('[protovibe] wrangler pages project create warning:', err);
+    }
+  }
+
+  // 6. Deploy
+  cfState = { status: 'publishing', message: 'Deploying to Cloudflare Pages…' };
+  const deployEnv: NodeJS.ProcessEnv = { ...process.env, CI: '1' };
+  if (resolvedAccount) deployEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
+
+  try {
+    const output = await spawnCmd(
+      'pnpm',
+      ['exec', 'wrangler', 'pages', 'deploy', './dist', '--project-name', projectName, '--branch', 'main'],
+      { cwd, env: deployEnv },
+    );
+    const hashedMatch = output.match(/https?:\/\/[^\s]+\.pages\.dev[^\s]*/);
+    const hashedUrl = hashedMatch ? hashedMatch[0].replace(/[.,;)]+$/, '') : undefined;
+    const canonicalUrl = `https://${projectName}.pages.dev`;
+
+    const meta = readPublishMeta();
+    meta['cloudflare-pages-url'] = canonicalUrl;
+    const history: string[] = Array.isArray(meta['cloudflare-deploy-history']) ? meta['cloudflare-deploy-history'] : [];
+    if (hashedUrl && hashedUrl !== canonicalUrl && !history.includes(hashedUrl)) {
+      history.unshift(hashedUrl);
+      if (history.length > 20) history.pop();
+    }
+    meta['cloudflare-deploy-history'] = history;
+    writePublishMeta(meta);
+
+    cfState = { status: 'success', message: 'Deployed successfully!', url: canonicalUrl };
+  } catch (err) {
+    cfState = { status: 'error', message: 'Deployment failed.', error: String(err) };
+  }
+}
+
+export const handleCloudflarePublishMetadata: Connect.NextHandleFunction = (_req, res) => {
+  try {
+    const pkg = readPublishMeta();
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      projectName: pkg['cloudflare-wrangler-project-name'] ?? '',
+      url: pkg['cloudflare-pages-url'] ?? '',
+      deployHistory: Array.isArray(pkg['cloudflare-deploy-history']) ? pkg['cloudflare-deploy-history'] : [],
+    }));
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+};
+
+export const handleCloudflarePublishSaveName: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', (c) => { body += c; });
+  req.on('end', () => {
+    try {
+      const { projectName } = JSON.parse(body || '{}');
+      if (!projectName?.trim()) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: 'projectName required' }));
+      }
+      const pkg = readPublishMeta();
+      pkg['cloudflare-wrangler-project-name'] = projectName.trim();
+      writePublishMeta(pkg);
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', (c) => { body += c; });
+  req.on('end', () => {
+    try {
+      const { accountId } = JSON.parse(body || '{}');
+      const active: CfPublishStatus[] = ['installing-wrangler', 'building', 'publishing', 'waiting-for-browser-approval'];
+      if (active.includes(cfState.status)) {
+        res.statusCode = 409;
+        return res.end(JSON.stringify({ error: 'Publish already in progress.' }));
+      }
+      const pkg = readPublishMeta();
+      const projectName = pkg['cloudflare-wrangler-project-name'] ?? '';
+      if (!projectName) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: 'Project name not set.' }));
+      }
+      runCloudflarePublish(projectName, accountId || undefined).catch((err) => {
+        cfState = { status: 'error', message: 'Unexpected error.', error: String(err) };
+      });
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+export const handleCloudflarePublishStatus: Connect.NextHandleFunction = (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(cfState));
 };

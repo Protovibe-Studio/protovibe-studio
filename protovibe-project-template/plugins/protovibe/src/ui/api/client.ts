@@ -210,3 +210,47 @@ export async function restartServer() {
   if (!res.ok) throw new Error('Failed to restart server');
   return await res.json();
 }
+
+export async function fetchCloudflarePublishMetadata(): Promise<{ projectName: string; url: string; deployHistory: string[] }> {
+  const res = await fetch('/__cloudflare-publish-metadata');
+  if (!res.ok) throw new Error('Failed to fetch Cloudflare metadata');
+  return res.json();
+}
+
+export async function saveCloudflareProjectName(projectName: string): Promise<void> {
+  const res = await fetch('/__cloudflare-publish-save-name', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectName }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as any).error || 'Failed to save project name');
+  }
+}
+
+export async function startCloudflarePublish(accountId?: string): Promise<void> {
+  const res = await fetch('/__cloudflare-publish-start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accountId: accountId ?? null }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as any).error || 'Failed to start publish');
+  }
+}
+
+export interface CloudflarePublishStatus {
+  status: 'idle' | 'installing-wrangler' | 'building' | 'publishing' | 'waiting-for-browser-approval' | 'account-selection' | 'success' | 'error';
+  message: string;
+  url?: string;
+  accounts?: Array<{ id: string; name: string }>;
+  error?: string;
+}
+
+export async function fetchCloudflarePublishStatus(): Promise<CloudflarePublishStatus> {
+  const res = await fetch('/__cloudflare-publish-status');
+  if (!res.ok) throw new Error('Failed to fetch publish status');
+  return res.json();
+}
