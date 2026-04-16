@@ -656,7 +656,7 @@ export function SketchpadApp() {
         height: '100vh',
         overflow: 'hidden',
         position: 'relative',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
       }}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
@@ -784,7 +784,7 @@ export function SketchpadApp() {
               background: 'rgba(24, 160, 251, 0.95)',
               color: '#fff',
               fontSize: 13,
-              fontFamily: 'Inter, system-ui, sans-serif',
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               fontWeight: 500,
               zIndex: 300,
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
@@ -830,7 +830,7 @@ export function SketchpadApp() {
               padding: '4px 0',
               minWidth: 160,
               boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              fontFamily: 'Inter, system-ui, sans-serif',
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               fontSize: 12,
             }}
           >
@@ -962,7 +962,7 @@ export function SketchpadApp() {
               style={{
                 fontSize: 11,
                 color: '#ccc',
-                fontFamily: 'Inter, system-ui, sans-serif',
+                fontFamily: 'var(--font-sans, system-ui, sans-serif)',
                 userSelect: 'none',
                 minWidth: '32px',
                 textAlign: 'right',
@@ -1021,7 +1021,7 @@ export function SketchpadApp() {
             textAlign: 'center',
             color: '#666',
             fontSize: 14,
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             userSelect: 'none',
             pointerEvents: 'none',
             zIndex: 1,
@@ -1082,7 +1082,7 @@ export function SketchpadApp() {
               position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
               zIndex: 99999, background: '#2a2a3e', border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 12, padding: '20px 24px', width: 320, boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
-              fontFamily: 'Inter, system-ui, sans-serif'
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)'
             }}
           >
             <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Rename Frame</div>
@@ -1144,7 +1144,7 @@ const ToolbarButton = React.forwardRef<
         cursor: 'pointer',
         fontSize: 16,
         fontWeight: 600,
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
         transition: 'background 0.15s, color 0.15s',
       }}

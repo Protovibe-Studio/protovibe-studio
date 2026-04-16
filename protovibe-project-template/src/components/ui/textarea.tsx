@@ -41,13 +41,6 @@ export interface TextareaProps extends Omit<React.HTMLAttributes<HTMLDivElement>
   onKeyUp?: React.KeyboardEventHandler<HTMLTextAreaElement>;
 }
 
-const resizeClass: Record<TextareaResize, string> = {
-  none: 'resize-none',
-  horizontal: 'resize-x',
-  vertical: 'resize-y',
-  both: 'resize',
-};
-
 export function Textarea({
   // Visual / state
   error,
@@ -108,12 +101,8 @@ export function Textarea({
     return () => observer.disconnect();
   }, [adjustHeight, autoHeight]);
 
-  const hasAdornments = prefixIcon || prefixText || suffixText || suffixIcon;
-
   const minHeightStyle: React.CSSProperties =
-    rows !== undefined || autoHeight
-      ? {} // rows attr or autoHeight controls height
-      : { minHeight: 80 };
+    rows !== undefined || autoHeight ? {} : { minHeight: 80 };
 
   return (
     <div
@@ -122,21 +111,14 @@ export function Textarea({
       data-error={error ? true : undefined}
       data-disabled={disabled ? true : undefined}
       onClick={() => textareaRef.current?.focus()}
-      className={cn(
-        "w-full rounded-md border border-border-default bg-background-default text-sm cursor-text transition-colors",
-        "data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent",
-        "data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed",
-        "data-[error=true]:border-destructive data-[error=true]:data-[focused=true]:ring-destructive",
-        hasAdornments ? "flex items-start gap-2 px-3 pt-2 pb-1" : "",
-        className
-      )}
+      className={cn("w-full border border-border-default bg-background-default text-sm cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed data-[error=true]:border-destructive data-[error=true]:data-[focused=true]:ring-destructive flex items-start gap-2 px-3 py-2 rounded", className)}
       data-pv-component-id="Textarea"
     >
       {prefixIcon && (
         <Icon name={prefixIcon} size="sm" className="shrink-0 mt-1 text-foreground-tertiary pointer-events-none" />
       )}
       {prefixText && (
-        <span className="shrink-0 mt-1.5 text-sm text-foreground-tertiary select-none whitespace-nowrap border-r border-border-default pr-2">{prefixText}</span>
+        <span className="shrink-0 text-sm text-foreground-tertiary select-none whitespace-nowrap border-r border-border-default pr-2 mt-1">{prefixText}</span>
       )}
       <textarea
         ref={textareaRef}
@@ -154,16 +136,14 @@ export function Textarea({
         wrap={wrap}
         rows={rows}
         style={minHeightStyle}
+        data-auto-height={autoHeight ? true : undefined}
+        data-resize={autoHeight ? 'none' : resize}
         onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
         onBlur={(e) => { setIsFocused(false); onBlur?.(e); }}
         onChange={(e) => { adjustHeight(); onChange?.(e); }}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
-        className={cn(
-          "block w-full bg-transparent border-none outline-none text-sm text-foreground-default placeholder:text-foreground-tertiary disabled:cursor-not-allowed",
-          hasAdornments ? "flex-1 min-w-0 pb-1" : "px-3 py-2",
-          autoHeight ? 'resize-none overflow-hidden' : resizeClass[resize],
-        )}
+        className={cn("block w-full flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-foreground-default placeholder:text-foreground-tertiary disabled:cursor-not-allowed data-[auto-height=true]:resize-none data-[auto-height=true]:overflow-hidden data-[resize=none]:resize-none data-[resize=horizontal]:resize-x data-[resize=vertical]:resize-y data-[resize=both]:resize pt-1 pb-0 px-0")}
       />
       {suffixText && (
         <span className="shrink-0 mt-1.5 text-sm text-foreground-tertiary select-none whitespace-nowrap border-l border-border-default pl-2">{suffixText}</span>

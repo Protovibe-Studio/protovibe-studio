@@ -241,7 +241,7 @@ export function FrameContainer({
               alignItems: 'center',
               padding: '0',
               fontSize: 12,
-              fontFamily: 'Inter, system-ui, sans-serif',
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               fontWeight: 600,
               color: '#999',
               letterSpacing: '-0.2px',
@@ -308,7 +308,7 @@ export function FrameContainer({
             justifyContent: 'space-between',
             padding: '0',
             fontSize: 12,
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             fontWeight: 600,
             color: isSelected ? '#18a0fb' : '#999',
             cursor: isDragging ? 'grabbing' : 'grab',
@@ -421,7 +421,7 @@ export function FrameContainer({
               padding: '4px 0',
               minWidth: 140,
               boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              fontFamily: 'Inter, system-ui, sans-serif',
+              fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               fontSize: 12,
             }}
           >

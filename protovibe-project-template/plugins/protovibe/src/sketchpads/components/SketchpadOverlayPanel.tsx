@@ -80,7 +80,7 @@ export function SketchpadOverlayPanel({
           maxHeight: 'calc(100vh - 100px)',
           overflowY: 'auto',
           boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
       >
         {/* Header */}

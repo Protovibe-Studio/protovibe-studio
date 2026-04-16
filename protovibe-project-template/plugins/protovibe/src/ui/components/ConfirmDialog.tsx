@@ -58,7 +58,7 @@ export function ConfirmDialog({
           padding: '20px 24px',
           width: 320,
           boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

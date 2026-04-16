@@ -222,7 +222,7 @@ function EmployeesPage() {
       {/* pv-editable-zone-start:e1z2x3 */}
 
         {/* pv-block-start:em1pl2 */}
-        <TextHeading data-pv-block="em1pl2" typography="heading-lg">Employees</TextHeading>
+        <TextHeading className="" data-pv-block="em1pl2" typography="heading-lg">Employees</TextHeading>
         {/* pv-block-end:em1pl2 */}
 
         {/* pv-block-start:h4e5k6 */}

@@ -29,7 +29,7 @@ export function TextHeading({
 
   if (typography === 'heading-xxl') {
     return (
-      <h1 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-4xl text-foreground-default leading-tight font-bold", className)}>
+      <h1 {...props} data-pv-component-id="TextHeading" className={cn("m-0 text-4xl text-foreground-default leading-tight font-semibold", className)}>
         {children}
       </h1>
     );

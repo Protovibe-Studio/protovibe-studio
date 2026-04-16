@@ -178,7 +178,7 @@ export function ComponentPalette({
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         overflow: 'hidden',
         backdropFilter: 'blur(12px)',
       }}
