@@ -11,7 +11,7 @@ export function TableRowHeading({ className, children, ...props }: TableRowHeadi
       {...props}
       data-pv-component-id="TableRowHeading"
     >
-      <tr className="bg-background-secondary border-b border-border-default">
+      <tr className="border-b border-border-default bg-background-subtle">
         {children}
       </tr>
     </thead>

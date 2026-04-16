@@ -12,7 +12,7 @@ export interface TableProps extends React.HTMLAttributes<HTMLDivElement> {}
 export function Table({ className, children, ...props }: TableProps) {
   return (
     <div
-      className={cn("w-full overflow-x-auto rounded-md border border-border-default", className)}
+      className={cn("w-full overflow-x-auto border border-border-default rounded", className)}
       {...props}
       data-pv-component-id="Table"
     >

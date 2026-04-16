@@ -10,12 +10,12 @@
  --background-default: oklch(100% 0.006 260); /* page canvas */
  --background-default-hover: oklch(97.5% 0.007 259);
  --background-default-pressed: oklch(95% 0.009 258.5);
- --background-subtle: oklch(98.5% 0.007 258.5); /* zebra rows, ghost cards — between default and secondary */
- --background-subtle-hover: oklch(96.5% 0.008 258);
- --background-subtle-pressed: oklch(93.5% 0.009 259);
- --background-secondary: oklch(97% 0.008 257.5); /* cards, panels */
- --background-secondary-hover: oklch(94% 0.009 258);
- --background-secondary-pressed: oklch(90.5% 0.01 259);
+ --background-subtle: oklch(98.34% 0.00283 308.4); /* zebra rows, ghost cards — between default and secondary */
+ --background-subtle-hover: oklch(98.8% 0.00283 308.4);
+ --background-subtle-pressed: oklch(97.3% 0.00283 308.4);
+ --background-secondary: oklch(97.23% 0.0067 295.5); /* cards, panels */
+ --background-secondary-hover: oklch(98.7% 0.0067 295.5);
+ --background-secondary-pressed: oklch(97.2% 0 295.5);
  --background-tertiary: oklch(92% 0.01 260); /* code blocks, elevated */
  --background-tertiary-hover: oklch(88.5% 0.012 260);
  --background-tertiary-pressed: oklch(85% 0.014 260);
@@ -32,61 +32,57 @@
  --background-transparent-pressed: oklch(0% 0 0 / 12%);
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
- --background-primary-subtle: oklch(93% 0.05 296.6);
+ --background-primary-subtle: oklch(92% 0.02975 305.1);
  --background-primary-subtle-hover: oklch(89% 0.07 296.6);
  --background-primary-subtle-pressed: oklch(84% 0.09 296.6);
- --background-destructive-subtle: oklch(96% 0.03 25);
+ --background-destructive-subtle: oklch(92.87% 0.02889 9.7);
  --background-destructive-subtle-hover: oklch(93% 0.05 25);
  --background-destructive-subtle-pressed: oklch(89% 0.08 25);
- --background-success-subtle: oklch(96% 0.03 145);
+ --background-success-subtle: oklch(95.44% 0.05153 156.5);
  --background-success-subtle-hover: oklch(93% 0.05 145);
  --background-success-subtle-pressed: oklch(89% 0.08 145);
- --background-warning-subtle: oklch(97% 0.04 80);
- --background-warning-subtle-hover: oklch(94% 0.06 80);
- --background-warning-subtle-pressed: oklch(90% 0.09 80);
- --background-info-subtle: oklch(95% 0.03 220);
- --background-info-subtle-hover: oklch(92% 0.05 220);
- --background-info-subtle-pressed: oklch(88% 0.08 220);
+ --background-warning-subtle: oklch(95.57% 0.03086 67.4);
+ --background-warning-subtle-hover: oklch(98.4% 0.03086 67.4);
+ --background-warning-subtle-pressed: oklch(91.9% 0.03086 67.4);
+ --background-info-subtle: oklch(94.02% 0.02709 260.3);
+ --background-info-subtle-hover: oklch(96.7% 0.02709 260.3);
+ --background-info-subtle-pressed: oklch(88.2% 0.02709 260.3);
 
  /* Text */
- --foreground-default: oklch(14% 0.01 260); /* body */
- --foreground-secondary: oklch(42.4% 0.01 260); /* muted labels */
- --foreground-tertiary: oklch(58% 0.01 260); /* placeholders, captions */
+ --foreground-default: oklch(18.69% 0.01048 303.5); /* body */
+ --foreground-secondary: oklch(58.45% 0.02948 299.9); /* muted labels */
+ --foreground-tertiary: oklch(58.45% 0.02948 299.9); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
- --foreground-disabled: oklch(68% 0.01 260);
- --foreground-inverse: oklch(95% 0.01 260); /* text on dark/strong bg */
- --foreground-on-primary: oklch(98% 0.01 260); /* text inside filled primary */
- --foreground-primary: oklch(21.8% 0.31 260); /* primary-tinted text & links */
+ --foreground-disabled: oklch(76.1% 0.01747 301.1);
+ --foreground-inverse: oklch(100% 0 89.9); /* text on dark/strong bg */
+ --foreground-on-primary: oklch(100% 0 89.9); /* text inside filled primary */
+ --foreground-primary: oklch(42.77% 0.21541 292.5); /* primary-tinted text & links */
  --foreground-destructive: oklch(52% 0.22 25);
- --foreground-success: oklch(48% 0.18 145);
- --foreground-warning: oklch(50% 0.18 80);
- --foreground-info: oklch(48% 0.18 220);
+ --foreground-success: oklch(54.08% 0.13855 153.2);
+ --foreground-warning: oklch(56.88% 0.14711 51.6);
+ --foreground-info: oklch(46.57% 0.1826 259.7);
 
  /* Borders */
  --border-default: oklch(86% 0.01 260); /* default hairline */
  --border-secondary: oklch(92% 0.008 260); /* subtle divider */
  --border-strong: oklch(68% 0.01 260); /* active tab, prominent */
  --border-focus: oklch(55% 0.22 260); /* focus ring */
- --border-primary: oklch(55% 0.22 260);
+ --border-primary: oklch(42.77% 0.21541 292.5);
  --border-destructive: oklch(60% 0.22 25);
- --border-success: oklch(65% 0.18 145);
+ --border-success: oklch(62.74% 0.16087 153.2);
  --border-warning: oklch(75% 0.18 80);
  --border-info: oklch(65% 0.18 220);
 
  /* Solid accent fills */
- --primary: oklch(39.7% 0.28 260);
- --primary-hover: oklch(47% 0.22 260);
- --primary-pressed: oklch(34% 0.28 260);
- --destructive: oklch(55% 0.22 25);
+ --primary: oklch(42.77% 0.21541 292.5);
+ --primary-hover: oklch(50.1% 0.21541 292.5);
+ --primary-pressed: oklch(29.8% 0.21541 292.5);
+ --destructive: oklch(54.13% 0.22069 27.1);
  --destructive-hover: oklch(50% 0.22 25);
  --destructive-pressed: oklch(45% 0.22 25);
- --destructive-foreground: oklch(98% 0.01 0);
- --success: oklch(58% 0.18 145);
- --success-foreground: oklch(10% 0.01 145);
+ --success: oklch(62.74% 0.16087 153.2);
  --warning: oklch(67% 0.18 80);
- --warning-foreground: oklch(10% 0.01 80);
  --info: oklch(58% 0.18 220);
- --info-foreground: oklch(10% 0.01 220);
 }
 
 
@@ -167,13 +163,9 @@
  --destructive: oklch(60% 0.22 25);
  --destructive-hover: oklch(55% 0.22 25);
  --destructive-pressed: oklch(50% 0.22 25);
- --destructive-foreground: oklch(98% 0.01 0);
  --success: oklch(65% 0.18 145);
- --success-foreground: oklch(10% 0.01 145);
  --warning: oklch(75% 0.18 80);
- --warning-foreground: oklch(10% 0.01 80);
  --info: oklch(65% 0.18 220);
- --info-foreground: oklch(10% 0.01 220);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -256,13 +248,9 @@
  --color-destructive: var(--destructive);
  --color-destructive-hover: var(--destructive-hover);
  --color-destructive-pressed: var(--destructive-pressed);
- --color-destructive-foreground: var(--destructive-foreground);
  --color-success: var(--success);
- --color-success-foreground: var(--success-foreground);
  --color-warning: var(--warning);
- --color-warning-foreground: var(--warning-foreground);
  --color-info: var(--info);
- --color-info-foreground: var(--info-foreground);
 
  /* ── Palette — static, theme-independent ──────────────────────────── */
 

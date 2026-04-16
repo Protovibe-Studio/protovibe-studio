@@ -68,11 +68,11 @@ function DashboardPage() {
         <TextHeading className="" data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
-        <InfoBoxBanner className=""
+        <InfoBoxBanner color="info" className=""
           data-pv-block="i3b4c5"
           heading="Welcome back, HR Admin!"
           secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."
-          color="primary"
+          
           icon="Sparkles"
           primaryActionLabel="Review Requests"
           actionsLayout="right">
@@ -570,7 +570,7 @@ export default function App() {
     <div className="flex h-screen bg-background-default text-foreground-default font-sans overflow-hidden">
       <TooltipProvider />
       {/* Sidebar */}
-      <div className="w-64 border-r border-border-default bg-background-secondary flex flex-col shrink-0">
+      <div className="w-64 flex flex-col shrink-0 bg-background-subtle">
         <div className="h-16 flex items-center px-6 gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
             <Icon name="Hexagon" size="sm" />
@@ -579,7 +579,7 @@ export default function App() {
         </div>
         
         <div className="p-4 flex-1">
-          <TextParagraph typography="all-caps" className="mb-3 px-3">Main Menu</TextParagraph>
+          <TextParagraph typography="semibold-secondary" className="mb-3 px-3">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
             <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="LayoutDashboard" />
             <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
@@ -590,9 +590,9 @@ export default function App() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
-        <header className="h-16 border-b border-border-default flex items-center justify-end px-8 shrink-0 bg-background-secondary">
+        <header className="flex items-center justify-end px-8 shrink-0 bg-background-subtle h-12">
           <div className="flex items-center gap-3">
             <div className="relative mr-2">
               <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="Bell" />
@@ -619,7 +619,7 @@ export default function App() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-8 rounded-tl-lg bg-background-default border-t border-l border-border-default">
           <div className="max-w-6xl mx-auto">
             {currentPath === '/dashboard' && <DashboardPage />}
             {currentPath === '/employees' && <EmployeesPage />}

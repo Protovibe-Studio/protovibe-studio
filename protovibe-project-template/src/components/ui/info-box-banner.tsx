@@ -37,7 +37,7 @@ export function InfoBoxBanner({
     <div
       data-color={color}
       data-actions-layout={actionsLayout}
-      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start p-3 gap-2", className)}
+      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start p-3 gap-2 border border-border-strong/15", className)}
       {...props}
       data-pv-component-id="InfoBoxBanner"
     >
@@ -54,7 +54,7 @@ export function InfoBoxBanner({
           </p>
         )}
         {secondaryText && (
-          <p className="text-sm text-foreground-secondary py-1">
+          <p className="text-sm py-1 text-foreground-default">
             {secondaryText}
           </p>
         )}
