@@ -50,7 +50,7 @@
 
  /* Text */
  --foreground-default: oklch(18.69% 0.01048 303.5); /* body */
- --foreground-secondary: oklch(58.45% 0.02948 299.9); /* muted labels */
+ --foreground-secondary: oklch(46.81% 0.03609 299.6); /* muted labels */
  --foreground-tertiary: oklch(58.45% 0.02948 299.9); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
  --foreground-disabled: oklch(76.1% 0.01747 301.1);
@@ -651,12 +651,12 @@
  --inset-shadow-xs: inset 0 1px 1px rgb(0 0 0 / 0.05);
  --inset-shadow-sm: inset 0 2px 4px rgb(0 0 0 / 0.05);
 
- --drop-shadow-xs: 0 1px 1px rgb(0 0 0 / 0.05);
- --drop-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.15);
- --drop-shadow-md: 0 3px 3px rgb(0 0 0 / 0.12);
- --drop-shadow-lg: 0 4px 4px rgb(0 0 0 / 0.15);
- --drop-shadow-xl: 0 9px 7px rgb(0 0 0 / 0.1);
- --drop-shadow-2xl: 0 25px 25px rgb(0 0 0 / 0.15);
+ --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.05);
+ --shadow-sm: 0 10px 10px rgb(0 0 0 / 0.05);;
+ --shadow-md: 0 3px 3px rgb(0 0 0 / 0.12);
+ --shadow-lg: 0 4px 4px rgb(0 0 0 / 0.15);
+ --shadow-xl: 0 9px 7px rgb(0 0 0 / 0.1);
+ --shadow-2xl: 0 25px 25px rgb(0 0 0 / 0.15);
 
  --text-shadow-2xs: 0px 1px 0px rgb(0 0 0 / 0.15);
  --text-shadow-xs: 0px 1px 1px rgb(0 0 0 / 0.2);

@@ -151,6 +151,13 @@ export default function Frame2() {
         {/* pv-editable-zone-end:d3mff8 */}
       </Card>
       {/* pv-block-end:q2qzgb */}
+      
+      {/* pv-block-start:nrf5ce */}
+      <Card className="shadow-sm" data-pv-block="nrf5ce" data-pv-sketchpad-el="nrf5ce"  style={{ position: 'absolute', width: 131, left: 77, top: 540 }}>
+        {/* pv-editable-zone-start:4dua1z */}
+        {/* pv-editable-zone-end:4dua1z */}
+      </Card>
+      {/* pv-block-end:nrf5ce */}
       {/* pv-editable-zone-end:jr37z0 */}
     </div>
   );

@@ -233,7 +233,7 @@ function EmployeesPage() {
             {/* pv-block-end:w8x9y1 */}
             {/* pv-block-start:z2a3b4 */}
             <div data-pv-block="z2a3b4" className="flex gap-2">
-              <Button label="Export CSV" variant="outline" color="neutral" leftIcon="Download" />
+              <Button label="Export CSV" variant="solid" color="neutral" leftIcon="Download" />
               <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
             </div>
             {/* pv-block-end:z2a3b4 */}
