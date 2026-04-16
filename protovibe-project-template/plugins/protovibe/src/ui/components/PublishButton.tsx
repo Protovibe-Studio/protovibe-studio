@@ -42,7 +42,7 @@ function CloudflareLogo({ size = 20 }: { size?: number }) {
 
 function DeployHistory({ history, open, onToggle }: { history: string[]; open: boolean; onToggle: () => void }) {
   return (
-    <div style={{ marginTop: '8px' }}>
+    <div>
       <button
         onClick={onToggle}
         style={{
@@ -224,7 +224,7 @@ export function PublishButton() {
   };
 
   const sectionHeader = (label: string, icon?: React.ReactNode) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: theme.text_default, letterSpacing: '0.2px', marginBottom: '8px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: theme.text_default, letterSpacing: '0.2px' }}>
       {icon}
       {label}
     </div>
@@ -422,16 +422,14 @@ export function PublishButton() {
     }
 
     return (
-      <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* ── Popover heading ────────────────────────────────────── */}
         <div style={labelStyle}>Publish your app</div>
 
         {/* ── Published to section (shown first when a URL exists) ── */}
         {publishedUrl && (
-          <>
-            <div style={{ marginTop: '8px' }}>
-              {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
             <a href={publishedUrl} target="_blank" rel="noreferrer"
               style={{ display: 'block', fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
@@ -442,56 +440,57 @@ export function PublishButton() {
             {deployHistory.length > 0 && (
               <DeployHistory history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
             )}
-            <div style={{ height: '12px' }} />
-          </>
+          </div>
         )}
 
         {/* ── Deploy section ─────────────────────────────────────── */}
-        {sectionHeader('Deploy project')}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {sectionHeader('Deploy project')}
 
-        {nameIsSaved ? (
-          <>
-            {/* Show saved project name as a label with Edit */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-              <span style={{ fontSize: '12px', color: theme.text_default, fontWeight: 500 }}>{savedProjectName}</span>
+          {nameIsSaved ? (
+            <>
+              {/* Show saved project name as a label with Edit */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '12px', color: theme.text_default, fontWeight: 500 }}>{savedProjectName}</span>
+                <button
+                  onClick={openNameForm}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '3px',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+                    color: theme.text_tertiary, fontSize: '11px', fontFamily: 'sans-serif',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; }}
+                >
+                  <Pencil size={10} />
+                  Edit project name
+                </button>
+              </div>
+
               <button
-                onClick={openNameForm}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '3px',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-                  color: theme.text_tertiary, fontSize: '11px', fontFamily: 'sans-serif',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; }}
+                onClick={() => handlePublish()}
+                style={{ ...actionBtnBase, marginTop: '8px' }}
+                onMouseEnter={hoverOn}
+                onMouseLeave={hoverOff}
               >
-                <Pencil size={10} />
-                Edit project name
+                <CloudflareLogo size={16} />
+                Publish to Cloudflare
               </button>
-            </div>
-
+            </>
+          ) : (
+            /* No project name yet — just show the publish button that opens the name form */
             <button
-              onClick={() => handlePublish()}
-              style={actionBtnBase}
+              onClick={openNameForm}
+              style={{ ...actionBtnBase, marginTop: '8px' }}
               onMouseEnter={hoverOn}
               onMouseLeave={hoverOff}
             >
               <CloudflareLogo size={16} />
               Publish to Cloudflare
             </button>
-          </>
-        ) : (
-          /* No project name yet — just show the publish button that opens the name form */
-          <button
-            onClick={openNameForm}
-            style={actionBtnBase}
-            onMouseEnter={hoverOn}
-            onMouseLeave={hoverOff}
-          >
-            <CloudflareLogo size={16} />
-            Publish to Cloudflare
-          </button>
-        )}
-      </>
+          )}
+        </div>
+      </div>
     );
   };
 
