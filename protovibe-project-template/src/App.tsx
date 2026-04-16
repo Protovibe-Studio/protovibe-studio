@@ -579,7 +579,7 @@ export default function App() {
         </div>
         
         <div className="p-4 flex-1">
-          <TextParagraph typography="semibold-secondary" className="mb-3 px-3">Main Menu</TextParagraph>
+          <TextParagraph typography="semibold-secondary" className="mb-3 px-3 text-sm">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
             <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="LayoutDashboard" />
             <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />

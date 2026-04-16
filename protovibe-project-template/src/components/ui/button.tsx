@@ -38,7 +38,7 @@ export function Button({
       data-pv-component-id="Button"
     >
       {leftIcon && <Icon name={leftIcon} size={size === 'lg' ? 'md' : 'sm'} />}
-      {label && !iconOnly && <span>{label}</span>}
+      {label && !iconOnly && <span className="leading-none">{label}</span>}
       {rightIcon && <Icon name={rightIcon} size={size === 'lg' ? 'md' : 'sm'} />}
     </button>
   );
