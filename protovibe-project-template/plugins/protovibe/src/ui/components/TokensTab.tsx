@@ -2,7 +2,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken } from '../api/client';
+import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken, updateFontFamily } from '../api/client';
+import { FontFamilyPicker } from './FontFamilyPicker';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
 import { cssColorToHex } from '../utils/colorConversion';
@@ -270,6 +271,15 @@ export const TokensTab: React.FC = () => {
     }
   }, [refreshThemeTokens]);
 
+  const handleFontFamilySave = useCallback(async (tokenName: string, value: string, googleFontName?: string) => {
+    try {
+      await updateFontFamily(tokenName, value, googleFontName);
+      refreshThemeTokens();
+    } catch (err) {
+      console.error('[protovibe] Failed to update font family:', err);
+    }
+  }, [refreshThemeTokens]);
+
   const handleSave = useCallback(async (oklchValue: string) => {
     if (!editing) return;
     setSaving(true);
@@ -533,18 +543,26 @@ export const TokensTab: React.FC = () => {
                     }} title={`--${t.name}`}>
                       --{t.name}
                     </span>
-                    <input
-                      defaultValue={t.value}
-                      onBlur={e => { if (e.target.value !== t.value) handleTokenSave(t.name, e.target.value); }}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
-                      style={{
-                        width: '100%', boxSizing: 'border-box',
-                        fontFamily: 'monospace', fontSize: '11px',
-                        background: theme.bg_secondary, color: theme.text_default,
-                        border: `1px solid ${theme.border_default}`, borderRadius: 4,
-                        padding: '3px 6px', outline: 'none',
-                      }}
-                    />
+                    {activeCategoryObj?.id === 'font-family' ? (
+                      <FontFamilyPicker
+                        tokenName={t.name}
+                        value={t.value}
+                        onSave={(value, googleFontName) => handleFontFamilySave(t.name, value, googleFontName)}
+                      />
+                    ) : (
+                      <input
+                        defaultValue={t.value}
+                        onBlur={e => { if (e.target.value !== t.value) handleTokenSave(t.name, e.target.value); }}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
+                        style={{
+                          width: '100%', boxSizing: 'border-box',
+                          fontFamily: 'monospace', fontSize: '11px',
+                          background: theme.bg_secondary, color: theme.text_default,
+                          border: `1px solid ${theme.border_default}`, borderRadius: 4,
+                          padding: '3px 6px', outline: 'none',
+                        }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

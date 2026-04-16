@@ -7,7 +7,10 @@
       "Bash(grep -n \"handleGetComponents\\\\|__get-components\\\\|\\\\.use\\(\" /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-template/plugins/protovibe/src/backend -r --include=*.ts)",
       "Bash(npx tsc:*)",
       "Bash(node -e \"const l=require\\('lucide-react'\\);['LayoutTemplate','Wand','Rocket','PencilRuler','PenTool','Package','Blocks','FileEdit','Pencil','Palette','MousePointerClick','Plus','SquarePen'].forEach\\(n=>console.log\\(n, n in l.icons\\)\\);\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(xargs ls *)",
+      "Bash(grep -l \"export\\\\|Popover\\\\|Select\\\\|Dropdown\\\\|Input\\\\|Button\" /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-template/plugins/protovibe/src/ui/components/*.tsx)"
     ]
   },
   "outputStyle": "Explanatory"

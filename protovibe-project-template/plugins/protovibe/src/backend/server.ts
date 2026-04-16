@@ -1827,6 +1827,54 @@ export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => 
   });
 };
 
+// ─── Font Family ──────────────────────────────────────────────────────────────
+
+/** Remove the managed Google Font @import for a given token slot (e.g. "font-sans"). */
+function removeGoogleFontImport(css: string, tokenSlot: string): string {
+  // Each managed block looks like:
+  //   /* pv-google-font:font-sans */\n@import url('...');\n
+  const pattern = new RegExp(
+    `\\/\\* pv-google-font:${tokenSlot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\*\\/\\n@import url\\([^)]+\\);\\n`,
+    'g'
+  );
+  return css.replace(pattern, '');
+}
+
+/** Prepend a managed Google Font @import for a given token slot at the top of the CSS. */
+function addGoogleFontImport(css: string, tokenSlot: string, fontName: string): string {
+  const encodedName = fontName.replace(/ /g, '+');
+  const importLine = `/* pv-google-font:${tokenSlot} */\n@import url('https://fonts.googleapis.com/css2?family=${encodedName}:wght@400;700&display=swap');\n`;
+  return importLine + css;
+}
+
+export const handleUpdateFontFamily: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { tokenName, value, googleFontName } = JSON.parse(body);
+      const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
+      let css = fs.readFileSync(cssFilePath, 'utf-8');
+      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
+      redoStack.length = 0;
+      // Remove existing managed import for this slot
+      css = removeGoogleFontImport(css, tokenName);
+      // Add new import if a Google Font was selected
+      if (googleFontName) {
+        css = addGoogleFontImport(css, tokenName, googleFontName);
+      }
+      // Update the CSS variable in @theme
+      css = updateCssVariable(css, '@theme', tokenName, value);
+      fs.writeFileSync(cssFilePath, css, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
 // ─── Cloudflare Pages publish ─────────────────────────────────────────────────
 
 type CfPublishStatus =

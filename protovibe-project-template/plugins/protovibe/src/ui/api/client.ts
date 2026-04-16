@@ -175,6 +175,15 @@ export async function updateThemeToken(tokenName: string, value: string): Promis
   if (!res.ok) throw new Error('Failed to update theme token');
 }
 
+export async function updateFontFamily(tokenName: string, value: string, googleFontName?: string): Promise<void> {
+  const res = await fetch('/__update-font-family', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tokenName, value, googleFontName }),
+  });
+  if (!res.ok) throw new Error('Failed to update font family');
+}
+
 export async function uploadImage(file: File): Promise<string> {
   const base64Data = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
