@@ -1851,6 +1851,27 @@ interface CfPublishState {
 }
 
 let cfState: CfPublishState = { status: 'idle', message: '' };
+let cfStateTimestamp = 0;
+
+/** If cfState has been stuck in an active status for longer than this, treat it as stale and allow re-entry. */
+const CF_STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
+function isCfBusy(): boolean {
+  const active: CfPublishStatus[] = ['installing-wrangler', 'building', 'publishing', 'waiting-for-browser-approval'];
+  if (!active.includes(cfState.status)) return false;
+  // Guard against permanently stuck state: if it's been active for too long, treat as stale
+  if (Date.now() - cfStateTimestamp > CF_STALE_TIMEOUT_MS) {
+    console.warn('[protovibe:cloudflare] Stale active state detected, resetting.');
+    cfState = { status: 'error', message: 'Previous operation timed out.' };
+    return false;
+  }
+  return true;
+}
+
+function setCfState(state: CfPublishState): void {
+  cfState = state;
+  cfStateTimestamp = Date.now();
+}
 
 const PUBLISH_META_PATH = path.resolve(process.cwd(), 'protovibe-data.json');
 
@@ -1881,78 +1902,118 @@ function parseWranglerAccounts(output: string): Array<{ id: string; name: string
   return accounts;
 }
 
+/** Environment overrides that suppress all interactive wrangler prompts. */
+const WRANGLER_NON_INTERACTIVE_ENV: Record<string, string> = {
+  CI: '1',
+  WRANGLER_SEND_METRICS: 'false',
+  DO_NOT_TRACK: '1',
+};
+
 function spawnCmd(
   cmd: string,
   args: string[],
-  opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void },
+  opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void; timeoutMs?: number },
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe' });
     let out = '';
+    let settled = false;
+    const settle = (fn: typeof resolve | typeof reject, val: string | Error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      (fn as any)(val);
+    };
+
     const onChunk = (buf: Buffer) => { const t = buf.toString(); out += t; opts.onData?.(t); };
     child.stdout.on('data', onChunk);
     child.stderr.on('data', onChunk);
-    child.on('close', (code) => (code === 0 ? resolve(out) : reject(new Error(`[exit ${code}] ${out.slice(-600)}`))));
-    child.on('error', reject);
+    child.on('close', (code) =>
+      code === 0
+        ? settle(resolve, out)
+        : settle(reject, new Error(`[exit ${code}] ${out.slice(-600)}`)),
+    );
+    child.on('error', (err) => settle(reject, err));
+
+    const timeoutMs = opts.timeoutMs ?? 3 * 60 * 1000; // default 3 min
+    const timer = setTimeout(() => {
+      child.kill('SIGTERM');
+      setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 5000);
+      settle(reject, new Error(`Command timed out after ${timeoutMs / 1000}s. Output:\n${out.slice(-400)}`));
+    }, timeoutMs);
   });
 }
 
 async function runCloudflarePublish(projectName: string, accountId?: string, apiToken?: string): Promise<void> {
   const cwd = process.cwd();
-  const baseEnv = { ...process.env };
+  const baseEnv: NodeJS.ProcessEnv = { ...process.env, ...WRANGLER_NON_INTERACTIVE_ENV };
   if (apiToken) {
     baseEnv.CLOUDFLARE_API_TOKEN = apiToken;
   }
 
+  // 0. Verify wrangler is available
+  try {
+    await spawnCmd('pnpm', ['exec', 'wrangler', '--version'], { cwd, env: baseEnv, timeoutMs: 15_000 });
+  } catch {
+    setCfState({ status: 'error', message: 'Wrangler is not installed. Run `pnpm add -D wrangler` and try again.' });
+    return;
+  }
+
   // 1. Verify auth / get account list
-  cfState = { status: 'publishing', message: 'Checking Cloudflare login…' };
+  setCfState({ status: 'publishing', message: 'Checking Cloudflare login…' });
   let whoami = '';
   try {
-    whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: { ...baseEnv, CI: '1' } });
-    
-    if (whoami.includes('You are not authenticated')) {
+    whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: baseEnv, timeoutMs: 30_000 });
+
+    if (whoami.includes('You are not authenticated') || whoami.includes('not logged in')) {
       if (apiToken) {
-        cfState = { status: 'error', message: 'Invalid Cloudflare API Token.', error: whoami };
+        setCfState({ status: 'error', message: 'Invalid Cloudflare API Token.', error: whoami });
         return;
       }
-      cfState = { status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' };
+      setCfState({ status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' });
       return;
     }
   } catch (whoamiErr) {
+    const errStr = String(whoamiErr);
     if (apiToken) {
-      cfState = { status: 'error', message: 'Invalid Cloudflare API Token.', error: String(whoamiErr) };
+      setCfState({ status: 'error', message: 'Invalid Cloudflare API Token.', error: errStr });
       return;
     }
-    cfState = { status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' };
+    // Distinguish between "not logged in" and genuine failures (network, wrangler crash)
+    if (errStr.includes('not authenticated') || errStr.includes('not logged in')) {
+      setCfState({ status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' });
+    } else {
+      setCfState({ status: 'error', message: 'Failed to verify Cloudflare credentials.', error: errStr });
+    }
     return;
   }
 
   // 2. Account selection (only when no explicit account provided)
   const accounts = parseWranglerAccounts(whoami);
   if (!accountId && accounts.length > 1) {
-    cfState = { status: 'account-selection', message: 'Select a Cloudflare account to deploy to.', accounts };
+    setCfState({ status: 'account-selection', message: 'Select a Cloudflare account to deploy to.', accounts });
     return;
   }
   const resolvedAccount = accountId ?? accounts[0]?.id;
 
   // 3. Build
-  cfState = { status: 'building', message: 'Building project…' };
+  setCfState({ status: 'building', message: 'Building project…' });
   try {
-    await spawnCmd('pnpm', ['build'], { cwd });
+    await spawnCmd('pnpm', ['build'], { cwd, timeoutMs: 5 * 60 * 1000 });
   } catch (err) {
-    cfState = { status: 'error', message: 'Build failed.', error: String(err) };
+    setCfState({ status: 'error', message: 'Build failed.', error: String(err) });
     return;
   }
 
   // 4. Ensure the Pages project exists (create if missing; ignore "already exists" errors)
-  cfState = { status: 'publishing', message: 'Ensuring Cloudflare Pages project exists…' };
-  const projectEnv: NodeJS.ProcessEnv = { ...baseEnv, CI: '1' };
+  setCfState({ status: 'publishing', message: 'Ensuring Cloudflare Pages project exists…' });
+  const projectEnv: NodeJS.ProcessEnv = { ...baseEnv };
   if (resolvedAccount) projectEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
   try {
     await spawnCmd(
       'pnpm',
       ['exec', 'wrangler', 'pages', 'project', 'create', projectName, '--production-branch', 'main'],
-      { cwd, env: projectEnv },
+      { cwd, env: projectEnv, timeoutMs: 30_000 },
     );
   } catch (err) {
     // "already exists" is expected on subsequent deploys — any other error is surfaced below
@@ -1963,15 +2024,15 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
   }
 
   // 5. Deploy
-  cfState = { status: 'publishing', message: 'Deploying to Cloudflare Pages…' };
-  const deployEnv: NodeJS.ProcessEnv = { ...baseEnv, CI: '1' };
+  setCfState({ status: 'publishing', message: 'Deploying to Cloudflare Pages…' });
+  const deployEnv: NodeJS.ProcessEnv = { ...baseEnv };
   if (resolvedAccount) deployEnv.CLOUDFLARE_ACCOUNT_ID = resolvedAccount;
 
   try {
     const output = await spawnCmd(
       'pnpm',
       ['exec', 'wrangler', 'pages', 'deploy', './dist', '--project-name', projectName, '--branch', 'main'],
-      { cwd, env: deployEnv },
+      { cwd, env: deployEnv, timeoutMs: 3 * 60 * 1000 },
     );
     const hashedMatch = output.match(/https?:\/\/[^\s]+\.pages\.dev[^\s]*/);
     const hashedUrl = hashedMatch ? hashedMatch[0].replace(/[.,;)]+$/, '') : undefined;
@@ -1987,9 +2048,9 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     meta['cloudflare-deploy-history'] = history;
     writePublishMeta(meta);
 
-    cfState = { status: 'success', message: 'Deployed successfully!', url: canonicalUrl };
+    setCfState({ status: 'success', message: 'Deployed successfully!', url: canonicalUrl });
   } catch (err) {
-    cfState = { status: 'error', message: 'Deployment failed.', error: String(err) };
+    setCfState({ status: 'error', message: 'Deployment failed.', error: String(err) });
   }
 }
 
@@ -2036,8 +2097,7 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
   req.on('end', () => {
     try {
       const { accountId, apiToken } = JSON.parse(body || '{}');
-      const active: CfPublishStatus[] = ['installing-wrangler', 'building', 'publishing', 'waiting-for-browser-approval'];
-      if (active.includes(cfState.status)) {
+      if (isCfBusy()) {
         res.statusCode = 409;
         return res.end(JSON.stringify({ error: 'Publish already in progress.' }));
       }
@@ -2048,7 +2108,7 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
         return res.end(JSON.stringify({ error: 'Project name not set.' }));
       }
       runCloudflarePublish(projectName, accountId || undefined, apiToken || undefined).catch((err) => {
-        cfState = { status: 'error', message: 'Unexpected error.', error: String(err) };
+        setCfState({ status: 'error', message: 'Unexpected error.', error: String(err) });
       });
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -2067,10 +2127,16 @@ export const handleCloudflarePublishStatus: Connect.NextHandleFunction = (_req, 
 export const handleCloudflareLoginStart: Connect.NextHandleFunction = (req, res) => {
   try {
     console.log('\n[protovibe:cloudflare] === Starting Login Process ===');
-    cfState = { status: 'waiting-for-browser-approval', message: 'Generating login link…' };
-    
+
+    if (isCfBusy()) {
+      res.statusCode = 409;
+      return res.end(JSON.stringify({ error: 'Another operation is already in progress.' }));
+    }
+
+    setCfState({ status: 'waiting-for-browser-approval', message: 'Generating login link…' });
+
     const cwd = process.cwd();
-    
+
     // 1. Write a temporary CommonJS pre-loader script to spoof the TTY environment
     const spoofScriptPath = path.join(cwd, '.pv-spoof-tty.cjs');
     const spoofScriptContent = `
@@ -2084,17 +2150,21 @@ export const handleCloudflareLoginStart: Connect.NextHandleFunction = (req, res)
     fs.writeFileSync(spoofScriptPath, spoofScriptContent, 'utf-8');
 
     // 2. Set up environment variables to inject the script and suppress browser launch
+    //    Note: WRANGLER_SEND_METRICS and DO_NOT_TRACK suppress the telemetry prompt that
+    //    would otherwise hang the process on first-ever wrangler run.
     const existingNodeOptions = process.env.NODE_OPTIONS || '';
-    const env = { 
+    const env: NodeJS.ProcessEnv = {
       ...process.env,
       BROWSER: 'none',
       FORCE_COLOR: '0',
+      WRANGLER_SEND_METRICS: 'false',
+      DO_NOT_TRACK: '1',
       NODE_OPTIONS: `${existingNodeOptions} --require "${spoofScriptPath}"`.trim()
     };
-    delete env.CI; // Must unset CI to force interactive behavior
+    delete env.CI; // Must unset CI to force interactive behavior for the login flow
 
     console.log('[protovibe:cloudflare] Spawning pnpm exec wrangler login...');
-    
+
     // 3. Spawn the standard CLI command (letting pnpm handle the binary resolution)
     const child = spawn('pnpm', ['exec', 'wrangler', 'login'], {
       cwd,
@@ -2108,38 +2178,58 @@ export const handleCloudflareLoginStart: Connect.NextHandleFunction = (req, res)
       const t = buf.toString();
       out += t;
       console.log('[wrangler]:', t.trim());
-      
+
       const lower = t.toLowerCase();
       // Wait for the permission prompt before sending the affirmative response
       if (lower.includes('allow wrangler to open a page') || lower.includes('open a page in your browser')) {
         console.log('[protovibe:cloudflare] Saw prompt! Writing "y" to stdin...');
         child.stdin.write('y\n');
       }
-      
+
+      // Auto-answer any other yes/no prompts wrangler might throw (e.g. update prompt)
+      if (lower.includes('would you like to') || lower.includes('do you want to')) {
+        console.log('[protovibe:cloudflare] Saw unexpected prompt, answering "n":', t.trim());
+        child.stdin.write('n\n');
+      }
+
       // Capture the OAuth URL to present in the UI
       const match = out.match(/(https:\/\/dash\.cloudflare\.com\/oauth2\/[^\s]+)/);
       if (match && cfState.status === 'waiting-for-browser-approval' && !cfState.authUrl) {
-        console.log('[protovibe:cloudflare] ✅ OAuth URL captured successfully!');
-        cfState = { ...cfState, authUrl: match[1] };
+        console.log('[protovibe:cloudflare] OAuth URL captured successfully!');
+        setCfState({ ...cfState, authUrl: match[1] });
       }
     };
 
     child.stdout.on('data', onChunk);
     child.stderr.on('data', onChunk);
 
+    // 4. Timeout: if the user never completes OAuth in the browser, kill the process
+    const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+    const loginTimer = setTimeout(() => {
+      console.warn('[protovibe:cloudflare] Login timed out, killing wrangler process.');
+      child.kill('SIGTERM');
+      setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 5000);
+      setCfState({ status: 'error', message: 'Login timed out. Please try again.' });
+    }, LOGIN_TIMEOUT_MS);
+
     child.on('close', (code) => {
+      clearTimeout(loginTimer);
       console.log(`[protovibe:cloudflare] Process exited with code ${code}`);
-      
+
       // Clean up the temporary script
-      if (fs.existsSync(spoofScriptPath)) {
-        fs.unlinkSync(spoofScriptPath);
-      }
+      try { if (fs.existsSync(spoofScriptPath)) fs.unlinkSync(spoofScriptPath); } catch {}
 
       if (code === 0) {
-        cfState = { status: 'idle', message: 'Logged in successfully.' };
+        setCfState({ status: 'idle', message: 'Logged in successfully.' });
       } else if (cfState.status === 'waiting-for-browser-approval') {
-        cfState = { status: 'error', message: 'Login failed.', error: out };
+        setCfState({ status: 'error', message: 'Login failed.', error: out.slice(-600) });
       }
+    });
+
+    child.on('error', (err) => {
+      clearTimeout(loginTimer);
+      try { if (fs.existsSync(spoofScriptPath)) fs.unlinkSync(spoofScriptPath); } catch {}
+      setCfState({ status: 'error', message: 'Failed to start login process.', error: String(err) });
     });
 
     res.setHeader('Content-Type', 'application/json');

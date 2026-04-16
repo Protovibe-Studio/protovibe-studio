@@ -457,7 +457,7 @@ export function PublishButton() {
             <>
               {/* Show saved project name as a label with Edit */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: theme.text_default, fontWeight: 500 }}>{savedProjectName}</span>
+                <span style={{ fontSize: '12px', color: theme.text_secondary, fontWeight: 500 }}>{savedProjectName}</span>
                 <button
                   onClick={openNameForm}
                   style={{

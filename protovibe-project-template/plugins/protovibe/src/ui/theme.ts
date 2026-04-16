@@ -11,7 +11,7 @@ export const theme = {
   text_default: '#FFFFFF',     // Active/Primary text
   text_secondary: '#B3B3B3',   // Standard text, labels
   text_tertiary: '#7c7c7c',    // Muted text, placeholders
-  text_low: '#646464',         // Lowest text
+  text_low: '#6d6d6d',         // Lowest text
 
   // Accents (Figma Blue)
   accent_default: '#18A0FB',
