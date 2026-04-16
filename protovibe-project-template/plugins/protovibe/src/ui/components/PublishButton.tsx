@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share2, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil } from 'lucide-react';
+import { Share2, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb } from 'lucide-react';
 import { theme } from '../theme';
 import {
   fetchCloudflarePublishMetadata,
@@ -330,9 +330,15 @@ export function PublishButton() {
       return (
         <>
           <div style={labelStyle}>Publishing…</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '12px' }}>
             <Loader2 size={14} style={spinStyle} />
             {statusMessage || 'Working…'}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', padding: '10px', backgroundColor: theme.bg_secondary, borderRadius: '6px', marginTop: '12px' }}>
+            <Lightbulb size={14} style={{ color: theme.accent_default, flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ fontSize: '11px', color: theme.text_secondary, lineHeight: '1.5' }}>
+              Free Cloudflare plan has a monthly limit of 500 deployments. Try not to deploy too often during development.
+            </div>
           </div>
         </>
       );

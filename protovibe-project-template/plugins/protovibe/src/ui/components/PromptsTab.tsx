@@ -11,19 +11,13 @@ import {
   FolderOpen,
   Terminal,
   MousePointer2,
-  icons as LucideIcons,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
-import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/registry';
+import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/prompts-registry';
 
 type Step = 1 | 2 | 3;
 
-function LucideIcon({ name, size = 14 }: { name: string; size?: number }) {
-  const Cmp = (LucideIcons as any)[name];
-  if (!Cmp) return <span style={{ width: size, height: size, display: 'inline-block' }} />;
-  return <Cmp size={size} strokeWidth={1.8} />;
-}
 
 function useProjectRoot() {
   const [root, setRoot] = useState<string | null>(null);
@@ -406,7 +400,7 @@ export const PromptsTab: React.FC = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, color: theme.text_default,
               }}>
-                <LucideIcon name={p.icon} size={15} />
+                {React.createElement(p.icon, { size: 15, strokeWidth: 1.8 })}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 600 }}>{p.title}</div>
@@ -456,7 +450,7 @@ export const PromptsTab: React.FC = () => {
           >
             <ArrowLeft size={16} />
           </button>
-          <LucideIcon name={selectedPrompt.icon} size={14} />
+          {React.createElement(selectedPrompt.icon, { size: 14, strokeWidth: 1.8 })}
           <span style={{ fontFamily: 'sans-serif', fontSize: 14, fontWeight: 600, color: theme.text_default }}>
             {selectedPrompt.title}
           </span>

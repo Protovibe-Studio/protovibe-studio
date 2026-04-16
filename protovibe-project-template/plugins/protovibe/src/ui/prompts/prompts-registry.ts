@@ -1,4 +1,4 @@
-// plugins/protovibe/src/ui/prompts/registry.ts
+// plugins/protovibe/src/ui/prompts/prompts-registry.ts
 //
 // Registry of prompt templates shown in the Protovibe "Prompts" sidebar tab.
 // Edit this file to add, remove, or tweak prompts. Each entry is self-contained
@@ -16,6 +16,18 @@
 // When a reference is missing (e.g. no selection), the placeholder is
 // replaced with a readable fallback like "(no file selected)".
 
+import type { LucideIcon } from 'lucide-react';
+import {
+  LayoutTemplate,
+  Wand,
+  Rocket,
+  PencilRuler,
+  Blocks,
+  SquarePen,
+  Palette,
+  MousePointerClick,
+} from 'lucide-react';
+
 export type PromptFieldRef =
   | 'file'
   | 'code'
@@ -29,8 +41,8 @@ export interface PromptDef {
   title: string;
   /** One-line description shown under the title. */
   description: string;
-  /** Lucide icon name (see https://lucide.dev). */
-  icon: string;
+  /** Lucide icon component. Only the icons listed here are bundled. */
+  icon: LucideIcon;
   /** Label rendered above the textarea on step 1. */
   inputLabel: string;
   /** Placeholder inside the textarea. */
@@ -58,7 +70,7 @@ export const PROMPTS: PromptDef[] = [
     id: 'create-view',
     title: 'Create new view or feature',
     description: 'Add a brand-new page or feature to the app, wired into the existing querystring routing.',
-    icon: 'LayoutTemplate',
+    icon: LayoutTemplate,
     inputLabel: 'Create a new view or feature that…',
     inputPlaceholder: 'shows a settings page with profile, notifications, and billing sections',
     requiresSelection: false,
@@ -80,7 +92,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'generate-inside-selection',
     title: 'Generate inside selection',
     description: 'Fill the currently selected element with new content or child components.',
-    icon: 'Wand',
+    icon: Wand,
     inputLabel: 'Inside this element, generate…',
     inputPlaceholder: 'a 3-column pricing grid with Starter, Pro, and Enterprise cards',
     references: ['file', 'blockId', 'lineRange', 'code'],
@@ -101,7 +113,7 @@ Reuse components from \`@/components/ui/\` whenever possible. ${AGENTS_RULES_SUF
     id: 'sketchpad-to-app',
     title: 'Convert sketchpad to app',
     description: 'Turn a rough sketchpad element into a real, production-ready piece of the App.tsx layout.',
-    icon: 'Rocket',
+    icon: Rocket,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'place it inside the dashboard main column, above the stats cards',
     references: ['file', 'blockId', 'lineRange', 'code'],
@@ -132,7 +144,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'element-to-sketchpad',
     title: 'Convert element to sketchpad',
     description: 'Take the selected element and create a new sketchpad version of it for freeform editing.',
-    icon: 'PencilRuler',
+    icon: PencilRuler,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'simplify the header to just a title and a button',
     references: ['file', 'blockId', 'lineRange', 'code'],
@@ -160,7 +172,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'new-component',
     title: 'New component',
     description: 'Create a new reusable UI component in components/ui, following project conventions.',
-    icon: 'Blocks',
+    icon: Blocks,
     inputLabel: 'Create a new component that…',
     inputPlaceholder: 'is a Stat tile showing a label, large value, and optional trend indicator',
     requiresSelection: false,
@@ -183,7 +195,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'edit-component',
     title: 'Edit component',
     description: 'Modify the component definition of the currently selected element.',
-    icon: 'SquarePen',
+    icon: SquarePen,
     inputLabel: 'Edit this component so that…',
     inputPlaceholder: 'the outline variant uses a dashed border and a smaller hover shadow',
     references: ['file', 'blockId', 'lineRange', 'code'],
@@ -209,7 +221,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'restyle-element',
     title: 'Restyle element',
     description: 'Adjust the visual design of the selected element using only Tailwind utilities and semantic tokens.',
-    icon: 'Palette',
+    icon: Palette,
     inputLabel: 'Restyle this element to…',
     inputPlaceholder: 'feel more compact with a softer secondary background',
     references: ['file', 'blockId', 'code'],
@@ -235,7 +247,7 @@ ${AGENTS_RULES_SUFFIX}`,
     id: 'add-interaction',
     title: 'Add interaction',
     description: 'Add a small, specific piece of interactivity to the selected element.',
-    icon: 'MousePointerClick',
+    icon: MousePointerClick,
     inputLabel: 'Add this interaction:',
     inputPlaceholder: 'clicking the Actions button opens a dropdown with Edit and Delete',
     references: ['file', 'blockId', 'lineRange', 'code'],
