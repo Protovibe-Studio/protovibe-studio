@@ -136,7 +136,7 @@ export default function Frame1() {
           <DropdownSeparator data-pv-block="pjpi9b" />
           {/* pv-block-end:pjpi9b */}
           {/* pv-block-start:pxxcwh */}
-          <DropdownItem data-pv-block="pxxcwh" label="Delete" prefixIcon="Trash2" destructive={true} />
+          <DropdownItem data-pv-block="pxxcwh" label="Delete" prefixIcon="trash" destructive={true} />
           {/* pv-block-end:pxxcwh */}
         {/* pv-editable-zone-end:wdq1jz */}
       </DropdownButton>

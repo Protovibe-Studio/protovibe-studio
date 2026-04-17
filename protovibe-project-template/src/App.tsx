@@ -147,7 +147,7 @@ function DashboardPage() {
                 </TextHeading>
                 {/* pv-block-end:r5s6t7 */}
                 {/* pv-block-start:u8v9w1 */}
-                <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="TrendingUp" />
+                <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="trending-up" />
                 {/* pv-block-end:u8v9w1 */}
               {/* pv-editable-zone-end:c8d9e1 */}
             </Card>
@@ -172,7 +172,7 @@ function DashboardPage() {
                 <TextHeading data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextHeading>
                 {/* pv-block-end:p2q3r4 */}
                 {/* pv-block-start:s5t6u7 */}
-                <Badge data-pv-block="s5t6u7" label="4 critical to fill" color="warning" prefixIcon="AlertCircle" />
+                <Badge data-pv-block="s5t6u7" label="4 critical to fill" color="warning" prefixIcon="alert-circle" />
                 {/* pv-block-end:s5t6u7 */}
               {/* pv-editable-zone-end:a5b6c7 */}
             </Card>
@@ -197,7 +197,7 @@ function DashboardPage() {
                 <TextHeading data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextHeading>
                 {/* pv-block-end:n8o9p1 */}
                 {/* pv-block-start:q2r3s4 */}
-                <Badge data-pv-block="q2r3s4" label="2 returning this week" color="info" prefixIcon="Clock" />
+                <Badge data-pv-block="q2r3s4" label="2 returning this week" color="info" prefixIcon="clock" />
                 {/* pv-block-end:q2r3s4 */}
               {/* pv-editable-zone-end:y2z3a4 */}
             </Card>
@@ -233,12 +233,12 @@ function EmployeesPage() {
         <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* pv-editable-zone-start:t5u6v7 */}
             {/* pv-block-start:w8x9y1 */}
-            <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="Search" className="bg-background-default" />
+            <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="search" className="bg-background-default" />
             {/* pv-block-end:w8x9y1 */}
             {/* pv-block-start:z2a3b4 */}
             <div data-pv-block="z2a3b4" className="flex gap-2">
-              <Button label="Export CSV" variant="solid" color="neutral" leftIcon="Download" />
-              <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="Plus" />
+              <Button label="Export CSV" variant="solid" color="neutral" leftIcon="download" />
+              <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="plus" />
             </div>
             {/* pv-block-end:z2a3b4 */}
           {/* pv-editable-zone-end:t5u6v7 */}
@@ -327,7 +327,7 @@ function PositionsPage() {
             <TextHeading data-pv-block="h3i4j5" typography="heading-lg">Open Positions</TextHeading>
             {/* pv-block-end:h3i4j5 */}
             {/* pv-block-start:k6l7m8 */}
-            <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="Plus"  color="primary" />
+            <Button data-pv-block="k6l7m8" label="Create Requisition" leftIcon="plus"  color="primary" />
             {/* pv-block-end:k6l7m8 */}
           {/* pv-editable-zone-end:e1f2g3 */}
         </div>
@@ -391,7 +391,7 @@ function DepartmentsPage() {
             <TextHeading data-pv-block="q3r4s5" typography="heading-lg">Departments</TextHeading>
             {/* pv-block-end:q3r4s5 */}
             {/* pv-block-start:t6u7v8 */}
-            <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="Plus"  color="primary" />
+            <Button data-pv-block="t6u7v8" label="Add Department" leftIcon="plus"  color="primary" />
             {/* pv-block-end:t6u7v8 */}
           {/* pv-editable-zone-end:n9o1p2 */}
         </div>
@@ -586,8 +586,8 @@ export default function App() {
           <TextParagraph typography="semibold-secondary" className="mb-3 px-3 text-sm">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
             <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="mdi:home" />
-            <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
-            <VerticalTabItem value="/positions" label="Positions" prefixIcon="Briefcase" />
+            <VerticalTabItem value="/employees" label="Employees" prefixIcon="users" />
+            <VerticalTabItem value="/positions" label="Positions" prefixIcon="briefcase" />
             <VerticalTabItem value="/departments" label="Departments" prefixIcon="material-symbols:graph-2" />
           </VerticalTabs>
         </div>
@@ -599,7 +599,7 @@ export default function App() {
         <header className="flex items-center justify-end px-8 shrink-0 bg-background-subtle h-12">
           <div className="flex items-center gap-3">
             <div className="relative mr-2">
-              <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="Bell" />
+              <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="bell" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border border-background-default"></span>
             </div>
             
@@ -612,11 +612,11 @@ export default function App() {
               </button>
               
               <DropdownList width="sm" className="mt-1">
-                <DropdownItem label="Profile" prefixIcon="User" />
-                <DropdownItem label="Account Settings" prefixIcon="Settings" />
-                <DropdownItem label="Help & Support" prefixIcon="HelpCircle" />
+                <DropdownItem label="Profile" prefixIcon="user" />
+                <DropdownItem label="Account Settings" prefixIcon="settings" />
+                <DropdownItem label="Help & Support" prefixIcon="help-circle" />
                 <DropdownSeparator />
-                <DropdownItem label="Sign out" prefixIcon="LogOut" destructive />
+                <DropdownItem label="Sign out" prefixIcon="log-out" destructive />
               </DropdownList>
             </PopoverTrigger>
           </div>

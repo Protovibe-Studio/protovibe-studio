@@ -136,7 +136,7 @@ export function PvDefaultContent() {
         <DropdownSeparator data-pv-block="" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+        <DropdownItem data-pv-block="" label="Delete" prefixIcon="trash" destructive={true} />
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>

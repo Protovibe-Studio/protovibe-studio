@@ -34,13 +34,13 @@ export function PvDefaultContent() {
         <DropdownItem data-pv-block="" label="Edit" prefixIcon="edit" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
+        <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="copy" />
         {/* pv-block-end */}
         {/* pv-block-start */}
         <DropdownSeparator data-pv-block="" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <DropdownItem data-pv-block="" label="Delete" prefixIcon="Trash2" destructive={true} />
+        <DropdownItem data-pv-block="" label="Delete" prefixIcon="trash" destructive={true} />
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
