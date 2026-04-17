@@ -60,9 +60,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.21
         version: 10.5.0(postcss@8.5.9)
-      concurrently:
-        specifier: ^8.2.0
-        version: 8.2.2
       tailwindcss:
         specifier: ^4.1.14
         version: 4.2.2
@@ -73,7 +70,7 @@ importers:
         specifier: ~5.8.2
         version: 5.8.3
       vite-plugin-protovibe:
-        specifier: workspace:*
+        specifier: link:./plugins/protovibe
         version: link:plugins/protovibe
       wrangler:
         specifier: latest

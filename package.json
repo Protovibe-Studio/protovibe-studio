@@ -1,0 +1,7 @@
+{
+  "name": "protovibe-monorepo",
+  "private": true,
+  "scripts": {
+    "install:all": "pnpm --dir protovibe-project-manager install && pnpm --dir protovibe-project-template install"
+  }
+}

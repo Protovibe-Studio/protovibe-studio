@@ -8,7 +8,8 @@
     "concat:all": "node scripts/concat.js all",
     "concat:plugins": "node scripts/concat.js plugins",
     "concat:no-ui": "node scripts/concat.js no-ui",
-    "dev": "pnpm --filter vite-plugin-protovibe run build && concurrently \"pnpm --filter vite-plugin-protovibe run dev\" \"vite --port=3000 --host=0.0.0.0\"",
+    "postinstall": "pnpm --dir plugins/protovibe install && pnpm --dir plugins/protovibe run build",
+    "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -34,12 +35,11 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
-    "concurrently": "^8.2.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-protovibe": "workspace:*",
+    "vite-plugin-protovibe": "link:./plugins/protovibe",
     "wrangler": "latest"
   }
 }
