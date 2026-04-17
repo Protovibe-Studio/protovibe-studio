@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -112,7 +111,7 @@ export const pvConfig = {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },
     heading: { type: 'string', exampleValue: 'Changes saved' },
     secondaryText: { type: 'string', exampleValue: 'Your changes have been saved successfully.' },
-    icon: { type: 'select', options: Object.keys(LucideIcons) },
+    icon: { type: 'iconSearch' },
     actionLabel: { type: 'string', exampleValue: 'Undo' },
     showCloseButton: { type: 'boolean' },
   },

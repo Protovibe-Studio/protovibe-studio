@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VerticalTabItem, ExpandableState } from '@/components/ui/vertical-tab-item';
 
@@ -89,8 +88,8 @@ export const pvConfig = {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     disabled: { type: 'boolean' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch' },
     expandable: { type: 'select', options: ['expandable', 'expanded', 'collapsed'] },
   },
 };

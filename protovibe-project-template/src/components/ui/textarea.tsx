@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/ui/icon';
 
@@ -172,10 +171,10 @@ export const pvConfig = {
     placeholder: { type: 'string', exampleValue: 'Enter text...' },
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
     prefixText: { type: 'string', exampleValue: 'Note' },
     suffixText: { type: 'string', exampleValue: 'EUR' },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    suffixIcon: { type: 'iconSearch' },
     rows: { type: 'string', exampleValue: '4' },
     resize: { type: 'select', options: ['none', 'horizontal', 'vertical', 'both'] },
     autoHeight: { type: 'boolean' },

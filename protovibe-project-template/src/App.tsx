@@ -211,7 +211,7 @@ function DashboardPage() {
         {/* pv-block-end:e6x5fm */}
 
         {/* pv-block-start:9uw2qo */}
-        <Icon collection="Material Design Icons" data-pv-block="9uw2qo" name="gear" size="md" />
+        <Icon data-pv-block="9uw2qo" name="settings" size="xl" />
         {/* pv-block-end:9uw2qo */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
@@ -585,7 +585,7 @@ export default function App() {
         <div className="p-4 flex-1">
           <TextParagraph typography="semibold-secondary" className="mb-3 px-3 text-sm">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
-            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="LayoutDashboard" />
+            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="view-dashboard" />
             <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
             <VerticalTabItem value="/positions" label="Positions" prefixIcon="Briefcase" />
             <VerticalTabItem value="/departments" label="Departments" prefixIcon="Building2" />

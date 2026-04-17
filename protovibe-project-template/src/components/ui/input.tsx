@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/ui/icon';
 
@@ -147,10 +146,10 @@ export const pvConfig = {
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
     type: { type: 'string', exampleValue: 'text' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
     prefixText: { type: 'string', exampleValue: 'https://' },
     suffixText: { type: 'string', exampleValue: 'EUR' },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    suffixIcon: { type: 'iconSearch' },
   },
   invalidCombinations: [
     // input with no placeholder looks broken in previews

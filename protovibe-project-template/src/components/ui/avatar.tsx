@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/ui/icon';
 
@@ -98,6 +97,6 @@ export const pvConfig = {
     bgColor: { type: 'select', options: ['default', 'primary', 'destructive', 'success', 'warning', 'info'] },
       imageSrc: { type: 'string', exampleValue: 'https://i.pravatar.cc/60' },
     outline: { type: 'boolean' },
-    icon: { type: 'select', options: Object.keys(LucideIcons) },
+    icon: { type: 'iconSearch' },
   },
 };

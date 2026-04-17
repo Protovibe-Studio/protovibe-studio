@@ -165,7 +165,7 @@ export const ComponentProps: React.FC = () => {
           }
 
           const propConfig = configProps[prop.name];
-          const isSelectLikeProp = propConfig?.type === 'select' || propConfig?.type === 'boolean';
+          const isSelectLikeProp = propConfig?.type === 'select' || propConfig?.type === 'boolean' || propConfig?.type === 'iconSearch';
           const isUnsetValue = String(prop.value ?? '') === '';
           const showRemoveButton = !prop.isMissing && !(isSelectLikeProp && isUnsetValue);
 
@@ -181,6 +181,22 @@ export const ComponentProps: React.FC = () => {
                 selectOptions={propConfig.options}
                 unsetLabel="Unset"
                 onChange={(nextValue) => handleUpdateProp(prop.name, nextValue, prop.loc, !!prop.isMissing, true)}
+                showRemove={showRemoveButton}
+                onRemove={() => handleRemoveProp(prop.name, prop.loc)}
+              />
+            );
+          }
+
+          if (propConfig?.type === 'iconSearch') {
+            return (
+              <InspectorKeyValueInput
+                key={prop.name}
+                label={String(prop.name)}
+                labelTitle={prop.name}
+                labelColor={theme.text_secondary}
+                type="iconSearch"
+                value={prop.value}
+                onCommit={(nextValue) => handleUpdateProp(prop.name, nextValue, prop.loc, !!prop.isMissing)}
                 showRemove={showRemoveButton}
                 onRemove={() => handleRemoveProp(prop.name, prop.loc)}
               />

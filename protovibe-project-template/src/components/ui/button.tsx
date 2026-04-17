@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from './icon';
 import { cn } from '../../lib/utils';
 
@@ -62,8 +61,8 @@ export const pvConfig = {
     color: { type: 'select', options: ['primary', 'neutral', 'danger'] },
     size: { type: 'select', options: ['sm', 'md', 'lg'] },
     iconOnly: { type: 'boolean' },
-    leftIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    rightIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    leftIcon: { type: 'iconSearch' },
+    rightIcon: { type: 'iconSearch' },
     disabled: { type: 'boolean' },
   },
   invalidCombinations: [

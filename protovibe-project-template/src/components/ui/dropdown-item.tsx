@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
@@ -79,8 +78,8 @@ export const pvConfig = {
   props: {
     value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch' },
     secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     selected: { type: 'boolean' },
     destructive: { type: 'boolean' },

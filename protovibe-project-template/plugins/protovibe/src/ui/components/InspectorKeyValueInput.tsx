@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { theme } from '../theme';
 import { InspectorInput } from './InspectorInput';
+import { IconSearchInput } from './IconSearchInput';
 
-export type InspectorKeyValueInputType = 'text' | 'select' | 'boolean';
+export type InspectorKeyValueInputType = 'text' | 'select' | 'boolean' | 'iconSearch';
 
 type InspectorKeyValueInputProps = {
   label: React.ReactNode;
@@ -151,6 +152,13 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
         <option value="true">True</option>
         <option value="false">False</option>
       </select>
+    );
+  } else if (type === 'iconSearch') {
+    inputElement = (
+      <IconSearchInput
+        value={initialTextValue}
+        onCommit={(val) => onCommit?.(val)}
+      />
     );
   } else {
     inputElement = (

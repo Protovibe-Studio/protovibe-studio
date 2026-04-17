@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { SuperLabel } from '@/components/ui/super-label';
 import { cn } from '@/lib/utils';
@@ -118,7 +117,7 @@ export const pvConfig = {
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
     primaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch' },
   },
 };

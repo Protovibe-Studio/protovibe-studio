@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { icons } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { DropdownList } from '@/components/ui/dropdown-list';
@@ -229,7 +228,7 @@ export const pvConfig = {
   props: {
     placeholder: { type: 'string', exampleValue: 'Select an option' },
     value: { type: 'string', exampleValue: 'opt1' },
-    prefixIcon: { type: 'select', options: Object.keys(icons) },
+    prefixIcon: { type: 'iconSearch' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },

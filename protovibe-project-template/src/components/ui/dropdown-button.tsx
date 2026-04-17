@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { DropdownItem } from '@/components/ui/dropdown-item';
@@ -162,8 +161,8 @@ export const pvConfig = {
     variant: { type: 'select', options: ['solid', 'outline', 'ghost'] },
     color: { type: 'select', options: ['primary', 'neutral', 'danger'] },
     size: { type: 'select', options: ['sm', 'md', 'lg'] },
-    leftIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    rightIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    leftIcon: { type: 'iconSearch' },
+    rightIcon: { type: 'iconSearch' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },

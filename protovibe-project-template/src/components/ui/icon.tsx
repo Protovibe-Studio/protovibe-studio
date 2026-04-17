@@ -2,6 +2,18 @@ import { Icon as IconifyIcon } from '@iconify/react';
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * ── Icon library ────────────────────────────────────────────────────
+ * Change this value to switch the icon set used across the entire app.
+ * The value must be a valid Iconify collection prefix.
+ * Browse available sets at https://icon-sets.iconify.design/
+ *
+ * Examples: 'lucide', 'mdi', 'ph', 'tabler', 'heroicons-outline',
+ *           'solar-linear', 'ri', 'feather', 'iconoir', 'carbon'
+ * ────────────────────────────────────────────────────────────────────
+ */
+const ICON_LIBRARY = 'mdi';
+
 const sizeMap = {
   xs: 12,
   sm: 16,
@@ -11,42 +23,9 @@ const sizeMap = {
   '2xl': 40,
 } as const;
 
-export const collectionMap = {
-  'Lucide': 'lucide',
-  'Material Design Icons': 'mdi',
-  'Material Symbols Outlined': 'material-symbols',
-  'Material Symbols Rounded': 'material-symbols-rounded',
-  'Phosphor': 'ph',
-  'Phosphor Bold': 'ph-bold',
-  'Phosphor Fill': 'ph-fill',
-  'Phosphor Duotone': 'ph-duotone',
-  'Tabler': 'tabler',
-  'Heroicons Outline': 'heroicons-outline',
-  'Heroicons Solid': 'heroicons-solid',
-  'Remix Icon': 'ri',
-  'Font Awesome Solid': 'fa-solid',
-  'Font Awesome Regular': 'fa-regular',
-  'Font Awesome Brands': 'fa-brands',
-  'Bootstrap Icons': 'bi',
-  'Feather': 'feather',
-  'Iconoir': 'iconoir',
-  'Solar Linear': 'solar-linear',
-  'Solar Bold': 'solar-bold',
-  'Fluent': 'fluent',
-  'Fluent Filled': 'fluent-filled',
-  'Carbon': 'carbon',
-  'Octicons': 'octicon',
-  'Radix Icons': 'radix-icons',
-  'Simple Icons': 'simple-icons',
-} as const;
-
-export type CollectionName = keyof typeof collectionMap;
-
 export interface IconProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Icon name within the collection (e.g. "star", "arrow-right") */
+  /** Icon name (e.g. "star", "arrow-right", "ChevronRight") */
   name: string;
-  /** Icon collection. Defaults to "Lucide". */
-  collection?: CollectionName;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
@@ -55,21 +34,19 @@ function toKebab(s: string) {
   return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
-export function Icon({ name, collection = 'Lucide', size = 'md', className, ...props }: IconProps) {
+export function Icon({ name, size = 'md', className, ...props }: IconProps) {
   const px = sizeMap[size];
   const iconName = name ? toKebab(name) : 'circle-help';
-  const prefix = collectionMap[collection] ?? 'lucide';
 
   return (
     <div
       data-size={size}
-      data-collection={collection}
       style={{ width: px, height: px, minWidth: px, minHeight: px }}
       className={cn("items-center justify-center flex", className)}
       {...props}
       data-pv-component-id="Icon"
     >
-      <IconifyIcon icon={`${prefix}:${iconName}`} width={px} height={px} />
+      <IconifyIcon icon={`${ICON_LIBRARY}:${iconName}`} width={px} height={px} />
     </div>
   );
 }
@@ -82,14 +59,14 @@ export const pvConfig = {
   name: 'Icon',
   componentId: 'Icon',
   displayName: 'Icon',
-  description: 'An icon from Iconify (any collection)',
+  description: 'An icon from Iconify',
   importPath: '@/components/ui/icon',
+  iconifyPrefix: ICON_LIBRARY,
   defaultProps: 'name="star" size="md"',
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    name: { type: 'string', exampleValue: 'star' },
-    collection: { type: 'select', options: Object.keys(collectionMap) },
+    name: { type: 'iconSearch' },
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },
   },
 };

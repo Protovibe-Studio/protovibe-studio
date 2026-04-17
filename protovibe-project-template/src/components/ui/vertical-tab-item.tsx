@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/ui/icon';
 import { useVerticalTabs } from '@/components/ui/vertical-tabs';
@@ -112,8 +111,8 @@ export const pvConfig = {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     active: { type: 'boolean' },
     disabled: { type: 'boolean' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch' },
     expandable: { type: 'select', options: ['not-expandable', 'expandable', 'expanded', 'collapsed'] },
   },
   invalidCombinations: [

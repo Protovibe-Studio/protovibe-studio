@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +49,7 @@ export const pvConfig = {
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Column' },
-    prefixIcon: { type: 'select', options: Object.keys(LucideIcons) },
-    suffixIcon: { type: 'select', options: Object.keys(LucideIcons) },
+    prefixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch' },
   },
 };

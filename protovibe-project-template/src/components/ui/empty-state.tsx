@@ -1,5 +1,4 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -110,7 +109,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    icon: { type: 'select', options: Object.keys(LucideIcons) },
+    icon: { type: 'iconSearch' },
     iconSize: { type: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl'] },
     heading: { type: 'string', exampleValue: 'Nothing here yet' },
     secondaryText: { type: 'string', exampleValue: 'Get started by creating your first item.' },
