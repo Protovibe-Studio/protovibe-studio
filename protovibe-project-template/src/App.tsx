@@ -124,7 +124,7 @@ function DashboardPage() {
         {/* pv-block-end:ov5gmp */}
 
         {/* pv-block-start:g6h7j8 */}
-        <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-7">
           {/* pv-editable-zone-start:w2x3y4 */}
             {/* pv-block-start:z5a6b7 */}
             <Card data-pv-block="z5a6b7" className="">
@@ -209,10 +209,6 @@ function DashboardPage() {
         {/* pv-block-start:e6x5fm */}
         <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
         {/* pv-block-end:e6x5fm */}
-
-        {/* pv-block-start:9uw2qo */}
-        <Icon data-pv-block="9uw2qo" name="settings" size="xl" />
-        {/* pv-block-end:9uw2qo */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -585,10 +581,10 @@ export default function App() {
         <div className="p-4 flex-1">
           <TextParagraph typography="semibold-secondary" className="mb-3 px-3 text-sm">Main Menu</TextParagraph>
           <VerticalTabs value={currentPath} onValueChange={navigate}>
-            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="view-dashboard" />
+            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="mdi:home" />
             <VerticalTabItem value="/employees" label="Employees" prefixIcon="Users" />
             <VerticalTabItem value="/positions" label="Positions" prefixIcon="Briefcase" />
-            <VerticalTabItem value="/departments" label="Departments" prefixIcon="Building2" />
+            <VerticalTabItem value="/departments" label="Departments" prefixIcon="material-symbols:graph-2" />
           </VerticalTabs>
         </div>
       </div>

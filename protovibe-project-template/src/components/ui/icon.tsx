@@ -2,17 +2,8 @@ import { Icon as IconifyIcon } from '@iconify/react';
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-/**
- * ── Icon library ────────────────────────────────────────────────────
- * Change this value to switch the icon set used across the entire app.
- * The value must be a valid Iconify collection prefix.
- * Browse available sets at https://icon-sets.iconify.design/
- *
- * Examples: 'lucide', 'mdi', 'ph', 'tabler', 'heroicons-outline',
- *           'solar-linear', 'ri', 'feather', 'iconoir', 'carbon'
- * ────────────────────────────────────────────────────────────────────
- */
-const ICON_LIBRARY = 'mdi';
+/** Fallback collection prefix when the name has no explicit "prefix:name" format. */
+const DEFAULT_ICON_PREFIX = 'mdi';
 
 const sizeMap = {
   xs: 12,
@@ -34,9 +25,16 @@ function toKebab(s: string) {
   return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
+/** Parse "prefix:name" or bare "name" into [prefix, name], falling back to DEFAULT_ICON_PREFIX. */
+function parseIconId(raw: string): [string, string] {
+  const colon = raw.indexOf(':');
+  if (colon > 0) return [raw.slice(0, colon), raw.slice(colon + 1)];
+  return [DEFAULT_ICON_PREFIX, raw];
+}
+
 export function Icon({ name, size = 'md', className, ...props }: IconProps) {
   const px = sizeMap[size];
-  const iconName = name ? toKebab(name) : 'circle-help';
+  const [prefix, iconName] = name ? parseIconId(toKebab(name)) : [DEFAULT_ICON_PREFIX, 'circle-help'];
 
   return (
     <div
@@ -46,7 +44,7 @@ export function Icon({ name, size = 'md', className, ...props }: IconProps) {
       {...props}
       data-pv-component-id="Icon"
     >
-      <IconifyIcon icon={`${ICON_LIBRARY}:${iconName}`} width={px} height={px} />
+      <IconifyIcon icon={`${prefix}:${iconName}`} width={px} height={px} />
     </div>
   );
 }
@@ -61,7 +59,7 @@ export const pvConfig = {
   displayName: 'Icon',
   description: 'An icon from Iconify',
   importPath: '@/components/ui/icon',
-  iconifyPrefix: ICON_LIBRARY,
+  iconifyPrefix: DEFAULT_ICON_PREFIX,
   defaultProps: 'name="star" size="md"',
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,

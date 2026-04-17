@@ -35,15 +35,7 @@ export function SegmentedControlItem({
       data-state={isActive ? 'active' : 'inactive'}
       data-disabled={disabled}
       disabled={disabled}
-      className={cn(
-        'px-4 py-1.5 text-sm font-medium rounded-md',
-        'text-foreground-secondary hover:text-foreground-strong cursor-pointer',
-        'data-[state=active]:bg-background-default data-[state=active]:text-foreground-strong data-[state=active]:shadow-sm',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        'transition-all',
-        className
-      )}
+      className={cn("px-4 py-1.5 text-sm font-medium text-foreground-secondary hover:text-foreground-strong cursor-pointer data-[state=active]:bg-background-default data-[state=active]:text-foreground-strong data-[state=active]:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all rounded", className)}
       onClick={handleClick}
       {...props}
       data-pv-component-id="SegmentedControlItem"

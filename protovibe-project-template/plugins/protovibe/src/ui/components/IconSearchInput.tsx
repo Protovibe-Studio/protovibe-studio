@@ -17,12 +17,6 @@ interface IconSearchInputProps {
   onRemove?: () => void;
 }
 
-/**
- * Icon library prefix used to scope search results.
- * Keep in sync with ICON_LIBRARY in src/components/ui/icon.tsx
- */
-const ICON_LIBRARY = 'mdi';
-
 const DEBOUNCE_MS = 300;
 
 export const IconSearchInput: React.FC<IconSearchInputProps> = ({
@@ -61,7 +55,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
     }
     setLoading(true);
     try {
-      const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&prefix=${ICON_LIBRARY}&limit=30`);
+      const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=30`);
       const data = await res.json();
       const icons: IconSearchResult[] = (data.icons || []).map((icon: string) => {
         const [prefix, ...rest] = icon.split(':');
@@ -84,8 +78,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   };
 
   const selectIcon = (result: IconSearchResult) => {
-    // Store as PascalCase name for backward compat with existing code
-    const val = result.name;
+    const val = `${result.prefix}:${result.name}`;
     setLocalValue(val);
     lastCommittedRef.current = val;
     onCommit(val);
@@ -253,7 +246,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
                 <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {result.name}
                 </span>
-                <span style={{ color: isActive ? 'rgba(255,255,255,0.7)' : theme.text_tertiary, fontSize: '9px', marginLeft: 'auto', flexShrink: 0 }}>
+                <span style={{ color: isActive ? 'rgba(255,255,255,0.7)' : theme.text_tertiary, fontSize: '10px', marginLeft: 'auto', flexShrink: 0 }}>
                   {result.prefix}
                 </span>
               </div>
