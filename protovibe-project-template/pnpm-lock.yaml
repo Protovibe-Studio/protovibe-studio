@@ -11,6 +11,9 @@ importers:
       '@google/genai':
         specifier: ^1.29.0
         version: 1.50.0
+      '@iconify/react':
+        specifier: ^6.0.2
+        version: 6.0.2(react@19.2.5)
       '@tailwindcss/vite':
         specifier: ^4.1.14
         version: 4.2.2(vite@6.4.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))
@@ -887,6 +890,14 @@ packages:
     peerDependenciesMeta:
       '@modelcontextprotocol/sdk':
         optional: true
+
+  '@iconify/react@6.0.2':
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
+    peerDependencies:
+      react: '>=16'
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3840,6 +3851,13 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@iconify/react@6.0.2(react@19.2.5)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      react: 19.2.5
+
+  '@iconify/types@2.0.0': {}
 
   '@img/colour@1.1.0': {}
 

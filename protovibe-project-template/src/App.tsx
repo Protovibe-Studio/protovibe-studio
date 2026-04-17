@@ -209,6 +209,10 @@ function DashboardPage() {
         {/* pv-block-start:e6x5fm */}
         <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
         {/* pv-block-end:e6x5fm */}
+
+        {/* pv-block-start:9uw2qo */}
+        <Icon collection="Material Design Icons" data-pv-block="9uw2qo" name="gear" size="md" />
+        {/* pv-block-end:9uw2qo */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
