@@ -15,12 +15,12 @@ const sizeMap = {
 } as const;
 
 export interface IconProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Icon name (e.g. "star", "arrow-right", "ChevronRight") */
+  /** Icon name (e.g. "star", "arrow-right", "chevron-right") */
   name: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
-/** Convert PascalCase/camelCase (e.g. "ChevronRight", "Edit2") to kebab-case ("chevron-right", "edit-2") for Iconify compat. Already-kebab names pass through unchanged. */
+/** Convert PascalCase/camelCase (e.g. "chevron-right", "edit") to kebab-case ("chevron-right", "edit-2") for Iconify compat. Already-kebab names pass through unchanged. */
 function toKebab(s: string) {
   return s
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2') // camelCase boundary: chevronRight → chevron-Right

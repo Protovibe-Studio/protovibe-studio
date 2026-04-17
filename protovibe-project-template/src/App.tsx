@@ -291,7 +291,7 @@ function EmployeesPage() {
                   />
                 </TableCellContent>
                 <TableCellContent>
-                  <Icon name="ChevronRight" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
+                  <Icon name="chevron-right" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
                 </TableCellContent>
               </TableRowContent>
             ))}
@@ -365,7 +365,7 @@ function PositionsPage() {
                   <Badge data-pv-block="l6m7n8" label={pos.status} color={pos.status === 'Open' ? 'success' : 'info'} />
                   {/* pv-block-end:l6m7n8 */}
                   {/* pv-block-start:o9p1q2 */}
-                  <Button data-pv-block="o9p1q2" iconOnly variant="ghost" leftIcon="ChevronRight" />
+                  <Button data-pv-block="o9p1q2" iconOnly variant="ghost" leftIcon="chevron-right" />
                   {/* pv-block-end:o9p1q2 */}
                 {/* pv-editable-zone-end:f9g1h2 */}
               </div>
@@ -426,7 +426,7 @@ function DepartmentsPage() {
                   </div>
                   {/* pv-block-end:d6e7f8 */}
                   {/* pv-block-start:j3k4l5 */}
-                  <Button data-pv-block="j3k4l5" iconOnly variant="ghost" leftIcon="ChevronRight" />
+                  <Button data-pv-block="j3k4l5" iconOnly variant="ghost" leftIcon="chevron-right" />
                   {/* pv-block-end:j3k4l5 */}
                 {/* pv-editable-zone-end:a3b4c5 */}
               </div>
@@ -608,7 +608,7 @@ export default function App() {
               <button className="flex items-center gap-2 hover:bg-background-secondary p-1.5 pr-3 rounded-full border border-transparent hover:border-border-default transition-all focus:outline-none">
                 <Avatar initials="JD" bgColor="info" size="sm" />
                 <TextParagraph typography="small" className="font-medium hidden sm:block">Jane Doe</TextParagraph>
-                <Icon name="ChevronDown" size="sm" className="text-foreground-tertiary hidden sm:block" />
+                <Icon name="chevron-down" size="sm" className="text-foreground-tertiary hidden sm:block" />
               </button>
               
               <DropdownList width="sm" className="mt-1">

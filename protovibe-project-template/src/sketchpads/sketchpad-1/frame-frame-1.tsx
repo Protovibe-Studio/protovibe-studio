@@ -124,10 +124,10 @@ export default function Frame1() {
       {/* pv-block-end:4nt458 */}
       
       {/* pv-block-start:93y9w3 */}
-      <DropdownButton data-pv-block="93y9w3" data-pv-sketchpad-el="93y9w3" label="Options" variant="outline" color="neutral" rightIcon="ChevronDown" style={{ position: 'absolute', left: 322, top: 313 }}>
+      <DropdownButton data-pv-block="93y9w3" data-pv-sketchpad-el="93y9w3" label="Options" variant="outline" color="neutral" rightIcon="chevron-down" style={{ position: 'absolute', left: 322, top: 313 }}>
         {/* pv-editable-zone-start:wdq1jz */}
           {/* pv-block-start:11mk00 */}
-          <DropdownItem data-pv-block="11mk00" label="Edit" prefixIcon="Edit2" />
+          <DropdownItem data-pv-block="11mk00" label="Edit" prefixIcon="edit" />
           {/* pv-block-end:11mk00 */}
           {/* pv-block-start:sjtki7 */}
           <DropdownItem data-pv-block="sjtki7" label="Duplicate" prefixIcon="Copy" />

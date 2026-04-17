@@ -126,7 +126,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <Button data-pv-block="" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="ChevronDown" />
+        <Button data-pv-block="" label="Open Menu" variant="outline" color="neutral" size="md" rightIcon="chevron-down" />
         {/* pv-block-end */}
         {/* pv-block-start */}
         <DropdownList data-pv-block="" width="md">
@@ -135,7 +135,7 @@ export function PvDefaultContent() {
           <DropdownGroupLabel data-pv-block="" label="Actions" />
           {/* pv-block-end */}
           {/* pv-block-start */}
-          <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+          <DropdownItem data-pv-block="" label="Edit" prefixIcon="edit" />
           {/* pv-block-end */}
           {/* pv-block-start */}
           <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />

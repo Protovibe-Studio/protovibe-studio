@@ -127,7 +127,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <DropdownItem data-pv-block="" label="Edit" prefixIcon="Edit2" />
+        <DropdownItem data-pv-block="" label="Edit" prefixIcon="edit" />
         {/* pv-block-end */}
         {/* pv-block-start */}
         <DropdownItem data-pv-block="" label="Duplicate" prefixIcon="Copy" />
@@ -149,7 +149,7 @@ export const pvConfig = {
   displayName: 'Dropdown Button',
   description: 'A button that opens a floating dropdown menu on click.',
   importPath: '@/components/ui/dropdown-button',
-  defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="ChevronDown"',
+  defaultProps: 'label="Options" variant="outline" color="neutral" rightIcon="chevron-down"',
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   additionalImportsForDefaultContent: [
