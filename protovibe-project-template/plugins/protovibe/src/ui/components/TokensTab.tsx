@@ -6,6 +6,7 @@ import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken, u
 import { FontFamilyPicker } from './FontFamilyPicker';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
+import { ShadowEditor } from './ShadowEditor';
 import { cssColorToHex } from '../utils/colorConversion';
 
 
@@ -196,6 +197,7 @@ export const TokensTab: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingShadow, setEditingShadow] = useState<{ tokenName: string; value: string; anchorRect: DOMRect } | null>(null);
 
   // ─── Colors Classification ───
   const semanticColors = useMemo(
@@ -521,7 +523,13 @@ export const TokensTab: React.FC = () => {
                 No tokens found.
               </div>
             )}
-            {Object.entries(groupedOtherTokens).map(([category, tokens]) => (
+            {(activeCategoryObj?.backendCategories
+              ? Object.entries(groupedOtherTokens).sort(([a], [b]) => {
+                  const order = activeCategoryObj.backendCategories!;
+                  return order.indexOf(a) - order.indexOf(b);
+                })
+              : Object.entries(groupedOtherTokens)
+            ).map(([category, tokens]) => (
               <div key={category} style={{ marginBottom: '20px' }}>
                 <div style={{
                   fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
@@ -530,6 +538,20 @@ export const TokensTab: React.FC = () => {
                 }}>
                   {category}
                 </div>
+                {category === 'Drop Shadow' && (
+                  <div style={{
+                    display: 'flex', gap: '8px', alignItems: 'flex-start',
+                    padding: '8px 10px', marginBottom: '10px',
+                    background: theme.bg_secondary,
+                    border: `1px solid ${theme.border_default}`,
+                    borderRadius: '6px',
+                  }}>
+                    <span style={{ fontSize: '13px', flexShrink: 0, marginTop: '1px' }}>💡</span>
+                    <span style={{ fontFamily: 'sans-serif', fontSize: '11px', color: theme.text_secondary, lineHeight: 1.5 }}>
+                      Use Tailwind's <code style={{ fontFamily: 'monospace', fontSize: '10px', background: theme.bg_strong, padding: '1px 4px', borderRadius: '3px' }}>drop-shadow-*</code> utility for complex shapes like transparent PNGs or SVGs. Unlike box-shadow, it follows the element's actual alpha outline.
+                    </span>
+                  </div>
+                )}
                 {tokens.map(t => (
                   <div key={t.name} style={{
                     display: 'flex', flexDirection: 'column',
@@ -549,6 +571,50 @@ export const TokensTab: React.FC = () => {
                         value={t.value}
                         onSave={(value, googleFontName) => handleFontFamilySave(t.name, value, googleFontName)}
                       />
+                    ) : activeCategoryObj?.id === 'shadow' ? (
+                      <>
+                        <button
+                          onClick={e => setEditingShadow({ tokenName: t.name, value: t.value, anchorRect: e.currentTarget.getBoundingClientRect() })}
+                          style={{
+                            width: '100%', boxSizing: 'border-box',
+                            display: 'flex', flexDirection: 'column', gap: 4,
+                            background: theme.bg_secondary,
+                            border: `1px solid ${theme.border_default}`, borderRadius: 6,
+                            padding: 0,
+                            cursor: 'pointer', transition: 'border-color 0.15s',
+                            overflow: 'hidden',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = theme.border_accent}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = theme.border_default}
+                          title="Click to edit shadow"
+                        >
+                          {category === 'Shadow' && (
+                            <div style={{
+                              width: '100%', height: 48,
+                              background: '#f6f6f6',
+                              backgroundImage: 'radial-gradient(circle, #ececec 0.8px, transparent 0.5px)',
+                              backgroundSize: '6px 6px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <div style={{
+                                width: 28, height: 28, borderRadius: 6,
+                                background: '#ffffff',
+                                boxShadow: t.value,
+                              }} />
+                            </div>
+                          )}
+                          <div style={{
+                            fontFamily: 'monospace', fontSize: '11px',
+                            color: theme.text_default,
+                            padding: '4px 6px',
+                            textAlign: 'left',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            width: '100%', boxSizing: 'border-box',
+                          }}>
+                            {t.value}
+                          </div>
+                        </button>
+                      </>
                     ) : (
                       <input
                         defaultValue={t.value}
@@ -582,6 +648,20 @@ export const TokensTab: React.FC = () => {
           anchorRect={editing.anchorRect}
           onSave={saving ? () => {} : handleSave}
           onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {/* Shadow editor portal */}
+      {editingShadow && (
+        <ShadowEditor
+          tokenName={editingShadow.tokenName}
+          initialValue={editingShadow.value}
+          anchorRect={editingShadow.anchorRect}
+          onSave={async (cssValue) => {
+            await handleTokenSave(editingShadow.tokenName, cssValue);
+            setEditingShadow(null);
+          }}
+          onCancel={() => setEditingShadow(null)}
         />
       )}
     </div>
