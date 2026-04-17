@@ -555,7 +555,7 @@ export const TokensTab: React.FC = () => {
                 {tokens.map(t => (
                   <div key={t.name} style={{
                     display: 'flex', flexDirection: 'column',
-                    padding: '4px 0',
+                    padding: '6px 0',
                     gap: 4,
                   }}>
                     <span style={{

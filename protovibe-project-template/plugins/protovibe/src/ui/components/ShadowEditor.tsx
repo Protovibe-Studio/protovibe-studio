@@ -368,12 +368,14 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
   const [color, setColor] = useState(params.color);
   const [layersCount, setLayersCount] = useState(params.layersCount);
   const inset = params.inset;
+  const [customCSS, setCustomCSS] = useState<string | null>(null);
 
   const editorRef = useRef<HTMLDivElement>(null);
 
   const shadowX = lightPos.x * SHADOW_RATIO;
   const shadowY = lightPos.y * SHADOW_RATIO;
-  const shadowCSS = generateShadowCSS(shadowX, shadowY, blur, spread, color, opacity, layersCount, inset);
+  const generatedCSS = generateShadowCSS(shadowX, shadowY, blur, spread, color, opacity, layersCount, inset);
+  const shadowCSS = customCSS ?? generatedCSS;
 
   // ── Positioning ──
   const PICKER_W = 240;
@@ -449,7 +451,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
         {/* Interactive preview */}
         <InteractivePreview
           lightPos={lightPos}
-          onLightChange={setLightPos}
+          onLightChange={pos => { setLightPos(pos); setCustomCSS(null); }}
           shadowCSS={shadowCSS}
         />
 
@@ -459,25 +461,25 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             label="Smooth layers"
             value={layersCount}
             min={1} max={6} step={1}
-            onChange={setLayersCount}
+            onChange={v => { setLayersCount(v); setCustomCSS(null); }}
           />
           <SliderControl
             label="Blur"
             value={blur}
             min={0} max={200} step={1}
-            onChange={setBlur}
+            onChange={v => { setBlur(v); setCustomCSS(null); }}
           />
           <SliderControl
             label="Spread"
             value={spread}
             min={-50} max={100} step={1}
-            onChange={setSpread}
+            onChange={v => { setSpread(v); setCustomCSS(null); }}
           />
           <SliderControl
             label="Opacity"
             value={opacity}
             min={0} max={1} step={0.01}
-            onChange={setOpacity}
+            onChange={v => { setOpacity(v); setCustomCSS(null); }}
           />
 
           {/* Color row */}
@@ -501,7 +503,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
                 <input
                   type="color"
                   value={color}
-                  onChange={e => setColor(e.target.value)}
+                  onChange={e => { setColor(e.target.value); setCustomCSS(null); }}
                   style={{
                     position: 'absolute', top: -4, left: -4,
                     width: 28, height: 28,
@@ -514,12 +516,12 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
                 value={color}
                 onChange={e => {
                   const val = e.target.value;
-                  if (/^#[0-9a-fA-F]{6}$/.test(val)) setColor(val);
+                  if (/^#[0-9a-fA-F]{6}$/.test(val)) { setColor(val); setCustomCSS(null); }
                 }}
                 onBlur={e => {
                   let val = e.target.value;
                   if (!val.startsWith('#')) val = '#' + val;
-                  if (/^#[0-9a-fA-F]{6}$/.test(val)) setColor(val);
+                  if (/^#[0-9a-fA-F]{6}$/.test(val)) { setColor(val); setCustomCSS(null); }
                 }}
                 style={{
                   width: 70,
@@ -548,25 +550,30 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500,
             color: theme.text_tertiary, marginBottom: 6,
           }}>
-            CSS output
+            Custom CSS
           </div>
-          <pre style={{
-            fontFamily: 'monospace',
-            fontSize: 10,
-            lineHeight: 1.6,
-            color: theme.text_secondary,
-            background: theme.bg_secondary,
-            border: `1px solid ${theme.border_default}`,
-            borderRadius: 8,
-            padding: '8px 10px',
-            overflowY: 'auto',
-            maxHeight: 100,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all',
-            margin: 0,
-          }}>
-            {shadowCSS}
-          </pre>
+          <textarea
+            value={shadowCSS}
+            onChange={e => setCustomCSS(e.target.value)}
+            spellCheck={false}
+            rows={3}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              fontFamily: 'monospace',
+              fontSize: 10,
+              lineHeight: 1.6,
+              color: customCSS !== null ? theme.text_default : theme.text_secondary,
+              background: theme.bg_secondary,
+              border: `1px solid ${customCSS !== null ? theme.border_accent : theme.border_default}`,
+              borderRadius: 8,
+              padding: '8px 10px',
+              resize: 'vertical',
+              maxHeight: 100,
+              outline: 'none',
+              margin: 0,
+            }}
+          />
         </div>
       </div>
 
