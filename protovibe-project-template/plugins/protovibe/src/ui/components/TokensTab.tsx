@@ -7,6 +7,7 @@ import { FontFamilyPicker } from './FontFamilyPicker';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
 import { ShadowEditor } from './ShadowEditor';
+import { RemPxEditor } from './RemPxEditor';
 import { cssColorToHex } from '../utils/colorConversion';
 
 
@@ -198,6 +199,7 @@ export const TokensTab: React.FC = () => {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingShadow, setEditingShadow] = useState<{ tokenName: string; value: string; anchorRect: DOMRect } | null>(null);
+  const [editingRem, setEditingRem] = useState<{ tokenName: string; value: string; anchorRect: DOMRect } | null>(null);
 
   // ─── Colors Classification ───
   const semanticColors = useMemo(
@@ -615,6 +617,32 @@ export const TokensTab: React.FC = () => {
                           </div>
                         </button>
                       </>
+                    ) : /rem$|em$/.test(t.value.trim()) ? (
+                      <button
+                        onClick={e => setEditingRem({ tokenName: t.name, value: t.value, anchorRect: e.currentTarget.getBoundingClientRect() })}
+                        style={{
+                          width: '100%', boxSizing: 'border-box',
+                          fontFamily: 'monospace', fontSize: '11px',
+                          background: theme.bg_secondary, color: theme.text_default,
+                          border: `1px solid ${theme.border_default}`, borderRadius: 4,
+                          padding: '3px 6px', textAlign: 'left',
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          cursor: 'pointer', transition: 'border-color 0.15s',
+                          overflow: 'hidden', whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = theme.border_accent}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = theme.border_default}
+                        title="Click to edit"
+                      >
+                        <span>{t.value}</span>
+                        <span style={{ color: theme.text_tertiary, marginLeft: 'auto', fontSize: '10px' }}>
+                          {(() => {
+                            const m = t.value.trim().match(/^(-?[\d.]+)\s*(rem|em)$/);
+                            if (!m) return null;
+                            return `${Math.round(parseFloat(m[1]) * 16 * 100) / 100}px`;
+                          })()}
+                        </span>
+                      </button>
                     ) : (
                       <input
                         defaultValue={t.value}
@@ -662,6 +690,20 @@ export const TokensTab: React.FC = () => {
             setEditingShadow(null);
           }}
           onCancel={() => setEditingShadow(null)}
+        />
+      )}
+
+      {/* Rem/px editor portal */}
+      {editingRem && (
+        <RemPxEditor
+          tokenName={editingRem.tokenName}
+          initialValue={editingRem.value}
+          anchorRect={editingRem.anchorRect}
+          onSave={async (value) => {
+            await handleTokenSave(editingRem.tokenName, value);
+            setEditingRem(null);
+          }}
+          onCancel={() => setEditingRem(null)}
         />
       )}
     </div>
