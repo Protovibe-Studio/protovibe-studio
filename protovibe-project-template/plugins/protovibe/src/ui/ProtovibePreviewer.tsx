@@ -156,6 +156,10 @@ function generateCombinations(
       varyEntries.push([key, [false, true]]);
     } else if (schema.type === 'select' && schema.options && schema.options.length <= 12) {
       varyEntries.push([key, schema.options]);
+    } else if (schema.type === 'iconSearch') {
+      // Vary between absent and exampleValue; fall back to key-based heuristic
+      const example = schema.exampleValue ?? iconExampleForKey(key);
+      if (example) varyEntries.push([key, [undefined, example]]);
     } else if (schema.type === 'select' && schema.options && schema.options.length > 12) {
       // Large select — only vary if it looks like an icon picker
       const example = iconExampleForKey(key);
@@ -214,6 +218,7 @@ function comboLabel(combo: Record<string, any>, propsSchema: Record<string, { ty
     if (s.type === 'string') return true;
     if (s.type === 'select' && (s.options?.length ?? 0) <= 12) return true;
     if (s.type === 'select' && (s.options?.length ?? 0) > 12 && iconExampleForKey(k)) return true;
+    if (s.type === 'iconSearch') return !!(s.exampleValue ?? iconExampleForKey(k));
     return false;
   });
   if (variantKeys.length === 0) return 'default';

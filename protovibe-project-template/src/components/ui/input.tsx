@@ -146,10 +146,10 @@ export const pvConfig = {
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
     type: { type: 'string', exampleValue: 'text' },
-    prefixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     prefixText: { type: 'string', exampleValue: 'https://' },
     suffixText: { type: 'string', exampleValue: 'EUR' },
-    suffixIcon: { type: 'iconSearch' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
   invalidCombinations: [
     // input with no placeholder looks broken in previews

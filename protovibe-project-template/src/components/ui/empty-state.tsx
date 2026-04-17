@@ -109,7 +109,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    icon: { type: 'iconSearch' },
+    icon: { type: 'iconSearch', exampleValue: 'cog' },
     iconSize: { type: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl'] },
     heading: { type: 'string', exampleValue: 'Nothing here yet' },
     secondaryText: { type: 'string', exampleValue: 'Get started by creating your first item.' },

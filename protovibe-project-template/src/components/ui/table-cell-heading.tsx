@@ -49,7 +49,7 @@ export const pvConfig = {
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Column' },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
 };

@@ -111,7 +111,7 @@ export const pvConfig = {
     variant: { type: 'select', options: ['success', 'destructive', 'neutral', 'warning'] },
     heading: { type: 'string', exampleValue: 'Changes saved' },
     secondaryText: { type: 'string', exampleValue: 'Your changes have been saved successfully.' },
-    icon: { type: 'iconSearch' },
+    icon: { type: 'iconSearch', exampleValue: 'cog' },
     actionLabel: { type: 'string', exampleValue: 'Undo' },
     showCloseButton: { type: 'boolean' },
   },

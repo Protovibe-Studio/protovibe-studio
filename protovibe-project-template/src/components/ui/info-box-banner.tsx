@@ -140,7 +140,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    icon: { type: 'iconSearch' },
+    icon: { type: 'iconSearch', exampleValue: 'cog' },
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
     secondaryText: { type: 'string', exampleValue: 'This is some example secondary text for infobox. Good luck!' },
     color: { type: 'select', options: ['primary', 'destructive', 'success', 'warning', 'info', 'neutral'] },

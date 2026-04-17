@@ -228,7 +228,7 @@ export const pvConfig = {
   props: {
     placeholder: { type: 'string', exampleValue: 'Select an option' },
     value: { type: 'string', exampleValue: 'opt1' },
-    prefixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },

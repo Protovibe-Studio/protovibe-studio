@@ -78,8 +78,8 @@ export const pvConfig = {
   props: {
     value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
     secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     selected: { type: 'boolean' },
     destructive: { type: 'boolean' },

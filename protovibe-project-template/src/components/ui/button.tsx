@@ -61,8 +61,8 @@ export const pvConfig = {
     color: { type: 'select', options: ['primary', 'neutral', 'danger'] },
     size: { type: 'select', options: ['sm', 'md', 'lg'] },
     iconOnly: { type: 'boolean' },
-    leftIcon: { type: 'iconSearch' },
-    rightIcon: { type: 'iconSearch' },
+    leftIcon: { type: 'iconSearch', exampleValue: 'edit'},
+    rightIcon: { type: 'iconSearch', exampleValue: 'chevron-down'},
     disabled: { type: 'boolean' },
   },
   invalidCombinations: [

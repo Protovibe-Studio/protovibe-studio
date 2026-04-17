@@ -88,8 +88,8 @@ export const pvConfig = {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     disabled: { type: 'boolean' },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
     expandable: { type: 'select', options: ['expandable', 'expanded', 'collapsed'] },
   },
 };

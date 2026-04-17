@@ -41,7 +41,7 @@ export function SegmentedControl({
     <SegmentedControlContext.Provider value={{ activeValue, onValueChange: handleValueChange }}>
       <div
         data-value={activeValue}
-        className={cn('inline-flex p-1 bg-background-secondary rounded-lg', className)}
+        className={cn("inline-flex p-1 bg-background-secondary rounded", className)}
         {...props}
         data-pv-component-id="SegmentedControl"
       >

@@ -111,8 +111,8 @@ export const pvConfig = {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     active: { type: 'boolean' },
     disabled: { type: 'boolean' },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
     expandable: { type: 'select', options: ['not-expandable', 'expandable', 'expanded', 'collapsed'] },
   },
   invalidCombinations: [

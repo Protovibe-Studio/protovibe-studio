@@ -47,7 +47,7 @@ export const pvConfig = {
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     color: { type: 'select', options: ['primary', 'destructive', 'success', 'warning', 'info', 'neutral'] },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
 };

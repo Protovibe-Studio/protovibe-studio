@@ -61,7 +61,7 @@ export const pvConfig = {
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
     primaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
-    prefixIcon: { type: 'iconSearch' },
-    suffixIcon: { type: 'iconSearch' },
+    prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
+    suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
 };

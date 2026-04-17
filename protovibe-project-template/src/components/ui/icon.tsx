@@ -66,7 +66,7 @@ export const pvConfig = {
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    name: { type: 'iconSearch' },
+    name: { type: 'iconSearch', exampleValue: 'star' },
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },
   },
 };
