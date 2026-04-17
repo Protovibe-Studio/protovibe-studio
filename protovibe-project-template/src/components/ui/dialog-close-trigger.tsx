@@ -26,7 +26,7 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <Button data-pv-block="" variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+        <Button data-pv-block="" variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="material-symbols:close" />
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>

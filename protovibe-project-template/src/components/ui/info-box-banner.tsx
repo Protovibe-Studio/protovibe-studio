@@ -111,7 +111,7 @@ export function InfoBoxBanner({
           color="neutral"
           size="sm"
           iconOnly
-          leftIcon="X"
+          leftIcon="close"
           className="shrink-0 self-start -mt-0.5 -mr-1"
           aria-label="Close"
           onClick={() => setDismissed(true)}

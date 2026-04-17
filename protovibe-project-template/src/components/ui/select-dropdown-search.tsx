@@ -52,7 +52,7 @@ export function SelectDropdownSearch({
           onMouseDown={(e) => { e.preventDefault(); ctx.setQuery(''); inputRef.current?.focus(); }}
           className="shrink-0 flex items-center cursor-pointer text-foreground-tertiary hover:text-foreground-default"
         >
-          <Icon name="X" size="sm" />
+          <Icon name="close" size="sm" />
         </button>
       )}
     </div>

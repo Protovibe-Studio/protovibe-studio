@@ -209,6 +209,10 @@ function DashboardPage() {
         {/* pv-block-start:e6x5fm */}
         <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
         {/* pv-block-end:e6x5fm */}
+
+        {/* pv-block-start:3pppuf */}
+        <Icon data-pv-block="3pppuf" name="close" size="md" />
+        {/* pv-block-end:3pppuf */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -400,7 +404,7 @@ function DepartmentsPage() {
               <div data-pv-block="q5r6s7" className="flex items-center gap-4">
                 {/* pv-editable-zone-start:r3s4t5 */}
                   {/* pv-block-start:u6v7w8 */}
-                  <Avatar data-pv-block="u6v7w8" icon="Building2" size="md" bgColor="info" />
+                  <Avatar data-pv-block="u6v7w8" icon="material-symbols:graph-2" size="md" bgColor="info" />
                   {/* pv-block-end:u6v7w8 */}
                   {/* pv-block-start:x9y1z2 */}
                   <div data-pv-block="x9y1z2">
@@ -462,7 +466,7 @@ function EmployeeDetailsDialog({ emp }: { emp: any }) {
           label={isEditing ? "Save Changes" : "Edit Profile"}
           variant={isEditing ? "solid" : "outline"}
           color="primary"
-          leftIcon={isEditing ? "Save" : "Edit2"}
+          leftIcon={isEditing ? "save" : "edit"}
           onClick={(e) => {
             e.stopPropagation(); // prevent dialog from closing
             setIsEditing(!isEditing);

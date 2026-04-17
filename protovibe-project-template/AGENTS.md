@@ -124,14 +124,14 @@ Never create custom HTML elements (`<button>`, `<input>`) when an existing compo
 
   ```tsx
   <button className="flex items-center justify-center p-2 rounded hover:bg-gray-100">
-    <Icon name="X" />
+    <Icon name="close" />
   </button>
   ```
 
 * **✅ GOOD: Reuse existing components**
 
   ```tsx
-  <Button variant="ghost" iconOnly leftIcon="X" />
+  <Button variant="ghost" iconOnly leftIcon="close" />
   ```
 
 ## 2. Components Editing (Configuring for the Visual Builder)

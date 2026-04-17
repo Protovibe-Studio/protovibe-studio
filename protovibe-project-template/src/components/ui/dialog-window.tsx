@@ -22,7 +22,7 @@ export function DialogWindow({ size = 'md', showCloseButton = true, children, cl
     >
       {showCloseButton && (
         <DialogCloseTrigger className="absolute top-1 right-1">
-          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="X" />
+          <Button variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="close" />
         </DialogCloseTrigger>
       )}
       {children}
