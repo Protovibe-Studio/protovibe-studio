@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import type { CanvasTransform } from '../types';
-import { theme } from '../../ui/theme';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
@@ -37,11 +36,9 @@ export function InfiniteCanvas({
     const gridSpacing = GRID_SIZE * zoom;
     const offsetX = panX % gridSpacing;
     const offsetY = panY % gridSpacing;
-    const dotOpacity = Math.min(1, Math.max(0.15, zoom * 0.5));
-
-    containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
+containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
     containerRef.current.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
-    containerRef.current.style.backgroundImage = `radial-gradient(circle, rgba(150,150,150,${dotOpacity}) 1px, transparent 1px)`;
+    containerRef.current.style.backgroundImage = `radial-gradient(circle, oklch(0.40 0 0) 1px, transparent 1px)`;
 
     innerRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     innerRef.current.setAttribute('data-sketchpad-zoom', String(zoom));
@@ -208,7 +205,7 @@ export function InfiniteCanvas({
         overflow: 'hidden',
         position: 'relative',
         cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'move',
-        backgroundColor: theme.bg_strong,
+        backgroundColor: 'oklch(0.32 0 0)',
         touchAction: 'none',
       }}
     >

@@ -699,7 +699,7 @@ export function SketchpadApp() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#bbb',
+                  color: theme.text_secondary,
                   fontSize: 13,
                   pointerEvents: 'none',
                   userSelect: 'none',
@@ -782,8 +782,8 @@ export function SketchpadApp() {
               justifyContent: 'center',
               gap: 10,
               padding: '8px 16px',
-              background: 'rgba(24, 160, 251, 0.95)',
-              color: '#fff',
+              background: theme.accent_default,
+              color: theme.text_default,
               fontSize: 13,
               fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               fontWeight: 500,
@@ -797,7 +797,7 @@ export function SketchpadApp() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#fff',
+                color: theme.text_default,
                 cursor: 'pointer',
                 fontSize: 16,
                 padding: '0 4px',
@@ -825,8 +825,8 @@ export function SketchpadApp() {
               top: (addButtonRef.current?.getBoundingClientRect().bottom ?? 48) + 4,
               left: addButtonRef.current?.getBoundingClientRect().left ?? 54,
               zIndex: 200,
-              background: 'rgba(42,42,62,0.95)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: theme.bg_default,
+              border: `1px solid ${theme.border_default}`,
               borderRadius: 8,
               padding: '4px 0',
               minWidth: 160,
@@ -849,9 +849,9 @@ export function SketchpadApp() {
                 style={{
                   padding: '7px 12px',
                   cursor: 'pointer',
-                  color: '#ddd',
+                  color: theme.text_secondary,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 {item.label}
@@ -869,7 +869,7 @@ export function SketchpadApp() {
             appearance: none;
             height: 4px;
             border-radius: 999px;
-            background: #6b7280;
+            background: ${theme.border_default};
           }
 
           .sketchpad-zoom-slider:focus,
@@ -884,36 +884,36 @@ export function SketchpadApp() {
             width: 12px;
             height: 12px;
             border-radius: 999px;
-            background: #d1d5db;
-            border: 1px solid #9ca3af;
+            background: ${theme.text_secondary};
+            border: 1px solid ${theme.border_default};
           }
 
           .sketchpad-zoom-slider::-moz-range-thumb {
             width: 12px;
             height: 12px;
             border-radius: 999px;
-            background: #d1d5db;
-            border: 1px solid #9ca3af;
+            background: ${theme.text_secondary};
+            border: 1px solid ${theme.border_default};
           }
 
           .sketchpad-zoom-slider::-moz-range-track {
             height: 4px;
             border-radius: 999px;
-            background: #6b7280;
+            background: ${theme.border_default};
           }
         `}
       </style>
 
       {/* Zoom controls */}
       <div
-        onMouseEnter={() => setIsZoomControlsHovered(true)}
-        onMouseLeave={() => setIsZoomControlsHovered(false)}
+        onMouseEnter={(e) => { setIsZoomControlsHovered(true); e.currentTarget.style.borderColor = theme.border_accent; }}
+        onMouseLeave={(e) => { setIsZoomControlsHovered(false); e.currentTarget.style.borderColor = theme.border_default; }}
         style={{
           position: 'fixed',
           bottom: 12,
           right: 12,
-          background: 'rgba(42,42,62,0.9)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: theme.bg_strong,
+          border: `1px solid ${theme.border_default}`,
           borderRadius: 6,
           padding: isZoomControlsHovered ? '6px 12px' : '8px',
           display: 'flex',
@@ -924,6 +924,7 @@ export function SketchpadApp() {
           backdropFilter: 'blur(12px)',
           minWidth: isZoomControlsHovered ? 'auto' : 34,
           minHeight: 34,
+          transition: 'border-color 0.15s',
         }}
       >
         {isZoomControlsHovered ? (
@@ -962,7 +963,7 @@ export function SketchpadApp() {
             <span
               style={{
                 fontSize: 11,
-                color: '#ccc',
+                color: theme.text_secondary,
                 fontFamily: 'var(--font-sans, system-ui, sans-serif)',
                 userSelect: 'none',
                 minWidth: '32px',
@@ -997,7 +998,7 @@ export function SketchpadApp() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#d1d5db',
+              color: theme.text_secondary,
               pointerEvents: 'none',
             }}
           >
@@ -1020,7 +1021,7 @@ export function SketchpadApp() {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             textAlign: 'center',
-            color: '#666',
+            color: theme.text_tertiary,
             fontSize: 14,
             fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             userSelect: 'none',
@@ -1081,12 +1082,12 @@ export function SketchpadApp() {
           <div
             style={{
               position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              zIndex: 99999, background: theme.bg_default, border: '1px solid rgba(255,255,255,0.1)',
+              zIndex: 99999, background: theme.bg_default, border: `1px solid ${theme.border_default}`,
               borderRadius: 12, padding: '20px 24px', width: 320, boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
               fontFamily: 'var(--font-sans, system-ui, sans-serif)'
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Rename Frame</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: theme.text_default, marginBottom: 12 }}>Rename Frame</div>
             <input
               autoFocus
               defaultValue={renamePrompt.name}
@@ -1096,21 +1097,21 @@ export function SketchpadApp() {
                 if (e.key === 'Escape') setRenamePrompt(null);
               }}
               style={{
-                width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(24,160,251,0.3)',
-                borderRadius: 6, padding: '8px 12px', color: '#eee', fontSize: 13, outline: 'none', marginBottom: 20
+                width: '100%', background: theme.bg_low, border: `1px solid ${theme.border_accent}`,
+                borderRadius: 6, padding: '8px 12px', color: theme.text_default, fontSize: 13, outline: 'none', marginBottom: 20
               }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setRenamePrompt(null)}
-                style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#ccc', cursor: 'pointer', fontSize: 12 }}
+                style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, cursor: 'pointer', fontSize: 12 }}
               >Cancel</button>
               <button
                 onClick={(e) => {
                   const input = e.currentTarget.parentElement?.previousElementSibling as HTMLInputElement;
                   executeRenameFrame(renamePrompt.frameId, input.value);
                 }}
-                style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#18a0fb', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: theme.accent_default, color: theme.text_default, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
               >Rename</button>
             </div>
           </div>
@@ -1139,16 +1140,18 @@ const ToolbarButton = React.forwardRef<
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 8,
-        border: '1px solid rgba(255,255,255,0.1)',
-        background: isActive ? 'rgba(24,160,251,0.2)' : 'rgba(42,42,62,0.9)',
-        color: isActive ? '#18a0fb' : '#ccc',
+        border: `1px solid ${isActive ? theme.border_accent : theme.border_default}`,
+        background: isActive ? theme.accent_low : theme.bg_strong,
+        color: isActive ? theme.accent_default : theme.text_secondary,
         cursor: 'pointer',
         fontSize: 16,
         fontWeight: 600,
         fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-        transition: 'background 0.15s, color 0.15s',
+        transition: 'background 0.15s, color 0.15s, border-color 0.15s',
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.border_accent; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = isActive ? theme.border_accent : theme.border_default; }}
     >
       {label}
     </button>

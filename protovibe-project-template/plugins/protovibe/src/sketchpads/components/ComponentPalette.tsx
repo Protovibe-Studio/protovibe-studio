@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useLayoutEffect, useEffect, Component } from 'react';
 import type { ComponentEntry } from '../types';
 import { parseDefaultProps } from '../utils';
+import { theme } from '../../ui/theme';
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ class PreviewErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ fontSize: 10, color: '#555', padding: 4 }}>Preview unavailable</div>
+        <div style={{ fontSize: 10, color: theme.text_tertiary, padding: 4 }}>Preview unavailable</div>
       );
     }
     return this.props.children;
@@ -138,6 +139,10 @@ export function ComponentPalette({
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    requestAnimationFrame(() => searchRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = 0;
   }, []);
 
@@ -172,8 +177,8 @@ export function ComponentPalette({
         bottom: 52,
         width: 200,
         zIndex: 100,
-        background: 'rgba(28,28,42,0.92)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: theme.bg_default,
+        border: `1px solid ${theme.border_secondary}`,
         borderRadius: 12,
         display: 'flex',
         flexDirection: 'column',
@@ -187,7 +192,7 @@ export function ComponentPalette({
       <div
         style={{
           padding: '10px 12px 8px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: `1px solid ${theme.border_tertiary}`,
           flexShrink: 0,
         }}
       >
@@ -196,7 +201,7 @@ export function ComponentPalette({
             style={{
               fontSize: 10,
               fontWeight: 600,
-              color: '#fff',
+              color: theme.text_default,
             }}
           >
             Drag & drop components
@@ -207,7 +212,7 @@ export function ComponentPalette({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#666',
+                color: theme.text_tertiary,
                 cursor: 'pointer',
                 padding: '2px 4px',
                 lineHeight: 1,
@@ -226,15 +231,20 @@ export function ComponentPalette({
           ref={searchRef}
           value={search}
           onChange={handleSearchChange}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.border_accent; }}
+          onMouseLeave={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.borderColor = theme.border_secondary; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = theme.border_accent; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = theme.border_secondary; }}
           style={{
             width: '100%',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: theme.bg_low,
+            border: `1px solid ${theme.border_secondary}`,
             borderRadius: 6,
             padding: '6px 10px',
-            color: '#eee',
+            color: theme.text_default,
             fontSize: 12,
             outline: 'none',
+            transition: 'border-color 0.15s',
             fontFamily: 'inherit',
             boxSizing: 'border-box',
           }}
@@ -256,6 +266,7 @@ export function ComponentPalette({
           display: 'flex',
           flexDirection: 'column',
           gap: 6,
+          background: theme.bg_strong,
         }}
       >
         {filtered.map((comp) => (
@@ -268,8 +279,8 @@ export function ComponentPalette({
             }}
             onClick={() => onClickAdd(comp)}
             style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
+              background: theme.bg_strong,
+              border: `1px solid ${theme.border_default}`,
               borderRadius: 8,
               cursor: 'grab',
               overflow: 'hidden',
@@ -277,10 +288,10 @@ export function ComponentPalette({
               transition: 'border-color 0.12s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(24,160,251,0.4)';
+              e.currentTarget.style.borderColor = theme.border_accent;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
+              e.currentTarget.style.borderColor = theme.border_default;
             }}
           >
             {/* Live preview */}
@@ -290,14 +301,15 @@ export function ComponentPalette({
             <div
               style={{
                 padding: '4px 10px 6px',
-                borderTop: '1px solid rgba(255,255,255,0.05)',
+                borderTop: `1px solid ${theme.border_tertiary}`,
+                background: theme.bg_secondary,
               }}
             >
               <div
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: '#ddd',
+                  color: theme.text_secondary,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -313,7 +325,7 @@ export function ComponentPalette({
           <div
             style={{
               textAlign: 'center',
-              color: '#555',
+              color: theme.text_tertiary,
               padding: '24px 0',
               fontSize: 12,
             }}
