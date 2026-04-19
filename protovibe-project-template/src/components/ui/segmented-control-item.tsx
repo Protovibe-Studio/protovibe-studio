@@ -63,4 +63,7 @@ export const pvConfig = {
     value: { type: 'string', exampleValue: 'Lorem ipsum' },
     disabled: { type: 'boolean' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.label,
+  ],
 };

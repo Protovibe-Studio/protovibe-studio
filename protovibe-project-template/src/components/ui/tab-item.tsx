@@ -72,4 +72,7 @@ export const pvConfig = {
     active: { type: 'boolean' },
     disabled: { type: 'boolean' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.label,
+  ],
 };

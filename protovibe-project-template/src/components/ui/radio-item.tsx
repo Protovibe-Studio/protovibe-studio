@@ -104,4 +104,7 @@ export const pvConfig = {
     prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.primaryText,
+  ],
 };

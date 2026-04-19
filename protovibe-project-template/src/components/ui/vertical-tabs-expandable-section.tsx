@@ -92,4 +92,7 @@ export const pvConfig = {
     suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
     expandable: { type: 'select', options: ['expandable', 'expanded', 'collapsed'] },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.label,
+  ],
 };
