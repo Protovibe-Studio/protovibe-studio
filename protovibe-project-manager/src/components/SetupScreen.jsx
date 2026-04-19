@@ -173,7 +173,7 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
           {stage === 'error' ? (
             <button
               onClick={onBack}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors cursor-pointer"
             >
               Back to projects
             </button>
@@ -181,14 +181,14 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
             <button
               onClick={handleCancel}
               disabled={cancelling}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50 cursor-pointer"
             >
               {cancelling ? 'Cancelling...' : 'Cancel'}
             </button>
           )}
           <button
             onClick={() => setShowLogs((v) => !v)}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
           >
             {showLogs ? 'Hide logs' : 'Show logs'}
           </button>

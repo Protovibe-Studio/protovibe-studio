@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
+import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
 
 async function apiFetch(method, path, body) {
@@ -25,6 +26,7 @@ export default function App() {
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
+  const [deleteConfirmProject, setDeleteConfirmProject] = useState(null)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
 
@@ -144,18 +146,20 @@ export default function App() {
     }
   }
 
-  const handleDelete = async (id) => {
-    setError('')
-    try {
-      const res = await apiFetch('DELETE', `/projects/${id}`)
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error || 'Failed to delete project.')
-      }
-      fetchProjects()
-    } catch {
-      setError('Network error. Make sure the dev server is running.')
+  const handleDelete = (id) => {
+    const project = projects.find((p) => p.id === id)
+    if (project) setDeleteConfirmProject(project)
+  }
+
+  const handleDeleteConfirmed = async () => {
+    const { id } = deleteConfirmProject
+    const res = await apiFetch('DELETE', `/projects/${id}`)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Failed to delete project.')
     }
+    fetchProjects()
+    if (view === 'project' && activeProjectId === id) goHome()
   }
 
   const handleStop = async (id) => {
@@ -204,7 +208,7 @@ export default function App() {
 
   const renderContent = () => {
     if (view === 'project' && activeProject) {
-      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => { handleDelete(activeProjectId); goHome(); }} onStop={() => handleStop(activeProjectId)} onRenamed={fetchProjects} />
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => handleDelete(activeProjectId)} onStop={() => handleStop(activeProjectId)} onRenamed={fetchProjects} />
     }
 
     // ── List view ──
@@ -230,7 +234,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
@@ -245,7 +249,7 @@ export default function App() {
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
@@ -299,13 +303,13 @@ export default function App() {
       {/* Header */}
       <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-primary-foreground" />
               </svg>
             </div>
-            <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Home</h1>
+            <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Projects</h1>
           </button>
         </div>
       </header>
@@ -317,7 +321,7 @@ export default function App() {
             <p className="text-sm text-foreground-destructive flex-1">{error}</p>
             <button
               onClick={() => setError('')}
-              className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0"
+              className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0 cursor-pointer"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
@@ -334,6 +338,14 @@ export default function App() {
         <CreateProjectModal
           onClose={() => setCreateOpen(false)}
           onCreate={handleCreateProject}
+        />
+      )}
+
+      {deleteConfirmProject && (
+        <DeleteProjectModal
+          projectName={deleteConfirmProject.name}
+          onConfirm={handleDeleteConfirmed}
+          onClose={() => setDeleteConfirmProject(null)}
         />
       )}
 

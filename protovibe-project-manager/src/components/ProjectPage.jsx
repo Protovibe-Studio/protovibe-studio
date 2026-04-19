@@ -128,7 +128,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
           <p className="text-sm text-foreground-destructive flex-1">{error}</p>
           <button
             onClick={() => setError('')}
-            className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0"
+            className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0 cursor-pointer"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -326,16 +326,10 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             </div>
           )}
 
-        </div>
-        )}
-
-        {!setupMode && (
-        <>
-        {/* Card footer: logs toggle */}
-        <div className="border-t border-border-default px-8 py-3.5 flex items-center justify-between">
+          {/* Logs toggle — bottom left of card body */}
           <button
             onClick={() => setShowLogs((v) => !v)}
-            className="flex items-center gap-2 text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer w-fit"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 3.5h10M2 7h6M2 10.5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -351,15 +345,23 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          {showLogs && (
-            <button
-              onClick={() => setLines([])}
-              className="text-xs text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
-            >
-              Clear
-            </button>
-          )}
         </div>
+        )}
+
+        {!setupMode && (
+        <>
+        {/* Card footer: logs label */}
+        {showLogs && (
+        <div className="border-t border-border-default px-8 py-3.5 flex items-center justify-between">
+          <span className="text-sm text-foreground-tertiary">Project logs</span>
+          <button
+            onClick={() => setLines([])}
+            className="text-xs text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+        )}
 
         {/* Logs panel */}
         {showLogs && (

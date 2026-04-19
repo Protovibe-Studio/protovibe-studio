@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import {
   useFloating,
   autoUpdate,
@@ -24,7 +24,7 @@ function MenuItem({ icon, label, onClick, danger, disabled }) {
       onClick={onClick}
       disabled={disabled}
       data-danger={danger}
-      className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground-secondary rounded-lg hover:bg-background-tertiary data-[danger=true]:text-foreground-destructive data-[danger=true]:hover:bg-background-destructive-subtle transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-left"
+      className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground-secondary rounded-lg hover:bg-background-tertiary data-[danger=true]:text-foreground-destructive data-[danger=true]:hover:bg-background-destructive-subtle transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-left"
     >
       {icon}
       {label}
@@ -33,7 +33,6 @@ function MenuItem({ icon, label, onClick, danger, disabled }) {
 }
 
 export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, onStop, onShowFolder, onOpenVSCode }) {
-  const [confirmDelete, setConfirmDelete] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { status, port } = project
 
@@ -52,21 +51,10 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
   const dismiss = useDismiss(context)
   const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss])
 
-  useEffect(() => {
-    if (!confirmDelete) return
-    const t = setTimeout(() => setConfirmDelete(false), 3000)
-    return () => clearTimeout(t)
-  }, [confirmDelete])
-
   const handleDelete = (e) => {
     e.stopPropagation()
-    if (!confirmDelete) {
-      setConfirmDelete(true)
-    } else {
-      setConfirmDelete(false)
-      setMenuOpen(false)
-      onDelete()
-    }
+    setMenuOpen(false)
+    onDelete()
   }
 
   const createdDate = project.createdAt
@@ -117,7 +105,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
         <button
           ref={refs.setReference}
           {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors cursor-pointer"
           title="Actions"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -216,7 +204,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
             <div className="h-px bg-border-default mx-1 my-0.5" />
 
             <MenuItem
-              label={confirmDelete ? 'Confirm delete?' : 'Delete'}
+              label="Delete"
               danger
               disabled={isBusy || isRunning}
               onClick={handleDelete}

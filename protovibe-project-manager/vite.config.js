@@ -53,10 +53,11 @@ function copyDir(src, dest) {
     recursive: true,
     filter: (srcPath) => {
       const rel = path.relative(src, srcPath)
+      const segments = rel.split(path.sep)
       return (
-        !rel.startsWith('node_modules') &&
-        !rel.startsWith('dist') &&
-        !rel.startsWith('.git')
+        !segments.includes('node_modules') &&
+        !segments.includes('dist') &&
+        !segments.includes('.git')
       )
     },
   })
