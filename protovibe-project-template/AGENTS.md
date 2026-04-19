@@ -404,21 +404,23 @@ The visual editor directly manipulates Tailwind class strings in the AST.
 
 ### Rule: Static Tailwind Strings
 
-Do not use JS evaluation, `cva`, or ternaries inside `className`. Express all variants via native data-attribute modifiers.
+Do not use JS evaluation, `cva`, conditional logic (`&&`), or ternaries inside `className`. Express all variants and boolean states via native data-attribute modifiers. Use `cn()` ONLY to merge a single, static string of internal classes with the external `className` prop.
 
-* **❌ BAD: Dynamic compilation that the AST parser/Tailwind cannot read**
+* **❌ BAD: Dynamic compilation or JS logic that the AST parser cannot safely read**
 
   ```tsx
   <div className={`bg-${color}-500`} />
   <div className={variant === 'ghost' ? 'bg-transparent' : 'bg-blue'} />
+  <Icon className={cn("base-classes", selected && "opacity-100")} />
   ```
 
-* **✅ GOOD: Static strings using data attributes and `cn()`**
+* **✅ GOOD: Static strings using data attributes for variants and booleans**
 
   ```tsx
   <button 
-    data-variant={variant} 
-    className={cn("base-classes data-[variant=ghost]:bg-transparent", className)}
+    data-variant={variant}
+    data-selected={selected} 
+    className={cn("base-classes data-[variant=ghost]:bg-transparent data-[selected=true]:opacity-100", className)}
   />
   ```
 

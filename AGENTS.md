@@ -7,9 +7,9 @@ Protovibe is a monorepo containing several independent sub-projects. **You must 
 Each of the following is a **fully independent app** with its own `package.json`, `node_modules`, and dev server and AGENTS.md file:
 Always read the whole AGENTS.md file for a given project when working on it
 
-- `@protovibe-project-manager/AGENTS.md`
-- `@protovibe-project-template/AGENTS.md`
-- `@projects/<ProjectName>/AGENTS.md` (each subdirectory is separate)
+- [protovibe-project-manager/AGENTS.md](protovibe-project-manager/AGENTS.md)
+- [protovibe-project-template/AGENTS.md](protovibe-project-template/AGENTS.md)
+- [projects/\<ProjectName\>/AGENTS.md](projects/) (each subdirectory is separate)
 
 **Do not mix concerns across these boundaries.** If you are working on `projects/MyProject/`, do not read, modify, or reference files from `protovibe-project-manager/` or `protovibe-project-template/`, and vice versa.
 
