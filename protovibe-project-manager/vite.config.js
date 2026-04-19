@@ -246,10 +246,11 @@ async function handleDeleteProject(_req, res, id) {
   const project = projects.find((p) => p.id === id)
   if (!project) return sendJson(res, 404, { error: 'Project not found.' })
 
-  // Kill running process first
+  // 1. Kill running process aggressively to drop locks
   const proc = processes.get(id)
   if (proc?.proc?.pid) {
-    await new Promise((resolve) => treeKill(proc.proc.pid, 'SIGTERM', resolve))
+    // Changed from SIGTERM to SIGKILL
+    await new Promise((resolve) => treeKill(proc.proc.pid, 'SIGKILL', resolve))
     processes.delete(id)
   }
 
@@ -261,9 +262,27 @@ async function handleDeleteProject(_req, res, id) {
       } catch {}
     }
     try {
-      fs.rmSync(project.path, { recursive: true, force: true })
+      // 2. Use Node's built-in retry logic for file lock race conditions
+      fs.rmSync(project.path, { 
+        recursive: true, 
+        force: true,
+        maxRetries: 5,     // Try 5 times before giving up
+        retryDelay: 300    // Wait 300ms between attempts
+      })
     } catch (err) {
-      return sendJson(res, 500, { error: `Failed to delete folder: ${err.message}` })
+      // 3. Smart Debugging: If it STILL fails, let's see exactly what the OS refused to let go of
+      let stuckFiles = []
+      try {
+        stuckFiles = fs.readdirSync(project.path)
+      } catch (readErr) {
+        stuckFiles = ['(Could not read remaining contents)']
+      }
+      
+      console.error(`[protovibe-home] ENOTEMPTY on delete. Stuck items:`, stuckFiles)
+      
+      return sendJson(res, 500, { 
+        error: `Deletion blocked by OS. Stuck items: ${stuckFiles.join(', ')}. Try again in a moment.` 
+      })
     }
   }
 
