@@ -336,7 +336,7 @@ export const FloatingToolbar: React.FC = () => {
       data-pv-ui="true"
       style={{
         position: 'fixed',
-        bottom: '24px',
+        bottom: '16px',
         left: inspectorOpen ? `calc((100vw - ${INSPECTOR_WIDTH_PX}px) / 2)` : '50%',
         transform: 'translateX(-50%)',
         zIndex: 99998,
@@ -354,8 +354,7 @@ export const FloatingToolbar: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           height: '38px',
-          background: 'rgba(18, 18, 24, 0.88)',
-          backdropFilter: 'blur(14px)',
+          background: 'rgba(48, 48, 48)',
           WebkitBackdropFilter: 'blur(14px)',
           borderRadius: '999px',
           border: '1px solid rgba(255,255,255,0.1)',
