@@ -307,7 +307,7 @@ function EmployeesPage() {
                   <div className="flex items-center gap-3">
                     <Avatar initials={emp.name} size="md" bgColor="primary" />
                     <div className="flex flex-col">
-                      <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{emp.name}</TextHeading>
+                      <TextHeading typography="heading-sm" className="group-hover:text-background-primary transition-colors">{emp.name}</TextHeading>
                       <TextParagraph typography="small">{emp.email}</TextParagraph>
                     </div>
                   </div>
@@ -325,7 +325,7 @@ function EmployeesPage() {
                   />
                 </TableCellContent>
                 <TableCellContent>
-                  <Icon iconSymbol="chevron-right" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
+                  <Icon iconSymbol="chevron-right" size="sm" className="text-foreground-tertiary group-hover:text-background-primary" />
                 </TableCellContent>
               </TableRowContent>
             ))}
@@ -368,7 +368,7 @@ function PositionsPage() {
         {/* pv-block-end:h4p5w6 */}
         
         {mockPositions.map(pos => (
-          <Card key={pos.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+          <Card key={pos.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-background-primary cursor-pointer group bg-background-default">
             {/* pv-editable-zone-start:f2a3b4 */}
               {/* pv-block-start:c5d6e7 */}
               <div data-pv-block="c5d6e7" className="flex items-center gap-4">
@@ -380,7 +380,7 @@ function PositionsPage() {
                   {/* pv-block-end:z3a4b5 */}
                   {/* pv-block-start:c6d7e8 */}
                   <div data-pv-block="c6d7e8">
-                    <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{pos.title}</TextHeading>
+                    <TextHeading typography="heading-sm" className="group-hover:text-background-primary transition-colors">{pos.title}</TextHeading>
                     <div className="flex items-center mt-1 gap-1">
                       <TextParagraph typography="small">{pos.department}</TextParagraph>
                       <span className="text-foreground-tertiary text-xs">•</span>
@@ -432,7 +432,7 @@ function DepartmentsPage() {
         {/* pv-block-end:h4d5v6 */}
         
         {mockDepartments.map(dept => (
-          <Card key={dept.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-primary cursor-pointer group bg-background-default">
+          <Card key={dept.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full hover:border-background-primary cursor-pointer group bg-background-default">
             {/* pv-editable-zone-start:m2n3p4 */}
               {/* pv-block-start:q5r6s7 */}
               <div data-pv-block="q5r6s7" className="flex items-center gap-4">
@@ -442,7 +442,7 @@ function DepartmentsPage() {
                   {/* pv-block-end:u6v7w8 */}
                   {/* pv-block-start:x9y1z2 */}
                   <div data-pv-block="x9y1z2">
-                    <TextHeading typography="heading-sm" className="group-hover:text-primary transition-colors">{dept.name}</TextHeading>
+                    <TextHeading typography="heading-sm" className="group-hover:text-background-primary transition-colors">{dept.name}</TextHeading>
                     <TextParagraph typography="small" className="mt-1">Manager: {dept.manager}</TextParagraph>
                   </div>
                   {/* pv-block-end:x9y1z2 */}
@@ -610,7 +610,7 @@ export default function App() {
       {/* Sidebar */}
       <div className="w-64 flex flex-col shrink-0 bg-background-subtle">
         <div className="h-16 flex items-center px-6 gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-background-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
             <Icon iconSymbol="Hexagon" size="sm" />
           </div>
           <TextHeading typography="heading-sm" className="tracking-tight">CoreHR</TextHeading>
@@ -634,7 +634,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             <div className="relative mr-2">
               <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="bell" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border border-background-default"></span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>
             </div>
             
             {/* User Avatar Dropdown */}

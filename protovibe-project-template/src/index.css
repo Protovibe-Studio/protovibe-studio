@@ -31,6 +31,17 @@
  --background-transparent-hover: oklch(0% 0 0 / 6%); /* alpha tint for elements with no base background */
  --background-transparent-pressed: oklch(0% 0 0 / 12%);
 
+ /* Solid accent fills */
+ --background-primary: oklch(42.77% 0.21541 292.5);
+ --background-primary-hover: oklch(50.1% 0.21541 292.5);
+ --background-primary-pressed: oklch(29.8% 0.21541 292.5);
+ --background-destructive: oklch(54.13% 0.22069 27.1);
+ --background-destructive-hover: oklch(50% 0.22 25);
+ --background-destructive-pressed: oklch(45% 0.22 25);
+ --background-success: oklch(62.74% 0.16087 153.2);
+ --background-warning: oklch(67% 0.18 80);
+ --background-info: oklch(58% 0.18 220);
+
  /* Tinted semantic backgrounds — badges, alerts, toasts */
  --background-primary-subtle: oklch(92% 0.02975 305.1);
  --background-primary-subtle-hover: oklch(89% 0.07 296.6);
@@ -72,17 +83,6 @@
  --border-success: oklch(62.74% 0.16087 153.2);
  --border-warning: oklch(75% 0.18 80);
  --border-info: oklch(65% 0.18 220);
-
- /* Solid accent fills */
- --primary: oklch(42.77% 0.21541 292.5);
- --primary-hover: oklch(50.1% 0.21541 292.5);
- --primary-pressed: oklch(29.8% 0.21541 292.5);
- --destructive: oklch(54.13% 0.22069 27.1);
- --destructive-hover: oklch(50% 0.22 25);
- --destructive-pressed: oklch(45% 0.22 25);
- --success: oklch(62.74% 0.16087 153.2);
- --warning: oklch(67% 0.18 80);
- --info: oklch(58% 0.18 220);
 }
 
 
@@ -113,6 +113,17 @@
  --background-transparent: transparent;
  --background-transparent-hover: oklch(100% 0 0 / 8%); /* alpha tint for elements with no base background */
  --background-transparent-pressed: oklch(100% 0 0 / 16%);
+
+ /* Solid accent fills */
+ --background-primary: oklch(55% 0.22 260);
+ --background-primary-hover: oklch(50% 0.22 260);
+ --background-primary-pressed: oklch(45% 0.22 260);
+ --background-destructive: oklch(60% 0.22 25);
+ --background-destructive-hover: oklch(55% 0.22 25);
+ --background-destructive-pressed: oklch(50% 0.22 25);
+ --background-success: oklch(65% 0.18 145);
+ --background-warning: oklch(75% 0.18 80);
+ --background-info: oklch(65% 0.18 220);
 
  /* Tinted semantic backgrounds */
  --background-primary-subtle: oklch(19% 0.09 260);
@@ -156,16 +167,6 @@
  --border-warning: oklch(75% 0.18 80);
  --border-info: oklch(65% 0.18 220);
 
- /* Solid accent fills */
- --primary: oklch(55% 0.22 260);
- --primary-hover: oklch(50% 0.22 260);
- --primary-pressed: oklch(45% 0.22 260);
- --destructive: oklch(60% 0.22 25);
- --destructive-hover: oklch(55% 0.22 25);
- --destructive-pressed: oklch(50% 0.22 25);
- --success: oklch(65% 0.18 145);
- --warning: oklch(75% 0.18 80);
- --info: oklch(65% 0.18 220);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -200,6 +201,15 @@
  --color-background-transparent: var(--background-transparent);
  --color-background-transparent-hover: var(--background-transparent-hover);
  --color-background-transparent-pressed: var(--background-transparent-pressed);
+ --color-background-primary: var(--background-primary);
+ --color-background-primary-hover: var(--background-primary-hover);
+ --color-background-primary-pressed: var(--background-primary-pressed);
+ --color-background-destructive: var(--background-destructive);
+ --color-background-destructive-hover: var(--background-destructive-hover);
+ --color-background-destructive-pressed: var(--background-destructive-pressed);
+ --color-background-success: var(--background-success);
+ --color-background-warning: var(--background-warning);
+ --color-background-info: var(--background-info);
  --color-background-primary-subtle: var(--background-primary-subtle);
  --color-background-primary-subtle-hover: var(--background-primary-subtle-hover);
  --color-background-primary-subtle-pressed: var(--background-primary-subtle-pressed);
@@ -240,17 +250,6 @@
  --color-border-success: var(--border-success);
  --color-border-warning: var(--border-warning);
  --color-border-info: var(--border-info);
-
- /* Solid accents */
- --color-primary: var(--primary);
- --color-primary-hover: var(--primary-hover);
- --color-primary-pressed: var(--primary-pressed);
- --color-destructive: var(--destructive);
- --color-destructive-hover: var(--destructive-hover);
- --color-destructive-pressed: var(--destructive-pressed);
- --color-success: var(--success);
- --color-warning: var(--warning);
- --color-info: var(--info);
 
  /* ── Palette — static, theme-independent ──────────────────────────── */
 

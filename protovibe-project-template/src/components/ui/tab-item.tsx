@@ -38,8 +38,8 @@ export function TabItem({
       className={cn(
         'px-4 py-2 text-sm font-medium border-b-2 border-transparent',
         'text-foreground-secondary hover:text-foreground-default hover:border-border-strong cursor-pointer',
-        'data-[state=active]:border-primary data-[state=active]:text-primary',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'data-[state=active]:border-background-primary data-[state=active]:text-background-primary',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2',
         'disabled:cursor-not-allowed disabled:opacity-50',
         'transition-colors',
         className

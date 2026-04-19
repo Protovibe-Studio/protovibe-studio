@@ -76,7 +76,7 @@ export function ToggleSwitch({
           <div
             data-state={isChecked ? 'checked' : 'unchecked'}
             data-error={error}
-            className="w-11 h-6 border border-border-default rounded-full peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 data-[state=checked]:bg-primary data-[error=true]:border-border-destructive transition-colors bg-background-tertiary"
+            className="w-11 h-6 border border-border-default rounded-full peer-focus-visible:ring-2 peer-focus-visible:ring-background-primary peer-focus-visible:ring-offset-2 data-[state=checked]:bg-background-primary data-[error=true]:border-border-destructive transition-colors bg-background-tertiary"
           >
             <div
               data-state={isChecked ? 'checked' : 'unchecked'}

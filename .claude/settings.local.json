@@ -9,7 +9,9 @@
       "Bash(pnpm add:*)",
       "Bash(pkill -f \"concurrently\\\\|vite-plugin-protovibe\\\\|vite --port=3000\")",
       "Bash(git mv:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

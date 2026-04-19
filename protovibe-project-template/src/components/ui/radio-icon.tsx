@@ -11,10 +11,10 @@ export function RadioIcon({ state = 'inherit', className, ...props }: RadioIconP
       data-state={state}
       className={cn(
         'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0',
-        'data-[state=selected]:border-primary data-[state=selected]:bg-primary',
+        'data-[state=selected]:border-background-primary data-[state=selected]:bg-background-primary',
         'data-[state=unselected]:border-border-default data-[state=unselected]:bg-background-default',
         'data-[state=disabled]:border-border-default data-[state=disabled]:bg-background-default data-[state=disabled]:opacity-50',
-        'data-[state=error]:border-destructive data-[state=error]:bg-background-default',
+        'data-[state=error]:border-background-destructive data-[state=error]:bg-background-default',
         'data-[state=inherit]:border-border-default data-[state=inherit]:bg-background-default',
         className
       )}

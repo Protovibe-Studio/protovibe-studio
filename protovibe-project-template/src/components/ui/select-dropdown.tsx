@@ -149,7 +149,7 @@ export function SelectDropdown({
         disabled={disabled}
         data-open={isOpen}
         data-error={error}
-        className={cn("flex h-10 w-full items-center gap-2 border border-border-default bg-background-default px-3 py-2 text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-primary data-[open=true]:border-transparent data-[error=true]:border-border-destructive disabled:cursor-not-allowed disabled:opacity-50 rounded", className)}
+        className={cn("flex h-10 w-full items-center gap-2 border border-border-default bg-background-default px-3 py-2 text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-border-destructive disabled:cursor-not-allowed disabled:opacity-50 rounded", className)}
         onClick={(e) => {
           if (!disabled) setIsOpen((prev) => !prev);
           onClick?.(e);

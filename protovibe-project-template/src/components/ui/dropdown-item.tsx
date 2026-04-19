@@ -37,7 +37,7 @@ export function DropdownItem({
       className={cn(
         'flex flex-col px-3 py-2 text-sm cursor-pointer select-none transition-colors',
         'text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed',
-        'data-[destructive=true]:text-destructive hover:data-[destructive=true]:bg-background-destructive-subtle active:data-[destructive=true]:bg-background-destructive-subtle-pressed',
+        'data-[destructive=true]:text-background-destructive hover:data-[destructive=true]:bg-background-destructive-subtle active:data-[destructive=true]:bg-background-destructive-subtle-pressed',
         'data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none',
         className
       )}
