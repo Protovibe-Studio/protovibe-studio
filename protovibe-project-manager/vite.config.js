@@ -77,14 +77,14 @@ function readProjectName(projectPath) {
   return path.basename(projectPath)
 }
 
-function writeProtovibeData(projectPath, name) {
+function writeProtovibeData(projectPath, name, { resetCloudflare = false } = {}) {
   const existing = readProtovibeData(projectPath) ?? {}
   const data = {
     ...existing,
     'project-name': name,
-    'cloudflare-wrangler-project-name': existing['cloudflare-wrangler-project-name'] ?? name,
-    'cloudflare-pages-url': existing['cloudflare-pages-url'] ?? '',
-    'cloudflare-deploy-history': existing['cloudflare-deploy-history'] ?? [],
+    'cloudflare-wrangler-project-name': resetCloudflare ? name : (existing['cloudflare-wrangler-project-name'] ?? name),
+    'cloudflare-pages-url': resetCloudflare ? '' : (existing['cloudflare-pages-url'] ?? ''),
+    'cloudflare-deploy-history': resetCloudflare ? [] : (existing['cloudflare-deploy-history'] ?? []),
   }
   fs.writeFileSync(path.join(projectPath, 'protovibe-data.json'), JSON.stringify(data, null, 2), 'utf-8')
 }
@@ -164,7 +164,7 @@ async function handleCreateProject(req, res) {
   }
 
   try {
-    writeProtovibeData(destPath, name)
+    writeProtovibeData(destPath, name, { resetCloudflare: true })
   } catch (err) {
     return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
   }
@@ -206,7 +206,7 @@ async function handleDuplicate(_req, res, id) {
   }
 
   try {
-    writeProtovibeData(destPath, newName)
+    writeProtovibeData(destPath, newName, { resetCloudflare: true })
   } catch (err) {
     return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
   }
