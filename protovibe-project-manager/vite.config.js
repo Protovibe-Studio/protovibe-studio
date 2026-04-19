@@ -31,7 +31,8 @@ function readProjects() {
 
 function writeProjects(list) {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true })
-  fs.writeFileSync(PROJECTS_JSON, JSON.stringify(list, null, 2), 'utf-8')
+  const stripped = list.map(({ id, path, createdAt }) => ({ id, path, createdAt }))
+  fs.writeFileSync(PROJECTS_JSON, JSON.stringify(stripped, null, 2), 'utf-8')
 }
 
 function ensureProjectsDir() {
@@ -59,6 +60,33 @@ function copyDir(src, dest) {
       )
     },
   })
+}
+
+function readProtovibeData(projectPath) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(projectPath, 'protovibe-data.json'), 'utf-8'))
+  } catch {
+    return null
+  }
+}
+
+function readProjectName(projectPath) {
+  const data = readProtovibeData(projectPath)
+  const name = data?.['project-name']
+  if (typeof name === 'string' && name.trim()) return name.trim()
+  return path.basename(projectPath)
+}
+
+function writeProtovibeData(projectPath, name, { resetCloudflare = false } = {}) {
+  const existing = readProtovibeData(projectPath) ?? {}
+  const data = {
+    ...existing,
+    'project-name': name,
+    'cloudflare-wrangler-project-name': resetCloudflare ? name : (existing['cloudflare-wrangler-project-name'] ?? name),
+    'cloudflare-pages-url': resetCloudflare ? '' : (existing['cloudflare-pages-url'] ?? ''),
+    'cloudflare-deploy-history': resetCloudflare ? [] : (existing['cloudflare-deploy-history'] ?? []),
+  }
+  fs.writeFileSync(path.join(projectPath, 'protovibe-data.json'), JSON.stringify(data, null, 2), 'utf-8')
 }
 
 function generateId() {
@@ -95,7 +123,10 @@ function handleGetProjects(_req, res) {
     let updatedAt = null
     try { updatedAt = fs.statSync(p.path).mtime.toISOString() } catch {}
     return {
-      ...p,
+      id: p.id,
+      path: p.path,
+      createdAt: p.createdAt,
+      name: readProjectName(p.path),
       updatedAt,
       status: proc?.status ?? 'stopped',
       port: proc?.port ?? null,
@@ -113,12 +144,12 @@ async function handleCreateProject(req, res) {
   }
 
   const projects = readProjects()
-  if (projects.some((p) => p.name === name)) {
-    return sendJson(res, 409, { error: 'A project with that name already exists.' })
-  }
-
   const destPath = safePath(name)
   if (!destPath) return sendJson(res, 400, { error: 'Invalid name.' })
+
+  if (fs.existsSync(destPath) || projects.some((p) => p.path === destPath)) {
+    return sendJson(res, 409, { error: 'A project folder with that name already exists.' })
+  }
 
   ensureProjectsDir()
 
@@ -132,16 +163,21 @@ async function handleCreateProject(req, res) {
     return sendJson(res, 500, { error: `Failed to copy template: ${err.message}` })
   }
 
+  try {
+    writeProtovibeData(destPath, name, { resetCloudflare: true })
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+
   const entry = {
     id: generateId(),
-    name,
     path: destPath,
     createdAt: new Date().toISOString(),
   }
 
   projects.push(entry)
   writeProjects(projects)
-  sendJson(res, 201, entry)
+  sendJson(res, 201, { ...entry, name })
 }
 
 async function handleDuplicate(_req, res, id) {
@@ -153,13 +189,14 @@ async function handleDuplicate(_req, res, id) {
     return sendJson(res, 404, { error: 'Project folder not found on disk.' })
   }
 
-  let newName = `${original.name}-copy`
+  const originalFolder = path.basename(original.path)
+  let newName = `${originalFolder}-copy`
   let counter = 2
-  while (projects.some((p) => p.name === newName)) {
-    newName = `${original.name}-copy-${counter++}`
+  let destPath = safePath(newName)
+  while (destPath && fs.existsSync(destPath)) {
+    newName = `${originalFolder}-copy-${counter++}`
+    destPath = safePath(newName)
   }
-
-  const destPath = safePath(newName)
   if (!destPath) return sendJson(res, 400, { error: 'Invalid name.' })
 
   try {
@@ -168,16 +205,39 @@ async function handleDuplicate(_req, res, id) {
     return sendJson(res, 500, { error: `Failed to duplicate: ${err.message}` })
   }
 
+  try {
+    writeProtovibeData(destPath, newName, { resetCloudflare: true })
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+
   const entry = {
     id: generateId(),
-    name: newName,
     path: destPath,
     createdAt: new Date().toISOString(),
   }
 
   projects.push(entry)
   writeProjects(projects)
-  sendJson(res, 201, entry)
+  sendJson(res, 201, { ...entry, name: newName })
+}
+
+async function handleRename(req, res, id) {
+  const body = await parseBody(req)
+  const name = (body.name || '').trim()
+  if (!name) return sendJson(res, 400, { error: 'Name is required.' })
+
+  const projects = readProjects()
+  const project = projects.find((p) => p.id === id)
+  if (!project) return sendJson(res, 404, { error: 'Project not found.' })
+  if (!fs.existsSync(project.path)) return sendJson(res, 404, { error: 'Project folder not found on disk.' })
+
+  try {
+    writeProtovibeData(project.path, name)
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+  sendJson(res, 200, { ok: true, name })
 }
 
 async function handleDeleteProject(_req, res, id) {
@@ -604,6 +664,7 @@ function projectManagerPlugin() {
             const [, id, action] = match
             if (method === 'DELETE' && !action) return await handleDeleteProject(req, res, id)
             if (method === 'POST' && action === 'duplicate') return await handleDuplicate(req, res, id)
+            if (method === 'POST' && action === 'rename') return await handleRename(req, res, id)
             if (method === 'POST' && action === 'start') return handleStart(req, res, id)
             if (method === 'POST' && action === 'stop') return handleStop(req, res, id)
             if (method === 'POST' && action === 'install') return handleInstall(req, res, id)

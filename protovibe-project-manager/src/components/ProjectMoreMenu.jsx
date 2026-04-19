@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   useFloating,
   autoUpdate,
@@ -10,13 +10,6 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react'
-
-const STATUS_LABELS = {
-  running: 'Running',
-  stopped: 'Stopped',
-  installing: 'Installing',
-  starting: 'Starting',
-}
 
 function MenuItem({ icon, label, onClick, danger, disabled }) {
   return (
@@ -32,7 +25,7 @@ function MenuItem({ icon, label, onClick, danger, disabled }) {
   )
 }
 
-export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, onStop, onShowFolder, onOpenVSCode }) {
+export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop, onShowFolder, onOpenVSCode, onRename }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { status, port } = project
@@ -65,70 +58,25 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
     } else {
       setConfirmDelete(false)
       setMenuOpen(false)
-      onDelete()
+      onDelete && onDelete()
     }
   }
 
-  const createdDate = project.createdAt
-    ? new Date(project.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : null
-
-  const updatedDate = project.updatedAt
-    ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : null
-
   return (
-    <div
-      onClick={onOpen}
-      className="bg-background-elevated border border-border-default rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs hover:shadow-md hover:border-border-focus/40 transition-all cursor-pointer group"
-    >
-      {/* Left: Header */}
-      <div className="flex flex-col gap-1 min-w-0 flex-1">
-        <h2 className="text-sm font-semibold text-foreground-default truncate group-hover:text-foreground-primary transition-colors">
-          {project.name}
-        </h2>
-        <div className="flex items-center gap-2 text-xs text-foreground-tertiary">
-          {createdDate && <span>Created {createdDate}</span>}
-          {updatedDate && updatedDate !== createdDate && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-              <span>Modified {updatedDate}</span>
-            </>
-          )}
-        </div>
-      </div>
+    <>
+      <button
+        ref={refs.setReference}
+        {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
+        className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors"
+        title="Actions"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="3.5" r="1.25" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.25" fill="currentColor" />
+          <circle cx="8" cy="12.5" r="1.25" fill="currentColor" />
+        </svg>
+      </button>
 
-      {/* Right: Status + menu button */}
-      <div className="flex items-center gap-3 shrink-0">
-        {status !== 'stopped' && (
-          <span
-            data-status={status}
-            className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium
-              data-[status=running]:bg-background-success-subtle data-[status=running]:text-foreground-success
-              data-[status=installing]:bg-background-warning-subtle data-[status=installing]:text-foreground-warning
-              data-[status=starting]:bg-background-info-subtle data-[status=starting]:text-foreground-info"
-          >
-            {STATUS_LABELS[status] ?? status}
-          </span>
-        )}
-
-
-        {/* Three-dot menu button */}
-        <button
-          ref={refs.setReference}
-          {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors"
-          title="Actions"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="3.5" r="1.25" fill="currentColor" />
-            <circle cx="8" cy="8" r="1.25" fill="currentColor" />
-            <circle cx="8" cy="12.5" r="1.25" fill="currentColor" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Dropdown menu */}
       {menuOpen && (
         <FloatingPortal>
           <div
@@ -197,12 +145,28 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
               }
             />
 
+            {onRename && (
+              <MenuItem
+                label="Rename"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRename()
+                  setMenuOpen(false)
+                }}
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
+                    <path d="M12 3l4 4-9 9H3v-4l9-9z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                }
+              />
+            )}
+
             <MenuItem
               label="Duplicate"
               disabled={isBusy}
               onClick={(e) => {
                 e.stopPropagation()
-                onDuplicate()
+                onDuplicate && onDuplicate()
                 setMenuOpen(false)
               }}
               icon={
@@ -229,6 +193,6 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
           </div>
         </FloatingPortal>
       )}
-    </div>
+    </>
   )
 }

@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
 
-export default function CreateProjectModal({ onClose, onCreated }) {
+export default function CreateProjectModal({ onClose, onCreate }) {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -18,7 +17,7 @@ export default function CreateProjectModal({ onClose, onCreated }) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     const trimmed = name.trim()
 
@@ -32,32 +31,7 @@ export default function CreateProjectModal({ onClose, onCreated }) {
     }
 
     setError('')
-    setSubmitting(true)
-
-    try {
-      const res = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: trimmed }),
-      })
-
-      if (res.ok) {
-        const project = await res.json()
-        onCreated(project)
-        return
-      }
-
-      const data = await res.json().catch(() => ({}))
-      if (res.status === 409) {
-        setError(data.error ?? 'A project with that name already exists.')
-      } else {
-        setError(data.error ?? 'Failed to create project. Please try again.')
-      }
-    } catch {
-      setError('Network error. Make sure the dev server is running.')
-    } finally {
-      setSubmitting(false)
-    }
+    onCreate(trimmed)
   }
 
   return (
@@ -95,7 +69,6 @@ export default function CreateProjectModal({ onClose, onCreated }) {
                 if (error) setError('')
               }}
               placeholder="my-project"
-              disabled={submitting}
               className="w-full px-3 py-2 rounded-lg border text-sm text-foreground-default bg-background-secondary placeholder-foreground-tertiary outline-none transition-colors disabled:opacity-50
                 border-border-default
                 focus:border-border-focus focus:ring-2 focus:ring-border-focus/20"
@@ -112,17 +85,16 @@ export default function CreateProjectModal({ onClose, onCreated }) {
             <button
               type="button"
               onClick={onClose}
-              disabled={submitting}
               className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={submitting || !name.trim()}
+              disabled={!name.trim()}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Creating...' : 'Create Project'}
+              Create Project
             </button>
           </div>
         </form>

@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Monitor, LayoutGrid, Palette, Paintbrush, Eye, EyeOff, PenTool, Sparkles } from 'lucide-react';
 import { theme } from '../theme';
 import { PublishButton } from './PublishButton';
@@ -82,6 +82,18 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
   inspectorOpen,
   onToggleInspector,
 }) => {
+  const [projectName, setProjectName] = useState('');
+
+  useEffect(() => {
+    fetch('/protovibe-data.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const n = d?.['project-name'];
+        if (typeof n === 'string' && n.trim()) setProjectName(n.trim());
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div
       style={{
@@ -111,6 +123,26 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
       >
         Protovibe
       </span>
+
+      {projectName && (
+        <span
+          style={{
+            fontFamily: 'sans-serif',
+            fontSize: '12px',
+            fontWeight: 500,
+            color: theme.text_secondary,
+            userSelect: 'none',
+            marginRight: '8px',
+            maxWidth: '200px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+          title={projectName}
+        >
+          {projectName}
+        </span>
+      )}
 
       {/* Left tab group — controls iframe content */}
       {IFRAME_TABS.map(({ id, icon, label }) => (

@@ -25,6 +25,8 @@ export default function App() {
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
+  const [setupStage, setSetupStage] = useState(null)
+  const [pendingName, setPendingName] = useState('')
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -87,26 +89,58 @@ export default function App() {
 
   // ── Actions ──
 
-  const handleProjectCreated = (project) => {
+  const handleCreateProject = async (name) => {
     setCreateOpen(false)
-    fetchProjects()
-    openSetup(project.id)
+    setError('')
+    setPendingName(name)
+    setSetupStage('creating')
+    setView('setup')
+    setActiveProjectId(null)
+    try {
+      const res = await apiFetch('POST', '/projects', { name })
+      if (res.ok) {
+        const project = await res.json()
+        fetchProjects()
+        setActiveProjectId(project.id)
+        setSetupStage(null)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to create project.')
+        setSetupStage(null)
+        setView('list')
+      }
+    } catch {
+      setError('Network error. Make sure the dev server is running.')
+      setSetupStage(null)
+      setView('list')
+    }
   }
 
   const handleDuplicate = async (id) => {
     setError('')
+    const original = projects.find((p) => p.id === id)
+    setPendingName(original?.name ? `${original.name}-copy` : '')
+    setSetupStage('duplicating')
+    setView('setup')
+    setActiveProjectId(null)
     try {
       const res = await apiFetch('POST', `/projects/${id}/duplicate`)
       if (res.ok) {
         const project = await res.json()
         fetchProjects()
-        openSetup(project.id)
+        setPendingName(project.name || '')
+        setActiveProjectId(project.id)
+        setSetupStage(null)
       } else {
         const data = await res.json().catch(() => ({}))
         setError(data.error || 'Failed to duplicate project.')
+        setSetupStage(null)
+        setView('list')
       }
     } catch {
       setError('Network error. Make sure the dev server is running.')
+      setSetupStage(null)
+      setView('list')
     }
   }
 
@@ -158,17 +192,19 @@ export default function App() {
 
   // ── Setup screen overlay (renders on top of list) ──
 
-  const setupOverlay = view === 'setup' && activeProjectId && (
+  const setupOverlay = view === 'setup' && (
     <SetupScreen
       projectId={activeProjectId}
-      projectName={activeProject?.name ?? 'Project'}
+      projectName={activeProject?.name ?? pendingName ?? 'Project'}
       onBack={goHome}
+      initialStage={setupStage ?? 'installing'}
+      onReady={() => { if (activeProjectId) openProject(activeProjectId) }}
     />
   )
 
   const renderContent = () => {
     if (view === 'project' && activeProject) {
-      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} />
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => { handleDelete(activeProjectId); goHome(); }} onStop={() => handleStop(activeProjectId)} onRenamed={fetchProjects} />
     }
 
     // ── List view ──
@@ -297,7 +333,7 @@ export default function App() {
       {createOpen && (
         <CreateProjectModal
           onClose={() => setCreateOpen(false)}
-          onCreated={handleProjectCreated}
+          onCreate={handleCreateProject}
         />
       )}
 
