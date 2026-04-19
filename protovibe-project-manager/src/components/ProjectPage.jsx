@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 
-export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
+export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed, justReady, onDismissReady }) {
   const [lines, setLines] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
   const [setupMode, setSetupMode] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
+  const [localReady, setLocalReady] = useState(false)
   const bottomRef = useRef(null)
 
   const { id, name, status, port } = project
@@ -122,6 +123,23 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         Projects
       </button>
 
+      {(justReady || localReady) && (
+        <div className="flex items-center gap-3 rounded-xl bg-background-success-subtle border border-border-default px-4 py-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12l4 4 8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground-success" />
+          </svg>
+          <p className="text-sm text-foreground-success flex-1">Project ready</p>
+          <button
+            onClick={() => { setLocalReady(false); onDismissReady && onDismissReady() }}
+            className="text-foreground-success hover:text-foreground-default transition-colors shrink-0"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Error banner */}
       {error && (
         <div className="flex items-center gap-3 rounded-xl bg-background-destructive-subtle border border-border-destructive px-4 py-3">
@@ -145,6 +163,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             projectId={id}
             projectName={name}
             onBack={() => setSetupMode(false)}
+            onReady={() => { setSetupMode(false); setLocalReady(true) }}
           />
         ) : (
         <div className="p-8 flex flex-col gap-10">
@@ -210,7 +229,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                       <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                         <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      <span className="text-xs font-semibold text-center">Open app</span>
+                      <span className="text-xs font-semibold text-center">Open Protovibe editor</span>
                     </a>
                   )}
 

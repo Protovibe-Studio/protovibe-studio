@@ -44,15 +44,13 @@ function Spinner() {
   )
 }
 
-export default function SetupScreen({ projectId, projectName, onBack, inline = false, initialStage = 'installing' }) {
+export default function SetupScreen({ projectId, projectName, onBack, onReady, inline = false, initialStage = 'installing' }) {
   const [stage, setStage] = useState(initialStage)
   const [funnyIndex, setFunnyIndex] = useState(0)
   const [logs, setLogs] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [countdown, setCountdown] = useState(null)
-  const redirectUrlRef = useRef(null)
   const bottomRef = useRef(null)
   const esRef = useRef(null)
 
@@ -98,12 +96,10 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
       setLogs((prev) => [...prev, data.text])
     })
 
-    es.addEventListener('ready', (e) => {
-      const { port } = JSON.parse(e.data)
+    es.addEventListener('ready', () => {
       es.close()
-      redirectUrlRef.current = `http://localhost:${port}/protovibe.html`
       setStage('ready')
-      setCountdown(3)
+      onReady && onReady()
     })
 
     es.addEventListener('fail', (e) => {
@@ -122,18 +118,7 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
     return () => es.close()
   }, [projectId])
 
-  // Countdown then redirect
-  useEffect(() => {
-    if (countdown === null) return
-    if (countdown === 0) {
-      window.location.href = redirectUrlRef.current
-      return
-    }
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
-    return () => clearTimeout(t)
-  }, [countdown])
-
-  // Auto-scroll logs
+// Auto-scroll logs
   useEffect(() => {
     if (showLogs) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -171,12 +156,8 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
         {/* Stage label */}
         <p className="text-sm font-medium text-foreground-secondary">{STAGE_LABELS[stage]}</p>
 
-        {/* Funny message or countdown */}
-        {stage === 'ready' && countdown !== null ? (
-          <p className="text-xs text-foreground-tertiary text-center">
-            Opening in {countdown}…
-          </p>
-        ) : funnyText ? (
+        {/* Funny message */}
+        {funnyText ? (
           <p className="text-xs text-foreground-tertiary text-center animate-pulse">{funnyText}</p>
         ) : null}
 

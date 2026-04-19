@@ -87,7 +87,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
           >
             {isRunning && port && (
               <MenuItem
-                label="Open app"
+                label="Open Protovibe editor"
                 onClick={(e) => {
                   e.stopPropagation()
                   window.open(`http://localhost:${port}/protovibe.html`, '_blank')

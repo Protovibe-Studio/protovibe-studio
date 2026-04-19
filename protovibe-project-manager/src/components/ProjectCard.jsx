@@ -139,7 +139,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
           >
             {isRunning && port && (
               <MenuItem
-                label="Open app"
+                label="Open Protovibe editor"
                 onClick={(e) => {
                   e.stopPropagation()
                   window.open(`http://localhost:${port}/protovibe.html`, '_blank')
