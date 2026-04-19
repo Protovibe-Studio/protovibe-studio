@@ -57,13 +57,12 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
     onDelete()
   }
 
-  const createdDate = project.createdAt
-    ? new Date(project.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  const formatDate = (iso) => iso
+    ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null
 
-  const updatedDate = project.updatedAt
-    ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : null
+  const createdDate = formatDate(project.createdAt)
+  const updatedDate = formatDate(project.updatedAt)
 
   return (
     <div
