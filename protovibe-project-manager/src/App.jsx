@@ -27,7 +27,6 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
-  const [justReadyId, setJustReadyId] = useState(null)
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -199,18 +198,13 @@ export default function App() {
       projectName={activeProject?.name ?? pendingName ?? 'Project'}
       onBack={goHome}
       initialStage={setupStage ?? 'installing'}
-      onReady={() => {
-        if (activeProjectId) {
-          setJustReadyId(activeProjectId)
-          openProject(activeProjectId)
-        }
-      }}
+      onReady={() => { if (activeProjectId) openProject(activeProjectId) }}
     />
   )
 
   const renderContent = () => {
     if (view === 'project' && activeProject) {
-      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => { handleDelete(activeProjectId); goHome(); }} onStop={() => handleStop(activeProjectId)} onRenamed={fetchProjects} justReady={justReadyId === activeProjectId} onDismissReady={() => setJustReadyId(null)} />
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => { handleDelete(activeProjectId); goHome(); }} onStop={() => handleStop(activeProjectId)} onRenamed={fetchProjects} />
     }
 
     // ── List view ──

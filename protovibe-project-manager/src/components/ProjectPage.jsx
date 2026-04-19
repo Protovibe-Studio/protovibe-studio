@@ -2,14 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 
-export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed, justReady, onDismissReady }) {
+export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
   const [lines, setLines] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
   const [setupMode, setSetupMode] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
-  const [localReady, setLocalReady] = useState(false)
   const bottomRef = useRef(null)
 
   const { id, name, status, port } = project
@@ -123,23 +122,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         Projects
       </button>
 
-      {(justReady || localReady) && (
-        <div className="flex items-center gap-3 rounded-xl bg-background-success-subtle border border-border-default px-4 py-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M6 12l4 4 8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground-success" />
-          </svg>
-          <p className="text-sm text-foreground-success flex-1">Project ready</p>
-          <button
-            onClick={() => { setLocalReady(false); onDismissReady && onDismissReady() }}
-            className="text-foreground-success hover:text-foreground-default transition-colors shrink-0"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-      )}
-
       {/* Error banner */}
       {error && (
         <div className="flex items-center gap-3 rounded-xl bg-background-destructive-subtle border border-border-destructive px-4 py-3">
@@ -163,7 +145,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             projectId={id}
             projectName={name}
             onBack={() => setSetupMode(false)}
-            onReady={() => { setSetupMode(false); setLocalReady(true) }}
+            onReady={() => setSetupMode(false)}
           />
         ) : (
         <div className="p-8 flex flex-col gap-10">
@@ -218,24 +200,34 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 <div className="flex justify-end">
                   <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
                 </div>
-                <div className="flex gap-3">
-                  {port && (
-                    <a
-                      href={`http://localhost:${port}/protovibe.html`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-primary cursor-pointer"
-                    >
-                      <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                        <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span className="text-xs font-semibold text-center">Open Protovibe editor</span>
-                    </a>
-                  )}
+                {port && (
+                  <a
+                    href={`http://localhost:${port}/protovibe.html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-center gap-2.5 w-full h-14 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 19 19" fill="none">
+                      <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-sm font-semibold">Open Protovibe editor</span>
+                  </a>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => callAction('stop')}
+                    className="group flex flex-col items-center justify-center gap-2.5 h-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all text-foreground-destructive/50 hover:text-foreground-destructive cursor-pointer"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
+                      <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
+                    </svg>
+                    <span className="text-xs font-semibold">Stop</span>
+                  </button>
 
                   <button
                     onClick={callRestart}
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all relative overflow-hidden text-foreground-tertiary hover:text-foreground-default transition-colors cursor-pointer"
+                    className="group flex flex-col items-center justify-center gap-2.5 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                       <path d="M3 9.5a6.5 6.5 0 1 0 1.5-4.15M3 4v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -244,20 +236,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   </button>
 
                   <button
-                    onClick={() => callAction('stop')}
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all relative overflow-hidden text-foreground-destructive/50 hover:text-foreground-destructive transition-colors cursor-pointer"
-                  >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
-                    </svg>
-                    <span className="text-xs font-semibold">Stop</span>
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
                     onClick={onShowFolder}
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                    className="group flex flex-col items-center justify-center gap-2.5 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                       <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
@@ -267,7 +247,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
                   <button
                     onClick={onOpenVSCode}
-                    className="group flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                    className="group flex flex-col items-center justify-center gap-2.5 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
                     <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
                       <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
