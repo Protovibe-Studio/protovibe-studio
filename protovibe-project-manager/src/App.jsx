@@ -88,10 +88,25 @@ export default function App() {
 
   // ── Actions ──
 
-  const handleProjectCreated = (project) => {
+  const handleCreateProject = async (name) => {
     setCreateOpen(false)
-    fetchProjects()
-    openSetup(project.id)
+    setError('')
+    setBusyMessage('Creating project…')
+    try {
+      const res = await apiFetch('POST', '/projects', { name })
+      if (res.ok) {
+        const project = await res.json()
+        fetchProjects()
+        openSetup(project.id)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to create project.')
+      }
+    } catch {
+      setError('Network error. Make sure the dev server is running.')
+    } finally {
+      setBusyMessage('')
+    }
   }
 
   const handleDuplicate = async (id) => {
@@ -301,7 +316,7 @@ export default function App() {
       {createOpen && (
         <CreateProjectModal
           onClose={() => setCreateOpen(false)}
-          onCreated={handleProjectCreated}
+          onCreate={handleCreateProject}
         />
       )}
 
