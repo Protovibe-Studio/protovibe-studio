@@ -61,7 +61,7 @@ export function Avatar({
     >
       {/* Initials or icon — the base layer */}
       {icon ? (
-        <Icon name={icon} size={size} />
+        <Icon iconSymbol={icon} size={size} />
       ) : (
         <span aria-hidden="true">{upperInitials}</span>
       )}

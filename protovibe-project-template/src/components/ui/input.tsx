@@ -87,7 +87,7 @@ export function Input({
       data-pv-component-id="Input"
     >
       {prefixIcon && (
-        <Icon name={prefixIcon} size="sm" className="shrink-0 mr-2 text-foreground-tertiary pointer-events-none" />
+        <Icon iconSymbol={prefixIcon} size="sm" className="shrink-0 mr-2 text-foreground-tertiary pointer-events-none" />
       )}
       {prefixText && (
         <span className="shrink-0 mr-2 text-sm text-foreground-tertiary select-none whitespace-nowrap border-r border-border-default pr-2">{prefixText}</span>
@@ -122,7 +122,7 @@ export function Input({
         <span className="shrink-0 ml-2 text-sm select-none whitespace-nowrap border-l border-border-default pl-2 text-foreground-secondary">{suffixText}</span>
       )}
       {suffixIcon && (
-        <Icon name={suffixIcon} size="sm" className="shrink-0 ml-2 text-foreground-tertiary pointer-events-none" />
+        <Icon iconSymbol={suffixIcon} size="sm" className="shrink-0 ml-2 text-foreground-tertiary pointer-events-none" />
       )}
     </div>
   );

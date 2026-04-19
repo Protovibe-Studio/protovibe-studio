@@ -25,7 +25,7 @@ export function SuperLabel({
       {...props}
       data-pv-component-id="SuperLabel"
     >
-      {prefixIcon && <Icon name={prefixIcon} size="sm" className="text-foreground-default" />}
+      {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-default" />}
       <div className="flex flex-col gap-0.5 flex-1">
         {heading && (
           <span className="font-bold text-foreground-default text-base leading-tight">
@@ -39,7 +39,7 @@ export function SuperLabel({
           <span className="text-xs text-foreground-secondary">{secondaryText}</span>
         )}
       </div>
-      {suffixIcon && <Icon name={suffixIcon} size="sm" className="text-foreground-tertiary" />}
+      {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}
     </div>
   );
 }

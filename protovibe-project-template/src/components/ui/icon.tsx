@@ -16,7 +16,7 @@ const sizeMap = {
 
 export interface IconProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Icon name (e.g. "star", "arrow-right", "chevron-right") */
-  name: string;
+  iconSymbol: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
@@ -56,9 +56,9 @@ async function searchFallback(iconId: string): Promise<string | null> {
   }
 }
 
-export function Icon({ name, size = 'md', className, ...props }: IconProps) {
+export function Icon({ iconSymbol, size = 'md', className, ...props }: IconProps) {
   const px = sizeMap[size];
-  const [prefix, iconName] = name ? parseIconId(toKebab(name)) : [DEFAULT_ICON_PREFIX, 'circle-help'];
+  const [prefix, iconName] = iconSymbol ? parseIconId(toKebab(iconSymbol)) : [DEFAULT_ICON_PREFIX, 'circle-help'];
   const iconId = `${prefix}:${iconName}`;
 
   const [resolvedIcon, setResolvedIcon] = useState(iconId);
@@ -99,11 +99,11 @@ export const pvConfig = {
   description: 'An icon from Iconify',
   importPath: '@/components/ui/icon',
   iconifyPrefix: DEFAULT_ICON_PREFIX,
-  defaultProps: 'name="star" size="md"',
+  defaultProps: 'iconSymbol="star" size="md"',
   defaultContent: <PvDefaultContent />,
   allowTextInChildren: false,
   props: {
-    name: { type: 'iconSearch', exampleValue: 'star' },
+    iconSymbol: { type: 'iconSearch', exampleValue: 'star' },
     size: { type: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] },
   },
 };

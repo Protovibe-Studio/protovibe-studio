@@ -50,7 +50,7 @@ export function ToastBox({
         data-variant={variant}
         className="mt-0.5 shrink-0 data-[variant=success]:text-foreground-success data-[variant=destructive]:text-foreground-destructive data-[variant=warning]:text-foreground-warning data-[variant=neutral]:text-foreground-secondary"
       >
-        <Icon name={resolvedIcon} size="md" />
+        <Icon iconSymbol={resolvedIcon} size="md" />
       </div>
 
       {/* Text content */}

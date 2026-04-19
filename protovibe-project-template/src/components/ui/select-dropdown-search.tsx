@@ -29,7 +29,7 @@ export function SelectDropdownSearch({
       // Stop click from bubbling up to the SelectDropdown trigger
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <Icon name="Search" size="sm" className="shrink-0 text-foreground-tertiary" />
+      <Icon iconSymbol="Search" size="sm" className="shrink-0 text-foreground-tertiary" />
       <input
         ref={inputRef}
         type="text"
@@ -52,7 +52,7 @@ export function SelectDropdownSearch({
           onMouseDown={(e) => { e.preventDefault(); ctx.setQuery(''); inputRef.current?.focus(); }}
           className="shrink-0 flex items-center cursor-pointer text-foreground-tertiary hover:text-foreground-default"
         >
-          <Icon name="close" size="sm" />
+          <Icon iconSymbol="close" size="sm" />
         </button>
       )}
     </div>

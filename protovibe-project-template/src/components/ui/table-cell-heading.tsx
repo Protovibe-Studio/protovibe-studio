@@ -22,9 +22,9 @@ export function TableCellHeading({
       data-pv-component-id="TableCellHeading"
     >
       <span className="inline-flex items-center gap-1.5">
-        {prefixIcon && <Icon name={prefixIcon} size="xs" />}
+        {prefixIcon && <Icon iconSymbol={prefixIcon} size="xs" />}
         {label && <span>{label}</span>}
-        {suffixIcon && <Icon name={suffixIcon} size="xs" />}
+        {suffixIcon && <Icon iconSymbol={suffixIcon} size="xs" />}
       </span>
     </th>
   );

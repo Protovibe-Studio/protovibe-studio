@@ -47,14 +47,14 @@ export function DropdownItem({
       <div className="flex items-center gap-2">
         {selected !== undefined && (
           <Icon
-            name="Check"
+            iconSymbol="Check"
             size="sm"
             className={selected ? 'text-foreground-default' : 'opacity-0 text-foreground-default'}
           />
         )}
-        {prefixIcon && <Icon name={prefixIcon} size="sm" className="text-foreground-secondary" />}
+        {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary" />}
         {label && <span className="flex-1 text-foreground-default">{label}</span>}
-        {suffixIcon && <Icon name={suffixIcon} size="sm" className="text-foreground-tertiary" />}
+        {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}
       </div>
       {secondaryText && (
         <span className="text-xs text-foreground-tertiary pl-6">{secondaryText}</span>

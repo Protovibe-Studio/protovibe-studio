@@ -133,7 +133,7 @@ function DashboardPage() {
                 <div data-pv-block="f2g3h4" className="flex items-center gap-3 mb-2 text-foreground-secondary">
                   {/* pv-editable-zone-start:i5j6k7 */}
                     {/* pv-block-start:l8m9n1 */}
-                    <Icon data-pv-block="l8m9n1" name="Users" size="sm" />
+                    <Icon data-pv-block="l8m9n1" iconSymbol="Users" size="sm" />
                     {/* pv-block-end:l8m9n1 */}
                     {/* pv-block-start:o2p3q4 */}
                     <TextParagraph typography="secondary" data-pv-block="o2p3q4" className="">Total Headcount</TextParagraph>
@@ -160,7 +160,7 @@ function DashboardPage() {
                 <div data-pv-block="d8e9f1" className="flex gap-3 mb-2 text-foreground-secondary items-center">
                   {/* pv-editable-zone-start:g2h3i4 */}
                     {/* pv-block-start:j5k6l7 */}
-                    <Icon data-pv-block="j5k6l7" name="Briefcase" size="sm" />
+                    <Icon data-pv-block="j5k6l7" iconSymbol="Briefcase" size="sm" />
                     {/* pv-block-end:j5k6l7 */}
                     {/* pv-block-start:m8n9o1 */}
                     <TextParagraph typography="secondary" data-pv-block="m8n9o1" className="">Open Roles</TextParagraph>
@@ -185,7 +185,7 @@ function DashboardPage() {
                 <div data-pv-block="b5c6d7" className="flex items-center gap-3 mb-2 text-foreground-secondary">
                   {/* pv-editable-zone-start:e8f9g1 */}
                     {/* pv-block-start:h2i3j4 */}
-                    <Icon data-pv-block="h2i3j4" name="CalendarHeart" size="sm" />
+                    <Icon data-pv-block="h2i3j4" iconSymbol="CalendarHeart" size="sm" />
                     {/* pv-block-end:h2i3j4 */}
                     {/* pv-block-start:k5l6m7 */}
                     <TextParagraph typography="secondary" data-pv-block="k5l6m7" className="">On Leave</TextParagraph>
@@ -211,7 +211,7 @@ function DashboardPage() {
         {/* pv-block-end:e6x5fm */}
 
         {/* pv-block-start:3pppuf */}
-        <Icon data-pv-block="3pppuf" name="close" size="md" />
+        <Icon data-pv-block="3pppuf" iconSymbol="close" size="md" />
         {/* pv-block-end:3pppuf */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
@@ -291,7 +291,7 @@ function EmployeesPage() {
                   />
                 </TableCellContent>
                 <TableCellContent>
-                  <Icon name="chevron-right" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
+                  <Icon iconSymbol="chevron-right" size="sm" className="text-foreground-tertiary group-hover:text-primary" />
                 </TableCellContent>
               </TableRowContent>
             ))}
@@ -341,7 +341,7 @@ function PositionsPage() {
                 {/* pv-editable-zone-start:w9x1y2 */}
                   {/* pv-block-start:z3a4b5 */}
                   <div data-pv-block="z3a4b5" className="bg-background-secondary flex items-center justify-center text-foreground-secondary rounded w-10 h-10">
-                    <Icon name="Briefcase" size="md" />
+                    <Icon iconSymbol="Briefcase" size="md" />
                   </div>
                   {/* pv-block-end:z3a4b5 */}
                   {/* pv-block-start:c6d7e8 */}
@@ -577,7 +577,7 @@ export default function App() {
       <div className="w-64 flex flex-col shrink-0 bg-background-subtle">
         <div className="h-16 flex items-center px-6 gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-foreground-on-primary shadow-sm">
-            <Icon name="Hexagon" size="sm" />
+            <Icon iconSymbol="Hexagon" size="sm" />
           </div>
           <TextHeading typography="heading-sm" className="tracking-tight">CoreHR</TextHeading>
         </div>
@@ -608,7 +608,7 @@ export default function App() {
               <button className="flex items-center gap-2 hover:bg-background-secondary p-1.5 pr-3 rounded-full border border-transparent hover:border-border-default transition-all focus:outline-none">
                 <Avatar initials="JD" bgColor="info" size="sm" />
                 <TextParagraph typography="small" className="font-medium hidden sm:block">Jane Doe</TextParagraph>
-                <Icon name="chevron-down" size="sm" className="text-foreground-tertiary hidden sm:block" />
+                <Icon iconSymbol="chevron-down" size="sm" className="text-foreground-tertiary hidden sm:block" />
               </button>
               
               <DropdownList width="sm" className="mt-1">

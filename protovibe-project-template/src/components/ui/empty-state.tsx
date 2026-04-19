@@ -40,7 +40,7 @@ export function EmptyState({
     >
       {icon && (
         <div className="text-foreground-tertiary">
-          <Icon name={icon} size={iconSize} />
+          <Icon iconSymbol={icon} size={iconSize} />
         </div>
       )}
 

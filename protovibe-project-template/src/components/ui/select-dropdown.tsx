@@ -158,7 +158,7 @@ export function SelectDropdown({
         data-pv-component-id="SelectDropdown"
       >
         {(displayIcon ?? prefixIcon) && (
-          <Icon name={(displayIcon ?? prefixIcon)!} size="sm" className="shrink-0 text-foreground-tertiary" />
+          <Icon iconSymbol={(displayIcon ?? prefixIcon)!} size="sm" className="shrink-0 text-foreground-tertiary" />
         )}
         <span
           data-empty={!displayLabel}
@@ -169,7 +169,7 @@ export function SelectDropdown({
         <span
           className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default"
         >
-          <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+          <Icon iconSymbol={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
         </span>
       </button>
 

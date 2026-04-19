@@ -42,7 +42,7 @@ export function InfoBoxBanner({
     >
       {/* Left icon */}
       <div className="shrink-0 data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-secondary p-0.5" data-color={color}>
-        <Icon name={icon} size="md" />
+        <Icon iconSymbol={icon} size="md" />
       </div>
 
       {/* Middle: heading + secondary text + optional zone + (bottom) action buttons */}

@@ -114,7 +114,7 @@ export function Textarea({
       data-pv-component-id="Textarea"
     >
       {prefixIcon && (
-        <Icon name={prefixIcon} size="sm" className="shrink-0 mt-1 text-foreground-tertiary pointer-events-none" />
+        <Icon iconSymbol={prefixIcon} size="sm" className="shrink-0 mt-1 text-foreground-tertiary pointer-events-none" />
       )}
       {prefixText && (
         <span className="shrink-0 text-sm text-foreground-tertiary select-none whitespace-nowrap border-r border-border-default pr-2 mt-1">{prefixText}</span>
@@ -148,7 +148,7 @@ export function Textarea({
         <span className="shrink-0 mt-1.5 text-sm text-foreground-tertiary select-none whitespace-nowrap border-l border-border-default pl-2">{suffixText}</span>
       )}
       {suffixIcon && (
-        <Icon name={suffixIcon} size="sm" className="shrink-0 mt-1 text-foreground-tertiary pointer-events-none" />
+        <Icon iconSymbol={suffixIcon} size="sm" className="shrink-0 mt-1 text-foreground-tertiary pointer-events-none" />
       )}
     </div>
   );

@@ -24,9 +24,9 @@ export function Badge({
       {...props}
       data-pv-component-id="Badge"
     >
-      {prefixIcon && <Icon name={prefixIcon} size="xs" />}
+      {prefixIcon && <Icon iconSymbol={prefixIcon} size="xs" />}
       <span>{label}</span>
-      {suffixIcon && <Icon name={suffixIcon} size="xs" />}
+      {suffixIcon && <Icon iconSymbol={suffixIcon} size="xs" />}
     </span>
   );
 }
