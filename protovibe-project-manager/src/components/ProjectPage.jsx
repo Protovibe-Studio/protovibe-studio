@@ -116,10 +116,10 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-foreground-tertiary hover:text-foreground-default transition-colors w-fit cursor-pointer"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M8.5 2.5L4 7l4.5 4.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="20" height="20" viewBox="0 0 14 14" fill="none">
+          <path d="M11 7H3M3 7L6.5 3.5M3 7L6.5 10.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Projects
+        Back to projects
       </button>
 
       {/* Error banner */}
