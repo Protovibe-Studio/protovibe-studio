@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, ExternalLink, X, Undo2, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, X, Undo2, MoreHorizontal } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -316,6 +316,20 @@ export const ProtovibeApp: React.FC = () => {
               >
                 <RotateCw size={13} />
               </button>
+              <button
+                onClick={() => {
+                  const win = appIframeRef.current?.contentWindow;
+                  if (win) win.location.href = '/';
+                }}
+                title="Home"
+                style={{
+                  width: 26, height: 26, border: 'none', borderRadius: 4,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'transparent', color: theme.text_secondary,
+                }}
+              >
+                <Home size={13} />
+              </button>
 
               {/* URL bar */}
               <div
@@ -333,7 +347,7 @@ export const ProtovibeApp: React.FC = () => {
                     userSelect: 'all',
                   }}
                 >
-                  {appIframePath}
+                  {window.location.host}{appIframePath}
                 </span>
               </div>
 
