@@ -9,6 +9,7 @@ import * as api from '../api';
 import { fetchSourceInfo, fetchZones, takeSnapshot, blockAction, addBlock } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
+import { theme } from '../../ui/theme';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -1080,7 +1081,7 @@ export function SketchpadApp() {
           <div
             style={{
               position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              zIndex: 99999, background: '#2a2a3e', border: '1px solid rgba(255,255,255,0.1)',
+              zIndex: 99999, background: theme.bg_default, border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 12, padding: '20px 24px', width: 320, boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
               fontFamily: 'var(--font-sans, system-ui, sans-serif)'
             }}

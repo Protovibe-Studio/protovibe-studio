@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import type { CanvasTransform } from '../types';
+import { theme } from '../../ui/theme';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
@@ -207,7 +208,7 @@ export function InfiniteCanvas({
         overflow: 'hidden',
         position: 'relative',
         cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'move',
-        backgroundColor: '#1a1a2e',
+        backgroundColor: theme.bg_strong,
         touchAction: 'none',
       }}
     >

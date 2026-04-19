@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useFloatingDropdownPosition } from '../../ui/hooks/useFloatingDropdownPosition';
+import { theme } from '../../ui/theme';
 
 interface FrameContainerProps {
   frameId: string;
@@ -415,7 +416,7 @@ export function FrameContainer({
             style={{
               ...menuStyle,
               zIndex: 99999,
-              background: '#2a2a3e',
+              background: theme.bg_default,
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 6,
               padding: '4px 0',
