@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
+import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 
-export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode }) {
+export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop }) {
   const [lines, setLines] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
@@ -104,17 +105,20 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
           {/* Project title + dates — shown when busy (no left/right split) */}
           {isBusy && (
-            <div>
-              <h1 className="text-3xl font-bold text-foreground-default tracking-tight leading-tight">{name}</h1>
-              <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
-                {createdDate && <span>Created {createdDate}</span>}
-                {updatedDate && updatedDate !== createdDate && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-                    <span>Modified {updatedDate}</span>
-                  </>
-                )}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground-default tracking-tight leading-tight">{name}</h1>
+                <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
+                  {createdDate && <span>Created {createdDate}</span>}
+                  {updatedDate && updatedDate !== createdDate && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
+                      <span>Modified {updatedDate}</span>
+                    </>
+                  )}
+                </div>
               </div>
+              <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
             </div>
           )}
 
@@ -146,6 +150,9 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
               {/* Right: action cards */}
               <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex justify-end">
+                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
+                </div>
                 <div className="flex gap-3">
                   {port && (
                     <a
@@ -234,6 +241,9 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
               {/* Right: action cards */}
               <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex justify-end">
+                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
+                </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setSetupMode(true)}

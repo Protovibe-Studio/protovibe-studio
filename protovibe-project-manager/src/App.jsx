@@ -168,7 +168,7 @@ export default function App() {
 
   const renderContent = () => {
     if (view === 'project' && activeProject) {
-      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} />
+      return <ProjectPage project={activeProject} onBack={goHome} onSetup={() => openSetup(activeProjectId)} onShowFolder={() => handleShowFolder(activeProjectId)} onOpenVSCode={() => handleOpenVSCode(activeProjectId)} onDuplicate={() => handleDuplicate(activeProjectId)} onDelete={() => { handleDelete(activeProjectId); goHome(); }} onStop={() => handleStop(activeProjectId)} />
     }
 
     // ── List view ──
