@@ -108,10 +108,15 @@ export function updateCssVariable(css: string, selector: string, varName: string
   const after = css.slice(blockEnd);
 
   const safeVar = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const varRegex = new RegExp(`(^|[^\\w-])(--${safeVar}\\s*:\\s*)[^;]+`);
+  // Match the value (excluding semicolons and closing braces) AND any trailing semicolons
+  const varRegex = new RegExp(`(^|[^\\w-])(--${safeVar}\\s*:\\s*)[^;}]+;*`);
   if (!varRegex.test(block)) throw new Error(`Variable "--${varName}" not found in "${selector}" block`);
 
-  return before + block.replace(varRegex, (match, p1, p2) => `${p1}${p2}${newValue}`) + after;
+  // Strip any trailing semicolons from the user's new value to prevent doubling
+  const cleanValue = newValue.replace(/;+$/, '').trim();
+
+  // Inject the clean value and explicitly cap it with exactly one semicolon
+  return before + block.replace(varRegex, (match, p1, p2) => `${p1}${p2}${cleanValue};`) + after;
 }
 
 export interface ThemeColor {
