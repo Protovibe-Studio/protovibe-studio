@@ -10,6 +10,7 @@
   --color-background-destructive-subtle: var(--background-destructive-subtle);
   --color-background-success-subtle: var(--background-success-subtle);
   --color-background-warning-subtle: var(--background-warning-subtle);
+  --color-background-overlay: var(--background-overlay);
 
   /* Text */
   --color-foreground-default: var(--foreground-default);
@@ -48,6 +49,7 @@
   --background-destructive-subtle: rgba(242, 72, 34, 0.15);
   --background-success-subtle: rgba(26, 188, 156, 0.15);
   --background-warning-subtle: rgba(242, 201, 76, 0.15);
+  --background-overlay: rgba(0, 0, 0, 0.6);
 
   /* Text */
   --foreground-default: #FFFFFF;

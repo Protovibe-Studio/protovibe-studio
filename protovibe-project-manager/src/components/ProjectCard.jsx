@@ -116,8 +116,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
         {/* Three-dot menu button */}
         <button
           ref={refs.setReference}
-          {...getReferenceProps()}
-          onClick={(e) => e.stopPropagation()}
+          {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
           className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors"
           title="Actions"
         >
