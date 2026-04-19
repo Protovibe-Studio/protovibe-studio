@@ -255,11 +255,11 @@ export const ProtovibeApp: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
             <button onClick={handleUndo} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Undo2 size={14} />
+              <Undo2 size={16} />
               Undo
             </button>
             <button onClick={handleRestart} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <RotateCw size={14} />
+              <RotateCw size={16} />
               Restart
             </button>
           </div>
@@ -292,8 +292,10 @@ export const ProtovibeApp: React.FC = () => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'transparent', color: theme.text_secondary, fontSize: 14,
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <ArrowLeft size={14} />
+                <ArrowLeft size={16} />
               </button>
               <button
                 onClick={() => appIframeRef.current?.contentWindow?.history.forward()}
@@ -303,8 +305,10 @@ export const ProtovibeApp: React.FC = () => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'transparent', color: theme.text_secondary,
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <ArrowRight size={14} />
+                <ArrowRight size={16} />
               </button>
               <button
                 onClick={() => appIframeRef.current?.contentWindow?.location.reload()}
@@ -314,8 +318,10 @@ export const ProtovibeApp: React.FC = () => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'transparent', color: theme.text_secondary,
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <RotateCw size={13} />
+                <RotateCw size={16} />
               </button>
               <button
                 onClick={() => {
@@ -328,8 +334,10 @@ export const ProtovibeApp: React.FC = () => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'transparent', color: theme.text_secondary,
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <Home size={13} />
+                <Home size={16} />
               </button>
 
               {/* URL bar */}
@@ -368,8 +376,10 @@ export const ProtovibeApp: React.FC = () => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'transparent', color: theme.text_secondary,
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <ExternalLink size={13} />
+                <ExternalLink size={16} />
               </button>
               <button
                 onClick={() => setMobileWidth(v => !v)}
@@ -377,11 +387,13 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: mobileWidth ? '#2563eb' : 'transparent',
-                  color: mobileWidth ? '#fff' : theme.text_secondary,
+                  background: mobileWidth ? theme.accent_default : 'transparent',
+                  color: mobileWidth ? theme.text_default : theme.text_secondary,
                 }}
+                onMouseEnter={e => { if (!mobileWidth) e.currentTarget.style.background = theme.bg_secondary; }}
+                onMouseLeave={e => { if (!mobileWidth) e.currentTarget.style.background = 'transparent'; }}
               >
-                <Smartphone size={13} />
+                <Smartphone size={16} />
               </button>
             </div>
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
@@ -480,7 +492,7 @@ export const ProtovibeApp: React.FC = () => {
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              <MoreHorizontal size={14} />
+              <MoreHorizontal size={16} />
             </button>
           </div>
           {moreMenuOpen && createPortal(
@@ -518,7 +530,7 @@ export const ProtovibeApp: React.FC = () => {
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_tertiary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <RotateCw size={13} />
+                <RotateCw size={16} />
                 Restart dev server
               </button>
             </div>,
