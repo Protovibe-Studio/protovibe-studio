@@ -222,6 +222,24 @@ async function handleDuplicate(_req, res, id) {
   sendJson(res, 201, { ...entry, name: newName })
 }
 
+async function handleRename(req, res, id) {
+  const body = await parseBody(req)
+  const name = (body.name || '').trim()
+  if (!name) return sendJson(res, 400, { error: 'Name is required.' })
+
+  const projects = readProjects()
+  const project = projects.find((p) => p.id === id)
+  if (!project) return sendJson(res, 404, { error: 'Project not found.' })
+  if (!fs.existsSync(project.path)) return sendJson(res, 404, { error: 'Project folder not found on disk.' })
+
+  try {
+    writeProtovibeData(project.path, name)
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+  sendJson(res, 200, { ok: true, name })
+}
+
 async function handleDeleteProject(_req, res, id) {
   const projects = readProjects()
   const project = projects.find((p) => p.id === id)
@@ -646,6 +664,7 @@ function projectManagerPlugin() {
             const [, id, action] = match
             if (method === 'DELETE' && !action) return await handleDeleteProject(req, res, id)
             if (method === 'POST' && action === 'duplicate') return await handleDuplicate(req, res, id)
+            if (method === 'POST' && action === 'rename') return await handleRename(req, res, id)
             if (method === 'POST' && action === 'start') return handleStart(req, res, id)
             if (method === 'POST' && action === 'stop') return handleStop(req, res, id)
             if (method === 'POST' && action === 'install') return handleInstall(req, res, id)

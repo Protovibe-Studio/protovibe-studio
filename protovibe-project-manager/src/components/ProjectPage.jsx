@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 
-export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop }) {
+export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
   const [lines, setLines] = useState([])
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
   const [setupMode, setSetupMode] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
   const bottomRef = useRef(null)
 
   const { id, name, status, port } = project
@@ -63,6 +65,50 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const createdDate = fmt(project.createdAt)
   const updatedDate = fmt(project.updatedAt)
 
+  const startRename = () => { setNameDraft(name); setEditingName(true) }
+  const submitRename = async () => {
+    const newName = nameDraft.trim()
+    setEditingName(false)
+    if (!newName || newName === name) return
+    try {
+      const res = await fetch(`/api/projects/${id}/rename`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to rename.')
+      } else {
+        onRenamed && onRenamed()
+      }
+    } catch {
+      setError('Network error.')
+    }
+  }
+
+  const renderTitle = () => editingName ? (
+    <input
+      autoFocus
+      value={nameDraft}
+      onChange={(e) => setNameDraft(e.target.value)}
+      onBlur={submitRename}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') submitRename()
+        if (e.key === 'Escape') setEditingName(false)
+      }}
+      className="text-3xl font-bold text-foreground-default tracking-tight leading-tight bg-background-secondary border border-border-focus rounded-md px-2 -mx-2 outline-none w-full"
+    />
+  ) : (
+    <h1
+      onDoubleClick={startRename}
+      title="Double-click to rename"
+      className="text-3xl font-bold text-foreground-default tracking-tight leading-tight cursor-text"
+    >
+      {name}
+    </h1>
+  )
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col gap-6">
       {/* Breadcrumb */}
@@ -107,7 +153,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
           {isBusy && (
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-foreground-default tracking-tight leading-tight">{name}</h1>
+                {renderTitle()}
                 <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
                   {createdDate && <span>Created {createdDate}</span>}
                   {updatedDate && updatedDate !== createdDate && (
@@ -118,7 +164,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   )}
                 </div>
               </div>
-              <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
+              <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
             </div>
           )}
 
@@ -128,7 +174,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               {/* Left: title + status */}
               <div className="flex flex-col gap-3">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground-default tracking-tight leading-tight">{name}</h1>
+                  {renderTitle()}
                   <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
                     {createdDate && <span>Created {createdDate}</span>}
                     {updatedDate && updatedDate !== createdDate && (
@@ -151,7 +197,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               {/* Right: action cards */}
               <div className="flex flex-col gap-3 flex-shrink-0">
                 <div className="flex justify-end">
-                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
+                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
                 </div>
                 <div className="flex gap-3">
                   {port && (
@@ -220,7 +266,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               {/* Left: title + status */}
               <div className="flex flex-col gap-3">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground-default tracking-tight leading-tight">{name}</h1>
+                  {renderTitle()}
                   <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
                     {createdDate && <span>Created {createdDate}</span>}
                     {updatedDate && updatedDate !== createdDate && (
@@ -242,7 +288,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               {/* Right: action cards */}
               <div className="flex flex-col gap-3 flex-shrink-0">
                 <div className="flex justify-end">
-                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} />
+                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
                 </div>
                 <div className="flex gap-3">
                   <button

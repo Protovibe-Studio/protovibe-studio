@@ -25,7 +25,7 @@ function MenuItem({ icon, label, onClick, danger, disabled }) {
   )
 }
 
-export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop, onShowFolder, onOpenVSCode }) {
+export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop, onShowFolder, onOpenVSCode, onRename }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { status, port } = project
@@ -144,6 +144,22 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 </svg>
               }
             />
+
+            {onRename && (
+              <MenuItem
+                label="Rename"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRename()
+                  setMenuOpen(false)
+                }}
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
+                    <path d="M12 3l4 4-9 9H3v-4l9-9z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                }
+              />
+            )}
 
             <MenuItem
               label="Duplicate"
