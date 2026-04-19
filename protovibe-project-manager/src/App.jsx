@@ -25,6 +25,7 @@ export default function App() {
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
+  const [busyMessage, setBusyMessage] = useState('')
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -95,6 +96,7 @@ export default function App() {
 
   const handleDuplicate = async (id) => {
     setError('')
+    setBusyMessage('Duplicating project…')
     try {
       const res = await apiFetch('POST', `/projects/${id}/duplicate`)
       if (res.ok) {
@@ -107,6 +109,8 @@ export default function App() {
       }
     } catch {
       setError('Network error. Make sure the dev server is running.')
+    } finally {
+      setBusyMessage('')
     }
   }
 
@@ -302,6 +306,18 @@ export default function App() {
       )}
 
       {setupOverlay}
+
+      {busyMessage && (
+        <div className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center">
+          <div className="bg-background-elevated border border-border-default rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+            <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" className="text-border-default" />
+              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-primary" />
+            </svg>
+            <p className="text-sm text-foreground-secondary">{busyMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

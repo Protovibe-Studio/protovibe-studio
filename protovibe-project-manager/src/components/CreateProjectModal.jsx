@@ -79,8 +79,19 @@ export default function CreateProjectModal({ onClose, onCreated }) {
           </button>
         </div>
 
+        {submitting && (
+          <div className="flex flex-col items-center justify-center gap-3 py-6">
+            <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" className="text-border-default" />
+              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-primary" />
+            </svg>
+            <p className="text-sm text-foreground-secondary">Creating project…</p>
+            <p className="text-xs text-foreground-tertiary">Copying template files, this can take a few seconds.</p>
+          </div>
+        )}
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {!submitting && <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="project-name" className="text-sm font-medium text-foreground-default">
               Project name
@@ -125,7 +136,7 @@ export default function CreateProjectModal({ onClose, onCreated }) {
               {submitting ? 'Creating...' : 'Create Project'}
             </button>
           </div>
-        </form>
+        </form>}
       </div>
     </div>
   )
