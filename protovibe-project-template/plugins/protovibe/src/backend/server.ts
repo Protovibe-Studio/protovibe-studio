@@ -1021,40 +1021,45 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       };
 
       // 2. Generate the correct HTML snippet based on type
-      const generateBlockHtml = (spaces: string) => {
+      const generateBlockHtml = (blockIndent: string) => {
+        const i = blockIndent;
+        const i2 = blockIndent + '  ';
+
         if (elementType === 'paste') {
-          return '\n' + pastedContent.trim().split('\n').map((line, idx) => idx === 0 ? spaces + line : line).join('\n') + '\n' + spaces;
+          const cleanPasted = pastedContent.replace(/^\n/, '').trimEnd();
+          const lines = cleanPasted.split('\n');
+          const baseMatch = lines[0].match(/^([ \t]*)/);
+          const baseIndent = baseMatch ? baseMatch[1] : '';
+          const baseIndentRegex = new RegExp(`^${baseIndent}`);
+          return '\n' + lines.map(line => i + line.replace(baseIndentRegex, '')).join('\n') + '\n';
         }
 
-        const i = spaces + '  '; const i2 = i + '  ';
-          let layoutAttrs = '';
-          if (targetLayoutMode === 'absolute') {
-            layoutAttrs = ` data-pv-sketchpad-el="${blockId}" style={{ position: 'absolute', left: ${pasteX ?? 100}, top: ${pasteY ?? 100} }}`;
-          }
+        let layoutAttrs = '';
+        if (targetLayoutMode === 'absolute') {
+          layoutAttrs = ` data-pv-sketchpad-el="${blockId}" style={{ position: 'absolute', left: ${pasteX ?? 100}, top: ${pasteY ?? 100} }}`;
+        }
 
         if (elementType === 'text') {
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}\n`;
         }
         if (elementType === 'component') {
           const propsStr = defaultProps ? ` ${defaultProps}` : '';
-          
+
           if (defaultContent) {
             // Assign fresh IDs to bare pv-block tags, then format with indentation
             const contentWithIds = assignDefaultContentIds(defaultContent.trim());
             const formattedContent = contentWithIds.split('\n').join(`\n${i2}`);
-              return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n`;
           } else {
             // Render a clean self-closing tag if there are no inner children
-              return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n`;
           }
         }
-          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n${spaces}`;
+        return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n`;
       };
 
       if (isPristine) {
         // New pristine format: ID-less start/end pair {/* pv-editable-zone-start */} + {/* pv-editable-zone-end */}
-        const pristineStartTag = '{/* pv-editable-zone-start */}';
-        const pristineEndTag = '{/* pv-editable-zone-end */}';
         const pristineStartRe = /\{\/\*\s*pv-editable-zone-start\s*\*\/\}/g;
 
         // Collect all pristine start tags within bounds (in document order)
@@ -1070,61 +1075,71 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         const pristineN = parseInt(zoneId.replace('pristine-', ''), 10);
         const target = starts[pristineN - 1];
         if (target) {
-          const endIdx = fileContent.indexOf(pristineEndTag, target.index + target.fullMatch.length);
-          if (endIdx !== -1 && endIdx <= blockEnd) {
+          const endRegex = new RegExp(`([ \\t]*)\\{\\/\\*\\s*pv-editable-zone-end\\s*\\*\\/\\}`, 'g');
+          endRegex.lastIndex = target.index + target.fullMatch.length;
+          const endMatch = endRegex.exec(fileContent);
+
+          if (endMatch && endMatch.index <= blockEnd) {
+            const spaces = endMatch[1];
+            const blockIndent = spaces + '  ';
+            const blockHtml = generateBlockHtml(blockIndent);
             const permanentId = Math.random().toString(36).substring(2, 8);
-            // Derive indentation at the end tag position
-            const lineStartPos = fileContent.lastIndexOf('\n', endIdx) + 1;
-            const spaces = (fileContent.substring(lineStartPos, endIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
-            const blockHtml = generateBlockHtml(spaces);
             const newStartTag = `{/* pv-editable-zone-start:${permanentId} */}`;
-            const newEndTag = `{/* pv-editable-zone-end:${permanentId} */}`;
+            const newEndTag = `${spaces}{/* pv-editable-zone-end:${permanentId} */}`;
+
             fileContent =
               fileContent.slice(0, target.index) +
               newStartTag +
-              fileContent.slice(target.index + target.fullMatch.length, endIdx) +
+              fileContent.slice(target.index + target.fullMatch.length, endMatch.index) +
               blockHtml +
               newEndTag +
-              fileContent.slice(endIdx + pristineEndTag.length);
+              fileContent.slice(endMatch.index + endMatch[0].length);
           }
         }
       } else if (zoneId === 'target-zone-placeholder') {
         // Cross-frame paste: inject before the last pv-editable-zone-end in the file
-        // (mirrors the strategy used by handleSketchpadAddElement)
-        const zoneEndRe = /\{\/\* pv-editable-zone-end(?::[a-zA-Z0-9_-]+)? \*\/\}/g;
-        let zoneEndIdx = -1;
+        const zoneEndRe = /([ \t]*)\{\/\* pv-editable-zone-end(?::[a-zA-Z0-9_-]+)? \*\/\}/g;
+        let lastMatch: RegExpExecArray | null = null;
         let zm: RegExpExecArray | null;
         while ((zm = zoneEndRe.exec(fileContent)) !== null) {
-          zoneEndIdx = zm.index;
+          lastMatch = zm;
         }
-        if (zoneEndIdx >= 0) {
-          const lineStartPos = fileContent.lastIndexOf('\n', zoneEndIdx) + 1;
-          const spaces = (fileContent.substring(lineStartPos, zoneEndIdx).match(/^([ \t]*)/) ?? ['', ''])[1];
-          const blockHtml = generateBlockHtml(spaces);
-          
+        if (lastMatch) {
+          const spaces = lastMatch[1];
+          const blockIndent = spaces + '  ';
+          const blockHtml = generateBlockHtml(blockIndent);
+
           fileContent =
-            fileContent.slice(0, zoneEndIdx) +
+            fileContent.slice(0, lastMatch.index) +
             blockHtml +
-            fileContent.slice(zoneEndIdx);
+            lastMatch[0] +
+            fileContent.slice(lastMatch.index + lastMatch[0].length);
         }
       } else if (afterBlockId) {
-        const endRegex = new RegExp(`(^[ \\t]*)\\{\\/\\*\\s*pv-block-end:${afterBlockId}\\s*\\*\\/\\}`, 'gm');
+        const endRegex = new RegExp(`([ \\t]*)\\{\\/\\*\\s*pv-block-end:${afterBlockId}\\s*\\*\\/\\}`, 'g');
         let hasReplaced = false;
         fileContent = fileContent.replace(endRegex, (match, spaces) => {
           if (hasReplaced) return match;
           hasReplaced = true;
-          return match + generateBlockHtml(spaces);
+          const blockIndent = spaces;
+          return match + generateBlockHtml(blockIndent);
         });
+        if (!hasReplaced) {
+          throw new Error(`Could not find target block-end tag to insert after: ${afterBlockId}`);
+        }
       } else {
-        // Changed to 'gm' flag to allow offset checking
-        const endRegex = new RegExp(`(^[ \\t]*)\\{\\/\\*\\s*pv-editable-zone-end:${zoneId}\\s*\\*\\/\\}`, 'gm');
+        const endRegex = new RegExp(`([ \\t]*)\\{\\/\\*\\s*pv-editable-zone-end:${zoneId}\\s*\\*\\/\\}`, 'g');
         let hasReplaced = false;
         fileContent = fileContent.replace(endRegex, (match, spaces, offset) => {
           if (offset < blockStart || offset > blockEnd) return match;
           if (hasReplaced) return match;
           hasReplaced = true;
-          return generateBlockHtml(spaces) + match.trim();
+          const blockIndent = spaces + '  ';
+          return generateBlockHtml(blockIndent) + match;
         });
+        if (!hasReplaced) {
+          throw new Error(`Could not find target editable-zone-end tag to insert into: ${zoneId}`);
+        }
       }
 
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');
