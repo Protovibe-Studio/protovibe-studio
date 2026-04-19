@@ -3,6 +3,7 @@ import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 import { TextHeading } from '@/components/ui/text-heading';
 import { TextParagraph } from '@/components/ui/text-paragraph';
 import { Button } from '@/components/ui/button';
+import { DropdownItem } from '@/components/ui/dropdown-item';
 
 export default function Frame1() {
   return (
@@ -31,6 +32,10 @@ export default function Frame1() {
         {/* pv-block-start:h2e7ps */}
         <Button data-pv-block="h2e7ps" data-pv-sketchpad-el="h2e7ps" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 179, top: 360 }} />
         {/* pv-block-end:h2e7ps */}
+      
+      {/* pv-block-start:6njnmk */}
+      <DropdownItem secondaryText="Test" selected data-pv-block="6njnmk" data-pv-sketchpad-el="6njnmk" label="Menu Item" style={{ position: 'absolute', left: 562, top: 228 }} />
+      {/* pv-block-end:6njnmk */}
       {/* pv-editable-zone-end:0owew4 */}
     </div>
   );

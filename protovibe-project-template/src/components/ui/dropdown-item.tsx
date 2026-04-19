@@ -85,4 +85,7 @@ export const pvConfig = {
     destructive: { type: 'boolean' },
     disabled: { type: 'boolean' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.label,
+  ],
 };

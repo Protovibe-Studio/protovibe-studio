@@ -4,6 +4,7 @@ import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
+import { ToastViewport, showToast } from './components/ToastViewport.jsx'
 
 async function apiFetch(method, path, body) {
   const res = await fetch(`/api${path}`, {
@@ -159,6 +160,7 @@ export default function App() {
       throw new Error(data.error || 'Failed to delete project.')
     }
     fetchProjects()
+    showToast(`"${deleteConfirmProject.name}" deleted`, 'success')
     if (view === 'project' && activeProjectId === id) goHome()
   }
 
@@ -350,6 +352,7 @@ export default function App() {
       )}
 
       {setupOverlay}
+      <ToastViewport />
     </div>
   )
 }
