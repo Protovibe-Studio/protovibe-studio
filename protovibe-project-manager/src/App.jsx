@@ -25,7 +25,8 @@ export default function App() {
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
-  const [busyMessage, setBusyMessage] = useState('')
+  const [setupStage, setSetupStage] = useState(null)
+  const [pendingName, setPendingName] = useState('')
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -91,41 +92,55 @@ export default function App() {
   const handleCreateProject = async (name) => {
     setCreateOpen(false)
     setError('')
-    setBusyMessage('Creating project…')
+    setPendingName(name)
+    setSetupStage('creating')
+    setView('setup')
+    setActiveProjectId(null)
     try {
       const res = await apiFetch('POST', '/projects', { name })
       if (res.ok) {
         const project = await res.json()
         fetchProjects()
-        openSetup(project.id)
+        setActiveProjectId(project.id)
+        setSetupStage(null)
       } else {
         const data = await res.json().catch(() => ({}))
         setError(data.error || 'Failed to create project.')
+        setSetupStage(null)
+        setView('list')
       }
     } catch {
       setError('Network error. Make sure the dev server is running.')
-    } finally {
-      setBusyMessage('')
+      setSetupStage(null)
+      setView('list')
     }
   }
 
   const handleDuplicate = async (id) => {
     setError('')
-    setBusyMessage('Duplicating project…')
+    const original = projects.find((p) => p.id === id)
+    setPendingName(original?.name ? `${original.name}-copy` : '')
+    setSetupStage('duplicating')
+    setView('setup')
+    setActiveProjectId(null)
     try {
       const res = await apiFetch('POST', `/projects/${id}/duplicate`)
       if (res.ok) {
         const project = await res.json()
         fetchProjects()
-        openSetup(project.id)
+        setPendingName(project.name || '')
+        setActiveProjectId(project.id)
+        setSetupStage(null)
       } else {
         const data = await res.json().catch(() => ({}))
         setError(data.error || 'Failed to duplicate project.')
+        setSetupStage(null)
+        setView('list')
       }
     } catch {
       setError('Network error. Make sure the dev server is running.')
-    } finally {
-      setBusyMessage('')
+      setSetupStage(null)
+      setView('list')
     }
   }
 
@@ -177,11 +192,12 @@ export default function App() {
 
   // ── Setup screen overlay (renders on top of list) ──
 
-  const setupOverlay = view === 'setup' && activeProjectId && (
+  const setupOverlay = view === 'setup' && (
     <SetupScreen
       projectId={activeProjectId}
-      projectName={activeProject?.name ?? 'Project'}
+      projectName={activeProject?.name ?? pendingName ?? 'Project'}
       onBack={goHome}
+      initialStage={setupStage ?? 'installing'}
     />
   )
 
@@ -321,18 +337,6 @@ export default function App() {
       )}
 
       {setupOverlay}
-
-      {busyMessage && (
-        <div className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center">
-          <div className="bg-background-elevated border border-border-default rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
-            <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" className="text-border-default" />
-              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-primary" />
-            </svg>
-            <p className="text-sm text-foreground-secondary">{busyMessage}</p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

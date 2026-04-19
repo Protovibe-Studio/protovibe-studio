@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 
 const FUNNY_MESSAGES = {
+  creating: [
+    'Copying template files...',
+    'Laying the foundations...',
+    'Carving out a new playground...',
+  ],
+  duplicating: [
+    'Cloning your project...',
+    'Making a photocopy of the template...',
+    'Duplicating bits and bytes...',
+  ],
   installing: [
     'Summoning node_modules from the void...',
     'Downloading the internet (just the good parts)...',
@@ -20,6 +30,8 @@ const FUNNY_MESSAGES = {
 }
 
 const STAGE_LABELS = {
+  creating: 'Creating project',
+  duplicating: 'Duplicating project',
   installing: 'Installing dependencies',
   starting: 'Starting dev server',
   ready: 'Ready!',
@@ -32,8 +44,8 @@ function Spinner() {
   )
 }
 
-export default function SetupScreen({ projectId, projectName, onBack, inline = false }) {
-  const [stage, setStage] = useState('installing')
+export default function SetupScreen({ projectId, projectName, onBack, inline = false, initialStage = 'installing' }) {
+  const [stage, setStage] = useState(initialStage)
   const [funnyIndex, setFunnyIndex] = useState(0)
   const [logs, setLogs] = useState([])
   const [error, setError] = useState('')
@@ -47,9 +59,11 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
   const handleCancel = async () => {
     setCancelling(true)
     esRef.current?.close()
-    try {
-      await fetch(`/api/projects/${projectId}/stop`, { method: 'POST' })
-    } catch {}
+    if (projectId) {
+      try {
+        await fetch(`/api/projects/${projectId}/stop`, { method: 'POST' })
+      } catch {}
+    }
     onBack()
   }
 
@@ -62,8 +76,14 @@ export default function SetupScreen({ projectId, projectName, onBack, inline = f
     return () => clearInterval(interval)
   }, [stage])
 
+  // Sync stage with initialStage while projectId is not yet available
+  useEffect(() => {
+    if (!projectId) setStage(initialStage)
+  }, [initialStage, projectId])
+
   // SSE connection to setup endpoint
   useEffect(() => {
+    if (!projectId) return
     const es = new EventSource(`/api/projects/${projectId}/setup`)
     esRef.current = es
 
