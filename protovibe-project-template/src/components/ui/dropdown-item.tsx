@@ -49,7 +49,8 @@ export function DropdownItem({
           <Icon
             iconSymbol="Check"
             size="sm"
-            className={selected ? 'text-foreground-default' : 'opacity-0 text-foreground-default'}
+            data-selected={selected}
+            className="text-foreground-default opacity-0 data-[selected=true]:opacity-100"
           />
         )}
         {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary" />}
