@@ -103,7 +103,6 @@ export default function Frame1() {
         </div>
         {/* pv-block-end:2g8vkk */}
 
-      
       {/* pv-block-start:20210x */}
       <TextHeading data-pv-block="20210x" data-pv-sketchpad-el="20210x" typography="heading-lg" style={{ position: 'absolute', left: 516, top: 95 }}>
         asdasdad
@@ -148,6 +147,20 @@ export default function Frame1() {
         {/* pv-editable-zone-end:rkdn2p */}
       </Rectangle>
       {/* pv-block-end:hq6ukf */}
+        {/* pv-block-start:35yqfl */}
+        <Card data-pv-block="35yqfl" data-pv-sketchpad-el="35yqfl" style={{ position: 'absolute', left: 98, top: 524 }}>
+          {/* pv-editable-zone-start:6fos4n */}
+            {/* pv-block-start:18xlyc */}
+            <TextParagraph data-pv-block="18xlyc"  typography="regular">
+              Paragraph text
+            </TextParagraph>
+            {/* pv-block-end:18xlyc */}
+            {/* pv-block-start:pxried */}
+            <Button data-pv-block="pxried"  label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:pxried */}
+          {/* pv-editable-zone-end:6fos4n */}
+        </Card>
+        {/* pv-block-end:35yqfl */}
       {/* pv-editable-zone-end:d3dvka */}
     </div>
   );

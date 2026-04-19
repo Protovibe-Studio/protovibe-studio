@@ -1031,7 +1031,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const baseMatch = lines[0].match(/^([ \t]*)/);
           const baseIndent = baseMatch ? baseMatch[1] : '';
           const baseIndentRegex = new RegExp(`^${baseIndent}`);
-          return '\n' + lines.map(line => i + line.replace(baseIndentRegex, '')).join('\n') + '\n';
+          return lines.map(line => i + line.replace(baseIndentRegex, '')).join('\n');
         }
 
         let layoutAttrs = '';
@@ -1040,7 +1040,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         }
 
         if (elementType === 'text') {
-          return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}\n`;
+          return `${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}`;
         }
         if (elementType === 'component') {
           const propsStr = defaultProps ? ` ${defaultProps}` : '';
@@ -1049,13 +1049,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             // Assign fresh IDs to bare pv-block tags, then format with indentation
             const contentWithIds = assignDefaultContentIds(defaultContent.trim());
             const formattedContent = contentWithIds.split('\n').join(`\n${i2}`);
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}\n`;
+            return `${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr}>\n${i2}${formattedContent}\n${i}</${compName}>\n${i}{/* pv-block-end:${blockId} */}`;
           } else {
             // Render a clean self-closing tag if there are no inner children
-            return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}\n`;
+            return `${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}`;
           }
         }
-        return `\n${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}\n`;
+        return `${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}`;
       };
 
       if (isPristine) {
@@ -1091,7 +1091,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
               fileContent.slice(0, target.index) +
               newStartTag +
               fileContent.slice(target.index + target.fullMatch.length, endMatch.index) +
-              blockHtml +
+              blockHtml + '\n' +
               newEndTag +
               fileContent.slice(endMatch.index + endMatch[0].length);
           }
@@ -1111,7 +1111,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
           fileContent =
             fileContent.slice(0, lastMatch.index) +
-            blockHtml +
+            blockHtml + '\n' +
             lastMatch[0] +
             fileContent.slice(lastMatch.index + lastMatch[0].length);
         }
@@ -1122,7 +1122,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           if (hasReplaced) return match;
           hasReplaced = true;
           const blockIndent = spaces;
-          return match + generateBlockHtml(blockIndent);
+          return match + '\n' + generateBlockHtml(blockIndent);
         });
         if (!hasReplaced) {
           throw new Error(`Could not find target block-end tag to insert after: ${afterBlockId}`);
@@ -1135,7 +1135,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           if (hasReplaced) return match;
           hasReplaced = true;
           const blockIndent = spaces + '  ';
-          return generateBlockHtml(blockIndent) + match;
+          return generateBlockHtml(blockIndent) + '\n' + match;
         });
         if (!hasReplaced) {
           throw new Error(`Could not find target editable-zone-end tag to insert into: ${zoneId}`);

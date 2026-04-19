@@ -213,6 +213,40 @@ function DashboardPage() {
         {/* pv-block-start:3pppuf */}
         <Icon data-pv-block="3pppuf" iconSymbol="close" size="md" />
         {/* pv-block-end:3pppuf */}
+        {/* pv-block-start:2pevh5 */}
+        <Card data-pv-block="2pevh5">
+          {/* pv-editable-zone-start:wc4qbg */}
+            {/* pv-block-start:2oav1t */}
+            <Card data-pv-block="2oav1t">
+              {/* pv-editable-zone-start:vxz2pf */}
+                {/* pv-block-start:zkq4kp */}
+                <TextParagraph data-pv-block="zkq4kp" typography="regular">
+                  Paragraph text
+                </TextParagraph>
+                {/* pv-block-end:zkq4kp */}
+                {/* pv-block-start:tusu62 */}
+                <Button data-pv-block="tusu62" label="Button" variant="solid" color="primary" size="md" />
+                {/* pv-block-end:tusu62 */}
+              {/* pv-editable-zone-end:vxz2pf */}
+            </Card>
+            {/* pv-block-end:2oav1t */}
+            {/* pv-block-start:0fl8os */}
+            <Card data-pv-block="0fl8os">
+              {/* pv-editable-zone-start:32tj0a */}
+                {/* pv-block-start:bcpqex */}
+                <TextParagraph data-pv-block="bcpqex" typography="regular">
+                  Paragraph text
+                </TextParagraph>
+                {/* pv-block-end:bcpqex */}
+                {/* pv-block-start:b4he53 */}
+                <Button data-pv-block="b4he53" label="Button" variant="solid" color="primary" size="md" />
+                {/* pv-block-end:b4he53 */}
+              {/* pv-editable-zone-end:32tj0a */}
+            </Card>
+            {/* pv-block-end:0fl8os */}
+          {/* pv-editable-zone-end:wc4qbg */}
+        </Card>
+        {/* pv-block-end:2pevh5 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
