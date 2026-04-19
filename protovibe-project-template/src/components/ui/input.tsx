@@ -83,7 +83,7 @@ export function Input({
       data-error={error ? true : undefined}
       data-disabled={disabled ? true : undefined}
       onClick={() => inputRef.current?.focus()}
-      className={cn("flex items-center border border-border-default bg-background-default px-3 cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed data-[error=true]:border-background-destructive data-[error=true]:data-[focused=true]:ring-background-destructive grow text-base h-9 rounded", className)}
+      className={cn("flex items-center border border-border-default bg-background-default px-3 cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed data-[error=true]:border-background-destructive data-[error=true]:data-[focused=true]:ring-background-destructive text-base h-9 rounded grow", className)}
       data-pv-component-id="Input"
     >
       {prefixIcon && (

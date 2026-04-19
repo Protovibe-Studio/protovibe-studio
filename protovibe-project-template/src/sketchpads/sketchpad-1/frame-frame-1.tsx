@@ -2,13 +2,14 @@
 import { Rectangle } from '@/components/ui/sketchpad-rectangle';
 import { TextHeading } from '@/components/ui/text-heading';
 import { TextParagraph } from '@/components/ui/text-paragraph';
+import { Button } from '@/components/ui/button';
 
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:0owew4 */}
       {/* pv-block-start:te1asy */}
-      <Rectangle data-pv-block="te1asy" data-pv-sketchpad-el="te1asy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 231, top: 95 }}>
+      <Rectangle data-pv-block="te1asy" data-pv-sketchpad-el="te1asy" className="w-[200px] h-[200px]" style={{ position: 'absolute', left: 97, top: 66 }}>
         {/* pv-editable-zone-start:8zwpb0 */}
           {/* pv-block-start:mswr2t */}
           <TextHeading data-pv-block="mswr2t" data-pv-sketchpad-el="mswr2t" typography="heading-md" style={{ position: 'absolute', left: 27, top: 21 }}>
@@ -23,6 +24,13 @@ export default function Frame1() {
         {/* pv-editable-zone-end:8zwpb0 */}
       </Rectangle>
       {/* pv-block-end:te1asy */}
+      
+      {/* pv-block-start:utvfsb */}
+      <Button data-pv-block="utvfsb" data-pv-sketchpad-el="utvfsb" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 364, top: 433 }} />
+      {/* pv-block-end:utvfsb */}
+        {/* pv-block-start:h2e7ps */}
+        <Button data-pv-block="h2e7ps" data-pv-sketchpad-el="h2e7ps" label="Button" variant="solid" color="primary" size="md" style={{ position: 'absolute', left: 179, top: 360 }} />
+        {/* pv-block-end:h2e7ps */}
       {/* pv-editable-zone-end:0owew4 */}
     </div>
   );

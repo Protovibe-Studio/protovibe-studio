@@ -565,7 +565,7 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
 
 export const handleSketchpadAddElement: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, componentName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, x, y } =
+    const { sketchpadId, frameId, componentName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, x, y, activeSourceId } =
       await parseBody(req);
     if (!sketchpadId || !frameId || !componentName)
       return sendError(res, 'sketchpadId, frameId, and componentName required');
@@ -573,7 +573,8 @@ export const handleSketchpadAddElement: Connect.NextHandleFunction = async (req,
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(null, path.relative(process.cwd(), filePath));
+    // Correctly map arguments: activeId, URL query string, ...filePaths
+    snapshotFiles(activeSourceId || null, '?tab=sketchpad', path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Collect all imports to add (component + additional imports for default content)

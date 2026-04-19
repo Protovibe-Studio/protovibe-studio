@@ -110,7 +110,7 @@ export function Textarea({
       data-error={error ? true : undefined}
       data-disabled={disabled ? true : undefined}
       onClick={() => textareaRef.current?.focus()}
-      className={cn("w-full border border-border-default bg-background-default text-sm cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed data-[error=true]:border-background-destructive data-[error=true]:data-[focused=true]:ring-background-destructive flex items-start gap-2 px-3 py-2 rounded", className)}
+      className={cn("border border-border-default bg-background-default text-sm cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed data-[error=true]:border-background-destructive data-[error=true]:data-[focused=true]:ring-background-destructive flex items-start gap-2 px-3 py-2 rounded flex-1", className)}
       data-pv-component-id="Textarea"
     >
       {prefixIcon && (
