@@ -7,35 +7,11 @@
       "frames": [
         {
           "id": "frame-frame-1",
-          "name": "23sdfsdfsd",
-          "width": 1591,
-          "height": 945,
-          "canvasX": -1222,
-          "canvasY": -367
-        },
-        {
-          "id": "frame-frame-2",
-          "name": "Frame 2",
+          "name": "Frame 1",
           "width": 1440,
           "height": 900,
-          "canvasX": 887,
-          "canvasY": -191
-        },
-        {
-          "id": "frame-frame-2-copy",
-          "name": "Frame 2 Copy",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 885,
-          "canvasY": 960
-        },
-        {
-          "id": "frame-frame-5",
-          "name": "Frame 5",
-          "width": 1182,
-          "height": 1137,
-          "canvasX": -1313,
-          "canvasY": 926
+          "canvasX": -239,
+          "canvasY": 538
         }
       ]
     }
