@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, X, Undo2, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, MoreHorizontal } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -46,6 +46,7 @@ export const ProtovibeApp: React.FC = () => {
   }, []);
   const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize, runLockedMutation } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
+  const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
@@ -370,14 +371,33 @@ export const ProtovibeApp: React.FC = () => {
               >
                 <ExternalLink size={13} />
               </button>
+              <button
+                onClick={() => setMobileWidth(v => !v)}
+                title={mobileWidth ? 'Full width' : 'Mobile width'}
+                style={{
+                  width: 26, height: 26, border: 'none', borderRadius: 4,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: mobileWidth ? '#2563eb' : 'transparent',
+                  color: mobileWidth ? '#fff' : theme.text_secondary,
+                }}
+              >
+                <Smartphone size={13} />
+              </button>
             </div>
-            <iframe
-              ref={appIframeRef}
-              src="/"
-              style={{ flex: 1, border: 'none', minWidth: 0 }}
-              title="App Preview"
-              onLoad={() => handleIframeLoad(appIframeRef)}
-            />
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
+              <iframe
+                ref={appIframeRef}
+                src="/"
+                style={{
+                  flex: mobileWidth ? 'none' : 1,
+                  width: mobileWidth ? 390 : '100%',
+                  border: 'none',
+                  minWidth: 0,
+                }}
+                title="App Preview"
+                onLoad={() => handleIframeLoad(appIframeRef)}
+              />
+            </div>
           </div>
           <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0 }}>
             <iframe
