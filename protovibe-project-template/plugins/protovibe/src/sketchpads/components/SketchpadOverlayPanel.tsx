@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Sketchpad } from '../types';
 import { ConfirmDialog } from '../../ui/components/ConfirmDialog';
+import { theme } from '../../ui/theme';
 
 interface SketchpadOverlayPanelProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export function SketchpadOverlayPanel({
           left: 16,
           top: 60,
           zIndex: 9997,
-          background: '#2a2a3e',
+          background: theme.bg_default,
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: 10,
           width: 240,
