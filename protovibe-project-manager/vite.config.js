@@ -61,6 +61,15 @@ function copyDir(src, dest) {
   })
 }
 
+function writeProtovibeData(projectPath, name) {
+  const data = {
+    'cloudflare-wrangler-project-name': name,
+    'cloudflare-pages-url': '',
+    'cloudflare-deploy-history': [],
+  }
+  fs.writeFileSync(path.join(projectPath, 'protovibe-data.json'), JSON.stringify(data, null, 2), 'utf-8')
+}
+
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
@@ -132,6 +141,12 @@ async function handleCreateProject(req, res) {
     return sendJson(res, 500, { error: `Failed to copy template: ${err.message}` })
   }
 
+  try {
+    writeProtovibeData(destPath, name)
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+
   const entry = {
     id: generateId(),
     name,
@@ -166,6 +181,12 @@ async function handleDuplicate(_req, res, id) {
     copyDir(original.path, destPath)
   } catch (err) {
     return sendJson(res, 500, { error: `Failed to duplicate: ${err.message}` })
+  }
+
+  try {
+    writeProtovibeData(destPath, newName)
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
   }
 
   const entry = {
