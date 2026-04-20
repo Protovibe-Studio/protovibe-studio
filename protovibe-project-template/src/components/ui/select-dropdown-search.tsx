@@ -59,6 +59,10 @@ export function SelectDropdownSearch({
   );
 }
 
+export function PvDefaultContent() {
+  return <></>;
+}
+
 export const pvConfig = {
   name: 'SelectDropdownSearch',
   componentId: 'SelectDropdownSearch',
@@ -66,7 +70,7 @@ export const pvConfig = {
   description: 'A search field that auto-filters items inside a SelectDropdown. Place it as the first child.',
   importPath: '@/components/ui/select-dropdown-search',
   defaultProps: 'placeholder="Search..."',
-  defaultContent: '',
+  defaultContent: <PvDefaultContent />,
   props: {
     placeholder: { type: 'string', exampleValue: 'Search...' },
   },
