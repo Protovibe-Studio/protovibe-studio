@@ -251,6 +251,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [bgExpanded, setBgExpanded] = useState(false);
   const [bgHovered, setBgHovered] = useState(false);
   const [localBgOpacity, setLocalBgOpacity] = useState<number | null>(null);
+  const [localBorderOpacity, setLocalBorderOpacity] = useState<number | null>(null);
 
   const uniqueClasses = (classes: string[]) => [...new Set(classes.filter(Boolean))];
 
@@ -540,6 +541,13 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const bgColor = bgSlashIdx !== -1 ? bgFull.slice(0, bgSlashIdx) : bgFull;
   const bgOpacityNum = localBgOpacity ?? (bgSlashIdx !== -1 ? parseInt(bgFull.slice(bgSlashIdx + 1), 10) : 100);
 
+  // ── Border color/opacity parsing ─────────────────────────────────────────────
+
+  const borderColorFull = cleanVal(v.borderColor); // e.g. 'red-500/50' or 'red-500'
+  const borderColorSlashIdx = borderColorFull.lastIndexOf('/');
+  const borderColor = borderColorSlashIdx !== -1 ? borderColorFull.slice(0, borderColorSlashIdx) : borderColorFull;
+  const borderOpacityNum = localBorderOpacity ?? (borderColorSlashIdx !== -1 ? parseInt(borderColorFull.slice(borderColorSlashIdx + 1), 10) : 100);
+
   // ── BG color update (preserves opacity) ────────────────────────────────────
 
   const handleBgColorChange = async (newColorVal: string, prevVal?: string) => {
@@ -570,6 +578,24 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const opacitySuffix = effectiveOpacity === 100 ? '' : `/${effectiveOpacity}`;
     const newClass = `${currentContextPrefix}bg-${bgColor}${opacitySuffix}`;
     setLocalBgOpacity(null);
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
+      if (oldClass === newClass) return;
+      await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });
+    });
+  };
+
+  // ── Border opacity update ───────────────────────────────────────────────────
+
+  const handleBorderOpacityCommit = async (opacity: number) => {
+    if (!activeData?.file || !borderColor) return;
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+    const oldClass = v.borderColor_original || (borderColorFull ? `border-${borderColorFull}` : '');
+    const effectiveOpacity = opacity <= 0 ? 0 : opacity;
+    const opacitySuffix = effectiveOpacity === 100 ? '' : `/${effectiveOpacity}`;
+    const newClass = `${currentContextPrefix}border-${borderColor}${opacitySuffix}`;
+    setLocalBorderOpacity(null);
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
       const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
@@ -828,7 +854,43 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         />
 
         {borderColorExpanded && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opacity</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: theme.bg_tertiary, borderRadius: '3px', padding: borderOpacityNum !== 100 ? '2px 2px 2px 6px' : '2px 6px' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'monospace', color: borderOpacityNum !== 100 ? theme.accent_default : theme.border_strong, minWidth: '24px', textAlign: 'center' }}>
+                  {localBorderOpacity ?? borderOpacityNum}%
+                </span>
+                {borderOpacityNum !== 100 && borderColor && (
+                  <button
+                    onClick={() => handleBorderOpacityCommit(100)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '2px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = theme.text_secondary)}
+                    onMouseLeave={e => (e.currentTarget.style.color = theme.text_tertiary)}
+                  >
+                    <X size={9} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div style={{ position: 'relative', height: '16px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', left: 0, right: 0, height: '3px', borderRadius: '2px', background: theme.bg_tertiary, pointerEvents: 'none' }}>
+                <div style={{ height: '100%', width: `${localBorderOpacity ?? borderOpacityNum}%`, background: borderColor ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={localBorderOpacity ?? borderOpacityNum}
+                disabled={!borderColor}
+                onChange={e => setLocalBorderOpacity(Number(e.target.value))}
+                onMouseUp={() => handleBorderOpacityCommit(localBorderOpacity ?? borderOpacityNum)}
+                onTouchEnd={() => handleBorderOpacityCommit(localBorderOpacity ?? borderOpacityNum)}
+                style={{ position: 'relative', width: '100%', margin: 0, cursor: borderColor ? 'pointer' : 'not-allowed', accentColor: theme.accent_default, background: 'transparent', WebkitAppearance: 'none', appearance: 'none', height: '16px' } as React.CSSProperties}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorT)}
               onChange={(val, prevVal) => handleBorderColorUpdate('t', val, prevVal)}
@@ -857,6 +919,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               inheritedValue={cleanVal(domV?.borderColorL)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
+            </div>
           </div>
         )}
       </div>
