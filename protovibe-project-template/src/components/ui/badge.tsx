@@ -21,7 +21,7 @@ export function Badge({
   return (
     <span
       data-color={color}
-      className={cn("inline-flex items-center gap-1 uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary font-semibold rounded-sm pt-px pb-0.5 px-1 text-xs", className)}
+      className={cn("items-center gap-1 uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary font-semibold rounded-sm text-tiny flex flex-row leading-tight py-px px-1", className)}
       {...props}
       data-pv-component-id="Badge"
     >

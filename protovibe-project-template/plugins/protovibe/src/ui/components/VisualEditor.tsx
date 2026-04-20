@@ -12,7 +12,8 @@ import { Effects } from './visual/Effects';
 import { BackgroundImage } from './visual/BackgroundImage';
 
 export const VisualEditor: React.FC = () => {
-  const { activeData, activeModifiers, currentBaseTarget } = useProtovibe();
+  const { activeData, activeModifiers, currentBaseTarget, themeTokens } = useProtovibe();
+  const textSizes = themeTokens.filter(t => t.category === 'Font Size').map(t => t.name.replace('text-', ''));
 
   // Re-render whenever the target element's class attribute changes (e.g. after HMR),
   // so domV never goes stale after a class is added or removed from source.
@@ -28,11 +29,11 @@ export const VisualEditor: React.FC = () => {
 
   const flatClasses = activeData.parsedClasses ? Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls) : [];
   const filteredClasses = filterClassesByContext(flatClasses, activeModifiers);
-  const v = extractVisualValues(filteredClasses);
+  const v = extractVisualValues(filteredClasses, textSizes);
 
   const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/).filter(Boolean) || [];
   const filteredDomClasses = filterClassesByContext(domClasses, activeModifiers);
-  const domV = extractVisualValues(filteredDomClasses);
+  const domV = extractVisualValues(filteredDomClasses, textSizes);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -123,7 +123,7 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
   const textSizeMap: Record<string, string> = {};
   textSizeTokens.forEach(t => { textSizeMap[t.name.replace('text-', '')] = t.value; });
 
-  const textSizeOrder = ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'];
+  const textSizeOrder = ['tiny', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'];
   const textSize = textSizeTokens.length > 0
     ? textSizeOrder
         .filter(val => textSizeMap[val])

@@ -102,7 +102,7 @@ export function buildContextPrefix(activeModifiers: ActiveModifiers) {
   return p;
 }
 
-export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
+export function extractVisualValues(classesArray: (string | ClassInfo)[], textSizes?: string[]) {
   const v: Record<string, any> = {
     mt: '-', mr: '-', mb: '-', ml: '-', pt: '-', pr: '-', pb: '-', pl: '-',
     display: '', direction: '', justify: '', align: '', wrap: '', gap: '', spaceX: '', spaceY: '',
@@ -118,7 +118,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[]) {
   const weights = ['thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black'];
   const textAligns = ['left', 'center', 'right', 'justify', 'start', 'end'];
   const decors = ['underline', 'overline', 'line-through', 'no-underline'];
-  const sizes = ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'];
+  const sizes = textSizes ?? ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'];
   
   const displays = ['block', 'flex', 'grid', 'inline-block', 'hidden', 'inline-flex', 'inline'];
   const directions = ['flex-row', 'flex-col', 'flex-row-reverse', 'flex-col-reverse'];
