@@ -781,29 +781,96 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             }}
           >
             {/* Display type — reuse SegmentedControl for correct source/inherited/unset colours */}
-            <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid) ? '0' : '12px' }}>
-              <span style={{ display: 'block', fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Display</span>
-              <SegmentedControl
-                label=""
-                value={v.display}
-                originalClass={v.display_original}
-                inheritedValue={domV?.display}
-                width="100%"
-                segments={[
-                  { label: 'Block', val: 'block' },
-                  { label: 'Flex',  val: 'flex'  },
-                  { label: 'Grid',  val: 'grid'  },
-                  { label: 'None',  val: 'hidden' },
-                ]}
-              />
-            </div>
+            {(() => {
+              // Normalize displayed segment so 'inline-flex' still highlights "Flex", etc.
+              const baseDisplay = (v.display || '').replace('inline-', '');
+              const baseInherited = (domV?.display || '').replace('inline-', '');
+              const canShowInline = baseDisplay === 'block' || baseDisplay === 'flex' || baseDisplay === 'grid'
+                || (!v.display && (baseInherited === 'block' || baseInherited === 'flex' || baseInherited === 'grid'));
+              return (
+                <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid || canShowInline) ? '0' : '12px' }}>
+                  <span style={{ display: 'block', fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Display</span>
+                  <SegmentedControl
+                    label=""
+                    value={baseDisplay}
+                    originalClass={v.display_original}
+                    inheritedValue={baseInherited}
+                    width="100%"
+                    onChange={(val) => {
+                      // Preserve inline modifier when switching between block/flex/grid
+                      const effective = v.display || domV?.display || '';
+                      const wasInline = effective.startsWith('inline-');
+                      const next = !val ? '' : (wasInline && (val === 'block' || val === 'flex' || val === 'grid')) ? `inline-${val}` : val;
+                      handleSetClass(v.display_original, next);
+                    }}
+                    segments={[
+                      { label: 'Block', val: 'block' },
+                      { label: 'Flex',  val: 'flex'  },
+                      { label: 'Grid',  val: 'grid'  },
+                      { label: 'None',  val: 'hidden' },
+                    ]}
+                  />
+                </div>
+              );
+            })()}
 
             {/* Flex / Grid controls */}
             {(isFlexLike || isGrid) && (
-              <div style={{ padding: '12px' }}>
+              <div style={{ padding: '12px', paddingBottom: 0 }}>
                 {isFlexLike ? renderFlexControls() : renderGridControls()}
               </div>
             )}
+
+            {/* Inline toggle — applies to block/flex/grid */}
+            {(() => {
+              const effective = v.display || domV?.display || '';
+              const baseEffective = effective.replace('inline-', '');
+              if (!(baseEffective === 'block' || baseEffective === 'flex' || baseEffective === 'grid')) return null;
+
+              const isInlineEffective = effective.startsWith('inline-');
+              const isInlineSource = !!v.display && v.display.startsWith('inline-');
+              const isInlineInherited = !v.display && !!domV?.display && domV.display.startsWith('inline-');
+              const nextVal = isInlineEffective ? baseEffective : `inline-${baseEffective}`;
+
+              const brd = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_secondary : theme.border_default;
+              const bg  = isInlineSource ? theme.accent_low : isInlineInherited ? theme.bg_low : 'transparent';
+              const col = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_default : theme.text_secondary;
+              const cbBg = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_default : 'transparent';
+              const cbBd = (isInlineSource || isInlineInherited) ? cbBg : theme.border_default;
+
+              return (
+                <div style={{ padding: '12px' }}>
+                  <button
+                    onClick={() => handleSetClass(v.display_original, nextVal)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: `1px solid ${brd}`,
+                      background: bg,
+                      color: col,
+                      cursor: 'pointer',
+                      width: '100%',
+                    }}
+                  >
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 500 }}>Inline</div>
+                      <div style={{ fontSize: '9px', opacity: 0.65, marginTop: '1px' }}>Flow with surrounding text</div>
+                    </div>
+                    <div style={{
+                      width: '14px', height: '14px', borderRadius: '3px', flexShrink: 0,
+                      backgroundColor: cbBg,
+                      border: `1px solid ${cbBd}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isInlineEffective && <Check size={9} color={theme.bg_default} />}
+                    </div>
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </>,
         document.body

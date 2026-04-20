@@ -120,7 +120,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
   const decors = ['underline', 'overline', 'line-through', 'no-underline'];
   const sizes = textSizes ?? ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'];
   
-  const displays = ['block', 'flex', 'grid', 'inline-block', 'hidden', 'inline-flex', 'inline'];
+  const displays = ['inline-block', 'inline-flex', 'inline-grid', 'inline', 'block', 'flex', 'grid', 'hidden'];
   const directions = ['flex-row', 'flex-col', 'flex-row-reverse', 'flex-col-reverse'];
   const justifies = ['justify-start', 'justify-end', 'justify-center', 'justify-between', 'justify-around', 'justify-evenly'];
   const justifyItems = ['justify-items-start', 'justify-items-end', 'justify-items-center', 'justify-items-stretch'];
