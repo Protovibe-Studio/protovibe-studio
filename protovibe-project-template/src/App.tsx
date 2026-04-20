@@ -88,13 +88,13 @@ function DashboardPage() {
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
-                Czołem! Kluski z <a className="underline underline-offset-2 hover:opacity-80 transition-opacity text-foreground-warning" href="https://" target="_blank" rel="noopener noreferrer">rosołem</a><br />
+                <b>Możesz</b> sobie dobrze <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">zrobić</a>. Learn more
               </TextHeading>
               {/* pv-block-end:lw979w */}
               
               {/* pv-block-start:krvk39 */}
               <TextParagraph typography="small" className="asd text-balance" data-pv-block="krvk39">
-              Witam serdecznie
+                Witam serdecznie. Learn more
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
               {/* pv-editable-zone-end:f7otuc */}

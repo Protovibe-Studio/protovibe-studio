@@ -1,8 +1,49 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bold, Italic, Link as LinkIcon, RemoveFormatting } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { blockAction, takeSnapshot } from '../api/client';
 import { isTextEditableElement, PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
 import { theme } from '../theme';
+import { LinkPopover } from './LinkPopover';
+
+type ToolbarButtonProps = {
+  disabled?: boolean;
+  title: string;
+  onActivate: (btn: HTMLButtonElement) => void;
+  children: React.ReactNode;
+};
+
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ disabled, title, onActivate, children }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      // onMouseDown + preventDefault keeps the contentEditable selection alive.
+      onMouseDown={e => { e.preventDefault(); if (!disabled) onActivate(e.currentTarget); }}
+      style={{
+        background: hover && !disabled ? theme.bg_tertiary : 'transparent',
+        border: 'none',
+        color: theme.text_secondary,
+        borderRadius: '3px',
+        width: '22px',
+        height: '22px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+        fontSize: '11px',
+        fontFamily: 'inherit',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  );
+};
 
 // Extract inner text/HTML from a JSX snippet. Converts the JSX-escaped /
 // className form into something contentEditable can display natively.
@@ -41,7 +82,13 @@ export const BlockEditor: React.FC = () => {
 
   const editorRef = useRef<HTMLDivElement>(null);
   const originalHtmlRef = useRef<string>('');
+  const savedRangeRef = useRef<Range | null>(null);
+  // While the link popover is open, the editor loses focus to the popover
+  // input — suppress the intermediate blur-save so HMR doesn't re-render the
+  // editor and detach the DOM nodes our saved Range points to.
+  const suppressBlurRef = useRef(false);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [linkPopover, setLinkPopover] = useState<{ anchorRect: DOMRect; initialUrl: string } | null>(null);
 
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
@@ -82,7 +129,7 @@ export const BlockEditor: React.FC = () => {
 
   const closestBlockId = currentBaseTarget?.closest('[data-pv-block]')?.getAttribute('data-pv-block');
 
-  const handleBlur = useCallback(async () => {
+  const persistIfChanged = useCallback(async () => {
     const el = editorRef.current;
     if (!el || !closestBlockId || !activeData?.file) return;
 
@@ -96,85 +143,141 @@ export const BlockEditor: React.FC = () => {
     });
   }, [closestBlockId, activeData?.file, activeSourceId, runLockedMutation]);
 
+  const handleBlur = useCallback(async () => {
+    if (suppressBlurRef.current) return;
+    await persistIfChanged();
+  }, [persistIfChanged]);
+
   const handleInput = () => {
     setIsEmpty(!editorRef.current?.textContent?.trim());
   };
 
-  const insertLink = () => {
+  const openLinkPopover = (btn: HTMLButtonElement) => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
-    // window.prompt blurs the contentEditable and collapses the selection.
-    // Snapshot the range before prompting and restore it after so execCommand
-    // has a valid target. If there's no selected text, abort — the link needs
-    // something to wrap.
     const range = sel.getRangeAt(0).cloneRange();
-    if (range.collapsed) {
-      window.alert('Select some text first to turn it into a link.');
-      return;
-    }
-    const existing = sel.anchorNode?.parentElement?.closest('a')?.getAttribute('href') || '';
-    const url = window.prompt('Link URL', existing || 'https://');
-    if (url === null) return;
 
+    // Walk up from the selection to find an existing <a> (so editing an
+    // already-linked span shows its current href).
+    const container = (sel.anchorNode?.nodeType === Node.ELEMENT_NODE
+      ? (sel.anchorNode as Element)
+      : sel.anchorNode?.parentElement) || null;
+    const existingHref = container?.closest('a')?.getAttribute('href') || '';
+
+    // Allow Link with a collapsed caret ONLY when the caret sits inside an
+    // existing link (so the user can edit it). Otherwise require a selection.
+    if (range.collapsed && !existingHref) return;
+
+    savedRangeRef.current = range;
+    suppressBlurRef.current = true;
+    setLinkPopover({
+      anchorRect: btn.getBoundingClientRect(),
+      initialUrl: existingHref,
+    });
+  };
+
+  const restoreSelection = () => {
+    const range = savedRangeRef.current;
+    if (!range) return;
     editorRef.current?.focus();
-    const restored = window.getSelection();
-    restored?.removeAllRanges();
-    restored?.addRange(range);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
 
-    if (url === '') execCmd('unlink');
-    else execCmd('createLink', url);
+  const finishLinkFlow = (cmd: 'createLink' | 'unlink' | null, value?: string) => {
+    restoreSelection();
+    if (cmd) execCmd(cmd, value);
+    savedRangeRef.current = null;
+    setLinkPopover(null);
+    suppressBlurRef.current = false;
+    persistIfChanged();
+  };
+
+  const handleLinkSave = (url: string) => finishLinkFlow('createLink', url);
+  const handleLinkRemove = () => finishLinkFlow('unlink');
+  const handleLinkCancel = () => {
+    // Nothing changed — skip the save path entirely.
+    suppressBlurRef.current = false;
+    savedRangeRef.current = null;
+    setLinkPopover(null);
   };
 
   if (!isTextNode) return null;
-
-  const btnStyle: React.CSSProperties = {
-    background: 'transparent',
-    border: `1px solid ${theme.border_default}`,
-    color: theme.text_secondary,
-    borderRadius: '4px',
-    padding: '2px 8px',
-    fontSize: '11px',
-    cursor: isMutationLocked ? 'not-allowed' : 'pointer',
-    fontFamily: 'inherit',
-  };
 
   return (
     <div style={{ background: theme.bg_default, paddingBottom: '16px', borderTop: `1px solid ${theme.border_default}` }}>
       <div style={{ padding: '12px 16px 4px', fontSize: '10px', fontWeight: '600', color: theme.text_default }}>
         <span>Text Content</span>
       </div>
-      <div style={{ padding: '0 16px', display: 'flex', gap: '4px', marginBottom: '6px' }}>
-        <button type="button" disabled={isMutationLocked} onMouseDown={e => { e.preventDefault(); execCmd('bold'); }} style={{ ...btnStyle, fontWeight: 700 }}>B</button>
-        <button type="button" disabled={isMutationLocked} onMouseDown={e => { e.preventDefault(); execCmd('italic'); }} style={{ ...btnStyle, fontStyle: 'italic' }}>I</button>
-        <button type="button" disabled={isMutationLocked} onMouseDown={e => { e.preventDefault(); insertLink(); }} style={btnStyle}>Link</button>
-        <button type="button" disabled={isMutationLocked} onMouseDown={e => { e.preventDefault(); execCmd('removeFormat'); execCmd('unlink'); }} style={btnStyle}>Clear</button>
-      </div>
-      <div style={{ padding: '0 16px', position: 'relative' }}>
+      <div style={{ padding: '0 16px' }}>
         <div
-          ref={editorRef}
-          contentEditable={!isMutationLocked}
-          suppressContentEditableWarning
-          onInput={handleInput}
-          onBlur={handleBlur}
           style={{
-            width: '100%',
             background: theme.bg_secondary,
             border: `1px solid ${theme.border_default}`,
-            color: isEmpty ? theme.text_tertiary : theme.accent_default,
-            padding: '6px',
             borderRadius: '4px',
-            fontSize: '11px',
-            fontFamily: 'inherit',
-            minHeight: '40px',
-            outline: 'none',
-            boxSizing: 'border-box',
             opacity: isMutationLocked ? 0.7 : 1,
-            cursor: isMutationLocked ? 'progress' : 'text',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
+            display: 'flex',
+            flexDirection: 'column',
           }}
-        />
+        >
+          <div
+            ref={editorRef}
+            contentEditable={!isMutationLocked}
+            suppressContentEditableWarning
+            onInput={handleInput}
+            onBlur={handleBlur}
+            style={{
+              color: isEmpty ? theme.text_tertiary : theme.accent_default,
+              padding: '6px',
+              fontSize: '11px',
+              fontFamily: 'inherit',
+              minHeight: '40px',
+              outline: 'none',
+              cursor: isMutationLocked ? 'progress' : 'text',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '2px 4px',
+              borderTop: `1px solid ${theme.border_secondary}`,
+            }}
+          >
+            <div style={{ display: 'flex', gap: '2px' }}>
+              <ToolbarButton title="Bold" disabled={isMutationLocked} onActivate={() => { execCmd('bold'); persistIfChanged(); }}>
+                <Bold size={12} />
+              </ToolbarButton>
+              <ToolbarButton title="Italic" disabled={isMutationLocked} onActivate={() => { execCmd('italic'); persistIfChanged(); }}>
+                <Italic size={12} />
+              </ToolbarButton>
+              <ToolbarButton title="Link" disabled={isMutationLocked} onActivate={openLinkPopover}>
+                <LinkIcon size={12} />
+              </ToolbarButton>
+            </div>
+            <ToolbarButton
+              title="Clear formatting"
+              disabled={isMutationLocked}
+              onActivate={() => { execCmd('removeFormat'); execCmd('unlink'); persistIfChanged(); }}
+            >
+              <RemoveFormatting size={12} />
+            </ToolbarButton>
+          </div>
+        </div>
       </div>
+      {linkPopover && (
+        <LinkPopover
+          anchorRect={linkPopover.anchorRect}
+          initialUrl={linkPopover.initialUrl}
+          onSave={handleLinkSave}
+          onRemove={handleLinkRemove}
+          onCancel={handleLinkCancel}
+        />
+      )}
     </div>
   );
 };

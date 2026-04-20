@@ -14,7 +14,7 @@ function logUndoDebug(event: string, details: Record<string, unknown>): void {
 
 const RICH_TEXT_TAG_WHITELIST = new Set(['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br']);
 const VOID_RICH_TEXT_TAGS = new Set(['br']);
-const LINK_DEFAULT_CLASSNAME = 'text-foreground-primary underline underline-offset-2 hover:opacity-80 transition-opacity';
+const LINK_DEFAULT_CLASSNAME = 'text-foreground-primary hover:opacity-80 transition-opacity';
 
 function escapeJsxText(s: string): string {
   return s
