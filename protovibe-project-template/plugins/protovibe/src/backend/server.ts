@@ -12,6 +12,106 @@ function logUndoDebug(event: string, details: Record<string, unknown>): void {
   console.log(`[protovibe:undo] ${event}`, details);
 }
 
+const RICH_TEXT_TAG_WHITELIST = new Set(['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br']);
+const VOID_RICH_TEXT_TAGS = new Set(['br']);
+const LINK_DEFAULT_CLASSNAME = 'text-foreground-primary underline underline-offset-2 hover:opacity-80 transition-opacity';
+
+function escapeJsxText(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\{/g, '&#123;')
+    .replace(/\}/g, '&#125;');
+}
+
+function escapeJsxAttr(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/\{/g, '&#123;')
+    .replace(/\}/g, '&#125;');
+}
+
+// Parse HTML attributes from a raw attribute string, converting class→className
+// and filtering to a safe allowlist per tag. Returns a serialized JSX attribute
+// string ready to be interpolated inside an opening tag.
+function normalizeTagAttrs(tagName: string, rawAttrs: string): string {
+  const attrs: Record<string, string> = {};
+  const attrRegex = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*(?:=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
+  let match: RegExpExecArray | null;
+  while ((match = attrRegex.exec(rawAttrs)) !== null) {
+    const name = match[1].toLowerCase();
+    const value = match[2] ?? match[3] ?? match[4] ?? '';
+    if (name === 'class') attrs['className'] = value;
+    else attrs[name] = value;
+  }
+
+  const keep: Record<string, string> = {};
+  if (attrs.className) keep.className = attrs.className;
+  if (tagName === 'a') {
+    if (attrs.href) keep.href = attrs.href;
+    keep.target = attrs.target && /^[\w-]+$/.test(attrs.target) ? attrs.target : '_blank';
+    keep.rel = 'noopener noreferrer';
+    if (!keep.className) keep.className = LINK_DEFAULT_CLASSNAME;
+  }
+
+  return Object.entries(keep)
+    .map(([k, v]) => `${k}="${escapeJsxAttr(v)}"`)
+    .join(' ');
+}
+
+// Convert WYSIWYG HTML into a JSX-safe inline expression. Unknown tags are
+// unwrapped (their text content is preserved). Text nodes are escaped so stray
+// `{`, `}`, `<`, `>` never break the build.
+function sanitizeRichTextToJsx(html: string, indent: string): string {
+  // contentEditable often uses <div> for newlines; normalize to <br>.
+  let normalized = html
+    .replace(/<div[^>]*>/gi, '<br>')
+    .replace(/<\/div>/gi, '')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '<br>');
+
+  const tokenRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)\/?>/g;
+  let output = '';
+  let cursor = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = tokenRegex.exec(normalized)) !== null) {
+    const [full, rawName, rawAttrs] = m;
+    const tagName = rawName.toLowerCase();
+    const isClosing = full.startsWith('</');
+
+    const textChunk = normalized.slice(cursor, m.index);
+    if (textChunk) output += escapeJsxText(textChunk);
+    cursor = m.index + full.length;
+
+    if (!RICH_TEXT_TAG_WHITELIST.has(tagName)) continue;
+
+    if (VOID_RICH_TEXT_TAGS.has(tagName)) {
+      if (!isClosing) output += `<${tagName} />`;
+      continue;
+    }
+
+    if (isClosing) {
+      output += `</${tagName}>`;
+    } else {
+      const attrs = normalizeTagAttrs(tagName, rawAttrs || '');
+      output += attrs ? `<${tagName} ${attrs}>` : `<${tagName}>`;
+    }
+  }
+
+  const trailing = normalized.slice(cursor);
+  if (trailing) output += escapeJsxText(trailing);
+
+  // Reflow explicit newlines the same way the old textarea did.
+  return output.split('\n').join(`\n${indent}`);
+}
+
 export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
@@ -1480,15 +1580,11 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
           const spaces = (fileContent.substring(lineStartPos, opening.start).match(/^([ \t]*)/) ?? ['', ''])[1];
           const i2 = spaces + '  ';
 
-          // Escape and prepare new text
-          const escapedText = String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/{/g, '&#123;')
-            .replace(/}/g, '&#125;')
-            .split('\n')
-            .join(`<br />\n${i2}`);
+          // Escape and prepare new text. Input may be WYSIWYG HTML containing
+          // whitelisted inline tags (<b>, <strong>, <i>, <em>, <u>, <a>, <span>,
+          // <br>). Everything else is stripped to plain text so we never emit
+          // invalid JSX into a .tsx file.
+          const escapedText = sanitizeRichTextToJsx(String(text), i2);
 
           if (closing) {
             // Standard tag: <tag>...</tag>

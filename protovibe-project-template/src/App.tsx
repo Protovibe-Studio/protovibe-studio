@@ -88,7 +88,7 @@ function DashboardPage() {
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
-                Czołem!
+                Czołem!<br />Klu
               </TextHeading>
               {/* pv-block-end:lw979w */}
               
@@ -247,6 +247,11 @@ function DashboardPage() {
           {/* pv-editable-zone-end:wc4qbg */}
         </Card>
         {/* pv-block-end:2pevh5 */}
+        {/* pv-block-start:n597zp */}
+        <TextHeading data-pv-block="n597zp" typography="heading-md">
+          Heading <b>Test <a href="asdasd" target="_blank" rel="noopener noreferrer" className="text-foreground-primary underline underline-offset-2 hover:opacity-80 transition-opacity">Link</a></b>
+        </TextHeading>
+        {/* pv-block-end:n597zp */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
