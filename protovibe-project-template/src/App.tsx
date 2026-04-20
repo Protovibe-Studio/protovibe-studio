@@ -88,7 +88,7 @@ function DashboardPage() {
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
-                Czołem!<br />Klu
+                Czołem! Kluski z <a className="underline underline-offset-2 hover:opacity-80 transition-opacity text-foreground-warning" href="https://" target="_blank" rel="noopener noreferrer">rosołem</a><br />
               </TextHeading>
               {/* pv-block-end:lw979w */}
               

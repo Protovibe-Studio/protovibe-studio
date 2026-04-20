@@ -80,9 +80,15 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // 1. Do not intercept if the user is typing in an input or textarea
+      // 1. Do not intercept if the user is typing in a native input, a
+      // contentEditable (e.g., the rich-text BlockEditor), or a select.
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      ) {
         return;
       }
 

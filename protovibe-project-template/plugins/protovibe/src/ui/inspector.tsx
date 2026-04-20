@@ -16,6 +16,26 @@ function init() {
   }
   root.setAttribute('data-pv-ui', 'true');
 
+  // Global styles scoped to the Protovibe inspector shell only. Keeps the
+  // canvas / preview iframe untouched. Used by the rich-text BlockEditor so
+  // <a> tags inside the inspector are legible on a dark background.
+  if (!document.getElementById('protovibe-shell-styles')) {
+    const style = document.createElement('style');
+    style.id = 'protovibe-shell-styles';
+    style.textContent = `
+      [data-pv-ui] a,
+      [data-pv-ui] a:visited {
+        color: #18A0FB;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      [data-pv-ui] a:hover {
+        color: #0D8CE6;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   const reactRoot = createRoot(root);
   reactRoot.render(
     <ProtovibeProvider>
