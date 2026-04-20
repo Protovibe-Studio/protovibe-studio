@@ -1,7 +1,6 @@
 // plugins/protovibe/src/ui/api/client.ts
 
 export async function fetchSourceInfo(id: string, componentId?: string) {
-  console.log(`[API] fetchSourceInfo requesting: id=${id}, componentId=${componentId}`);
   const res = await fetch('/__get-source-info', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -10,7 +9,6 @@ export async function fetchSourceInfo(id: string, componentId?: string) {
   if (!res.ok) throw new Error('Failed to fetch source info');
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  console.log(`[API] fetchSourceInfo received:`, data);
   return data;
 }
 
@@ -80,7 +78,6 @@ export async function updateSource(params: {
   cStart?: number[];
   cEnd?: number[];
 }) {
-  console.log(`[API] updateSource sending:`, params);
   const res = await fetch('/__update-source', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

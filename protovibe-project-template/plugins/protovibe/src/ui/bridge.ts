@@ -243,8 +243,6 @@ function handlePointerDown(e: PointerEvent) {
   const primaryLocs = collectPvLocs(target);
   const primaryComponentId = target.getAttribute('data-pv-component-id') ?? null;
 
-  console.log('[Protovibe Bridge] Clicked Element:', target.tagName, primaryLocs);
-
   window.parent.postMessage(
     { type: 'PV_ELEMENT_CLICK', pvLocs: primaryLocs, componentId: primaryComponentId, runtimeIds },
     '*'

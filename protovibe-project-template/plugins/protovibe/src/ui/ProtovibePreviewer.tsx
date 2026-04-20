@@ -95,9 +95,9 @@ function renderDefaultContent(entry: { DefaultContent?: React.ComponentType<any>
     const DefaultContent = entry.DefaultContent as React.FC<any>;
     const result = DefaultContent({});
     if (result && typeof result === 'object' && 'type' in result && result.type === React.Fragment) {
-      return result.props.children;
+      return (result as any).props.children;
     }
-    return result;
+    return result as React.ReactNode;
   }
   if (typeof entry.config.defaultContent !== 'string') {
     return entry.config.defaultContent;
@@ -572,9 +572,6 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
     // Only run if we have target props, we haven't processed THESE exact props yet, and there are combos to check
     if (!targetProps || lastTargetPropsRef.current === targetProps || visibleCombos.length === 0) return;
 
-    console.log('--- [ProtovibePreviewer] Auto-Focus Triggered ---');
-    console.log('1. Target Props from Source:', targetProps);
-
     lastTargetPropsRef.current = targetProps;
     let bestMatchIndex = 0;
     let maxScore = -1;
@@ -615,27 +612,17 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
       }
     });
 
-    console.log(`2. Best Match Found: Index [${bestMatchIndex}] with Score: ${maxScore}`);
-    console.log('3. Winning Combo Data:', visibleCombos[bestMatchIndex]);
-
     // Delay the focus to ensure PV_CLEAR_SELECTION from the tab switch is fully processed
     setTimeout(() => {
       const cell = document.querySelector(`[data-combo-index="${bestMatchIndex}"]`);
-      console.log(`4. Found Wrapper Cell in DOM:`, cell);
-
       if (cell) {
         const targetEl = cell.querySelector(`[data-pv-component-id="${config.name}"]`) || cell.querySelector('[data-pv-component-id]');
-        console.log(`5. Found Component Element inside Cell:`, targetEl);
-
         if (targetEl) {
           targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
           targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
-          console.log(`6. ✅ Successfully dispatched pointerdown!`);
-        } else {
-          console.warn(`6. ❌ Could not find [data-pv-component-id] inside the cell wrapper.`);
         }
       }
-    }, 250); // Increased delay to 250ms to outrun the tab-switch race condition
+    }, 250);
   }, [targetProps, visibleCombos, config]);
 
   return (
@@ -819,6 +806,16 @@ export function ProtovibePreviewer() {
     }
   }, [refresh]);
 
+  // When components refresh, update selected to the latest discovered version
+  useEffect(() => {
+    if (selected) {
+      const updated = discovered.find(e => e.config.name === selected.config.name);
+      if (updated) {
+        setSelected(updated);
+      }
+    }
+  }, [discovered, selected?.config.name]);
+
   // Allow the parent shell to trigger a refresh (e.g. on tab switch)
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -905,6 +902,34 @@ export function ProtovibePreviewer() {
         <span style={{ fontSize: 11, color: '#444' }}>
           Click any element to inspect &amp; edit styles
         </span>
+
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Refresh components"
+          onClick={refresh}
+          onKeyDown={e => activateOnEnterOrSpace(e, refresh)}
+          style={{
+            width: 16,
+            height: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#666',
+            fontSize: 14,
+            flexShrink: 0,
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#aaa';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = '#666';
+          }}
+        >
+          ↻
+        </div>
       </div>
 
       <div style={{ display: selected ? 'none' : 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>

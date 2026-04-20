@@ -9,9 +9,7 @@ import { undoStack, redoStack } from '../shared/state';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
 
-function logUndoDebug(event: string, details: Record<string, unknown>): void {
-  console.log(`[protovibe:undo] ${event}`, details);
-}
+function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
 // Snapshot one or more files into the undo stack before mutating them.
 function snapshotFiles(activeId: string | null, currentURLQueryString: string, ...relPaths: string[]): void {

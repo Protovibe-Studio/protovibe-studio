@@ -8,9 +8,7 @@ import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
-function logUndoDebug(event: string, details: Record<string, unknown>): void {
-  console.log(`[protovibe:undo] ${event}`, details);
-}
+function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
 const RICH_TEXT_TAG_WHITELIST = new Set(['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br']);
 const VOID_RICH_TEXT_TAGS = new Set(['br']);

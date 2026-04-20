@@ -7,7 +7,7 @@ import { protovibePlugin } from 'vite-plugin-protovibe'
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    plugins: [react(), tailwindcss(), protovibePlugin()],
+    plugins: [react() as any, tailwindcss(), protovibePlugin()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },

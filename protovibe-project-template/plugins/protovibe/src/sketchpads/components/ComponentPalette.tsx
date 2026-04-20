@@ -35,7 +35,7 @@ function renderDefaultContent(comp: ComponentEntry): React.ReactNode {
     if (result && typeof result === 'object' && 'type' in result && (result as any).type === React.Fragment) {
       return (result as any).props.children;
     }
-    return result;
+    return result as React.ReactNode;
   }
   return undefined;
 }

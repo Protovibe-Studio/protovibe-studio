@@ -16,6 +16,7 @@ interface PvElementClickMessage {
   pvLocs: PvLoc[];
   componentId: string | null;
   runtimeIds: string[];
+  skipSnapshot?: boolean;
 }
 
 interface PvDoubleClickMessage {
@@ -54,7 +55,6 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
 
       if (e.data.type === 'PV_ELEMENT_CLICK') {
         const { pvLocs, componentId, runtimeIds, skipSnapshot } = e.data;
-        console.log('[Protovibe Shell] Received Click Event:', { pvLocs, componentId, runtimeIds, skipSnapshot });
 
         const sourceRef = iframeRefs.find(ref => ref.current?.contentWindow === e.source);
         const iframeDoc = sourceRef?.current?.contentDocument;

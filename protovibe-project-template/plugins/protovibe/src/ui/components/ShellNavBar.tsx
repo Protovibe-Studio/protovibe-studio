@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
 import React, { useEffect, useState } from 'react';
-import { Monitor, LayoutGrid, Palette, Paintbrush, Eye, EyeOff, PenTool, Sparkles } from 'lucide-react';
+import { Monitor, LayoutGrid, Palette, Paintbrush, Eye, EyeOff, PenTool, Sparkles, ChevronDown } from 'lucide-react';
 import { theme } from '../theme';
 import { PublishButton } from './PublishButton';
 
@@ -83,6 +83,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
   onToggleInspector,
 }) => {
   const [projectName, setProjectName] = useState('');
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const logoRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/protovibe-data.json', { cache: 'no-store' })
@@ -93,6 +95,24 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!projectMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (logoRef.current && !logoRef.current.contains(e.target as Node)) {
+        setProjectMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProjectMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [projectMenuOpen]);
 
   return (
     <div
@@ -108,41 +128,90 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
         flexShrink: 0,
       }}
     >
-      {/* Logo / wordmark */}
-      <span
-        style={{
-          fontFamily: 'sans-serif',
-          fontSize: '13px',
-          fontWeight: 700,
-          color: theme.text_default,
-          letterSpacing: '-0.3px',
-          opacity: 0.9,
-          userSelect: 'none',
-          marginRight: '4px',
-        }}
+      {/* Logo / wordmark with project dropdown */}
+      <div
+        ref={logoRef}
+        style={{ position: 'relative', marginRight: '16px' }}
       >
-        Protovibe
-      </span>
-
-      {projectName && (
-        <span
+        <button
+          type="button"
+          onClick={() => setProjectMenuOpen((o) => !o)}
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            height: '30px',
+            padding: '0 6px',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            backgroundColor: projectMenuOpen ? theme.bg_tertiary : 'transparent',
             fontFamily: 'sans-serif',
-            fontSize: '12px',
-            fontWeight: 500,
-            color: theme.text_secondary,
+            fontSize: '13px',
+            fontWeight: 700,
+            color: theme.text_default,
+            letterSpacing: '-0.3px',
             userSelect: 'none',
-            marginRight: '20px',
-            maxWidth: '200px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            transition: 'background-color 0.15s ease',
           }}
-          title={projectName}
         >
-          {projectName}
-        </span>
-      )}
+          <span style={{ opacity: 0.9 }}>Protovibe</span>
+          <ChevronDown
+            size={13}
+            strokeWidth={2}
+            style={{
+              color: theme.text_tertiary,
+              transform: projectMenuOpen ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.15s ease',
+            }}
+          />
+        </button>
+
+        {projectMenuOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 4px)',
+              left: 0,
+              minWidth: '200px',
+              padding: '10px 12px',
+              backgroundColor: theme.bg_strong,
+              border: `1px solid ${theme.border_default}`,
+              borderRadius: '8px',
+              boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'sans-serif',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.6px',
+                color: theme.text_tertiary,
+                marginBottom: '4px',
+              }}
+            >
+              Current project
+            </div>
+            <div
+              style={{
+                fontFamily: 'sans-serif',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: theme.text_default,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+              title={projectName || 'Untitled project'}
+            >
+              {projectName || 'Untitled project'}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Left tab group — controls iframe content */}
       {IFRAME_TABS.map(({ id, icon, label }) => (

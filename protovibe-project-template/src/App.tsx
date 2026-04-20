@@ -34,6 +34,10 @@ import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
 import { Container } from '@/components/ui/container'
 import { Image } from '@/components/ui/image'
 import { Textarea } from '@/components/ui/textarea'
+import { PaginationControls } from '@/components/ui/pagination-controls'
+import { Stepper } from '@/components/ui/stepper'
+import { StepCircle } from '@/components/ui/step-circle'
+import { StepperConnector } from '@/components/ui/stepper-connector'
 
 // --- MOCK DATA ---
 
@@ -97,6 +101,27 @@ function DashboardPage() {
                 It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
+              {/* pv-block-start:uc6iij */}
+              <Stepper className="pt-4" data-pv-block="uc6iij" fullWidth={false}>
+                {/* pv-editable-zone-start:73b88w */}
+                  {/* pv-block-start:fh2zxu */}
+                  <StepCircle data-pv-block="fh2zxu" state="done" number={1} label="Details" />
+                  {/* pv-block-end:fh2zxu */}
+                  {/* pv-block-start:w5mflp */}
+                  <StepperConnector data-pv-block="w5mflp" state="done" />
+                  {/* pv-block-end:w5mflp */}
+                  {/* pv-block-start:x4vrjn */}
+                  <StepCircle data-pv-block="x4vrjn" state="current" number={2} label="Review" />
+                  {/* pv-block-end:x4vrjn */}
+                  {/* pv-block-start:ev7f7f */}
+                  <StepperConnector data-pv-block="ev7f7f" state="upcoming" />
+                  {/* pv-block-end:ev7f7f */}
+                  {/* pv-block-start:3vozpq */}
+                  <StepCircle data-pv-block="3vozpq" state="upcoming" number={3} label="Confirm" />
+                  {/* pv-block-end:3vozpq */}
+                {/* pv-editable-zone-end:73b88w */}
+              </Stepper>
+              {/* pv-block-end:uc6iij */}
               {/* pv-editable-zone-end:f7otuc */}
             </div>
             {/* pv-block-end:q958wn */}
@@ -221,9 +246,22 @@ function EmployeesPage() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
       {/* pv-editable-zone-start:e1z2x3 */}
 
-        {/* pv-block-start:em1pl2 */}
-        <TextHeading className="" data-pv-block="em1pl2" typography="heading-lg">Employees</TextHeading>
-        {/* pv-block-end:em1pl2 */}
+        {/* pv-block-start:rsafhi */}
+        <div data-pv-block="rsafhi" className="flex gap-2 flex-row items-start justify-between">
+          {/* pv-editable-zone-start:mhn3m1 */}
+          {/* pv-block-start:em1pl2 */}
+          <TextHeading className="" data-pv-block="em1pl2" typography="heading-lg">Employees</TextHeading>
+          {/* pv-block-end:em1pl2 */}
+          {/* pv-block-start:3qtyrv */}
+          <div data-pv-block="3qtyrv" className="flex gap-2">
+          <Button label="Export CSV" variant="solid" color="neutral" leftIcon="download" />
+          <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="plus" />
+          </div>
+          {/* pv-block-end:3qtyrv */}
+          {/* pv-editable-zone-end:mhn3m1 */}
+        </div>
+        {/* pv-block-end:rsafhi */}
+
 
         {/* pv-block-start:h4e5k6 */}
         <div data-pv-block="h4e5k6" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -231,12 +269,6 @@ function EmployeesPage() {
             {/* pv-block-start:w8x9y1 */}
             <Input data-pv-block="w8x9y1" placeholder="Search employees by name or role..." prefixIcon="search" className="bg-background-default" />
             {/* pv-block-end:w8x9y1 */}
-            {/* pv-block-start:z2a3b4 */}
-            <div data-pv-block="z2a3b4" className="flex gap-2">
-              <Button label="Export CSV" variant="solid" color="neutral" leftIcon="download" />
-              <Button data-tooltip-dir="top" data-tooltip-text="Yo man, click this button!" label="Add Employee" variant="solid" color="primary" leftIcon="plus" />
-            </div>
-            {/* pv-block-end:z2a3b4 */}
           {/* pv-editable-zone-end:t5u6v7 */}
         </div>
         {/* pv-block-end:h4e5k6 */}
@@ -294,6 +326,9 @@ function EmployeesPage() {
           </TableBody>
         </Table>
         {/* pv-block-end:t7m8n9 */}
+        {/* pv-block-start:8yf60q */}
+        <PaginationControls data-pv-block="8yf60q" showSummary={true} showPerPage={true} page="middle" perPageLabel="Per page: 30" summaryText="1 - 30 of 4359 employees" size="md" />
+        {/* pv-block-end:8yf60q */}
 
       {/* pv-editable-zone-end:e1z2x3 */}
 

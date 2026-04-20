@@ -221,7 +221,6 @@ Every editable component must export a `pvConfig` object that defines how it is 
 * **✅ GOOD: Full `pvConfig` example**
 
   ```typescript
-  import { icons } from 'lucide-react';
   
   export function PvDefaultContent() {
     return (
@@ -440,6 +439,10 @@ Every prop that dictates a visual variant (e.g., `variant`, `size`) MUST be expl
   <button data-variant={variant} data-size={size} className={cn("...", className)}>
   ```
 
+### Rule: Prefer Flex and Gap Over Margins
+
+Space siblings with `flex` + `gap-*` (and `items-*` for alignment) rather than margin utilities like `mt-*`, `mb-*`, or `space-*`.
+
 ### Rule: Semantic Color Tokens Only
 
 Never use Tailwind's default palette colors (`bg-blue-500`) or hardcoded hexes. Always reference the semantic design tokens defined in `src/index.css`.
@@ -510,7 +513,7 @@ Inspector containers clip descendants due to `overflow: hidden`. Floating UI mus
 
 ### Rule: Unified Icons
 
-Do not import specific icons directly. Use the centralized `Icon` component so the visual builder can swap them dynamically.
+Do not import specific icons directly. Use the centralized `Icon` component so the visual builder can swap them dynamically. For icon names use Iconify patterns.
 
 * **❌ BAD: Direct Lucide imports**
 
@@ -523,7 +526,7 @@ Do not import specific icons directly. Use the centralized `Icon` component so t
 
   ```tsx
   import { Icon } from '@/components/ui/icon';
-  <Icon name="Download" size="sm" />
+  <Icon name="Download" size="sm" /> 
   ```
 
 ### Rule: Props or Children — Never Both

@@ -14,7 +14,8 @@
       "Read(//Users/maciejsawicki/Documents/Coding/protovibe/**)",
       "Bash(pnpm add *)",
       "Bash(pnpm ls *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(echo \"exit=$?\")"
     ]
   },
   "outputStyle": "Explanatory"
