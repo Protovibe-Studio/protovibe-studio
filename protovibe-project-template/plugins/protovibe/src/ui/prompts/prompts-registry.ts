@@ -195,7 +195,7 @@ ${AGENTS_RULES_SUFFIX}`,
   },
   {
     id: 'convert-to-component',
-    title: 'Convert selection to component',
+    title: 'Convert to component',
     description: 'Extract the selected element(s) into a new reusable component in components/ui, inferring props from variants.',
     icon: Component,
     inputLabel: 'Extra instructions (optional)…',
