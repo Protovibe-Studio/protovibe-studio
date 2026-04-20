@@ -907,15 +907,16 @@ export function ProtovibePreviewer() {
         </span>
       </div>
 
-      {selected ? (
-        <VariantMatrix entry={selected} targetProps={targetProps} onBack={() => setSelected(null)} />
-      ) : (
+      <div style={{ display: selected ? 'none' : 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <CatalogView
           entries={discovered}
           onSelect={entry => setSelected(entry)}
           search={search}
           onSearch={setSearch}
         />
+      </div>
+      {selected && (
+        <VariantMatrix entry={selected} targetProps={targetProps} onBack={() => setSelected(null)} />
       )}
     </div>
     </>

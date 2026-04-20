@@ -132,7 +132,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             fontWeight: 500,
             color: theme.text_secondary,
             userSelect: 'none',
-            marginRight: '8px',
+            marginRight: '20px',
             maxWidth: '200px',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
