@@ -88,7 +88,7 @@ function DashboardPage() {
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
-                <b>Możesz</b> sobie dobrze <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">zrobić</a>. Learn more
+                Możesz sobie dobrze <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">zrobić</a>
               </TextHeading>
               {/* pv-block-end:lw979w */}
               

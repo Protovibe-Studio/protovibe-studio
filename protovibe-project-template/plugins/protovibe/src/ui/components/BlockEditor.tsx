@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bold, Italic, Link as LinkIcon, RemoveFormatting } from 'lucide-react';
+import { Bold, Italic, Underline, Link as LinkIcon, RemoveFormatting } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { blockAction, takeSnapshot } from '../api/client';
 import { isTextEditableElement, PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
@@ -254,6 +254,9 @@ export const BlockEditor: React.FC = () => {
               </ToolbarButton>
               <ToolbarButton title="Italic" disabled={isMutationLocked} onActivate={() => { execCmd('italic'); persistIfChanged(); }}>
                 <Italic size={12} />
+              </ToolbarButton>
+              <ToolbarButton title="Underline" disabled={isMutationLocked} onActivate={() => { execCmd('underline'); persistIfChanged(); }}>
+                <Underline size={12} />
               </ToolbarButton>
               <ToolbarButton title="Link" disabled={isMutationLocked} onActivate={openLinkPopover}>
                 <LinkIcon size={12} />
