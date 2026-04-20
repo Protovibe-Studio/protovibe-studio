@@ -526,6 +526,40 @@ Do not import specific icons directly. Use the centralized `Icon` component so t
   <Icon name="Download" size="sm" />
   ```
 
+### Rule: Props or Children — Never Both
+
+If a component's props are sufficient, use them. If they are not enough (e.g. you need to place an `Avatar` or `Badge` inside), use `children` instead. Never mix props and children — pick one approach and own the full content with it.
+
+* **❌ BAD: children for content that props can express**
+
+  ```tsx
+  <Button variant="solid" color="primary">Save</Button>
+  ```
+
+* **✅ GOOD: props are enough — use them**
+
+  ```tsx
+  <Button variant="solid" color="primary" label="Save" />
+  ```
+
+* **❌ BAD: mixing content props with children**
+
+  ```tsx
+  <DropdownItem label="Notifications" suffixIcon="chevron-right">
+    <Badge label="4" color="destructive" />
+  </DropdownItem>
+  ```
+
+* **✅ GOOD: props are not enough — use children and own everything**
+
+  ```tsx
+  <DropdownItem>
+    <Icon iconSymbol="bell" size="sm" className="text-foreground-secondary" />
+    <span className="flex-1 text-foreground-default">Notifications</span>
+    <Badge label="4" color="destructive" />
+  </DropdownItem>
+  ```
+
 ### Rule: Don't set component size property unless it's justified
 
 Components should have a default size when property size is not set. Use a different size like (`sm`) only when the component is intentionally de-emphasized—such as in secondary actions, nested containers, or auxiliary controls. 

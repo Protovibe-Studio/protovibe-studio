@@ -88,13 +88,13 @@ function DashboardPage() {
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
               <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
-                Możesz sobie dobrze <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">zrobić</a>
+                Test heading
               </TextHeading>
               {/* pv-block-end:lw979w */}
               
               {/* pv-block-start:krvk39 */}
-              <TextParagraph typography="small" className="asd text-balance" data-pv-block="krvk39">
-                Witam serdecznie. Learn more
+              <TextParagraph typography="small" className="asd" data-pv-block="krvk39">
+                It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
               {/* pv-editable-zone-end:f7otuc */}
@@ -209,49 +209,6 @@ function DashboardPage() {
         {/* pv-block-start:e6x5fm */}
         <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
         {/* pv-block-end:e6x5fm */}
-
-        {/* pv-block-start:3pppuf */}
-        <Icon data-pv-block="3pppuf" iconSymbol="close" size="md" />
-        {/* pv-block-end:3pppuf */}
-        {/* pv-block-start:2pevh5 */}
-        <Card data-pv-block="2pevh5">
-          {/* pv-editable-zone-start:wc4qbg */}
-            {/* pv-block-start:2oav1t */}
-            <Card data-pv-block="2oav1t">
-              {/* pv-editable-zone-start:vxz2pf */}
-                {/* pv-block-start:zkq4kp */}
-                <TextParagraph data-pv-block="zkq4kp" typography="regular">
-                  Paragraph text
-                </TextParagraph>
-                {/* pv-block-end:zkq4kp */}
-                {/* pv-block-start:tusu62 */}
-                <Button data-pv-block="tusu62" label="Button" variant="solid" color="primary" size="md" />
-                {/* pv-block-end:tusu62 */}
-              {/* pv-editable-zone-end:vxz2pf */}
-            </Card>
-            {/* pv-block-end:2oav1t */}
-            {/* pv-block-start:0fl8os */}
-            <Card data-pv-block="0fl8os">
-              {/* pv-editable-zone-start:32tj0a */}
-                {/* pv-block-start:bcpqex */}
-                <TextParagraph data-pv-block="bcpqex" typography="regular">
-                  Paragraph text
-                </TextParagraph>
-                {/* pv-block-end:bcpqex */}
-                {/* pv-block-start:b4he53 */}
-                <Button data-pv-block="b4he53" label="Button" variant="solid" color="primary" size="md" />
-                {/* pv-block-end:b4he53 */}
-              {/* pv-editable-zone-end:32tj0a */}
-            </Card>
-            {/* pv-block-end:0fl8os */}
-          {/* pv-editable-zone-end:wc4qbg */}
-        </Card>
-        {/* pv-block-end:2pevh5 */}
-        {/* pv-block-start:n597zp */}
-        <TextHeading data-pv-block="n597zp" typography="heading-md">
-          Heading <b>Test <a href="asdasd" target="_blank" rel="noopener noreferrer" className="text-foreground-primary underline underline-offset-2 hover:opacity-80 transition-opacity">Link</a></b>
-        </TextHeading>
-        {/* pv-block-end:n597zp */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -635,7 +592,7 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
-        <header className="flex items-center justify-end px-8 shrink-0 bg-background-subtle h-12">
+        <header className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
           <div className="flex items-center gap-3">
             <div className="relative mr-2">
               <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="bell" />
@@ -644,14 +601,26 @@ export default function App() {
             
             {/* User Avatar Dropdown */}
             <PopoverTrigger placement="bottom" align="right">
-              <button className="flex items-center gap-2 hover:bg-background-secondary p-1.5 pr-3 rounded-full border border-transparent hover:border-border-default transition-all focus:outline-none">
-                <Avatar initials="JD" bgColor="info" size="sm" />
-                <TextParagraph typography="small" className="font-medium hidden sm:block">Jane Doe</TextParagraph>
+              <Button variant="ghost" color="neutral" className="gap-2 border border-transparent py-1.5 data-[size=md]:px-1">
+                <Avatar initials="JD" bgColor="info" size="xs" />
+                <span className="text-sm font-medium hidden sm:block">Jane Doe</span>
                 <Icon iconSymbol="chevron-down" size="sm" className="text-foreground-tertiary hidden sm:block" />
-              </button>
+              </Button>
               
-              <DropdownList width="sm" className="mt-1">
-                <DropdownItem label="Profile" prefixIcon="user" />
+              <DropdownList width="lg" className="mt-1">
+                <DropdownItem>
+                  <Avatar initials="JD" bgColor="info" size="sm" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground-default">Jane Doe</span>
+                    <span className="text-xs text-foreground-tertiary">jane.doe@acmecorp.com</span>
+                  </div>
+                </DropdownItem>
+                <DropdownSeparator />
+                <DropdownItem>
+                  <Icon iconSymbol="bell" size="sm" className="text-foreground-secondary" />
+                  <span className="text-foreground-default">Notifications</span>
+                  <Badge label="4" color="destructive" />
+                </DropdownItem>
                 <DropdownItem label="Account Settings" prefixIcon="settings" />
                 <DropdownItem label="Help & Support" prefixIcon="help-circle" />
                 <DropdownSeparator />

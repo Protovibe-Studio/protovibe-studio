@@ -18,6 +18,7 @@ export interface IconProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Icon name (e.g. "star", "arrow-right", "chevron-right") */
   iconSymbol: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  className?: string;
 }
 
 /** Convert PascalCase/camelCase (e.g. "chevron-right", "edit") to kebab-case ("chevron-right", "edit-2") for Iconify compat. Already-kebab names pass through unchanged. */

@@ -14,6 +14,7 @@ export interface DropdownItemProps extends React.HTMLAttributes<HTMLDivElement> 
   selected?: boolean;
   /** Smaller muted text rendered below the main label row */
   secondaryText?: string;
+  children?: React.ReactNode;
 }
 
 export function DropdownItem({
@@ -25,6 +26,7 @@ export function DropdownItem({
   disabled,
   selected,
   secondaryText,
+  children,
   className,
   ...props
 }: DropdownItemProps) {
@@ -53,13 +55,14 @@ export function DropdownItem({
             className="text-foreground-default opacity-0 data-[selected=true]:opacity-100"
           />
         )}
+        {children}
         {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary" />}
-        {label && <span className="flex-1 text-foreground-default">{label}</span>}
+        <div className="flex flex-col flex-1">
+          {label && <span className="text-foreground-default">{label}</span>}
+          {secondaryText && <span className="text-xs text-foreground-tertiary">{secondaryText}</span>}
+        </div>
         {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}
       </div>
-      {secondaryText && (
-        <span className="text-xs text-foreground-tertiary pl-6">{secondaryText}</span>
-      )}
     </div>
   );
 }
@@ -76,6 +79,7 @@ export const pvConfig = {
   importPath: '@/components/ui/dropdown-item',
   defaultProps: 'label="Menu Item"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   props: {
     value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Lorem ipsum' },

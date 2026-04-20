@@ -10,6 +10,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconOnly?: boolean;
   leftIcon?: string;
   rightIcon?: string;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export function Button({
@@ -20,6 +22,7 @@ export function Button({
   iconOnly,
   leftIcon,
   rightIcon,
+  children,
   disabled,
   className,
   ...props
@@ -37,6 +40,7 @@ export function Button({
       data-pv-component-id="Button"
     >
       {leftIcon && <Icon iconSymbol={leftIcon} size={size === 'lg' ? 'md' : 'sm'} />}
+      {children}
       {label && !iconOnly && <span className="leading-none">{label}</span>}
       {rightIcon && <Icon iconSymbol={rightIcon} size={size === 'lg' ? 'md' : 'sm'} />}
     </button>
@@ -55,6 +59,7 @@ export const pvConfig = {
   importPath: '@/components/ui/button',
   defaultProps: 'label="Button" variant="solid" color="primary" size="md"',
   defaultContent: <PvDefaultContent />,
+  allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
     variant: { type: 'select', options: ['solid', 'outline', 'ghost'] },
