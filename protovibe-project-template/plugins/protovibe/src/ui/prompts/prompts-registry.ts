@@ -23,6 +23,7 @@ import {
   Rocket,
   PencilRuler,
   Blocks,
+  Component,
   SquarePen,
   Palette,
   MousePointerClick,
@@ -183,11 +184,55 @@ Component description from the user: {{input}}
 
 Before writing any code:
 1. Read the "Components Editing" section of AGENTS.md end-to-end — the new file MUST conform to every rule there (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, etc.).
-2. Browse a few existing files in \`src/components/ui/\` (e.g. button, card, textblock) to match the conventions for prop naming, typing, file layout, and variant handling.
-3. Expose only string / boolean / select prop types via \`pvConfig.props\`. Never expose functions, children, or asChild.
-4. Use semantic color tokens from \`src/index.css\` — never raw palette colors or hex values.
+2. READ several existing files in \`src/components/ui/\` before writing anything — at minimum open button.tsx, card.tsx, and textblock.tsx, plus one compound component like tabs.tsx or select.tsx. Match their conventions for prop naming, typing, file layout, variant handling, and \`pvConfig\` shape. Do not guess structure from memory.
+3. If the component is non-atomic (it has internal parts users will want to reorder, swap, or style independently — like tabs with a list + triggers + panels, or a select with trigger + items), decompose it into multiple smaller components in separate files, each with its own \`pvConfig\`. Follow exactly how \`tabs.tsx\` / \`select.tsx\` split parent and child components and share state via React Context.
+4. Expose only string / boolean / select prop types via \`pvConfig.props\`. Never expose functions, children, or asChild.
+5. Use semantic color tokens from \`src/index.css\` — never raw palette colors or hex values.
 
 Output: a single new file in \`src/components/ui/\` that exports the component, its \`PvDefaultContent\`, and a valid \`pvConfig\`.
+
+${AGENTS_RULES_SUFFIX}`,
+  },
+  {
+    id: 'convert-to-component',
+    title: 'Convert selection to component',
+    description: 'Extract the selected element(s) into a new reusable component in components/ui, inferring props from variants.',
+    icon: Component,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'name it StatTile; treat the trend arrow as optional',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Extract the currently selected element(s) into a new reusable component (or a set of components) inside \`src/components/ui/\`, then replace the original call site(s) with the new component.
+
+Source: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+
+Source code of the selection:
+\`\`\`tsx
+{{code}}
+\`\`\`
+
+Before writing any code:
+1. Read the "Components Editing" section of AGENTS.md end-to-end — every new file MUST conform (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, semantic tokens, ...props on root).
+2. READ several existing files in \`src/components/ui/\` before writing anything — at minimum button.tsx, card.tsx, textblock.tsx, and one compound component like tabs.tsx or select.tsx. Match their prop naming, typing, file layout, variant handling, and \`pvConfig\` shape. Do not guess structure from memory.
+
+How to infer the component API:
+- If the selection contains MULTIPLE variants of the same thing (e.g. two cards where one has an icon and one does not, or three buttons with different colors and sizes), DIFF them to figure out which parts vary. Each varying aspect becomes a prop:
+  • differing strings → \`string\` props (label, heading, description…)
+  • differing booleans (present/absent elements) → \`boolean\` props
+  • differing sets of discrete values (color, size, layout) → \`select\` props with the observed values as options
+- Everything that is identical across variants becomes hard-coded structure inside the component.
+- Expose only \`string\` / \`boolean\` / \`select\` props via \`pvConfig.props\`. Never expose functions, children, or asChild.
+- Add \`invalidCombinations\` filters for any prop combinations that would obviously break visually.
+
+Decomposition — when to create more than one component:
+- If the selection is non-atomic (parent + repeated or swappable children the user will want to reorder, delete, or edit independently — e.g. a tab strip with triggers and panels, a dropdown with items, a sidebar with nav links), split it into multiple components in separate files, each with its own \`pvConfig\`, EXACTLY the way \`tabs.tsx\` / \`select.tsx\` are structured in this project. Parent owns layout and context; children own their own editable content.
+- Share state between parent and child via React Context (see tabs.tsx for the pattern). Do NOT pass callbacks or controlled state through props that the editor would need to manage.
+- If the selection is a single cohesive atom (e.g. a stat tile, a badge), keep it as one file.
+
+Replacing the original usage:
+- After creating the component(s), replace the selected markup in \`{{file}}\` with calls to the new component(s). Preserve the surrounding pv-editable-zone / pv-block tags and their IDs.
+- For each original variant in the selection, set the props so the rendered output matches the original visually.
+
+Additional user instructions: {{input}}
 
 ${AGENTS_RULES_SUFFIX}`,
   },
@@ -214,6 +259,7 @@ Requirements:
 - Respect every rule in AGENTS.md — especially: one pvConfig per file, explicit data-pv-component-id, safe prop types, static Tailwind class strings, semantic color tokens, and \`...props\` spread on the root element.
 - If the change introduces a new variant/prop, add it to \`pvConfig.props\` and add any needed \`invalidCombinations\` filters.
 - Keep existing usages working — do not rename or remove props unless the user asked for it.
+- If needed update the consumer files
 
 ${AGENTS_RULES_SUFFIX}`,
   },
