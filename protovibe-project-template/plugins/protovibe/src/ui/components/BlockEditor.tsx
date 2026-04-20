@@ -152,6 +152,50 @@ export const BlockEditor: React.FC = () => {
     setIsEmpty(!editorRef.current?.textContent?.trim());
   };
 
+  // execCommand('underline') misbehaves when the selection is inside an <a>:
+  // the browser sees the anchor's default `text-decoration: underline` via
+  // queryCommandState and treats the command as toggle-off against a <u> that
+  // doesn't exist. Do the wrap/unwrap manually so anchors aren't special.
+  const toggleUnderline = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return;
+
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const startEl = range.startContainer.nodeType === Node.ELEMENT_NODE
+      ? (range.startContainer as Element)
+      : range.startContainer.parentElement;
+    const enclosingU = startEl?.closest('u');
+
+    // If the whole selection lives inside an existing <u>, unwrap it.
+    if (enclosingU && editor.contains(enclosingU) && enclosingU.contains(range.endContainer)) {
+      const parent = enclosingU.parentNode;
+      if (!parent) return;
+      while (enclosingU.firstChild) parent.insertBefore(enclosingU.firstChild, enclosingU);
+      parent.removeChild(enclosingU);
+      return;
+    }
+
+    // Otherwise wrap the selection in <u>. surroundContents throws if the
+    // range crosses element boundaries (e.g., spans half an <a>); fall back to
+    // extract + append + insert which tolerates partial overlaps.
+    const u = document.createElement('u');
+    try {
+      range.surroundContents(u);
+    } catch {
+      const extracted = range.extractContents();
+      u.appendChild(extracted);
+      range.insertNode(u);
+    }
+    sel.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(u);
+    sel.addRange(newRange);
+  };
+
   const openLinkPopover = (btn: HTMLButtonElement) => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
@@ -255,7 +299,7 @@ export const BlockEditor: React.FC = () => {
               <ToolbarButton title="Italic" disabled={isMutationLocked} onActivate={() => { execCmd('italic'); persistIfChanged(); }}>
                 <Italic size={12} />
               </ToolbarButton>
-              <ToolbarButton title="Underline" disabled={isMutationLocked} onActivate={() => { execCmd('underline'); persistIfChanged(); }}>
+              <ToolbarButton title="Underline" disabled={isMutationLocked} onActivate={() => { toggleUnderline(); persistIfChanged(); }}>
                 <Underline size={12} />
               </ToolbarButton>
               <ToolbarButton title="Link" disabled={isMutationLocked} onActivate={openLinkPopover}>
