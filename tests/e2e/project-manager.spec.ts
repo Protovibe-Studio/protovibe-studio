@@ -19,21 +19,31 @@ async function waitForUnlock(page: Page) {
   await expect(overlay).not.toBeVisible({ timeout: 15_000 });
 }
 
-// Apply a value to an Essentials autocomplete field and assert inline style is set
+/**
+ * Apply a value to an Essentials autocomplete field and assert:
+ * 1. The expected Tailwind class is added to the element.
+ * 2. The computed CSS property matches the expected value.
+ */
 async function setAndAssertStyle(
   editorPage: Page,
   targetLocator: Locator,
   testId: string,
-  value: string,
+  inputValue: string,
+  expectedClass: string,
   cssProperty: string,
   expectedValue: string,
 ) {
   // Click into the autocomplete
   const input = editorPage.getByTestId(testId).locator('input');
   await input.click();
-  await input.fill(value);
+  await input.fill(inputValue);
   await input.press('Enter');
   await waitForUnlock(editorPage);
+
+  // Assert class applied
+  // Escape square brackets for arbitrary values if they appear in expectedClass
+  const escapedClass = expectedClass.replace('[', '\\[').replace(']', '\\]');
+  await expect(targetLocator).toHaveClass(new RegExp(`\\b${escapedClass}\\b`));
 
   // Assert style applied on the specific selected element in the iframe
   await expect(targetLocator).toHaveCSS(cssProperty, expectedValue);
@@ -79,26 +89,32 @@ test.describe('Project Manager + Editor E2E', () => {
       await appTab.click();
     }
 
-    // ── 4. Select the first pv-editable block in the app ────────────────────
+    // ── 4. Select the E2E test container ────────────────────────────────────
     const appFrame = editorPage.frameLocator('iframe[title="App Preview"]');
-    const firstBlock = appFrame.locator('[data-pv-block]').first();
-    await firstBlock.click();
+    const containerText = appFrame.getByText('Container for testing adding and styling elements');
+    await containerText.click();
+    
+    // Press W to traverse up to the div container (data-testid="e2e-pv-block")
+    await editorPage.keyboard.press('w');
+    
+    const container = appFrame.getByTestId('e2e-pv-block');
+    await expect(container).toBeVisible();
     await expect(editorPage.getByTestId('floating-toolbar')).toBeVisible({ timeout: 10_000 });
 
-    // ── 5. Add an Empty Div Block AFTER the first block ──────────────────────
-    // The first block is a TextHeading, so we can't add INSIDE it. We add AFTER it.
-    await editorPage.getByTestId('floating-toolbar').getByText('Add after').click();
+    // ── 5. Add an Empty Div Block INSIDE the container ──────────────────────
+    await editorPage.getByTestId('floating-toolbar').getByText(/Add (child|inside)/i).click();
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-block').click();
     await waitForUnlock(editorPage);
 
-    // ── 6. Select our newly focused Div ──────────────────────────────────────
-    // We target the exact block we just inserted (index 1), which sits right after the h1 (index 0)
-    const newDiv = appFrame.locator('[data-pv-block]').nth(1);
+    // ── 6. Identify our newly focused Div ───────────────────────────────────
+    // We get the ID to create a stable locator that won't shift when we add children
+    const newDivId = await container.locator('> [data-pv-block]').last().getAttribute('data-pv-block');
+    expect(newDivId).not.toBeNull();
+    const newDiv = appFrame.locator(`[data-pv-block="${newDivId}"]`);
+    await expect(newDiv).toBeVisible();
 
-    // ── 7. Add Empty Text Span INSIDE the div ────────────────────────────────
-    // Because the new block is an empty div, it acts as a container.
-    // Now the "Add child" (or "Add inside") button will exist!
+    // ── 7. Add Empty Text Span INSIDE the new div ───────────────────────────
     await editorPage.getByTestId('floating-toolbar').getByText(/Add (child|inside)/i).click();
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-text').click();
@@ -111,7 +127,8 @@ test.describe('Project Manager + Editor E2E', () => {
     await expect(editorPage.getByTestId('section-essentials')).toBeVisible({ timeout: 10_000 });
 
     // ── 9. Test padding-top ──────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pt', 'pt-4', 'padding-top', '16px');
+    // Note: We pass just the value '4', the plugin adds 'pt-' prefix.
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pt', '4', 'pt-4', 'padding-top', '16px');
 
     // Unset padding-top via "Unset" option
     {
@@ -121,10 +138,11 @@ test.describe('Project Manager + Editor E2E', () => {
       await expect(dropdown).toBeVisible();
       await dropdown.getByText('Unset').click();
       await waitForUnlock(editorPage);
+      await expect(newDiv).not.toHaveClass(/\bpt-4\b/);
     }
 
     // ── 10. Test padding-bottom ───────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pb', 'pb-4', 'padding-bottom', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pb', '4', 'pb-4', 'padding-bottom', '16px');
     {
       const input = editorPage.getByTestId('essentials-pb').locator('input');
       await input.click();
@@ -133,7 +151,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 11. Test padding-left ─────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pl', 'pl-4', 'padding-left', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pl', '4', 'pl-4', 'padding-left', '16px');
     {
       const input = editorPage.getByTestId('essentials-pl').locator('input');
       await input.click();
@@ -142,7 +160,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 12. Test padding-right ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pr', 'pr-4', 'padding-right', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pr', '4', 'pr-4', 'padding-right', '16px');
     {
       const input = editorPage.getByTestId('essentials-pr').locator('input');
       await input.click();
@@ -151,7 +169,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 13. Test margin-top ───────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-mt', 'mt-4', 'margin-top', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-mt', '4', 'mt-4', 'margin-top', '16px');
     {
       const input = editorPage.getByTestId('essentials-mt').locator('input');
       await input.click();
@@ -160,7 +178,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 14. Test margin-bottom ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-mb', 'mb-4', 'margin-bottom', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-mb', '4', 'mb-4', 'margin-bottom', '16px');
     {
       const input = editorPage.getByTestId('essentials-mb').locator('input');
       await input.click();
@@ -169,7 +187,8 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 15. Test border-radius ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-border-radius', 'rounded-lg', 'border-radius', '8px');
+    // In this project's scale, 'lg' corresponds to '16px'. 'DEFAULT' is '8px'.
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-border-radius', 'lg', 'rounded-lg', 'border-radius', '16px');
     {
       const input = editorPage.getByTestId('essentials-border-radius').locator('input');
       await input.click();

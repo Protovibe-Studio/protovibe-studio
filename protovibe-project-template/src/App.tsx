@@ -236,6 +236,17 @@ function DashboardPage() {
         {/* pv-block-start:e6x5fm */}
         <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
         {/* pv-block-end:e6x5fm */}
+        {/* pv-block-start:dkwss2 */}
+        <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded" data-pv-block="dkwss2">
+          {/* pv-editable-zone-start:inside-dkwss2 */}
+            {/* pv-block-start:rkj7hq */}
+            <span className="" data-pv-block="rkj7hq">
+              Container for testing adding and styling elements
+            </span>
+            {/* pv-block-end:rkj7hq */}
+          {/* pv-editable-zone-end:inside-dkwss2 */}
+        </div>
+        {/* pv-block-end:dkwss2 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
