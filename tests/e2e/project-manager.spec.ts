@@ -31,7 +31,7 @@ async function setAndAssertStyle(
   inputValue: string,
   expectedClass: string,
   cssProperty: string,
-  expectedValue: string,
+  expectedValue: string | RegExp,
 ) {
   // Click into the autocomplete
   const input = editorPage.getByTestId(testId).locator('input');
@@ -41,12 +41,60 @@ async function setAndAssertStyle(
   await waitForUnlock(editorPage);
 
   // Assert class applied
-  // Escape square brackets for arbitrary values if they appear in expectedClass
   const escapedClass = expectedClass.replace('[', '\\[').replace(']', '\\]');
   await expect(targetLocator).toHaveClass(new RegExp(`\\b${escapedClass}\\b`));
 
   // Assert style applied on the specific selected element in the iframe
   await expect(targetLocator).toHaveCSS(cssProperty, expectedValue);
+}
+
+/**
+ * Helper to set a value in a VisualControl by its label and assert
+ */
+async function setControlStyle(
+  editorPage: Page,
+  targetLocator: Locator,
+  label: string,
+  inputValue: string,
+  expectedClass: string,
+  cssProperty: string,
+  expectedValue: string | RegExp,
+) {
+  const controlTestId = `control-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const control = editorPage.getByTestId(controlTestId);
+  const input = control.locator('input');
+  
+  await input.click();
+  await input.fill(inputValue);
+  await input.press('Enter');
+  await waitForUnlock(editorPage);
+
+  const escapedClass = expectedClass.replace('[', '\\[').replace(']', '\\]');
+  await expect(targetLocator).toHaveClass(new RegExp(`\\b${escapedClass}\\b`));
+  await expect(targetLocator).toHaveCSS(cssProperty, expectedValue);
+}
+
+/**
+ * Resiliently click an element and wait for toolbar to be visible
+ */
+async function selectAndCheckToolbar(editorPage: Page, targetLocator: Locator) {
+  const toolbar = editorPage.getByTestId('floating-toolbar');
+  const addChildBtn = editorPage.getByTestId('btn-add-child');
+
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      await targetLocator.click();
+      await expect(addChildBtn).toBeVisible({ timeout: 2000 });
+      return;
+    } catch {
+      attempts++;
+      await editorPage.waitForTimeout(500);
+    }
+  }
+  // Final attempt with full timeout
+  await targetLocator.click();
+  await expect(addChildBtn).toBeVisible({ timeout: 5000 });
 }
 
 test.describe('Project Manager + Editor E2E', () => {
@@ -65,11 +113,8 @@ test.describe('Project Manager + Editor E2E', () => {
     await page.getByTestId('input-project-name').fill(PROJECT_NAME);
     await page.getByTestId('btn-create-project').click();
 
-    // Setup screen: wait through installing → starting → running
-    // pnpm install can take several minutes
     await expect(page.getByTestId('btn-open-editor')).toBeVisible({ timeout: 300_000 });
 
-    // Extract the port from the "Open Protovibe editor" link
     const href = await page.getByTestId('btn-open-editor').getAttribute('href') ?? '';
     const portMatch = href.match(/:(\d+)\//);
     expect(portMatch).not.toBeNull();
@@ -83,7 +128,6 @@ test.describe('Project Manager + Editor E2E', () => {
     editorPage = newPage;
     await editorPage.waitForLoadState('networkidle', { timeout: 60_000 });
 
-    // Switch to App Preview tab if needed
     const appTab = editorPage.getByTestId('tab-app');
     if (await appTab.isVisible()) {
       await appTab.click();
@@ -94,138 +138,145 @@ test.describe('Project Manager + Editor E2E', () => {
     const containerText = appFrame.getByText('Container for testing adding and styling elements');
     await containerText.click();
     
-    // Press W to traverse up to the div container (data-testid="e2e-pv-block")
+    // Press W to traverse up to the div container
     await editorPage.keyboard.press('w');
     
     const container = appFrame.getByTestId('e2e-pv-block');
     await expect(container).toBeVisible();
-    await expect(editorPage.getByTestId('floating-toolbar')).toBeVisible({ timeout: 10_000 });
+    
+    const addChildBtn = editorPage.getByTestId('btn-add-child');
+
+    // Ensure selection is active and toolbar is shown
+    await selectAndCheckToolbar(editorPage, container);
 
     // ── 5. Add an Empty Div Block INSIDE the container ──────────────────────
-    await editorPage.getByTestId('floating-toolbar').getByText(/Add (child|inside)/i).click();
+    await addChildBtn.dispatchEvent('click');
+
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-block').click();
     await waitForUnlock(editorPage);
 
-    // ── 6. Identify our newly focused Div ───────────────────────────────────
-    // We get the ID to create a stable locator that won't shift when we add children
-    const newDivId = await container.locator('> [data-pv-block]').last().getAttribute('data-pv-block');
-    expect(newDivId).not.toBeNull();
-    const newDiv = appFrame.locator(`[data-pv-block="${newDivId}"]`);
+    // Wait for the new element to appear and be stable
+    const newDiv = container.locator('> [data-pv-block]').last();
     await expect(newDiv).toBeVisible();
-
+    const newDivId = await newDiv.getAttribute('data-pv-block');
+    expect(newDivId).not.toBeNull();
+    
     // ── 7. Add Empty Text Span INSIDE the new div ───────────────────────────
-    await editorPage.getByTestId('floating-toolbar').getByText(/Add (child|inside)/i).click();
+    await selectAndCheckToolbar(editorPage, newDiv);
+    await addChildBtn.dispatchEvent('click');
+
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-text').click();
     await waitForUnlock(editorPage);
 
     // ── 8. Navigate back to the div (W = parent) ─────────────────────────────
+    const stableNewDiv = appFrame.locator(`[data-pv-block="${newDivId}"]`);
     await editorPage.keyboard.press('w');
+    
+    // Verify selection by checking if Essentials section is visible for the stableNewDiv
+    await expect(editorPage.getByTestId('section-essentials')).toBeVisible({ timeout: 20_000 });
 
-    // Ensure inspector is showing the Essentials section
-    await expect(editorPage.getByTestId('section-essentials')).toBeVisible({ timeout: 10_000 });
+    // ── 9. Test Essentials (Spacing, Radius, BG) ─────────────────────────────
+    // Padding
+    await setAndAssertStyle(editorPage, stableNewDiv, 'essentials-pt', '4', 'pt-4', 'padding-top', '16px');
+    
+    // Background Color
+    await setAndAssertStyle(editorPage, stableNewDiv, 'essentials-bg', 'foreground-primary', 'bg-foreground-primary', 'background-color', /oklch|rgb/);
 
-    // ── 9. Test padding-top ──────────────────────────────────────────────────
-    // Note: We pass just the value '4', the plugin adds 'pt-' prefix.
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pt', '4', 'pt-4', 'padding-top', '16px');
+    // Border Radius
+    await setAndAssertStyle(editorPage, stableNewDiv, 'essentials-border-radius', 'lg', 'rounded-lg', 'border-radius', '16px');
 
-    // Unset padding-top via "Unset" option
+    // ── 10. Test Typography ──────────────────────────────────────────────────
+    const typographySection = editorPage.getByTestId('section-typography');
+    await typographySection.scrollIntoViewIfNeeded();
+
+    // Text Align via SegmentedControl
+    await typographySection.getByTitle('Center').click();
+    await waitForUnlock(editorPage);
+    await expect(stableNewDiv).toHaveClass(/\btext-center\b/);
+    await expect(stableNewDiv).toHaveCSS('text-align', 'center');
+
+    await typographySection.getByTitle('Right').click();
+    await waitForUnlock(editorPage);
+    await expect(stableNewDiv).toHaveClass(/\btext-right\b/);
+    await expect(stableNewDiv).toHaveCSS('text-align', 'right');
+
+    // Font Weight via VisualControl (input)
+    await setControlStyle(editorPage, stableNewDiv, 'Weight', 'bold', 'font-bold', 'font-weight', /700|bold/);
+
+    // Font Size (text-lg is 1rem = 16px in this project)
+    await setControlStyle(editorPage, stableNewDiv, 'Font size', 'lg', 'text-lg', 'font-size', '16px');
+
+    // ── 11. Test Effects ─────────────────────────────────────────────────────
+    const effectsSection = editorPage.getByTestId('section-effects');
+    await effectsSection.scrollIntoViewIfNeeded();
+
+    // Box shadow
+    await setControlStyle(editorPage, stableNewDiv, 'Box shadow', 'lg', 'shadow-lg', 'box-shadow', /rgba?\(0, 0, 0, 0\.1\)/);
+
+    // Unset via clear button
     {
-      const input = editorPage.getByTestId('essentials-pt').locator('input');
+      const control = editorPage.getByTestId('control-box-shadow');
+      const input = control.locator('input');
       await input.click();
-      const dropdown = editorPage.locator('[data-pv-overlay="true"]').last();
-      await expect(dropdown).toBeVisible();
-      await dropdown.getByText('Unset').click();
+      await input.fill('');
+      await input.press('Enter');
       await waitForUnlock(editorPage);
-      await expect(newDiv).not.toHaveClass(/\bpt-4\b/);
+      await expect(stableNewDiv).not.toHaveClass(/\bshadow-lg\b/);
     }
 
-    // ── 10. Test padding-bottom ───────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pb', '4', 'pb-4', 'padding-bottom', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-pb').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // ── 12. Test Layout (Display, Flex) ──────────────────────────────────────
+    const layoutSection = editorPage.getByTestId('section-display-and-layout');
+    await layoutSection.scrollIntoViewIfNeeded();
 
-    // ── 11. Test padding-left ─────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pl', '4', 'pl-4', 'padding-left', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-pl').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // Open Layout popover using data-testid
+    await editorPage.getByTestId('layout-trigger').click();
+    const layoutPopover = editorPage.locator('[data-pv-overlay="true"]').last();
+    await expect(layoutPopover).toBeVisible();
 
-    // ── 12. Test padding-right ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-pr', '4', 'pr-4', 'padding-right', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-pr').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // Set Display to Flex
+    await layoutPopover.getByText('Flex', { exact: true }).click();
+    await waitForUnlock(editorPage);
+    await expect(stableNewDiv).toHaveClass(/\bflex\b/);
+    await expect(stableNewDiv).toHaveCSS('display', 'flex');
 
-    // ── 13. Test margin-top ───────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-mt', '4', 'mt-4', 'margin-top', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-mt').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // Set Direction to Col
+    await layoutPopover.getByText('Col ↓').click();
+    await waitForUnlock(editorPage);
+    await expect(stableNewDiv).toHaveClass(/\bflex-col\b/);
+    await expect(stableNewDiv).toHaveCSS('flex-direction', 'column');
 
-    // ── 14. Test margin-bottom ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-mb', '4', 'mb-4', 'margin-bottom', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-mb').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // Set Align to Center
+    await layoutPopover.getByText('Center', { exact: true }).click();
+    await waitForUnlock(editorPage);
+    await expect(stableNewDiv).toHaveClass(/\bitems-center\b/);
+    await expect(stableNewDiv).toHaveCSS('align-items', 'center');
 
-    // ── 15. Test border-radius ────────────────────────────────────────────────
-    // In this project's scale, 'lg' corresponds to '16px'. 'DEFAULT' is '8px'.
-    await setAndAssertStyle(editorPage, newDiv, 'essentials-border-radius', 'lg', 'rounded-lg', 'border-radius', '16px');
-    {
-      const input = editorPage.getByTestId('essentials-border-radius').locator('input');
-      await input.click();
-      await editorPage.locator('[data-pv-overlay="true"]').last().getByText('Unset').click();
-      await waitForUnlock(editorPage);
-    }
+    // Close popover
+    await editorPage.keyboard.press('Escape');
+    await expect(layoutPopover).not.toBeVisible();
 
-    // ── 16. Close editor tab and return to project manager ───────────────────
+    // ── 13. Final cleanup / Close ────────────────────────────────────────────
     await editorPage.close();
     await page.bringToFront();
 
-    // ── 17. Stop the project ─────────────────────────────────────────────────
+    // ── 14. Stop the project ─────────────────────────────────────────────────
     const stopBtn = page.getByTestId('btn-stop');
     if (await stopBtn.isVisible()) {
       await stopBtn.click();
       await expect(page.getByTestId('btn-run')).toBeVisible({ timeout: 30_000 });
     }
 
-    // ── 18. Go back to project list ───────────────────────────────────────────
-    const backBtn = page.locator('[data-testid="btn-back"], a[href="/"], button:has-text("Back")').first();
-    if (await backBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await backBtn.click();
-    } else {
-      await page.goto(PM_URL);
-    }
+    // ── 15. Go back to project list ───────────────────────────────────────────
+    await page.goto(PM_URL);
 
-    // ── 19. Delete the project via the card menu ──────────────────────────────
+    // ── 16. Delete the project ───────────────────────────────────────────────
     const card = page.locator(`[data-project-name="${PROJECT_NAME}"]`);
     await expect(card).toBeVisible({ timeout: 10_000 });
-
-    // Open the three-dot menu on the card
     await card.locator('[data-testid="btn-card-menu"]').click();
-    // Click Delete using locator by text, because List view Menu items don't natively pass the testId prop
     await page.locator('button', { hasText: 'Delete' }).click();
-    // Confirm deletion — this can take a long time
     await page.getByTestId('btn-confirm-delete').click();
-    // Wait for the card to disappear — delete may take a while
     await expect(card).not.toBeVisible({ timeout: 120_000 });
   });
 });

@@ -697,6 +697,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         {/* Trigger button */}
         <button
           ref={triggerRef}
+          data-testid="layout-trigger"
           onClick={() => setIsOpen(o => !o)}
           onMouseEnter={() => setTriggerHovered(true)}
           onMouseLeave={() => setTriggerHovered(false)}
