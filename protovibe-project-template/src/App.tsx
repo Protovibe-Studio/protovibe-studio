@@ -301,7 +301,7 @@ function EmployeesPage() {
               <TableRowContent key={emp.id} className="cursor-pointer group" onClick={() => setSelectedEmp(emp)}>
                 <TableCellContent>
                   <div className="flex items-center gap-3">
-                    <Avatar initials={emp.name} size="md" bgColor="primary" />
+                    <Avatar initials={emp.name} size="sm" bgColor="default" />
                     <div className="flex flex-col">
                       <TextHeading typography="heading-sm" className="group-hover:text-background-primary transition-colors">{emp.name}</TextHeading>
                       <TextParagraph typography="small">{emp.email}</TextParagraph>

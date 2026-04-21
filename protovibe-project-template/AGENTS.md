@@ -488,6 +488,33 @@ Do not export variant functions (like `cva` configs). Components must be entirel
   // In another file: <div className={buttonVariants({ variant: 'ghost' })} />
   ```
 
+### Rule: No Comments or Multiple Arguments Inside `cn()`
+
+Pass exactly **one static string** of all internal classes as the first argument to `cn()`, followed by the `className` prop. Never split classes across multiple string arguments and never insert JS comments (`// …`) between them.
+
+* **❌ BAD: Multiple arguments with inline comments**
+
+  ```tsx
+  className={cn(
+    // Base
+    'relative inline-flex rounded-full',
+    // Sizes
+    'data-[size=sm]:w-8 data-[size=sm]:h-8',
+    // Colors
+    'data-[color=primary]:bg-background-primary-subtle',
+    className
+  )}
+  ```
+
+* **✅ GOOD: One flat string, then `className`**
+
+  ```tsx
+  className={cn(
+    'relative inline-flex rounded-full data-[size=sm]:w-8 data-[size=sm]:h-8 data-[color=primary]:bg-background-primary-subtle',
+    className
+  )}
+  ```
+
 ## 4. Adding Interaction
 
 ### Rule: Compound Components (Context State)

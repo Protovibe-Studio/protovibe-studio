@@ -27,6 +27,7 @@ import {
   SquarePen,
   Palette,
   MousePointerClick,
+  Pipette,
 } from 'lucide-react';
 
 export type PromptFieldRef =
@@ -323,6 +324,39 @@ Hard constraints:
 - Keep all className strings fully static so the AST parser can read them — no template literals, no ternaries inside className, no cva. Express variants via \`data-*\` attributes and \`data-[...]\` modifiers as shown in AGENTS.md.
 
 ${AGENTS_RULES_SUFFIX}`,
+  },
+  {
+    id: 'edit-tokens',
+    title: 'Edit tokens',
+    description: 'Modify the design token values in index.css — colors, borders, backgrounds — for light and/or dark theme.',
+    icon: Pipette,
+    inputLabel: 'Change the tokens so that…',
+    inputPlaceholder: 'the primary color becomes a warm amber, and the dark theme background is slightly warmer',
+    requiresSelection: false,
+    references: [],
+    template: `Edit the design tokens in \`src/index.css\`.
+
+What to change: {{input}}
+
+Before touching any code, open and read \`src/index.css\` in full so you understand its exact structure. Here is a summary of what you will find:
+
+- \`[data-theme="light"]\` and \`[data-theme="dark"]\` blocks each define raw CSS custom properties (e.g. \`--background-primary\`, \`--foreground-default\`, \`--border-default\`). These are the values to edit.
+- The \`@theme\` block below them maps each raw property to a Tailwind color token via \`var()\` (e.g. \`--color-background-primary: var(--background-primary)\`). Do NOT edit this section — it is indirection only.
+- All color values use \`oklch(lightness% chroma hue)\` syntax. Hover/pressed/subtle variants are derived from the base by adjusting lightness and/or chroma; keep the same hue unless the user explicitly asks to change it.
+
+Token groups (edit the ones relevant to the request):
+- **Backgrounds** — \`--background-default/subtle/secondary/tertiary/elevated/strong/overlay/disabled/transparent\` plus accent fills \`--background-primary/destructive/success/warning/info\` and their \`-hover\`/\`-pressed\`/\`-subtle\` variants.
+- **Foregrounds (text)** — \`--foreground-default/secondary/tertiary/strong/disabled/inverse/on-primary/primary/destructive/success/warning/info\`.
+- **Borders** — \`--border-default/secondary/strong/focus/primary/destructive/success/warning/info\`.
+
+Rules:
+- Edit ONLY the raw properties inside \`[data-theme="light"]\` and/or \`[data-theme="dark"]\`. Never touch the \`@theme\` block.
+- Use the exact color value the user provided. Do not convert it to another format.
+- When changing a base color (e.g. \`--background-primary\`), update its \`-hover\`, \`-pressed\`, \`-subtle\`, \`-subtle-hover\`, and \`-subtle-pressed\` variants proportionally: hover = base lightness +5–8%, pressed = base lightness −10–15%, subtle = very high lightness low chroma version of the hue.
+- If the user asks to change the primary/accent color, update the matching foreground and border tokens at the same hue too (\`--foreground-primary\`, \`--border-primary\`, \`--border-focus\`).
+- If the user provides a specific color value without mentioning which theme it targets, assume it is for **light mode**. Derive a matching dark-mode equivalent automatically (typically: invert the lightness curve — light-mode light backgrounds become dark-mode dark backgrounds, and vice versa — while preserving chroma and hue). Then **inform the user** at the start of your response that you assumed light mode for the provided value and auto-generated the dark-mode counterpart, and show both values so they can adjust if needed.
+- If the user explicitly mentions only one theme, apply changes only to that theme and leave the other untouched.
+- Do not change the \`@theme\` mappings, fonts, spacing, radius, or shadow variables unless the user explicitly asks.`,
   },
   {
     id: 'add-interaction',
