@@ -600,7 +600,7 @@ function SkillsPage() {
       {/* pv-editable-zone-start:sk1a2b */}
 
         {/* pv-block-start:lbcm1t */}
-        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 pt-4 pb-0 px-6 border-b border-border-default">
+        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 border-b border-border-default pt-5 pb-0 px-5">
           {/* pv-editable-zone-start:uz9d2r */}
           {/* pv-block-start:sk3c4d */}
           <div data-pv-block="sk3c4d" className="flex items-center justify-between">
@@ -645,10 +645,10 @@ function SkillsPage() {
 
 
         {/* pv-block-start:skht8u */}
-        <EmptyState
+        <EmptyState iconSize="2xl" className="min-h-64"
           data-pv-block="skht8u"
           icon="mdi:text-box-outline"
-          heading="Create your first skill"
+          bigHeading="Create your first skill"
           secondaryText="You haven't added any skills yet. Start by adding your first skill."
         />
         {/* pv-block-end:skht8u */}

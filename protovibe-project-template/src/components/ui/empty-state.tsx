@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: string;
   iconSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  bigHeading?: string;
   heading?: string;
   secondaryText?: string;
   learnMoreLabel?: string;
@@ -18,6 +19,7 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
 export function EmptyState({
   icon,
   iconSize = 'xl',
+  bigHeading,
   heading,
   secondaryText,
   learnMoreLabel,
@@ -39,13 +41,18 @@ export function EmptyState({
       data-pv-component-id="EmptyState"
     >
       {icon && (
-        <div className="text-foreground-tertiary">
+        <div className="text-foreground-disabled">
           <Icon iconSymbol={icon} size={iconSize} />
         </div>
       )}
 
-      {(heading || secondaryText) && (
+      {(bigHeading || heading || secondaryText) && (
         <div className="flex flex-col items-center gap-1.5 max-w-sm">
+          {bigHeading && (
+            <p className="text-2xl font-semibold text-foreground-default">
+              {bigHeading}
+            </p>
+          )}
           {heading && (
             <p className="text-base font-semibold text-foreground-default">
               {heading}
@@ -111,6 +118,7 @@ export const pvConfig = {
   props: {
     icon: { type: 'iconSearch', exampleValue: 'cog' },
     iconSize: { type: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl'] },
+    bigHeading: { type: 'string', exampleValue: 'Nothing here yet' },
     heading: { type: 'string', exampleValue: 'Nothing here yet' },
     secondaryText: { type: 'string', exampleValue: 'Get started by creating your first item.' },
     learnMoreLabel: { type: 'string', exampleValue: 'Learn more' },
@@ -121,6 +129,8 @@ export const pvConfig = {
   invalidCombinations: [
     // only md and xl icon sizes make sense for empty states
     (props: Record<string, any>) => !!props.iconSize && !['md', 'xl'].includes(props.iconSize),
+    // bigHeading and heading must not be used together
+    (props: Record<string, any>) => !!props.bigHeading && !!props.heading,
     // empty state without description text looks incomplete
     (props: Record<string, any>) => !props.secondaryText,
     // button labels must never be empty strings
