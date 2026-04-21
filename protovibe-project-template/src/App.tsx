@@ -14,6 +14,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { TabItem } from '@/components/ui/tab-item';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
 import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
+import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
 import { DialogContext } from '@/components/ui/dialog-trigger';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
@@ -598,6 +599,15 @@ function DetailField({
   );
 }
 
+function SkillsPage() {
+  return (
+    <div className="flex flex-col gap-0">
+      <TextHeading typography="heading-md">Skills</TextHeading>
+      <TextParagraph typography="secondary">Manage and track employee skills across your organization.</TextParagraph>
+    </div>
+  );
+}
+
 // --- MAIN APP COMPONENT ---
 
 export default function App() {
@@ -619,14 +629,50 @@ export default function App() {
           <TextHeading typography="heading-sm" className="tracking-tight">CoreHR</TextHeading>
         </div>
         
-        <div className="p-4 flex-1">
-          <TextParagraph typography="semibold-secondary" className="mb-3 px-3 text-sm">Main Menu</TextParagraph>
-          <VerticalTabs value={currentPath} onValueChange={navigate}>
-            <VerticalTabItem value="/dashboard" label="Dashboard" prefixIcon="mdi:home" />
-            <VerticalTabItem value="/employees" label="Employees" prefixIcon="users" />
-            <VerticalTabItem value="/positions" label="Positions" prefixIcon="briefcase" />
-            <VerticalTabItem value="/departments" label="Departments" prefixIcon="material-symbols:graph-2" />
-          </VerticalTabs>
+        <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
+          <div>
+            <VerticalTabs value={currentPath} onValueChange={navigate}>
+              <VerticalTabItem value="/profile" label="John Smith" prefixIcon="mdi:account-circle-outline" />
+            </VerticalTabs>
+          </div>
+
+          <div>
+            <TextParagraph typography="semibold-secondary" className="mb-1 text-xs px-2">Manage</TextParagraph>
+            <VerticalTabs value={currentPath} onValueChange={navigate}>
+              <VerticalTabItem value="/home" label="Home" prefixIcon="mdi:home" />
+              <VerticalTabItem value="/calendar" label="Calendar" prefixIcon="mdi:calendar-outline" />
+              <VerticalTabItem value="/employees" label="Employees" prefixIcon="mdi:account-group-outline" />
+              <VerticalTabItem value="/attendance" label="Attendance" prefixIcon="mdi:clock-outline" />
+              <VerticalTabItem value="/time-off" label="Time off" prefixIcon="mdi:umbrella-beach-outline" />
+              <VerticalTabItem value="/payroll" label="Payroll" prefixIcon="mdi:cash-multiple" />
+              <VerticalTabItem value="/expenses" label="Expenses" prefixIcon="mdi:receipt-outline" />
+              <VerticalTabItem value="/journeys" label="Journeys" prefixIcon="mdi:map-marker-path" />
+              <VerticalTabItem value="/company" label="Company" prefixIcon="mdi:domain" />
+              <VerticalTabItem value="/reports" label="Reports" prefixIcon="mdi:chart-bar" />
+              <VerticalTabItem value="/tickets" label="Tickets" prefixIcon="mdi:ticket-outline" />
+            </VerticalTabs>
+          </div>
+
+          <div>
+            <TextParagraph typography="semibold-secondary" className="mb-1 text-xs px-2">Grow</TextParagraph>
+            <VerticalTabs value={currentPath} onValueChange={navigate}>
+              <VerticalTabItem value="/overview" label="Overview" prefixIcon="mdi:sprout-outline" />
+              <VerticalTabItem value="/bravos" label="Bravos" prefixIcon="mdi:hands-pray" />
+              <VerticalTabItem value="/feedback" label="Feedback" prefixIcon="mdi:message-text-outline" />
+              <VerticalTabItem value="/performance" label="Performance" prefixIcon="mdi:trending-up" />
+              <VerticalTabItem value="/talent-reviews" label="Talent reviews" prefixIcon="mdi:account-star-outline" />
+              <VerticalTabItem value="/pulse-surveys" label="Pulse Surveys" prefixIcon="mdi:pulse" />
+              <VerticalTabItem value="/engagement" label="Engagement" prefixIcon="mdi:heart-outline" />
+              <VerticalTabsExpandableSection label="Development" value="/development" prefixIcon="mdi:school-outline" expandable="expanded">
+                <VerticalTabItem value="/skills" label="Skills" subtab />
+                <VerticalTabItem value="/skills-insights" label="Skills insights" subtab />
+                <VerticalTabItem value="/skills-mappings" label="Skills mappings" subtab />
+                <VerticalTabItem value="/training" label="Training" subtab />
+              </VerticalTabsExpandableSection>
+              <VerticalTabItem value="/goals" label="Goals" prefixIcon="mdi:flag-outline" />
+              <VerticalTabItem value="/people" label="People" prefixIcon="mdi:account-multiple-outline" />
+            </VerticalTabs>
+          </div>
         </div>
       </div>
 
@@ -678,6 +724,7 @@ export default function App() {
             {currentPath === '/employees' && <EmployeesPage />}
             {currentPath === '/positions' && <PositionsPage />}
             {currentPath === '/departments' && <DepartmentsPage />}
+            {currentPath === '/skills' && <SkillsPage />}
           </div>
         </main>
       </div>

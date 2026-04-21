@@ -82,7 +82,7 @@ Goal from the user:
 {{input}}
 
 Before writing any code:
-1. Read \`src/App.tsx\` to understand how views are mounted and how the app is structured.
+1. Read AGENTS.md and \`src/App.tsx\` to understand how views are mounted and how the app is structured.
 2. This app uses querystring-based routing (e.g. \`?view=xxx\`). Add the new route by following the existing pattern exactly — do NOT introduce react-router or any other routing library.
 3. Browse \`src/components/ui/\` and reuse existing components wherever possible. Only write custom HTML/Tailwind when no existing component fits the need.
 4. Use mock data held in React state (e.g. \`useState\` with a seeded default). The data should persist while navigating within the app but reset on full page refresh — do not write to localStorage, files, or any backend.
@@ -108,7 +108,7 @@ Current source of the target block:
 
 What to generate: {{input}}
 
-Reuse components from \`@/components/ui/\` whenever possible. ${AGENTS_RULES_SUFFIX}`,
+Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules. Reuse components from \`@/components/ui/\` whenever possible. ${AGENTS_RULES_SUFFIX}`,
   },
   {
     id: 'sketchpad-to-app',
@@ -128,6 +128,8 @@ Sketch source:
 \`\`\`tsx
 {{code}}
 \`\`\`
+
+Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules.
 
 Conversion rules:
 - Preserve the intent of the sketch's styling, visual hierarchy, and element ordering.
@@ -157,6 +159,8 @@ Source code:
 \`\`\`tsx
 {{code}}
 \`\`\`
+
+Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules.
 
 Rules for the sketchpad version:
 - Strip out ALL special logic: event handlers, hooks, state, conditional rendering, data mapping, API calls. The result should be a static visual mock.
@@ -253,7 +257,7 @@ Relevant source:
 {{code}}
 \`\`\`
 
-Figure out which component in \`src/components/ui/\` renders this element (follow the import in \`{{file}}\` if needed, or match by the \`data-pv-component-id\` attribute). Then apply this change to that component's source file: {{input}}
+Before writing any code, read AGENTS.md end-to-end. Then figure out which component in \`src/components/ui/\` renders this element (follow the import in \`{{file}}\` if needed, or match by the \`data-pv-component-id\` attribute). Then apply this change to that component's source file: {{input}}
 
 Requirements:
 - Respect every rule in AGENTS.md — especially: one pvConfig per file, explicit data-pv-component-id, safe prop types, static Tailwind class strings, semantic color tokens, and \`...props\` spread on the root element.
@@ -282,6 +286,8 @@ Current source:
 
 Desired style: {{input}}
 
+Before writing any code, read AGENTS.md — especially the styling rules for static Tailwind strings and semantic color tokens.
+
 Hard constraints:
 - Use ONLY Tailwind utility classes. No inline \`style={{}}\`, no CSS modules.
 - Use ONLY semantic color tokens defined in \`src/index.css\` (e.g. \`bg-background-secondary\`, \`text-foreground-default\`, \`border-border-default\`). NEVER use default Tailwind palette colors (\`bg-blue-500\`) or hex values.
@@ -307,6 +313,8 @@ Current source:
 \`\`\`
 
 Interaction to add: {{input}}
+
+Before writing any code, read AGENTS.md — especially the interaction rules for Floating UI, portals, and compound components.
 
 Guidelines:
 - Do NOT expand scope. If the user asks for "open a dialog on click", just wire the click → dialog — do not add extra buttons, extra content, or refactor the surrounding layout.

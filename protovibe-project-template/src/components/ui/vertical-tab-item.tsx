@@ -18,6 +18,8 @@ export interface VerticalTabItemProps extends Omit<React.HTMLAttributes<HTMLDivE
   expandable?: ExpandableState;
   /** Overrides chevron direction when provided. Otherwise derived from expandable prop. */
   isExpanded?: boolean;
+  /** Renders a narrow vertical line in place of the prefix icon, for nested sub-items. */
+  subtab?: boolean;
   /** Rendered inline inside the button, after the suffix icon. */
   children?: React.ReactNode;
   /** Passed to the inner trigger button, not the wrapper div */
@@ -34,6 +36,7 @@ export function VerticalTabItem({
   suffixIcon,
   expandable = 'not-expandable',
   isExpanded,
+  subtab = false,
   children,
   onClick,
   ...rest
@@ -64,10 +67,16 @@ export function VerticalTabItem({
         data-state={isActive ? 'active' : 'inactive'}
         data-disabled={disabled}
         data-expandable={expandable}
+        data-subtab={subtab || undefined}
         disabled={disabled}
         onClick={handleClick}
-        className={cn("w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed cursor-pointer data-[state=active]:bg-background-primary-subtle data-[state=active]:text-foreground-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors rounded", className)}
+        className={cn("group w-full flex items-center gap-2 hover:text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed cursor-pointer data-[state=active]:bg-background-primary-subtle data-[state=active]:text-foreground-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors rounded text-foreground-default text-base font-semibold h-8 p-2 leading-none", className)}
       >
+        {subtab && (
+          <span className="shrink-0 w-4 flex justify-center">
+            <span className="h-4 rounded-full bg-border-default group-data-[state=active]:bg-background-primary transition-colors w-0.5" />
+          </span>
+        )}
         {prefixIcon && (
           <Icon iconSymbol={prefixIcon} size="sm" className="shrink-0" />
         )}
@@ -76,7 +85,7 @@ export function VerticalTabItem({
           <Icon
             iconSymbol={showExpandedChevron ? 'ChevronUp' : 'ChevronDown'}
             size="sm"
-            className="shrink-0 text-foreground-tertiary"
+            className="shrink-0"
           />
         )}
         <span className="flex-1" />
@@ -114,8 +123,11 @@ export const pvConfig = {
     prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
     expandable: { type: 'select', options: ['not-expandable', 'expandable', 'expanded', 'collapsed'] },
+    subtab: { type: 'boolean' },
   },
   invalidCombinations: [
     (props: Record<string, any>) => !props.label || props.label.trim() === '',
+    (props: Record<string, any>) => !!props.subtab && !!props.prefixIcon,
+    (props: Record<string, any>) => !!props.subtab && props.expandable !== 'not-expandable',
   ],
 };

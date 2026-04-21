@@ -397,6 +397,10 @@ Most components should NOT define `PvPreviewWrapper`. Leave it out by default, a
   };
   ```
 
+### Rule: Adding props to an Existing Component - Don't forget to expose new props in pvConfig
+
+When modifying a component in `src/components/ui/`, every prop that the visual editor should control must appear in `pvConfig.props` — adding a prop to the component function without registering it in `pvConfig` makes it invisible to the builder.
+
 ## 3. Styling Elements
 
 The visual editor directly manipulates Tailwind class strings in the AST.

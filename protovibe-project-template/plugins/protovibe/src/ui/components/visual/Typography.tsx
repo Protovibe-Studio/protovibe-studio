@@ -34,8 +34,8 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Line height" prefix="leading-" value={v.leading} options={scales.leading} originalClass={v.leading_original} inheritedValue={domV?.leading} />
           <VisualControl label="Letter spacing" prefix="tracking-" value={v.tracking} options={scales.tracking} originalClass={v.tracking_original} inheritedValue={domV?.tracking} />
+          <VisualControl label="Line height" prefix="leading-" value={v.leading} options={scales.leading} originalClass={v.leading_original} inheritedValue={domV?.leading} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
