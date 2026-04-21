@@ -1,5 +1,9 @@
 import { concurrently } from 'concurrently';
 
+// Force disable colors for all child processes spawned by this script
+process.env.NO_COLOR = '1'; 
+process.env.FORCE_COLOR = '0';
+
 const MANAGER_READY = 'Local:';
 const MANAGER_URL = 'http://127.0.0.1:5173/';
 const EDITOR_URL_PATTERN = /(https?:\/\/\S+protovibe\.html)/;

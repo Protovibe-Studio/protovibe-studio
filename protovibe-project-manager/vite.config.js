@@ -304,7 +304,7 @@ function handleStart(_req, res, id) {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
-    env: { ...process.env },
+    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
   const state = { proc, logs: existing?.logs ?? [], port: null, status: 'starting' }
@@ -411,7 +411,7 @@ function handleInstall(_req, res, id) {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
-    env: { ...process.env },
+    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
   const state = { proc, logs: existing?.logs ?? [], port: null, status: 'installing' }
@@ -567,7 +567,7 @@ function handleSetup(req, res, id) {
     cwd: project.path,
     stdio: 'pipe',
     shell: process.platform === 'win32',
-    env: { ...process.env },
+    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
   const state = { proc: install, logs: [], port: null, status: 'installing' }
@@ -610,7 +610,7 @@ function handleSetup(req, res, id) {
       cwd: project.path,
       stdio: 'pipe',
       shell: process.platform === 'win32',
-      env: { ...process.env },
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     })
 
     state.proc = dev
