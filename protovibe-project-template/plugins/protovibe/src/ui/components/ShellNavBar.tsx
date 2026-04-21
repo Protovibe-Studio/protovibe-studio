@@ -47,6 +47,7 @@ function TabButton({
   return (
     <button
       key={id}
+      data-testid={`tab-${id}`}
       onClick={onClick}
       title={label}
       style={{

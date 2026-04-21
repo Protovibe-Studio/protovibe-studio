@@ -208,6 +208,7 @@ export function ComponentPalette({
           </div>
           {onClose && (
             <button
+              data-testid="btn-close-palette"
               onClick={onClose}
               style={{
                 background: 'transparent',
@@ -227,6 +228,7 @@ export function ComponentPalette({
         </div>
         <input
           type="text"
+          data-testid="input-component-search"
           placeholder="Search…"
           ref={searchRef}
           value={search}
@@ -272,6 +274,7 @@ export function ComponentPalette({
         {filtered.map((comp) => (
           <div
             key={comp.name}
+            data-testid={`component-item-${comp.name}`}
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', comp.name);

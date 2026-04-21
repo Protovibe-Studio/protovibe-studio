@@ -336,6 +336,7 @@ export function FrameContainer({
           {/* More menu button */}
           <button
             ref={moreButtonRef}
+            data-testid="frame-more-btn"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={handleMoreButtonClick}
             title="Frame options"
@@ -429,6 +430,7 @@ export function FrameContainer({
             {menuItems.map((item) => (
               <div
                 key={item.label}
+                data-testid={`frame-menu-${item.label.toLowerCase()}`}
                 onClick={() => {
                   setShowContextMenu(false);
                   item.action();

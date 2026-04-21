@@ -724,12 +724,14 @@ export function SketchpadApp() {
         }}
       >
         <ToolbarButton
+          data-testid="toolbar-sketchpads"
           label="☰"
           title="Sketchpads"
           isActive={showSketchpadPanel}
           onClick={() => setShowSketchpadPanel((p) => !p)}
         />
         <ToolbarButton
+          data-testid="toolbar-add"
           ref={addButtonRef}
           label="+"
           title="Add"
@@ -842,6 +844,7 @@ export function SketchpadApp() {
             ].map((item) => (
               <div
                 key={item.label}
+                data-testid={`add-menu-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => {
                   setShowAddMenu(false);
                   item.action();
@@ -1061,6 +1064,7 @@ export function SketchpadApp() {
       />
       {isMutationLocked && (
         <div
+          data-testid="mutation-lock-overlay"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1126,11 +1130,12 @@ export function SketchpadApp() {
 
 const ToolbarButton = React.forwardRef<
   HTMLButtonElement,
-  { label: string; title: string; isActive: boolean; onClick: () => void }
->(function ToolbarButton({ label, title, isActive, onClick }, ref) {
+  { label: string; title: string; isActive: boolean; onClick: () => void; 'data-testid'?: string }
+>(function ToolbarButton({ label, title, isActive, onClick, 'data-testid': testId }, ref) {
   return (
     <button
       ref={ref}
+      data-testid={testId}
       onClick={onClick}
       title={title}
       style={{

@@ -98,6 +98,7 @@ export function SketchpadOverlayPanel({
             Sketchpads
           </span>
           <button
+            data-testid="btn-new-sketchpad"
             onClick={() => setShowNewInput(true)}
             style={{
               background: 'rgba(24,160,251,0.15)',
@@ -119,6 +120,7 @@ export function SketchpadOverlayPanel({
           <div style={{ padding: '8px 14px' }}>
             <input
               autoFocus
+              data-testid="input-new-sketchpad"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => {
@@ -225,6 +227,7 @@ export function SketchpadOverlayPanel({
               {/* Delete button */}
               {renamingId !== sp.id && (
                 <button
+                  data-testid={`btn-delete-${sp.name.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     setDeleteConfirmId(sp.id);

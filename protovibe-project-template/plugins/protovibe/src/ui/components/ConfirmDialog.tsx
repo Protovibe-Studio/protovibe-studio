@@ -103,6 +103,7 @@ export function ConfirmDialog({
             Cancel
           </button>
           <button
+            data-testid="dialog-confirm"
             onClick={onConfirm}
             style={{
               padding: '6px 14px',

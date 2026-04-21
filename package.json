@@ -2,6 +2,14 @@
   "name": "protovibe-monorepo",
   "private": true,
   "scripts": {
-    "install:all": "pnpm --dir protovibe-project-manager install && pnpm --dir protovibe-project-template install"
+    "install:all": "pnpm --dir protovibe-project-manager install && pnpm --dir protovibe-project-template install",
+    "dev": "node scripts/dev.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
+    "concurrently": "^9.2.1"
   }
 }
