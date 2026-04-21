@@ -443,6 +443,20 @@ Every prop that dictates a visual variant (e.g., `variant`, `size`) MUST be expl
   <button data-variant={variant} data-size={size} className={cn("...", className)}>
   ```
 
+* **❌ BAD: Suppressing the attribute when falsy with `|| undefined`**
+
+  ```tsx
+  <button data-subtab={subtab || undefined}>
+  ```
+
+  Using `|| undefined` removes the attribute from the DOM when the prop is `false`, which means the editor cannot read the prop's current value back from the DOM.
+
+* **✅ GOOD: Always emit the attribute, even when false**
+
+  ```tsx
+  <button data-subtab={subtab}>
+  ```
+
 ### Rule: Prefer Flex and Gap Over Margins
 
 Space siblings with `flex` + `gap-*` (and `items-*` for alignment) rather than margin utilities like `mt-*`, `mb-*`, or `space-*`.

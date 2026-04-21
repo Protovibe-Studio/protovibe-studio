@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
 import React, { useEffect, useState } from 'react';
-import { Monitor, LayoutGrid, Palette, Paintbrush, Eye, EyeOff, PenTool, Sparkles, ChevronDown } from 'lucide-react';
+import { Monitor, LayoutGrid, Palette, Paintbrush, Play, Pause, PenTool, Sparkles, ChevronDown } from 'lucide-react';
 import { theme } from '../theme';
 import { PublishButton } from './PublishButton';
 
@@ -248,7 +248,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
       {onToggleInspector && (
         <button
           onClick={onToggleInspector}
-          title={inspectorOpen ? 'Disable live preview' : 'Enable live preview'}
+          title={inspectorOpen ? 'Enable live preview' : 'Back to editor'}
           style={{
             marginLeft: '4px',
             display: 'flex',
@@ -265,8 +265,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           }}
         >
           {inspectorOpen
-            ? <Eye size={15} strokeWidth={1.8} />
-            : <EyeOff size={15} strokeWidth={1.8} />}
+            ? <Play size={15} strokeWidth={1.8} />
+            : <Pause size={15} strokeWidth={1.8} />}
         </button>
       )}
     </div>

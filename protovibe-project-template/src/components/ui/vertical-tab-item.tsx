@@ -67,10 +67,10 @@ export function VerticalTabItem({
         data-state={isActive ? 'active' : 'inactive'}
         data-disabled={disabled}
         data-expandable={expandable}
-        data-subtab={subtab || undefined}
+        data-subtab={subtab}
         disabled={disabled}
         onClick={handleClick}
-        className={cn("group w-full flex items-center gap-2 hover:text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed cursor-pointer data-[state=active]:bg-background-primary-subtle data-[state=active]:text-foreground-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors rounded text-foreground-default text-base font-semibold h-8 p-2 leading-none", className)}
+        className={cn("group w-full flex items-center gap-2 hover:text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed cursor-pointer data-[state=active]:bg-background-primary-subtle data-[state=active]:text-foreground-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors rounded text-foreground-default text-base font-semibold data-[subtab=true]:font-normal h-8 p-2 leading-none", className)}
       >
         {subtab && (
           <span className="shrink-0 w-4 flex justify-center">
