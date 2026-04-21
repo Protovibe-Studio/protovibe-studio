@@ -28,7 +28,7 @@ export function useFloatingPosition({
   isOpen,
   anchorRef,
   dropdownRef,
-  offset = 4,
+  offset = 1,
   viewportPadding = 8,
   preferredPlacement = 'bottom',
   align = 'center',

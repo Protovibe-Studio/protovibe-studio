@@ -46,21 +46,23 @@ export function DropdownItem({
       {...props}
       data-pv-component-id="DropdownItem"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-2">
         {selected !== undefined && (
           <Icon
             iconSymbol="Check"
             size="sm"
             data-selected={selected}
-            className="text-foreground-default opacity-0 data-[selected=true]:opacity-100"
+            className="text-foreground-default opacity-0 data-[selected=true]:opacity-100 mt-0.5"
           />
         )}
         {children}
-        {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary" />}
-        <div className="flex flex-col flex-1">
-          {label && <span className="text-foreground-default">{label}</span>}
-          {secondaryText && <span className="text-xs text-foreground-tertiary">{secondaryText}</span>}
-        </div>
+        {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary mt-0.5" />}
+        {(label || secondaryText) && (
+          <div className="flex flex-col flex-1">
+            {label && <span className="text-foreground-default font-medium">{label}</span>}
+            {secondaryText && <span className="text-xs text-foreground-tertiary">{secondaryText}</span>}
+          </div>
+        )}
         {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}
       </div>
     </div>

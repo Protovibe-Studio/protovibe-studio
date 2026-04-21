@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/store';
 import { Icon } from '@/components/ui/icon';
@@ -15,7 +15,7 @@ import { TabItem } from '@/components/ui/tab-item';
 import { VerticalTabs } from '@/components/ui/vertical-tabs';
 import { VerticalTabItem } from '@/components/ui/vertical-tab-item';
 import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-expandable-section';
-import { DialogContext } from '@/components/ui/dialog-trigger';
+import { DialogContext, DialogTrigger, DialogHandle } from '@/components/ui/dialog-trigger';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
 import { Table } from '@/components/ui/table';
@@ -442,7 +442,7 @@ function DepartmentsPage() {
                   {/* pv-block-start:x9y1z2 */}
                   <div data-pv-block="x9y1z2">
                     <TextHeading typography="heading-sm" className="group-hover:text-background-primary transition-colors">{dept.name}</TextHeading>
-                    <TextParagraph typography="small" className="mt-1">Manager: {dept.manager}</TextParagraph>
+                    <TextParagraph typography="small" className="">Manager: {dept.manager}</TextParagraph>
                   </div>
                   {/* pv-block-end:x9y1z2 */}
                 {/* pv-editable-zone-end:r3s4t5 */}
@@ -595,6 +595,7 @@ function DetailField({
 }
 
 function SkillsPage() {
+  const importDialogRef = useRef<DialogHandle>(null);
   return (
     <div className="flex flex-col">
       {/* pv-editable-zone-start:sk1a2b */}
@@ -620,7 +621,20 @@ function SkillsPage() {
           {/* pv-block-end:sk7g8h */}
           
           {/* pv-block-start:skcn3o */}
-          <Button data-pv-block="skcn3o" label="Add skills" leftIcon="mdi:plus" />
+          <PopoverTrigger data-pv-block="skcn3o" placement="bottom" align="right">
+            <Button label="Add skills" leftIcon="mdi:plus" />
+            <DropdownList width="xl" className="">
+              <DropdownItem prefixIcon="mdi:plus" label="Add new skill manually" secondaryText="Manually enter description and proficiency level" />
+              <DropdownItem prefixIcon="mdi:upload" label="Import skills from a file" secondaryText="Upload your company document and let AI read the skills" onClick={() => importDialogRef.current?.open()} />
+              <DropdownItem onClick={() => {}}>
+                <Badge className="w-4 justify-center" label="AI" color="primary" />
+                <div className="flex flex-col flex-1">
+                  <span className="text-foreground-default font-medium">Generate suggested skills in a sheet</span>
+                  <span className="text-xs text-foreground-tertiary">Don't have company skills yet? Generate a starting template file, refine it with your team, then import.</span>
+                </div>
+              </DropdownItem>
+            </DropdownList>
+          </PopoverTrigger>
           {/* pv-block-end:skcn3o */}
           
           {/* pv-editable-zone-end:sk5e6f */}
@@ -654,6 +668,13 @@ function SkillsPage() {
         {/* pv-block-end:skht8u */}
 
       {/* pv-editable-zone-end:sk1a2b */}
+
+      <DialogTrigger ref={importDialogRef}>
+        <span className="hidden" />
+        <DialogOverlay>
+          <DialogWindow size="md" />
+        </DialogOverlay>
+      </DialogTrigger>
     </div>
   );
 }
@@ -745,7 +766,7 @@ export default function App() {
                 <Avatar initials="JD" bgColor="info" size="sm" />
               </Button>
               
-              <DropdownList width="lg" className="mt-1">
+              <DropdownList width="lg" className="">
                 <DropdownItem>
                   <Avatar initials="JD" bgColor="info" size="sm" />
                   <div className="flex flex-col">
