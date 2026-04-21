@@ -235,6 +235,7 @@ export default function App() {
               <p className="text-foreground-tertiary text-sm">Create your first project to get started</p>
             </div>
             <button
+              data-testid="btn-new-project"
               onClick={() => setCreateOpen(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
             >
@@ -250,6 +251,7 @@ export default function App() {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
                 <button
+                  data-testid="btn-new-project"
                   onClick={() => setCreateOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >

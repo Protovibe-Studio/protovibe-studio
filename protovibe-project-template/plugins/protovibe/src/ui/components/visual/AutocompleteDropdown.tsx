@@ -36,6 +36,7 @@ interface AutocompleteDropdownProps {
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
   strictOptions?: boolean;
+  testId?: string;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -59,6 +60,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   prefix,
   suffix,
   strictOptions = false,
+  testId,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
@@ -273,7 +275,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   });
 
   return (
-    <div style={{ position: 'relative', ...containerStyle }}>
+    <div data-testid={testId} style={{ position: 'relative', ...containerStyle }}>
       <InspectorInput
         type="text"
         value={localValue}

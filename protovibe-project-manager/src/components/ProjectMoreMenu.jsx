@@ -11,12 +11,13 @@ import {
   FloatingPortal,
 } from '@floating-ui/react'
 
-function MenuItem({ icon, label, onClick, danger, disabled }) {
+function MenuItem({ icon, label, onClick, danger, disabled, testId }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       data-danger={danger}
+      data-testid={testId}
       className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground-secondary rounded-lg hover:bg-background-tertiary data-[danger=true]:text-foreground-destructive data-[danger=true]:hover:bg-background-destructive-subtle transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-left"
     >
       {icon}
@@ -54,6 +55,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
     <>
       <button
         ref={refs.setReference}
+        data-testid="btn-more-menu"
         {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
         className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors cursor-pointer"
         title="Actions"
@@ -76,6 +78,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
             {isRunning && port && (
               <MenuItem
                 label="Open Protovibe editor"
+                testId="menu-open-editor"
                 onClick={(e) => {
                   e.stopPropagation()
                   window.open(`http://localhost:${port}/protovibe.html`, '_blank')
@@ -92,6 +95,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
             {isRunning && (
               <MenuItem
                 label="Stop"
+                testId="menu-stop"
                 onClick={(e) => {
                   e.stopPropagation()
                   onStop && onStop()
@@ -170,6 +174,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
             <MenuItem
               label="Delete"
               danger
+              testId="menu-delete"
               disabled={isBusy || isRunning}
               onClick={handleDelete}
               icon={

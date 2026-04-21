@@ -67,6 +67,8 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
   return (
     <div
       onClick={onOpen}
+      data-testid="project-card"
+      data-project-name={project.name}
       className="bg-background-elevated border border-border-default rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs hover:shadow-md hover:border-border-focus/40 transition-all cursor-pointer group"
     >
       {/* Left: Header */}
@@ -103,6 +105,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
         {/* Three-dot menu button */}
         <button
           ref={refs.setReference}
+          data-testid="btn-card-menu"
           {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
           className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors cursor-pointer"
           title="Actions"

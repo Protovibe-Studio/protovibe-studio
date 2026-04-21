@@ -60,6 +60,7 @@ export default function DeleteProjectModal({ projectName, onConfirm, onClose }) 
           </button>
           <button
             type="button"
+            data-testid="btn-confirm-delete"
             onClick={handleConfirm}
             disabled={deleting}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-background-destructive-subtle hover:bg-background-destructive text-foreground-destructive transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"

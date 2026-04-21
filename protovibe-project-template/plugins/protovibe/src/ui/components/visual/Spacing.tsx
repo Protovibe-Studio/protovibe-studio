@@ -56,7 +56,8 @@ const SpacingAutocomplete: React.FC<{
   posStyle: React.CSSProperties;
   inheritedPlaceholder?: string;
   options?: typeof SCALES.spacing;
-}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options }) => {
+  testId?: string;
+}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options, testId }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.spacing;
   const [hovered, setHovered] = useState(false);
@@ -70,6 +71,7 @@ const SpacingAutocomplete: React.FC<{
       inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder
     }
     zIndex={999999}
+    testId={testId}
     containerStyle={{ ...posStyle, position: 'absolute', width: '36px', height: '16px' }}
     inputContainerStyle={{
       width: '100%',
@@ -155,11 +157,13 @@ const RadiusAutocomplete: React.FC<{
   icon: React.ReactNode;
   inheritedValue?: string;
   options?: typeof SCALES.radius;
-}> = ({ value, onChange, placeholder, icon, inheritedValue, options }) => {
+  testId?: string;
+}> = ({ value, onChange, placeholder, icon, inheritedValue, options, testId }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.radius;
   return (
   <AutocompleteDropdown
+    testId={testId}
     value={value === '-' ? '' : value}
     options={resolvedOptions}
     onCommit={onChange}
@@ -184,8 +188,10 @@ const BorderColorAutocomplete: React.FC<{
   icon: React.ReactNode;
   inheritedValue?: string;
   colorOptions: any[];
-}> = ({ value, onChange, icon, inheritedValue, colorOptions }) => (
+  testId?: string;
+}> = ({ value, onChange, icon, inheritedValue, colorOptions, testId }) => (
   <AutocompleteDropdown
+    testId={testId}
     value={value === '-' ? '' : value}
     options={colorOptions}
     onCommit={onChange}
@@ -635,6 +641,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Margin – top / bottom / left / right */}
         <SpacingAutocomplete
+          testId="essentials-mt"
           posStyle={centreH(pos.margin.top)}
           value={v.mt === '-' ? '' : v.mt}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 't', val, prevVal)}
@@ -642,6 +649,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.mt)}
         />
         <SpacingAutocomplete
+          testId="essentials-mb"
           posStyle={centreH(pos.margin.bottom)}
           value={v.mb === '-' ? '' : v.mb}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'b', val, prevVal)}
@@ -649,6 +657,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.mb)}
         />
         <SpacingAutocomplete
+          testId="essentials-ml"
           posStyle={centre(pos.margin.left)}
           value={v.ml === '-' ? '' : v.ml}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'l', val, prevVal)}
@@ -656,6 +665,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.ml)}
         />
         <SpacingAutocomplete
+          testId="essentials-mr"
           posStyle={centre(pos.margin.right)}
           value={v.mr === '-' ? '' : v.mr}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'r', val, prevVal)}
@@ -665,6 +675,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Border sides – top / bottom / left / right */}
         <SpacingAutocomplete
+          testId="essentials-border-t"
           posStyle={centreH(pos.border.top)}
           value={borderSideVal('borderT')}
           onChange={(val, prevVal) => handleBorderSideUpdate('t', val, prevVal)}
@@ -673,6 +684,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderT')}
         />
         <SpacingAutocomplete
+          testId="essentials-border-b"
           posStyle={centreH(pos.border.bottom)}
           value={borderSideVal('borderB')}
           onChange={(val, prevVal) => handleBorderSideUpdate('b', val, prevVal)}
@@ -681,6 +693,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderB')}
         />
         <SpacingAutocomplete
+          testId="essentials-border-l"
           posStyle={centre(pos.border.left)}
           value={borderSideVal('borderL')}
           onChange={(val, prevVal) => handleBorderSideUpdate('l', val, prevVal)}
@@ -689,6 +702,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={domBorderSideVal('borderL')}
         />
         <SpacingAutocomplete
+          testId="essentials-border-r"
           posStyle={centre(pos.border.right)}
           value={borderSideVal('borderR')}
           onChange={(val, prevVal) => handleBorderSideUpdate('r', val, prevVal)}
@@ -699,6 +713,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Padding – top / bottom / left / right */}
         <SpacingAutocomplete
+          testId="essentials-pt"
           posStyle={centreH(pos.padding.top)}
           value={v.pt === '-' ? '' : v.pt}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 't', val, prevVal)}
@@ -706,6 +721,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.pt)}
         />
         <SpacingAutocomplete
+          testId="essentials-pb"
           posStyle={centreH(pos.padding.bottom)}
           value={v.pb === '-' ? '' : v.pb}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'b', val, prevVal)}
@@ -713,6 +729,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.pb)}
         />
         <SpacingAutocomplete
+          testId="essentials-pl"
           posStyle={centre(pos.padding.left)}
           value={v.pl === '-' ? '' : v.pl}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'l', val, prevVal)}
@@ -720,6 +737,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           inheritedPlaceholder={cleanVal(domV?.pl)}
         />
         <SpacingAutocomplete
+          testId="essentials-pr"
           posStyle={centre(pos.padding.right)}
           value={v.pr === '-' ? '' : v.pr}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'r', val, prevVal)}
@@ -729,6 +747,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* Gap – content area centre */}
         <SpacingAutocomplete
+          testId="essentials-gap"
           posStyle={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
           value={v.gap === '-' ? '' : v.gap}
           onChange={(val, prevVal) => handleGapUpdate(val, prevVal)}
@@ -754,6 +773,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </button>
 
         <AutocompleteDropdown
+          testId="essentials-bg"
           value={bgColor}
           placeholder={cleanVal(domV?.bg) ? cleanVal(domV?.bg).split('/')[0] : '—'}
           options={prioritizeColors(themeColors as any[], 'background-')}
@@ -851,6 +871,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           icon={<BorderAllIcon />}
           inheritedValue={cleanVal(domV?.borderColor)}
           colorOptions={prioritizeColors(themeColors as any[], 'border-')}
+          testId="essentials-border-color"
         />
 
         {borderColorExpanded && (
@@ -957,6 +978,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           placeholder="—"
           icon={<CornerAllIcon />}
           inheritedValue={cleanVal(domV?.radius)}
+          testId="essentials-border-radius"
         />
 
         {/* Expanded – 4 individual corners */}

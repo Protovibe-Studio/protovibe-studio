@@ -10,7 +10,7 @@ interface VisualSectionProps {
 
 export const VisualSection: React.FC<VisualSectionProps> = ({ title, children, headerAction }) => {
   return (
-    <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
+    <div data-testid={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} style={{ borderTop: `1px solid ${theme.border_default}` }}>
       <div
         style={{
           width: '100%',

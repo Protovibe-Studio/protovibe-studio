@@ -62,6 +62,7 @@ export default function CreateProjectModal({ onClose, onCreate }) {
             <input
               ref={inputRef}
               id="project-name"
+              data-testid="input-project-name"
               type="text"
               value={name}
               onChange={(e) => {
@@ -91,6 +92,7 @@ export default function CreateProjectModal({ onClose, onCreate }) {
             </button>
             <button
               type="submit"
+              data-testid="btn-create-project"
               disabled={!name.trim()}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >

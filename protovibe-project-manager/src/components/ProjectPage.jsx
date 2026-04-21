@@ -203,6 +203,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 <div className="grid grid-cols-3 gap-3 auto-rows-[7rem]">
                   {port && (
                     <a
+                      data-testid="btn-open-editor"
                       href={`http://localhost:${port}/protovibe.html`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -216,6 +217,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   )}
 
                   <button
+                    data-testid="btn-stop"
                     onClick={() => callAction('stop')}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all text-foreground-destructive/50 hover:text-foreground-destructive cursor-pointer"
                   >
@@ -291,6 +293,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 </div>
                 <div className="flex gap-3">
                   <button
+                    data-testid="btn-run"
                     onClick={() => setSetupMode(true)}
                     className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
                   >

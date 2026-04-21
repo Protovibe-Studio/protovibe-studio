@@ -282,6 +282,7 @@ export const FloatingToolbar: React.FC = () => {
             onChange={e => { setAddSearch(e.target.value); setActiveIndex(0); }}
             onKeyDown={handleKeyDown}
             placeholder="Search elements…"
+            data-testid="input-add-search"
             style={{
               width: '100%', boxSizing: 'border-box',
               background: theme.bg_default,
@@ -298,6 +299,7 @@ export const FloatingToolbar: React.FC = () => {
           {filteredBuiltins.map((b, i) => (
             <button
               key={b.type}
+              data-testid={`item-builtin-${b.type}`}
               disabled={locked}
               onClick={() => handleAddBlock(b.type)}
               onMouseEnter={() => setActiveIndex(i)}
@@ -333,6 +335,7 @@ export const FloatingToolbar: React.FC = () => {
   const toolbar = (
     <div
       ref={toolbarRef}
+      data-testid="floating-toolbar"
       data-pv-ui="true"
       style={{
         position: 'fixed',
@@ -399,6 +402,7 @@ export const FloatingToolbar: React.FC = () => {
                       background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                     })}
                     title="Add child element"
+                    data-testid="btn-add-child"
                   >
                     <Plus size={13} strokeWidth={2.5} />
                     Add child
