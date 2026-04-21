@@ -159,7 +159,6 @@ test.describe('Protovibe Sketchpad E2E', () => {
     await canvas.getByTestId('dialog-confirm').click();
     await waitForUnlock(canvas);
     // Verify the sketchpad was actually deleted
-    await canvas.getByTestId('toolbar-sketchpads').click();
     await expect(canvas.getByTestId(deleteTestId)).not.toBeVisible();
     await canvas.locator('body').click({ position: { x: 600, y: 400 } });
   });

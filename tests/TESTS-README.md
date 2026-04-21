@@ -38,13 +38,13 @@ pnpm test:e2e:ui
 ### `sketchpad.spec.ts`
 
 **Test 1 — Frame lifecycle and sketchpad cleanup**
-Creates a new sketchpad, adds two frames, deletes them one by one via keyboard, then deletes the sketchpad itself through the panel UI. Verifies each step and leaves the filesystem clean.
+Creates a new sketchpad, adds two frames, deletes them one by one via their context menus, then deletes the sketchpad itself through the panel UI. Verifies each step and leaves the filesystem clean.
 
 **Test 2 — Component drag and undo stack**
 Adds a frame, drops a Button component onto it via the component palette, drags it 100px, then walks back through the undo stack (move → component add → frame add) asserting the DOM reverts at each step.
 
 ## Notes
 
-- The confirm dialog (`dialog-confirm`) is in the shell frame, not inside the canvas iframe. The tests account for this by querying it on `page` rather than the canvas `frameLocator`.
+- The confirm dialog (`dialog-confirm`) is rendered inside the canvas iframe via `createPortal`. The tests query it via the canvas `frameLocator`.
 - Undo relies on Cmd+Z (Mac) / Ctrl+Z (Windows/Linux). The modifier is detected automatically via `process.platform`.
 - Tests are not parallelised (`fullyParallel: false`) to avoid canvas state collisions between runs.
