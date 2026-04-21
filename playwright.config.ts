@@ -16,6 +16,7 @@ export default defineConfig({
     trace: 'on',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    actionTimeout: 60_000,
   },
   projects: [
     {

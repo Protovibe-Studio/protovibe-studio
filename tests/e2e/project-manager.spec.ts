@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 
 // Project Manager runs on localhost:5173
 // Protovibe template dev server (for created projects) runs on a dynamic port
@@ -22,13 +22,12 @@ async function waitForUnlock(page: Page) {
 // Apply a value to an Essentials autocomplete field and assert inline style is set
 async function setAndAssertStyle(
   editorPage: Page,
+  targetLocator: Locator,
   testId: string,
   value: string,
   cssProperty: string,
   expectedValue: string,
 ) {
-  const appFrame = editorPage.frameLocator('iframe[title="App Preview"]');
-
   // Click into the autocomplete
   const input = editorPage.getByTestId(testId).locator('input');
   await input.click();
@@ -36,18 +35,8 @@ async function setAndAssertStyle(
   await input.press('Enter');
   await waitForUnlock(editorPage);
 
-  // Assert style applied on the selected element in the iframe
-  const el = appFrame.locator('[data-pv-block]').first();
-  await expect(el).toHaveCSS(cssProperty, expectedValue);
-}
-
-// Unset a style by selecting "Unset" in the autocomplete
-async function unsetStyle(editorPage: Page, testId: string) {
-  const input = editorPage.getByTestId(testId).locator('input');
-  await input.click();
-  // Click the "Unset" option (noneLabel) at top of dropdown
-  await editorPage.getByTestId(testId).locator('..').getByText('Unset').first().click();
-  await waitForUnlock(editorPage);
+  // Assert style applied on the specific selected element in the iframe
+  await expect(targetLocator).toHaveCSS(cssProperty, expectedValue);
 }
 
 test.describe('Project Manager + Editor E2E', () => {
@@ -96,33 +85,21 @@ test.describe('Project Manager + Editor E2E', () => {
     await firstBlock.click();
     await expect(editorPage.getByTestId('floating-toolbar')).toBeVisible({ timeout: 10_000 });
 
-    // ── 5. Add an Empty Div Block as a child ─────────────────────────────────
-    await editorPage.getByTestId('btn-add-child').click();
+    // ── 5. Add an Empty Div Block AFTER the first block ──────────────────────
+    // The first block is a TextHeading, so we can't add INSIDE it. We add AFTER it.
+    await editorPage.getByTestId('floating-toolbar').getByText('Add after').click();
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-block').click();
     await waitForUnlock(editorPage);
 
-    // ── 6. Navigate to the new div (last child) ──────────────────────────────
-    // Press S to go into child
-    await editorPage.keyboard.press('s');
-    await editorPage.keyboard.press('s');  // keep pressing until we reach it or use D
-    // Actually use W to go to parent first, then S to go into correct child
-    // The new div is the last block; navigate via D sibling traversal
-    // Reset: press W to go back to parent
-    await editorPage.keyboard.press('w');
-    await editorPage.keyboard.press('s');  // first child
-    // Move to last sibling using D repeatedly (up to 20 times)
-    for (let i = 0; i < 20; i++) {
-      const toolbar = editorPage.getByTestId('floating-toolbar');
-      const prevText = await toolbar.textContent();
-      await editorPage.keyboard.press('d');
-      const newText = await toolbar.textContent();
-      // If text didn't change, we're at the last sibling
-      if (newText === prevText) break;
-    }
+    // ── 6. Select our newly focused Div ──────────────────────────────────────
+    // We target the exact block we just inserted (index 1), which sits right after the h1 (index 0)
+    const newDiv = appFrame.locator('[data-pv-block]').nth(1);
 
-    // ── 7. Add Empty Text Span inside the div ────────────────────────────────
-    await editorPage.getByTestId('btn-add-child').click();
+    // ── 7. Add Empty Text Span INSIDE the div ────────────────────────────────
+    // Because the new block is an empty div, it acts as a container.
+    // Now the "Add child" (or "Add inside") button will exist!
+    await editorPage.getByTestId('floating-toolbar').getByText(/Add (child|inside)/i).click();
     await expect(editorPage.getByTestId('input-add-search')).toBeVisible();
     await editorPage.getByTestId('item-builtin-text').click();
     await waitForUnlock(editorPage);
@@ -134,7 +111,7 @@ test.describe('Project Manager + Editor E2E', () => {
     await expect(editorPage.getByTestId('section-essentials')).toBeVisible({ timeout: 10_000 });
 
     // ── 9. Test padding-top ──────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-pt', 'pt-4', 'padding-top', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pt', 'pt-4', 'padding-top', '16px');
 
     // Unset padding-top via "Unset" option
     {
@@ -147,7 +124,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 10. Test padding-bottom ───────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-pb', 'pb-4', 'padding-bottom', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pb', 'pb-4', 'padding-bottom', '16px');
     {
       const input = editorPage.getByTestId('essentials-pb').locator('input');
       await input.click();
@@ -156,7 +133,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 11. Test padding-left ─────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-pl', 'pl-4', 'padding-left', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pl', 'pl-4', 'padding-left', '16px');
     {
       const input = editorPage.getByTestId('essentials-pl').locator('input');
       await input.click();
@@ -165,7 +142,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 12. Test padding-right ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-pr', 'pr-4', 'padding-right', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-pr', 'pr-4', 'padding-right', '16px');
     {
       const input = editorPage.getByTestId('essentials-pr').locator('input');
       await input.click();
@@ -174,7 +151,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 13. Test margin-top ───────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-mt', 'mt-4', 'margin-top', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-mt', 'mt-4', 'margin-top', '16px');
     {
       const input = editorPage.getByTestId('essentials-mt').locator('input');
       await input.click();
@@ -183,7 +160,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 14. Test margin-bottom ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-mb', 'mb-4', 'margin-bottom', '16px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-mb', 'mb-4', 'margin-bottom', '16px');
     {
       const input = editorPage.getByTestId('essentials-mb').locator('input');
       await input.click();
@@ -192,7 +169,7 @@ test.describe('Project Manager + Editor E2E', () => {
     }
 
     // ── 15. Test border-radius ────────────────────────────────────────────────
-    await setAndAssertStyle(editorPage, 'essentials-border-radius', 'rounded-lg', 'border-radius', '8px');
+    await setAndAssertStyle(editorPage, newDiv, 'essentials-border-radius', 'rounded-lg', 'border-radius', '8px');
     {
       const input = editorPage.getByTestId('essentials-border-radius').locator('input');
       await input.click();
@@ -225,8 +202,8 @@ test.describe('Project Manager + Editor E2E', () => {
 
     // Open the three-dot menu on the card
     await card.locator('[data-testid="btn-card-menu"]').click();
-    // Click Delete
-    await page.getByTestId('menu-delete').click();
+    // Click Delete using locator by text, because List view Menu items don't natively pass the testId prop
+    await page.locator('button', { hasText: 'Delete' }).click();
     // Confirm deletion — this can take a long time
     await page.getByTestId('btn-confirm-delete').click();
     // Wait for the card to disappear — delete may take a while
