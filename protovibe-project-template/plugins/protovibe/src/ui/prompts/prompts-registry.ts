@@ -111,6 +111,35 @@ What to generate: {{input}}
 Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules. Reuse components from \`@/components/ui/\` whenever possible. ${AGENTS_RULES_SUFFIX}`,
   },
   {
+    id: 'edit-selection',
+    title: 'Edit selection',
+    description: 'Modify the selected element — change content, tweak props, restructure, or adjust layout.',
+    icon: SquarePen,
+    inputLabel: 'Edit this element so that…',
+    inputPlaceholder: 'the card shows an avatar on the left and stacks the name and role vertically on the right',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Edit the selected element in place.
+
+Target: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+
+Current source:
+\`\`\`tsx
+{{code}}
+\`\`\`
+
+What to change: {{input}}
+
+Before writing any code, read AGENTS.md — especially the zone/block ID conventions, component reuse rules, and static Tailwind class strings.
+
+Guidelines:
+- Keep changes scoped to the selected element and its children. Do not restructure surrounding layout unless the user explicitly asks.
+- Reuse existing components from \`@/components/ui/\` wherever possible.
+- Preserve the existing pv-editable-zone / pv-block structure and IDs. Only add new IDs when inserting new blocks.
+- Do not change props or behaviour that are not mentioned in the user's request.
+
+${AGENTS_RULES_SUFFIX}`,
+  },
+  {
     id: 'sketchpad-to-app',
     title: 'Convert sketchpad to app',
     description: 'Turn a rough sketchpad element into a real, production-ready piece of the App.tsx layout.',

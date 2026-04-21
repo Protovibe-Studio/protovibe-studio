@@ -41,7 +41,7 @@ export function Tabs({
     <TabsContext.Provider value={{ activeValue, onValueChange: handleValueChange }}>
       <div
         data-value={activeValue}
-        className={cn('flex space-x-1 border-b border-border-default', className)}
+        className={cn("flex space-x-1 gap-4", className)}
         {...props}
         data-pv-component-id="Tabs"
       >

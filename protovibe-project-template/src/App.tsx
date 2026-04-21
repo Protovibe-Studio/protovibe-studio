@@ -39,6 +39,7 @@ import { PaginationControls } from '@/components/ui/pagination-controls'
 import { Stepper } from '@/components/ui/stepper'
 import { StepCircle } from '@/components/ui/step-circle'
 import { StepperConnector } from '@/components/ui/stepper-connector'
+import { EmptyState } from '@/components/ui/empty-state'
 
 // --- MOCK DATA ---
 
@@ -67,7 +68,7 @@ const mockDepartments = [
 
 function DashboardPage() {
   return (
-    <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default">
+    <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
         <TextHeading className="" data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
@@ -102,12 +103,6 @@ function DashboardPage() {
                 It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
-              {/* pv-block-start:v7vqzy */}
-              <Card className="border-t-2 border-r-4 border-b-4 border-l-4" data-pv-block="v7vqzy">
-                {/* pv-editable-zone-start:r9hadf */}
-                {/* pv-editable-zone-end:r9hadf */}
-              </Card>
-              {/* pv-block-end:v7vqzy */}
               {/* pv-block-start:uc6iij */}
               <Stepper className="pt-4" data-pv-block="uc6iij" fullWidth={false}>
                 {/* pv-editable-zone-start:73b88w */}
@@ -250,7 +245,7 @@ function EmployeesPage() {
   const [selectedEmp, setSelectedEmp] = useState<typeof mockEmployees[0] | null>(null);
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:e1z2x3 */}
 
         {/* pv-block-start:rsafhi */}
@@ -355,7 +350,7 @@ function EmployeesPage() {
 
 function PositionsPage() {
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:p1z2q3 */}
         
         {/* pv-block-start:h4p5w6 */}
@@ -419,7 +414,7 @@ function PositionsPage() {
 
 function DepartmentsPage() {
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:d1z2r3 */}
       
         {/* pv-block-start:h4d5v6 */}
@@ -601,9 +596,64 @@ function DetailField({
 
 function SkillsPage() {
   return (
-    <div className="flex flex-col gap-0">
-      <TextHeading typography="heading-md">Skills</TextHeading>
-      <TextParagraph typography="secondary">Manage and track employee skills across your organization.</TextParagraph>
+    <div className="flex flex-col">
+      {/* pv-editable-zone-start:sk1a2b */}
+
+        {/* pv-block-start:lbcm1t */}
+        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 pt-4 pb-0 px-6 border-b border-border-default">
+          {/* pv-editable-zone-start:uz9d2r */}
+          {/* pv-block-start:sk3c4d */}
+          <div data-pv-block="sk3c4d" className="flex items-center justify-between">
+          {/* pv-editable-zone-start:sk5e6f */}
+          
+          {/* pv-block-start:sk7g8h */}
+          <div data-pv-block="sk7g8h" className="flex flex-col gap-1">
+          {/* pv-editable-zone-start:sk9i0j */}
+          {/* pv-block-start:skaj1k */}
+          <TextHeading data-pv-block="skaj1k" typography="heading-md">Skills</TextHeading>
+          {/* pv-block-end:skaj1k */}
+          {/* pv-block-start:skbl2m */}
+          <TextParagraph data-pv-block="skbl2m" typography="secondary">Add skills and create areas of expertise consisting of skills.</TextParagraph>
+          {/* pv-block-end:skbl2m */}
+          {/* pv-editable-zone-end:sk9i0j */}
+          </div>
+          {/* pv-block-end:sk7g8h */}
+          
+          {/* pv-block-start:skcn3o */}
+          <Button data-pv-block="skcn3o" label="Add skills" leftIcon="mdi:plus" />
+          {/* pv-block-end:skcn3o */}
+          
+          {/* pv-editable-zone-end:sk5e6f */}
+          </div>
+          {/* pv-block-end:sk3c4d */}
+          {/* pv-block-start:skdp4q */}
+          <Tabs className="" data-pv-block="skdp4q" value="skills">
+          {/* pv-editable-zone-start:skeq5r */}
+          {/* pv-block-start:skfr6s */}
+          <TabItem data-pv-block="skfr6s" label="Skills" value="skills" />
+          {/* pv-block-end:skfr6s */}
+          {/* pv-block-start:skgs7t */}
+          <TabItem data-pv-block="skgs7t" label="Areas of expertise" value="areas" />
+          {/* pv-block-end:skgs7t */}
+          {/* pv-editable-zone-end:skeq5r */}
+          </Tabs>
+          {/* pv-block-end:skdp4q */}
+          {/* pv-editable-zone-end:uz9d2r */}
+        </div>
+        {/* pv-block-end:lbcm1t */}
+
+
+
+        {/* pv-block-start:skht8u */}
+        <EmptyState
+          data-pv-block="skht8u"
+          icon="mdi:text-box-outline"
+          heading="Create your first skill"
+          secondaryText="You haven't added any skills yet. Start by adding your first skill."
+        />
+        {/* pv-block-end:skht8u */}
+
+      {/* pv-editable-zone-end:sk1a2b */}
     </div>
   );
 }
@@ -639,7 +689,7 @@ export default function App() {
           <div>
             <TextParagraph typography="semibold-secondary" className="mb-1 text-xs px-2">Manage</TextParagraph>
             <VerticalTabs value={currentPath} onValueChange={navigate}>
-              <VerticalTabItem value="/home" label="Home" prefixIcon="mdi:home" />
+              <VerticalTabItem value="/dashboard" label="Home" prefixIcon="mdi:home" />
               <VerticalTabItem value="/calendar" label="Calendar" prefixIcon="mdi:calendar-outline" />
               <VerticalTabItem value="/employees" label="Employees" prefixIcon="mdi:account-group-outline" />
               <VerticalTabItem value="/attendance" label="Attendance" prefixIcon="mdi:clock-outline" />
@@ -680,18 +730,19 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
         <header className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
-          <div className="flex items-center gap-3">
-            <div className="relative mr-2">
-              <Button iconOnly variant="ghost" color="neutral" size="md" leftIcon="bell" />
+          <div className="flex items-center gap-px">
+            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:help-circle-outline" size="md" /></Button>
+            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:cog-outline" size="md" /></Button>
+            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:monitor-outline" size="md" /></Button>
+            <div className="relative">
+              <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
               <span className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>
             </div>
-            
+
             {/* User Avatar Dropdown */}
             <PopoverTrigger placement="bottom" align="right">
-              <Button variant="ghost" color="neutral" className="gap-2 border border-transparent py-1.5 data-[size=md]:px-1">
-                <Avatar initials="JD" bgColor="info" size="xs" />
-                <span className="text-sm font-medium hidden sm:block">Jane Doe</span>
-                <Icon iconSymbol="chevron-down" size="sm" className="text-foreground-tertiary hidden sm:block" />
+              <Button iconOnly variant="ghost" color="neutral">
+                <Avatar initials="JD" bgColor="info" size="sm" />
               </Button>
               
               <DropdownList width="lg" className="mt-1">
@@ -718,8 +769,8 @@ export default function App() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8 rounded-tl-lg bg-background-default border-t border-l border-border-default">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 overflow-y-auto rounded-tl-lg bg-background-default border-t border-l border-border-default">
+          <div className="mx-auto">
             {currentPath === '/dashboard' && <DashboardPage />}
             {currentPath === '/employees' && <EmployeesPage />}
             {currentPath === '/positions' && <PositionsPage />}
