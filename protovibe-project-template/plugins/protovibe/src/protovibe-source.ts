@@ -168,6 +168,32 @@ export function protovibeSourcePlugin(): Plugin {
         res.end(JSON.stringify({ absolutePath }));
       });
 
+      // Read a project file by relative path (restricted to within project root)
+      server.middlewares.use('/__read-project-file', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        try {
+          const url = new URL(req.url || '', 'http://localhost');
+          const file = url.searchParams.get('file') || '';
+          const root = process.cwd();
+          const absolute = path.resolve(root, file);
+          if (!absolute.startsWith(root)) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ ok: false, error: 'Access denied' }));
+            return;
+          }
+          if (!fs.existsSync(absolute)) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({ ok: false, error: 'File not found' }));
+            return;
+          }
+          const content = fs.readFileSync(absolute, 'utf-8');
+          res.end(JSON.stringify({ ok: true, content }));
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ ok: false, error: err?.message ?? 'Failed to read file' }));
+        }
+      });
+
       // Reveal a folder in the OS file manager (Finder / Explorer / xdg-open)
       server.middlewares.use('/__reveal-folder', (req, res) => {
         res.setHeader('Content-Type', 'application/json');

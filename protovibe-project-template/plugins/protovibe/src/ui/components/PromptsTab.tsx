@@ -258,6 +258,9 @@ export const PromptsTab: React.FC = () => {
   const [userInput, setUserInput] = useState('');
   const [step, setStep] = useState<Step>(1);
   const [toast, setToast] = useState<string | null>(null);
+  const [includeRules, setIncludeRules] = useState<boolean>(() => {
+    try { return localStorage.getItem('pv-prompts-include-rules') === 'true'; } catch { return false; }
+  });
 
   const selectedPrompt = useMemo(
     () => PROMPTS.find(p => p.id === selectedId) ?? null,
@@ -303,9 +306,23 @@ export const PromptsTab: React.FC = () => {
     setStep(1);
   };
 
+  const handleIncludeRulesChange = useCallback((checked: boolean) => {
+    setIncludeRules(checked);
+    try { localStorage.setItem('pv-prompts-include-rules', String(checked)); } catch {}
+  }, []);
+
   const handleCopy = useCallback(async () => {
     if (!selectedPrompt) return;
-    const text = renderPrompt(selectedPrompt, ctx, userInput);
+    let text = renderPrompt(selectedPrompt, ctx, userInput);
+    if (includeRules) {
+      try {
+        const res = await fetch('/__read-project-file?file=AGENTS.md');
+        const data = await res.json();
+        if (data.ok && data.content) {
+          text += `\n\nHere's the full file with Protovibe rules you need to follow:\n${data.content}`;
+        }
+      } catch {}
+    }
     try {
       await navigator.clipboard.writeText(text);
       showToast('Prompt copied to clipboard');
@@ -313,7 +330,7 @@ export const PromptsTab: React.FC = () => {
     } catch {
       showToast('Failed to copy prompt');
     }
-  }, [selectedPrompt, ctx, userInput, showToast]);
+  }, [selectedPrompt, ctx, userInput, includeRules, showToast]);
 
   const openInVsCode = useCallback(() => {
     if (!projectRoot) return;
@@ -481,6 +498,17 @@ export const PromptsTab: React.FC = () => {
               lineHeight: 1.4,
             }}
           />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
+            <input
+              type="checkbox"
+              checked={includeRules}
+              onChange={e => handleIncludeRulesChange(e.target.checked)}
+              style={{ accentColor: theme.text_default, cursor: 'pointer', width: 13, height: 13 }}
+            />
+            <span style={{ fontFamily: 'sans-serif', fontSize: 12, color: theme.text_secondary }}>
+              Include full Protovibe rules
+            </span>
+          </label>
           {selectedPrompt.requiresSelection !== false && !ctx.file ? (
             <div
               style={{
