@@ -77,6 +77,22 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
 
 const INITIAL_TRANSFORM: CanvasTransform = { zoom: 0.7, panX: 200, panY: 100 };
 
+function centeredTransformForFrames(frames: SketchpadFrame[], viewportWidth: number, viewportHeight: number): CanvasTransform {
+  if (frames.length === 0) return INITIAL_TRANSFORM;
+  const zoom = 0.7;
+  const minX = Math.min(...frames.map((f) => f.canvasX));
+  const minY = Math.min(...frames.map((f) => f.canvasY));
+  const maxX = Math.max(...frames.map((f) => f.canvasX + f.width));
+  const maxY = Math.max(...frames.map((f) => f.canvasY + f.height));
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  return {
+    zoom,
+    panX: viewportWidth / 2 - centerX * zoom,
+    panY: viewportHeight / 2 - centerY * zoom,
+  };
+}
+
 type SketchpadDropDetail = {
   sketchpadId: string;
   sourceFrameId: string;
@@ -183,10 +199,19 @@ export function SketchpadApp() {
         setSketchpads(reg.sketchpads);
         setActiveSketchpadId(reg.sketchpads[0].id);
         loadAllFrameModules(reg.sketchpads[0].id, reg.sketchpads[0].frames);
+        const frames = reg.sketchpads[0].frames;
+        if (frames.length > 0) {
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          setTransform(centeredTransformForFrames(frames, vw, vh));
+        }
       } else {
         const sp = await api.createSketchpad('Sketchpad 1');
-        setSketchpads([sp]);
+        const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
+        setSketchpads([{ ...sp, frames: [frame] }]);
         setActiveSketchpadId(sp.id);
+        loadAllFrameModules(sp.id, [frame]);
+        setTransform(centeredTransformForFrames([frame], window.innerWidth, window.innerHeight));
       }
     });
   }, [loadAllFrameModules]);
@@ -200,10 +225,14 @@ export function SketchpadApp() {
   const handleCreateSketchpad = useCallback(async (name: string) => {
     await runLockedMutation(async () => {
       const sp = await api.createSketchpad(name);
-      setSketchpads((prev) => [...prev, sp]);
+      const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
+      const spWithFrame = { ...sp, frames: [frame] };
+      setSketchpads((prev) => [...prev, spWithFrame]);
       setActiveSketchpadId(sp.id);
+      await loadFrameModule(sp.id, frame.id);
+      setTransform(centeredTransformForFrames([frame], window.innerWidth, window.innerHeight));
     });
-  }, [runLockedMutation]);
+  }, [runLockedMutation, loadFrameModule]);
 
   const handleDeleteSketchpad = useCallback(
     async (id: string) => {
