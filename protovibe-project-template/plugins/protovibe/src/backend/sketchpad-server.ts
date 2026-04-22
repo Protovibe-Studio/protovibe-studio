@@ -318,10 +318,7 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
     const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
-    const frameId = uniqueSlug(
-      'frame-' + slugify(name),
-      sp.frames.map((f) => f.id),
-    );
+    const frameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
 
     const frame: Frame = {
       id: frameId,
@@ -430,10 +427,7 @@ export const handleFrameDuplicate: Connect.NextHandleFunction = async (req, res)
     const existingNames = sp.frames.map((f) => f.name);
     const newName = generateCopyName(baseName, existingNames);
 
-    const newFrameId = uniqueSlug(
-      'frame-' + slugify(newName),
-      sp.frames.map((f) => f.id),
-    );
+    const newFrameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
 
     const sourceRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
     const newRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${newFrameId}.tsx`));

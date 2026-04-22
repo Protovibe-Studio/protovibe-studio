@@ -52,6 +52,22 @@
           "height": 900,
           "canvasX": 4295,
           "canvasY": 2523
+        },
+        {
+          "id": "frame-generate-file-loading-copy",
+          "name": "generate-file-loading Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9203,
+          "canvasY": 2573
+        },
+        {
+          "id": "frame-pkowi1",
+          "name": "import-file-form",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5934,
+          "canvasY": 2520
         }
       ]
     },
