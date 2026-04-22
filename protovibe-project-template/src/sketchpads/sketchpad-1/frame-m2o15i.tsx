@@ -100,16 +100,16 @@ export default function Frame1() {
           {/* pv-block-end:e5voje */}
 
           {/* pv-block-start:mbv43u */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5" data-pv-block="mbv43u">
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-between" data-pv-block="mbv43u">
             {/* pv-editable-zone-start:2mi6w3 */}
+              {/* pv-block-start:x4y4gr */}
+              <Button leftIcon="mdi:arrow-back" data-pv-block="x4y4gr" label="Back" variant="ghost" color="neutral" size="md"  />
+              {/* pv-block-end:x4y4gr */}
               {/* pv-block-start:gh1jlr */}
               <div data-pv-block="gh1jlr" className="flex gap-2 flex-row">
                 {/* pv-editable-zone-start:2x30wg */}
-                {/* pv-block-start:d6sgc6 */}
-                <Button data-pv-block="d6sgc6" label="Cancel" variant="ghost" color="neutral" size="md"  />
-                {/* pv-block-end:d6sgc6 */}
                 {/* pv-block-start:t8stw0 */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="t8stw0" label="Generate file" variant="solid" color="primary" size="md"  />
+                <Button leftIcon="mdi:check"  data-pv-block="t8stw0" label="Apply changes" variant="solid" color="primary" size="md"  />
                 {/* pv-block-end:t8stw0 */}
                 {/* pv-editable-zone-end:2x30wg */}
               </div>

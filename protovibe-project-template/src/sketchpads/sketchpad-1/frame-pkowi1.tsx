@@ -75,6 +75,36 @@ export default function Frame1() {
                 {/* pv-editable-zone-end:v4z32l */}
               </Stepper>
               {/* pv-block-end:inbixm */}
+              {/* pv-block-start:gi7tw3 */}
+              <div data-pv-block="gi7tw3" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:z2ub36 */}
+                {/* pv-block-start:6qscpx */}
+                <SuperLabel secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" data-pv-block="6qscpx" primaryText="" />
+                {/* pv-block-end:6qscpx */}
+                {/* pv-block-start:qyad0c */}
+                <Card className="gap-1 p-3 flex-row items-center" data-pv-block="qyad0c">
+                  {/* pv-editable-zone-start:pgd735 */}
+                    {/* pv-block-start:d6c1v4 */}
+                    <Icon data-pv-block="d6c1v4" iconSymbol="mdi:file-text" size="md" />
+                    {/* pv-block-end:d6c1v4 */}
+                    {/* pv-block-start:k5n3e5 */}
+                    <TextParagraph className="flex-1" data-pv-block="k5n3e5" typography="regular">
+                      <span></span><span></span>company skills final (use this version) v1 (recovered).docx
+                    </TextParagraph>
+                    {/* pv-block-end:k5n3e5 */}
+                    {/* pv-block-start:kqeyjl */}
+                    <Button leftIcon="mdi:close" iconOnly data-pv-block="kqeyjl" label="Button" variant="ghost" color="neutral" size="md" />
+                    {/* pv-block-end:kqeyjl */}
+                  {/* pv-editable-zone-end:pgd735 */}
+                </Card>
+                {/* pv-block-end:qyad0c */}
+                {/* pv-block-start:xl24qo */}
+                <Button leftIcon="mdi:upload" className="self-start" data-pv-block="xl24qo" label="Upload more files" variant="outline" color="neutral" size="sm" />
+                {/* pv-block-end:xl24qo */}
+                {/* pv-editable-zone-end:z2ub36 */}
+              </div>
+              {/* pv-block-end:gi7tw3 */}
+
               {/* pv-block-start:5t0e9k */}
               <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="5t0e9k" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:karvkw */}
@@ -136,7 +166,7 @@ export default function Frame1() {
                 <Button data-pv-block="o0h153" label="Cancel" variant="ghost" color="neutral" size="md"  />
                 {/* pv-block-end:o0h153 */}
                 {/* pv-block-start:ke0plm */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="ke0plm" label="Generate file" variant="solid" color="primary" size="md"  />
+                <Button rightIcon="mdi:arrow-right" data-pv-block="ke0plm" label="Continue" variant="solid" color="primary" size="md"  />
                 {/* pv-block-end:ke0plm */}
                 {/* pv-editable-zone-end:mllxfs */}
               </div>

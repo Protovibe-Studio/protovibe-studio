@@ -3909,10 +3909,7 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
     const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
     if (!sp) return sendError(res, 'Sketchpad not found', 404);
 
-    const frameId = uniqueSlug(
-      'frame-' + slugify(name),
-      sp.frames.map((f) => f.id),
-    );
+    const frameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
 
     const frame: Frame = {
       id: frameId,
@@ -4021,10 +4018,7 @@ export const handleFrameDuplicate: Connect.NextHandleFunction = async (req, res)
     const existingNames = sp.frames.map((f) => f.name);
     const newName = generateCopyName(baseName, existingNames);
 
-    const newFrameId = uniqueSlug(
-      'frame-' + slugify(newName),
-      sp.frames.map((f) => f.id),
-    );
+    const newFrameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
 
     const sourceRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
     const newRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${newFrameId}.tsx`));
@@ -5785,7 +5779,6 @@ interface InfiniteCanvasProps {
   children: React.ReactNode;
   transform: CanvasTransform;
   onTransformChange: (t: CanvasTransform) => void;
-  onCanvasDoubleClick: (canvasX: number, canvasY: number) => void;
   onCanvasContextMenu: (e: React.MouseEvent) => void;
 }
 
@@ -5793,7 +5786,6 @@ export function InfiniteCanvas({
   children,
   transform,
   onTransformChange,
-  onCanvasDoubleClick,
   onCanvasContextMenu,
 }: InfiniteCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -5954,25 +5946,12 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
     [isPanning, onTransformChange],
   );
 
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target !== containerRef.current && e.target !== containerRef.current?.firstElementChild) return;
-      const rect = containerRef.current!.getBoundingClientRect();
-      const t = currentTransform.current;
-      const canvasX = (e.clientX - rect.left - t.panX) / t.zoom;
-      const canvasY = (e.clientY - rect.top - t.panY) / t.zoom;
-      onCanvasDoubleClick(canvasX, canvasY);
-    },
-    [onCanvasDoubleClick],
-  );
-
   return (
     <div
       ref={containerRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onDoubleClick={handleDoubleClick}
       onContextMenu={onCanvasContextMenu}
       style={{
         width: '100%',
@@ -6743,7 +6722,6 @@ export function SketchpadApp() {
       <InfiniteCanvas
         transform={transform}
         onTransformChange={setTransform}
-        onCanvasDoubleClick={handleCreateFrame}
         onCanvasContextMenu={(e) => e.preventDefault()}
       >
         {activeSketchpad?.frames.map((frame) => (
@@ -7111,7 +7089,7 @@ export function SketchpadApp() {
           }}
         >
           <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.5 }}>⊞</div>
-          <div>Double-click anywhere to create a frame</div>
+          <div>Click the + button above to create a frame</div>
         </div>
       )}
 
@@ -9507,7 +9485,7 @@ import { isTypingInput } from './utils/elementType';
 const SELECTION_OUTLINE = '2px solid #18a0fb';
 const SELECTION_OFFSET = '-1px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '-1px';
+const PARENT_PREVIEW_OFFSET = '1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '-1px';
 
@@ -13529,6 +13507,15 @@ export const Modifiers: React.FC = () => {
     setActiveModifiers(prev => ({ ...prev, breakpoint: val === 'none' ? null : val }));
   };
 
+  const handleStructural = (val: string) => {
+    setActiveModifiers(prev => {
+      const structurals = ['first', 'last', 'odd', 'even'];
+      const filtered = (prev.pseudoClasses || []).filter(p => !structurals.includes(p));
+      if (val !== 'none' && val !== '') filtered.push(val);
+      return { ...prev, pseudoClasses: filtered };
+    });
+  };
+
   const UNSET_SENTINEL = '__unset__';
 
   const handleDataAttr = (key: string, val: string) => {
@@ -13542,7 +13529,14 @@ export const Modifiers: React.FC = () => {
 
   const clearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
+  };
+
+  const handlePseudo = (val: string) => {
+    setActiveModifiers(prev => ({
+      ...prev,
+      pseudoClasses: (prev.pseudoClasses || []).filter(p => p !== val)
+    }));
   };
 
   // ── Build chip list ──────────────────────────────────────────────────────────
@@ -13572,6 +13566,15 @@ export const Modifiers: React.FC = () => {
       label,
       colors: CHIP_VARIANT,
       onRemove: () => handleDataAttr(key, '__unset__'),
+    });
+  });
+
+  (activeModifiers.pseudoClasses || []).forEach(p => {
+    chips.push({
+      key: `pseudo-${p}`,
+      label: formatModifier(p),
+      colors: CHIP_INTERACTION,
+      onRemove: () => handlePseudo(p),
     });
   });
 
@@ -13650,12 +13653,15 @@ export const Modifiers: React.FC = () => {
               const expectedInteraction: string[] = [];
               let expectedBreakpoint: string | null = null;
               const expectedDataAttrs: Record<string, string> = {};
+              const expectedPseudo: string[] = [];
+
               group.modifiers.forEach(mod => {
                 if (bps.includes(mod)) expectedBreakpoint = mod;
                 else if (interactions.includes(mod)) expectedInteraction.push(mod);
                 else {
                   const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
                   if (match) expectedDataAttrs[match[1]] = match[2];
+                  else expectedPseudo.push(mod);
                 }
               });
               const interactionMatch =
@@ -13665,7 +13671,11 @@ export const Modifiers: React.FC = () => {
               const dataAttrsMatch =
                 Object.keys(expectedDataAttrs).length === Object.keys(activeModifiers.dataAttrs).length &&
                 Object.entries(expectedDataAttrs).every(([k, v]) => activeModifiers.dataAttrs[k] === v);
-              return interactionMatch && breakpointMatch && dataAttrsMatch;
+              const pseudoMatch =
+                expectedPseudo.length === (activeModifiers.pseudoClasses?.length || 0) &&
+                expectedPseudo.every(p => (activeModifiers.pseudoClasses || []).includes(p));
+
+              return interactionMatch && breakpointMatch && dataAttrsMatch && pseudoMatch;
             })();
 
             return (
@@ -13673,10 +13683,10 @@ export const Modifiers: React.FC = () => {
                 key={group.modifiers.join(':')}
                 onClick={() => {
                   if (isActive) {
-                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
                     return;
                   }
-                  const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string> };
+                  const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string>, pseudoClasses: [] as string[] };
 
                   group.modifiers.forEach(mod => {
                     if (bps.includes(mod)) nextModifiers.breakpoint = mod;
@@ -13685,6 +13695,8 @@ export const Modifiers: React.FC = () => {
                       const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
                       if (match) {
                         nextModifiers.dataAttrs[match[1]] = match[2];
+                      } else {
+                        nextModifiers.pseudoClasses.push(mod);
                       }
                     }
                   });
@@ -13795,6 +13807,23 @@ export const Modifiers: React.FC = () => {
                   { label: 'Md',  val: 'md'   },
                   { label: 'Lg',  val: 'lg'   },
                   { label: 'XL',  val: 'xl'   },
+                ]}
+              />
+            </div>
+
+            {/* Child Position */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Child Position</span>
+              <SegmentedControl
+                label=""
+                value={activeModifiers.pseudoClasses?.find(p => ['first', 'last', 'odd', 'even'].includes(p)) || 'none'}
+                onChange={handleStructural}
+                segments={[
+                  { label: 'All', val: 'none' },
+                  { label: 'First', val: 'first' },
+                  { label: 'Last', val: 'last' },
+                  { label: 'Odd', val: 'odd' },
+                  { label: 'Even', val: 'even' },
                 ]}
               />
             </div>
@@ -16546,7 +16575,7 @@ export const Tabs: React.FC = () => {
               }, {}) || {};
 
               setActiveSourceId(source.id);
-              setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+              setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
               if (isCompFolder && filePath) {
                 window.dispatchEvent(
                   new CustomEvent('pv-open-component-preview', { detail: { filePath, currentProps } })
@@ -18197,27 +18226,49 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
     });
   };
 
-  /** Replace only the bg-[url(...)] class, keeping size/position/repeat/aspect intact */
+  /** Replace the bg-[url(...)] class, and update aspect ratio if it was set */
   const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !activeData?.file) return;
 
     setUploading(true);
     try {
-      const url = await uploadImage(file);
+      const [url, dims] = await Promise.all([uploadImage(file), getImageDimensions(file)]);
       const currentContextPrefix = buildContextPrefix(activeModifiers);
-      const newClass = `${currentContextPrefix}bg-[url('${url}')]`;
-      const oldClass = v.bgImage_original || '';
+
+      const oldImageClass = v.bgImage_original || '';
+      const newImageClass = `${currentContextPrefix}bg-[url('${url}')]`;
+
+      const oldAspectClass = v.aspectRatio_original || '';
+      let newAspectClass = '';
+
+      if (oldAspectClass && dims.w && dims.h) {
+        const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+        const d = gcd(Math.round(dims.w), Math.round(dims.h));
+        newAspectClass = `${currentContextPrefix}aspect-[${Math.round(dims.w / d)}/${Math.round(dims.h / d)}]`;
+      }
 
       await runLockedMutation(async () => {
         await takeSnapshot(activeData.file, activeSourceId!);
-        await updateSource({
-          ...activeData,
-          id: activeSourceId!,
-          oldClass,
-          newClass,
-          action: oldClass ? 'edit' : 'add',
-        });
+
+        if (oldAspectClass) {
+          await updateSource({
+            ...activeData,
+            id: activeSourceId!,
+            oldClasses: [oldImageClass, oldAspectClass].filter(Boolean),
+            oldClass: '',
+            newClass: [newImageClass, newAspectClass].filter(Boolean).join(' '),
+            action: 'replace-multiple',
+          });
+        } else {
+          await updateSource({
+            ...activeData,
+            id: activeSourceId!,
+            oldClass: oldImageClass,
+            newClass: newImageClass,
+            action: oldImageClass ? 'edit' : 'add',
+          });
+        }
       });
     } catch (err) {
       console.error('[BackgroundImage] Replace failed:', err);
@@ -21575,7 +21626,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
   const [currentBaseTarget, setCurrentBaseTarget] = useState<HTMLElement | null>(null);
   const [selectedTargets, setSelectedTargets] = useState<HTMLElement[]>([]);
-  const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {} });
+  const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
   const [availableComponents, setAvailableComponents] = useState<any[]>([]);
   const [sourceDataList, setSourceDataList] = useState<SourceData[]>([]);
   const [sources, setSources] = useState<string[]>([]);
@@ -21791,7 +21842,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCurrentBaseTarget(primaryEl);
     setSelectedTargets(els);
     setHighlightedElement(primaryEl);
-    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
     if (matchedIds.size > 0) {
       setSources(Array.from(matchedIds));
     }
@@ -23477,7 +23528,7 @@ import { isTypingInput } from './utils/elementType';
 const SELECTION_OUTLINE = '2px solid #18a0fb';
 const SELECTION_OFFSET = '-1px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '-1px';
+const PARENT_PREVIEW_OFFSET = '1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
 const HOVER_OFFSET = '-1px';
 const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
@@ -25183,39 +25234,35 @@ export interface ActiveModifiers {
   interaction: string[];
   breakpoint: string | null;
   dataAttrs: Record<string, string>;
+  pseudoClasses?: string[];
 }
 
 export function filterClassesByContext(classesArray: string[], activeModifiers: ActiveModifiers) {
-  const expectedDataMods = Object.entries(activeModifiers.dataAttrs)
-    .filter(([k, v]) => v !== null && v !== 'none')
+  const expectedDataMods = Object.entries(activeModifiers.dataAttrs || {})
+    .filter(([k, v]) => v !== null && v !== 'none' && v !== '__unset__')
     .map(([k, v]) => `data-[${k}=${v}]`);
-    
+
   const expectedBp = activeModifiers.breakpoint && activeModifiers.breakpoint !== 'none' ? activeModifiers.breakpoint : null;
-  const expectedInteractions = activeModifiers.interaction || []; 
-  
+  const expectedInteractions = activeModifiers.interaction || [];
+  const expectedPseudo = activeModifiers.pseudoClasses || [];
+
+  const allExpected = [
+    ...(expectedBp ? [expectedBp] : []),
+    ...expectedDataMods,
+    ...expectedInteractions,
+    ...expectedPseudo
+  ].sort();
+
   return classesArray.filter(cls => {
     const { modifiers } = parseModifiers(cls);
-    
-    // 1. Check breakpoint
-    const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
-    const clsBp = modifiers.find(m => bps.includes(m));
-    if ((expectedBp && clsBp !== expectedBp) || (!expectedBp && clsBp)) return false;
-    
-    // 2. Check data attrs
-    const clsDataMods = modifiers.filter(m => m.startsWith('data-['));
-    if (expectedDataMods.length !== clsDataMods.length) return false;
-    const hasAllDataMods = expectedDataMods.every(m => clsDataMods.includes(m));
-    if (!hasAllDataMods) return false;
-    
-    // 3. Check interactions
-    const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
-    const clsInteractions = modifiers.filter(m => interactions.includes(m));
-    if (expectedInteractions.length !== clsInteractions.length) return false;
-    const hasAllInteractions = expectedInteractions.every(m => clsInteractions.includes(m));
-    if (!hasAllInteractions) return false;
-    
+    const sortedMods = [...modifiers].sort();
+
+    if (sortedMods.length !== allExpected.length) return false;
+    for (let i = 0; i < sortedMods.length; i++) {
+      if (sortedMods[i] !== allExpected[i]) return false;
+    }
     return true;
-  }).map(cls => parseModifiers(cls)); 
+  }).map(cls => parseModifiers(cls));
 }
 
 export function buildContextPrefix(activeModifiers: ActiveModifiers) {
@@ -25223,11 +25270,14 @@ export function buildContextPrefix(activeModifiers: ActiveModifiers) {
   if (activeModifiers.breakpoint && activeModifiers.breakpoint !== 'none') {
     p += `${activeModifiers.breakpoint}:`;
   }
-  for (const [k, v] of Object.entries(activeModifiers.dataAttrs)) {
+  for (const [k, v] of Object.entries(activeModifiers.dataAttrs || {})) {
     if (v && v !== 'none') p += `data-[${k}=${v}]:`;
   }
   if (activeModifiers.interaction && activeModifiers.interaction.length > 0) {
     activeModifiers.interaction.forEach(i => p += `${i}:`);
+  }
+  if (activeModifiers.pseudoClasses && activeModifiers.pseudoClasses.length > 0) {
+    activeModifiers.pseudoClasses.forEach(i => p += `${i}:`);
   }
   return p;
 }
@@ -33907,6 +33957,46 @@ createRoot(document.getElementById('root')!).render(
           "height": 900,
           "canvasX": 4295,
           "canvasY": 2523
+        },
+        {
+          "id": "frame-generate-file-loading-copy",
+          "name": "generate-file-loading Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 7549,
+          "canvasY": 2540
+        },
+        {
+          "id": "frame-pkowi1",
+          "name": "import-file-form",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5934,
+          "canvasY": 2520
+        },
+        {
+          "id": "frame-m2o15i",
+          "name": "import-review-skills",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9196,
+          "canvasY": 2526
+        },
+        {
+          "id": "frame-sxq9ea",
+          "name": "import-importing",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 10834,
+          "canvasY": 2524
+        },
+        {
+          "id": "frame-kgnokg",
+          "name": "generate-file-done Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 12465,
+          "canvasY": 2528
         }
       ]
     },
@@ -33916,12 +34006,12 @@ createRoot(document.getElementById('root')!).render(
       "createdAt": "2026-04-22T12:37:36.796Z",
       "frames": [
         {
-          "id": "frame-frame-1",
+          "id": "frame-wtstj8",
           "name": "Frame 1",
           "width": 1440,
           "height": 900,
-          "canvasX": 0,
-          "canvasY": 0
+          "canvasX": 95,
+          "canvasY": 282
         }
       ]
     }
@@ -34183,27 +34273,27 @@ export default function Frame1() {
           {/* pv-block-start:cozohu */}
           <div data-pv-block="cozohu" className="flex flex-col p-5 gap-7">
             {/* pv-editable-zone-start:1907kq */}
-              {/* pv-block-start:68199b */}
-              <Stepper data-pv-block="68199b" fullWidth={false}>
+              {/* pv-block-start:h1e3bn */}
+              <Stepper data-pv-block="h1e3bn" fullWidth={false}>
                 {/* pv-editable-zone-start:v4z32l */}
-                  {/* pv-block-start:wybt4u */}
-                  <StepCircle labelPosition="right" data-pv-block="wybt4u" state="current" number={1} label="Details" />
-                  {/* pv-block-end:wybt4u */}
-                  {/* pv-block-start:o9bj8n */}
-                  <StepperConnector data-pv-block="o9bj8n" state="upcoming" />
-                  {/* pv-block-end:o9bj8n */}
-                  {/* pv-block-start:0kh66m */}
-                  <StepCircle labelPosition="right" data-pv-block="0kh66m" state="upcoming" number={2} label="Review" />
-                  {/* pv-block-end:0kh66m */}
-                  {/* pv-block-start:1646vz */}
-                  <StepperConnector data-pv-block="1646vz" state="upcoming" />
-                  {/* pv-block-end:1646vz */}
-                  {/* pv-block-start:col9vn */}
-                  <StepCircle labelPosition="right" data-pv-block="col9vn" state="upcoming" number={3} label="Confirm" />
-                  {/* pv-block-end:col9vn */}
+                  {/* pv-block-start:jteecl */}
+                  <StepCircle labelPosition="right" data-pv-block="jteecl" state="current" number={1} label="Upload file" />
+                  {/* pv-block-end:jteecl */}
+                  {/* pv-block-start:s7bgd8 */}
+                  <StepperConnector data-pv-block="s7bgd8" state="upcoming" />
+                  {/* pv-block-end:s7bgd8 */}
+                  {/* pv-block-start:kar3j0 */}
+                  <StepCircle labelPosition="right" data-pv-block="kar3j0" state="upcoming" number={2} label="Preview skills" />
+                  {/* pv-block-end:kar3j0 */}
+                  {/* pv-block-start:179spq */}
+                  <StepperConnector data-pv-block="179spq" state="upcoming" />
+                  {/* pv-block-end:179spq */}
+                  {/* pv-block-start:dlc7vi */}
+                  <StepCircle labelPosition="right" data-pv-block="dlc7vi" state="upcoming" number={3} label="Apply changes" />
+                  {/* pv-block-end:dlc7vi */}
                 {/* pv-editable-zone-end:v4z32l */}
               </Stepper>
-              {/* pv-block-end:68199b */}
+              {/* pv-block-end:h1e3bn */}
 
               {/* pv-block-start:v2w9lh */}
               <div data-pv-block="v2w9lh" className="flex flex-col gap-2">
@@ -34235,13 +34325,30 @@ export default function Frame1() {
                       {/* pv-editable-zone-end:vhplpm */}
                     </div>
                     {/* pv-block-end:aa013h */}
-
                   {/* pv-editable-zone-end:fzw0z4 */}
                 </div>
                 {/* pv-block-end:bkeq1m */}
                 {/* pv-block-start:rnkizt */}
-                <Card className="" data-pv-block="rnkizt">
+                <Card className="items-center py-8" data-pv-block="rnkizt">
                   {/* pv-editable-zone-start:36ifif */}
+                    {/* pv-block-start:vebwo1 */}
+                    <Icon className="text-foreground-secondary" data-pv-block="vebwo1" iconSymbol="mdi:cloud-upload-outline" size="2xl" />
+                    {/* pv-block-end:vebwo1 */}
+
+                    {/* pv-block-start:edmcen */}
+                    <TextParagraph data-pv-block="edmcen" typography="bold-primary">
+                      <span></span><span></span><span></span>Upload a file with skills, levels and positions
+                    </TextParagraph>
+                    {/* pv-block-end:edmcen */}
+
+                    {/* pv-block-start:sgrblg */}
+                    <TextParagraph data-pv-block="sgrblg" typography="secondary">
+                      <span></span><span></span>Choose and upload a file or drag and drop it here.
+                    </TextParagraph>
+                    {/* pv-block-end:sgrblg */}
+                    {/* pv-block-start:qwiziu */}
+                    <Button leftIcon="mdi:upload" data-pv-block="qwiziu" label="Choose file from disk" variant="solid" color="primary" size="md" />
+                    {/* pv-block-end:qwiziu */}
                   {/* pv-editable-zone-end:36ifif */}
                 </Card>
                 {/* pv-block-end:rnkizt */}
@@ -34261,9 +34368,6 @@ export default function Frame1() {
                 {/* pv-block-start:pxxeyc */}
                 <Button data-pv-block="pxxeyc" label="Cancel" variant="ghost" color="neutral" size="md"  />
                 {/* pv-block-end:pxxeyc */}
-                {/* pv-block-start:id0ukj */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="id0ukj" label="Generate file" variant="solid" color="primary" size="md"  />
-                {/* pv-block-end:id0ukj */}
                 {/* pv-editable-zone-end:olib04 */}
               </div>
               {/* pv-block-end:kgo6ug */}
@@ -35032,7 +35136,650 @@ export default function Frame1() {
 
 
 // =============================================
-// FILE: src/sketchpads/test/frame-frame-1.tsx
+// FILE: src/sketchpads/sketchpad-1/frame-generate-file-loading-copy.tsx
+// =============================================
+
+// Auto-generated by Protovibe Sketchpad
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { Input } from '@/components/ui/input';
+import { StepCircle } from '@/components/ui/step-circle'
+import { TextParagraph } from '@/components/ui/text-paragraph'
+import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
+
+export default function Frame1() {
+  return (
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* pv-editable-zone-start:ltj58r */}
+      {/* pv-block-start:t4c5ob */}
+      <DialogWindow size="xl" data-pv-block="t4c5ob" data-pv-sketchpad-el="t4c5ob"  style={{ position: 'absolute', left: 300, top: 146 }}>
+        {/* pv-editable-zone-start:a760ay */}
+          {/* pv-block-start:qcnj1k */}
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="qcnj1k">
+            {/* pv-editable-zone-start:rmnciv */}
+              {/* pv-block-start:wflmtv */}
+              <div data-pv-block="wflmtv" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:ux6dfh */}
+              {/* pv-block-start:bw2j4o */}
+              <h2 data-pv-block="bw2j4o" className="text-xl font-semibold text-foreground-default">
+                <span></span><span></span><span></span>Import skills to positions from a file
+              </h2>
+              {/* pv-block-end:bw2j4o */}
+              {/* pv-block-start:t23xtp */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="t23xtp" typography="regular">
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
+              </TextParagraph>
+              {/* pv-block-end:t23xtp */}
+              {/* pv-editable-zone-end:ux6dfh */}
+              </div>
+              {/* pv-block-end:wflmtv */}
+            {/* pv-editable-zone-end:rmnciv */}
+          </div>
+          {/* pv-block-end:qcnj1k */}
+          {/* pv-block-start:1m09ay */}
+          <div data-pv-block="1m09ay" className="flex flex-col gap-4 items-center p-5">
+            {/* pv-editable-zone-start:3gvhjd */}
+              {/* pv-block-start:uoivqm */}
+              <div data-pv-block="uoivqm" className="flex flex-col gap-2 pt-4">
+                {/* pv-editable-zone-start:n7yumz */}
+                {/* pv-block-start:v647n2 */}
+                <PreloaderSpinner data-pv-block="v647n2" size="xl" />
+                {/* pv-block-end:v647n2 */}
+                {/* pv-block-start:k6zv6d */}
+                <div data-pv-block="k6zv6d" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:clgc05 */}
+                  {/* pv-block-start:nzx2lw */}
+                  <TextParagraph className="text-center" data-pv-block="nzx2lw" typography="bold-primary">
+                    <span></span><span></span><span></span>Analysing your skills...
+                  </TextParagraph>
+                  {/* pv-block-end:nzx2lw */}
+                  {/* pv-block-start:w63ldn */}
+                  <TextParagraph className="text-center" data-pv-block="w63ldn" typography="regular">
+                    <span></span><span></span><span></span>It will take about 30 seconds. In the meantime your can play the game below.
+                  </TextParagraph>
+                  {/* pv-block-end:w63ldn */}
+                  {/* pv-editable-zone-end:clgc05 */}
+                </div>
+                {/* pv-block-end:k6zv6d */}
+                {/* pv-editable-zone-end:n7yumz */}
+              </div>
+              {/* pv-block-end:uoivqm */}
+
+
+
+              {/* pv-block-start:3zvcri */}
+              <div className="flex flex-col min-h-32 w-full px-8 h-72" data-pv-block="3zvcri">
+                {/* pv-editable-zone-start:3dgjq3 */}
+                {/* pv-block-start:sk482h */}
+                <iframe
+                  data-pv-block="sk482h"
+                  src="https://thriving-bombolone-1cfc2b.netlify.app/"
+                  className="w-full h-full"
+                  frameBorder="0"
+                />
+                {/* pv-block-end:sk482h */}
+                {/* pv-editable-zone-end:3dgjq3 */}
+              </div>
+              {/* pv-block-end:3zvcri */}
+            {/* pv-editable-zone-end:3gvhjd */}
+          </div>
+          {/* pv-block-end:1m09ay */}
+
+          {/* pv-block-start:1pk9cx */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start" data-pv-block="1pk9cx">
+            {/* pv-editable-zone-start:rmnciv */}
+              {/* pv-block-start:3ez3j3 */}
+              <div data-pv-block="3ez3j3" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:oaa0c1 */}
+                {/* pv-block-start:5hq39d */}
+                <Button leftIcon="mdi:arrow-left" data-pv-block="5hq39d" label="Back" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:5hq39d */}
+                {/* pv-editable-zone-end:oaa0c1 */}
+              </div>
+              {/* pv-block-end:3ez3j3 */}
+            {/* pv-editable-zone-end:rmnciv */}
+          </div>
+          {/* pv-block-end:1pk9cx */}
+        {/* pv-editable-zone-end:a760ay */}
+      </DialogWindow>
+      {/* pv-block-end:t4c5ob */}
+      {/* pv-editable-zone-end:ltj58r */}
+    </div>
+  );
+}
+
+
+// =============================================
+// FILE: src/sketchpads/sketchpad-1/frame-kgnokg.tsx
+// =============================================
+
+// Auto-generated by Protovibe Sketchpad
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { Input } from '@/components/ui/input';
+import { StepCircle } from '@/components/ui/step-circle'
+import { TextParagraph } from '@/components/ui/text-paragraph'
+import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
+import { TextHeading } from '@/components/ui/text-heading'
+
+export default function Frame1() {
+  return (
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* pv-editable-zone-start:rwi9sz */}
+      {/* pv-block-start:iic05m */}
+      <DialogWindow size="lg" data-pv-block="iic05m" data-pv-sketchpad-el="iic05m"  style={{ position: 'absolute', left: 417, top: 148 }}>
+        {/* pv-editable-zone-start:lgeu7v */}
+          {/* pv-block-start:6sjda0 */}
+          <div data-pv-block="6sjda0" className="flex flex-col items-center py-16 px-5 gap-8">
+            {/* pv-editable-zone-start:q2vvul */}
+              {/* pv-block-start:dce4pv */}
+              <div className="flex flex-col flex-none bg-contain bg-center bg-no-repeat w-32 bg-[url('/src/images/from-protovibe/success-icon.svg')] aspect-[1/1]" data-pv-block="dce4pv">
+                {/* pv-editable-zone-start:8zn1i0 */}
+                {/* pv-editable-zone-end:8zn1i0 */}
+              </div>
+              {/* pv-block-end:dce4pv */}
+              {/* pv-block-start:nosa3g */}
+              <div data-pv-block="nosa3g" className="flex flex-col gap-0">
+                {/* pv-editable-zone-start:gm5zy0 */}
+                {/* pv-block-start:fcg1vl */}
+                <TextHeading className="text-center" data-pv-block="fcg1vl" typography="heading-lg">
+                  <span></span><span></span>Skills added!
+                </TextHeading>
+                {/* pv-block-end:fcg1vl */}
+                {/* pv-block-start:hiealy */}
+                <TextParagraph className="text-center" data-pv-block="hiealy" typography="secondary">
+                  <span></span><span></span><span></span>Succesfully imported 32 skills to 45 positions.
+                </TextParagraph>
+                {/* pv-block-end:hiealy */}
+                {/* pv-editable-zone-end:gm5zy0 */}
+              </div>
+              {/* pv-block-end:nosa3g */}
+              {/* pv-block-start:g26kql */}
+              <div data-pv-block="g26kql" className="flex flex-col gap-2 min-w-48">
+                {/* pv-editable-zone-start:66mq54 */}
+                {/* pv-block-start:y0z2d1 */}
+                <Button leftIcon="mdi:external-link" data-pv-block="y0z2d1" label="Give feedback" variant="outline" color="neutral" size="md" />
+                {/* pv-block-end:y0z2d1 */}
+                {/* pv-block-start:aviqc7 */}
+                <Button leftIcon="" data-pv-block="aviqc7" label="Finish and close" variant="solid" color="primary" size="md" />
+                {/* pv-block-end:aviqc7 */}
+                {/* pv-editable-zone-end:66mq54 */}
+              </div>
+              {/* pv-block-end:g26kql */}
+            {/* pv-editable-zone-end:q2vvul */}
+          </div>
+          {/* pv-block-end:6sjda0 */}
+        {/* pv-editable-zone-end:lgeu7v */}
+      </DialogWindow>
+      {/* pv-block-end:iic05m */}
+      {/* pv-editable-zone-end:rwi9sz */}
+    </div>
+  );
+}
+
+
+// =============================================
+// FILE: src/sketchpads/sketchpad-1/frame-m2o15i.tsx
+// =============================================
+
+// Auto-generated by Protovibe Sketchpad
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { Input } from '@/components/ui/input';
+import { StepCircle } from '@/components/ui/step-circle'
+import { TextParagraph } from '@/components/ui/text-paragraph'
+import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { Card } from '@/components/ui/card'
+import { Stepper } from '@/components/ui/stepper'
+import { StepperConnector } from '@/components/ui/stepper-connector'
+import { Container } from '@/components/ui/container'
+
+export default function Frame1() {
+  return (
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* pv-editable-zone-start:nc1nqa */}
+      {/* pv-block-start:exm6jg */}
+      <DialogWindow size="xl" data-pv-block="exm6jg" data-pv-sketchpad-el="exm6jg"  style={{ position: 'absolute', left: 300, top: 146 }}>
+        {/* pv-editable-zone-start:gu24cs */}
+          {/* pv-block-start:jlpm2v */}
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="jlpm2v">
+            {/* pv-editable-zone-start:t7nd3c */}
+              {/* pv-block-start:c39vrv */}
+              <div data-pv-block="c39vrv" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:7l5x7c */}
+              {/* pv-block-start:xedfkz */}
+              <h2 data-pv-block="xedfkz" className="text-xl font-semibold text-foreground-default">
+                <span></span><span></span><span></span>Import skills to positions from a file
+              </h2>
+              {/* pv-block-end:xedfkz */}
+              {/* pv-block-start:ahfwpg */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="ahfwpg" typography="regular">
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+              </TextParagraph>
+              {/* pv-block-end:ahfwpg */}
+              {/* pv-editable-zone-end:7l5x7c */}
+              </div>
+              {/* pv-block-end:c39vrv */}
+            {/* pv-editable-zone-end:t7nd3c */}
+          </div>
+          {/* pv-block-end:jlpm2v */}
+          {/* pv-block-start:e5voje */}
+          <div data-pv-block="e5voje" className="flex flex-col p-5 gap-7">
+            {/* pv-editable-zone-start:hb3knb */}
+              {/* pv-block-start:8vnpes */}
+              <Stepper data-pv-block="8vnpes" fullWidth={false}>
+                {/* pv-editable-zone-start:v4z32l */}
+                  {/* pv-block-start:m13np6 */}
+                  <StepCircle labelPosition="right" data-pv-block="m13np6" state="done" number={1} label="Upload file" />
+                  {/* pv-block-end:m13np6 */}
+                  {/* pv-block-start:v16pbl */}
+                  <StepperConnector data-pv-block="v16pbl" state="upcoming" />
+                  {/* pv-block-end:v16pbl */}
+                  {/* pv-block-start:27weus */}
+                  <StepCircle labelPosition="right" data-pv-block="27weus" state="current" number={2} label="Preview skills" />
+                  {/* pv-block-end:27weus */}
+                  {/* pv-block-start:0ujm7q */}
+                  <StepperConnector data-pv-block="0ujm7q" state="upcoming" />
+                  {/* pv-block-end:0ujm7q */}
+                  {/* pv-block-start:wgqg5q */}
+                  <StepCircle labelPosition="right" data-pv-block="wgqg5q" state="upcoming" number={3} label="Apply changes" />
+                  {/* pv-block-end:wgqg5q */}
+                {/* pv-editable-zone-end:v4z32l */}
+              </Stepper>
+              {/* pv-block-end:8vnpes */}
+              {/* pv-block-start:m7kral */}
+              <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="m7kral" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:dy3ds8 */}
+                {/* pv-block-start:lvjh8x */}
+                <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
+                {/* pv-block-end:lvjh8x */}
+
+                {/* pv-block-start:e6ic84 */}
+                <SuperLabel secondaryText="" heading="(We will do this later)" data-pv-block="e6ic84" primaryText="" />
+                {/* pv-block-end:e6ic84 */}
+                {/* pv-editable-zone-end:dy3ds8 */}
+              </div>
+              {/* pv-block-end:m7kral */}
+              {/* pv-block-start:vs3109 */}
+              <Container data-pv-block="vs3109">
+                {/* pv-editable-zone-start:gvn75e */}
+                {/* pv-editable-zone-end:gvn75e */}
+              </Container>
+              {/* pv-block-end:vs3109 */}
+            {/* pv-editable-zone-end:hb3knb */}
+          </div>
+          {/* pv-block-end:e5voje */}
+
+          {/* pv-block-start:mbv43u */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5" data-pv-block="mbv43u">
+            {/* pv-editable-zone-start:2mi6w3 */}
+              {/* pv-block-start:gh1jlr */}
+              <div data-pv-block="gh1jlr" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:2x30wg */}
+                {/* pv-block-start:d6sgc6 */}
+                <Button data-pv-block="d6sgc6" label="Cancel" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:d6sgc6 */}
+                {/* pv-block-start:t8stw0 */}
+                <Button rightIcon="mdi:arrow-right" data-pv-block="t8stw0" label="Generate file" variant="solid" color="primary" size="md"  />
+                {/* pv-block-end:t8stw0 */}
+                {/* pv-editable-zone-end:2x30wg */}
+              </div>
+              {/* pv-block-end:gh1jlr */}
+            {/* pv-editable-zone-end:2mi6w3 */}
+          </div>
+          {/* pv-block-end:mbv43u */}
+        {/* pv-editable-zone-end:gu24cs */}
+      </DialogWindow>
+      {/* pv-block-end:exm6jg */}
+      {/* pv-editable-zone-end:nc1nqa */}
+    </div>
+  );
+}
+
+
+// =============================================
+// FILE: src/sketchpads/sketchpad-1/frame-pkowi1.tsx
+// =============================================
+
+// Auto-generated by Protovibe Sketchpad
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { Input } from '@/components/ui/input';
+import { StepCircle } from '@/components/ui/step-circle'
+import { TextParagraph } from '@/components/ui/text-paragraph'
+import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { Card } from '@/components/ui/card'
+import { Stepper } from '@/components/ui/stepper'
+import { StepperConnector } from '@/components/ui/stepper-connector'
+
+export default function Frame1() {
+  return (
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* pv-editable-zone-start:gl1yla */}
+      {/* pv-block-start:cs131a */}
+      <DialogWindow size="xl" data-pv-block="cs131a" data-pv-sketchpad-el="cs131a"  style={{ position: 'absolute', left: 300, top: 146 }}>
+        {/* pv-editable-zone-start:mi0z44 */}
+          {/* pv-block-start:657op2 */}
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="657op2">
+            {/* pv-editable-zone-start:t7nd3c */}
+              {/* pv-block-start:1qh7o4 */}
+              <div data-pv-block="1qh7o4" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:7l5x7c */}
+              {/* pv-block-start:q0aexa */}
+              <h2 data-pv-block="q0aexa" className="text-xl font-semibold text-foreground-default">
+                <span></span><span></span><span></span>Import skills to positions from a file
+              </h2>
+              {/* pv-block-end:q0aexa */}
+              {/* pv-block-start:utdpi0 */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="utdpi0" typography="regular">
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+              </TextParagraph>
+              {/* pv-block-end:utdpi0 */}
+              {/* pv-editable-zone-end:7l5x7c */}
+              </div>
+              {/* pv-block-end:1qh7o4 */}
+            {/* pv-editable-zone-end:t7nd3c */}
+          </div>
+          {/* pv-block-end:657op2 */}
+          {/* pv-block-start:8vzh4t */}
+          <div data-pv-block="8vzh4t" className="flex flex-col p-5 gap-7">
+            {/* pv-editable-zone-start:zzgb3q */}
+              {/* pv-block-start:inbixm */}
+              <Stepper data-pv-block="inbixm" fullWidth={false}>
+                {/* pv-editable-zone-start:v4z32l */}
+                  {/* pv-block-start:j2037q */}
+                  <StepCircle labelPosition="right" data-pv-block="j2037q" state="current" number={1} label="Upload file" />
+                  {/* pv-block-end:j2037q */}
+                  {/* pv-block-start:prdr4d */}
+                  <StepperConnector data-pv-block="prdr4d" state="upcoming" />
+                  {/* pv-block-end:prdr4d */}
+                  {/* pv-block-start:b1mzqk */}
+                  <StepCircle labelPosition="right" data-pv-block="b1mzqk" state="upcoming" number={2} label="Preview skills" />
+                  {/* pv-block-end:b1mzqk */}
+                  {/* pv-block-start:9r4yey */}
+                  <StepperConnector data-pv-block="9r4yey" state="upcoming" />
+                  {/* pv-block-end:9r4yey */}
+                  {/* pv-block-start:tsf3yd */}
+                  <StepCircle labelPosition="right" data-pv-block="tsf3yd" state="upcoming" number={3} label="Apply changes" />
+                  {/* pv-block-end:tsf3yd */}
+                {/* pv-editable-zone-end:v4z32l */}
+              </Stepper>
+              {/* pv-block-end:inbixm */}
+              {/* pv-block-start:gi7tw3 */}
+              <div data-pv-block="gi7tw3" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:z2ub36 */}
+                {/* pv-block-start:6qscpx */}
+                <SuperLabel secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" data-pv-block="6qscpx" primaryText="" />
+                {/* pv-block-end:6qscpx */}
+                {/* pv-block-start:qyad0c */}
+                <Card className="gap-1 p-3 flex-row items-center" data-pv-block="qyad0c">
+                  {/* pv-editable-zone-start:pgd735 */}
+                    {/* pv-block-start:d6c1v4 */}
+                    <Icon data-pv-block="d6c1v4" iconSymbol="mdi:file-text" size="md" />
+                    {/* pv-block-end:d6c1v4 */}
+                    {/* pv-block-start:k5n3e5 */}
+                    <TextParagraph className="flex-1" data-pv-block="k5n3e5" typography="regular">
+                      <span></span><span></span>company skills final (use this version) v1 (recovered).docx
+                    </TextParagraph>
+                    {/* pv-block-end:k5n3e5 */}
+                    {/* pv-block-start:kqeyjl */}
+                    <Button leftIcon="mdi:close" iconOnly data-pv-block="kqeyjl" label="Button" variant="ghost" color="neutral" size="md" />
+                    {/* pv-block-end:kqeyjl */}
+                  {/* pv-editable-zone-end:pgd735 */}
+                </Card>
+                {/* pv-block-end:qyad0c */}
+                {/* pv-block-start:xl24qo */}
+                <Button leftIcon="mdi:upload" className="self-start" data-pv-block="xl24qo" label="Upload more files" variant="outline" color="neutral" size="sm" />
+                {/* pv-block-end:xl24qo */}
+                {/* pv-editable-zone-end:z2ub36 */}
+              </div>
+              {/* pv-block-end:gi7tw3 */}
+
+              {/* pv-block-start:5t0e9k */}
+              <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="5t0e9k" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:karvkw */}
+                {/* pv-block-start:98fw46 */}
+                <SuperLabel secondaryText="To ensure best quality, instruct AI what to expect in your file" heading="What's in your file?" data-pv-block="98fw46" primaryText="" />
+                {/* pv-block-end:98fw46 */}
+                {/* pv-block-start:jb66tm */}
+                <Card className="gap-1 p-3" data-pv-block="jb66tm">
+                  {/* pv-editable-zone-start:pgd735 */}
+                    {/* pv-block-start:p71vtz */}
+                    <Checkbox data-pv-block="p71vtz" primaryText="Skills have a unique name and description" />
+                    {/* pv-block-end:p71vtz */}
+
+                    {/* pv-block-start:vqsgx0 */}
+                    <Checkbox data-pv-block="vqsgx0" primaryText="Skills have proficiency levels (e.g. ‘Beginner’, ‘Intermediate’, ‘Expert’ or ‘P1’, ‘P2’, ‘P3’)" />
+                    {/* pv-block-end:vqsgx0 */}
+
+                    {/* pv-block-start:nfh43p */}
+                    <Checkbox data-pv-block="nfh43p" primaryText="Each proficiency level have a description what is expected" />
+                    {/* pv-block-end:nfh43p */}
+
+                    {/* pv-block-start:ttmtb2 */}
+                    <Checkbox data-pv-block="ttmtb2" primaryText="Positions are associated with a skill and its proficiency level" />
+                    {/* pv-block-end:ttmtb2 */}
+
+                    {/* pv-block-start:287n40 */}
+                    <Checkbox data-pv-block="287n40" primaryText="Skills are grouped into categories (such as ‘Soft skills” or ‘Technical skills’)" />
+                    {/* pv-block-end:287n40 */}
+                  {/* pv-editable-zone-end:pgd735 */}
+                </Card>
+                {/* pv-block-end:jb66tm */}
+                {/* pv-editable-zone-end:karvkw */}
+              </div>
+              {/* pv-block-end:5t0e9k */}
+
+              {/* pv-block-start:f6ckmi */}
+              <div data-pv-block="f6ckmi" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:karvkw */}
+                {/* pv-block-start:jvujl1 */}
+                <SuperLabel secondaryText="For example, what methodologies you plan to use, what industry you’re in." heading="Additonal instructions for AI" data-pv-block="jvujl1" primaryText="" />
+                {/* pv-block-end:jvujl1 */}
+                {/* pv-block-start:vesrkd */}
+                <Textarea data-pv-block="vesrkd" placeholder="Optional" />
+                {/* pv-block-end:vesrkd */}
+                {/* pv-editable-zone-end:karvkw */}
+              </div>
+              {/* pv-block-end:f6ckmi */}
+            {/* pv-editable-zone-end:zzgb3q */}
+          </div>
+          {/* pv-block-end:8vzh4t */}
+
+          {/* pv-block-start:bvrioh */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5" data-pv-block="bvrioh">
+            {/* pv-editable-zone-start:zbrnm6 */}
+              {/* pv-block-start:f42yvj */}
+              <div data-pv-block="f42yvj" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:mllxfs */}
+                {/* pv-block-start:o0h153 */}
+                <Button data-pv-block="o0h153" label="Cancel" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:o0h153 */}
+                {/* pv-block-start:ke0plm */}
+                <Button rightIcon="mdi:arrow-right" data-pv-block="ke0plm" label="Generate file" variant="solid" color="primary" size="md"  />
+                {/* pv-block-end:ke0plm */}
+                {/* pv-editable-zone-end:mllxfs */}
+              </div>
+              {/* pv-block-end:f42yvj */}
+            {/* pv-editable-zone-end:zbrnm6 */}
+          </div>
+          {/* pv-block-end:bvrioh */}
+        {/* pv-editable-zone-end:mi0z44 */}
+      </DialogWindow>
+      {/* pv-block-end:cs131a */}
+      {/* pv-editable-zone-end:gl1yla */}
+    </div>
+  );
+}
+
+
+// =============================================
+// FILE: src/sketchpads/sketchpad-1/frame-sxq9ea.tsx
+// =============================================
+
+// Auto-generated by Protovibe Sketchpad
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { DialogWindow } from '@/components/ui/dialog-window';
+import { Input } from '@/components/ui/input';
+import { StepCircle } from '@/components/ui/step-circle'
+import { TextParagraph } from '@/components/ui/text-paragraph'
+import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
+import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
+
+export default function Frame1() {
+  return (
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* pv-editable-zone-start:xverg2 */}
+      {/* pv-block-start:pamzt2 */}
+      <DialogWindow size="xl" data-pv-block="pamzt2" data-pv-sketchpad-el="pamzt2"  style={{ position: 'absolute', left: 300, top: 146 }}>
+        {/* pv-editable-zone-start:qwbcbc */}
+          {/* pv-block-start:t9kscq */}
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="t9kscq">
+            {/* pv-editable-zone-start:38zx36 */}
+              {/* pv-block-start:3nf5lh */}
+              <div data-pv-block="3nf5lh" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:2s35ui */}
+              {/* pv-block-start:8fber7 */}
+              <h2 data-pv-block="8fber7" className="text-xl font-semibold text-foreground-default">
+                <span></span><span></span><span></span>Import skills to positions from a file
+              </h2>
+              {/* pv-block-end:8fber7 */}
+              {/* pv-block-start:hhaij0 */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="hhaij0" typography="regular">
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
+              </TextParagraph>
+              {/* pv-block-end:hhaij0 */}
+              {/* pv-editable-zone-end:2s35ui */}
+              </div>
+              {/* pv-block-end:3nf5lh */}
+            {/* pv-editable-zone-end:38zx36 */}
+          </div>
+          {/* pv-block-end:t9kscq */}
+          {/* pv-block-start:12g8us */}
+          <div data-pv-block="12g8us" className="flex flex-col gap-4 items-center p-5">
+            {/* pv-editable-zone-start:1lwlgc */}
+              {/* pv-block-start:ckg5l1 */}
+              <div data-pv-block="ckg5l1" className="flex flex-col gap-2 pt-4 justify-center min-h-72">
+                {/* pv-editable-zone-start:o1rs2a */}
+                {/* pv-block-start:gerekd */}
+                <PreloaderSpinner data-pv-block="gerekd" size="xl" />
+                {/* pv-block-end:gerekd */}
+                {/* pv-block-start:zb0716 */}
+                <div data-pv-block="zb0716" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:xbptpy */}
+                  {/* pv-block-start:04acs2 */}
+                  <TextParagraph className="text-center" data-pv-block="04acs2" typography="bold-primary">
+                    <span></span><span></span><span></span>Creating skills and assigning positions...
+                  </TextParagraph>
+                  {/* pv-block-end:04acs2 */}
+                  {/* pv-block-start:icz2gj */}
+                  <TextParagraph className="text-center" data-pv-block="icz2gj" typography="regular">
+                    <span></span><span></span><span></span>Please wait...
+                  </TextParagraph>
+                  {/* pv-block-end:icz2gj */}
+                  {/* pv-editable-zone-end:xbptpy */}
+                </div>
+                {/* pv-block-end:zb0716 */}
+                {/* pv-editable-zone-end:o1rs2a */}
+              </div>
+              {/* pv-block-end:ckg5l1 */}
+            {/* pv-editable-zone-end:1lwlgc */}
+          </div>
+          {/* pv-block-end:12g8us */}
+
+          {/* pv-block-start:kyhs3s */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start" data-pv-block="kyhs3s">
+            {/* pv-editable-zone-start:38zx36 */}
+              {/* pv-block-start:7lh7h2 */}
+              <div data-pv-block="7lh7h2" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:xpefmw */}
+                {/* pv-block-start:qp7snt */}
+                <Button leftIcon="mdi:arrow-left" data-pv-block="qp7snt" label="Back" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:qp7snt */}
+                {/* pv-editable-zone-end:xpefmw */}
+              </div>
+              {/* pv-block-end:7lh7h2 */}
+            {/* pv-editable-zone-end:38zx36 */}
+          </div>
+          {/* pv-block-end:kyhs3s */}
+        {/* pv-editable-zone-end:qwbcbc */}
+      </DialogWindow>
+      {/* pv-block-end:pamzt2 */}
+      {/* pv-editable-zone-end:xverg2 */}
+    </div>
+  );
+}
+
+
+// =============================================
+// FILE: src/sketchpads/test/frame-wtstj8.tsx
 // =============================================
 
 // Auto-generated by Protovibe Sketchpad
@@ -35040,8 +35787,8 @@ export default function Frame1() {
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {/* pv-editable-zone-start:gextwf */}
-      {/* pv-editable-zone-end:gextwf */}
+      {/* pv-editable-zone-start:wial0k */}
+      {/* pv-editable-zone-end:wial0k */}
     </div>
   );
 }

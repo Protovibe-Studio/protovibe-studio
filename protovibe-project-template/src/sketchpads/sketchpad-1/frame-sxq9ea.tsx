@@ -80,22 +80,6 @@ export default function Frame1() {
             {/* pv-editable-zone-end:1lwlgc */}
           </div>
           {/* pv-block-end:12g8us */}
-
-          {/* pv-block-start:kyhs3s */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start" data-pv-block="kyhs3s">
-            {/* pv-editable-zone-start:38zx36 */}
-              {/* pv-block-start:7lh7h2 */}
-              <div data-pv-block="7lh7h2" className="flex gap-2 flex-row">
-                {/* pv-editable-zone-start:xpefmw */}
-                {/* pv-block-start:qp7snt */}
-                <Button leftIcon="mdi:arrow-left" data-pv-block="qp7snt" label="Back" variant="ghost" color="neutral" size="md"  />
-                {/* pv-block-end:qp7snt */}
-                {/* pv-editable-zone-end:xpefmw */}
-              </div>
-              {/* pv-block-end:7lh7h2 */}
-            {/* pv-editable-zone-end:38zx36 */}
-          </div>
-          {/* pv-block-end:kyhs3s */}
         {/* pv-editable-zone-end:qwbcbc */}
       </DialogWindow>
       {/* pv-block-end:pamzt2 */}

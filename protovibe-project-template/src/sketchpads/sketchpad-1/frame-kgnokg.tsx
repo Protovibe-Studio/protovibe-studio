@@ -29,7 +29,7 @@ export default function Frame1() {
       <DialogWindow size="lg" data-pv-block="iic05m" data-pv-sketchpad-el="iic05m"  style={{ position: 'absolute', left: 417, top: 148 }}>
         {/* pv-editable-zone-start:lgeu7v */}
           {/* pv-block-start:6sjda0 */}
-          <div data-pv-block="6sjda0" className="flex flex-col gap-4 items-center py-16 px-5">
+          <div data-pv-block="6sjda0" className="flex flex-col items-center py-16 px-5 gap-8">
             {/* pv-editable-zone-start:q2vvul */}
               {/* pv-block-start:dce4pv */}
               <div className="flex flex-col flex-none bg-contain bg-center bg-no-repeat w-32 bg-[url('/src/images/from-protovibe/success-icon.svg')] aspect-[1/1]" data-pv-block="dce4pv">

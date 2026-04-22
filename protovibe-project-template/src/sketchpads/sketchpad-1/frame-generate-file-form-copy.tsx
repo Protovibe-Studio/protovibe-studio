@@ -110,8 +110,26 @@ export default function Frame1() {
                 </div>
                 {/* pv-block-end:bkeq1m */}
                 {/* pv-block-start:rnkizt */}
-                <Card className="" data-pv-block="rnkizt">
+                <Card className="items-center py-8" data-pv-block="rnkizt">
                   {/* pv-editable-zone-start:36ifif */}
+                    {/* pv-block-start:vebwo1 */}
+                    <Icon className="text-foreground-secondary" data-pv-block="vebwo1" iconSymbol="mdi:cloud-upload-outline" size="2xl" />
+                    {/* pv-block-end:vebwo1 */}
+
+                    {/* pv-block-start:edmcen */}
+                    <TextParagraph data-pv-block="edmcen" typography="bold-primary">
+                      <span></span><span></span><span></span>Upload a file with skills, levels and positions
+                    </TextParagraph>
+                    {/* pv-block-end:edmcen */}
+
+                    {/* pv-block-start:sgrblg */}
+                    <TextParagraph data-pv-block="sgrblg" typography="secondary">
+                      <span></span><span></span>Choose and upload a file or drag and drop it here.
+                    </TextParagraph>
+                    {/* pv-block-end:sgrblg */}
+                    {/* pv-block-start:qwiziu */}
+                    <Button leftIcon="mdi:upload" data-pv-block="qwiziu" label="Choose file from disk" variant="solid" color="primary" size="md" />
+                    {/* pv-block-end:qwiziu */}
                   {/* pv-editable-zone-end:36ifif */}
                 </Card>
                 {/* pv-block-end:rnkizt */}
@@ -131,9 +149,6 @@ export default function Frame1() {
                 {/* pv-block-start:pxxeyc */}
                 <Button data-pv-block="pxxeyc" label="Cancel" variant="ghost" color="neutral" size="md"  />
                 {/* pv-block-end:pxxeyc */}
-                {/* pv-block-start:id0ukj */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="id0ukj" label="Generate file" variant="solid" color="primary" size="md"  />
-                {/* pv-block-end:id0ukj */}
                 {/* pv-editable-zone-end:olib04 */}
               </div>
               {/* pv-block-end:kgo6ug */}
