@@ -11,6 +11,7 @@ import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
+import { Frame, Square, Plus } from 'lucide-react';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -908,9 +909,9 @@ export function SketchpadApp() {
             }}
           >
             {[
-              { label: 'New frame', action: handleAddFrameCentered },
-              { label: 'New rectangle', action: handleAddRectangleCentered },
-              { label: 'Add component', action: () => setShowComponentPalette(true) },
+              { label: 'New frame', icon: Frame, action: handleAddFrameCentered },
+              { label: 'New rectangle', icon: Square, action: handleAddRectangleCentered },
+              { label: 'Add component', icon: Plus, action: () => setShowComponentPalette(true) },
             ].map((item) => (
               <div
                 key={item.label}
@@ -923,11 +924,21 @@ export function SketchpadApp() {
                   padding: '7px 12px',
                   cursor: 'pointer',
                   color: theme.text_secondary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = theme.bg_low;
+                  e.currentTarget.style.color = theme.text_default;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = theme.text_secondary;
+                }}
               >
-                {item.label}
+                <item.icon size={14} strokeWidth={2.5} />
+                <span>{item.label}</span>
               </div>
             ))}
           </div>
