@@ -42,7 +42,7 @@
  --background-warning: oklch(67% 0.18 80);
  --background-info: oklch(58% 0.18 220);
  --background-primary-soft: oklch(51.7% 0.1315 296.1);
- --background-accent: oklch(48% 0.27 323);
+ --background-accent: oklch(58.35% 0.22472 358.3);
  --background-accent-soft: oklch(55.75% 0.16195 352.9);
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
@@ -128,7 +128,7 @@
  --background-warning: oklch(75% 0.18 80);
  --background-info: oklch(65% 0.18 220);
  --background-primary-soft: oklch(51.7% 0.1315 296.1);
- --background-accent: oklch(55% 0.27 323);
+ --background-accent: oklch(58.35% 0.22472 358.3);
  --background-accent-soft: oklch(55.75% 0.16195 352.9);
 
  /* Tinted semantic backgrounds */
