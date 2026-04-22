@@ -9,7 +9,7 @@ import { DropdownItem } from '@/components/ui/dropdown-item';
 import { SelectDropdownSearchContext } from '@/components/ui/select-dropdown-context';
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
 
-export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SelectDropdownProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
   /** Currently selected value (controlled) */
   value?: string;
   /** Fires with the new value string whenever the user selects an item */
@@ -26,9 +26,13 @@ export interface SelectDropdownProps extends React.ButtonHTMLAttributes<HTMLButt
   width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
   /** Shows a destructive/error border on the trigger */
   error?: boolean;
+  disabled?: boolean;
+  /** Show an 'X' button to clear the selection */
+  showClearButton?: boolean;
   /** z-index for the floating panel */
   zIndex?: number;
   children?: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 export function SelectDropdown({
@@ -41,6 +45,7 @@ export function SelectDropdown({
   width = 'md',
   error = false,
   disabled = false,
+  showClearButton = true,
   zIndex = 9999,
   children,
   onClick,
@@ -55,7 +60,7 @@ export function SelectDropdown({
     setCurrentValue(value);
   }, [value]);
 
-  const anchorRef = useRef<HTMLButtonElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside
@@ -143,16 +148,24 @@ export function SelectDropdown({
 
   return (
     <>
-      <button
+      <div
         ref={anchorRef}
-        type="button"
-        disabled={disabled}
+        role="combobox"
+        tabIndex={disabled ? -1 : 0}
+        aria-expanded={isOpen}
         data-open={isOpen}
         data-error={error}
-        className={cn("flex h-10 items-center gap-2 border border-border-default bg-background-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-border-destructive disabled:cursor-not-allowed disabled:opacity-50 rounded flex-1 p-2", className)}
+        data-disabled={disabled}
+        className={cn("flex min-h-10 items-center gap-2 border border-border-default bg-background-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-2 cursor-pointer transition-colors", className)}
         onClick={(e) => {
           if (!disabled) setIsOpen((prev) => !prev);
           onClick?.(e);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (!disabled) setIsOpen((prev) => !prev);
+          }
         }}
         {...props}
         data-pv-component-id="SelectDropdown"
@@ -166,12 +179,26 @@ export function SelectDropdown({
         >
           {displayLabel || placeholder}
         </span>
-        <span
-          className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default"
-        >
+
+        {currentValue && showClearButton && !disabled && (
+          <button
+            type="button"
+            tabIndex={-1}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSelect('');
+            }}
+            className="shrink-0 flex items-center justify-center text-foreground-tertiary hover:text-foreground-default transition-colors p-0.5 rounded"
+          >
+            <Icon iconSymbol="close" size="sm" />
+          </button>
+        )}
+
+        <span className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default pointer-events-none">
           <Icon iconSymbol={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
         </span>
-      </button>
+      </div>
 
       {isOpen && portalTarget
         ? createPortal(
@@ -234,6 +261,7 @@ export const pvConfig = {
     width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
     error: { type: 'boolean' },
     disabled: { type: 'boolean' },
+    showClearButton: { type: 'boolean' },
   },
 };
 

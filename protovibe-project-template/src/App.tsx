@@ -41,6 +41,8 @@ import { StepCircle } from '@/components/ui/step-circle'
 import { StepperConnector } from '@/components/ui/stepper-connector'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Checkbox } from '@/components/ui/checkbox'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
 
 // --- MOCK DATA ---
 
@@ -125,6 +127,24 @@ function DashboardPage() {
                 {/* pv-editable-zone-end:73b88w */}
               </Stepper>
               {/* pv-block-end:uc6iij */}
+              {/* pv-block-start:11s8lr */}
+              <MultiSelectDropdown data-pv-block="11s8lr" placeholder="Select..." value="alice,bob">
+                {/* pv-editable-zone-start:fbypq9 */}
+                  {/* pv-block-start:inx7b3 */}
+                  <SelectDropdownSearch data-pv-block="inx7b3" placeholder="Search people..." />
+                  {/* pv-block-end:inx7b3 */}
+                  {/* pv-block-start:otpo07 */}
+                  <MultiSelectDropdownItem data-pv-block="otpo07" value="alice" label="Alice Johnson" badgeLabel="" />
+                  {/* pv-block-end:otpo07 */}
+                  {/* pv-block-start:zq5jys */}
+                  <MultiSelectDropdownItem data-pv-block="zq5jys" value="bob" label="Bob Smith" badgeLabel="Engineering" />
+                  {/* pv-block-end:zq5jys */}
+                  {/* pv-block-start:rk0zs9 */}
+                  <MultiSelectDropdownItem data-pv-block="rk0zs9" value="carol" label="Carol Davis" badgeLabel="Marketing" />
+                  {/* pv-block-end:rk0zs9 */}
+                {/* pv-editable-zone-end:fbypq9 */}
+              </MultiSelectDropdown>
+              {/* pv-block-end:11s8lr */}
               {/* pv-editable-zone-end:f7otuc */}
             </div>
             {/* pv-block-end:q958wn */}
