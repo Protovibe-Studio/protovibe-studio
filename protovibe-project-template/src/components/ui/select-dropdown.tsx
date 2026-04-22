@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import type { DropdownItemProps } from '@/components/ui/dropdown-item';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { SelectDropdownSearchContext } from '@/components/ui/select-dropdown-context';
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
+import { SelectDropdownMenu } from '@/components/ui/select-dropdown-menu';
 
 export interface SelectDropdownProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
   /** Currently selected value (controlled) */
@@ -22,13 +22,15 @@ export interface SelectDropdownProps extends Omit<React.HTMLAttributes<HTMLDivEl
   placement?: 'bottom' | 'top';
   /** Horizontal alignment of the panel relative to the trigger */
   align?: 'left' | 'center' | 'right';
-  /** Width of the dropdown list panel */
-  width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Minimum width of the dropdown list panel */
+  menuMinWidth?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
   /** Shows a destructive/error border on the trigger */
   error?: boolean;
   disabled?: boolean;
   /** Show an 'X' button to clear the selection */
   showClearButton?: boolean;
+  /** Controls the visual open state for canvas editing */
+  menuOpen?: 'Auto (Default)' | 'Open temporarily for visual editing';
   /** z-index for the floating panel */
   zIndex?: number;
   children?: React.ReactNode;
@@ -42,10 +44,11 @@ export function SelectDropdown({
   prefixIcon,
   placement = 'bottom',
   align = 'left',
-  width = 'md',
+  menuMinWidth = 'md',
   error = false,
   disabled = false,
   showClearButton = true,
+  menuOpen = 'Auto (Default)',
   zIndex = 9999,
   children,
   onClick,
@@ -56,6 +59,8 @@ export function SelectDropdown({
   const [currentValue, setCurrentValue] = useState<string | undefined>(value);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const isForcedOpen = menuOpen === 'Open temporarily for visual editing';
+
   useEffect(() => {
     setCurrentValue(value);
   }, [value]);
@@ -65,7 +70,7 @@ export function SelectDropdown({
 
   // Close on click outside
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isForcedOpen) return;
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as Element;
       if (anchorRef.current && anchorRef.current.contains(target)) return;
@@ -74,20 +79,20 @@ export function SelectDropdown({
     };
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
-  }, [isOpen]);
+  }, [isOpen, isForcedOpen]);
 
   // Close on Escape
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isForcedOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, isForcedOpen]);
 
   const { style: floatingStyle } = useFloatingPosition({
-    isOpen,
+    isOpen: isOpen && !isForcedOpen,
     anchorRef,
     dropdownRef: panelRef,
     preferredPlacement: placement,
@@ -96,8 +101,8 @@ export function SelectDropdown({
 
   // Reset search when dropdown closes
   useEffect(() => {
-    if (!isOpen) setSearchQuery('');
-  }, [isOpen]);
+    if (!isOpen && !isForcedOpen) setSearchQuery('');
+  }, [isOpen, isForcedOpen]);
 
   const handleSelect = (val: string) => {
     setCurrentValue(val);
@@ -152,8 +157,8 @@ export function SelectDropdown({
         ref={anchorRef}
         role="combobox"
         tabIndex={disabled ? -1 : 0}
-        aria-expanded={isOpen}
-        data-open={isOpen}
+        aria-expanded={isOpen || isForcedOpen}
+        data-open={isOpen || isForcedOpen}
         data-error={error}
         data-disabled={disabled}
         className={cn("flex min-h-10 items-center gap-2 border border-border-default bg-background-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-2 cursor-pointer transition-colors", className)}
@@ -196,20 +201,33 @@ export function SelectDropdown({
         )}
 
         <span className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default pointer-events-none">
-          <Icon iconSymbol={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+          <Icon iconSymbol={isOpen || isForcedOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
         </span>
       </div>
 
-      {isOpen && portalTarget
+      {isForcedOpen && (
+        <div className="mt-1 w-full relative z-50">
+          <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
+            <SelectDropdownMenu menuMinWidth={menuMinWidth}>
+              {enhancedChildren}
+            </SelectDropdownMenu>
+          </SelectDropdownSearchContext.Provider>
+        </div>
+      )}
+
+      {!isForcedOpen && isOpen && portalTarget
         ? createPortal(
             <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
-              <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
-                <DropdownList
-                  width={width}
-                  style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
+              <div ref={panelRef} style={{ ...floatingStyle, zIndex, pointerEvents: 'none' }}>
+                <SelectDropdownMenu
+                  menuMinWidth={menuMinWidth}
+                  style={{
+                    pointerEvents: 'auto',
+                    ...(floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : {})
+                  }}
                 >
                   {enhancedChildren}
-                </DropdownList>
+                </SelectDropdownMenu>
               </div>
             </SelectDropdownSearchContext.Provider>,
             portalTarget
@@ -246,7 +264,7 @@ export const pvConfig = {
   displayName: 'Select Dropdown',
   description: 'An input-style trigger that opens a selectable dropdown list. Manages selection state internally.',
   importPath: '@/components/ui/select-dropdown',
-  defaultProps: 'placeholder="Select an option"',
+  defaultProps: 'placeholder="Select an option" menuOpen="Auto (Default)"',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'DropdownItem', path: '@/components/ui/dropdown-item' },
@@ -258,10 +276,11 @@ export const pvConfig = {
     prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
-    width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
+    menuMinWidth: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
     error: { type: 'boolean' },
     disabled: { type: 'boolean' },
     showClearButton: { type: 'boolean' },
+    menuOpen: { type: 'select', options: ['Auto (Default)', 'Open temporarily for visual editing'] },
   },
 };
 

@@ -8,6 +8,7 @@ export interface MultiSelectDropdownItemProps extends React.HTMLAttributes<HTMLD
   value?: string;
   label?: string;
   disabled?: boolean;
+  selected?: boolean;
   /** Custom badge count/text to show on the right */
   badgeLabel?: string;
   /** Custom icon for the badge on the right */
@@ -19,6 +20,7 @@ export function MultiSelectDropdownItem({
   value,
   label,
   disabled,
+  selected,
   badgeLabel,
   badgeIcon,
   children,
@@ -29,7 +31,7 @@ export function MultiSelectDropdownItem({
   const ctx = useMultiSelect();
 
   const itemValue = value ?? label ?? '';
-  const isSelected = ctx ? ctx.activeValues.includes(itemValue) : false;
+  const isSelected = ctx ? ctx.activeValues.includes(itemValue) : !!selected;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (disabled) return;
@@ -43,7 +45,7 @@ export function MultiSelectDropdownItem({
       aria-checked={isSelected}
       data-disabled={disabled}
       className={cn(
-        'flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer select-none transition-colors border-b border-border-default last:border-b-0',
+        'flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer select-none transition-colors',
         'text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed',
         'data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none',
         className
@@ -92,6 +94,7 @@ export const pvConfig = {
     value: { type: 'string', exampleValue: 'opt1' },
     label: { type: 'string', exampleValue: 'Option' },
     disabled: { type: 'boolean' },
+    selected: { type: 'boolean' },
     badgeLabel: { type: 'string', exampleValue: '21' },
     badgeIcon: { type: 'iconSearch', exampleValue: 'user' },
   },

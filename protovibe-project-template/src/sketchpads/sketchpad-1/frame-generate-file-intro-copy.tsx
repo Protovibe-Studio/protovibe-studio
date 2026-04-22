@@ -15,6 +15,8 @@ import { RadioGroup } from '@/components/ui/radio-group'
 import { RadioItem } from '@/components/ui/radio-item'
 import { Textarea } from '@/components/ui/textarea'
 import { Icon } from '@/components/ui/icon'
+import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
+import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
 
 export default function Frame1() {
   return (
@@ -54,24 +56,24 @@ export default function Frame1() {
                 {/* pv-block-start:eel6bk */}
                 <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="eel6bk" primaryText="" />
                 {/* pv-block-end:eel6bk */}
-                {/* pv-block-start:qfa58d */}
-                <SelectDropdown data-pv-block="qfa58d" placeholder="Select an option">
-                  {/* pv-editable-zone-start:vtz9zr */}
-                    {/* pv-block-start:8j0i5a */}
-                    <SelectDropdownSearch data-pv-block="8j0i5a" placeholder="Search..." />
-                    {/* pv-block-end:8j0i5a */}
-                    {/* pv-block-start:a8jyad */}
-                    <DropdownItem data-pv-block="a8jyad" value="opt1" label="Option One" selected={false} />
-                    {/* pv-block-end:a8jyad */}
-                    {/* pv-block-start:4bjygm */}
-                    <DropdownItem data-pv-block="4bjygm" value="opt2" label="Option Two" selected={false} />
-                    {/* pv-block-end:4bjygm */}
-                    {/* pv-block-start:f68eaj */}
-                    <DropdownItem data-pv-block="f68eaj" value="opt3" label="Option Three" selected={false} />
-                    {/* pv-block-end:f68eaj */}
-                  {/* pv-editable-zone-end:vtz9zr */}
-                </SelectDropdown>
-                {/* pv-block-end:qfa58d */}
+                {/* pv-block-start:ldmppg */}
+                <MultiSelectDropdown menuOpen="Open temporarily for visual editing"  data-pv-block="ldmppg"  placeholder="Select..." value="alice,bob">
+                  {/* pv-editable-zone-start:qxnsyn */}
+                    {/* pv-block-start:e22vfj */}
+                    <SelectDropdownSearch data-pv-block="e22vfj" placeholder="Search people..." />
+                    {/* pv-block-end:e22vfj */}
+                    {/* pv-block-start:fxw1kv */}
+                    <MultiSelectDropdownItem data-pv-block="fxw1kv" value="alice" label="All" badgeLabel="Design" />
+                    {/* pv-block-end:fxw1kv */}
+                    {/* pv-block-start:ms4sjs */}
+                    <MultiSelectDropdownItem data-pv-block="ms4sjs" value="bob" label="Bob Smith" badgeLabel="Engineering" />
+                    {/* pv-block-end:ms4sjs */}
+                    {/* pv-block-start:m1d65b */}
+                    <MultiSelectDropdownItem data-pv-block="m1d65b" value="carol" label="Carol Davis" badgeLabel="Marketing" />
+                    {/* pv-block-end:m1d65b */}
+                  {/* pv-editable-zone-end:qxnsyn */}
+                </MultiSelectDropdown>
+                {/* pv-block-end:ldmppg */}
                 {/* pv-editable-zone-end:or3y0q */}
               </div>
               {/* pv-block-end:7g6gk1 */}
@@ -105,7 +107,7 @@ export default function Frame1() {
                 <SuperLabel secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" data-pv-block="tfzb3g" primaryText="" />
                 {/* pv-block-end:tfzb3g */}
                 {/* pv-block-start:pvjmg7 */}
-                <SelectDropdown data-pv-block="pvjmg7" placeholder="Select an option">
+                <SelectDropdown  data-pv-block="pvjmg7" placeholder="Select an option">
                   {/* pv-editable-zone-start:vtz9zr */}
                     {/* pv-block-start:03p0a3 */}
                     <SelectDropdownSearch data-pv-block="03p0a3" placeholder="Search..." />
@@ -228,7 +230,6 @@ export default function Frame1() {
                 {/* pv-editable-zone-end:or3y0q */}
               </div>
               {/* pv-block-end:y84j4i */}
-
             {/* pv-editable-zone-end:9fo3ep */}
           </div>
           {/* pv-block-end:pmsui8 */}

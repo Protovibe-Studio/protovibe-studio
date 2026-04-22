@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState, createContext, useContext } from 'r
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { DropdownList } from '@/components/ui/dropdown-list';
 import { useFloatingPosition } from '@/lib/useFloatingPosition';
 import { SelectDropdownSearchContext } from '@/components/ui/select-dropdown-context';
 import type { MultiSelectDropdownItemProps } from '@/components/ui/multi-select-dropdown-item';
 import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item';
 import { Chip } from '@/components/ui/chip';
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
+import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-menu';
 
 export interface MultiSelectContextValue {
   activeValues: string[];
@@ -30,10 +30,12 @@ export interface MultiSelectDropdownProps extends Omit<React.HTMLAttributes<HTML
   prefixIcon?: string;
   placement?: 'bottom' | 'top';
   align?: 'left' | 'center' | 'right';
-  width?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
+  menuMinWidth?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
   error?: boolean;
   disabled?: boolean;
   showClearButton?: boolean;
+  /** Controls the visual open state for canvas editing */
+  menuOpen?: 'Auto (Default)' | 'Open temporarily for visual editing';
   zIndex?: number;
   children?: React.ReactNode;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
@@ -46,10 +48,11 @@ export function MultiSelectDropdown({
   prefixIcon,
   placement = 'bottom',
   align = 'left',
-  width = 'md',
+  menuMinWidth = 'md',
   error = false,
   disabled = false,
   showClearButton = true,
+  menuOpen = 'Auto (Default)',
   zIndex = 9999,
   children,
   onClick,
@@ -59,6 +62,8 @@ export function MultiSelectDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [activeValues, setActiveValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const isForcedOpen = menuOpen === 'Open temporarily for visual editing';
 
   // Sync incoming comma-separated string to state array
   useEffect(() => {
@@ -70,7 +75,7 @@ export function MultiSelectDropdown({
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isForcedOpen) return;
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as Element;
       if (anchorRef.current && anchorRef.current.contains(target)) return;
@@ -79,19 +84,19 @@ export function MultiSelectDropdown({
     };
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
-  }, [isOpen]);
+  }, [isOpen, isForcedOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isForcedOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, isForcedOpen]);
 
   const { style: floatingStyle } = useFloatingPosition({
-    isOpen,
+    isOpen: isOpen && !isForcedOpen,
     anchorRef,
     dropdownRef: panelRef,
     preferredPlacement: placement,
@@ -99,8 +104,8 @@ export function MultiSelectDropdown({
   });
 
   useEffect(() => {
-    if (!isOpen) setSearchQuery('');
-  }, [isOpen]);
+    if (!isOpen && !isForcedOpen) setSearchQuery('');
+  }, [isOpen, isForcedOpen]);
 
   const toggleValue = (val: string) => {
     setActiveValues((prev) => {
@@ -151,8 +156,8 @@ export function MultiSelectDropdown({
         ref={anchorRef}
         role="combobox"
         tabIndex={disabled ? -1 : 0}
-        aria-expanded={isOpen}
-        data-open={isOpen}
+        aria-expanded={isOpen || isForcedOpen}
+        data-open={isOpen || isForcedOpen}
         data-error={error}
         data-disabled={disabled}
         className={cn(
@@ -211,21 +216,34 @@ export function MultiSelectDropdown({
           )}
 
           <span className="inline-flex items-center justify-center opacity-50 text-foreground-default pointer-events-none">
-            <Icon iconSymbol={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+            <Icon iconSymbol={isOpen || isForcedOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
           </span>
         </div>
       </div>
 
-      {isOpen && portalTarget
+      {isForcedOpen && (
+        <div className="mt-1 w-full relative z-50">
+          <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
+            <MultiSelectDropdownMenu menuMinWidth={menuMinWidth}>
+              {enhancedChildren}
+            </MultiSelectDropdownMenu>
+          </SelectDropdownSearchContext.Provider>
+        </div>
+      )}
+
+      {!isForcedOpen && isOpen && portalTarget
         ? createPortal(
             <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
-              <div ref={panelRef} style={{ ...floatingStyle, zIndex }}>
-                <DropdownList
-                  width={width}
-                  style={floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : undefined}
+              <div ref={panelRef} style={{ ...floatingStyle, zIndex, pointerEvents: 'none' }}>
+                <MultiSelectDropdownMenu
+                  menuMinWidth={menuMinWidth}
+                  style={{
+                    pointerEvents: 'auto',
+                    ...(floatingStyle.minWidth != null ? { minWidth: floatingStyle.minWidth as number } : {})
+                  }}
                 >
                   {enhancedChildren}
-                </DropdownList>
+                </MultiSelectDropdownMenu>
               </div>
             </SelectDropdownSearchContext.Provider>,
             portalTarget
@@ -262,7 +280,7 @@ export const pvConfig = {
   displayName: 'Multi-Select Dropdown',
   description: 'A select dropdown allowing multiple choices with visual chips.',
   importPath: '@/components/ui/multi-select-dropdown',
-  defaultProps: 'placeholder="Select..." value="alice,bob"',
+  defaultProps: 'placeholder="Select..." value="alice,bob" menuOpen="Auto (Default)"',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'MultiSelectDropdownItem', path: '@/components/ui/multi-select-dropdown-item' },
@@ -274,9 +292,10 @@ export const pvConfig = {
     prefixIcon: { type: 'iconSearch', exampleValue: 'users' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
-    width: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
+    menuMinWidth: { type: 'select', options: ['auto', 'sm', 'md', 'lg', 'xl'] },
     error: { type: 'boolean' },
     disabled: { type: 'boolean' },
     showClearButton: { type: 'boolean' },
+    menuOpen: { type: 'select', options: ['Auto (Default)', 'Open temporarily for visual editing'] },
   },
 };

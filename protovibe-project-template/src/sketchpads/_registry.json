@@ -20,6 +20,14 @@
           "height": 900,
           "canvasX": 4315,
           "canvasY": 1042
+        },
+        {
+          "id": "frame-frame-3",
+          "name": "Frame 3",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5919,
+          "canvasY": 1041
         }
       ]
     }

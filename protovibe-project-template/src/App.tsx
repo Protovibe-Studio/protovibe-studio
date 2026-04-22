@@ -43,6 +43,11 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Checkbox } from '@/components/ui/checkbox'
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
 import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { SelectDropdownMenu } from '@/components/ui/select-dropdown-menu'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { ToggleSwitch } from '@/components/ui/toggle-switch'
+import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-menu'
 
 // --- MOCK DATA ---
 
@@ -127,24 +132,6 @@ function DashboardPage() {
                 {/* pv-editable-zone-end:73b88w */}
               </Stepper>
               {/* pv-block-end:uc6iij */}
-              {/* pv-block-start:11s8lr */}
-              <MultiSelectDropdown data-pv-block="11s8lr" placeholder="Select..." value="alice,bob">
-                {/* pv-editable-zone-start:fbypq9 */}
-                  {/* pv-block-start:inx7b3 */}
-                  <SelectDropdownSearch data-pv-block="inx7b3" placeholder="Search people..." />
-                  {/* pv-block-end:inx7b3 */}
-                  {/* pv-block-start:otpo07 */}
-                  <MultiSelectDropdownItem data-pv-block="otpo07" value="alice" label="Alice Johnson" badgeLabel="" />
-                  {/* pv-block-end:otpo07 */}
-                  {/* pv-block-start:zq5jys */}
-                  <MultiSelectDropdownItem data-pv-block="zq5jys" value="bob" label="Bob Smith" badgeLabel="Engineering" />
-                  {/* pv-block-end:zq5jys */}
-                  {/* pv-block-start:rk0zs9 */}
-                  <MultiSelectDropdownItem data-pv-block="rk0zs9" value="carol" label="Carol Davis" badgeLabel="Marketing" />
-                  {/* pv-block-end:rk0zs9 */}
-                {/* pv-editable-zone-end:fbypq9 */}
-              </MultiSelectDropdown>
-              {/* pv-block-end:11s8lr */}
               {/* pv-editable-zone-end:f7otuc */}
             </div>
             {/* pv-block-end:q958wn */}
@@ -152,24 +139,27 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g0fqyb */}
 
-        {/* pv-block-start:ov5gmp */}
-        <SelectDropdown data-pv-block="ov5gmp" placeholder="Select an option">
-          {/* pv-editable-zone-start:4sb9vj */}
-            {/* pv-block-start:6rhtns */}
-            <SelectDropdownSearch data-pv-block="6rhtns" placeholder="Search..." />
-            {/* pv-block-end:6rhtns */}
-            {/* pv-block-start:ezzsb2 */}
-            <DropdownItem data-pv-block="ezzsb2" value="opt1" label="Option One" selected={false} />
-            {/* pv-block-end:ezzsb2 */}
-            {/* pv-block-start:cethbv */}
-            <DropdownItem data-pv-block="cethbv" value="opt2" label="Option Two" selected={false} />
-            {/* pv-block-end:cethbv */}
-            {/* pv-block-start:h8xhhk */}
-            <DropdownItem data-pv-block="h8xhhk" value="opt3" label="Option Three" selected={false} />
-            {/* pv-block-end:h8xhhk */}
-          {/* pv-editable-zone-end:4sb9vj */}
-        </SelectDropdown>
-        {/* pv-block-end:ov5gmp */}
+        {/* pv-block-start:jsb1vv */}
+        <Checkbox  data-pv-block="jsb1vv" primaryText="Accept terms" />
+        {/* pv-block-end:jsb1vv */}
+        {/* pv-block-start:q0b5zn */}
+        <ToggleSwitch data-pv-block="q0b5zn" primaryText="Enable feature" />
+        {/* pv-block-end:q0b5zn */}
+        {/* pv-block-start:llpliu */}
+        <RadioGroup data-pv-block="llpliu" orientation="vertical" value="opt1">
+          {/* pv-editable-zone-start:xljzdj */}
+            {/* pv-block-start:rydjad */}
+            <RadioItem data-pv-block="rydjad" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+            {/* pv-block-end:rydjad */}
+            {/* pv-block-start:2e8cb3 */}
+            <RadioItem data-pv-block="2e8cb3" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+            {/* pv-block-end:2e8cb3 */}
+            {/* pv-block-start:bosme3 */}
+            <RadioItem data-pv-block="bosme3" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+            {/* pv-block-end:bosme3 */}
+          {/* pv-editable-zone-end:xljzdj */}
+        </RadioGroup>
+        {/* pv-block-end:llpliu */}
 
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-7">

@@ -28,7 +28,7 @@ export default function Frame1() {
                 <div data-pv-block="ppsjsl" className="flex flex-col gap-4">
                 {/* pv-editable-zone-start:8be0rh */}
                 {/* pv-block-start:rf94ku */}
-                <h2 data-pv-block="rf94ku" className="text-xl font-semibold text-foreground-default">
+                <h2 data-pv-block="rf94ku" className="font-semibold text-foreground-default text-2xl">
                 <span></span><span></span>Generate suggested skills in a spreadsheet
                 </h2>
                 {/* pv-block-end:rf94ku */}
