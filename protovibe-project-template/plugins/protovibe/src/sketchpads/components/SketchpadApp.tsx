@@ -200,19 +200,12 @@ export function SketchpadApp() {
         setSketchpads(reg.sketchpads);
         setActiveSketchpadId(reg.sketchpads[0].id);
         loadAllFrameModules(reg.sketchpads[0].id, reg.sketchpads[0].frames);
-        const frames = reg.sketchpads[0].frames;
-        if (frames.length > 0) {
-          const vw = window.innerWidth;
-          const vh = window.innerHeight;
-          setTransform(centeredTransformForFrames(frames, vw, vh));
-        }
       } else {
         const sp = await api.createSketchpad('Sketchpad 1');
         const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
         setSketchpads([{ ...sp, frames: [frame] }]);
         setActiveSketchpadId(sp.id);
         loadAllFrameModules(sp.id, [frame]);
-        setTransform(centeredTransformForFrames([frame], window.innerWidth, window.innerHeight));
       }
     });
   }, [loadAllFrameModules]);
@@ -221,6 +214,45 @@ export function SketchpadApp() {
     () => sketchpads.find((s) => s.id === activeSketchpadId),
     [sketchpads, activeSketchpadId],
   );
+
+  // Handle initial autocentering exactly once, when the canvas becomes visible
+  const hasInitiallyCentered = useRef(false);
+
+  useEffect(() => {
+    if (hasInitiallyCentered.current || !activeSketchpad) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const checkAndCenter = (width: number, height: number) => {
+      if (width > 0 && height > 0 && !hasInitiallyCentered.current) {
+        hasInitiallyCentered.current = true;
+        if (activeSketchpad.frames && activeSketchpad.frames.length > 0) {
+          setTransform(centeredTransformForFrames(activeSketchpad.frames, width, height));
+        }
+        return true;
+      }
+      return false;
+    };
+
+    // Attempt to center immediately if the container is already visible
+    if (checkAndCenter(container.clientWidth, container.clientHeight)) {
+      return;
+    }
+
+    // Otherwise, wait for the iframe to become visible via ResizeObserver
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (checkAndCenter(entry.contentRect.width, entry.contentRect.height)) {
+          observer.disconnect();
+          break;
+        }
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [activeSketchpad]);
 
   // Sketchpad CRUD
   const handleCreateSketchpad = useCallback(async (name: string) => {
@@ -231,7 +263,10 @@ export function SketchpadApp() {
       setSketchpads((prev) => [...prev, spWithFrame]);
       setActiveSketchpadId(sp.id);
       await loadFrameModule(sp.id, frame.id);
-      setTransform(centeredTransformForFrames([frame], window.innerWidth, window.innerHeight));
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setTransform(centeredTransformForFrames([frame], rect.width, rect.height));
+      }
     });
   }, [runLockedMutation, loadFrameModule]);
 
