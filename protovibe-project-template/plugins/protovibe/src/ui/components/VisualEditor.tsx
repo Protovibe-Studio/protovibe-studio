@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { filterClassesByContext, extractVisualValues } from '../utils/tailwind';
+import { splitTailwindClasses } from '../../shared/utils';
 
 import { Spacing } from './visual/Spacing';
 import { Layout } from './visual/Layout';
@@ -31,7 +32,7 @@ export const VisualEditor: React.FC = () => {
   const filteredClasses = filterClassesByContext(flatClasses, activeModifiers);
   const v = extractVisualValues(filteredClasses, textSizes);
 
-  const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/).filter(Boolean) || [];
+  const domClasses = splitTailwindClasses(currentBaseTarget?.getAttribute('class'));
   const filteredDomClasses = filterClassesByContext(domClasses, activeModifiers);
   const domV = extractVisualValues(filteredDomClasses, textSizes);
 

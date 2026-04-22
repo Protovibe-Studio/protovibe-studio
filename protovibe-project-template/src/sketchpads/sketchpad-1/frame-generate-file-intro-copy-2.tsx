@@ -81,7 +81,7 @@ export default function Frame1() {
 
 
               {/* pv-block-start:kzpqe8 */}
-              <div className="flex flex-col min-h-32 w-full h-74 px-8" data-pv-block="kzpqe8">
+              <div className="flex flex-col min-h-32 w-full px-8 h-72" data-pv-block="kzpqe8">
                 {/* pv-editable-zone-start:s73jd2 */}
                 {/* pv-block-start:m7n2p9 */}
                 <iframe

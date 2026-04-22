@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import { Connect } from 'vite';
 import * as babel from '@babel/core';
 import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
-import { parseTailwindClasses } from '../shared/utils';
+import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
 function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
@@ -535,7 +535,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
         return offset + col;
       };
 
-      const splitClasses = (value: string) => value.split(/\s+/).map(v => v.trim()).filter(Boolean);
+      const splitClasses = (value: string) => splitTailwindClasses(value);
 
       const parseStaticClassValue = (rawValue: string): { classes: string; build: (next: string) => string } | null => {
         const trimmed = rawValue.trim();

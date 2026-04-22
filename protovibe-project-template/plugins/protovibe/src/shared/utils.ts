@@ -1,14 +1,38 @@
 // plugins/protovibe/utils.ts
+
+export function splitTailwindClasses(value: string | null | undefined): string[] {
+  if (!value) return [];
+  const tokens: string[] = [];
+  let current = '';
+  let depth = 0;
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+    if (char === '[') depth++;
+    else if (char === ']') depth = Math.max(0, depth - 1);
+
+    if (/\s/.test(char) && depth === 0) {
+      if (current) {
+        tokens.push(current);
+        current = '';
+      }
+    } else {
+      current += char;
+    }
+  }
+  if (current) tokens.push(current);
+  return tokens;
+}
+
 export const parseTailwindClasses = (rawStr: string | null) => {
   if (!rawStr) return null;
   const stringRegex = /(["'`])(.*?)\1/g;
   let match;
   const parsedList: any[] = [];
   const seenClasses = new Set();
-  
+
   while ((match = stringRegex.exec(rawStr)) !== null) {
     const stringContent = match[2];
-    const classes = stringContent.split(/\s+/).filter(Boolean);
+    const classes = splitTailwindClasses(stringContent);
     const index = match.index;
     const precedingText = rawStr.substring(Math.max(0, index - 20), index);
     const isWrappedInLogic = precedingText.includes('?') || precedingText.includes('&&');
