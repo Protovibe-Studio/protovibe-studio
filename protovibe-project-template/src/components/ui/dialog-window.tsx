@@ -16,7 +16,7 @@ export function DialogWindow({ size = 'md', showCloseButton = true, children, cl
     <div
       data-size={size}
       data-show-close-button={showCloseButton}
-      className={cn("shadow-2xl p-8 w-full max-h-[90vh] overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated relative rounded", className)}
+      className={cn("shadow-2xl w-full max-h-[90vh] overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated relative rounded", className)}
       {...props}
       data-pv-component-id="DialogWindow"
     >
@@ -35,18 +35,17 @@ export function PvDefaultContent() {
     <>
       {/* pv-editable-zone-start */}
         {/* pv-block-start */}
-        <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-        {/* pv-block-end */}
-        {/* pv-block-start */}
-        <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
-        {/* pv-block-end */}
-        <div>
+        <div data-pv-block="" className="p-8 flex flex-col gap-2">
           {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <p data-pv-block="" className="text-foreground-secondary mb-6">This is additional editable content.</p>
+            <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default">Dialog Title</h2>
+            {/* pv-block-end */}
+            {/* pv-block-start */}
+            <p data-pv-block="" className="text-foreground-secondary">This is the modal dialog content. Click the button below or press Escape to close.</p>
             {/* pv-block-end */}
           {/* pv-editable-zone-end */}
         </div>
+        {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>
   );
@@ -56,7 +55,7 @@ export const pvConfig = {
   name: 'DialogWindow',
   componentId: 'DialogWindow',
   displayName: 'Dialog Window',
-  description: 'Styled container for dialog content. Place inside DialogOverlay.',
+  description: 'Styled container for modal dialog content. Place inside DialogOverlay.',
   importPath: '@/components/ui/dialog-window',
   defaultProps: '',
   defaultContent: <PvDefaultContent />,

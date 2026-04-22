@@ -89,10 +89,16 @@ export function PvDefaultContent() {
           <DialogWindow size="md">
             {/* pv-editable-zone-start */}
             {/* pv-block-start */}
-            <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default mb-2">Dialog Title</h2>
-            {/* pv-block-end */}
-            {/* pv-block-start */}
-            <p data-pv-block="" className="text-foreground-secondary mb-6">This is the dialog content. Click the button below or press Escape to close.</p>
+            <div data-pv-block="" className="p-8 flex flex-col gap-2">
+              {/* pv-editable-zone-start */}
+              {/* pv-block-start */}
+              <h2 data-pv-block="" className="text-xl font-semibold text-foreground-default">Dialog Title</h2>
+              {/* pv-block-end */}
+              {/* pv-block-start */}
+              <p data-pv-block="" className="text-foreground-secondary">This is the modal dialog content. Click the button below or press Escape to close.</p>
+              {/* pv-block-end */}
+              {/* pv-editable-zone-end */}
+            </div>
             {/* pv-block-end */}
             {/* pv-editable-zone-end */}
           </DialogWindow>
