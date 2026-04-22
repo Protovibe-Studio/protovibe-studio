@@ -51,6 +51,8 @@ import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-m
 
 import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
 import { SuperLabel } from '@/components/ui/super-label'
+import { FileDropArea } from '@/components/ui/file-drop-area'
+
 
 // --- MOCK DATA ---
 
@@ -1535,36 +1537,17 @@ function SkillsPage() {
                       </div>
                       {/* pv-block-end:bkeq1m */}
                       {/* pv-block-start:rnkizt */}
-                      <Card data-pv-block="rnkizt" className="items-center py-8 relative">
-                        {/* pv-editable-zone-start:36ifif */}
-                        <input
-                          type="file"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              setUploadedFile(e.target.files[0]);
-                              setStep(3);
-                            }
-                          }}
-                        />
-                        {/* pv-block-start:vebwo1 */}
-                        <Icon data-pv-block="vebwo1" className="text-foreground-secondary" iconSymbol="mdi:cloud-upload-outline" size="2xl" />
-                        {/* pv-block-end:vebwo1 */}
-                        {/* pv-block-start:edmcen */}
-                        <TextParagraph data-pv-block="edmcen" typography="bold-primary">
-                          Upload a file with skills, levels and positions
-                        </TextParagraph>
-                        {/* pv-block-end:edmcen */}
-                        {/* pv-block-start:sgrblg */}
-                        <TextParagraph data-pv-block="sgrblg" typography="secondary">
-                          Choose and upload a file or drag and drop it here.
-                        </TextParagraph>
-                        {/* pv-block-end:sgrblg */}
-                        {/* pv-block-start:qwiziu */}
-                        <Button data-pv-block="qwiziu" leftIcon="mdi:upload" label="Choose file from disk" variant="solid" color="primary" size="md" />
-                        {/* pv-block-end:qwiziu */}
-                        {/* pv-editable-zone-end:36ifif */}
-                      </Card>
+                      <FileDropArea  
+                        data-pv-block="rnkizt"
+                        heading="Upload a file with skills, levels and positions"
+                        multiple
+                        onFilesChange={(files) => {
+                          if (files[0]) {
+                            setUploadedFile(files[0]);
+                            setStep(3);
+                          }
+                        }}
+                      />
                       {/* pv-block-end:rnkizt */}
                       {/* pv-editable-zone-end:hikm6d */}
                     </div>
@@ -1871,7 +1854,7 @@ function SkillsPage() {
                     </Stepper>
                     {/* pv-block-end:8vnpes */}
                     {/* pv-block-start:m7kral */}
-                    <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="m7kral" className="flex flex-col gap-2">
+                    <div  data-pv-block="m7kral" className="flex flex-col gap-2">
                       {/* pv-editable-zone-start:dy3ds8 */}
                       {/* pv-block-start:lvjh8x */}
                       <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
