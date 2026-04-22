@@ -6,23 +6,24 @@ import { Input } from '@/components/ui/input';
 import { StepCircle } from '@/components/ui/step-circle'
 import { TextParagraph } from '@/components/ui/text-paragraph'
 import { Image } from '@/components/ui/image'
+import { Avatar } from '@/components/ui/avatar'
 
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:rtzayt */}
       {/* pv-block-start:uwbdk8 */}
-      <Checkbox error data-pv-block="uwbdk8" data-pv-sketchpad-el="uwbdk8"  style={{ position: 'absolute', left: 207, top: 447 }} />
+      <Checkbox error data-pv-block="uwbdk8" data-pv-sketchpad-el="uwbdk8"  style={{ position: 'absolute', left: 164, top: 411 }} />
       {/* pv-block-end:uwbdk8 */}
       
       {/* pv-block-start:1obgh8 */}
-      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 334, top: 99 }}>
+      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 304, top: 142 }}>
         {/* pv-editable-zone-start:jcx4p4 */}
           {/* pv-block-start:k4mn1h */}
           <div data-pv-block="k4mn1h" className="flex flex-col gap-2 p-12">
             {/* pv-editable-zone-start:xcg13x */}
               {/* pv-block-start:2gcnka */}
-              <div data-pv-block="2gcnka" className="flex flex-row items-start gap-8">
+              <div data-pv-block="2gcnka" className="flex flex-row items-start gap-16">
                 {/* pv-editable-zone-start:wo74jp */}
                 {/* pv-block-start:6mrebx */}
                 <div data-pv-block="6mrebx" className="flex flex-col gap-8">
@@ -190,12 +191,15 @@ export default function Frame1() {
       {/* pv-block-end:1obgh8 */}
       
       {/* pv-block-start:m7ibt8 */}
-      <Input data-pv-block="m7ibt8" data-pv-sketchpad-el="m7ibt8" placeholder="Enter text..." style={{ position: 'absolute', left: 52, top: 269 }} />
+      <Input data-pv-block="m7ibt8" data-pv-sketchpad-el="m7ibt8" placeholder="Enter text..." style={{ position: 'absolute', left: 54, top: 278 }} />
       {/* pv-block-end:m7ibt8 */}
       
       {/* pv-block-start:i0xna3 */}
-      <Checkbox data-pv-block="i0xna3" data-pv-sketchpad-el="i0xna3" primaryText="Accept terms" style={{ position: 'absolute', left: 122, top: 534 }} />
+      <Checkbox data-pv-block="i0xna3" data-pv-sketchpad-el="i0xna3" primaryText="Accept terms" style={{ position: 'absolute', left: 123, top: 529 }} />
       {/* pv-block-end:i0xna3 */}
+        {/* pv-block-start:dcbyv2 */}
+        <Avatar data-pv-block="dcbyv2" data-pv-sketchpad-el="dcbyv2" style={{ position: 'absolute', left: 100, top: 100 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+        {/* pv-block-end:dcbyv2 */}
       {/* pv-editable-zone-end:rtzayt */}
     </div>
   );
