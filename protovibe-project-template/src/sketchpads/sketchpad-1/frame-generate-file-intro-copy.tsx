@@ -131,7 +131,7 @@ export default function Frame1() {
                 <SuperLabel secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" data-pv-block="tfzb3g" primaryText="" />
                 {/* pv-block-end:tfzb3g */}
                 {/* pv-block-start:pvjmg7 */}
-                <SelectDropdown showClearButton={false} value="opt1"   data-pv-block="pvjmg7" placeholder="Select an option">
+                <SelectDropdown className="text-foreground-primary" showClearButton={false} value="opt1"   data-pv-block="pvjmg7" placeholder="Select an option">
                   {/* pv-editable-zone-start:vtz9zr */}
                     {/* pv-block-start:03p0a3 */}
                     <SelectDropdownSearch data-pv-block="03p0a3" placeholder="Search..." />

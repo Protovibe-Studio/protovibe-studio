@@ -11,7 +11,7 @@ import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
-import { Frame, Square, Plus } from 'lucide-react';
+import { Frame, Square, Plus, Menu } from 'lucide-react';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -796,19 +796,21 @@ export function SketchpadApp() {
       >
         <ToolbarButton
           data-testid="toolbar-sketchpads"
-          label="☰"
           title="Sketchpads"
           isActive={showSketchpadPanel}
           onClick={() => setShowSketchpadPanel((p) => !p)}
-        />
+        >
+          <Menu size={16} />
+        </ToolbarButton>
         <ToolbarButton
           data-testid="toolbar-add"
           ref={addButtonRef}
-          label="+"
           title="Add"
           isActive={showAddMenu}
           onClick={() => setShowAddMenu((p) => !p)}
-        />
+        >
+          <Plus size={16} />
+        </ToolbarButton>
       </div>
 
       {/* Pending action: click-to-place overlay + info bar */}
@@ -909,9 +911,9 @@ export function SketchpadApp() {
             }}
           >
             {[
-              { label: 'New frame', icon: Frame, action: handleAddFrameCentered },
-              { label: 'New rectangle', icon: Square, action: handleAddRectangleCentered },
-              { label: 'Add component', icon: Plus, action: () => setShowComponentPalette(true) },
+              { label: 'Frame', icon: Frame, action: handleAddFrameCentered },
+              { label: 'Rectangle', icon: Square, action: handleAddRectangleCentered },
+              { label: 'Component', icon: Plus, action: () => setShowComponentPalette(true) },
             ].map((item) => (
               <div
                 key={item.label}
@@ -937,8 +939,8 @@ export function SketchpadApp() {
                   e.currentTarget.style.color = theme.text_secondary;
                 }}
               >
-                <item.icon size={14} strokeWidth={2.5} />
-                <span>{item.label}</span>
+                <item.icon size={16} strokeWidth={2} style={{ display: 'block' }} />
+                <span style={{ lineHeight: 1, paddingTop: '1px' }}>{item.label}</span>
               </div>
             ))}
           </div>
@@ -1003,6 +1005,8 @@ export function SketchpadApp() {
             border: 1px solid ${theme.border_default};
             background: ${theme.bg_strong};
             color: ${theme.text_secondary};
+            padding: 0;
+            line-height: 0;
           }
 
           .sketchpad-toolbar-button:hover {
@@ -1251,8 +1255,8 @@ export function SketchpadApp() {
 
 const ToolbarButton = React.forwardRef<
   HTMLButtonElement,
-  { label: string; title: string; isActive: boolean; onClick: () => void; 'data-testid'?: string }
->(function ToolbarButton({ label, title, isActive, onClick, 'data-testid': testId }, ref) {
+  { children: React.ReactNode; title: string; isActive: boolean; onClick: () => void; 'data-testid'?: string }
+>(function ToolbarButton({ children, title, isActive, onClick, 'data-testid': testId }, ref) {
   return (
     <button
       ref={ref}
@@ -1261,7 +1265,7 @@ const ToolbarButton = React.forwardRef<
       title={title}
       className={`sketchpad-toolbar-button ${isActive ? 'is-active' : ''}`}
     >
-      {label}
+      {children}
     </button>
   );
 });
