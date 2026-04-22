@@ -134,7 +134,7 @@ export function useCanvasInterceptor() {
       targetAny._pv_hover_original_outline = target.style.outline;
       targetAny._pv_hover_original_offset = target.style.outlineOffset;
       target.style.outline = '1px solid rgba(24, 160, 251, 0.6)';
-      target.style.outlineOffset = '2px';
+      target.style.outlineOffset = '-1px';
       hoveredElementRef.current = target;
     };
 

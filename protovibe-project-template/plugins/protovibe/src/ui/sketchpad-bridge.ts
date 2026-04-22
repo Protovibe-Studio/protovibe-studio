@@ -18,13 +18,13 @@ import { isTypingInput } from './utils/elementType';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SELECTION_OUTLINE = '2px solid #18a0fb';
-const SELECTION_OFFSET = '2px';
+const SELECTION_OFFSET = '-2px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '2px';
+const PARENT_PREVIEW_OFFSET = '-1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
-const HOVER_OFFSET = '2px';
+const HOVER_OFFSET = '-1px';
 const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
-const DROP_TARGET_OFFSET = '2px';
+const DROP_TARGET_OFFSET = '-2px';
 const DRAG_THRESHOLD = 3;
 const RESIZE_EDGE_PX = 8;
 
@@ -955,6 +955,8 @@ function handleKeyDown(e: KeyboardEvent) {
   if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
   if (e.key === 'Escape' && selectedEls.length > 0) {
+    e.preventDefault();
+    e.stopPropagation();
     clearSelection();
     window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
     return;
@@ -973,6 +975,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEls.length > 0) {
     e.preventDefault();
+    e.stopPropagation();
     selectedEls.forEach(el => {
       const frame = findFrameContainer(el);
       const frameId = frame?.getAttribute('data-sketchpad-frame');

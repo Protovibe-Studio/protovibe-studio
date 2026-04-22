@@ -17,11 +17,11 @@ import { isTypingInput } from './utils/elementType';
 })();
 
 const SELECTION_OUTLINE = '1.5px solid #18a0fb';
-const SELECTION_OFFSET = '1px';
+const SELECTION_OFFSET = '-1.5px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '2px';
+const PARENT_PREVIEW_OFFSET = '-1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
-const HOVER_OFFSET = '1px';
+const HOVER_OFFSET = '-1px';
 
 let isLocked = false;
 let isInspectorActive = false;

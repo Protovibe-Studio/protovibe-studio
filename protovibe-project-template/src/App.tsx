@@ -40,6 +40,7 @@ import { Stepper } from '@/components/ui/stepper'
 import { StepCircle } from '@/components/ui/step-circle'
 import { StepperConnector } from '@/components/ui/stepper-connector'
 import { EmptyState } from '@/components/ui/empty-state'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // --- MOCK DATA ---
 
