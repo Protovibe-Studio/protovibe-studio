@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 import {
-  ChevronLeft,
+  ArrowLeft,
   X,
   ExternalLink,
   Square,
@@ -128,7 +128,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-foreground-tertiary hover:text-foreground-default transition-colors w-fit cursor-pointer"
       >
-        <ChevronLeft size={20} />
+        <ArrowLeft size={20} />
         Back to projects
       </button>
 

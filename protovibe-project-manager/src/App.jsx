@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, X, LayoutGrid } from 'lucide-react'
+import { Plus, Search, X, FolderRoot } from 'lucide-react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
@@ -224,7 +224,7 @@ export default function App() {
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-12 h-12 rounded-2xl bg-background-secondary flex items-center justify-center text-foreground-tertiary">
-              <LayoutGrid size={24} strokeWidth={1.5} />
+              <FolderRoot size={24} strokeWidth={1.5} />
             </div>
             <div className="text-center">
               <p className="text-foreground-default font-medium mb-1">No projects yet</p>

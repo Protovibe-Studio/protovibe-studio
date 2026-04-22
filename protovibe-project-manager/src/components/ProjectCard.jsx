@@ -18,7 +18,7 @@ import {
   Code2,
   Copy,
   Trash2,
-  FolderOpen,
+  FolderRoot,
 } from 'lucide-react'
 
 const STATUS_LABELS = {
@@ -83,7 +83,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
     >
       {/* Icon */}
       <div className="shrink-0 w-10 h-10 rounded-xl bg-foreground-primary/20 flex items-center justify-center text-foreground-primary">
-        <FolderOpen size={20} strokeWidth={1.5} />
+        <FolderRoot size={20} strokeWidth={1.5} />
       </div>
 
       {/* Left: Header */}

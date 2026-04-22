@@ -166,11 +166,17 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
         )}
 
         {/* Action buttons */}
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex flex-col items-center gap-2 mt-2">
+          <button
+            onClick={() => setShowLogs((v) => !v)}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer border border-border-default"
+          >
+            {showLogs ? 'Hide logs' : 'Show logs'}
+          </button>
           {stage === 'error' ? (
             <button
               onClick={onBack}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-on-primary bg-primary hover:bg-primary-hover transition-colors cursor-pointer"
             >
               Back to projects
             </button>
@@ -183,12 +189,6 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
               {cancelling ? 'Cancelling...' : 'Cancel'}
             </button>
           )}
-          <button
-            onClick={() => setShowLogs((v) => !v)}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
-          >
-            {showLogs ? 'Hide logs' : 'Show logs'}
-          </button>
         </div>
       </div>
 
