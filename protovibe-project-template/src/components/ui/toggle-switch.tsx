@@ -42,6 +42,7 @@ export function ToggleSwitch({
 
   const handleClick = (e: React.MouseEvent<HTMLLabelElement>) => {
     if (disabled) return;
+    e.preventDefault(); // Prevents the browser from synthesizing a second click on the hidden input
     const next = !internalChecked;
     setInternalChecked(next);
     onCheckedChange?.(next);
