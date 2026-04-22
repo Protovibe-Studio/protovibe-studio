@@ -51,7 +51,7 @@ const CornerBLIcon = () => (
 
 const SpacingAutocomplete: React.FC<{
   value: string;
-  onChange: (val: string, prevVal?: string) => void;
+  onChange: (val: string, prevVal?: string, applyToAll?: boolean) => void;
   placeholder: string;
   posStyle: React.CSSProperties;
   inheritedPlaceholder?: string;
@@ -97,6 +97,7 @@ const SpacingAutocomplete: React.FC<{
       background: 'transparent',
     }}
     dropdownStyle={{ minWidth: '100px', maxHeight: '200px' }}
+    showApplyToAllHint={true}
     renderOption={(opt) => (
       <>
         <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
@@ -289,25 +290,36 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     direction: 't' | 'r' | 'b' | 'l',
     newVal: string,
     prevVal?: string,
+    applyToAll?: boolean,
   ) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
 
-    const vals = {
+    const origVals = {
       t: cleanVal(type === 'm' ? v.mt : v.pt),
       r: cleanVal(type === 'm' ? v.mr : v.pr),
       b: cleanVal(type === 'm' ? v.mb : v.pb),
       l: cleanVal(type === 'm' ? v.ml : v.pl),
     };
 
-    vals[direction] = safeVal || '';
+    const previousVals = {
+      ...origVals,
+      [direction]: cleanVal(prevVal ?? origVals[direction]) || '',
+    };
+
+    const vals = { ...origVals };
+    if (applyToAll) {
+      vals.t = safeVal || '';
+      vals.r = safeVal || '';
+      vals.b = safeVal || '';
+      vals.l = safeVal || '';
+    } else {
+      vals[direction] = safeVal || '';
+    }
 
     const newClassesStr = computeOptimalSpacing(type, vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);
-    const previousVals = {
-      ...vals,
-      [direction]: cleanVal(prevVal ?? vals[direction]) || '',
-    };
+
     const reconstructedOrigClasses = computeOptimalSpacing(
       type,
       previousVals.t,
@@ -372,38 +384,46 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   // ── Per-side border-width update ────────────────────────────────────────────
 
-  const handleBorderSideUpdate = async (side: 't' | 'r' | 'b' | 'l', newVal: string, prevVal?: string) => {
+  const handleBorderSideUpdate = async (
+    side: 't' | 'r' | 'b' | 'l',
+    newVal: string,
+    prevVal?: string,
+    applyToAll?: boolean,
+  ) => {
     if (!activeData?.file) return;
     const safeVal = makeSafe(newVal);
     const currentContextPrefix = buildContextPrefix(activeModifiers);
 
     // Resolve effective per-side values: explicit side override > all-sides shorthand
     const fallback = cleanVal(v.borderWidth) || '';
-    const effectiveT = cleanVal(v.borderT) || fallback;
-    const effectiveR = cleanVal(v.borderR) || fallback;
-    const effectiveB = cleanVal(v.borderB) || fallback;
-    const effectiveL = cleanVal(v.borderL) || fallback;
+    const origVals = {
+      t: cleanVal(v.borderT) || fallback,
+      r: cleanVal(v.borderR) || fallback,
+      b: cleanVal(v.borderB) || fallback,
+      l: cleanVal(v.borderL) || fallback,
+    };
 
-    const vals = { t: effectiveT, r: effectiveR, b: effectiveB, l: effectiveL };
+    const previousVals = {
+      ...origVals,
+      [side]: cleanVal(prevVal ?? origVals[side]) || '',
+    };
 
-    const noSource = !effectiveT && !effectiveR && !effectiveB && !effectiveL;
-    const noInherited = !domBorderSideVal('borderT') && !domBorderSideVal('borderR') && !domBorderSideVal('borderB') && !domBorderSideVal('borderL');
-    if (noSource && noInherited && safeVal) {
-      vals.t = safeVal; vals.r = safeVal; vals.b = safeVal; vals.l = safeVal;
+    const vals = { ...origVals };
+    if (applyToAll) {
+      vals.t = safeVal || '';
+      vals.r = safeVal || '';
+      vals.b = safeVal || '';
+      vals.l = safeVal || '';
     } else {
       vals[side] = safeVal || '';
     }
 
     const newClassesStr = computeOptimalBorder(vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);
-    const prefixedNewClasses = newClasses.map((c: string) => `${currentContextPrefix}${c}`).join(' ');
+    const prefixedNewClasses = newClasses
+      .map((c: string) => `${currentContextPrefix}${c}`)
+      .join(' ');
 
-    const previousVals = {
-      t: side === 't' ? cleanVal(prevVal ?? '') || '' : effectiveT,
-      r: side === 'r' ? cleanVal(prevVal ?? '') || '' : effectiveR,
-      b: side === 'b' ? cleanVal(prevVal ?? '') || '' : effectiveB,
-      l: side === 'l' ? cleanVal(prevVal ?? '') || '' : effectiveL,
-    };
     const reconstructedOrigClasses = computeOptimalBorder(
       previousVals.t,
       previousVals.r,
@@ -644,7 +664,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-mt"
           posStyle={centreH(pos.margin.top)}
           value={cleanVal(v.mt)}
-          onChange={(val, prevVal) => handleSpacingUpdate('m', 't', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 't', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mt)}
         />
@@ -652,7 +672,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-mb"
           posStyle={centreH(pos.margin.bottom)}
           value={cleanVal(v.mb)}
-          onChange={(val, prevVal) => handleSpacingUpdate('m', 'b', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'b', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mb)}
         />
@@ -660,7 +680,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-ml"
           posStyle={centre(pos.margin.left)}
           value={cleanVal(v.ml)}
-          onChange={(val, prevVal) => handleSpacingUpdate('m', 'l', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'l', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.ml)}
         />
@@ -668,7 +688,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-mr"
           posStyle={centre(pos.margin.right)}
           value={cleanVal(v.mr)}
-          onChange={(val, prevVal) => handleSpacingUpdate('m', 'r', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'r', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mr)}
         />
@@ -678,7 +698,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-border-t"
           posStyle={centreH(pos.border.top)}
           value={borderSideVal('borderT')}
-          onChange={(val, prevVal) => handleBorderSideUpdate('t', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('t', val, prevVal, applyToAll)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderT')}
@@ -687,7 +707,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-border-b"
           posStyle={centreH(pos.border.bottom)}
           value={borderSideVal('borderB')}
-          onChange={(val, prevVal) => handleBorderSideUpdate('b', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('b', val, prevVal, applyToAll)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderB')}
@@ -696,7 +716,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-border-l"
           posStyle={centre(pos.border.left)}
           value={borderSideVal('borderL')}
-          onChange={(val, prevVal) => handleBorderSideUpdate('l', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('l', val, prevVal, applyToAll)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderL')}
@@ -705,7 +725,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-border-r"
           posStyle={centre(pos.border.right)}
           value={borderSideVal('borderR')}
-          onChange={(val, prevVal) => handleBorderSideUpdate('r', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('r', val, prevVal, applyToAll)}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderR')}
@@ -716,7 +736,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-pt"
           posStyle={centreH(pos.padding.top)}
           value={cleanVal(v.pt)}
-          onChange={(val, prevVal) => handleSpacingUpdate('p', 't', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 't', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pt)}
         />
@@ -724,7 +744,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-pb"
           posStyle={centreH(pos.padding.bottom)}
           value={cleanVal(v.pb)}
-          onChange={(val, prevVal) => handleSpacingUpdate('p', 'b', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'b', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pb)}
         />
@@ -732,7 +752,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-pl"
           posStyle={centre(pos.padding.left)}
           value={cleanVal(v.pl)}
-          onChange={(val, prevVal) => handleSpacingUpdate('p', 'l', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'l', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pl)}
         />
@@ -740,7 +760,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           testId="essentials-pr"
           posStyle={centre(pos.padding.right)}
           value={cleanVal(v.pr)}
-          onChange={(val, prevVal) => handleSpacingUpdate('p', 'r', val, prevVal)}
+          onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'r', val, prevVal, applyToAll)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pr)}
         />

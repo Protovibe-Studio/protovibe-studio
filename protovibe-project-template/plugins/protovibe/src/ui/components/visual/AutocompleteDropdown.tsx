@@ -18,7 +18,7 @@ export type ColorMode = 'light' | 'dark';
 interface AutocompleteDropdownProps {
   value: string;
   options: AutocompleteOption[];
-  onCommit: (val: string, prevVal?: string) => void;
+  onCommit: (val: string, prevVal?: string, applyToAll?: boolean) => void;
   placeholder?: string;
   containerStyle?: React.CSSProperties;
   inputStyle?: React.CSSProperties;
@@ -37,6 +37,7 @@ interface AutocompleteDropdownProps {
   suffix?: React.ReactNode;
   strictOptions?: boolean;
   testId?: string;
+  showApplyToAllHint?: boolean;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -61,6 +62,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   suffix,
   strictOptions = false,
   testId,
+  showApplyToAllHint,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
@@ -169,19 +171,19 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     updateDeps: [renderableOptions.length, localValue, showNoneOption],
   });
 
-  const triggerCommit = (val: string) => {
-    if (val !== lastCommittedValueRef.current) {
+  const triggerCommit = (val: string, applyToAll?: boolean) => {
+    if (val !== lastCommittedValueRef.current || applyToAll) {
       const prev = lastCommittedValueRef.current;
       lastCommittedValueRef.current = val;
-      onCommit(val, prev);
+      onCommit(val, prev, applyToAll);
     }
   };
 
-  const selectValue = (val: string, blurTarget?: HTMLInputElement | null) => {
+  const selectValue = (val: string, blurTarget?: HTMLInputElement | null, applyToAll?: boolean) => {
     pendingBlurValueRef.current = val;
     setLocalValue(val);
     setIsOpen(false);
-    triggerCommit(val);
+    triggerCommit(val, applyToAll);
     setTimeout(() => (blurTarget ?? inputElRef.current)?.blur(), 0);
   };
 
@@ -198,10 +200,11 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      const applyToAll = e.metaKey || e.ctrlKey;
       if (activeIndex >= 0 && activeIndex < renderableOptions.length) {
-        selectValue(renderableOptions[activeIndex].val, e.currentTarget);
+        selectValue(renderableOptions[activeIndex].val, e.currentTarget, applyToAll);
       } else {
-        selectValue(localValue, e.currentTarget);
+        selectValue(localValue, e.currentTarget, applyToAll);
       }
       return;
     }
@@ -235,7 +238,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         key={opt.val + index}
         data-index={index}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => selectValue(opt.val)}
+        onClick={(e) => selectValue(opt.val, undefined, e.metaKey || e.ctrlKey)}
         style={{
           padding: '6px 10px',
           fontSize: '11px',
@@ -375,7 +378,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           {showNoneOption && (
             <div
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => selectValue('')}
+              onClick={(e) => selectValue('', undefined, e.metaKey || e.ctrlKey)}
               style={{
                 padding: '6px 10px',
                 fontSize: '11px',
@@ -389,6 +392,22 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             >
               <X size={10} strokeWidth={2.5} />
               {noneLabel}
+            </div>
+          )}
+
+          {showApplyToAllHint && (
+            <div
+              style={{
+                padding: '6px 10px',
+                fontSize: '10px',
+                color: theme.text_tertiary,
+                borderBottom: `1px solid ${theme.border_secondary}`,
+                display: 'flex',
+                alignItems: 'center',
+                fontFamily: 'sans-serif',
+              }}
+            >
+              Hold Cmd to apply to all sides
             </div>
           )}
 
