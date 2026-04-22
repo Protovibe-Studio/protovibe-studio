@@ -41,7 +41,7 @@ export function EmptyState({
       data-pv-component-id="EmptyState"
     >
       {icon && (
-        <div className="text-foreground-disabled">
+        <div className="flex items-center justify-center text-foreground-disabled rounded-md bg-background-tertiary p-3">
           <Icon iconSymbol={icon} size={iconSize} />
         </div>
       )}
@@ -49,17 +49,17 @@ export function EmptyState({
       {(bigHeading || heading || secondaryText) && (
         <div className="flex flex-col items-center gap-1.5 max-w-sm">
           {bigHeading && (
-            <p className="text-2xl font-semibold text-foreground-default">
+            <p className="font-semibold text-foreground-default text-3xl">
               {bigHeading}
             </p>
           )}
           {heading && (
-            <p className="text-base font-semibold text-foreground-default">
+            <p className="text-base text-foreground-default font-bold">
               {heading}
             </p>
           )}
           {secondaryText && (
-            <p className="text-sm text-foreground-secondary">
+            <p className="text-foreground-secondary text-base">
               {secondaryText}
               {learnMoreLabel && (
                 <>{' '}<a

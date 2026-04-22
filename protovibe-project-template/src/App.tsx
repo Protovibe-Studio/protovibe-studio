@@ -704,7 +704,7 @@ function SkillsPage() {
               <DropdownItem prefixIcon="mdi:upload" label="Import skills from a file" secondaryText="Upload your company document and let AI read the skills" onClick={() => openDialog('import')} />
               <DropdownItem onClick={() => openDialog('generate')}>
                 <Badge className="w-4 justify-center" label="AI" color="primary" />
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 gap-0.5">
                   <span className="text-foreground-default font-medium">Generate suggested skills in a sheet</span>
                   <span className="text-xs text-foreground-tertiary">Don't have company skills yet? Generate a starting template file, refine it with your team, then import.</span>
                 </div>
@@ -735,7 +735,7 @@ function SkillsPage() {
 
 
         {/* pv-block-start:skht8u */}
-        <EmptyState iconSize="2xl" className="min-h-64"
+        <EmptyState iconSize="xl" className="min-h-64"
           data-pv-block="skht8u"
           icon="mdi:text-box-outline"
           bigHeading="Create your first skill"

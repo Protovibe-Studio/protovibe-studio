@@ -58,9 +58,9 @@ export function DropdownItem({
         {children}
         {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary mt-0.5" />}
         {(label || secondaryText) && (
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 gap-0.5">
             {label && <span className="text-foreground-default font-medium">{label}</span>}
-            {secondaryText && <span className="text-xs text-foreground-tertiary">{secondaryText}</span>}
+            {secondaryText && <span className="text-foreground-tertiary text-sm">{secondaryText}</span>}
           </div>
         )}
         {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}
