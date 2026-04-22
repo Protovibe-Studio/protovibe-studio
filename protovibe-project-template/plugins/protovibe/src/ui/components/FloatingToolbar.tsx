@@ -42,11 +42,9 @@ export const FloatingToolbar: React.FC = () => {
 
   useEffect(() => {
     if (zones.length > 0) {
-      const expectedZoneName = closestBlockId ? `inside-${closestBlockId}` : null;
-      const found = zones.find(z => z.name === expectedZoneName) || zones[0];
-      setSelectedZone(found.id);
+      setSelectedZone(zones[0].id);
     }
-  }, [zones, closestBlockId]);
+  }, [zones]);
 
   // Open add dialog via keyboard shortcut (Cmd+E)
   useEffect(() => {

@@ -376,40 +376,37 @@ function renameComponentInContent(content: string, oldId: string, newId: string)
 
 // Replace all existing pv-block and pv-editable-zone IDs with fresh ones
 function reassignIds(content: string): string {
-  // Replace zone IDs
-  content = content.replace(/pv-editable-zone-start:(\w+)/g, () => `pv-editable-zone-start:${Math.random().toString(36).substring(2, 8)}`);
-  content = content.replace(/pv-editable-zone-end:(\w+)/g, (_m, oldId) => {
-    // We need to match start and end pairs — easier to do a two-pass approach
-    return `pv-editable-zone-end:${oldId}`; // placeholder; handled below
-  });
-
-  // For zone pairs: replace IDs consistently so start/end match
-  const zoneStartRe = /pv-editable-zone-start:(\w+)/g;
+  // 1. Reassign zone pairs consistently
+  const zoneStartRe = /pv-editable-zone-start:([a-zA-Z0-9_-]+)/g;
   const idMap = new Map<string, string>();
   let m: RegExpExecArray | null;
+
   while ((m = zoneStartRe.exec(content)) !== null) {
     if (!idMap.has(m[1])) {
       idMap.set(m[1], Math.random().toString(36).substring(2, 8));
     }
   }
+
   for (const [oldId, newId] of idMap) {
     content = content
-      .replace(new RegExp(`pv-editable-zone-start:${oldId}`, 'g'), `pv-editable-zone-start:${newId}`)
-      .replace(new RegExp(`pv-editable-zone-end:${oldId}`, 'g'), `pv-editable-zone-end:${newId}`);
+      .replace(new RegExp(`pv-editable-zone-start:${oldId}\\b`, 'g'), `pv-editable-zone-start:${newId}`)
+      .replace(new RegExp(`pv-editable-zone-end:${oldId}\\b`, 'g'), `pv-editable-zone-end:${newId}`);
   }
 
-  // Replace block IDs (in comments and data-pv-block attributes)
-  const blockStartRe = /pv-block-start:(\w+)/g;
+  // 2. Reassign block IDs
+  const blockStartRe = /pv-block-start:([a-zA-Z0-9_-]+)/g;
   const blockIdMap = new Map<string, string>();
+
   while ((m = blockStartRe.exec(content)) !== null) {
     if (!blockIdMap.has(m[1])) {
       blockIdMap.set(m[1], Math.random().toString(36).substring(2, 8));
     }
   }
+
   for (const [oldId, newId] of blockIdMap) {
     content = content
-      .replace(new RegExp(`pv-block-start:${oldId}`, 'g'), `pv-block-start:${newId}`)
-      .replace(new RegExp(`pv-block-end:${oldId}`, 'g'), `pv-block-end:${newId}`)
+      .replace(new RegExp(`pv-block-start:${oldId}\\b`, 'g'), `pv-block-start:${newId}`)
+      .replace(new RegExp(`pv-block-end:${oldId}\\b`, 'g'), `pv-block-end:${newId}`)
       .replace(new RegExp(`data-pv-block="${oldId}"`, 'g'), `data-pv-block="${newId}"`)
       .replace(new RegExp(`data-pv-sketchpad-el="${oldId}"`, 'g'), `data-pv-sketchpad-el="${newId}"`);
   }

@@ -865,8 +865,10 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
 
       const innerContent = processedBlocks.map(b =>
         b.split('\n').map(line => {
-          const unindented = line.replace(new RegExp(`^${baseSpaces}`), '');
-          return i2 + unindented.trimStart();
+          if (line.startsWith(baseSpaces)) {
+            return i2 + line.slice(baseSpaces.length);
+          }
+          return i2 + line;
         }).join('\n')
       ).join('\n');
 
@@ -1153,7 +1155,9 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
             return `${i}{/* pv-block-start:${blockId} */}\n${i}<${compName} data-pv-block="${blockId}"${layoutAttrs}${propsStr} />\n${i}{/* pv-block-end:${blockId} */}`;
           }
         }
-        return `${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:inside-${blockId} */}\n${i2}{/* pv-editable-zone-end:inside-${blockId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}`;
+
+        const innerZoneId = Math.random().toString(36).substring(2, 8);
+        return `${i}{/* pv-block-start:${blockId} */}\n${i}<div className="flex flex-col min-h-4" data-pv-block="${blockId}"${layoutAttrs}>\n${i2}{/* pv-editable-zone-start:${innerZoneId} */}\n${i2}{/* pv-editable-zone-end:${innerZoneId} */}\n${i}</div>\n${i}{/* pv-block-end:${blockId} */}`;
       };
 
       if (isPristine) {

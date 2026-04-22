@@ -216,10 +216,7 @@ export function useKeyboardShortcuts() {
             return;
           }
 
-          // Fallback to the first available zone if 'inside-ID' isn't found
-          // This allows pasting directly into pristine zones inside hardcoded elements!
-          const expectedZoneId = blockId ? `inside-${blockId}` : null;
-          const targetZone = (expectedZoneId ? zones.find(z => z.id === expectedZoneId) : null) || zones[0];
+          const targetZone = zones[0];
 
           if (!isPasteAfter && !targetZone) {
             emitToast({ message: "Can't paste inside this element", variant: 'error' });

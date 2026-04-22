@@ -11,176 +11,179 @@ import { Avatar } from '@/components/ui/avatar'
 export default function Frame1() {
   return (
     <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {/* pv-editable-zone-start:0i2rlu */}
-      {/* pv-block-start:8xloe7 */}
-      <DialogWindow size="xl" data-pv-block="8xloe7" data-pv-sketchpad-el="8xloe7"  style={{ position: 'absolute', left: 301, top: 150 }}>
-        {/* pv-editable-zone-start:kpo49g */}
-          {/* pv-block-start:gt4guw */}
-          <div data-pv-block="gt4guw" className="flex flex-col gap-2 p-5">
-            {/* pv-editable-zone-start:3gyxz9 */}
-              {/* pv-block-start:2pno7x */}
-              <div data-pv-block="2pno7x" className="flex gap-16 flex-col items-stretch">
-                {/* pv-editable-zone-start:jfhl2a */}
-                {/* pv-block-start:ulnftv */}
-                <div data-pv-block="ulnftv" className="flex flex-col gap-0">
-                {/* pv-editable-zone-start:gtxig9 */}
-                {/* pv-block-start:npxcua */}
-                <h2 data-pv-block="npxcua" className="text-xl font-semibold text-foreground-default">
+      {/* pv-editable-zone-start:2n7pqy */}
+      {/* pv-block-start:sdaeec */}
+      <DialogWindow size="xl" data-pv-block="sdaeec" data-pv-sketchpad-el="sdaeec"  style={{ position: 'absolute', left: 300, top: 146 }}>
+        {/* pv-editable-zone-start:tw6q5w */}
+          {/* pv-block-start:pmsui8 */}
+          <div data-pv-block="pmsui8" className="flex flex-col gap-2 p-12">
+            {/* pv-editable-zone-start:9fo3ep */}
+              {/* pv-block-start:cjnh0t */}
+              <div data-pv-block="cjnh0t" className="flex flex-row items-start gap-16">
+                {/* pv-editable-zone-start:w3mswu */}
+                {/* pv-block-start:fh2cz9 */}
+                <div data-pv-block="fh2cz9" className="flex flex-col gap-8">
+                {/* pv-editable-zone-start:9nk40i */}
+                {/* pv-block-start:euoh13 */}
+                <div data-pv-block="euoh13" className="flex flex-col gap-4">
+                {/* pv-editable-zone-start:dt5pv2 */}
+                {/* pv-block-start:ozzkoi */}
+                <h2 data-pv-block="ozzkoi" className="text-xl font-semibold text-foreground-default">
                 <span></span><span></span>Generate suggested skills in a spreadsheet
                 </h2>
-                {/* pv-block-end:npxcua */}
-                {/* pv-block-start:2nm2u6 */}
-                <TextParagraph className="pt-0.5 text-foreground-secondary" data-pv-block="2nm2u6" typography="regular">
+                {/* pv-block-end:ozzkoi */}
+                {/* pv-block-start:q9lpow */}
+                <TextParagraph className="pt-0.5" data-pv-block="q9lpow" typography="regular">
                   <span></span>Don’t have a document that defines skills in your company yet? No worries, we can help you kick-off this project!
                 </TextParagraph>
-                {/* pv-block-end:2nm2u6 */}
-                {/* pv-editable-zone-end:8be0rh */}
+                {/* pv-block-end:q9lpow */}
+                {/* pv-editable-zone-end:dt5pv2 */}
                 </div>
-                {/* pv-block-end:ulnftv */}
-                {/* pv-block-start:rdavz3 */}
-                <div data-pv-block="rdavz3" className="flex flex-col gap-8">
-                {/* pv-editable-zone-start:a3wspe */}
-                {/* pv-block-start:8ssjzx */}
-                <div data-pv-block="8ssjzx" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:lf1u75 */}
-                {/* pv-block-start:f9cnnq */}
-                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="f9cnnq">
-                {/* pv-editable-zone-start:m736c7-gwhw15 */}
-                {/* pv-block-start:q949ad */}
-                <div data-pv-block="q949ad" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:kr78q0 */}
-                {/* pv-block-start:4q604p */}
-                <StepCircle data-pv-block="4q604p" state="current" number={1} />
-                {/* pv-block-end:4q604p */}
-                {/* pv-block-start:l9nx7b */}
-                <TextParagraph className="pt-0.5" data-pv-block="l9nx7b" typography="regular">
+                {/* pv-block-end:euoh13 */}
+                {/* pv-block-start:ou8phh */}
+                <div data-pv-block="ou8phh" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:016r5z */}
+                {/* pv-block-start:zwi4vp */}
+                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="zwi4vp">
+                {/* pv-editable-zone-start:pioaf5 */}
+                {/* pv-block-start:ccoyu8 */}
+                <div data-pv-block="ccoyu8" className="flex gap-2 flex-row items-start justify-start">
+                {/* pv-editable-zone-start:adgjak */}
+                {/* pv-block-start:imooe8 */}
+                <StepCircle data-pv-block="imooe8" state="current" number={1} />
+                {/* pv-block-end:imooe8 */}
+                {/* pv-block-start:2v63k8 */}
+                <TextParagraph className="pt-0.5" data-pv-block="2v63k8" typography="regular">
                   <span></span><span></span>Generate a file with all your positions and suggested skills
                 </TextParagraph>
-                {/* pv-block-end:l9nx7b */}
-                {/* pv-editable-zone-end:qyqjnc */}
+                {/* pv-block-end:2v63k8 */}
+                {/* pv-editable-zone-end:adgjak */}
                 </div>
-                {/* pv-block-end:q949ad */}
+                {/* pv-block-end:ccoyu8 */}
                 
-                  {/* pv-block-start:cpu00g */}
-                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="cpu00g">
-                    {/* pv-editable-zone-start:4ftetm-v7f6k0 */}
-                      {/* pv-block-start:9x8c31 */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="9x8c31">
-                        {/* pv-editable-zone-start:30ny5q-xpbdiz */}
-                        {/* pv-editable-zone-end:inside-xpbdiz */}
+                  {/* pv-block-start:o7xc5z */}
+                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="o7xc5z">
+                    {/* pv-editable-zone-start:a0c5v2 */}
+                      {/* pv-block-start:56o06f */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="56o06f">
+                        {/* pv-editable-zone-start:0rqr5t */}
+                        {/* pv-editable-zone-end:0rqr5t */}
                       </div>
-                      {/* pv-block-end:9x8c31 */}
-                    {/* pv-editable-zone-end:inside-v7f6k0 */}
+                      {/* pv-block-end:56o06f */}
+                    {/* pv-editable-zone-end:a0c5v2 */}
                   </div>
-                  {/* pv-block-end:cpu00g */}
-                {/* pv-editable-zone-end:inside-gwhw15 */}
+                  {/* pv-block-end:o7xc5z */}
+                {/* pv-editable-zone-end:pioaf5 */}
                 </div>
-                {/* pv-block-end:f9cnnq */}
+                {/* pv-block-end:zwi4vp */}
 
-                {/* pv-block-start:xj8f1c */}
-                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="xj8f1c">
-                {/* pv-editable-zone-start:7efjwe-hx1izr */}
-                {/* pv-block-start:ahh7jp */}
-                <div data-pv-block="ahh7jp" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:f5giyy */}
-                {/* pv-block-start:utn9p9 */}
-                <StepCircle data-pv-block="utn9p9" state="current" number={1} />
-                {/* pv-block-end:utn9p9 */}
-                {/* pv-block-start:wffo5z */}
-                <TextParagraph className="pt-0.5" data-pv-block="wffo5z" typography="regular">
+                {/* pv-block-start:gymrke */}
+                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="gymrke">
+                {/* pv-editable-zone-start:thgz3j */}
+                {/* pv-block-start:knjumq */}
+                <div data-pv-block="knjumq" className="flex gap-2 flex-row items-start justify-start">
+                {/* pv-editable-zone-start:adgjak */}
+                {/* pv-block-start:xa7c1x */}
+                <StepCircle data-pv-block="xa7c1x" state="current" number={1} />
+                {/* pv-block-end:xa7c1x */}
+                {/* pv-block-start:8p3sxf */}
+                <TextParagraph className="pt-0.5" data-pv-block="8p3sxf" typography="regular">
                   <span></span>Collaborate on the file in your favourite tools, like Google Sheets
                 </TextParagraph>
-                {/* pv-block-end:wffo5z */}
-                {/* pv-editable-zone-end:qyqjnc */}
+                {/* pv-block-end:8p3sxf */}
+                {/* pv-editable-zone-end:adgjak */}
                 </div>
-                {/* pv-block-end:ahh7jp */}
+                {/* pv-block-end:knjumq */}
                 
-                  {/* pv-block-start:rra4ke */}
-                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="rra4ke">
-                    {/* pv-editable-zone-start:ah6vyu-kgphdx */}
-                      {/* pv-block-start:ofl088 */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="ofl088">
-                        {/* pv-editable-zone-start:6uttt6-hdc03o */}
-                        {/* pv-editable-zone-end:inside-hdc03o */}
+                  {/* pv-block-start:7cwhe6 */}
+                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="7cwhe6">
+                    {/* pv-editable-zone-start:vkndww */}
+                      {/* pv-block-start:b52day */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="b52day">
+                        {/* pv-editable-zone-start:9pufgw */}
+                        {/* pv-editable-zone-end:9pufgw */}
                       </div>
-                      {/* pv-block-end:ofl088 */}
-                    {/* pv-editable-zone-end:inside-kgphdx */}
+                      {/* pv-block-end:b52day */}
+                    {/* pv-editable-zone-end:vkndww */}
                   </div>
-                  {/* pv-block-end:rra4ke */}
-                {/* pv-editable-zone-end:inside-hx1izr */}
+                  {/* pv-block-end:7cwhe6 */}
+                {/* pv-editable-zone-end:thgz3j */}
                 </div>
-                {/* pv-block-end:xj8f1c */}
+                {/* pv-block-end:gymrke */}
 
-                {/* pv-block-start:jxm852 */}
-                <div className="flex flex-col items-start relative pb-6 min-h-0" data-pv-block="jxm852">
-                {/* pv-editable-zone-start:fys76p-tiw2gl */}
-                {/* pv-block-start:w0bax8 */}
-                <div data-pv-block="w0bax8" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:gcvjth */}
-                {/* pv-block-start:iekmvx */}
-                <StepCircle data-pv-block="iekmvx" state="current" number={1} />
-                {/* pv-block-end:iekmvx */}
-                {/* pv-block-start:68v85l */}
-                <TextParagraph className="pt-0.5" data-pv-block="68v85l" typography="regular">
+                {/* pv-block-start:nzbrww */}
+                <div className="flex flex-col items-start relative pb-6 min-h-0" data-pv-block="nzbrww">
+                {/* pv-editable-zone-start:a1tw2p */}
+                {/* pv-block-start:j9uki5 */}
+                <div data-pv-block="j9uki5" className="flex gap-2 flex-row items-start justify-start">
+                {/* pv-editable-zone-start:adgjak */}
+                {/* pv-block-start:tt805b */}
+                <StepCircle data-pv-block="tt805b" state="current" number={1} />
+                {/* pv-block-end:tt805b */}
+                {/* pv-block-start:e0fmzo */}
+                <TextParagraph className="pt-0.5" data-pv-block="e0fmzo" typography="regular">
                   <span></span>Once you’re done, import the file to Tellent HR
                 </TextParagraph>
-                {/* pv-block-end:68v85l */}
-                {/* pv-editable-zone-end:qyqjnc */}
+                {/* pv-block-end:e0fmzo */}
+                {/* pv-editable-zone-end:adgjak */}
                 </div>
-                {/* pv-block-end:w0bax8 */}
+                {/* pv-block-end:j9uki5 */}
                 
-                  {/* pv-block-start:dbsfwr */}
-                  <div className="flex-col w-6 items-center absolute top-8 bottom-0 min-h-2 hidden" data-pv-block="dbsfwr">
-                    {/* pv-editable-zone-start:w0r6zt-mquzyu */}
-                      {/* pv-block-start:ej7qtc */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="ej7qtc">
-                        {/* pv-editable-zone-start:fnmp2h-anxb9y */}
-                        {/* pv-editable-zone-end:inside-anxb9y */}
+                  {/* pv-block-start:51vsdn */}
+                  <div className="flex-col w-6 items-center absolute top-8 bottom-0 min-h-2 hidden" data-pv-block="51vsdn">
+                    {/* pv-editable-zone-start:4anw3k */}
+                      {/* pv-block-start:m1zgyo */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="m1zgyo">
+                        {/* pv-editable-zone-start:ee04tw */}
+                        {/* pv-editable-zone-end:ee04tw */}
                       </div>
-                      {/* pv-block-end:ej7qtc */}
-                    {/* pv-editable-zone-end:inside-mquzyu */}
+                      {/* pv-block-end:m1zgyo */}
+                    {/* pv-editable-zone-end:4anw3k */}
                   </div>
-                  {/* pv-block-end:dbsfwr */}
-                {/* pv-editable-zone-end:inside-tiw2gl */}
+                  {/* pv-block-end:51vsdn */}
+                {/* pv-editable-zone-end:a1tw2p */}
                 </div>
-                {/* pv-block-end:jxm852 */}
-                {/* pv-editable-zone-end:4v2vz4 */}
+                {/* pv-block-end:nzbrww */}
+                {/* pv-editable-zone-end:016r5z */}
                 </div>
-                {/* pv-block-end:8ssjzx */}
-                {/* pv-editable-zone-end:enyhfe */}
+                {/* pv-block-end:ou8phh */}
+                {/* pv-editable-zone-end:9nk40i */}
                 </div>
-                {/* pv-block-end:rdavz3 */}
-                {/* pv-editable-zone-end:wo74jp */}
+                {/* pv-block-end:fh2cz9 */}
+                {/* pv-block-start:5wmibe */}
+                <Image data-pv-block="5wmibe" className="bg-cover bg-center bg-no-repeat w-full bg-[url('/src/images/from-protovibe/ai-spreadsheet-illustration.svg')] aspect-[133/174] max-w-[258px]" />
+                {/* pv-block-end:5wmibe */}
+                {/* pv-editable-zone-end:w3mswu */}
               </div>
-              {/* pv-block-end:2pno7x */}
-            {/* pv-editable-zone-end:xcg13x */}
+              {/* pv-block-end:cjnh0t */}
+            {/* pv-editable-zone-end:9fo3ep */}
           </div>
-          {/* pv-block-end:gt4guw */}
-          {/* pv-block-start:gkbldc */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center p-5 gap-4 justify-between" data-pv-block="gkbldc">
-            {/* pv-editable-zone-start:ml5lui-u9rjmz */}
-              {/* pv-block-start:wr100q */}
-              <Checkbox data-pv-block="wr100q" primaryText="Don't show this intro again" />
-              {/* pv-block-end:wr100q */}
-              {/* pv-block-start:rqw8ze */}
-              <div data-pv-block="rqw8ze" className="flex gap-2 flex-row">
-                {/* pv-editable-zone-start:vi0mv2 */}
-                {/* pv-block-start:x9emfl */}
-                <Button data-pv-block="x9emfl" label="Cancel" variant="ghost" color="neutral" size="md"  />
-                {/* pv-block-end:x9emfl */}
-                {/* pv-block-start:zped9q */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="zped9q" label="Let's start" variant="solid" color="primary" size="md"  />
-                {/* pv-block-end:zped9q */}
-                {/* pv-editable-zone-end:dwfhaa */}
+          {/* pv-block-end:pmsui8 */}
+          {/* pv-block-start:9la13c */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center p-5 gap-4 justify-between" data-pv-block="9la13c">
+            {/* pv-editable-zone-start:2xmyp4 */}
+              {/* pv-block-start:5ypdw6 */}
+              <Checkbox data-pv-block="5ypdw6" primaryText="Don't show this intro again" />
+              {/* pv-block-end:5ypdw6 */}
+              {/* pv-block-start:rfu32z */}
+              <div data-pv-block="rfu32z" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:e2sff4 */}
+                {/* pv-block-start:uiktns */}
+                <Button data-pv-block="uiktns" label="Cancel" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:uiktns */}
+                {/* pv-block-start:fgs6cw */}
+                <Button rightIcon="mdi:arrow-right" data-pv-block="fgs6cw" label="Let's start" variant="solid" color="primary" size="md"  />
+                {/* pv-block-end:fgs6cw */}
+                {/* pv-editable-zone-end:e2sff4 */}
               </div>
-              {/* pv-block-end:rqw8ze */}
-            {/* pv-editable-zone-end:inside-u9rjmz */}
+              {/* pv-block-end:rfu32z */}
+            {/* pv-editable-zone-end:2xmyp4 */}
           </div>
-          {/* pv-block-end:gkbldc */}
-        {/* pv-editable-zone-end:jcx4p4 */}
+          {/* pv-block-end:9la13c */}
+        {/* pv-editable-zone-end:tw6q5w */}
       </DialogWindow>
-      {/* pv-block-end:8xloe7 */}
-      {/* pv-editable-zone-end:rtzayt */}
+      {/* pv-block-end:sdaeec */}
+      {/* pv-editable-zone-end:2n7pqy */}
     </div>
   );
 }
