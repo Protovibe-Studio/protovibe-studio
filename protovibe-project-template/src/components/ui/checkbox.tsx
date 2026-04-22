@@ -54,12 +54,7 @@ export function Checkbox({
       data-state={isChecked ? 'checked' : 'unchecked'}
       data-disabled={disabled}
       data-error={error}
-      className={cn(
-        'inline-flex flex-col gap-1 cursor-pointer rounded-md',
-        'data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50',
-        'data-[error=true]:bg-background-destructive-subtle',
-        className
-      )}
+      className={cn("inline-flex flex-col gap-1 cursor-pointer data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 data-[error=true]:bg-background-destructive-subtle rounded-sm", className)}
       onClick={handleClick}
       {...props}
       data-pv-component-id="Checkbox"

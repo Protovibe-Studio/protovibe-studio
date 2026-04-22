@@ -71,30 +71,6 @@ export async function updateFramePosition(
   await post('/__frame-update-position', { sketchpadId, frameId, canvasX, canvasY });
 }
 
-export async function addElementToFrame(
-  sketchpadId: string,
-  frameId: string,
-  componentName: string,
-  importPath: string,
-  defaultProps: string,
-  defaultContent: string,
-  x: number,
-  y: number,
-  additionalImportsForDefaultContent: Array<{ name: string; path: string }> = [],
-): Promise<{ blockId: string }> {
-  return post('/__sketchpad-add-element', {
-    sketchpadId,
-    frameId,
-    componentName,
-    importPath,
-    defaultProps,
-    defaultContent,
-    x,
-    y,
-    additionalImportsForDefaultContent,
-  });
-}
-
 export async function updateElementPosition(
   sketchpadId: string,
   frameId: string,

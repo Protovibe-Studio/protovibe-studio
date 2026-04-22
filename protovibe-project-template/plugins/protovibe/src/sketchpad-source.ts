@@ -13,7 +13,6 @@ import {
   handleFrameRename,
   handleFrameResize,
   handleFrameUpdatePosition,
-  handleSketchpadAddElement,
   handleSketchpadUpdateElementPosition,
   handleSketchpadUpdateElementSize,
 } from './backend/sketchpad-server';
@@ -32,7 +31,6 @@ export function registerSketchpadMiddleware(server: ViteDevServer) {
   server.middlewares.use('/__frame-rename', handleFrameRename);
   server.middlewares.use('/__frame-resize', handleFrameResize);
   server.middlewares.use('/__frame-update-position', handleFrameUpdatePosition);
-  server.middlewares.use('/__sketchpad-add-element', handleSketchpadAddElement);
   server.middlewares.use('/__sketchpad-update-element-position', handleSketchpadUpdateElementPosition);
   server.middlewares.use('/__sketchpad-update-element-size', handleSketchpadUpdateElementSize);
 }

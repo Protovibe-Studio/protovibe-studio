@@ -451,19 +451,23 @@ export function SketchpadApp() {
 
       const posX = x ?? 100;
       const posY = y ?? 100;
+      const targetFile = `src/sketchpads/${activeSketchpadId}/${targetFrame}.tsx`;
 
       await runLockedMutation(async () => {
-        const result = await api.addElementToFrame(
-          activeSketchpadId,
-          targetFrame,
-          comp.name,
-          comp.importPath,
-          comp.defaultProps,
-          comp.defaultContent,
-          posX,
-          posY,
-          comp.additionalImportsForDefaultContent,
-        );
+        await takeSnapshot(targetFile, '');
+        const result = await addBlock({
+          file: targetFile,
+          zoneId: 'target-zone-placeholder',
+          elementType: 'component',
+          compName: comp.name,
+          importPath: comp.importPath,
+          defaultProps: comp.defaultProps,
+          defaultContent: comp.defaultContent,
+          additionalImportsForDefaultContent: comp.additionalImportsForDefaultContent,
+          targetLayoutMode: 'absolute',
+          pasteX: Math.round(posX),
+          pasteY: Math.round(posY),
+        });
         if (result?.blockId) await focusNewBlock(result.blockId);
       });
     },

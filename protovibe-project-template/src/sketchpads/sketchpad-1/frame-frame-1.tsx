@@ -10,14 +10,10 @@ import { Avatar } from '@/components/ui/avatar'
 
 export default function Frame1() {
   return (
-    <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:rtzayt */}
-      {/* pv-block-start:uwbdk8 */}
-      <Checkbox error data-pv-block="uwbdk8" data-pv-sketchpad-el="uwbdk8"  style={{ position: 'absolute', left: 164, top: 411 }} />
-      {/* pv-block-end:uwbdk8 */}
-      
       {/* pv-block-start:1obgh8 */}
-      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 304, top: 142 }}>
+      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 300, top: 146 }}>
         {/* pv-editable-zone-start:jcx4p4 */}
           {/* pv-block-start:k4mn1h */}
           <div data-pv-block="k4mn1h" className="flex flex-col gap-2 p-12">
@@ -167,7 +163,7 @@ export default function Frame1() {
           <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center p-5 gap-4 justify-between" data-pv-block="u9rjmz">
             {/* pv-editable-zone-start:inside-u9rjmz */}
               {/* pv-block-start:iozn25 */}
-              <Checkbox data-pv-block="iozn25" primaryText="Don't show this again" />
+              <Checkbox data-pv-block="iozn25" primaryText="Don't show this intro again" />
               {/* pv-block-end:iozn25 */}
               {/* pv-block-start:zlkw0l */}
               <div data-pv-block="zlkw0l" className="flex gap-2 flex-row">
@@ -181,25 +177,12 @@ export default function Frame1() {
                 {/* pv-editable-zone-end:dwfhaa */}
               </div>
               {/* pv-block-end:zlkw0l */}
-
-
             {/* pv-editable-zone-end:inside-u9rjmz */}
           </div>
           {/* pv-block-end:u9rjmz */}
         {/* pv-editable-zone-end:jcx4p4 */}
       </DialogWindow>
       {/* pv-block-end:1obgh8 */}
-      
-      {/* pv-block-start:m7ibt8 */}
-      <Input data-pv-block="m7ibt8" data-pv-sketchpad-el="m7ibt8" placeholder="Enter text..." style={{ position: 'absolute', left: 54, top: 278 }} />
-      {/* pv-block-end:m7ibt8 */}
-      
-      {/* pv-block-start:i0xna3 */}
-      <Checkbox data-pv-block="i0xna3" data-pv-sketchpad-el="i0xna3" primaryText="Accept terms" style={{ position: 'absolute', left: 123, top: 529 }} />
-      {/* pv-block-end:i0xna3 */}
-        {/* pv-block-start:dcbyv2 */}
-        <Avatar data-pv-block="dcbyv2" data-pv-sketchpad-el="dcbyv2" style={{ position: 'absolute', left: 100, top: 100 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
-        {/* pv-block-end:dcbyv2 */}
       {/* pv-editable-zone-end:rtzayt */}
     </div>
   );
