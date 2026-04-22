@@ -55,15 +55,15 @@
         },
         {
           "id": "frame-generate-file-loading-copy",
-          "name": "generate-file-loading Copy",
+          "name": "import-importing-in-progress",
           "width": 1440,
           "height": 900,
-          "canvasX": 7549,
-          "canvasY": 2540
+          "canvasX": 7625,
+          "canvasY": 2514
         },
         {
           "id": "frame-pkowi1",
-          "name": "import-file-form",
+          "name": "import-file-form-file-uploaded",
           "width": 1440,
           "height": 900,
           "canvasX": 5934,
@@ -87,7 +87,7 @@
         },
         {
           "id": "frame-kgnokg",
-          "name": "generate-file-done Copy",
+          "name": "import-done",
           "width": 1440,
           "height": 900,
           "canvasX": 12465,

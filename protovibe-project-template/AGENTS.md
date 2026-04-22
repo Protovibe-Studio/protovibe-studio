@@ -9,6 +9,23 @@ When building out application pages (e.g., `Dashboard.tsx`, `App.tsx`), Protovib
 ### Rule: Always check component definitions from component/ui folder before using them
 Never guess the components structure! Always read the files from @src/components/ui before creating a new view.
 
+### Rule: Always add granular Protovibe comment block tags
+* **❌ BAD: No pv blocks
+
+  ```jsx
+    <span>Welcome!</span>
+  ```
+
+* **✅ GOOD: Individual block that user should be able to reorder or delete is in pv-editable-zone and pv-block
+
+  ```jsx
+  {/* pv-editable-zone-start:x1y2z3 */}
+    {/* pv-block-start:a4b5c6 */}
+    <span data-pv-block="a4b5c6">Welcome!</span>
+    {/* pv-block-end:a4b5c6 */}
+  {/* pv-editable-zone-end:x1y2z3 */}
+  ```  
+
 ### Rule: Zone and Block IDs in Application Pages
 
 When writing blocks anywhere outside a component's `PvDefaultContent` definition, you MUST manually assign a matching random 6-character alphanumeric ID to the comment tags and the root element's `data-pv-block` attribute. Without IDs, the visual builder's Cut, Copy, and Delete actions will fail.
