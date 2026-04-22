@@ -73,7 +73,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   const dropdownElRef = useRef<HTMLDivElement | null>(null);
   const pendingBlurValueRef = useRef<string | null>(null);
   const lastCommittedValueRef = useRef(value === '-' ? '' : value);
-  const keyboardNavRef = useRef(false);
+  const scrollTriggerRef = useRef<'keyboard' | 'typing' | 'mouse' | null>(null);
   const canUseDOM = typeof document !== 'undefined';
 
   const safeDropdownStyle = useMemo(() => {
@@ -193,12 +193,12 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (activeIndex >= 0 && dropdownElRef.current) {
       const activeEl = dropdownElRef.current.querySelector(`[data-index="${activeIndex}"]`) as HTMLElement;
       if (activeEl) {
-        if (keyboardNavRef.current) {
+        if (scrollTriggerRef.current === 'keyboard') {
           activeEl.scrollIntoView({ block: 'nearest' });
-          keyboardNavRef.current = false; // Reset for next interaction
-        } else {
+        } else if (scrollTriggerRef.current === 'typing') {
           activeEl.scrollIntoView({ block: 'start' });
         }
+        // If scrollTriggerRef.current === 'mouse', do not scroll at all to prevent hover-loops.
       }
     }
   }, [activeIndex]);
@@ -224,7 +224,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      keyboardNavRef.current = true;
+      scrollTriggerRef.current = 'keyboard';
       if (!isOpen) setIsOpen(true);
       const next = activeIndex === -1 ? 0 : Math.min(activeIndex + 1, renderableOptions.length - 1);
       setLocalValue(renderableOptions[next].val);
@@ -232,7 +232,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      keyboardNavRef.current = true;
+      scrollTriggerRef.current = 'keyboard';
       if (!isOpen) setIsOpen(true);
       const prev = activeIndex === -1 ? 0 : Math.max(activeIndex - 1, 0);
       setLocalValue(renderableOptions[prev].val);
@@ -259,7 +259,10 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           borderBottom: `1px solid ${theme.border_secondary}`,
           background: isActive ? theme.accent_default : 'transparent',
         }}
-        onMouseEnter={() => setActiveIndex(index)}
+        onMouseEnter={() => {
+          scrollTriggerRef.current = 'mouse';
+          setActiveIndex(index);
+        }}
         onMouseLeave={() => setActiveIndex(-1)}
       >
         {renderOption ? (
@@ -291,6 +294,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         type="text"
         value={localValue}
         onChange={(e) => {
+          scrollTriggerRef.current = 'typing';
           setLocalValue(e.target.value);
         }}
         onKeyDown={handleKeyDown}

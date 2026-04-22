@@ -7,6 +7,12 @@ export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:wial0k */}
+        {/* pv-block-start:7nzgcf */}
+        <Rectangle data-pv-block="7nzgcf" data-pv-sketchpad-el="7nzgcf" style={{ position: 'absolute', left: 174, top: 212 }} className="w-[200px] h-[200px] bg-background-primary">
+          {/* pv-editable-zone-start:44z15z */}
+          {/* pv-editable-zone-end:44z15z */}
+        </Rectangle>
+        {/* pv-block-end:7nzgcf */}
       {/* pv-editable-zone-end:wial0k */}
     </div>
   );
