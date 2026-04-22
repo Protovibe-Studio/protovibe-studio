@@ -974,6 +974,46 @@ export function SketchpadApp() {
             border-radius: 999px;
             background: ${theme.border_default};
           }
+
+          .sketchpad-toolbar-button {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: var(--font-sans, system-ui, sans-serif);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.15s;
+            outline: none;
+            border: 1px solid ${theme.border_default};
+            background: ${theme.bg_strong};
+            color: ${theme.text_secondary};
+          }
+
+          .sketchpad-toolbar-button:hover {
+            border-color: ${theme.border_accent};
+            background: ${theme.bg_secondary};
+            color: ${theme.text_default};
+          }
+
+          .sketchpad-toolbar-button:active {
+            background: ${theme.bg_tertiary};
+            transform: translateY(1px);
+          }
+
+          .sketchpad-toolbar-button.is-active {
+            border-color: ${theme.border_accent};
+            background: #1e3040; /* More solid dark blue background instead of transparent accent_low */
+            color: ${theme.accent_default};
+          }
+
+          .sketchpad-toolbar-button.is-active:hover {
+            background: #253d52;
+          }
         `}
       </style>
 
@@ -1208,25 +1248,7 @@ const ToolbarButton = React.forwardRef<
       data-testid={testId}
       onClick={onClick}
       title={title}
-      style={{
-        width: 36,
-        height: 36,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-        border: `1px solid ${isActive ? theme.border_accent : theme.border_default}`,
-        background: isActive ? theme.accent_low : theme.bg_strong,
-        color: isActive ? theme.accent_default : theme.text_secondary,
-        cursor: 'pointer',
-        fontSize: 16,
-        fontWeight: 600,
-        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-        transition: 'background 0.15s, color 0.15s, border-color 0.15s',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.border_accent; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = isActive ? theme.border_accent : theme.border_default; }}
+      className={`sketchpad-toolbar-button ${isActive ? 'is-active' : ''}`}
     >
       {label}
     </button>
