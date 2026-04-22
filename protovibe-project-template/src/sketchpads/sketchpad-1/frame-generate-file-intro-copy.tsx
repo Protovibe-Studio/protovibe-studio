@@ -57,19 +57,19 @@ export default function Frame1() {
                 <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="eel6bk" primaryText="" />
                 {/* pv-block-end:eel6bk */}
                 {/* pv-block-start:ldmppg */}
-                <MultiSelectDropdown menuOpen="Open temporarily for visual editing"  data-pv-block="ldmppg"  placeholder="Select..." value="alice,bob">
+                <MultiSelectDropdown menuOpen="Open temporarily for visual editing"  data-pv-block="ldmppg"  placeholder="Select..." value="all">
                   {/* pv-editable-zone-start:qxnsyn */}
                     {/* pv-block-start:e22vfj */}
                     <SelectDropdownSearch data-pv-block="e22vfj" placeholder="Search people..." />
                     {/* pv-block-end:e22vfj */}
                     {/* pv-block-start:fxw1kv */}
-                    <MultiSelectDropdownItem data-pv-block="fxw1kv" value="alice" label="All" badgeLabel="Design" />
+                    <MultiSelectDropdownItem data-pv-block="fxw1kv" value="all" label="All" badgeLabel="Design" />
                     {/* pv-block-end:fxw1kv */}
                     {/* pv-block-start:ms4sjs */}
-                    <MultiSelectDropdownItem data-pv-block="ms4sjs" value="bob" label="Bob Smith" badgeLabel="Engineering" />
+                    <MultiSelectDropdownItem data-pv-block="ms4sjs" value="2" label="Backend Developer" badgeLabel="Engineering" />
                     {/* pv-block-end:ms4sjs */}
                     {/* pv-block-start:m1d65b */}
-                    <MultiSelectDropdownItem data-pv-block="m1d65b" value="carol" label="Carol Davis" badgeLabel="Marketing" />
+                    <MultiSelectDropdownItem data-pv-block="m1d65b" value="3" label="Senior Backend Developer" badgeLabel="Marketing" />
                     {/* pv-block-end:m1d65b */}
                   {/* pv-editable-zone-end:qxnsyn */}
                 </MultiSelectDropdown>

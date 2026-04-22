@@ -13,7 +13,7 @@ export default function Frame3() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:tk01b8 */}
         {/* pv-block-start:943pgr */}
-        <MultiSelectDropdown data-pv-block="943pgr" data-pv-sketchpad-el="943pgr" style={{ position: 'absolute', width: 458, left: 85, top: 137 }} placeholder="Select..." value="alice,bob">
+        <MultiSelectDropdown  data-pv-block="943pgr" data-pv-sketchpad-el="943pgr" style={{ position: 'absolute', width: 458, left: 85, top: 137 }} placeholder="Select..." value="alice,bob">
           {/* pv-editable-zone-start:qxnsyn */}
             {/* pv-block-start:izx74i */}
             <SelectDropdownSearch data-pv-block="izx74i" placeholder="Search people..." />

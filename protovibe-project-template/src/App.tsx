@@ -145,6 +145,24 @@ function DashboardPage() {
         {/* pv-block-start:q0b5zn */}
         <ToggleSwitch data-pv-block="q0b5zn" primaryText="Enable feature" />
         {/* pv-block-end:q0b5zn */}
+        {/* pv-block-start:ggfppw */}
+        <SelectDropdown data-pv-block="ggfppw" placeholder="Select an option" >
+          {/* pv-editable-zone-start:63b0lh */}
+            {/* pv-block-start:kxad94 */}
+            <SelectDropdownSearch data-pv-block="kxad94" placeholder="Search..." />
+            {/* pv-block-end:kxad94 */}
+            {/* pv-block-start:7068rr */}
+            <DropdownItem data-pv-block="7068rr" value="opt1" label="Option One" selected={false} />
+            {/* pv-block-end:7068rr */}
+            {/* pv-block-start:5pjwz1 */}
+            <DropdownItem data-pv-block="5pjwz1" value="opt2" label="Option Two" selected={false} />
+            {/* pv-block-end:5pjwz1 */}
+            {/* pv-block-start:536a76 */}
+            <DropdownItem data-pv-block="536a76" value="opt3" label="Option Three" selected={false} />
+            {/* pv-block-end:536a76 */}
+          {/* pv-editable-zone-end:63b0lh */}
+        </SelectDropdown>
+        {/* pv-block-end:ggfppw */}
         {/* pv-block-start:llpliu */}
         <RadioGroup data-pv-block="llpliu" orientation="vertical" value="opt1">
           {/* pv-editable-zone-start:xljzdj */}

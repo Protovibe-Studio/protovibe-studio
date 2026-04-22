@@ -161,7 +161,7 @@ export function SelectDropdown({
         data-open={isOpen || isForcedOpen}
         data-error={error}
         data-disabled={disabled}
-        className={cn("flex min-h-10 items-center gap-2 border border-border-default bg-background-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-2 cursor-pointer transition-colors", className)}
+        className={cn("flex min-h-10 items-center gap-2 border border-border-default bg-background-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-2 cursor-pointer transition-colors relative", className)}
         onClick={(e) => {
           if (!disabled) setIsOpen((prev) => !prev);
           onClick?.(e);
@@ -203,17 +203,24 @@ export function SelectDropdown({
         <span className="inline-flex shrink-0 items-center justify-center opacity-50 text-foreground-default pointer-events-none">
           <Icon iconSymbol={isOpen || isForcedOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
         </span>
-      </div>
 
-      {isForcedOpen && (
-        <div className="mt-1 w-full relative z-50">
-          <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
-            <SelectDropdownMenu menuMinWidth={menuMinWidth}>
-              {enhancedChildren}
-            </SelectDropdownMenu>
-          </SelectDropdownSearchContext.Provider>
-        </div>
-      )}
+        {isForcedOpen && (
+          <div
+            className="absolute top-[calc(100%+4px)] left-0 z-50 min-w-full cursor-default"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SelectDropdownSearchContext.Provider value={{ query: searchQuery, setQuery: setSearchQuery }}>
+              <SelectDropdownMenu
+                menuMinWidth={menuMinWidth}
+                style={{ minWidth: '100%' }}
+              >
+                {enhancedChildren}
+              </SelectDropdownMenu>
+            </SelectDropdownSearchContext.Provider>
+          </div>
+        )}
+      </div>
 
       {!isForcedOpen && isOpen && portalTarget
         ? createPortal(
