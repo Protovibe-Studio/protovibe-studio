@@ -21,6 +21,7 @@ import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 import { Card } from '@/components/ui/card'
 import { Stepper } from '@/components/ui/stepper'
 import { StepperConnector } from '@/components/ui/stepper-connector'
+import { Container } from '@/components/ui/container'
 
 export default function Frame1() {
   return (
@@ -54,74 +55,46 @@ export default function Frame1() {
           {/* pv-block-start:e5voje */}
           <div data-pv-block="e5voje" className="flex flex-col p-5 gap-7">
             {/* pv-editable-zone-start:hb3knb */}
-              {/* pv-block-start:4qgtzj */}
-              <Stepper data-pv-block="4qgtzj" fullWidth={false}>
+              {/* pv-block-start:8vnpes */}
+              <Stepper data-pv-block="8vnpes" fullWidth={false}>
                 {/* pv-editable-zone-start:v4z32l */}
-                  {/* pv-block-start:ijci27 */}
-                  <StepCircle labelPosition="right" data-pv-block="ijci27" state="current" number={1} label="Details" />
-                  {/* pv-block-end:ijci27 */}
-                  {/* pv-block-start:ywwjbl */}
-                  <StepperConnector data-pv-block="ywwjbl" state="upcoming" />
-                  {/* pv-block-end:ywwjbl */}
-                  {/* pv-block-start:fm9a31 */}
-                  <StepCircle labelPosition="right" data-pv-block="fm9a31" state="upcoming" number={2} label="Review" />
-                  {/* pv-block-end:fm9a31 */}
-                  {/* pv-block-start:xy90vm */}
-                  <StepperConnector data-pv-block="xy90vm" state="upcoming" />
-                  {/* pv-block-end:xy90vm */}
-                  {/* pv-block-start:f46t1q */}
-                  <StepCircle labelPosition="right" data-pv-block="f46t1q" state="upcoming" number={3} label="Confirm" />
-                  {/* pv-block-end:f46t1q */}
+                  {/* pv-block-start:m13np6 */}
+                  <StepCircle labelPosition="right" data-pv-block="m13np6" state="done" number={1} label="Upload file" />
+                  {/* pv-block-end:m13np6 */}
+                  {/* pv-block-start:v16pbl */}
+                  <StepperConnector data-pv-block="v16pbl" state="upcoming" />
+                  {/* pv-block-end:v16pbl */}
+                  {/* pv-block-start:27weus */}
+                  <StepCircle labelPosition="right" data-pv-block="27weus" state="current" number={2} label="Preview skills" />
+                  {/* pv-block-end:27weus */}
+                  {/* pv-block-start:0ujm7q */}
+                  <StepperConnector data-pv-block="0ujm7q" state="upcoming" />
+                  {/* pv-block-end:0ujm7q */}
+                  {/* pv-block-start:wgqg5q */}
+                  <StepCircle labelPosition="right" data-pv-block="wgqg5q" state="upcoming" number={3} label="Apply changes" />
+                  {/* pv-block-end:wgqg5q */}
                 {/* pv-editable-zone-end:v4z32l */}
               </Stepper>
-              {/* pv-block-end:4qgtzj */}
+              {/* pv-block-end:8vnpes */}
               {/* pv-block-start:m7kral */}
               <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="m7kral" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:dy3ds8 */}
                 {/* pv-block-start:lvjh8x */}
-                <SuperLabel secondaryText="To ensure best quality, instruct AI what to expect in your file" heading="What's in your file?" data-pv-block="lvjh8x" primaryText="" />
+                <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
                 {/* pv-block-end:lvjh8x */}
-                {/* pv-block-start:h0syuq */}
-                <Card className="gap-1 p-3" data-pv-block="h0syuq">
-                  {/* pv-editable-zone-start:1m6n9j */}
-                    {/* pv-block-start:99s9fi */}
-                    <Checkbox data-pv-block="99s9fi" primaryText="Skills have a unique name and description" />
-                    {/* pv-block-end:99s9fi */}
 
-                    {/* pv-block-start:4qb8rq */}
-                    <Checkbox data-pv-block="4qb8rq" primaryText="Skills have proficiency levels (e.g. ‘Beginner’, ‘Intermediate’, ‘Expert’ or ‘P1’, ‘P2’, ‘P3’)" />
-                    {/* pv-block-end:4qb8rq */}
-
-                    {/* pv-block-start:ee1b16 */}
-                    <Checkbox data-pv-block="ee1b16" primaryText="Each proficiency level have a description what is expected" />
-                    {/* pv-block-end:ee1b16 */}
-
-                    {/* pv-block-start:7bjwj7 */}
-                    <Checkbox data-pv-block="7bjwj7" primaryText="Positions are associated with a skill and its proficiency level" />
-                    {/* pv-block-end:7bjwj7 */}
-
-                    {/* pv-block-start:vmz009 */}
-                    <Checkbox data-pv-block="vmz009" primaryText="Skills are grouped into categories (such as ‘Soft skills” or ‘Technical skills’)" />
-                    {/* pv-block-end:vmz009 */}
-                  {/* pv-editable-zone-end:1m6n9j */}
-                </Card>
-                {/* pv-block-end:h0syuq */}
+                {/* pv-block-start:e6ic84 */}
+                <SuperLabel secondaryText="" heading="(We will do this later)" data-pv-block="e6ic84" primaryText="" />
+                {/* pv-block-end:e6ic84 */}
                 {/* pv-editable-zone-end:dy3ds8 */}
               </div>
               {/* pv-block-end:m7kral */}
-
-              {/* pv-block-start:41v8rx */}
-              <div data-pv-block="41v8rx" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:dy3ds8 */}
-                {/* pv-block-start:qj0y8m */}
-                <SuperLabel secondaryText="For example, what methodologies you plan to use, what industry you’re in." heading="Additonal instructions for AI" data-pv-block="qj0y8m" primaryText="" />
-                {/* pv-block-end:qj0y8m */}
-                {/* pv-block-start:9e2lqw */}
-                <Textarea data-pv-block="9e2lqw" placeholder="Optional" />
-                {/* pv-block-end:9e2lqw */}
-                {/* pv-editable-zone-end:dy3ds8 */}
-              </div>
-              {/* pv-block-end:41v8rx */}
+              {/* pv-block-start:vs3109 */}
+              <Container data-pv-block="vs3109">
+                {/* pv-editable-zone-start:gvn75e */}
+                {/* pv-editable-zone-end:gvn75e */}
+              </Container>
+              {/* pv-block-end:vs3109 */}
             {/* pv-editable-zone-end:hb3knb */}
           </div>
           {/* pv-block-end:e5voje */}

@@ -76,6 +76,22 @@
           "height": 900,
           "canvasX": 9196,
           "canvasY": 2526
+        },
+        {
+          "id": "frame-sxq9ea",
+          "name": "import-importing",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 10834,
+          "canvasY": 2524
+        },
+        {
+          "id": "frame-kgnokg",
+          "name": "generate-file-done Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 12465,
+          "canvasY": 2528
         }
       ]
     },

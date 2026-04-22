@@ -58,19 +58,19 @@ export default function Frame1() {
               <Stepper data-pv-block="inbixm" fullWidth={false}>
                 {/* pv-editable-zone-start:v4z32l */}
                   {/* pv-block-start:j2037q */}
-                  <StepCircle labelPosition="right" data-pv-block="j2037q" state="current" number={1} label="Details" />
+                  <StepCircle labelPosition="right" data-pv-block="j2037q" state="current" number={1} label="Upload file" />
                   {/* pv-block-end:j2037q */}
                   {/* pv-block-start:prdr4d */}
                   <StepperConnector data-pv-block="prdr4d" state="upcoming" />
                   {/* pv-block-end:prdr4d */}
                   {/* pv-block-start:b1mzqk */}
-                  <StepCircle labelPosition="right" data-pv-block="b1mzqk" state="upcoming" number={2} label="Review" />
+                  <StepCircle labelPosition="right" data-pv-block="b1mzqk" state="upcoming" number={2} label="Preview skills" />
                   {/* pv-block-end:b1mzqk */}
                   {/* pv-block-start:9r4yey */}
                   <StepperConnector data-pv-block="9r4yey" state="upcoming" />
                   {/* pv-block-end:9r4yey */}
                   {/* pv-block-start:tsf3yd */}
-                  <StepCircle labelPosition="right" data-pv-block="tsf3yd" state="upcoming" number={3} label="Confirm" />
+                  <StepCircle labelPosition="right" data-pv-block="tsf3yd" state="upcoming" number={3} label="Apply changes" />
                   {/* pv-block-end:tsf3yd */}
                 {/* pv-editable-zone-end:v4z32l */}
               </Stepper>

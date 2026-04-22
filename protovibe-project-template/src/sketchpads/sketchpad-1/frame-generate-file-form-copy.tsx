@@ -54,27 +54,27 @@ export default function Frame1() {
           {/* pv-block-start:cozohu */}
           <div data-pv-block="cozohu" className="flex flex-col p-5 gap-7">
             {/* pv-editable-zone-start:1907kq */}
-              {/* pv-block-start:68199b */}
-              <Stepper data-pv-block="68199b" fullWidth={false}>
+              {/* pv-block-start:h1e3bn */}
+              <Stepper data-pv-block="h1e3bn" fullWidth={false}>
                 {/* pv-editable-zone-start:v4z32l */}
-                  {/* pv-block-start:wybt4u */}
-                  <StepCircle labelPosition="right" data-pv-block="wybt4u" state="current" number={1} label="Details" />
-                  {/* pv-block-end:wybt4u */}
-                  {/* pv-block-start:o9bj8n */}
-                  <StepperConnector data-pv-block="o9bj8n" state="upcoming" />
-                  {/* pv-block-end:o9bj8n */}
-                  {/* pv-block-start:0kh66m */}
-                  <StepCircle labelPosition="right" data-pv-block="0kh66m" state="upcoming" number={2} label="Review" />
-                  {/* pv-block-end:0kh66m */}
-                  {/* pv-block-start:1646vz */}
-                  <StepperConnector data-pv-block="1646vz" state="upcoming" />
-                  {/* pv-block-end:1646vz */}
-                  {/* pv-block-start:col9vn */}
-                  <StepCircle labelPosition="right" data-pv-block="col9vn" state="upcoming" number={3} label="Confirm" />
-                  {/* pv-block-end:col9vn */}
+                  {/* pv-block-start:jteecl */}
+                  <StepCircle labelPosition="right" data-pv-block="jteecl" state="current" number={1} label="Upload file" />
+                  {/* pv-block-end:jteecl */}
+                  {/* pv-block-start:s7bgd8 */}
+                  <StepperConnector data-pv-block="s7bgd8" state="upcoming" />
+                  {/* pv-block-end:s7bgd8 */}
+                  {/* pv-block-start:kar3j0 */}
+                  <StepCircle labelPosition="right" data-pv-block="kar3j0" state="upcoming" number={2} label="Preview skills" />
+                  {/* pv-block-end:kar3j0 */}
+                  {/* pv-block-start:179spq */}
+                  <StepperConnector data-pv-block="179spq" state="upcoming" />
+                  {/* pv-block-end:179spq */}
+                  {/* pv-block-start:dlc7vi */}
+                  <StepCircle labelPosition="right" data-pv-block="dlc7vi" state="upcoming" number={3} label="Apply changes" />
+                  {/* pv-block-end:dlc7vi */}
                 {/* pv-editable-zone-end:v4z32l */}
               </Stepper>
-              {/* pv-block-end:68199b */}
+              {/* pv-block-end:h1e3bn */}
 
               {/* pv-block-start:v2w9lh */}
               <div data-pv-block="v2w9lh" className="flex flex-col gap-2">
@@ -106,7 +106,6 @@ export default function Frame1() {
                       {/* pv-editable-zone-end:vhplpm */}
                     </div>
                     {/* pv-block-end:aa013h */}
-
                   {/* pv-editable-zone-end:fzw0z4 */}
                 </div>
                 {/* pv-block-end:bkeq1m */}
