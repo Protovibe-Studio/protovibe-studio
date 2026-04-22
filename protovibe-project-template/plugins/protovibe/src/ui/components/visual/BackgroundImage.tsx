@@ -206,27 +206,49 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
     });
   };
 
-  /** Replace only the bg-[url(...)] class, keeping size/position/repeat/aspect intact */
+  /** Replace the bg-[url(...)] class, and update aspect ratio if it was set */
   const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !activeData?.file) return;
 
     setUploading(true);
     try {
-      const url = await uploadImage(file);
+      const [url, dims] = await Promise.all([uploadImage(file), getImageDimensions(file)]);
       const currentContextPrefix = buildContextPrefix(activeModifiers);
-      const newClass = `${currentContextPrefix}bg-[url('${url}')]`;
-      const oldClass = v.bgImage_original || '';
+
+      const oldImageClass = v.bgImage_original || '';
+      const newImageClass = `${currentContextPrefix}bg-[url('${url}')]`;
+
+      const oldAspectClass = v.aspectRatio_original || '';
+      let newAspectClass = '';
+
+      if (oldAspectClass && dims.w && dims.h) {
+        const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+        const d = gcd(Math.round(dims.w), Math.round(dims.h));
+        newAspectClass = `${currentContextPrefix}aspect-[${Math.round(dims.w / d)}/${Math.round(dims.h / d)}]`;
+      }
 
       await runLockedMutation(async () => {
         await takeSnapshot(activeData.file, activeSourceId!);
-        await updateSource({
-          ...activeData,
-          id: activeSourceId!,
-          oldClass,
-          newClass,
-          action: oldClass ? 'edit' : 'add',
-        });
+
+        if (oldAspectClass) {
+          await updateSource({
+            ...activeData,
+            id: activeSourceId!,
+            oldClasses: [oldImageClass, oldAspectClass].filter(Boolean),
+            oldClass: '',
+            newClass: [newImageClass, newAspectClass].filter(Boolean).join(' '),
+            action: 'replace-multiple',
+          });
+        } else {
+          await updateSource({
+            ...activeData,
+            id: activeSourceId!,
+            oldClass: oldImageClass,
+            newClass: newImageClass,
+            action: oldImageClass ? 'edit' : 'add',
+          });
+        }
       });
     } catch (err) {
       console.error('[BackgroundImage] Replace failed:', err);
