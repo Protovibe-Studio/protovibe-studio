@@ -33,10 +33,10 @@ export function SuperLabel({
           </span>
         )}
         {primaryText && (
-          <span className="text-sm font-medium text-foreground-default">{primaryText}</span>
+          <span className="text-foreground-default font-normal text-base">{primaryText}</span>
         )}
         {secondaryText && (
-          <span className="text-xs text-foreground-secondary">{secondaryText}</span>
+          <span className="text-foreground-secondary text-sm">{secondaryText}</span>
         )}
       </div>
       {suffixIcon && <Icon iconSymbol={suffixIcon} size="sm" className="text-foreground-tertiary" />}

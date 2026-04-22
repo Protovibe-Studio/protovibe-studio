@@ -160,7 +160,7 @@ export default function Frame1() {
           </div>
           {/* pv-block-end:k4mn1h */}
           {/* pv-block-start:u9rjmz */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center p-5 gap-4 justify-between" data-pv-block="u9rjmz">
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-between py-3 px-5" data-pv-block="u9rjmz">
             {/* pv-editable-zone-start:inside-u9rjmz */}
               {/* pv-block-start:iozn25 */}
               <Checkbox data-pv-block="iozn25" primaryText="Don't show this intro again" />

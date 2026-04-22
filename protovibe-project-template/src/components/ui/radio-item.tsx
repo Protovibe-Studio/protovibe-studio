@@ -52,12 +52,7 @@ export function RadioItem({
       data-disabled={disabled}
       data-error={error}
       data-value={value}
-      className={cn(
-        'flex flex-col gap-1 cursor-pointer rounded-md',
-        'data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50',
-        'data-[error=true]:bg-background-destructive-subtle',
-        className
-      )}
+      className={cn("flex flex-col gap-1 cursor-pointer data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 data-[error=true]:bg-background-destructive-subtle rounded", className)}
       onClick={handleClick}
       {...props}
       data-pv-component-id="RadioItem"

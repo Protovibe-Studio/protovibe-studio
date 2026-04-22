@@ -7,6 +7,14 @@ import { StepCircle } from '@/components/ui/step-circle'
 import { TextParagraph } from '@/components/ui/text-paragraph'
 import { Image } from '@/components/ui/image'
 import { Avatar } from '@/components/ui/avatar'
+import { SuperLabel } from '@/components/ui/super-label'
+import { SelectDropdown } from '@/components/ui/select-dropdown'
+import { DropdownItem } from '@/components/ui/dropdown-item'
+import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioItem } from '@/components/ui/radio-item'
+import { Textarea } from '@/components/ui/textarea'
+import { Icon } from '@/components/ui/icon'
 
 export default function Frame1() {
   return (
@@ -15,171 +23,234 @@ export default function Frame1() {
       {/* pv-block-start:sdaeec */}
       <DialogWindow size="xl" data-pv-block="sdaeec" data-pv-sketchpad-el="sdaeec"  style={{ position: 'absolute', left: 300, top: 146 }}>
         {/* pv-editable-zone-start:tw6q5w */}
-          {/* pv-block-start:pmsui8 */}
-          <div data-pv-block="pmsui8" className="flex flex-col gap-2 p-12">
-            {/* pv-editable-zone-start:9fo3ep */}
-              {/* pv-block-start:cjnh0t */}
-              <div data-pv-block="cjnh0t" className="flex flex-row items-start gap-16">
-                {/* pv-editable-zone-start:w3mswu */}
-                {/* pv-block-start:fh2cz9 */}
-                <div data-pv-block="fh2cz9" className="flex flex-col gap-8">
-                {/* pv-editable-zone-start:9nk40i */}
-                {/* pv-block-start:euoh13 */}
-                <div data-pv-block="euoh13" className="flex flex-col gap-4">
-                {/* pv-editable-zone-start:dt5pv2 */}
-                {/* pv-block-start:ozzkoi */}
-                <h2 data-pv-block="ozzkoi" className="text-xl font-semibold text-foreground-default">
-                <span></span><span></span>Generate suggested skills in a spreadsheet
-                </h2>
-                {/* pv-block-end:ozzkoi */}
-                {/* pv-block-start:q9lpow */}
-                <TextParagraph className="pt-0.5" data-pv-block="q9lpow" typography="regular">
-                  <span></span>Don’t have a document that defines skills in your company yet? No worries, we can help you kick-off this project!
-                </TextParagraph>
-                {/* pv-block-end:q9lpow */}
-                {/* pv-editable-zone-end:dt5pv2 */}
-                </div>
-                {/* pv-block-end:euoh13 */}
-                {/* pv-block-start:ou8phh */}
-                <div data-pv-block="ou8phh" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:016r5z */}
-                {/* pv-block-start:zwi4vp */}
-                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="zwi4vp">
-                {/* pv-editable-zone-start:pioaf5 */}
-                {/* pv-block-start:ccoyu8 */}
-                <div data-pv-block="ccoyu8" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:adgjak */}
-                {/* pv-block-start:imooe8 */}
-                <StepCircle data-pv-block="imooe8" state="current" number={1} />
-                {/* pv-block-end:imooe8 */}
-                {/* pv-block-start:2v63k8 */}
-                <TextParagraph className="pt-0.5" data-pv-block="2v63k8" typography="regular">
-                  <span></span><span></span>Generate a file with all your positions and suggested skills
-                </TextParagraph>
-                {/* pv-block-end:2v63k8 */}
-                {/* pv-editable-zone-end:adgjak */}
-                </div>
-                {/* pv-block-end:ccoyu8 */}
-                
-                  {/* pv-block-start:o7xc5z */}
-                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="o7xc5z">
-                    {/* pv-editable-zone-start:a0c5v2 */}
-                      {/* pv-block-start:56o06f */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="56o06f">
-                        {/* pv-editable-zone-start:0rqr5t */}
-                        {/* pv-editable-zone-end:0rqr5t */}
-                      </div>
-                      {/* pv-block-end:56o06f */}
-                    {/* pv-editable-zone-end:a0c5v2 */}
-                  </div>
-                  {/* pv-block-end:o7xc5z */}
-                {/* pv-editable-zone-end:pioaf5 */}
-                </div>
-                {/* pv-block-end:zwi4vp */}
-
-                {/* pv-block-start:gymrke */}
-                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="gymrke">
-                {/* pv-editable-zone-start:thgz3j */}
-                {/* pv-block-start:knjumq */}
-                <div data-pv-block="knjumq" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:adgjak */}
-                {/* pv-block-start:xa7c1x */}
-                <StepCircle data-pv-block="xa7c1x" state="current" number={1} />
-                {/* pv-block-end:xa7c1x */}
-                {/* pv-block-start:8p3sxf */}
-                <TextParagraph className="pt-0.5" data-pv-block="8p3sxf" typography="regular">
-                  <span></span>Collaborate on the file in your favourite tools, like Google Sheets
-                </TextParagraph>
-                {/* pv-block-end:8p3sxf */}
-                {/* pv-editable-zone-end:adgjak */}
-                </div>
-                {/* pv-block-end:knjumq */}
-                
-                  {/* pv-block-start:7cwhe6 */}
-                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="7cwhe6">
-                    {/* pv-editable-zone-start:vkndww */}
-                      {/* pv-block-start:b52day */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="b52day">
-                        {/* pv-editable-zone-start:9pufgw */}
-                        {/* pv-editable-zone-end:9pufgw */}
-                      </div>
-                      {/* pv-block-end:b52day */}
-                    {/* pv-editable-zone-end:vkndww */}
-                  </div>
-                  {/* pv-block-end:7cwhe6 */}
-                {/* pv-editable-zone-end:thgz3j */}
-                </div>
-                {/* pv-block-end:gymrke */}
-
-                {/* pv-block-start:nzbrww */}
-                <div className="flex flex-col items-start relative pb-6 min-h-0" data-pv-block="nzbrww">
-                {/* pv-editable-zone-start:a1tw2p */}
-                {/* pv-block-start:j9uki5 */}
-                <div data-pv-block="j9uki5" className="flex gap-2 flex-row items-start justify-start">
-                {/* pv-editable-zone-start:adgjak */}
-                {/* pv-block-start:tt805b */}
-                <StepCircle data-pv-block="tt805b" state="current" number={1} />
-                {/* pv-block-end:tt805b */}
-                {/* pv-block-start:e0fmzo */}
-                <TextParagraph className="pt-0.5" data-pv-block="e0fmzo" typography="regular">
-                  <span></span>Once you’re done, import the file to Tellent HR
-                </TextParagraph>
-                {/* pv-block-end:e0fmzo */}
-                {/* pv-editable-zone-end:adgjak */}
-                </div>
-                {/* pv-block-end:j9uki5 */}
-                
-                  {/* pv-block-start:51vsdn */}
-                  <div className="flex-col w-6 items-center absolute top-8 bottom-0 min-h-2 hidden" data-pv-block="51vsdn">
-                    {/* pv-editable-zone-start:4anw3k */}
-                      {/* pv-block-start:m1zgyo */}
-                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="m1zgyo">
-                        {/* pv-editable-zone-start:ee04tw */}
-                        {/* pv-editable-zone-end:ee04tw */}
-                      </div>
-                      {/* pv-block-end:m1zgyo */}
-                    {/* pv-editable-zone-end:4anw3k */}
-                  </div>
-                  {/* pv-block-end:51vsdn */}
-                {/* pv-editable-zone-end:a1tw2p */}
-                </div>
-                {/* pv-block-end:nzbrww */}
-                {/* pv-editable-zone-end:016r5z */}
-                </div>
-                {/* pv-block-end:ou8phh */}
-                {/* pv-editable-zone-end:9nk40i */}
-                </div>
-                {/* pv-block-end:fh2cz9 */}
-                {/* pv-block-start:5wmibe */}
-                <Image data-pv-block="5wmibe" className="bg-cover bg-center bg-no-repeat w-full bg-[url('/src/images/from-protovibe/ai-spreadsheet-illustration.svg')] aspect-[133/174] max-w-[258px]" />
-                {/* pv-block-end:5wmibe */}
-                {/* pv-editable-zone-end:w3mswu */}
-              </div>
-              {/* pv-block-end:cjnh0t */}
-            {/* pv-editable-zone-end:9fo3ep */}
-          </div>
-          {/* pv-block-end:pmsui8 */}
           {/* pv-block-start:9la13c */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center p-5 gap-4 justify-between" data-pv-block="9la13c">
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="9la13c">
             {/* pv-editable-zone-start:2xmyp4 */}
-              {/* pv-block-start:5ypdw6 */}
-              <Checkbox data-pv-block="5ypdw6" primaryText="Don't show this intro again" />
-              {/* pv-block-end:5ypdw6 */}
-              {/* pv-block-start:rfu32z */}
-              <div data-pv-block="rfu32z" className="flex gap-2 flex-row">
-                {/* pv-editable-zone-start:e2sff4 */}
-                {/* pv-block-start:uiktns */}
-                <Button data-pv-block="uiktns" label="Cancel" variant="ghost" color="neutral" size="md"  />
-                {/* pv-block-end:uiktns */}
-                {/* pv-block-start:fgs6cw */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="fgs6cw" label="Let's start" variant="solid" color="primary" size="md"  />
-                {/* pv-block-end:fgs6cw */}
-                {/* pv-editable-zone-end:e2sff4 */}
+              {/* pv-block-start:wiwrw5 */}
+              <div data-pv-block="wiwrw5" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:dt5pv2 */}
+              {/* pv-block-start:sxnnbw */}
+              <h2 data-pv-block="sxnnbw" className="text-xl font-semibold text-foreground-default">
+              <span></span><span></span>Generate suggested skills in a spreadsheet
+              </h2>
+              {/* pv-block-end:sxnnbw */}
+              {/* pv-block-start:9ay3vt */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="9ay3vt" typography="regular">
+                <span></span><span></span><span></span>Get a template that already has suggested skills matching your positions. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+              </TextParagraph>
+              {/* pv-block-end:9ay3vt */}
+              {/* pv-editable-zone-end:dt5pv2 */}
               </div>
-              {/* pv-block-end:rfu32z */}
+              {/* pv-block-end:wiwrw5 */}
             {/* pv-editable-zone-end:2xmyp4 */}
           </div>
           {/* pv-block-end:9la13c */}
+          {/* pv-block-start:pmsui8 */}
+          <div data-pv-block="pmsui8" className="flex flex-col p-5 gap-7">
+            {/* pv-editable-zone-start:9fo3ep */}
+              {/* pv-block-start:7g6gk1 */}
+              <div data-pv-block="7g6gk1" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:or3y0q */}
+                {/* pv-block-start:eel6bk */}
+                <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="eel6bk" primaryText="" />
+                {/* pv-block-end:eel6bk */}
+                {/* pv-block-start:qfa58d */}
+                <SelectDropdown data-pv-block="qfa58d" placeholder="Select an option">
+                  {/* pv-editable-zone-start:vtz9zr */}
+                    {/* pv-block-start:8j0i5a */}
+                    <SelectDropdownSearch data-pv-block="8j0i5a" placeholder="Search..." />
+                    {/* pv-block-end:8j0i5a */}
+                    {/* pv-block-start:a8jyad */}
+                    <DropdownItem data-pv-block="a8jyad" value="opt1" label="Option One" selected={false} />
+                    {/* pv-block-end:a8jyad */}
+                    {/* pv-block-start:4bjygm */}
+                    <DropdownItem data-pv-block="4bjygm" value="opt2" label="Option Two" selected={false} />
+                    {/* pv-block-end:4bjygm */}
+                    {/* pv-block-start:f68eaj */}
+                    <DropdownItem data-pv-block="f68eaj" value="opt3" label="Option Three" selected={false} />
+                    {/* pv-block-end:f68eaj */}
+                  {/* pv-editable-zone-end:vtz9zr */}
+                </SelectDropdown>
+                {/* pv-block-end:qfa58d */}
+                {/* pv-editable-zone-end:or3y0q */}
+              </div>
+              {/* pv-block-end:7g6gk1 */}
+
+              {/* pv-block-start:fmnn7e */}
+              <div data-pv-block="fmnn7e" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:or3y0q */}
+                {/* pv-block-start:404k9n */}
+                <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="404k9n" primaryText="" />
+                {/* pv-block-end:404k9n */}
+                  {/* pv-block-start:qrdh7f */}
+                  <RadioGroup data-pv-block="qrdh7f" orientation="vertical" value="opt1">
+                    {/* pv-editable-zone-start:cygyr2 */}
+                      {/* pv-block-start:p40mmq */}
+                      <RadioItem data-pv-block="p40mmq" value="opt1" primaryText="Yes, fill the template with suggested skills"  />
+                      {/* pv-block-end:p40mmq */}
+                      {/* pv-block-start:m823s6 */}
+                      <RadioItem data-pv-block="m823s6" value="opt2" primaryText="No, get an empty template without example skills"  />
+                      {/* pv-block-end:m823s6 */}
+                    {/* pv-editable-zone-end:cygyr2 */}
+                  </RadioGroup>
+                  {/* pv-block-end:qrdh7f */}
+                {/* pv-editable-zone-end:or3y0q */}
+              </div>
+              {/* pv-block-end:fmnn7e */}
+
+              {/* pv-block-start:bb62pi */}
+              <div data-pv-block="bb62pi" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:or3y0q */}
+                {/* pv-block-start:tfzb3g */}
+                <SuperLabel secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" data-pv-block="tfzb3g" primaryText="" />
+                {/* pv-block-end:tfzb3g */}
+                {/* pv-block-start:pvjmg7 */}
+                <SelectDropdown data-pv-block="pvjmg7" placeholder="Select an option">
+                  {/* pv-editable-zone-start:vtz9zr */}
+                    {/* pv-block-start:03p0a3 */}
+                    <SelectDropdownSearch data-pv-block="03p0a3" placeholder="Search..." />
+                    {/* pv-block-end:03p0a3 */}
+                    {/* pv-block-start:5ax979 */}
+                    <DropdownItem data-pv-block="5ax979" value="opt1" label="Option One" selected={false} />
+                    {/* pv-block-end:5ax979 */}
+                    {/* pv-block-start:d8tv3a */}
+                    <DropdownItem data-pv-block="d8tv3a" value="opt2" label="Option Two" selected={false} />
+                    {/* pv-block-end:d8tv3a */}
+                    {/* pv-block-start:u04oe5 */}
+                    <DropdownItem data-pv-block="u04oe5" value="opt3" label="Option Three" selected={false} />
+                    {/* pv-block-end:u04oe5 */}
+                  {/* pv-editable-zone-end:vtz9zr */}
+                </SelectDropdown>
+                {/* pv-block-end:pvjmg7 */}
+                {/* pv-editable-zone-end:or3y0q */}
+              </div>
+              {/* pv-block-end:bb62pi */}
+
+              {/* pv-block-start:45ndt1 */}
+              <div data-pv-block="45ndt1" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:or3y0q */}
+                {/* pv-block-start:8gfm24 */}
+                <SuperLabel secondaryText="A lower number indicates a lower level." heading="Custom proficiency levels" data-pv-block="8gfm24" primaryText="" />
+                {/* pv-block-end:8gfm24 */}
+                {/* pv-block-start:4v3qaz */}
+                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="4v3qaz">
+                  {/* pv-editable-zone-start:w2v43y */}
+                    {/* pv-block-start:lhwc6d */}
+                    <Icon data-pv-block="lhwc6d" iconSymbol="mdi:drag-vertical" size="lg" />
+                    {/* pv-block-end:lhwc6d */}
+                    {/* pv-block-start:mk878m */}
+                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="mk878m">
+                      {/* pv-editable-zone-start:lczuef */}
+                        {/* pv-block-start:17ktzk */}
+                        <span data-pv-block="17ktzk">
+                          1
+                        </span>
+                        {/* pv-block-end:17ktzk */}
+                      {/* pv-editable-zone-end:lczuef */}
+                    </div>
+                    {/* pv-block-end:mk878m */}
+                    {/* pv-block-start:4zmjbv */}
+                    <Input data-pv-block="4zmjbv" placeholder="Proficiency level name, e.g. Beginner" />
+                    {/* pv-block-end:4zmjbv */}
+                    {/* pv-block-start:bpfr6l */}
+                    <Button leftIcon="mdi:close" iconOnly data-pv-block="bpfr6l" label="Button" variant="ghost" color="neutral" size="md" />
+                    {/* pv-block-end:bpfr6l */}
+                  {/* pv-editable-zone-end:w2v43y */}
+                </div>
+                {/* pv-block-end:4v3qaz */}
+
+                {/* pv-block-start:e2l3o6 */}
+                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="e2l3o6">
+                  {/* pv-editable-zone-start:w2v43y */}
+                    {/* pv-block-start:rr3pxh */}
+                    <Icon data-pv-block="rr3pxh" iconSymbol="mdi:drag-vertical" size="lg" />
+                    {/* pv-block-end:rr3pxh */}
+                    {/* pv-block-start:p533ek */}
+                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="p533ek">
+                      {/* pv-editable-zone-start:lczuef */}
+                        {/* pv-block-start:y2ft84 */}
+                        <span data-pv-block="y2ft84">
+                          2
+                        </span>
+                        {/* pv-block-end:y2ft84 */}
+                      {/* pv-editable-zone-end:lczuef */}
+                    </div>
+                    {/* pv-block-end:p533ek */}
+                    {/* pv-block-start:rutske */}
+                    <Input data-pv-block="rutske" placeholder="Proficiency level name, e.g. Beginner" />
+                    {/* pv-block-end:rutske */}
+                    {/* pv-block-start:eeww6b */}
+                    <Button leftIcon="mdi:close" iconOnly data-pv-block="eeww6b" label="Button" variant="ghost" color="neutral" size="md" />
+                    {/* pv-block-end:eeww6b */}
+                  {/* pv-editable-zone-end:w2v43y */}
+                </div>
+                {/* pv-block-end:e2l3o6 */}
+
+                {/* pv-block-start:iusjyg */}
+                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="iusjyg">
+                  {/* pv-editable-zone-start:w2v43y */}
+                    {/* pv-block-start:w73vbh */}
+                    <Icon data-pv-block="w73vbh" iconSymbol="mdi:drag-vertical" size="lg" />
+                    {/* pv-block-end:w73vbh */}
+                    {/* pv-block-start:r2su0r */}
+                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="r2su0r">
+                      {/* pv-editable-zone-start:lczuef */}
+                        {/* pv-block-start:y0lcl7 */}
+                        <span data-pv-block="y0lcl7">
+                          3
+                        </span>
+                        {/* pv-block-end:y0lcl7 */}
+                      {/* pv-editable-zone-end:lczuef */}
+                    </div>
+                    {/* pv-block-end:r2su0r */}
+                    {/* pv-block-start:oain13 */}
+                    <Input data-pv-block="oain13" placeholder="Proficiency level name, e.g. Beginner" />
+                    {/* pv-block-end:oain13 */}
+                    {/* pv-block-start:6i3uho */}
+                    <Button leftIcon="mdi:close" iconOnly data-pv-block="6i3uho" label="Button" variant="ghost" color="neutral" size="md" />
+                    {/* pv-block-end:6i3uho */}
+                  {/* pv-editable-zone-end:w2v43y */}
+                </div>
+                {/* pv-block-end:iusjyg */}
+                {/* pv-editable-zone-end:or3y0q */}
+              </div>
+              {/* pv-block-end:45ndt1 */}
+
+              {/* pv-block-start:y84j4i */}
+              <div data-pv-block="y84j4i" className="flex flex-col gap-2">
+                {/* pv-editable-zone-start:or3y0q */}
+                {/* pv-block-start:ra8wjw */}
+                <SuperLabel secondaryText="For example, what methodologies you plan to use, what industry you’re in." heading="Additonal instructions for AI" data-pv-block="ra8wjw" primaryText="" />
+                {/* pv-block-end:ra8wjw */}
+                {/* pv-block-start:fxmbq4 */}
+                <Textarea data-pv-block="fxmbq4" placeholder="Optional" />
+                {/* pv-block-end:fxmbq4 */}
+                {/* pv-editable-zone-end:or3y0q */}
+              </div>
+              {/* pv-block-end:y84j4i */}
+
+            {/* pv-editable-zone-end:9fo3ep */}
+          </div>
+          {/* pv-block-end:pmsui8 */}
+
+          {/* pv-block-start:1a6f2n */}
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5" data-pv-block="1a6f2n">
+            {/* pv-editable-zone-start:2xmyp4 */}
+              {/* pv-block-start:vsdapq */}
+              <div data-pv-block="vsdapq" className="flex gap-2 flex-row">
+                {/* pv-editable-zone-start:e2sff4 */}
+                {/* pv-block-start:kig1wi */}
+                <Button data-pv-block="kig1wi" label="Cancel" variant="ghost" color="neutral" size="md"  />
+                {/* pv-block-end:kig1wi */}
+                {/* pv-block-start:0z0827 */}
+                <Button rightIcon="mdi:arrow-right" data-pv-block="0z0827" label="Generate file" variant="solid" color="primary" size="md"  />
+                {/* pv-block-end:0z0827 */}
+                {/* pv-editable-zone-end:e2sff4 */}
+              </div>
+              {/* pv-block-end:vsdapq */}
+            {/* pv-editable-zone-end:2xmyp4 */}
+          </div>
+          {/* pv-block-end:1a6f2n */}
         {/* pv-editable-zone-end:tw6q5w */}
       </DialogWindow>
       {/* pv-block-end:sdaeec */}
