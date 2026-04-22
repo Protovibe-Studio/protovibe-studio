@@ -20,6 +20,7 @@ import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-i
 import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 import { Stepper } from '@/components/ui/stepper'
 import { StepperConnector } from '@/components/ui/stepper-connector'
+import { Card } from '@/components/ui/card'
 
 export default function Frame1() {
   return (
@@ -81,6 +82,40 @@ export default function Frame1() {
                 {/* pv-block-start:0fqt9h */}
                 <SuperLabel secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" data-pv-block="0fqt9h" primaryText="" />
                 {/* pv-block-end:0fqt9h */}
+                {/* pv-block-start:bkeq1m */}
+                <div className="flex min-h-4 flex-row gap-2 rounded bg-background-primary-subtle p-3" data-pv-block="bkeq1m">
+                  {/* pv-editable-zone-start:fzw0z4 */}
+                    {/* pv-block-start:mgc6pa */}
+                    <div data-pv-block="mgc6pa" className="flex flex-col gap-2">
+                      {/* pv-editable-zone-start:a3ohvi */}
+                      {/* pv-block-start:72nslo */}
+                      <Icon className="text-background-primary-soft" data-pv-block="72nslo" iconSymbol="glyphs:sparkle-bold" size="md" />
+                      {/* pv-block-end:72nslo */}
+                      {/* pv-editable-zone-end:a3ohvi */}
+                    </div>
+                    {/* pv-block-end:mgc6pa */}
+
+                    {/* pv-block-start:aa013h */}
+                    <div data-pv-block="aa013h" className="flex flex-col gap-2">
+                      {/* pv-editable-zone-start:vhplpm */}
+                      {/* pv-block-start:4r4rdw */}
+                      <TextParagraph data-pv-block="4r4rdw" typography="secondary">
+                        <span></span><span></span>No special template is required, Tellent AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
+                      </TextParagraph>
+                      {/* pv-block-end:4r4rdw */}
+                      {/* pv-editable-zone-end:vhplpm */}
+                    </div>
+                    {/* pv-block-end:aa013h */}
+
+                  {/* pv-editable-zone-end:fzw0z4 */}
+                </div>
+                {/* pv-block-end:bkeq1m */}
+                {/* pv-block-start:rnkizt */}
+                <Card className="" data-pv-block="rnkizt">
+                  {/* pv-editable-zone-start:36ifif */}
+                  {/* pv-editable-zone-end:36ifif */}
+                </Card>
+                {/* pv-block-end:rnkizt */}
                 {/* pv-editable-zone-end:hikm6d */}
               </div>
               {/* pv-block-end:v2w9lh */}

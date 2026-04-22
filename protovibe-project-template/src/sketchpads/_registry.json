@@ -50,8 +50,23 @@
           "name": "import-file-form",
           "width": 1440,
           "height": 900,
-          "canvasX": 4293,
-          "canvasY": 2517
+          "canvasX": 4295,
+          "canvasY": 2523
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "name": "Test",
+      "createdAt": "2026-04-22T12:37:36.796Z",
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "Frame 1",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 0,
+          "canvasY": 0
         }
       ]
     }
