@@ -621,14 +621,14 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   const borderSideVal = (key: 'borderT' | 'borderR' | 'borderB' | 'borderL') => {
     const raw = v[key];
-    if (raw && raw !== '-') return raw;
+    if (raw && raw !== '-') return cleanVal(raw);
     // Fall back to all-sides shorthand so the box model always reflects effective value
     return cleanVal(v.borderWidth) || '';
   };
 
   const domBorderSideVal = (key: 'borderT' | 'borderR' | 'borderB' | 'borderL') => {
     const raw = domV?.[key];
-    if (raw && raw !== '-') return raw;
+    if (raw && raw !== '-') return cleanVal(raw);
     return cleanVal(domV?.borderWidth) || '';
   };
 
@@ -643,7 +643,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-mt"
           posStyle={centreH(pos.margin.top)}
-          value={v.mt === '-' ? '' : v.mt}
+          value={cleanVal(v.mt)}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mt)}
@@ -651,7 +651,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-mb"
           posStyle={centreH(pos.margin.bottom)}
-          value={v.mb === '-' ? '' : v.mb}
+          value={cleanVal(v.mb)}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mb)}
@@ -659,7 +659,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-ml"
           posStyle={centre(pos.margin.left)}
-          value={v.ml === '-' ? '' : v.ml}
+          value={cleanVal(v.ml)}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.ml)}
@@ -667,7 +667,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-mr"
           posStyle={centre(pos.margin.right)}
-          value={v.mr === '-' ? '' : v.mr}
+          value={cleanVal(v.mr)}
           onChange={(val, prevVal) => handleSpacingUpdate('m', 'r', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mr)}
@@ -715,7 +715,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-pt"
           posStyle={centreH(pos.padding.top)}
-          value={v.pt === '-' ? '' : v.pt}
+          value={cleanVal(v.pt)}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 't', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pt)}
@@ -723,7 +723,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-pb"
           posStyle={centreH(pos.padding.bottom)}
-          value={v.pb === '-' ? '' : v.pb}
+          value={cleanVal(v.pb)}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'b', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pb)}
@@ -731,7 +731,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-pl"
           posStyle={centre(pos.padding.left)}
-          value={v.pl === '-' ? '' : v.pl}
+          value={cleanVal(v.pl)}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'l', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pl)}
@@ -739,7 +739,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-pr"
           posStyle={centre(pos.padding.right)}
-          value={v.pr === '-' ? '' : v.pr}
+          value={cleanVal(v.pr)}
           onChange={(val, prevVal) => handleSpacingUpdate('p', 'r', val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pr)}
@@ -749,7 +749,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <SpacingAutocomplete
           testId="essentials-gap"
           posStyle={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-          value={v.gap === '-' ? '' : v.gap}
+          value={cleanVal(v.gap)}
           onChange={(val, prevVal) => handleGapUpdate(val, prevVal)}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.gap)}

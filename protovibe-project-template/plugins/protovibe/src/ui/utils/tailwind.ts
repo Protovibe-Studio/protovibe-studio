@@ -138,15 +138,18 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     const cls = typeof classObj === 'string' ? classObj : classObj.base;
     const originalClass = typeof classObj === 'string' ? classObj : classObj.original;
 
-    if (/^m[trblxy]?-/.test(cls) || cls.startsWith('m-')) {
+    const isNegMargin = cls.startsWith('-m');
+    const mCls = isNegMargin ? cls.slice(1) : cls;
+    if (/^m[trblxy]?-/.test(mCls) || mCls.startsWith('m-')) {
       orig.margin.push(originalClass);
-      if (cls.startsWith('m-')) { const val = cls.slice(2); v.mt=val; v.mr=val; v.mb=val; v.ml=val; }
-      else if (cls.startsWith('my-')) { const val = cls.slice(3); v.mt=val; v.mb=val; }
-      else if (cls.startsWith('mx-')) { const val = cls.slice(3); v.ml=val; v.mr=val; }
-      else if (cls.startsWith('mt-')) v.mt = cls.slice(3);
-      else if (cls.startsWith('mr-')) v.mr = cls.slice(3);
-      else if (cls.startsWith('mb-')) v.mb = cls.slice(3);
-      else if (cls.startsWith('ml-')) v.ml = cls.slice(3);
+      const sign = isNegMargin ? '-' : '';
+      if (mCls.startsWith('m-')) { const val = sign + mCls.slice(2); v.mt=val; v.mr=val; v.mb=val; v.ml=val; }
+      else if (mCls.startsWith('my-')) { const val = sign + mCls.slice(3); v.mt=val; v.mb=val; }
+      else if (mCls.startsWith('mx-')) { const val = sign + mCls.slice(3); v.ml=val; v.mr=val; }
+      else if (mCls.startsWith('mt-')) v.mt = sign + mCls.slice(3);
+      else if (mCls.startsWith('mr-')) v.mr = sign + mCls.slice(3);
+      else if (mCls.startsWith('mb-')) v.mb = sign + mCls.slice(3);
+      else if (mCls.startsWith('ml-')) v.ml = sign + mCls.slice(3);
     }
     else if (/^p[trblxy]?-/.test(cls) || cls.startsWith('p-')) {
       orig.padding.push(originalClass);
@@ -166,11 +169,11 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (cls.startsWith('max-h-')) { v.maxH = cls.replace('max-h-', ''); orig.maxH_original = originalClass; }
     else if (cls.startsWith('aspect-')) { v.aspectRatio = cls; orig.aspectRatio_original = originalClass; }
     else if (positions.includes(cls)) { v.position = cls; orig.position_original = originalClass; }
-    else if (cls.startsWith('top-')) { v.top = cls.replace('top-', ''); orig.top_original = originalClass; }
-    else if (cls.startsWith('right-')) { v.right = cls.replace('right-', ''); orig.right_original = originalClass; }
-    else if (cls.startsWith('bottom-')) { v.bottom = cls.replace('bottom-', ''); orig.bottom_original = originalClass; }
-    else if (cls.startsWith('left-')) { v.left = cls.replace('left-', ''); orig.left_original = originalClass; }
-    else if (cls.startsWith('z-')) { v.z = cls.replace('z-', ''); orig.z_original = originalClass; }
+    else if (/^-?top-/.test(cls)) { v.top = cls.replace(/^-?top-/, cls.startsWith('-') ? '-' : ''); orig.top_original = originalClass; }
+    else if (/^-?right-/.test(cls)) { v.right = cls.replace(/^-?right-/, cls.startsWith('-') ? '-' : ''); orig.right_original = originalClass; }
+    else if (/^-?bottom-/.test(cls)) { v.bottom = cls.replace(/^-?bottom-/, cls.startsWith('-') ? '-' : ''); orig.bottom_original = originalClass; }
+    else if (/^-?left-/.test(cls)) { v.left = cls.replace(/^-?left-/, cls.startsWith('-') ? '-' : ''); orig.left_original = originalClass; }
+    else if (/^-?z-/.test(cls)) { v.z = cls.replace(/^-?z-/, cls.startsWith('-') ? '-' : ''); orig.z_original = originalClass; }
     else if (displays.includes(cls)) { v.display = cls; orig.display_original = originalClass; }
     else if (flexes.includes(cls)) { v.flex = cls; orig.flex_original = originalClass; }
     else if (grows.includes(cls)) { v.flexGrow = cls; orig.flexGrow_original = originalClass; }
@@ -262,18 +265,26 @@ export function computeOptimalBorder(t: string, r: string, b: string, l: string)
 }
 
 export function computeOptimalSpacing(prefix: string, t: string, r: string, b: string, l: string) {
+  const toClass = (infix: string, val: string) => {
+    if (!val) return '';
+    const isNeg = val.startsWith('-');
+    const coreVal = isNeg ? val.slice(1) : val;
+    const sign = isNeg ? '-' : '';
+    return `${sign}${prefix}${infix}-${coreVal}`;
+  };
+
   let classes = [];
-  if (t && t === r && t === b && t === l) classes.push(`${prefix}-${t}`);
+  if (t && t === r && t === b && t === l) classes.push(toClass('', t));
   else {
-    if (t && t === b) classes.push(`${prefix}y-${t}`);
+    if (t && t === b) classes.push(toClass('y', t));
     else {
-      if (t) classes.push(`${prefix}t-${t}`);
-      if (b) classes.push(`${prefix}b-${b}`);
+      if (t) classes.push(toClass('t', t));
+      if (b) classes.push(toClass('b', b));
     }
-    if (l && l === r) classes.push(`${prefix}x-${l}`);
+    if (l && l === r) classes.push(toClass('x', l));
     else {
-      if (l) classes.push(`${prefix}l-${l}`);
-      if (r) classes.push(`${prefix}r-${r}`);
+      if (l) classes.push(toClass('l', l));
+      if (r) classes.push(toClass('r', r));
     }
   }
   return classes.join(' ');
@@ -283,10 +294,20 @@ export const makeSafe = (v: string) => {
   if (!v) return null;
   const s = String(v).trim();
   if (!s || s === '-') return null;
-  
-  if (/^[0-9.]+(px|rem|em|vh|vw|%)$/.test(s)) return `[${s}]`;
-  if (/^(#|rgb|rgba|hsl)/.test(s)) return `[${s}]`;
+
+  const isNeg = s.startsWith('-');
+  const core = isNeg ? s.slice(1) : s;
+  const sign = isNeg ? '-' : '';
+
+  if (/^[0-9.]+(px|rem|em|vh|vw|%)$/.test(core)) return `${sign}[${core}]`;
+  if (/^(#|rgb|rgba|hsl)/.test(core)) return `${sign}[${core}]`;
   return s;
 };
 
-export const cleanVal = (val: string) => (val && val !== '-') ? val.replace(/^\[|\]$/g, '') : '';
+export const cleanVal = (val: string) => {
+  if (!val || val === '-') return '';
+  const isNeg = val.startsWith('-');
+  const core = isNeg ? val.slice(1) : val;
+  const cleaned = core.replace(/^\[|\]$/g, '');
+  return isNeg ? `-${cleaned}` : cleaned;
+};

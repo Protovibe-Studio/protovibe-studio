@@ -44,10 +44,14 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
     // If it's a dash or empty, we treat it as removal (no new class)
     let newClass = '';
     if (safeVal && safeVal !== '-') {
-      if (safeVal === 'DEFAULT' && prefix.endsWith('-')) {
-        newClass = `${currentContextPrefix}${prefix.slice(0, -1)}`;
+      const isNeg = safeVal.startsWith('-');
+      const coreVal = isNeg ? safeVal.slice(1) : safeVal;
+      const sign = isNeg ? '-' : '';
+
+      if (coreVal === 'DEFAULT' && prefix.endsWith('-')) {
+        newClass = `${currentContextPrefix}${sign}${prefix.slice(0, -1)}`;
       } else {
-        newClass = `${currentContextPrefix}${prefix}${safeVal}`;
+        newClass = `${currentContextPrefix}${sign}${prefix}${coreVal}`;
       }
     }
 
@@ -56,8 +60,12 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
       if (!v || v === '-') return '';
       const cv = cleanVal(v);
       if (!cv) return '';
-      if (cv === 'DEFAULT' && prefix.endsWith('-')) return prefix.slice(0, -1);
-      return `${prefix}${cv}`;
+      const isNeg = cv.startsWith('-');
+      const coreCv = isNeg ? cv.slice(1) : cv;
+      const sign = isNeg ? '-' : '';
+
+      if (coreCv === 'DEFAULT' && prefix.endsWith('-')) return `${sign}${prefix.slice(0, -1)}`;
+      return `${sign}${prefix}${coreCv}`;
     };
 
     await runLockedMutation(async () => {
