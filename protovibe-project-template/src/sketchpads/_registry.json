@@ -58,8 +58,8 @@
           "name": "generate-file-loading Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 9203,
-          "canvasY": 2573
+          "canvasX": 7549,
+          "canvasY": 2540
         },
         {
           "id": "frame-pkowi1",
@@ -68,6 +68,14 @@
           "height": 900,
           "canvasX": 5934,
           "canvasY": 2520
+        },
+        {
+          "id": "frame-m2o15i",
+          "name": "import-review-skills",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9196,
+          "canvasY": 2526
         }
       ]
     },
@@ -77,12 +85,12 @@
       "createdAt": "2026-04-22T12:37:36.796Z",
       "frames": [
         {
-          "id": "frame-frame-1",
+          "id": "frame-wtstj8",
           "name": "Frame 1",
           "width": 1440,
           "height": 900,
-          "canvasX": 0,
-          "canvasY": 0
+          "canvasX": 95,
+          "canvasY": 282
         }
       ]
     }

@@ -736,7 +736,6 @@ export function SketchpadApp() {
       <InfiniteCanvas
         transform={transform}
         onTransformChange={setTransform}
-        onCanvasDoubleClick={handleCreateFrame}
         onCanvasContextMenu={(e) => e.preventDefault()}
       >
         {activeSketchpad?.frames.map((frame) => (
@@ -1104,7 +1103,7 @@ export function SketchpadApp() {
           }}
         >
           <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.5 }}>⊞</div>
-          <div>Double-click anywhere to create a frame</div>
+          <div>Click the + button above to create a frame</div>
         </div>
       )}
 

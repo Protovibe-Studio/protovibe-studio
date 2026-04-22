@@ -3,8 +3,8 @@
 export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {/* pv-editable-zone-start:gextwf */}
-      {/* pv-editable-zone-end:gextwf */}
+      {/* pv-editable-zone-start:wial0k */}
+      {/* pv-editable-zone-end:wial0k */}
     </div>
   );
 }

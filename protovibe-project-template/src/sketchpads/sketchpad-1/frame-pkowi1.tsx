@@ -19,6 +19,8 @@ import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
 import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
 import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 import { Card } from '@/components/ui/card'
+import { Stepper } from '@/components/ui/stepper'
+import { StepperConnector } from '@/components/ui/stepper-connector'
 
 export default function Frame1() {
   return (
@@ -27,31 +29,52 @@ export default function Frame1() {
       {/* pv-block-start:cs131a */}
       <DialogWindow size="xl" data-pv-block="cs131a" data-pv-sketchpad-el="cs131a"  style={{ position: 'absolute', left: 300, top: 146 }}>
         {/* pv-editable-zone-start:mi0z44 */}
-          {/* pv-block-start:tfsid0 */}
-          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="tfsid0">
-            {/* pv-editable-zone-start:zbrnm6 */}
-              {/* pv-block-start:5okuyu */}
-              <div data-pv-block="5okuyu" className="flex flex-col gap-0">
-              {/* pv-editable-zone-start:i2e0gp */}
-              {/* pv-block-start:rhkbpx */}
-              <h2 data-pv-block="rhkbpx" className="text-xl font-semibold text-foreground-default">
-              <span></span><span></span>Generate suggested skills in a spreadsheet
+          {/* pv-block-start:657op2 */}
+          <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="657op2">
+            {/* pv-editable-zone-start:t7nd3c */}
+              {/* pv-block-start:1qh7o4 */}
+              <div data-pv-block="1qh7o4" className="flex flex-col gap-0">
+              {/* pv-editable-zone-start:7l5x7c */}
+              {/* pv-block-start:q0aexa */}
+              <h2 data-pv-block="q0aexa" className="text-xl font-semibold text-foreground-default">
+                <span></span><span></span><span></span>Import skills to positions from a file
               </h2>
-              {/* pv-block-end:rhkbpx */}
-              {/* pv-block-start:ztipjl */}
-              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="ztipjl" typography="regular">
-                <span></span><span></span><span></span>Get a template that already has suggested skills matching your positions. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+              {/* pv-block-end:q0aexa */}
+              {/* pv-block-start:utdpi0 */}
+              <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="utdpi0" typography="regular">
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
               </TextParagraph>
-              {/* pv-block-end:ztipjl */}
-              {/* pv-editable-zone-end:i2e0gp */}
+              {/* pv-block-end:utdpi0 */}
+              {/* pv-editable-zone-end:7l5x7c */}
               </div>
-              {/* pv-block-end:5okuyu */}
-            {/* pv-editable-zone-end:zbrnm6 */}
+              {/* pv-block-end:1qh7o4 */}
+            {/* pv-editable-zone-end:t7nd3c */}
           </div>
-          {/* pv-block-end:tfsid0 */}
+          {/* pv-block-end:657op2 */}
           {/* pv-block-start:8vzh4t */}
           <div data-pv-block="8vzh4t" className="flex flex-col p-5 gap-7">
             {/* pv-editable-zone-start:zzgb3q */}
+              {/* pv-block-start:inbixm */}
+              <Stepper data-pv-block="inbixm" fullWidth={false}>
+                {/* pv-editable-zone-start:v4z32l */}
+                  {/* pv-block-start:j2037q */}
+                  <StepCircle labelPosition="right" data-pv-block="j2037q" state="current" number={1} label="Details" />
+                  {/* pv-block-end:j2037q */}
+                  {/* pv-block-start:prdr4d */}
+                  <StepperConnector data-pv-block="prdr4d" state="upcoming" />
+                  {/* pv-block-end:prdr4d */}
+                  {/* pv-block-start:b1mzqk */}
+                  <StepCircle labelPosition="right" data-pv-block="b1mzqk" state="upcoming" number={2} label="Review" />
+                  {/* pv-block-end:b1mzqk */}
+                  {/* pv-block-start:9r4yey */}
+                  <StepperConnector data-pv-block="9r4yey" state="upcoming" />
+                  {/* pv-block-end:9r4yey */}
+                  {/* pv-block-start:tsf3yd */}
+                  <StepCircle labelPosition="right" data-pv-block="tsf3yd" state="upcoming" number={3} label="Confirm" />
+                  {/* pv-block-end:tsf3yd */}
+                {/* pv-editable-zone-end:v4z32l */}
+              </Stepper>
+              {/* pv-block-end:inbixm */}
               {/* pv-block-start:5t0e9k */}
               <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="5t0e9k" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:karvkw */}

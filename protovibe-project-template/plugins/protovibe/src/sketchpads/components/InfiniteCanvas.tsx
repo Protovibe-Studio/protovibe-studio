@@ -10,7 +10,6 @@ interface InfiniteCanvasProps {
   children: React.ReactNode;
   transform: CanvasTransform;
   onTransformChange: (t: CanvasTransform) => void;
-  onCanvasDoubleClick: (canvasX: number, canvasY: number) => void;
   onCanvasContextMenu: (e: React.MouseEvent) => void;
 }
 
@@ -18,7 +17,6 @@ export function InfiniteCanvas({
   children,
   transform,
   onTransformChange,
-  onCanvasDoubleClick,
   onCanvasContextMenu,
 }: InfiniteCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -179,25 +177,12 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
     [isPanning, onTransformChange],
   );
 
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target !== containerRef.current && e.target !== containerRef.current?.firstElementChild) return;
-      const rect = containerRef.current!.getBoundingClientRect();
-      const t = currentTransform.current;
-      const canvasX = (e.clientX - rect.left - t.panX) / t.zoom;
-      const canvasY = (e.clientY - rect.top - t.panY) / t.zoom;
-      onCanvasDoubleClick(canvasX, canvasY);
-    },
-    [onCanvasDoubleClick],
-  );
-
   return (
     <div
       ref={containerRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onDoubleClick={handleDoubleClick}
       onContextMenu={onCanvasContextMenu}
       style={{
         width: '100%',
