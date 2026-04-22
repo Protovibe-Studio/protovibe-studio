@@ -83,6 +83,10 @@ let currentDropTarget: HTMLElement | null = null;
 let ghostEl: HTMLElement | null = null;
 let currentActiveSourceId: string | null = null;
 
+let lastClickTime = 0;
+let lastClickX = 0;
+let lastClickY = 0;
+
 function updateGhost(isAltHeld: boolean) {
   if (!dragState) return;
 
@@ -552,6 +556,14 @@ function handlePointerDown(e: PointerEvent) {
 
   if (e.button !== 0) return;
 
+  const now = Date.now();
+  const dist = Math.hypot(e.clientX - lastClickX, e.clientY - lastClickY);
+  const isDoubleClick = (now - lastClickTime < 400) && (dist < 10);
+  
+  lastClickTime = now;
+  lastClickX = e.clientX;
+  lastClickY = e.clientY;
+
   const isMulti = e.shiftKey;
 
   // EARLY RESIZE INTERCEPT: Prioritize resizing the active selection over selecting background elements.
@@ -582,6 +594,27 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   const path = getInspectablePath(e.target);
+
+  // Custom double-click drill-down interception
+  if (isDoubleClick && selectedEls.length === 1 && path.includes(selectedEls[0]) && !isMulti) {
+    const idx = path.indexOf(selectedEls[0]);
+    if (idx >= 0 && idx < path.length - 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      const nextTarget = path[idx + 1];
+      clearHover();
+      setSelection(nextTarget, false);
+      notifyInspector(nextTarget);
+      lastClickTime = 0; // Require two more clicks for next drill-down
+      return;
+    } else if (idx === path.length - 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({ type: 'PV_DOUBLE_CLICK' }, '*');
+      lastClickTime = 0;
+      return;
+    }
+  }
 
   // Determine click target based on hierarchy & modifiers
   let nextTarget: HTMLElement | null = null;
@@ -922,30 +955,6 @@ function handleClick(e: MouseEvent) {
   }
 }
 
-function handleDoubleClick(e: MouseEvent) {
-  if (e.button !== 0) return;
-
-  const path = getInspectablePath(e.target);
-
-  // Drill-down into the next child on double click
-  if (selectedEls.length === 1 && path.includes(selectedEls[0])) {
-    const idx = path.indexOf(selectedEls[0]);
-    if (idx >= 0 && idx < path.length - 1) {
-      e.preventDefault();
-      e.stopPropagation();
-      const nextTarget = path[idx + 1];
-      clearHover();
-      setSelection(nextTarget, false);
-      notifyInspector(nextTarget);
-    } else if (idx === path.length - 1) {
-      // No more children to drill down into; trigger text edit
-      e.preventDefault();
-      e.stopPropagation();
-      window.parent.postMessage({ type: 'PV_DOUBLE_CLICK' }, '*');
-    }
-  }
-}
-
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Alt' && dragState) {
     updateGhost(true);
@@ -1132,7 +1141,6 @@ function init() {
   document.addEventListener('pointermove', handlePointerMove, true);
   document.addEventListener('pointerup', handlePointerUp, true);
   document.addEventListener('click', handleClick, true);
-  document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('keyup', handleKeyUp, true);
   window.addEventListener('message', handleParentMessage);

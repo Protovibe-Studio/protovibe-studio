@@ -7,12 +7,24 @@ export default function Frame1() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:wial0k */}
-        {/* pv-block-start:7nzgcf */}
-        <Rectangle data-pv-block="7nzgcf" data-pv-sketchpad-el="7nzgcf" style={{ position: 'absolute', left: 174, top: 212 }} className="w-[200px] h-[200px] bg-background-primary">
-          {/* pv-editable-zone-start:44z15z */}
-          {/* pv-editable-zone-end:44z15z */}
+        {/* pv-block-start:asgf4u */}
+        <Rectangle data-pv-block="asgf4u" data-pv-sketchpad-el="asgf4u" style={{ position: 'absolute', height: 323, width: 600, left: 246, top: 182 }} className="w-[200px] h-[200px]">
+          {/* pv-editable-zone-start:ciigbm */}
+            {/* pv-block-start:r2qp2i */}
+            <Rectangle data-pv-block="r2qp2i" data-pv-sketchpad-el="r2qp2i" style={{ position: 'absolute', left: 46, top: 37, width: 474 }} className="w-[200px] h-[200px]">
+              {/* pv-editable-zone-start:ciigbm */}
+                {/* pv-block-start:f9bprr */}
+                <Rectangle data-pv-block="f9bprr" data-pv-sketchpad-el="f9bprr" style={{ position: 'absolute', left: 31, top: 27, height: 141,   width: 394 }} className="w-[200px] h-[200px]">
+                  {/* pv-editable-zone-start:ciigbm */}
+                  {/* pv-editable-zone-end:ciigbm */}
+                </Rectangle>
+                {/* pv-block-end:f9bprr */}
+              {/* pv-editable-zone-end:ciigbm */}
+            </Rectangle>
+            {/* pv-block-end:r2qp2i */}
+          {/* pv-editable-zone-end:ciigbm */}
         </Rectangle>
-        {/* pv-block-end:7nzgcf */}
+        {/* pv-block-end:asgf4u */}
       {/* pv-editable-zone-end:wial0k */}
     </div>
   );

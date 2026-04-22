@@ -18,15 +18,15 @@
           "name": "generate-file-form",
           "width": 1440,
           "height": 900,
-          "canvasX": 4315,
-          "canvasY": 1042
+          "canvasX": 4279,
+          "canvasY": 1051
         },
         {
           "id": "frame-generate-file-intro-copy-2",
           "name": "generate-file-loading",
           "width": 1440,
           "height": 900,
-          "canvasX": 5950,
+          "canvasX": 5955,
           "canvasY": 1043
         },
         {
@@ -105,8 +105,8 @@
           "name": "Frame 1",
           "width": 1440,
           "height": 900,
-          "canvasX": 351,
-          "canvasY": 275
+          "canvasX": 6542,
+          "canvasY": 1624
         }
       ]
     }
