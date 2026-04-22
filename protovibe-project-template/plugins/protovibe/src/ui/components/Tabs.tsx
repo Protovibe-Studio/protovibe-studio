@@ -105,7 +105,7 @@ export const Tabs: React.FC = () => {
               }, {}) || {};
 
               setActiveSourceId(source.id);
-              setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+              setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
               if (isCompFolder && filePath) {
                 window.dispatchEvent(
                   new CustomEvent('pv-open-component-preview', { detail: { filePath, currentProps } })

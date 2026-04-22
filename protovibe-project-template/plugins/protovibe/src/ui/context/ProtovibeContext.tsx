@@ -56,7 +56,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
   const [currentBaseTarget, setCurrentBaseTarget] = useState<HTMLElement | null>(null);
   const [selectedTargets, setSelectedTargets] = useState<HTMLElement[]>([]);
-  const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {} });
+  const [activeModifiers, setActiveModifiers] = useState<ActiveModifiers>({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
   const [availableComponents, setAvailableComponents] = useState<any[]>([]);
   const [sourceDataList, setSourceDataList] = useState<SourceData[]>([]);
   const [sources, setSources] = useState<string[]>([]);
@@ -272,7 +272,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCurrentBaseTarget(primaryEl);
     setSelectedTargets(els);
     setHighlightedElement(primaryEl);
-    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
     if (matchedIds.size > 0) {
       setSources(Array.from(matchedIds));
     }

@@ -164,6 +164,15 @@ export const Modifiers: React.FC = () => {
     setActiveModifiers(prev => ({ ...prev, breakpoint: val === 'none' ? null : val }));
   };
 
+  const handleStructural = (val: string) => {
+    setActiveModifiers(prev => {
+      const structurals = ['first', 'last', 'odd', 'even'];
+      const filtered = (prev.pseudoClasses || []).filter(p => !structurals.includes(p));
+      if (val !== 'none' && val !== '') filtered.push(val);
+      return { ...prev, pseudoClasses: filtered };
+    });
+  };
+
   const UNSET_SENTINEL = '__unset__';
 
   const handleDataAttr = (key: string, val: string) => {
@@ -177,7 +186,14 @@ export const Modifiers: React.FC = () => {
 
   const clearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
+  };
+
+  const handlePseudo = (val: string) => {
+    setActiveModifiers(prev => ({
+      ...prev,
+      pseudoClasses: (prev.pseudoClasses || []).filter(p => p !== val)
+    }));
   };
 
   // ── Build chip list ──────────────────────────────────────────────────────────
@@ -207,6 +223,15 @@ export const Modifiers: React.FC = () => {
       label,
       colors: CHIP_VARIANT,
       onRemove: () => handleDataAttr(key, '__unset__'),
+    });
+  });
+
+  (activeModifiers.pseudoClasses || []).forEach(p => {
+    chips.push({
+      key: `pseudo-${p}`,
+      label: formatModifier(p),
+      colors: CHIP_INTERACTION,
+      onRemove: () => handlePseudo(p),
     });
   });
 
@@ -285,12 +310,15 @@ export const Modifiers: React.FC = () => {
               const expectedInteraction: string[] = [];
               let expectedBreakpoint: string | null = null;
               const expectedDataAttrs: Record<string, string> = {};
+              const expectedPseudo: string[] = [];
+
               group.modifiers.forEach(mod => {
                 if (bps.includes(mod)) expectedBreakpoint = mod;
                 else if (interactions.includes(mod)) expectedInteraction.push(mod);
                 else {
                   const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
                   if (match) expectedDataAttrs[match[1]] = match[2];
+                  else expectedPseudo.push(mod);
                 }
               });
               const interactionMatch =
@@ -300,7 +328,11 @@ export const Modifiers: React.FC = () => {
               const dataAttrsMatch =
                 Object.keys(expectedDataAttrs).length === Object.keys(activeModifiers.dataAttrs).length &&
                 Object.entries(expectedDataAttrs).every(([k, v]) => activeModifiers.dataAttrs[k] === v);
-              return interactionMatch && breakpointMatch && dataAttrsMatch;
+              const pseudoMatch =
+                expectedPseudo.length === (activeModifiers.pseudoClasses?.length || 0) &&
+                expectedPseudo.every(p => (activeModifiers.pseudoClasses || []).includes(p));
+
+              return interactionMatch && breakpointMatch && dataAttrsMatch && pseudoMatch;
             })();
 
             return (
@@ -308,10 +340,10 @@ export const Modifiers: React.FC = () => {
                 key={group.modifiers.join(':')}
                 onClick={() => {
                   if (isActive) {
-                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {} });
+                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
                     return;
                   }
-                  const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string> };
+                  const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string>, pseudoClasses: [] as string[] };
 
                   group.modifiers.forEach(mod => {
                     if (bps.includes(mod)) nextModifiers.breakpoint = mod;
@@ -320,6 +352,8 @@ export const Modifiers: React.FC = () => {
                       const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
                       if (match) {
                         nextModifiers.dataAttrs[match[1]] = match[2];
+                      } else {
+                        nextModifiers.pseudoClasses.push(mod);
                       }
                     }
                   });
@@ -430,6 +464,23 @@ export const Modifiers: React.FC = () => {
                   { label: 'Md',  val: 'md'   },
                   { label: 'Lg',  val: 'lg'   },
                   { label: 'XL',  val: 'xl'   },
+                ]}
+              />
+            </div>
+
+            {/* Child Position */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Child Position</span>
+              <SegmentedControl
+                label=""
+                value={activeModifiers.pseudoClasses?.find(p => ['first', 'last', 'odd', 'even'].includes(p)) || 'none'}
+                onChange={handleStructural}
+                segments={[
+                  { label: 'All', val: 'none' },
+                  { label: 'First', val: 'first' },
+                  { label: 'Last', val: 'last' },
+                  { label: 'Odd', val: 'odd' },
+                  { label: 'Even', val: 'even' },
                 ]}
               />
             </div>

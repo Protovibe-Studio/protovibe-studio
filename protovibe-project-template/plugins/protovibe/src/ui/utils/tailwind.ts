@@ -53,39 +53,35 @@ export interface ActiveModifiers {
   interaction: string[];
   breakpoint: string | null;
   dataAttrs: Record<string, string>;
+  pseudoClasses?: string[];
 }
 
 export function filterClassesByContext(classesArray: string[], activeModifiers: ActiveModifiers) {
-  const expectedDataMods = Object.entries(activeModifiers.dataAttrs)
-    .filter(([k, v]) => v !== null && v !== 'none')
+  const expectedDataMods = Object.entries(activeModifiers.dataAttrs || {})
+    .filter(([k, v]) => v !== null && v !== 'none' && v !== '__unset__')
     .map(([k, v]) => `data-[${k}=${v}]`);
-    
+
   const expectedBp = activeModifiers.breakpoint && activeModifiers.breakpoint !== 'none' ? activeModifiers.breakpoint : null;
-  const expectedInteractions = activeModifiers.interaction || []; 
-  
+  const expectedInteractions = activeModifiers.interaction || [];
+  const expectedPseudo = activeModifiers.pseudoClasses || [];
+
+  const allExpected = [
+    ...(expectedBp ? [expectedBp] : []),
+    ...expectedDataMods,
+    ...expectedInteractions,
+    ...expectedPseudo
+  ].sort();
+
   return classesArray.filter(cls => {
     const { modifiers } = parseModifiers(cls);
-    
-    // 1. Check breakpoint
-    const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
-    const clsBp = modifiers.find(m => bps.includes(m));
-    if ((expectedBp && clsBp !== expectedBp) || (!expectedBp && clsBp)) return false;
-    
-    // 2. Check data attrs
-    const clsDataMods = modifiers.filter(m => m.startsWith('data-['));
-    if (expectedDataMods.length !== clsDataMods.length) return false;
-    const hasAllDataMods = expectedDataMods.every(m => clsDataMods.includes(m));
-    if (!hasAllDataMods) return false;
-    
-    // 3. Check interactions
-    const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
-    const clsInteractions = modifiers.filter(m => interactions.includes(m));
-    if (expectedInteractions.length !== clsInteractions.length) return false;
-    const hasAllInteractions = expectedInteractions.every(m => clsInteractions.includes(m));
-    if (!hasAllInteractions) return false;
-    
+    const sortedMods = [...modifiers].sort();
+
+    if (sortedMods.length !== allExpected.length) return false;
+    for (let i = 0; i < sortedMods.length; i++) {
+      if (sortedMods[i] !== allExpected[i]) return false;
+    }
     return true;
-  }).map(cls => parseModifiers(cls)); 
+  }).map(cls => parseModifiers(cls));
 }
 
 export function buildContextPrefix(activeModifiers: ActiveModifiers) {
@@ -93,11 +89,14 @@ export function buildContextPrefix(activeModifiers: ActiveModifiers) {
   if (activeModifiers.breakpoint && activeModifiers.breakpoint !== 'none') {
     p += `${activeModifiers.breakpoint}:`;
   }
-  for (const [k, v] of Object.entries(activeModifiers.dataAttrs)) {
+  for (const [k, v] of Object.entries(activeModifiers.dataAttrs || {})) {
     if (v && v !== 'none') p += `data-[${k}=${v}]:`;
   }
   if (activeModifiers.interaction && activeModifiers.interaction.length > 0) {
     activeModifiers.interaction.forEach(i => p += `${i}:`);
+  }
+  if (activeModifiers.pseudoClasses && activeModifiers.pseudoClasses.length > 0) {
+    activeModifiers.pseudoClasses.forEach(i => p += `${i}:`);
   }
   return p;
 }

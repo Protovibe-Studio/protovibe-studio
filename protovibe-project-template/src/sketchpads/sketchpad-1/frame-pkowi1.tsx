@@ -52,107 +52,6 @@ export default function Frame1() {
           {/* pv-block-start:8vzh4t */}
           <div data-pv-block="8vzh4t" className="flex flex-col p-5 gap-7">
             {/* pv-editable-zone-start:zzgb3q */}
-              {/* pv-block-start:mzhp8u */}
-              <div data-pv-block="mzhp8u" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:karvkw */}
-                {/* pv-block-start:zfxtya */}
-                <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="zfxtya" primaryText="" />
-                {/* pv-block-end:zfxtya */}
-                {/* pv-block-start:lubwr6 */}
-                <MultiSelectDropdown    data-pv-block="lubwr6"  placeholder="Select..." value="all">
-                  {/* pv-editable-zone-start:3qqlud */}
-                    {/* pv-block-start:yd53h9 */}
-                    <SelectDropdownSearch data-pv-block="yd53h9" placeholder="Search people..." />
-                    {/* pv-block-end:yd53h9 */}
-                    {/* pv-block-start:riw2qy */}
-                    <MultiSelectDropdownItem data-pv-block="riw2qy" value="all" label="All"  />
-                    {/* pv-block-end:riw2qy */}
-                    {/* pv-block-start:yph5jn */}
-                    <DropdownSeparator data-pv-block="yph5jn" />
-                    {/* pv-block-end:yph5jn */}
-                    {/* pv-block-start:s5k559 */}
-                    <MultiSelectDropdownItem data-pv-block="s5k559" value="2" label="Backend Developer"  />
-                    {/* pv-block-end:s5k559 */}
-                    {/* pv-block-start:n18913 */}
-                    <MultiSelectDropdownItem data-pv-block="n18913" value="3" label="Senior Backend Developer"  />
-                    {/* pv-block-end:n18913 */}
-
-                    {/* pv-block-start:pvtvg4 */}
-                    <MultiSelectDropdownItem data-pv-block="pvtvg4" value="3" label="Junior Backend Developer"  />
-                    {/* pv-block-end:pvtvg4 */}
-
-                    {/* pv-block-start:jlb835 */}
-                    <MultiSelectDropdownItem data-pv-block="jlb835" value="3" label="Backend Developer"  />
-                    {/* pv-block-end:jlb835 */}
-
-                    {/* pv-block-start:az50a8 */}
-                    <MultiSelectDropdownItem data-pv-block="az50a8" value="3" label="Junior Front-end Engineer"  />
-                    {/* pv-block-end:az50a8 */}
-
-                    {/* pv-block-start:ws9d1y */}
-                    <MultiSelectDropdownItem data-pv-block="ws9d1y" value="3" label="Senior Front-end Engineer"  />
-                    {/* pv-block-end:ws9d1y */}
-
-                    {/* pv-block-start:rmlops */}
-                    <MultiSelectDropdownItem data-pv-block="rmlops" value="3" label="(...other positions go here)"  />
-                    {/* pv-block-end:rmlops */}
-                  {/* pv-editable-zone-end:3qqlud */}
-                </MultiSelectDropdown>
-                {/* pv-block-end:lubwr6 */}
-                {/* pv-editable-zone-end:karvkw */}
-              </div>
-              {/* pv-block-end:mzhp8u */}
-
-              {/* pv-block-start:no6rrr */}
-              <div data-pv-block="no6rrr" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:karvkw */}
-                {/* pv-block-start:sbpp9v */}
-                <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="sbpp9v" primaryText="" />
-                {/* pv-block-end:sbpp9v */}
-                  {/* pv-block-start:q1uzv7 */}
-                  <RadioGroup data-pv-block="q1uzv7" orientation="vertical" value="opt1">
-                    {/* pv-editable-zone-start:mww5ln */}
-                      {/* pv-block-start:5uived */}
-                      <RadioItem data-pv-block="5uived" value="opt1" primaryText="Yes, fill the template with suggested skills"  />
-                      {/* pv-block-end:5uived */}
-                      {/* pv-block-start:igl69g */}
-                      <RadioItem data-pv-block="igl69g" value="opt2" primaryText="No, get an empty template without example skills"  />
-                      {/* pv-block-end:igl69g */}
-                    {/* pv-editable-zone-end:mww5ln */}
-                  </RadioGroup>
-                  {/* pv-block-end:q1uzv7 */}
-                {/* pv-editable-zone-end:karvkw */}
-              </div>
-              {/* pv-block-end:no6rrr */}
-
-              {/* pv-block-start:7xag4q */}
-              <div data-pv-block="7xag4q" className="flex flex-col gap-2">
-                {/* pv-editable-zone-start:karvkw */}
-                {/* pv-block-start:2ni84x */}
-                <SuperLabel secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" data-pv-block="2ni84x" primaryText="" />
-                {/* pv-block-end:2ni84x */}
-                {/* pv-block-start:rxs861 */}
-                <SelectDropdown showClearButton={false} value="opt1"   data-pv-block="rxs861" placeholder="Select an option">
-                  {/* pv-editable-zone-start:hozhus */}
-                    {/* pv-block-start:dxkipa */}
-                    <SelectDropdownSearch data-pv-block="dxkipa" placeholder="Search..." />
-                    {/* pv-block-end:dxkipa */}
-                    {/* pv-block-start:c35o2i */}
-                    <DropdownItem secondaryText="Beginner, Competent, Advanced, Expert" data-pv-block="c35o2i" value="opt1" label="Standard 4-level framework" selected={false} />
-                    {/* pv-block-end:c35o2i */}
-                    {/* pv-block-start:4235z2 */}
-                    <DropdownItem secondaryText="Novice, Beginner, Competent, Proficient, Expert" data-pv-block="4235z2" value="opt2" label="Standard 5-level framework" selected={false} />
-                    {/* pv-block-end:4235z2 */}
-                    {/* pv-block-start:joerut */}
-                    <DropdownItem secondaryText="Your own list of proficiency levels" data-pv-block="joerut" value="opt3" label="Custom" selected={false} />
-                    {/* pv-block-end:joerut */}
-                  {/* pv-editable-zone-end:hozhus */}
-                </SelectDropdown>
-                {/* pv-block-end:rxs861 */}
-                {/* pv-editable-zone-end:karvkw */}
-              </div>
-              {/* pv-block-end:7xag4q */}
-
               {/* pv-block-start:5t0e9k */}
               <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="5t0e9k" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:karvkw */}
@@ -160,94 +59,30 @@ export default function Frame1() {
                 <SuperLabel secondaryText="To ensure best quality, instruct AI what to expect in your file" heading="What's in your file?" data-pv-block="98fw46" primaryText="" />
                 {/* pv-block-end:98fw46 */}
                 {/* pv-block-start:jb66tm */}
-                <Card data-pv-block="jb66tm">
+                <Card className="gap-1 p-3" data-pv-block="jb66tm">
                   {/* pv-editable-zone-start:pgd735 */}
                     {/* pv-block-start:p71vtz */}
                     <Checkbox data-pv-block="p71vtz" primaryText="Skills have a unique name and description" />
                     {/* pv-block-end:p71vtz */}
+
+                    {/* pv-block-start:vqsgx0 */}
+                    <Checkbox data-pv-block="vqsgx0" primaryText="Skills have proficiency levels (e.g. ‘Beginner’, ‘Intermediate’, ‘Expert’ or ‘P1’, ‘P2’, ‘P3’)" />
+                    {/* pv-block-end:vqsgx0 */}
+
+                    {/* pv-block-start:nfh43p */}
+                    <Checkbox data-pv-block="nfh43p" primaryText="Each proficiency level have a description what is expected" />
+                    {/* pv-block-end:nfh43p */}
+
+                    {/* pv-block-start:ttmtb2 */}
+                    <Checkbox data-pv-block="ttmtb2" primaryText="Positions are associated with a skill and its proficiency level" />
+                    {/* pv-block-end:ttmtb2 */}
+
+                    {/* pv-block-start:287n40 */}
+                    <Checkbox data-pv-block="287n40" primaryText="Skills are grouped into categories (such as ‘Soft skills” or ‘Technical skills’)" />
+                    {/* pv-block-end:287n40 */}
                   {/* pv-editable-zone-end:pgd735 */}
                 </Card>
                 {/* pv-block-end:jb66tm */}
-                {/* pv-block-start:d06ycj */}
-                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="d06ycj">
-                  {/* pv-editable-zone-start:g0w26z */}
-                    {/* pv-block-start:x7defi */}
-                    <Icon data-pv-block="x7defi" iconSymbol="mdi:drag-vertical" size="lg" />
-                    {/* pv-block-end:x7defi */}
-                    {/* pv-block-start:gij6ss */}
-                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="gij6ss">
-                      {/* pv-editable-zone-start:080tqk */}
-                        {/* pv-block-start:cgwzjm */}
-                        <span data-pv-block="cgwzjm">
-                          1
-                        </span>
-                        {/* pv-block-end:cgwzjm */}
-                      {/* pv-editable-zone-end:080tqk */}
-                    </div>
-                    {/* pv-block-end:gij6ss */}
-                    {/* pv-block-start:0uehoa */}
-                    <Input data-pv-block="0uehoa" placeholder="Proficiency level name, e.g. Beginner" />
-                    {/* pv-block-end:0uehoa */}
-                    {/* pv-block-start:oa3cvj */}
-                    <Button leftIcon="mdi:close" iconOnly data-pv-block="oa3cvj" label="Button" variant="ghost" color="neutral" size="md" />
-                    {/* pv-block-end:oa3cvj */}
-                  {/* pv-editable-zone-end:g0w26z */}
-                </div>
-                {/* pv-block-end:d06ycj */}
-
-                {/* pv-block-start:9e960n */}
-                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="9e960n">
-                  {/* pv-editable-zone-start:g0w26z */}
-                    {/* pv-block-start:fyzvm3 */}
-                    <Icon data-pv-block="fyzvm3" iconSymbol="mdi:drag-vertical" size="lg" />
-                    {/* pv-block-end:fyzvm3 */}
-                    {/* pv-block-start:tymp1l */}
-                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="tymp1l">
-                      {/* pv-editable-zone-start:080tqk */}
-                        {/* pv-block-start:00c57z */}
-                        <span data-pv-block="00c57z">
-                          2
-                        </span>
-                        {/* pv-block-end:00c57z */}
-                      {/* pv-editable-zone-end:080tqk */}
-                    </div>
-                    {/* pv-block-end:tymp1l */}
-                    {/* pv-block-start:6b6497 */}
-                    <Input data-pv-block="6b6497" placeholder="Proficiency level name, e.g. Beginner" />
-                    {/* pv-block-end:6b6497 */}
-                    {/* pv-block-start:lhcmrp */}
-                    <Button leftIcon="mdi:close" iconOnly data-pv-block="lhcmrp" label="Button" variant="ghost" color="neutral" size="md" />
-                    {/* pv-block-end:lhcmrp */}
-                  {/* pv-editable-zone-end:g0w26z */}
-                </div>
-                {/* pv-block-end:9e960n */}
-
-                {/* pv-block-start:3vu5xx */}
-                <div className="flex min-h-4 flex-row items-center justify-start gap-1" data-pv-block="3vu5xx">
-                  {/* pv-editable-zone-start:g0w26z */}
-                    {/* pv-block-start:gdm1uh */}
-                    <Icon data-pv-block="gdm1uh" iconSymbol="mdi:drag-vertical" size="lg" />
-                    {/* pv-block-end:gdm1uh */}
-                    {/* pv-block-start:haieyj */}
-                    <div className="flex flex-col min-h-4 text-center leading-none items-center justify-center w-6 h-6 rounded-full bg-background-primary-subtle text-foreground-secondary text-sm font-semibold mr-1" data-pv-block="haieyj">
-                      {/* pv-editable-zone-start:080tqk */}
-                        {/* pv-block-start:8jcq3u */}
-                        <span data-pv-block="8jcq3u">
-                          3
-                        </span>
-                        {/* pv-block-end:8jcq3u */}
-                      {/* pv-editable-zone-end:080tqk */}
-                    </div>
-                    {/* pv-block-end:haieyj */}
-                    {/* pv-block-start:jbu6w0 */}
-                    <Input data-pv-block="jbu6w0" placeholder="Proficiency level name, e.g. Beginner" />
-                    {/* pv-block-end:jbu6w0 */}
-                    {/* pv-block-start:xb9e9h */}
-                    <Button leftIcon="mdi:close" iconOnly data-pv-block="xb9e9h" label="Button" variant="ghost" color="neutral" size="md" />
-                    {/* pv-block-end:xb9e9h */}
-                  {/* pv-editable-zone-end:g0w26z */}
-                </div>
-                {/* pv-block-end:3vu5xx */}
                 {/* pv-editable-zone-end:karvkw */}
               </div>
               {/* pv-block-end:5t0e9k */}
