@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
+import {
+  ChevronLeft,
+  X,
+  ExternalLink,
+  Square,
+  RotateCcw,
+  Folder,
+  Code2,
+  Play,
+  List,
+  ChevronDown,
+} from 'lucide-react'
 
 export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
   const [lines, setLines] = useState([])
@@ -116,9 +128,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-foreground-tertiary hover:text-foreground-default transition-colors w-fit cursor-pointer"
       >
-        <svg width="20" height="20" viewBox="0 0 14 14" fill="none">
-          <path d="M11 7H3M3 7L6.5 3.5M3 7L6.5 10.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronLeft size={20} />
         Back to projects
       </button>
 
@@ -130,9 +140,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             onClick={() => setError('')}
             className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0 cursor-pointer"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-            </svg>
+            <X size={14} />
           </button>
         </div>
       )}
@@ -209,9 +217,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                       rel="noopener noreferrer"
                       className="col-span-2 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
                     >
-                      <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                        <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <ExternalLink size={28} strokeWidth={1.5} />
                       <span className="text-xs font-semibold">Open Protovibe editor</span>
                     </a>
                   )}
@@ -221,9 +227,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={() => callAction('stop')}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all text-foreground-destructive/50 hover:text-foreground-destructive cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
-                    </svg>
+                    <Square size={28} fill="currentColor" strokeWidth={0} />
                     <span className="text-xs font-semibold">Stop</span>
                   </button>
 
@@ -231,9 +235,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={callRestart}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M3 9.5a6.5 6.5 0 1 0 1.5-4.15M3 4v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <RotateCcw size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">Restart</span>
                   </button>
 
@@ -241,9 +243,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={onShowFolder}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
-                    </svg>
+                    <Folder size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">Show folder</span>
                   </button>
 
@@ -251,9 +251,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={onOpenVSCode}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <Code2 size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">VS Code</span>
                   </button>
                 </div>
@@ -297,9 +295,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={() => setSetupMode(true)}
                     className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M5 3.5l11 6-11 6V3.5z" fill="currentColor" />
-                    </svg>
+                    <Play size={28} fill="currentColor" strokeWidth={0} />
                     <span className="text-xs font-semibold">Run project</span>
                   </button>
                 </div>
@@ -309,9 +305,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={onShowFolder}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
-                    </svg>
+                    <Folder size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">Show folder</span>
                   </button>
 
@@ -319,9 +313,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     onClick={onOpenVSCode}
                     className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
                   >
-                    <svg width="28" height="28" viewBox="0 0 19 19" fill="none">
-                      <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <Code2 size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">VS Code</span>
                   </button>
                 </div>
@@ -329,24 +321,14 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             </div>
           )}
 
-          {/* Logs toggle — bottom left of card body */}
+          {/* Logs toggle */}
           <button
             onClick={() => setShowLogs((v) => !v)}
             className="flex items-center gap-2 text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer w-fit"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 3.5h10M2 7h6M2 10.5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+            <List size={14} />
             {showLogs ? 'Hide logs' : 'Show logs'}
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 10 10"
-              fill="none"
-              className={`transition-transform duration-200 ${showLogs ? 'rotate-180' : ''}`}
-            >
-              <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ChevronDown size={10} className={`transition-transform duration-200 ${showLogs ? 'rotate-180' : ''}`} />
           </button>
         </div>
         )}

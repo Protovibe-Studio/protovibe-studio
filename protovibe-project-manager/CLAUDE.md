@@ -1,1 +1,1 @@
-@AGENTS.md
+You must read @AGENTS.md

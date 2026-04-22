@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Check, X } from 'lucide-react'
 
 const FUNNY_MESSAGES = {
   creating: [
@@ -134,17 +135,13 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
         {/* Spinner / ready / error icon */}
         {stage === 'ready' ? (
           <div className="relative w-12 h-12">
-            <div className="w-12 h-12 rounded-full bg-background-success-subtle flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M6 12l4 4 8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground-success" />
-              </svg>
+            <div className="w-12 h-12 rounded-full bg-background-success-subtle flex items-center justify-center text-foreground-success">
+              <Check size={24} strokeWidth={2.5} />
             </div>
           </div>
         ) : stage === 'error' ? (
-          <div className="w-12 h-12 rounded-full bg-background-destructive-subtle flex items-center justify-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-foreground-destructive" />
-            </svg>
+          <div className="w-12 h-12 rounded-full bg-background-destructive-subtle flex items-center justify-center text-foreground-destructive">
+            <X size={24} strokeWidth={2.5} />
           </div>
         ) : (
           <Spinner />
@@ -173,7 +170,7 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
           {stage === 'error' ? (
             <button
               onClick={onBack}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors cursor-pointer"
             >
               Back to projects
             </button>

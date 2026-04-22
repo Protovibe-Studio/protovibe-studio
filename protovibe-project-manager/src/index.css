@@ -8,18 +8,22 @@
   --color-background-elevated: var(--background-elevated);
   --color-background-primary-subtle: var(--background-primary-subtle);
   --color-background-destructive-subtle: var(--background-destructive-subtle);
+  --color-background-destructive: var(--background-destructive);
   --color-background-success-subtle: var(--background-success-subtle);
   --color-background-warning-subtle: var(--background-warning-subtle);
+  --color-background-info-subtle: var(--background-info-subtle);
   --color-background-overlay: var(--background-overlay);
 
   /* Text */
   --color-foreground-default: var(--foreground-default);
+  --color-foreground-primary: var(--foreground-primary);
   --color-foreground-secondary: var(--foreground-secondary);
   --color-foreground-tertiary: var(--foreground-tertiary);
   --color-foreground-disabled: var(--foreground-disabled);
   --color-foreground-destructive: var(--foreground-destructive);
   --color-foreground-success: var(--foreground-success);
   --color-foreground-warning: var(--foreground-warning);
+  --color-foreground-info: var(--foreground-info);
 
   /* Borders */
   --color-border-default: var(--border-default);
@@ -31,7 +35,7 @@
   /* Solid accents */
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-foreground-on-primary: var(--foreground-on-primary);
   --color-destructive: var(--destructive);
   --color-destructive-hover: var(--destructive-hover);
   --color-success: var(--success);
@@ -47,18 +51,22 @@
   --background-elevated: #131313;
   --background-primary-subtle: rgba(24, 160, 251, 0.15);
   --background-destructive-subtle: rgba(242, 72, 34, 0.15);
+  --background-destructive: rgba(242, 72, 34, 0.3);
   --background-success-subtle: rgba(26, 188, 156, 0.15);
   --background-warning-subtle: rgba(242, 201, 76, 0.15);
+  --background-info-subtle: rgba(96, 180, 255, 0.15);
   --background-overlay: rgba(0, 0, 0, 0.6);
 
   /* Text */
   --foreground-default: #FFFFFF;
+  --foreground-primary: #18A0FB;
   --foreground-secondary: #B3B3B3;
   --foreground-tertiary: #7c7c7c;
   --foreground-disabled: #646464;
   --foreground-destructive: #F24822;
   --foreground-success: #1ABC9C;
   --foreground-warning: #F2C94C;
+  --foreground-info: #60B4FF;
 
   /* Borders */
   --border-default: #3c3c3c;
@@ -67,10 +75,10 @@
   --border-focus: #18A0FB;
   --border-destructive: #F24822;
 
-  /* Accents (Figma Blue) */
+  /* Accents */
   --primary: #18A0FB;
   --primary-hover: #0D8CE6;
-  --primary-foreground: #FFFFFF;
+  --foreground-on-primary: #FFFFFF;
 
   /* Destructive */
   --destructive: #F24822;

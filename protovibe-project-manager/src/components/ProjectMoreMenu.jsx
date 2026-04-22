@@ -10,6 +10,16 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react'
+import {
+  MoreVertical,
+  ExternalLink,
+  Square,
+  Folder,
+  Code2,
+  Pencil,
+  Copy,
+  Trash2,
+} from 'lucide-react'
 
 function MenuItem({ icon, label, onClick, danger, disabled, testId }) {
   return (
@@ -60,11 +70,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
         className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-tertiary transition-colors cursor-pointer"
         title="Actions"
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="3.5" r="1.25" fill="currentColor" />
-          <circle cx="8" cy="8" r="1.25" fill="currentColor" />
-          <circle cx="8" cy="12.5" r="1.25" fill="currentColor" />
-        </svg>
+        <MoreVertical size={16} />
       </button>
 
       {menuOpen && (
@@ -84,11 +90,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                   window.open(`http://localhost:${port}/protovibe.html`, '_blank')
                   setMenuOpen(false)
                 }}
-                icon={
-                  <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                    <path d="M8.5 3.5H4a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 004 16.5h10A1.5 1.5 0 0015.5 15v-4.5M12 2.5h4.5V7M16 3L9 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                }
+                icon={<ExternalLink size={14} className="shrink-0" />}
               />
             )}
 
@@ -101,11 +103,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                   onStop && onStop()
                   setMenuOpen(false)
                 }}
-                icon={
-                  <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                    <rect x="5" y="5" width="9" height="9" rx="2" fill="currentColor" />
-                  </svg>
-                }
+                icon={<Square size={14} fill="currentColor" strokeWidth={0} className="shrink-0" />}
               />
             )}
 
@@ -116,11 +114,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 onShowFolder && onShowFolder()
                 setMenuOpen(false)
               }}
-              icon={
-                <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                  <path d="M2.5 5.5C2.5 4.67 3.17 4 4 4H7.5l1.5 2H15c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5V5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
-                </svg>
-              }
+              icon={<Folder size={14} className="shrink-0" />}
             />
 
             <MenuItem
@@ -130,11 +124,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 onOpenVSCode && onOpenVSCode()
                 setMenuOpen(false)
               }}
-              icon={
-                <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                  <path d="M5.5 6L2 9.5 5.5 13M13.5 6L17 9.5 13.5 13M11 3.5l-3 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              }
+              icon={<Code2 size={14} className="shrink-0" />}
             />
 
             {onRename && (
@@ -145,11 +135,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                   onRename()
                   setMenuOpen(false)
                 }}
-                icon={
-                  <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                    <path d="M12 3l4 4-9 9H3v-4l9-9z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                }
+                icon={<Pencil size={14} className="shrink-0" />}
               />
             )}
 
@@ -161,12 +147,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 onDuplicate && onDuplicate()
                 setMenuOpen(false)
               }}
-              icon={
-                <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                  <rect x="6" y="6" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
-                  <path d="M3 13V3h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              }
+              icon={<Copy size={14} className="shrink-0" />}
             />
 
             <div className="h-px bg-border-default mx-1 my-0.5" />
@@ -177,11 +158,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
               testId="menu-delete"
               disabled={isBusy || isRunning}
               onClick={handleDelete}
-              icon={
-                <svg width="14" height="14" viewBox="0 0 19 19" fill="none" className="shrink-0">
-                  <path d="M3 5.5h13M7.5 5.5V4h4v1.5M8.5 9v5M10.5 9v5M4.5 5.5l.75 10h8.5l.75-10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              }
+              icon={<Trash2 size={14} className="shrink-0" />}
             />
           </div>
         </FloatingPortal>

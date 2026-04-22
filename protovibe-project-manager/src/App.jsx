@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Plus, Search, X, LayoutGrid } from 'lucide-react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
@@ -223,12 +224,7 @@ export default function App() {
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-12 h-12 rounded-2xl bg-background-secondary flex items-center justify-center text-foreground-tertiary">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-              </svg>
+              <LayoutGrid size={24} strokeWidth={1.5} />
             </div>
             <div className="text-center">
               <p className="text-foreground-default font-medium mb-1">No projects yet</p>
@@ -237,11 +233,9 @@ export default function App() {
             <button
               data-testid="btn-new-project"
               onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-              </svg>
+              <Plus size={14} />
               Create Project
             </button>
           </div>
@@ -253,18 +247,14 @@ export default function App() {
                 <button
                   data-testid="btn-new-project"
                   onClick={() => setCreateOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-                  </svg>
+                  <Plus size={14} />
                   New Project
                 </button>
               </div>
               <div className="relative w-full">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary">
-                  <path d="M6 11.5a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM13.5 13.5l-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -310,7 +300,7 @@ export default function App() {
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-primary-foreground" />
+                <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-foreground-on-primary" />
               </svg>
             </div>
             <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Projects</h1>
@@ -327,9 +317,7 @@ export default function App() {
               onClick={() => setError('')}
               className="text-foreground-destructive hover:text-foreground-default transition-colors shrink-0 cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-              </svg>
+              <X size={14} />
             </button>
           </div>
         </div>

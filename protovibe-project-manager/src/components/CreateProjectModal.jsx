@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
 
@@ -47,9 +48,7 @@ export default function CreateProjectModal({ onClose, onCreate }) {
             onClick={onClose}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-            </svg>
+            <X size={14} />
           </button>
         </div>
 
@@ -94,7 +93,7 @@ export default function CreateProjectModal({ onClose, onCreate }) {
               type="submit"
               data-testid="btn-create-project"
               disabled={!name.trim()}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               Create Project
             </button>

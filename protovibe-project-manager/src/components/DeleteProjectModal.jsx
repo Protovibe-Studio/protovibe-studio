@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { X, Loader2 } from 'lucide-react'
 
 export default function DeleteProjectModal({ projectName, onConfirm, onClose }) {
   const [deleting, setDeleting] = useState(false)
@@ -35,9 +36,7 @@ export default function DeleteProjectModal({ projectName, onConfirm, onClose }) 
             disabled={deleting}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-40 cursor-pointer"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-            </svg>
+            <X size={14} />
           </button>
         </div>
 
@@ -65,11 +64,7 @@ export default function DeleteProjectModal({ projectName, onConfirm, onClose }) 
             disabled={deleting}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-background-destructive-subtle hover:bg-background-destructive text-foreground-destructive transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
           >
-            {deleting && (
-              <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.75" strokeDasharray="28" strokeDashoffset="10" strokeLinecap="round"/>
-              </svg>
-            )}
+            {deleting && <Loader2 size={14} className="animate-spin" />}
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
