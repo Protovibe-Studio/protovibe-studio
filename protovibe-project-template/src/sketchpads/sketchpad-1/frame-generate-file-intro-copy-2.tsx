@@ -50,31 +50,38 @@ export default function Frame1() {
           </div>
           {/* pv-block-end:9hly6q */}
           {/* pv-block-start:032m3g */}
-          <div data-pv-block="032m3g" className="flex flex-col gap-4 py-12 px-5 items-center">
+          <div data-pv-block="032m3g" className="flex flex-col gap-4 items-center p-5">
             {/* pv-editable-zone-start:pwrm31 */}
-              {/* pv-block-start:wae0ho */}
-              <PreloaderSpinner data-pv-block="wae0ho" size="xl" />
-              {/* pv-block-end:wae0ho */}
-              {/* pv-block-start:twwrwu */}
-              <div data-pv-block="twwrwu" className="flex flex-col gap-0">
-                {/* pv-editable-zone-start:rcg384 */}
-                {/* pv-block-start:oy0e3w */}
-                <TextParagraph className="text-center" data-pv-block="oy0e3w" typography="bold-primary">
-                  <span></span><span></span>Analysing your positions...
-                </TextParagraph>
-                {/* pv-block-end:oy0e3w */}
-                {/* pv-block-start:czuex1 */}
-                <TextParagraph className="text-center" data-pv-block="czuex1" typography="regular">
-                  <span></span><span></span><span></span>It will take about 30 seconds. In the meantime your can play the game below.
-                </TextParagraph>
-                {/* pv-block-end:czuex1 */}
-                {/* pv-editable-zone-end:rcg384 */}
+              {/* pv-block-start:iq5pnn */}
+              <div data-pv-block="iq5pnn" className="flex flex-col gap-2 pt-4">
+                {/* pv-editable-zone-start:23nmht */}
+                {/* pv-block-start:wae0ho */}
+                <PreloaderSpinner data-pv-block="wae0ho" size="xl" />
+                {/* pv-block-end:wae0ho */}
+                {/* pv-block-start:twwrwu */}
+                <div data-pv-block="twwrwu" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:rcg384 */}
+                  {/* pv-block-start:oy0e3w */}
+                  <TextParagraph className="text-center" data-pv-block="oy0e3w" typography="bold-primary">
+                    <span></span><span></span>Analysing your positions...
+                  </TextParagraph>
+                  {/* pv-block-end:oy0e3w */}
+                  {/* pv-block-start:czuex1 */}
+                  <TextParagraph className="text-center" data-pv-block="czuex1" typography="regular">
+                    <span></span><span></span><span></span>It will take about 30 seconds. In the meantime your can play the game below.
+                  </TextParagraph>
+                  {/* pv-block-end:czuex1 */}
+                  {/* pv-editable-zone-end:rcg384 */}
+                </div>
+                {/* pv-block-end:twwrwu */}
+                {/* pv-editable-zone-end:23nmht */}
               </div>
-              {/* pv-block-end:twwrwu */}
+              {/* pv-block-end:iq5pnn */}
+
 
 
               {/* pv-block-start:kzpqe8 */}
-              <div className="flex flex-col min-h-32 h-80 w-3/4" data-pv-block="kzpqe8">
+              <div className="flex flex-col min-h-32 w-full h-74 px-8" data-pv-block="kzpqe8">
                 {/* pv-editable-zone-start:s73jd2 */}
                 {/* pv-block-start:m7n2p9 */}
                 <iframe
@@ -92,17 +99,14 @@ export default function Frame1() {
           {/* pv-block-end:032m3g */}
 
           {/* pv-block-start:2j5her */}
-          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5" data-pv-block="2j5her">
+          <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start" data-pv-block="2j5her">
             {/* pv-editable-zone-start:wdklis */}
               {/* pv-block-start:rbnqt4 */}
               <div data-pv-block="rbnqt4" className="flex gap-2 flex-row">
                 {/* pv-editable-zone-start:ekn2l6 */}
                 {/* pv-block-start:qrvgeo */}
-                <Button data-pv-block="qrvgeo" label="Cancel" variant="ghost" color="neutral" size="md"  />
+                <Button leftIcon="mdi:arrow-left" data-pv-block="qrvgeo" label="Back" variant="ghost" color="neutral" size="md"  />
                 {/* pv-block-end:qrvgeo */}
-                {/* pv-block-start:n2bm9w */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="n2bm9w" label="Generate file" variant="solid" color="primary" size="md"  />
-                {/* pv-block-end:n2bm9w */}
                 {/* pv-editable-zone-end:ekn2l6 */}
               </div>
               {/* pv-block-end:rbnqt4 */}
