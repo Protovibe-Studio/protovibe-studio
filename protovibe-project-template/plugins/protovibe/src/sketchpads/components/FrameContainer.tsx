@@ -17,7 +17,7 @@ interface FrameContainerProps {
   onMoveEnd: (frameId: string, x: number, y: number) => void;
   onResize: (frameId: string, w: number, h: number) => void;
   onResizeEnd: (frameId: string, w: number, h: number) => void;
-  onSelect: (frameId: string) => void;
+  onSelect: (frameId: string | null) => void;
   onDuplicate: (frameId: string, canvasX: number, canvasY: number) => void;
   onDelete: (frameId: string) => void;
   onRename: (frameId: string) => void;
@@ -209,9 +209,9 @@ export function FrameContainer({
   const handleContentClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onSelect(frameId);
+      onSelect(null);
     },
-    [frameId, onSelect],
+    [onSelect],
   );
 
   const menuItems = [
@@ -293,7 +293,6 @@ export function FrameContainer({
           cursor: 'default',
           outline: 'none',
         }}
-        onClick={handleContentClick}
       >
         {/* Frame title */}
         <div
@@ -381,6 +380,7 @@ export function FrameContainer({
               ? '0 0 0 1px #18a0fb, 0 4px 24px rgba(0,0,0,0.3)'
               : '0 2px 12px rgba(0,0,0,0.2)',
           }}
+          onClick={handleContentClick}
         >
           {children}
         </div>

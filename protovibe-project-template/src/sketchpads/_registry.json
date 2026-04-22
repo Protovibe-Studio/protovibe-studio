@@ -7,11 +7,19 @@
       "frames": [
         {
           "id": "frame-frame-1",
-          "name": "Frame 1",
+          "name": "generate-file-intro",
           "width": 1440,
           "height": 900,
           "canvasX": 2687,
           "canvasY": 1040
+        },
+        {
+          "id": "frame-generate-file-intro-copy",
+          "name": "generate-file-intro Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 4327,
+          "canvasY": 1041
         }
       ]
     }

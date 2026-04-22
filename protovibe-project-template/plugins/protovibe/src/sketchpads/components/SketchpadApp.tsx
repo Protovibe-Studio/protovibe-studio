@@ -502,11 +502,15 @@ export function SketchpadApp() {
     setSketchpads(reg.sketchpads);
   }, [activeSketchpadId, activeSketchpad, loadFrameModule]);
 
-  // Listen for undo/redo completion from the parent shell
+  // Listen for undo/redo completion and element selection events from the parent shell
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
         reloadRegistry();
+      }
+      // If any element inside the canvas is officially selected, drop the frame highlight
+      if (e.data?.type === 'PV_SET_SELECTION' && e.data.runtimeIds && e.data.runtimeIds.length > 0) {
+        setSelectedFrameId(null);
       }
     };
     window.addEventListener('message', handleMessage);
