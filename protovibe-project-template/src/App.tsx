@@ -735,7 +735,7 @@ function SkillsPage() {
 
 
         {/* pv-block-start:skht8u */}
-        <EmptyState iconSize="xl" className="min-h-64"
+        <EmptyState iconSize="xl" className="min-h-92"
           data-pv-block="skht8u"
           icon="mdi:text-box-outline"
           bigHeading="Create your first skill"
@@ -2081,10 +2081,10 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
         <header className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
-          <div className="flex items-center gap-px">
+          <div className="flex items-center gap-1">
             <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:help-circle-outline" size="md" /></Button>
             <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:cog-outline" size="md" /></Button>
-            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:monitor-outline" size="md" /></Button>
+            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="material-symbols:inbox" size="md" /></Button>
             <div className="relative">
               <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
               <span className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>
@@ -2093,7 +2093,7 @@ export default function App() {
             {/* User Avatar Dropdown */}
             <PopoverTrigger placement="bottom" align="right">
               <Button iconOnly variant="ghost" color="neutral">
-                <Avatar initials="JD" bgColor="info" size="sm" />
+                <Avatar initials="JD" bgColor="default" size="sm" />
               </Button>
               
               <DropdownList width="lg" className="">
