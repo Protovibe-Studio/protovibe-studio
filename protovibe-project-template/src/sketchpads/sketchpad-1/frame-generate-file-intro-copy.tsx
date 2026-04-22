@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Icon } from '@/components/ui/icon'
 import { MultiSelectDropdown } from '@/components/ui/multi-select-dropdown'
 import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item'
+import { DropdownSeparator } from '@/components/ui/dropdown-separator'
 
 export default function Frame1() {
   return (
@@ -57,20 +58,43 @@ export default function Frame1() {
                 <SuperLabel heading="Which positions would you like to fill with skills?" data-pv-block="eel6bk" primaryText="" />
                 {/* pv-block-end:eel6bk */}
                 {/* pv-block-start:ldmppg */}
-                <MultiSelectDropdown menuOpen="Open temporarily for visual editing"  data-pv-block="ldmppg"  placeholder="Select..." value="all">
+                <MultiSelectDropdown    data-pv-block="ldmppg"  placeholder="Select..." value="all">
                   {/* pv-editable-zone-start:qxnsyn */}
                     {/* pv-block-start:e22vfj */}
                     <SelectDropdownSearch data-pv-block="e22vfj" placeholder="Search people..." />
                     {/* pv-block-end:e22vfj */}
                     {/* pv-block-start:fxw1kv */}
-                    <MultiSelectDropdownItem data-pv-block="fxw1kv" value="all" label="All" badgeLabel="Design" />
+                    <MultiSelectDropdownItem data-pv-block="fxw1kv" value="all" label="All"  />
                     {/* pv-block-end:fxw1kv */}
+                    {/* pv-block-start:tluv3b */}
+                    <DropdownSeparator data-pv-block="tluv3b" />
+                    {/* pv-block-end:tluv3b */}
                     {/* pv-block-start:ms4sjs */}
-                    <MultiSelectDropdownItem data-pv-block="ms4sjs" value="2" label="Backend Developer" badgeLabel="Engineering" />
+                    <MultiSelectDropdownItem data-pv-block="ms4sjs" value="2" label="Backend Developer"  />
                     {/* pv-block-end:ms4sjs */}
                     {/* pv-block-start:m1d65b */}
-                    <MultiSelectDropdownItem data-pv-block="m1d65b" value="3" label="Senior Backend Developer" badgeLabel="Marketing" />
+                    <MultiSelectDropdownItem data-pv-block="m1d65b" value="3" label="Senior Backend Developer"  />
                     {/* pv-block-end:m1d65b */}
+
+                    {/* pv-block-start:s64qm4 */}
+                    <MultiSelectDropdownItem data-pv-block="s64qm4" value="3" label="Junior Backend Developer"  />
+                    {/* pv-block-end:s64qm4 */}
+
+                    {/* pv-block-start:2pmtcf */}
+                    <MultiSelectDropdownItem data-pv-block="2pmtcf" value="3" label="Backend Developer"  />
+                    {/* pv-block-end:2pmtcf */}
+
+                    {/* pv-block-start:l4twu4 */}
+                    <MultiSelectDropdownItem data-pv-block="l4twu4" value="3" label="Junior Front-end Engineer"  />
+                    {/* pv-block-end:l4twu4 */}
+
+                    {/* pv-block-start:h6l248 */}
+                    <MultiSelectDropdownItem data-pv-block="h6l248" value="3" label="Senior Front-end Engineer"  />
+                    {/* pv-block-end:h6l248 */}
+
+                    {/* pv-block-start:r1i4fn */}
+                    <MultiSelectDropdownItem data-pv-block="r1i4fn" value="3" label="(...other positions go here)"  />
+                    {/* pv-block-end:r1i4fn */}
                   {/* pv-editable-zone-end:qxnsyn */}
                 </MultiSelectDropdown>
                 {/* pv-block-end:ldmppg */}
@@ -107,19 +131,19 @@ export default function Frame1() {
                 <SuperLabel secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" data-pv-block="tfzb3g" primaryText="" />
                 {/* pv-block-end:tfzb3g */}
                 {/* pv-block-start:pvjmg7 */}
-                <SelectDropdown  data-pv-block="pvjmg7" placeholder="Select an option">
+                <SelectDropdown showClearButton={false} value="opt1"   data-pv-block="pvjmg7" placeholder="Select an option">
                   {/* pv-editable-zone-start:vtz9zr */}
                     {/* pv-block-start:03p0a3 */}
                     <SelectDropdownSearch data-pv-block="03p0a3" placeholder="Search..." />
                     {/* pv-block-end:03p0a3 */}
                     {/* pv-block-start:5ax979 */}
-                    <DropdownItem data-pv-block="5ax979" value="opt1" label="Option One" selected={false} />
+                    <DropdownItem secondaryText="Beginner, Competent, Advanced, Expert" data-pv-block="5ax979" value="opt1" label="Standard 4-level framework" selected={false} />
                     {/* pv-block-end:5ax979 */}
                     {/* pv-block-start:d8tv3a */}
-                    <DropdownItem data-pv-block="d8tv3a" value="opt2" label="Option Two" selected={false} />
+                    <DropdownItem secondaryText="Novice, Beginner, Competent, Proficient, Expert" data-pv-block="d8tv3a" value="opt2" label="Standard 5-level framework" selected={false} />
                     {/* pv-block-end:d8tv3a */}
                     {/* pv-block-start:u04oe5 */}
-                    <DropdownItem data-pv-block="u04oe5" value="opt3" label="Option Three" selected={false} />
+                    <DropdownItem secondaryText="Your own list of proficiency levels" data-pv-block="u04oe5" value="opt3" label="Custom" selected={false} />
                     {/* pv-block-end:u04oe5 */}
                   {/* pv-editable-zone-end:vtz9zr */}
                 </SelectDropdown>
@@ -129,7 +153,7 @@ export default function Frame1() {
               {/* pv-block-end:bb62pi */}
 
               {/* pv-block-start:45ndt1 */}
-              <div data-pv-block="45ndt1" className="flex flex-col gap-2">
+              <div data-tooltip-text="This section only appears if Custom number of proficiency levels is selected" data-pv-block="45ndt1" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:or3y0q */}
                 {/* pv-block-start:8gfm24 */}
                 <SuperLabel secondaryText="A lower number indicates a lower level." heading="Custom proficiency levels" data-pv-block="8gfm24" primaryText="" />
