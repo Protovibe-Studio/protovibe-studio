@@ -697,7 +697,7 @@ function SkillsPage() {
           {/* pv-block-end:sk7g8h */}
           
           {/* pv-block-start:skcn3o */}
-          <PopoverTrigger data-pv-block="skcn3o" placement="bottom" align="right">
+          <PopoverTrigger closeOnClickInside={true} data-pv-block="skcn3o" placement="bottom" align="right">
             <Button label="Add skills" leftIcon="mdi:plus" />
             <DropdownList width="xl" className="">
               <DropdownItem prefixIcon="mdi:plus" label="Add new skill manually" secondaryText="Manually enter description and proficiency level" />

@@ -29,6 +29,8 @@ export interface PopoverTriggerProps extends React.HTMLAttributes<HTMLSpanElemen
   zIndex?: number;
   /** Whether clicking outside the panel closes it. Default true. */
   closeOnClickOutside?: boolean;
+  /** Whether clicking inside the panel closes it. Default false. */
+  closeOnClickInside?: boolean;
   children?: React.ReactNode;
 }
 
@@ -37,6 +39,7 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
   align = 'left',
   zIndex = 9999,
   closeOnClickOutside = true,
+  closeOnClickInside = false,
   children,
   className,
   ...props
@@ -111,6 +114,9 @@ export const PopoverTrigger = forwardRef<PopoverHandle, PopoverTriggerProps>(fun
             <div
               ref={panelRef}
               style={{ ...floatingStyle, zIndex }}
+              onClick={() => {
+                if (closeOnClickInside) setIsOpen(false);
+              }}
             >
               {panelChildren}
             </div>,
@@ -174,6 +180,7 @@ export const pvConfig = {
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },
     closeOnClickOutside: { type: 'boolean' },
-    zIndex: { type: 'string', exampleValue: 'Lorem ipsum' },
+    closeOnClickInside: { type: 'boolean' },
+    zIndex: { type: 'string', exampleValue: '9999' },
   },
 };
