@@ -13,6 +13,7 @@ import {
   getAllowedChild,
   getAllowedSibling,
 } from '../utils/traversal';
+import { isTypingInput } from '../utils/elementType';
 
 export function useKeyboardShortcuts() {
   const { 
@@ -82,13 +83,8 @@ export function useKeyboardShortcuts() {
 
       // 1. Do not intercept if the user is typing in a native input, a
       // contentEditable (e.g., the rich-text BlockEditor), or a select.
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
+      // Allow shortcuts for non-text inputs like checkboxes, radios, sliders.
+      if (isTypingInput(e.target as HTMLElement)) {
         return;
       }
 

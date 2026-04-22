@@ -3,6 +3,8 @@
 // tagged with data-pv-sketchpad-el (absolutely-positioned sketchpad components).
 // Supports selecting, dragging, and focusing them in the inspector.
 
+import { isTypingInput } from './utils/elementType';
+
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
   try {
@@ -949,10 +951,8 @@ function handleKeyDown(e: KeyboardEvent) {
     updateGhost(true);
   }
 
-  // Ignore when typing in inputs
-  const active = document.activeElement as HTMLElement | null;
-  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' ||
-      active.tagName === 'SELECT' || active.isContentEditable)) return;
+  // Ignore when typing in inputs (but allow shortcuts for non-text inputs like checkboxes, radios, sliders)
+  if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
   if (e.key === 'Escape' && selectedEls.length > 0) {
     clearSelection();

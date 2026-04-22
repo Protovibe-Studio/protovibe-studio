@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import type { CanvasTransform } from '../types';
+import { isTypingInput } from '../../ui/utils/elementType';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
@@ -114,8 +115,7 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
-        const active = document.activeElement;
-        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable)) return;
+        if (isTypingInput(document.activeElement as HTMLElement | null)) return;
         e.preventDefault();
         setSpaceHeld(true);
       }

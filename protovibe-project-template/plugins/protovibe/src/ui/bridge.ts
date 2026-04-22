@@ -3,6 +3,7 @@
 // communicates them to the parent Protovibe shell via postMessage.
 
 import { isElementAllowed } from './utils/traversal';
+import { isTypingInput } from './utils/elementType';
 
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
@@ -300,14 +301,8 @@ function handleMouseLeave() {
 function handleKeyDown(e: KeyboardEvent) {
   if (!isInspectorActive) return;
   // Let the iframe handle key events that target real text-entry elements.
-  const active = document.activeElement as HTMLElement | null;
-  if (
-    active &&
-    (active.tagName === 'INPUT' ||
-      active.tagName === 'TEXTAREA' ||
-      active.tagName === 'SELECT' ||
-      active.isContentEditable)
-  ) {
+  // Allow shortcuts for non-text inputs like checkboxes, radios, sliders.
+  if (isTypingInput(document.activeElement as HTMLElement | null)) {
     return;
   }
 

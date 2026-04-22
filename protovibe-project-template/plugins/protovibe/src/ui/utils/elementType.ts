@@ -45,3 +45,12 @@ export function isTextEditableElement(el: HTMLElement | null, codeSnippet?: stri
 
   return false;
 }
+
+export function isTypingInput(element: HTMLElement | null): boolean {
+  if (!element) return false;
+  if (element.tagName === 'INPUT') {
+    const type = (element as HTMLInputElement).type.toLowerCase();
+    return !['checkbox', 'radio', 'range', 'button', 'submit', 'reset', 'color', 'file'].includes(type);
+  }
+  return element.tagName === 'TEXTAREA' || element.tagName === 'SELECT' || element.isContentEditable;
+}

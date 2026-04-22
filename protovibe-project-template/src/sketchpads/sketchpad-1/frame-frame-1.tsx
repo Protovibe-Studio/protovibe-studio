@@ -16,19 +16,19 @@ export default function Frame1() {
       {/* pv-block-end:uwbdk8 */}
       
       {/* pv-block-start:1obgh8 */}
-      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 316, top: 58 }}>
+      <DialogWindow size="xl" data-pv-block="1obgh8" data-pv-sketchpad-el="1obgh8"  style={{ position: 'absolute', left: 334, top: 99 }}>
         {/* pv-editable-zone-start:jcx4p4 */}
           {/* pv-block-start:k4mn1h */}
-          <div data-pv-block="k4mn1h" className="p-8 flex flex-col gap-2">
+          <div data-pv-block="k4mn1h" className="flex flex-col gap-2 p-12">
             {/* pv-editable-zone-start:xcg13x */}
               {/* pv-block-start:2gcnka */}
               <div data-pv-block="2gcnka" className="flex flex-row items-start gap-8">
                 {/* pv-editable-zone-start:wo74jp */}
                 {/* pv-block-start:6mrebx */}
-                <div data-pv-block="6mrebx" className="flex flex-col gap-2">
+                <div data-pv-block="6mrebx" className="flex flex-col gap-8">
                 {/* pv-editable-zone-start:enyhfe */}
                 {/* pv-block-start:ppsjsl */}
-                <div data-pv-block="ppsjsl" className="flex flex-col gap-2">
+                <div data-pv-block="ppsjsl" className="flex flex-col gap-4">
                 {/* pv-editable-zone-start:8be0rh */}
                 {/* pv-block-start:rf94ku */}
                 <h2 data-pv-block="rf94ku" className="text-xl font-semibold text-foreground-default">
@@ -47,7 +47,7 @@ export default function Frame1() {
                 <div data-pv-block="88rls2" className="flex flex-col gap-2">
                 {/* pv-editable-zone-start:4v2vz4 */}
                 {/* pv-block-start:gwhw15 */}
-                <div className="flex flex-col min-h-4 items-start" data-pv-block="gwhw15">
+                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="gwhw15">
                 {/* pv-editable-zone-start:inside-gwhw15 */}
                 {/* pv-block-start:j88xbh */}
                 <div data-pv-block="j88xbh" className="flex gap-2 flex-row items-start justify-start">
@@ -57,58 +57,96 @@ export default function Frame1() {
                 {/* pv-block-end:ucan3m */}
                 {/* pv-block-start:1zpetx */}
                 <TextParagraph className="pt-0.5" data-pv-block="1zpetx" typography="regular">
-                <span></span><span></span>Generate a file with all your positions and suggested skills
+                  <span></span><span></span>Generate a file with all your positions and suggested skills
                 </TextParagraph>
                 {/* pv-block-end:1zpetx */}
                 {/* pv-editable-zone-end:qyqjnc */}
                 </div>
                 {/* pv-block-end:j88xbh */}
                 
+                  {/* pv-block-start:v7f6k0 */}
+                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="v7f6k0">
+                    {/* pv-editable-zone-start:inside-v7f6k0 */}
+                      {/* pv-block-start:xpbdiz */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="xpbdiz">
+                        {/* pv-editable-zone-start:inside-xpbdiz */}
+                        {/* pv-editable-zone-end:inside-xpbdiz */}
+                      </div>
+                      {/* pv-block-end:xpbdiz */}
+                    {/* pv-editable-zone-end:inside-v7f6k0 */}
+                  </div>
+                  {/* pv-block-end:v7f6k0 */}
                 {/* pv-editable-zone-end:inside-gwhw15 */}
                 </div>
                 {/* pv-block-end:gwhw15 */}
-                {/* pv-block-start:ts5s57 */}
-                <div className="flex flex-col min-h-4 items-start" data-pv-block="ts5s57">
-                {/* pv-editable-zone-start:inside-ts5s57 */}
-                {/* pv-block-start:zpex1p */}
-                <div data-pv-block="zpex1p" className="flex gap-2 flex-row items-start justify-start">
+
+                {/* pv-block-start:hx1izr */}
+                <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="hx1izr">
+                {/* pv-editable-zone-start:inside-hx1izr */}
+                {/* pv-block-start:ak7cus */}
+                <div data-pv-block="ak7cus" className="flex gap-2 flex-row items-start justify-start">
                 {/* pv-editable-zone-start:qyqjnc */}
-                {/* pv-block-start:x6ipm8 */}
-                <StepCircle data-pv-block="x6ipm8" state="current" number="2" />
-                {/* pv-block-end:x6ipm8 */}
-                {/* pv-block-start:pg1a4e */}
-                <TextParagraph className="pt-0.5" data-pv-block="pg1a4e" typography="regular">
-                <span></span><span></span><span></span>Collaborate on the file in your favourite tools, like Google Sheets
+                {/* pv-block-start:s9muwj */}
+                <StepCircle data-pv-block="s9muwj" state="current" number={1} />
+                {/* pv-block-end:s9muwj */}
+                {/* pv-block-start:r9c9b0 */}
+                <TextParagraph className="pt-0.5" data-pv-block="r9c9b0" typography="regular">
+                  <span></span>Collaborate on the file in your favourite tools, like Google Sheets
                 </TextParagraph>
-                {/* pv-block-end:pg1a4e */}
+                {/* pv-block-end:r9c9b0 */}
                 {/* pv-editable-zone-end:qyqjnc */}
                 </div>
-                {/* pv-block-end:zpex1p */}
+                {/* pv-block-end:ak7cus */}
                 
-                {/* pv-editable-zone-end:inside-ts5s57 */}
+                  {/* pv-block-start:kgphdx */}
+                  <div className="flex flex-col w-6 items-center absolute top-8 bottom-0 min-h-2" data-pv-block="kgphdx">
+                    {/* pv-editable-zone-start:inside-kgphdx */}
+                      {/* pv-block-start:hdc03o */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="hdc03o">
+                        {/* pv-editable-zone-start:inside-hdc03o */}
+                        {/* pv-editable-zone-end:inside-hdc03o */}
+                      </div>
+                      {/* pv-block-end:hdc03o */}
+                    {/* pv-editable-zone-end:inside-kgphdx */}
+                  </div>
+                  {/* pv-block-end:kgphdx */}
+                {/* pv-editable-zone-end:inside-hx1izr */}
                 </div>
-                {/* pv-block-end:ts5s57 */}
-                {/* pv-block-start:hiimbj */}
-                <div className="flex flex-col min-h-4 items-start" data-pv-block="hiimbj">
-                {/* pv-editable-zone-start:inside-hiimbj */}
-                {/* pv-block-start:gj1pih */}
-                <div data-pv-block="gj1pih" className="flex gap-2 flex-row items-start justify-start">
+                {/* pv-block-end:hx1izr */}
+
+                {/* pv-block-start:tiw2gl */}
+                <div className="flex flex-col items-start relative pb-6 min-h-0" data-pv-block="tiw2gl">
+                {/* pv-editable-zone-start:inside-tiw2gl */}
+                {/* pv-block-start:lwlyb3 */}
+                <div data-pv-block="lwlyb3" className="flex gap-2 flex-row items-start justify-start">
                 {/* pv-editable-zone-start:qyqjnc */}
-                {/* pv-block-start:s8an3k */}
-                <StepCircle data-pv-block="s8an3k" state="current" number="3" />
-                {/* pv-block-end:s8an3k */}
-                {/* pv-block-start:pfv35g */}
-                <TextParagraph className="pt-0.5" data-pv-block="pfv35g" typography="regular">
-                <span></span><span></span><span></span>Once you’re done, import the file to Tellent HR
+                {/* pv-block-start:7s71o1 */}
+                <StepCircle data-pv-block="7s71o1" state="current" number={1} />
+                {/* pv-block-end:7s71o1 */}
+                {/* pv-block-start:iejkht */}
+                <TextParagraph className="pt-0.5" data-pv-block="iejkht" typography="regular">
+                  <span></span>Once you’re done, import the file to Tellent HR
                 </TextParagraph>
-                {/* pv-block-end:pfv35g */}
+                {/* pv-block-end:iejkht */}
                 {/* pv-editable-zone-end:qyqjnc */}
                 </div>
-                {/* pv-block-end:gj1pih */}
+                {/* pv-block-end:lwlyb3 */}
                 
-                {/* pv-editable-zone-end:inside-hiimbj */}
+                  {/* pv-block-start:mquzyu */}
+                  <div className="flex-col w-6 items-center absolute top-8 bottom-0 min-h-2 hidden" data-pv-block="mquzyu">
+                    {/* pv-editable-zone-start:inside-mquzyu */}
+                      {/* pv-block-start:anxb9y */}
+                      <div className="flex flex-col min-h-4 w-px bg-background-primary flex-1" data-pv-block="anxb9y">
+                        {/* pv-editable-zone-start:inside-anxb9y */}
+                        {/* pv-editable-zone-end:inside-anxb9y */}
+                      </div>
+                      {/* pv-block-end:anxb9y */}
+                    {/* pv-editable-zone-end:inside-mquzyu */}
+                  </div>
+                  {/* pv-block-end:mquzyu */}
+                {/* pv-editable-zone-end:inside-tiw2gl */}
                 </div>
-                {/* pv-block-end:hiimbj */}
+                {/* pv-block-end:tiw2gl */}
                 {/* pv-editable-zone-end:4v2vz4 */}
                 </div>
                 {/* pv-block-end:88rls2 */}
@@ -116,7 +154,7 @@ export default function Frame1() {
                 </div>
                 {/* pv-block-end:6mrebx */}
                 {/* pv-block-start:mk6tvu */}
-                <Image data-pv-block="mk6tvu" className="bg-cover bg-center bg-no-repeat w-full bg-[url('/src/images/from-protovibe/ai-spreadsheet-illustration.svg')] aspect-[133/174] max-w-72" />
+                <Image data-pv-block="mk6tvu" className="bg-cover bg-center bg-no-repeat w-full bg-[url('/src/images/from-protovibe/ai-spreadsheet-illustration.svg')] aspect-[133/174] max-w-[258px]" />
                 {/* pv-block-end:mk6tvu */}
                 {/* pv-editable-zone-end:wo74jp */}
               </div>
@@ -130,6 +168,12 @@ export default function Frame1() {
             {/* pv-editable-zone-end:xcg13x */}
           </div>
           {/* pv-block-end:k4mn1h */}
+          {/* pv-block-start:u9rjmz */}
+          <div className="flex flex-col min-h-4 bg-background-subtle border-t" data-pv-block="u9rjmz">
+            {/* pv-editable-zone-start:inside-u9rjmz */}
+            {/* pv-editable-zone-end:inside-u9rjmz */}
+          </div>
+          {/* pv-block-end:u9rjmz */}
         {/* pv-editable-zone-end:jcx4p4 */}
       </DialogWindow>
       {/* pv-block-end:1obgh8 */}

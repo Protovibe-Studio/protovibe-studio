@@ -10,6 +10,7 @@ import { fetchSourceInfo, fetchZones, takeSnapshot, blockAction, addBlock } from
 import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
+import { isTypingInput } from '../../ui/utils/elementType';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -511,9 +512,7 @@ export function SketchpadApp() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = async (e: KeyboardEvent) => {
-      const active = document.activeElement;
-      const inputFocused = !!(active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable));
-      if (inputFocused) return;
+      if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
       if (e.key === 'Escape' && pendingAction) {
         setPendingAction(null);
