@@ -73,6 +73,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   const dropdownElRef = useRef<HTMLDivElement | null>(null);
   const pendingBlurValueRef = useRef<string | null>(null);
   const lastCommittedValueRef = useRef(value === '-' ? '' : value);
+  const keyboardNavRef = useRef(false);
   const canUseDOM = typeof document !== 'undefined';
 
   const safeDropdownStyle = useMemo(() => {
@@ -192,7 +193,12 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (activeIndex >= 0 && dropdownElRef.current) {
       const activeEl = dropdownElRef.current.querySelector(`[data-index="${activeIndex}"]`) as HTMLElement;
       if (activeEl) {
-        activeEl.scrollIntoView({ block: 'nearest' });
+        if (keyboardNavRef.current) {
+          activeEl.scrollIntoView({ block: 'nearest' });
+          keyboardNavRef.current = false; // Reset for next interaction
+        } else {
+          activeEl.scrollIntoView({ block: 'start' });
+        }
       }
     }
   }, [activeIndex]);
@@ -218,6 +224,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      keyboardNavRef.current = true;
       if (!isOpen) setIsOpen(true);
       const next = activeIndex === -1 ? 0 : Math.min(activeIndex + 1, renderableOptions.length - 1);
       setLocalValue(renderableOptions[next].val);
@@ -225,6 +232,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
     if (e.key === 'ArrowUp') {
       e.preventDefault();
+      keyboardNavRef.current = true;
       if (!isOpen) setIsOpen(true);
       const prev = activeIndex === -1 ? 0 : Math.max(activeIndex - 1, 0);
       setLocalValue(renderableOptions[prev].val);
