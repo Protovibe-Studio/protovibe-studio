@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "./sketchpads";
 
 :root {
  color-scheme: light dark;
