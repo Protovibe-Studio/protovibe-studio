@@ -186,11 +186,6 @@ function generateCombinations(
       return next;
     }));
   }
-  // Drop combos where every text prop is absent — avoids all-empty-label previews
-  if (textPropKeys.length > 0) {
-    combos = combos.filter(combo => textPropKeys.some(k => combo[k] != null && combo[k] !== ''));
-  }
-
   // Sort: ascending by total number of props set (least set -> most set)
   combos.sort((a, b) => {
     const countProps = (c: Record<string, any>) => Object.keys(c).length;

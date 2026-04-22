@@ -82,13 +82,15 @@ export function Checkbox({
             {isChecked && <Icon iconSymbol="Check" size="sm"  className="text-foreground-on-primary" />}
           </div>
         </div>
-        <SuperLabel
-          heading={heading}
-          primaryText={primaryText}
-          secondaryText={secondaryText}
-          prefixIcon={prefixIcon}
-          suffixIcon={suffixIcon}
-        />
+        {(heading || primaryText || secondaryText || prefixIcon || suffixIcon) && (
+          <SuperLabel
+            heading={heading}
+            primaryText={primaryText}
+            secondaryText={secondaryText}
+            prefixIcon={prefixIcon}
+            suffixIcon={suffixIcon}
+          />
+        )}
       </div>
       {error && errorLabel && (
         <span className="text-xs text-foreground-destructive pl-7">{errorLabel}</span>
@@ -113,11 +115,21 @@ export const pvConfig = {
     checked: { type: 'boolean' },
     disabled: { type: 'boolean' },
     error: { type: 'boolean' },
-    errorLabel: { type: 'string', exampleValue: 'Lorem ipsum' },
+    errorLabel: { type: 'string', exampleValue: 'This field is required' },
     heading: { type: 'string', exampleValue: 'Lorem ipsum' },
     primaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     secondaryText: { type: 'string', exampleValue: 'Lorem ipsum' },
     prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => {
+      const isError = props.error === true;
+      const hasErrorLabel = typeof props.errorLabel === 'string' && props.errorLabel.length > 0;
+      const hasPrimaryText = typeof props.primaryText === 'string' && props.primaryText.length > 0;
+      const hasSecondaryText = typeof props.secondaryText === 'string' && props.secondaryText.length > 0;
+      if (isError && hasErrorLabel && !hasPrimaryText && !hasSecondaryText) return true;
+      return false;
+    },
+  ],
 };
