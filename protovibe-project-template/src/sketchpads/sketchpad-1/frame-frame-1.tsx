@@ -47,7 +47,7 @@ export default function Frame1() {
                 <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="gwhw15">
                 {/* pv-editable-zone-start:inside-gwhw15 */}
                 {/* pv-block-start:j88xbh */}
-                <div data-pv-block="j88xbh" className="flex gap-2 flex-row items-start justify-start">
+                <div data-pv-block="j88xbh" className="flex flex-row items-start justify-start gap-3">
                 {/* pv-editable-zone-start:qyqjnc */}
                 {/* pv-block-start:ucan3m */}
                 <StepCircle data-pv-block="ucan3m" state="current" number={1} />
@@ -81,7 +81,7 @@ export default function Frame1() {
                 <div className="flex flex-col items-start relative pb-6 min-h-16" data-pv-block="hx1izr">
                 {/* pv-editable-zone-start:inside-hx1izr */}
                 {/* pv-block-start:ak7cus */}
-                <div data-pv-block="ak7cus" className="flex gap-2 flex-row items-start justify-start">
+                <div data-pv-block="ak7cus" className="flex flex-row items-start justify-start gap-3">
                 {/* pv-editable-zone-start:qyqjnc */}
                 {/* pv-block-start:s9muwj */}
                 <StepCircle data-pv-block="s9muwj" state="current" number={1} />
@@ -115,7 +115,7 @@ export default function Frame1() {
                 <div className="flex flex-col items-start relative pb-6 min-h-0" data-pv-block="tiw2gl">
                 {/* pv-editable-zone-start:inside-tiw2gl */}
                 {/* pv-block-start:lwlyb3 */}
-                <div data-pv-block="lwlyb3" className="flex gap-2 flex-row items-start justify-start">
+                <div data-pv-block="lwlyb3" className="flex flex-row items-start justify-start gap-3">
                 {/* pv-editable-zone-start:qyqjnc */}
                 {/* pv-block-start:7s71o1 */}
                 <StepCircle data-pv-block="7s71o1" state="current" number={1} />

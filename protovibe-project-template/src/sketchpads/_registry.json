@@ -10,7 +10,7 @@
           "name": "generate-file-intro",
           "width": 1440,
           "height": 900,
-          "canvasX": 2687,
+          "canvasX": 2688,
           "canvasY": 1040
         },
         {
@@ -27,7 +27,7 @@
           "width": 1440,
           "height": 900,
           "canvasX": 5950,
-          "canvasY": 1042
+          "canvasY": 1043
         },
         {
           "id": "frame-generate-file-intro-copy-3",
@@ -36,6 +36,22 @@
           "height": 900,
           "canvasX": 7553,
           "canvasY": 1042
+        },
+        {
+          "id": "frame-generate-file-intro-copy-4",
+          "name": "import-file-intro",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 2660,
+          "canvasY": 2519
+        },
+        {
+          "id": "frame-generate-file-form-copy",
+          "name": "import-file-form",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 4293,
+          "canvasY": 2517
         }
       ]
     }

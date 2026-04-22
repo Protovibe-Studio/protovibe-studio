@@ -595,11 +595,11 @@
  --text-lg--line-height: calc(1.75 / 1.125);
  --text-xl: 1.125rem; 
  --text-xl--line-height: calc(1.75 / 1.25);
- --text-2xl: 1.5rem; 
+ --text-2xl: 1.25rem; 
  --text-2xl--line-height: calc(2 / 1.5);
- --text-3xl: 1.875rem; 
+ --text-3xl: 1.5rem; 
  --text-3xl--line-height: calc(2.25 / 1.875);
- --text-4xl: 2.25rem; 
+ --text-4xl: 2rem; 
  --text-4xl--line-height: calc(2.5 / 2.25);
  --text-5xl: 3rem; 
  --text-5xl--line-height: 1;

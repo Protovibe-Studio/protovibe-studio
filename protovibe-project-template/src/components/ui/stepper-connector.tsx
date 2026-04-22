@@ -14,7 +14,7 @@ export function StepperConnector({
     <div
       {...props}
       data-state={state}
-      className={cn('w-16 h-8 flex items-center flex-none group-data-[full-width=true]/stepper:flex-1 group-data-[full-width=true]/stepper:w-auto group-data-[full-width=true]/stepper:min-w-8', className)}
+      className={cn("w-16 flex items-center flex-none group-data-[full-width=true]/stepper:flex-1 group-data-[full-width=true]/stepper:w-auto group-data-[full-width=true]/stepper:min-w-8 h-6 px-2", className)}
       data-pv-component-id="StepperConnector"
     >
       <div
