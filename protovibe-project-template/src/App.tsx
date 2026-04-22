@@ -1527,7 +1527,7 @@ function SkillsPage() {
                           {/* pv-editable-zone-start:vhplpm */}
                           {/* pv-block-start:4r4rdw */}
                           <TextParagraph data-pv-block="4r4rdw" typography="secondary">
-                            No special template is required, Tellent AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="#" onClick={() => setDialogFlow('generate')} className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
+                            No special template is required, Tellent AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="#" onClick={(e) => { e.preventDefault(); openDialog('generate'); }} className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
                           </TextParagraph>
                           {/* pv-block-end:4r4rdw */}
                           {/* pv-editable-zone-end:vhplpm */}

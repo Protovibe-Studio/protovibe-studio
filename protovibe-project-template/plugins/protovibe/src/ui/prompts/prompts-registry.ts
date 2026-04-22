@@ -65,69 +65,71 @@ export interface PromptDef {
 }
 
 const AGENTS_RULES_SUFFIX =
-  'Follow all architectural rules from AGENTS.md — especially the zone/block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
+  'Follow all architectural rules from AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
 
-  export const PROMPTS: PromptDef[] = [
-    {
-      id: 'create-view',
-      title: 'Create new view or feature',
-      description: 'Add a brand-new page or feature to the app, wired into the existing querystring routing.',
-      icon: LayoutTemplate,
-      inputLabel: 'Create a new view or feature that…',
-      inputPlaceholder: 'shows a settings page with profile, notifications, and billing sections',
-      requiresSelection: false,
-      references: [],
-      template: `Goal from the user:
+export const PROMPTS: PromptDef[] = [
+  {
+    id: 'create-view',
+    title: 'Create new view or feature',
+    description: 'Add a brand-new page or feature to the app, wired into the existing querystring routing.',
+    icon: LayoutTemplate,
+    inputLabel: 'Create a new view or feature that…',
+    inputPlaceholder: 'shows a settings page with profile, notifications, and billing sections',
+    requiresSelection: false,
+    references: [],
+    template: `Goal from the user:
   {{input}}
   
   Create a new view or feature in this Protovibe application.
   
   Before writing any code:
   1. Read AGENTS.md and \`src/App.tsx\` to understand how views are mounted and how the app is structured.
-  2. This app uses querystring-based routing (e.g. \`?view=xxx\`). Add the new route by following the existing pattern exactly — do NOT introduce react-router or any other routing library.
+  2. This app uses querystring-based routing (e.g. \`?view=xxx\`). Add the new route by following the existing pattern exactly — do NOT introduce react-router or any other routing library. Consider using queryStrings for dialogs also (separate key for each dialog like employeeDialog=true (so that visible dialog layer gets it's own key set to true, but don't set the key to false for non visible dialogs, just remove the key from URL).
   3. Browse \`src/components/ui/\` and reuse existing components wherever possible. Only write custom HTML/Tailwind when no existing component fits the need.
   4. Use mock data held in React state (e.g. \`useState\` with a seeded default). The data should persist while navigating within the app but reset on full page refresh — do not write to localStorage, files, or any backend.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'generate-inside-selection',
-      title: 'Generate inside selection',
-      description: 'Fill the currently selected element with new content or child components.',
-      icon: Wand,
-      inputLabel: 'Inside this element, generate…',
-      inputPlaceholder: 'a 3-column pricing grid with Starter, Pro, and Enterprise cards',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `What to generate: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'generate-inside-selection',
+    title: 'Generate inside selection',
+    description: 'Fill the currently selected element with new content or child components.',
+    icon: Wand,
+    inputLabel: 'Inside this element, generate…',
+    inputPlaceholder: 'a 3-column pricing grid with Starter, Pro, and Enterprise cards',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `What to generate: 
   {{input}}
   
   Generate content inside the selected element.
   
-  Target: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
-  Current source of the target block:
+  Current source:
   \`\`\`tsx
   {{code}}
   \`\`\`
   
   Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules. Reuse components from \`@/components/ui/\` whenever possible.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'edit-selection',
-      title: 'Edit selection',
-      description: 'Modify the selected element — change content, tweak props, restructure, or adjust layout.',
-      icon: SquarePen,
-      inputLabel: 'Edit this element so that…',
-      inputPlaceholder: 'the card shows an avatar on the left and stacks the name and role vertically on the right',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `What to change: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'edit-selection',
+    title: 'Edit selection',
+    description: 'Modify the selected element — change content, tweak props, restructure, or adjust layout.',
+    icon: SquarePen,
+    inputLabel: 'Edit this element so that…',
+    inputPlaceholder: 'the card shows an avatar on the left and stacks the name and role vertically on the right',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `What to change: 
   {{input}}
   
   Edit the selected element in place.
   
-  Target: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Current source:
   \`\`\`tsx
@@ -142,24 +144,25 @@ const AGENTS_RULES_SUFFIX =
   - Preserve the existing pv-editable-zone / pv-block structure and IDs. Only add new IDs when inserting new blocks.
   - Do not change props or behaviour that are not mentioned in the user's request.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'sketchpad-to-app',
-      title: 'Convert sketchpad to app',
-      description: 'Turn a rough sketchpad element into a real, production-ready piece of the App.tsx layout.',
-      icon: Rocket,
-      inputLabel: 'Extra instructions (optional)…',
-      inputPlaceholder: 'place it inside the dashboard main column, above the stats cards',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `Additional user instructions: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'sketchpad-to-app',
+    title: 'Convert sketchpad to app',
+    description: 'Turn a rough sketchpad element into a real, production-ready piece of the App.tsx layout.',
+    icon: Rocket,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'place it inside the dashboard main column, above the stats cards',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Additional user instructions: 
   {{input}}
   
   The selected element comes from the Protovibe sketchpad. Treat it as a rough visual sketch, NOT as final code.
   
   Your job: convert this sketch into a clean, production-quality implementation inside \`src/App.tsx\` (or the appropriate view file if routing is already set up).
   
-  Source element: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Source element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Sketch source:
   \`\`\`tsx
@@ -176,22 +179,23 @@ const AGENTS_RULES_SUFFIX =
   - Keep text content identical to the sketch unless the user asks otherwise.
   - Add any interactions or dynamic behavior needed to make this a real, working part of the app — but do not add extra features beyond what the user asked for.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'element-to-sketchpad',
-      title: 'Convert element to sketchpad',
-      description: 'Take the selected element and create a new sketchpad version of it for freeform editing.',
-      icon: PencilRuler,
-      inputLabel: 'Extra instructions (optional)…',
-      inputPlaceholder: 'simplify the header to just a title and a button',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `Additional user instructions: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'element-to-sketchpad',
+    title: 'Convert element to sketchpad',
+    description: 'Take the selected element and create a new sketchpad version of it for freeform editing.',
+    icon: PencilRuler,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'simplify the header to just a title and a button',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Additional user instructions: 
   {{input}}
   
   Create a new sketchpad out of the selected element. The goal is to give the user a simplified, freely-editable sketch version of this UI that they can tweak in the Protovibe sketchpad.
   
-  Source element: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Source element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Source code:
   \`\`\`tsx
@@ -207,18 +211,18 @@ const AGENTS_RULES_SUFFIX =
   - Follow the sketchpad styling conventions used by the other files in \`src/sketchpad/\` (or wherever sketchpads live in this project) — read a couple before writing.
   - Wrap the result in pv-editable-zone / pv-block tags with HIGH granularity: every direct child the user might want to reorder, delete, or edit independently must be its own pv-block with a fresh 6-char id. Err on the side of more blocks rather than fewer.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'new-component',
-      title: 'New component',
-      description: 'Create a new reusable UI component in components/ui, following project conventions.',
-      icon: Blocks,
-      inputLabel: 'Create a new component that…',
-      inputPlaceholder: 'is a Stat tile showing a label, large value, and optional trend indicator',
-      requiresSelection: false,
-      references: [],
-      template: `Component description from the user: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'new-component',
+    title: 'New component',
+    description: 'Create a new reusable UI component in components/ui, following project conventions.',
+    icon: Blocks,
+    inputLabel: 'Create a new component that…',
+    inputPlaceholder: 'is a Stat tile showing a label, large value, and optional trend indicator',
+    requiresSelection: false,
+    references: [],
+    template: `Component description from the user: 
   {{input}}
   
   Create a new reusable UI component in \`src/components/ui/\`.
@@ -232,22 +236,23 @@ const AGENTS_RULES_SUFFIX =
   
   Output: a single new file in \`src/components/ui/\` that exports the component, its \`PvDefaultContent\`, and a valid \`pvConfig\`.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'convert-to-component',
-      title: 'Convert to component',
-      description: 'Extract the selected element(s) into a new reusable component in components/ui, inferring props from variants.',
-      icon: Component,
-      inputLabel: 'Extra instructions (optional)…',
-      inputPlaceholder: 'name it StatTile; treat the trend arrow as optional',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `Additional user instructions: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'convert-to-component',
+    title: 'Convert to component',
+    description: 'Extract the selected element(s) into a new reusable component in components/ui, inferring props from variants.',
+    icon: Component,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'name it StatTile; treat the trend arrow as optional',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Additional user instructions: 
   {{input}}
   
   Extract the currently selected element(s) into a new reusable component (or a set of components) inside \`src/components/ui/\`, then replace the original call site(s) with the new component.
   
-  Source: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Source element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Source code of the selection:
   \`\`\`tsx
@@ -276,22 +281,23 @@ const AGENTS_RULES_SUFFIX =
   - After creating the component(s), replace the selected markup in \`{{file}}\` with calls to the new component(s). Preserve the surrounding pv-editable-zone / pv-block tags and their IDs.
   - For each original variant in the selection, set the props so the rendered output matches the original visually.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'edit-component',
-      title: 'Edit component',
-      description: 'Modify the component definition of the currently selected element.',
-      icon: SquarePen,
-      inputLabel: 'Edit this component so that…',
-      inputPlaceholder: 'the outline variant uses a dashed border and a smaller hover shadow',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `Apply this change: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'edit-component',
+    title: 'Edit component',
+    description: 'Modify the component definition of the currently selected element.',
+    icon: SquarePen,
+    inputLabel: 'Edit this component so that…',
+    inputPlaceholder: 'the outline variant uses a dashed border and a smaller hover shadow',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Apply this change: 
   {{input}}
   
   Edit the component backing the currently selected element.
   
-  Selection: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Selection: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Relevant source:
   \`\`\`tsx
@@ -306,22 +312,23 @@ const AGENTS_RULES_SUFFIX =
   - Keep existing usages working — do not rename or remove props unless the user asked for it.
   - If needed update the consumer files
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'restyle-element',
-      title: 'Restyle element',
-      description: 'Adjust the visual design of the selected element using only Tailwind utilities and semantic tokens.',
-      icon: Palette,
-      inputLabel: 'Restyle this element to…',
-      inputPlaceholder: 'feel more compact with a softer secondary background',
-      references: ['file', 'blockId', 'code'],
-      template: `Desired style: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'restyle-element',
+    title: 'Restyle element',
+    description: 'Adjust the visual design of the selected element using only Tailwind utilities and semantic tokens.',
+    icon: Palette,
+    inputLabel: 'Restyle this element to…',
+    inputPlaceholder: 'feel more compact with a softer secondary background',
+    references: ['file', 'blockId', 'code'],
+    template: `Desired style: 
   {{input}}
   
   Restyle the selected element. This task is STYLING ONLY — do not change markup structure, props, or behavior beyond what is needed to apply the new classes.
   
-  Target: data-pv-block="{{blockId}}" in \`{{file}}\`.
+  Target element: data-pv-block="{{blockId}}"
+  File: \`{{file}}\`
   
   Current source:
   \`\`\`tsx
@@ -335,18 +342,18 @@ const AGENTS_RULES_SUFFIX =
   - Use ONLY semantic color tokens defined in \`src/index.css\` (e.g. \`bg-background-secondary\`, \`text-foreground-default\`, \`border-border-default\`). NEVER use default Tailwind palette colors (\`bg-blue-500\`) or hex values.
   - Keep all className strings fully static so the AST parser can read them — no template literals, no ternaries inside className, no cva. Express variants via \`data-*\` attributes and \`data-[...]\` modifiers as shown in AGENTS.md.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-    {
-      id: 'edit-tokens',
-      title: 'Edit tokens',
-      description: 'Modify the design token values in index.css — colors, borders, backgrounds — for light and/or dark theme.',
-      icon: Pipette,
-      inputLabel: 'Change the tokens so that…',
-      inputPlaceholder: 'the primary color becomes a warm amber, and the dark theme background is slightly warmer',
-      requiresSelection: false,
-      references: [],
-      template: `What to change: 
+  {{agentsRules}}`,
+  },
+  {
+    id: 'edit-tokens',
+    title: 'Edit tokens',
+    description: 'Modify the design token values in index.css — colors, borders, backgrounds — for light and/or dark theme.',
+    icon: Pipette,
+    inputLabel: 'Change the tokens so that…',
+    inputPlaceholder: 'the primary color becomes a warm amber, and the dark theme background is slightly warmer',
+    requiresSelection: false,
+    references: [],
+    template: `What to change: 
   {{input}}
   
   Edit the design tokens in \`src/index.css\`.
@@ -370,21 +377,22 @@ const AGENTS_RULES_SUFFIX =
   - If the user provides a specific color value without mentioning which theme it targets, assume it is for **light mode**. Derive a matching dark-mode equivalent automatically (typically: invert the lightness curve — light-mode light backgrounds become dark-mode dark backgrounds, and vice versa — while preserving chroma and hue). Then **inform the user** at the start of your response that you assumed light mode for the provided value and auto-generated the dark-mode counterpart, and show both values so they can adjust if needed.
   - If the user explicitly mentions only one theme, apply changes only to that theme and leave the other untouched.
   - Do not change the \`@theme\` mappings, fonts, spacing, radius, or shadow variables unless the user explicitly asks.`,
-    },
-    {
-      id: 'add-interaction',
-      title: 'Add interaction',
-      description: 'Add a small, specific piece of interactivity to the selected element.',
-      icon: MousePointerClick,
-      inputLabel: 'Add this interaction:',
-      inputPlaceholder: 'clicking the Actions button opens a dropdown with Edit and Delete',
-      references: ['file', 'blockId', 'lineRange', 'code'],
-      template: `Interaction to add: 
+  },
+  {
+    id: 'add-interaction',
+    title: 'Add interaction',
+    description: 'Add a small, specific piece of interactivity to the selected element.',
+    icon: MousePointerClick,
+    inputLabel: 'Add this interaction:',
+    inputPlaceholder: 'clicking the Actions button opens a dropdown with Edit and Delete',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Interaction to add: 
   {{input}}
   
   Add a small, specific interaction to the selected element. Scope is tight: only implement what is asked, nothing more.
   
-  Target: data-pv-block="{{blockId}}" in \`{{file}}\` (lines {{startLine}}–{{endLine}}).
+  Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
   
   Current source:
   \`\`\`tsx
@@ -399,9 +407,9 @@ const AGENTS_RULES_SUFFIX =
   - Prefer existing components from \`@/components/ui/\` over raw HTML elements.
   - Floating UI (dropdowns, tooltips, popovers) must use \`createPortal\` + fixed positioning so it escapes any overflow-hidden inspectors — see AGENTS.md.
   
-  \${AGENTS_RULES_SUFFIX}`,
-    },
-  ];
+  {{agentsRules}}`,
+  },
+];
 
 export interface PromptRenderContext {
   file: string | null;
