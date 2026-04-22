@@ -16,7 +16,7 @@ Never guess the components structure! Always read the files from @src/components
     <span>Welcome!</span>
   ```
 
-* **✅ GOOD: Individual block that user should be able to reorder or delete is in pv-editable-zone and pv-block
+* **✅ GOOD: Individual block that user should be able to reorder or delete is in pv-editable-zone and pv-block. Notice the indentation that pv-editable-zone-start and pv-editable-zone-end are on the same indentation level, and nested blocks are indented. Don't accidentally use double-braces! It's normal JSX comment.
 
   ```jsx
   {/* pv-editable-zone-start:x1y2z3 */}
