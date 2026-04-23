@@ -1933,7 +1933,7 @@ function SkillsPage() {
                     <Container className="items-stretch" data-pv-block="vs3109">
                       {/* pv-editable-zone-start:gvn75e */}
                         {/* pv-block-start:k8x2m1 */}
-                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 p-5 bg-background-primary-subtle/55">
+                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 p-5 bg-background-special-gradient-subtle">
                           {/* pv-editable-zone-start:m1n2o3 */}
                             {/* pv-block-start:p1q2r3 */}
                             <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">

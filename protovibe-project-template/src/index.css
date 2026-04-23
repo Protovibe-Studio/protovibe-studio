@@ -180,6 +180,7 @@
  --border-success: oklch(65% 0.18 145);
  --border-warning: oklch(75% 0.18 80);
  --border-info: oklch(65% 0.18 220);
+ --border-special-gradient: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
 }
 
