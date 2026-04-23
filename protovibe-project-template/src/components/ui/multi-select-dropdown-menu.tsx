@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-item';
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
 export interface MultiSelectDropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   menuMinWidth?: 'auto' | 'sm' | 'md' | 'lg' | 'xl';
@@ -38,13 +39,19 @@ export function PvDefaultContent() {
         <SelectDropdownSearch data-pv-block="" placeholder="Search people..." />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <MultiSelectDropdownItem data-pv-block="" value="alice" label="Alice Johnson" badgeLabel="Design" selected={true} />
+        <MultiSelectDropdownItem data-pv-block="" value="all" label="All" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <MultiSelectDropdownItem data-pv-block="" value="bob" label="Bob Smith" badgeLabel="Engineering" selected={true} />
+        <DropdownSeparator data-pv-block="" />
         {/* pv-block-end */}
         {/* pv-block-start */}
-        <MultiSelectDropdownItem data-pv-block="" value="carol" label="Carol Davis" badgeLabel="Marketing" selected={false} />
+        <MultiSelectDropdownItem data-pv-block="" value="alice" label="Alice Johnson" badgeLabel="Design" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <MultiSelectDropdownItem data-pv-block="" value="bob" label="Bob Smith" badgeLabel="Engineering" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <MultiSelectDropdownItem data-pv-block="" value="carol" label="Carol Davis" badgeLabel="Marketing" />
         {/* pv-block-end */}
       {/* pv-editable-zone-end */}
     </>

@@ -9,6 +9,7 @@ import { MultiSelectDropdownItem } from '@/components/ui/multi-select-dropdown-i
 import { Chip } from '@/components/ui/chip';
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search';
 import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-menu';
+import { DropdownSeparator } from '@/components/ui/dropdown-separator';
 
 export interface MultiSelectContextValue {
   activeValues: string[];
@@ -324,6 +325,12 @@ export function PvDefaultContent() {
         <SelectDropdownSearch data-pv-block="" placeholder="Search people..." />
         {/* pv-block-end */}
         {/* pv-block-start */}
+        <MultiSelectDropdownItem data-pv-block="" value="all" label="All" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
+        <DropdownSeparator data-pv-block="" />
+        {/* pv-block-end */}
+        {/* pv-block-start */}
         <MultiSelectDropdownItem data-pv-block="" value="alice" label="Alice Johnson" badgeLabel="Design" />
         {/* pv-block-end */}
         {/* pv-block-start */}
@@ -362,4 +369,10 @@ export const pvConfig = {
     showClearButton: { type: 'boolean' },
     menuOpen: { type: 'select', options: ['Auto (Default)', 'Open temporarily for visual editing'] },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => props.menuOpen && props.menuOpen !== 'Auto (Default)',
+    (props: Record<string, unknown>) => props.allOptionValue && props.allOptionValue !== 'all',
+    (props: Record<string, unknown>) => props.placement && props.placement !== 'bottom',
+    (props: Record<string, unknown>) => props.menuMinWidth && props.menuMinWidth !== 'auto',
+  ],
 };
