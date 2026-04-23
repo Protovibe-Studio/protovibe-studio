@@ -236,17 +236,17 @@ function DashboardPage() {
             {/* pv-block-end:6pyw5j */}
             {/* pv-block-start:b5suzg */}
             <DialogOverlay scrollable={false}  className="flex flex-col overflow-hidden" data-pv-block="b5suzg">
-              <DialogWindow scrollable={false}  className="max-h-full min-h-0 flex-1" size="md">
+              <DialogWindow scrollable={false}  className="max-h-full min-h-0 self-start" size="md">
                 {/* pv-editable-zone-start:lcojok */}
                 {/* pv-block-start:nuspwm */}
-                <div data-pv-block="nuspwm" className="p-8 flex flex-col gap-2 max-h-full">
+                <div data-pv-block="nuspwm" className="p-8 flex flex-col gap-2 max-h-full min-h-0">
                   {/* pv-editable-zone-start:lrr7m2 */}
                   {/* pv-block-start:vp16co */}
                   <h2 data-pv-block="vp16co" className="text-xl font-semibold text-foreground-default">Dialog Title</h2>
                   {/* pv-block-end:vp16co */}
                   {/* pv-block-start:o5nw3a */}
-                  <p data-pv-block="o5nw3a" className="text-foreground-secondary overflow-auto shrink">
-                    This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.
+                  <p data-pv-block="o5nw3a" className="text-foreground-secondary overflow-auto shrink max-h-full min-h-0">
+                    This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dial This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dial This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dial<br /><br />
                   </p>
                   {/* pv-block-end:o5nw3a */}
 
@@ -1146,7 +1146,7 @@ function SkillsPage() {
                     <div data-pv-block="7g6gk1" className="flex flex-col gap-2">
                       {/* pv-editable-zone-start:or3y0q1 */}
                       {/* pv-block-start:eel6bk */}
-                      <SuperLabel data-pv-block="eel6bk" heading="Which positions would you like to fill with skills?" />
+                      <SuperLabel data-pv-block="eel6bk" heading="Skills for positions" />
                       {/* pv-block-end:eel6bk */}
                       {/* pv-block-start:ldmppg */}
                       <MultiSelectDropdown allOptionValue="all" data-pv-block="ldmppg" placeholder="Select..." value="all">
@@ -1183,10 +1183,10 @@ function SkillsPage() {
                       <RadioGroup data-pv-block="qrdh7f" orientation="vertical" value="yes">
                         {/* pv-editable-zone-start:cygyr2 */}
                         {/* pv-block-start:p40mmq */}
-                        <RadioItem data-pv-block="p40mmq" value="yes" primaryText="Yes, fill the template with suggested skills" />
+                        <RadioItem data-pv-block="p40mmq" value="yes" primaryText="Yes, fill the template with suggested skills expectations" />
                         {/* pv-block-end:p40mmq */}
                         {/* pv-block-start:m823s6 */}
-                        <RadioItem data-pv-block="m823s6" value="no" primaryText="No, get an empty template without example skills" />
+                        <RadioItem data-pv-block="m823s6" value="no" primaryText="No, only generate skill names" />
                         {/* pv-block-end:m823s6 */}
                         {/* pv-editable-zone-end:cygyr2 */}
                       </RadioGroup>
@@ -1198,7 +1198,7 @@ function SkillsPage() {
                     <div data-pv-block="bb62pi" className="flex flex-col gap-2">
                       {/* pv-editable-zone-start:or3y0q3 */}
                       {/* pv-block-start:tfzb3g */}
-                      <SuperLabel data-pv-block="tfzb3g" secondaryText="What framework do you prefer?" heading="How many proficiency levels per skill?" />
+                      <SuperLabel data-pv-block="tfzb3g" secondaryText="Choose a skill progression framework" heading="How many proficiency levels per skill?" />
                       {/* pv-block-end:tfzb3g */}
                       {/* pv-block-start:pvjmg7 */}
                       <SelectDropdown data-pv-block="pvjmg7" showClearButton={false} value={proficiencyOption} onSelectionChange={setProficiencyOption} placeholder="Select an option">
@@ -1662,7 +1662,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:awni33 */}
                   {/* pv-block-start:axe22k */}
-                  <div data-pv-block="axe22k" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-between py-3 px-5 shrink-0">
+                  <div data-pv-block="axe22k" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-between py-3 px-5 shrink-0 rounded-bl rounded-br">
                     {/* pv-editable-zone-start:8etqlx */}
                     {/* pv-block-start:v19je1 */}
                     <Checkbox data-pv-block="v19je1" primaryText="Don't show this intro again" />
@@ -1804,10 +1804,10 @@ function SkillsPage() {
                 </DialogWindow>
               )}
               {step === 3 && (
-                <DialogWindow size="xl" data-pv-block="cs131a">
+                <DialogWindow className="max-h-full" size="xl" data-pv-block="cs131a">
                   {/* pv-editable-zone-start:mi0z44 */}
                   {/* pv-block-start:657op2 */}
-                  <div data-pv-block="657op2" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300">
+                  <div data-pv-block="657op2" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300 flex-none">
                     {/* pv-editable-zone-start:t7nd3c_3 */}
                     {/* pv-block-start:1qh7o4 */}
                     <div data-pv-block="1qh7o4" className="flex flex-col gap-0">
@@ -1829,10 +1829,10 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:657op2 */}
                   {/* pv-block-start:8vzh4t */}
-                  <div data-pv-block="8vzh4t" className="flex flex-col p-5 gap-7">
+                  <div data-pv-block="8vzh4t" className="flex flex-col p-5 gap-7 max-h-full overflow-auto justify-start items-stretch">
                     {/* pv-editable-zone-start:zzgb3q */}
                     {/* pv-block-start:inbixm */}
-                    <Stepper data-pv-block="inbixm" fullWidth={false}>
+                    <Stepper className="flex-none" data-pv-block="inbixm" fullWidth={false}>
                       {/* pv-editable-zone-start:v4z32l_2 */}
                       {/* pv-block-start:j2037q */}
                       <StepCircle data-pv-block="j2037q" labelPosition="right" state="current" number={1} label="Upload file" />
@@ -1924,7 +1924,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:8vzh4t */}
                   {/* pv-block-start:bvrioh */}
-                  <div data-pv-block="bvrioh" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5 rounded-br rounded-bl">
+                  <div data-pv-block="bvrioh" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5 rounded-br rounded-bl flex-none">
                     {/* pv-editable-zone-start:zbrnm6 */}
                     {/* pv-block-start:f42yvj */}
                     <div data-pv-block="f42yvj" className="flex gap-2 flex-row">
@@ -2014,7 +2014,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:1m09ay */}
                   {/* pv-block-start:1pk9cx */}
-                  <div data-pv-block="1pk9cx" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start">
+                  <div data-pv-block="1pk9cx" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-start rounded-bl rounded-br">
                     {/* pv-editable-zone-start:rmnciv_2 */}
                     {/* pv-block-start:3ez3j3 */}
                     <div data-pv-block="3ez3j3" className="flex gap-2 flex-row">
@@ -2035,7 +2035,7 @@ function SkillsPage() {
                 <DialogWindow scrollable={false} className="max-h-full min-h-0" size="xl" data-pv-block="exm6jg">
                   {/* pv-editable-zone-start:gu24cs */}
                   {/* pv-block-start:jlpm2v */}
-                  <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="jlpm2v">
+                  <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 flex-none" data-pv-block="jlpm2v">
                     {/* pv-editable-zone-start:t7nd3c */}
                     {/* pv-block-start:c39vrv */}
                     <div data-pv-block="c39vrv" className="flex flex-col gap-0">
@@ -2328,7 +2328,7 @@ function SkillsPage() {
                   {/* pv-block-end:7jh2x3 */}
 
                   {/* pv-block-start:mbv43u */}
-                  <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-between" data-pv-block="mbv43u">
+                  <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-between flex-none rounded-bl rounded-br" data-pv-block="mbv43u">
                     {/* pv-editable-zone-start:2mi6w3 */}
                     {/* pv-block-start:x4y4gr */}
                     <Button leftIcon="mdi:arrow-back" data-pv-block="x4y4gr" label="Back" variant="ghost" color="neutral" size="md" onClick={() => setStep(4)} />
