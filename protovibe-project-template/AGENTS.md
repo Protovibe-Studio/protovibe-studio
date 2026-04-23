@@ -532,6 +532,19 @@ Pass exactly **one static string** of all internal classes as the first argument
   )}
   ```
 
+### Rule: prefer default tailwind classes like "radius" instead of "radius-lg"
+* **❌ BAD: rounded-lg class
+
+  ```tsx
+  className="rounded-lg border"
+  ```
+
+* **✅ GOOD: basic default rounded class
+
+  ```tsx
+  className="rounded border"
+  ```
+
 ## 4. Adding Interaction
 
 ### Rule: Compound Components (Context State)

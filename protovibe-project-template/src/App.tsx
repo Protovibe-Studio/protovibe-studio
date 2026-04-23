@@ -52,6 +52,7 @@ import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-m
 import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
 import { SuperLabel } from '@/components/ui/super-label'
 import { FileDropArea } from '@/components/ui/file-drop-area'
+import { Chip } from '@/components/ui/chip'
 
 
 // --- MOCK DATA ---
@@ -75,6 +76,41 @@ const mockDepartments = [
   { id: 'd2', name: 'Design', manager: 'John Doe', headcount: 12, budget: 'At Risk' },
   { id: 'd3', name: 'Marketing', manager: 'Jane Smith', headcount: 28, budget: 'On Track' },
   { id: 'd4', name: 'Human Resources', manager: 'Michael Scott', headcount: 8, budget: 'Under Budget' },
+];
+
+const mockSkillPreviews = [
+  {
+    id: 'sk1',
+    name: 'Talent Acquisition',
+    description: 'Sourcing, attracting, interviewing, and onboarding employees.',
+    category: 'Technical skills',
+    isExisting: true,
+    totalLevels: 4,
+    levels: [
+      { id: 'l1', name: 'Beginner', levelIndex: 1, description: '- Screens inbound resumes against basic criteria\n- Schedules interviews and coordinates with hiring managers\n- Posts jobs to various boards and platforms\n- Conducts initial phone screens for junior roles\n- Assists with new hire onboarding paperwork', positions: ['HR Assistant', 'Junior Recruiter'] },
+      { id: 'l2', name: 'Competent', levelIndex: 2, description: '- Conducts full-cycle recruiting for mid-level roles\n- Sources passive candidates using LinkedIn Recruiter\n- Advises hiring managers on interview best practices\n- Negotiates standard offers and closes candidates\n- Manages candidate pipelines in the ATS effectively', positions: ['Recruiter', 'HR Generalist'] },
+      { id: 'l3', name: 'Advanced', levelIndex: 3, description: '- Recruits for highly technical, niche, or executive roles\n- Develops comprehensive employer branding initiatives\n- Analyzes recruiting metrics (Time to Fill, Cost per Hire)\n- Designs structured interview processes and rubrics\n- Trains the company on unbiased hiring practices', positions: ['Senior Recruiter', 'Talent Acquisition Manager'] },
+      { id: 'l4', name: 'Expert', levelIndex: 4, description: '- Designs global hiring and workforce planning strategies\n- Optimizes enterprise recruitment processes and tool stacks\n- Builds executive search capabilities in-house\n- Aligns talent acquisition with long-term business goals\n- Navigates hiring during mergers, acquisitions, or hyper-growth', positions: [] },
+    ],
+  },
+  {
+    id: 'sk2',
+    name: 'Employee Relations',
+    description: 'Managing workplace relationships and resolving conflicts effectively.',
+    category: 'Soft skills',
+    isExisting: false,
+    totalLevels: 4,
+    levels: [
+      { id: 'l5', name: 'Beginner', levelIndex: 1, description: '- Handles basic employee inquiries and HR process questions\n- Documents workplace incidents and concerns\n- Escalates complex issues to senior HR staff', positions: ['HR Assistant'] },
+      { id: 'l6', name: 'Competent', levelIndex: 2, description: '- Mediates minor conflicts between employees\n- Conducts investigations into policy violations\n- Advises managers on corrective action procedures', positions: ['HR Generalist', 'HR Business Partner'] },
+    ],
+  },
+];
+
+const availablePositions = [
+  'HR Assistant', 'Junior Recruiter', 'Recruiter', 'HR Generalist',
+  'Senior Recruiter', 'Talent Acquisition Manager', 'HR Business Partner',
+  'Junior Product Designer', 'Senior Product Designer', 'Product Designer',
 ];
 
 // --- SUBPAGES ---
@@ -645,6 +681,46 @@ function SkillsPage() {
   const [step, setStep] = useState(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [proficiencyOption, setProficiencyOption] = useState('opt1');
+
+  type SkillLevel = { id: string; name: string; levelIndex: number; description: string; positions: string[] };
+  type SkillPreview = { id: string; name: string; description: string; category: string; isExisting: boolean; totalLevels: number; levels: SkillLevel[]; applyAction: 'create' | 'skip' };
+  const [skillPreviews, setSkillPreviews] = useState<SkillPreview[]>(
+    mockSkillPreviews.map(s => ({ ...s, applyAction: 'create' as const }))
+  );
+  const [editingLevelId, setEditingLevelId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({ name: '', description: '', positions: '' });
+  const [collapsedSkills, setCollapsedSkills] = useState<Set<string>>(new Set());
+
+  const startEditLevel = (level: SkillLevel) => {
+    setEditingLevelId(level.id);
+    setEditFormData({ name: level.name, description: level.description, positions: level.positions.join(',') });
+  };
+
+  const saveEditLevel = (skillId: string, levelId: string) => {
+    setSkillPreviews(prev => prev.map(skill =>
+      skill.id !== skillId ? skill : {
+        ...skill,
+        levels: skill.levels.map(level =>
+          level.id !== levelId ? level : {
+            ...level,
+            name: editFormData.name,
+            description: editFormData.description,
+            positions: editFormData.positions ? editFormData.positions.split(',').map((p: string) => p.trim()).filter(Boolean) : [],
+          }
+        ),
+      }
+    ));
+    setEditingLevelId(null);
+  };
+
+  const toggleSkillCollapse = (skillId: string) => {
+    setCollapsedSkills(prev => {
+      const next = new Set(prev);
+      if (next.has(skillId)) next.delete(skillId);
+      else next.add(skillId);
+      return next;
+    });
+  };
 
   const openDialog = (flow: 'generate' | 'import') => {
     setDialogFlow(flow);
@@ -1853,24 +1929,220 @@ function SkillsPage() {
                       {/* pv-editable-zone-end:v4z32l */}
                     </Stepper>
                     {/* pv-block-end:8vnpes */}
+                    {/* pv-block-start:vs3109 */}
+                    <Container className="items-stretch" data-pv-block="vs3109">
+                      {/* pv-editable-zone-start:gvn75e */}
+                        {/* pv-block-start:k8x2m1 */}
+                        <div data-pv-block="k8x2m1" className="bg-background-primary-subtle rounded flex flex-col gap-2 p-5">
+                          {/* pv-editable-zone-start:m1n2o3 */}
+                            {/* pv-block-start:p1q2r3 */}
+                            <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
+                              {/* pv-editable-zone-start:s3t4u5 */}
+                                {/* pv-block-start:v6w7x8 */}
+                                <Badge data-pv-block="v6w7x8" label="AI" color="primary" />
+                                {/* pv-block-end:v6w7x8 */}
+                                {/* pv-block-start:859kkk */}
+                                <TextParagraph data-pv-block="859kkk" typography="bold-primary">
+                                  Summary of the plan
+                                </TextParagraph>
+                                {/* pv-block-end:859kkk */}
+                              {/* pv-editable-zone-end:s3t4u5 */}
+                            </div>
+                            {/* pv-block-end:p1q2r3 */}
+                            {/* pv-block-start:r6s7t8 */}
+                            <TextHeading data-pv-block="r6s7t8" typography="heading-lg">We are about to add 64 new skills to 32 positions</TextHeading>
+                            {/* pv-block-end:r6s7t8 */}
+                            {/* pv-block-start:u9v0w1 */}
+                            <TextParagraph data-pv-block="u9v0w1" typography="regular">I've analysed your file to prepare a draft suggestion of skills and their proficiency level.</TextParagraph>
+                            {/* pv-block-end:u9v0w1 */}
+                            {/* pv-block-start:x2y3z4 */}
+                            <div data-pv-block="x2y3z4" className="flex flex-col gap-0.5">
+                              {/* pv-editable-zone-start:a5b6c7 */}
+                                {/* pv-block-start:d8e9f0 */}
+                                <div data-pv-block="d8e9f0" className="flex gap-3 items-start">
+                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                  <TextParagraph typography="regular">The file looks correct, no problems found</TextParagraph>
+                                </div>
+                                {/* pv-block-end:d8e9f0 */}
+                                {/* pv-block-start:g1h2i3 */}
+                                <div data-pv-block="g1h2i3" className="flex gap-3 items-start">
+                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                  <TextParagraph typography="regular">We will create 52 skills and update 12 existing skills</TextParagraph>
+                                </div>
+                                {/* pv-block-end:g1h2i3 */}
+                                {/* pv-block-start:j4k5l6 */}
+                                <div data-pv-block="j4k5l6" className="flex gap-3 items-start">
+                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                  <TextParagraph typography="regular">We will create 12 new positions and assign 20 existing positions</TextParagraph>
+                                </div>
+                                {/* pv-block-end:j4k5l6 */}
+                                {/* pv-block-start:m7n8o9 */}
+                                <div data-pv-block="m7n8o9" className="flex gap-3 items-start">
+                                  <Icon iconSymbol="mdi:information-outline" size="sm" className="text-foreground-info shrink-0 mt-0.5" />
+                                  <TextParagraph typography="regular">Some skills from your file don't need to be created because they already existed, I will just update them</TextParagraph>
+                                </div>
+                                {/* pv-block-end:m7n8o9 */}
+                              {/* pv-editable-zone-end:a5b6c7 */}
+                            </div>
+                            {/* pv-block-end:x2y3z4 */}
+                          {/* pv-editable-zone-end:m1n2o3 */}
+                        </div>
+                        {/* pv-block-end:k8x2m1 */}
+                      {/* pv-editable-zone-end:gvn75e */}
+                    </Container>
+                    {/* pv-block-end:vs3109 */}
+                    {/* pv-block-start:hzjvx2 */}
+                    <Container className="gap-2" data-pv-block="hzjvx2">
+                      {/* pv-editable-zone-start:x62gm5 */}
+                        {/* pv-block-start:b2c3d4 */}
+                        <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to Tellent HR" />
+                        {/* pv-block-end:b2c3d4 */}
+                        {/* pv-block-start:e5f6g7 */}
+                        <Card data-pv-block="e5f6g7" className="w-full">
+                          {/* pv-editable-zone-start:h8i9j0 */}
+                            {/* pv-block-start:k1l2m3 */}
+                            <div data-pv-block="k1l2m3" className="flex flex-wrap w-full gap-1">
+                              {/* pv-editable-zone-start:m1n2o3 */}
+                                {/* pv-block-start:n4o5p6 */}
+                                <Chip data-pv-block="n4o5p6" label="Junior Product Designer"  />
+                                {/* pv-block-end:n4o5p6 */}
+                                {/* pv-block-start:q7r8s9 */}
+                                <Chip data-pv-block="q7r8s9" label="Senior Product Designer"  />
+                                {/* pv-block-end:q7r8s9 */}
+                                {/* pv-block-start:t0u1v2 */}
+                                <Chip data-pv-block="t0u1v2" label="Product Designer"  />
+                                {/* pv-block-end:t0u1v2 */}
+                                {/* pv-block-start:w3x4y5 */}
+                                <Chip data-pv-block="w3x4y5" label="Product Designer"  />
+                                {/* pv-block-end:w3x4y5 */}
+                                {/* pv-block-start:z6a7b8 */}
+                                <Chip data-pv-block="z6a7b8" label="Product Designer"  />
+                                {/* pv-block-end:z6a7b8 */}
+                              {/* pv-editable-zone-end:m1n2o3 */}
+                            </div>
+                            {/* pv-block-end:k1l2m3 */}
+                            {/* pv-block-start:c9d0e1 */}
+                            <RadioGroup data-pv-block="c9d0e1" value="create" orientation="vertical" className="w-full pt-2 border-border-default mt-2">
+                              {/* pv-editable-zone-start:d0e1f2 */}
+                                {/* pv-block-start:f2g3h4 */}
+                                <RadioItem data-pv-block="f2g3h4" value="create" primaryText="Create these positions" />
+                                {/* pv-block-end:f2g3h4 */}
+                                {/* pv-block-start:i5j6k7 */}
+                                <RadioItem data-pv-block="i5j6k7" value="dont-create" primaryText="Don't create missing positions and don't assign them to skills" />
+                                {/* pv-block-end:i5j6k7 */}
+                              {/* pv-editable-zone-end:d0e1f2 */}
+                            </RadioGroup>
+                            {/* pv-block-end:c9d0e1 */}
+                          {/* pv-editable-zone-end:h8i9j0 */}
+                        </Card>
+                        {/* pv-block-end:e5f6g7 */}
+                      {/* pv-editable-zone-end:x62gm5 */}
+                    </Container>
+                    {/* pv-block-end:hzjvx2 */}
                     {/* pv-block-start:m7kral */}
                     <div  data-pv-block="m7kral" className="flex flex-col gap-2">
                       {/* pv-editable-zone-start:dy3ds8 */}
                       {/* pv-block-start:lvjh8x */}
                       <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
                       {/* pv-block-end:lvjh8x */}
-                      {/* pv-block-start:e6ic84 */}
-                      <SuperLabel secondaryText="" heading="(We will do this later)" data-pv-block="e6ic84" primaryText="" />
-                      {/* pv-block-end:e6ic84 */}
+                      {/* pv-block-start:48gr18 */}
+                      <Container data-pv-block="48gr18">
+                        {/* pv-editable-zone-start:syk5ag */}
+                          {/* pv-block-start:rp1qa2 */}
+                          <div data-pv-block="rp1qa2" className="flex flex-col gap-4 w-full">
+                            {skillPreviews.map(skill => (
+                              <div key={skill.id} className="border border-border-default rounded overflow-hidden bg-background-elevated">
+                                <div className="flex flex-col gap-2 p-4 border-border-default items-start">
+                                  <div className="flex items-start justify-between gap-4 w-full">
+                                    <div className="flex flex-col gap-1 flex-1">
+                                      <TextHeading typography="heading-lg">{skill.name}</TextHeading>
+                                      {skill.isExisting
+                                        ? <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
+                                        : <TextParagraph typography="small" className="text-foreground-primary">This is a new skill that will be created</TextParagraph>
+                                      }
+                                      <TextParagraph typography="regular">{skill.description}</TextParagraph>
+                                    </div>
+                                    <Button variant="ghost" color="neutral" label={collapsedSkills.has(skill.id) ? 'Expand' : 'Collapse'} rightIcon={collapsedSkills.has(skill.id) ? 'mdi:chevron-down' : 'mdi:chevron-up'} size="sm" onClick={() => toggleSkillCollapse(skill.id)} />
+                                  </div>
+                                  <div className="inline-flex items-center px-2 py-0.5 border border-border-default text-sm text-foreground-secondary rounded-full">{skill.category}</div>
+                                </div>
+                                {!collapsedSkills.has(skill.id) && (
+                                  <>
+                                    <div className="grid grid-cols-2 gap-4 px-4 py-2 border-b border-border-default">
+                                      <TextParagraph typography="semibold-primary">Proficiency levels</TextParagraph>
+                                      <TextParagraph typography="semibold-primary">Positions</TextParagraph>
+                                    </div>
+                                    {skill.levels.map(level => (
+                                      <div key={level.id} className="border-b border-border-default last:border-b-0">
+                                        {editingLevelId === level.id ? (
+                                          <div className="p-3 m-2 bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4">
+                                            <div className="flex items-center justify-between gap-4">
+                                              <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
+                                              <div className="flex gap-2">
+                                                <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
+                                                <Button variant="ghost" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
+                                              </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                              <div className="flex flex-col gap-1">
+                                                <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
+                                                <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
+                                              </div>
+                                              <div className="flex flex-col gap-1">
+                                                <TextParagraph typography="semibold-secondary">Assigned positions</TextParagraph>
+                                                <MultiSelectDropdown value={editFormData.positions} onSelectionChange={val => setEditFormData(prev => ({ ...prev, positions: val }))}>
+                                                  {availablePositions.map(pos => (
+                                                    <MultiSelectDropdownItem key={pos} value={pos} label={pos} />
+                                                  ))}
+                                                </MultiSelectDropdown>
+                                              </div>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                              <TextParagraph typography="semibold-secondary">Description</TextParagraph>
+                                              <Textarea value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} />
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="grid grid-cols-2 gap-4 px-4 py-3 items-start">
+                                            <div className="flex flex-col gap-2">
+                                              <div className="flex items-center gap-2">
+                                                <div className="flex gap-0.5 items-center shrink-0">
+                                                  {[1, 2, 3, 4].map(i => (
+                                                    <div key={i} data-filled={String(i <= level.levelIndex)} className="w-2.5 h-2.5 rounded-full bg-background-tertiary data-[filled=true]:bg-foreground-primary" />
+                                                  ))}
+                                                </div>
+                                                <TextParagraph typography="bold-primary">{level.name}</TextParagraph>
+                                              </div>
+                                              <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
+                                            </div>
+                                            <div className="flex items-start justify-between gap-2">
+                                              <TextParagraph typography="regular">
+                                                {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
+                                              </TextParagraph>
+                                              <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                    <div className="flex items-center justify-between px-4 py-3">
+                                      <RadioGroup value={skill.applyAction} onValueChange={val => setSkillPreviews(prev => prev.map(s => s.id === skill.id ? { ...s, applyAction: val as 'create' | 'skip' } : s))}>
+                                        <RadioItem value="create" primaryText="Create this skill and assign positions" />
+                                        <RadioItem value="skip" primaryText="Don't apply this" />
+                                      </RadioGroup>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {/* pv-block-end:rp1qa2 */}
+                        {/* pv-editable-zone-end:syk5ag */}
+                      </Container>
+                      {/* pv-block-end:48gr18 */}
                       {/* pv-editable-zone-end:dy3ds8 */}
                     </div>
                     {/* pv-block-end:m7kral */}
-                    {/* pv-block-start:vs3109 */}
-                    <Container data-pv-block="vs3109">
-                      {/* pv-editable-zone-start:gvn75e */}
-                      {/* pv-editable-zone-end:gvn75e */}
-                    </Container>
-                    {/* pv-block-end:vs3109 */}
                     {/* pv-editable-zone-end:hb3knb */}
                   </div>
                   {/* pv-block-end:e5voje */}

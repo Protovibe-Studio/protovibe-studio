@@ -4,14 +4,14 @@ import { Icon } from '@/components/ui/icon';
 
 export interface ChipProps extends React.HTMLAttributes<HTMLSpanElement> {
   label: string;
-  color?: 'primary' | 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
+  color?: 'default' | 'primary' | 'neutral' | 'neutral-outline' | 'success' | 'warning' | 'destructive' | 'info';
   removable?: boolean;
   onRemove?: (e: React.MouseEvent) => void;
 }
 
 export function Chip({
   label,
-  color = 'primary',
+  color = 'default',
   removable = false,
   onRemove,
   className,
@@ -20,16 +20,7 @@ export function Chip({
   return (
     <span
       data-color={color}
-      className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap transition-colors max-w-full",
-        "data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary",
-        "data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary",
-        "data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success",
-        "data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning",
-        "data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive",
-        "data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info",
-        className
-      )}
+      className={cn("inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap transition-colors max-w-full data-[color=default]:text-foreground-secondary data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary data-[color=neutral-outline]:bg-transparent data-[color=neutral-outline]:text-foreground-secondary data-[color=neutral-outline]:border data-[color=neutral-outline]:border-border-default data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=default]:bg-background-primary-subtle/65", className)}
       {...props}
       data-pv-component-id="Chip"
     >
@@ -67,7 +58,7 @@ export const pvConfig = {
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Design' },
-    color: { type: 'select', options: ['primary', 'neutral', 'success', 'warning', 'destructive', 'info'] },
+    color: { type: 'select', options: ['default', 'primary', 'neutral', 'neutral-outline', 'success', 'warning', 'destructive', 'info'] },
     removable: { type: 'boolean' },
   },
   invalidCombinations: [
