@@ -11,10 +11,20 @@ export type ToastOptions = {
   persistent?: boolean;
 };
 
+export type Skill = {
+  id: string;
+  name: string;
+  areaOfExpertise: string;
+  positionsCount: number;
+  creationDate: string;
+  status: 'ACTIVE' | 'INACTIVE';
+};
+
 type State = {
   path: string;
   queryParams: Record<string, string>;
   toast: ToastOptions | null;
+  skillsLibrary: Skill[];
 };
 
 type StoreContextType = {
@@ -23,6 +33,7 @@ type StoreContextType = {
   setQueryParams: (params: Record<string, string | null>) => void;
   showToast: (options: ToastOptions) => void;
   hideToast: () => void;
+  importSkills: (previewSkills: any[]) => void;
 };
 
 const StoreContext = createContext<StoreContextType | null>(null);
@@ -39,6 +50,25 @@ const getQueryParamsFromURL = (): Record<string, string> => {
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [queryParams, setQueryParamsState] = useState<Record<string, string>>(getQueryParamsFromURL);
   const [toast, setToast] = useState<ToastOptions | null>(null);
+  const [skillsLibrary, setSkillsLibrary] = useState<Skill[]>([]);
+
+  const importSkills = useCallback((previewSkills: any[]) => {
+    const newSkills: Skill[] = previewSkills.map(s => {
+      // Calculate total positions across all levels
+      const positionsCount = s.levels ? s.levels.reduce((acc: number, lvl: any) => acc + (lvl.positions?.length || 0), 0) : 0;
+      
+      return {
+        id: s.id,
+        name: s.name,
+        areaOfExpertise: s.areaOfExpertise || '-',
+        positionsCount,
+        creationDate: '14/04/2025', // Hardcoded to match screenshot
+        status: 'ACTIVE'
+      };
+    });
+    
+    setSkillsLibrary(prev => [...prev, ...newSkills]);
+  }, []);
 
   // Derive the active path from the 'page' query param
   const path = useMemo(() => {
@@ -103,7 +133,7 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <StoreContext.Provider value={{ state: { path, queryParams, toast }, navigate, setQueryParams, showToast, hideToast }}>
+    <StoreContext.Provider value={{ state: { path, queryParams, toast, skillsLibrary }, navigate, setQueryParams, showToast, hideToast, importSkills }}>
       {children}
     </StoreContext.Provider>
   );

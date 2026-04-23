@@ -53,7 +53,9 @@ import { PreloaderSpinner } from '@/components/ui/preloader-spinner'
 import { SuperLabel } from '@/components/ui/super-label'
 import { FileDropArea } from '@/components/ui/file-drop-area'
 import { Chip } from '@/components/ui/chip'
+import { DropdownButton } from '@/components/ui/dropdown-button'
 
+import { skillsToImport, SkillPreview, SkillLevel } from '@/lib/mock-data';
 
 // --- MOCK DATA ---
 
@@ -76,35 +78,6 @@ const mockDepartments = [
   { id: 'd2', name: 'Design', manager: 'John Doe', headcount: 12, budget: 'At Risk' },
   { id: 'd3', name: 'Marketing', manager: 'Jane Smith', headcount: 28, budget: 'On Track' },
   { id: 'd4', name: 'Human Resources', manager: 'Michael Scott', headcount: 8, budget: 'Under Budget' },
-];
-
-const mockSkillPreviews = [
-  {
-    id: 'sk1',
-    name: 'Talent Acquisition',
-    description: 'Sourcing, attracting, interviewing, and onboarding employees.',
-    category: 'Technical skills',
-    isExisting: true,
-    totalLevels: 4,
-    levels: [
-      { id: 'l1', name: 'Beginner', levelIndex: 1, description: '- Screens inbound resumes against basic criteria\n- Schedules interviews and coordinates with hiring managers\n- Posts jobs to various boards and platforms\n- Conducts initial phone screens for junior roles\n- Assists with new hire onboarding paperwork', positions: ['HR Assistant', 'Junior Recruiter'] },
-      { id: 'l2', name: 'Competent', levelIndex: 2, description: '- Conducts full-cycle recruiting for mid-level roles\n- Sources passive candidates using LinkedIn Recruiter\n- Advises hiring managers on interview best practices\n- Negotiates standard offers and closes candidates\n- Manages candidate pipelines in the ATS effectively', positions: ['Recruiter', 'HR Generalist'] },
-      { id: 'l3', name: 'Advanced', levelIndex: 3, description: '- Recruits for highly technical, niche, or executive roles\n- Develops comprehensive employer branding initiatives\n- Analyzes recruiting metrics (Time to Fill, Cost per Hire)\n- Designs structured interview processes and rubrics\n- Trains the company on unbiased hiring practices', positions: ['Senior Recruiter', 'Talent Acquisition Manager'] },
-      { id: 'l4', name: 'Expert', levelIndex: 4, description: '- Designs global hiring and workforce planning strategies\n- Optimizes enterprise recruitment processes and tool stacks\n- Builds executive search capabilities in-house\n- Aligns talent acquisition with long-term business goals\n- Navigates hiring during mergers, acquisitions, or hyper-growth', positions: [] },
-    ],
-  },
-  {
-    id: 'sk2',
-    name: 'Employee Relations',
-    description: 'Managing workplace relationships and resolving conflicts effectively.',
-    category: 'Soft skills',
-    isExisting: false,
-    totalLevels: 4,
-    levels: [
-      { id: 'l5', name: 'Beginner', levelIndex: 1, description: '- Handles basic employee inquiries and HR process questions\n- Documents workplace incidents and concerns\n- Escalates complex issues to senior HR staff', positions: ['HR Assistant'] },
-      { id: 'l6', name: 'Competent', levelIndex: 2, description: '- Mediates minor conflicts between employees\n- Conducts investigations into policy violations\n- Advises managers on corrective action procedures', positions: ['HR Generalist', 'HR Business Partner'] },
-    ],
-  },
 ];
 
 const availablePositions = [
@@ -152,85 +125,12 @@ function DashboardPage() {
                 It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
-              {/* pv-block-start:uc6iij */}
-              <Stepper className="pt-4" data-pv-block="uc6iij" fullWidth={false}>
-                {/* pv-editable-zone-start:73b88w */}
-                  {/* pv-block-start:fh2zxu */}
-                  <StepCircle data-pv-block="fh2zxu" state="done" number={1} label="Details" />
-                  {/* pv-block-end:fh2zxu */}
-                  {/* pv-block-start:w5mflp */}
-                  <StepperConnector data-pv-block="w5mflp" state="done" />
-                  {/* pv-block-end:w5mflp */}
-                  {/* pv-block-start:x4vrjn */}
-                  <StepCircle data-pv-block="x4vrjn" state="current" number={2} label="Review" />
-                  {/* pv-block-end:x4vrjn */}
-                  {/* pv-block-start:ev7f7f */}
-                  <StepperConnector data-pv-block="ev7f7f" state="upcoming" />
-                  {/* pv-block-end:ev7f7f */}
-                  {/* pv-block-start:3vozpq */}
-                  <StepCircle data-pv-block="3vozpq" state="upcoming" number={3} label="Confirm" />
-                  {/* pv-block-end:3vozpq */}
-                {/* pv-editable-zone-end:73b88w */}
-              </Stepper>
-              {/* pv-block-end:uc6iij */}
               {/* pv-editable-zone-end:f7otuc */}
             </div>
             {/* pv-block-end:q958wn */}
           {/* pv-editable-zone-end:inside-g0fqyb */}
         </div>
         {/* pv-block-end:g0fqyb */}
-
-        {/* pv-block-start:jsb1vv */}
-        <Checkbox  data-pv-block="jsb1vv" primaryText="Accept terms" />
-        {/* pv-block-end:jsb1vv */}
-        {/* pv-block-start:7vk8nx */}
-        <Card className="bg-background-special-gradient border-0" data-pv-block="7vk8nx">
-          {/* pv-editable-zone-start:4wmm3u */}
-            {/* pv-block-start:fydn6m */}
-            <span className="text-foreground-special-gradient font-bold text-6xl" data-pv-block="fydn6m">Lorem ipsum</span>
-            {/* pv-block-end:fydn6m */}
-            {/* pv-block-start:nrgp99 */}
-            <Icon className="text-foreground-special-gradient" data-pv-block="nrgp99" iconSymbol="star" size="2xl" />
-            {/* pv-block-end:nrgp99 */}
-          {/* pv-editable-zone-end:4wmm3u */}
-        </Card>
-        {/* pv-block-end:7vk8nx */}
-        {/* pv-block-start:q0b5zn */}
-        <ToggleSwitch data-pv-block="q0b5zn" primaryText="Enable feature" />
-        {/* pv-block-end:q0b5zn */}
-        {/* pv-block-start:ggfppw */}
-        <SelectDropdown data-pv-block="ggfppw" placeholder="Select an option" >
-          {/* pv-editable-zone-start:63b0lh */}
-            {/* pv-block-start:kxad94 */}
-            <SelectDropdownSearch data-pv-block="kxad94" placeholder="Search..." />
-            {/* pv-block-end:kxad94 */}
-            {/* pv-block-start:7068rr */}
-            <DropdownItem data-pv-block="7068rr" value="opt1" label="Option One" selected={false} />
-            {/* pv-block-end:7068rr */}
-            {/* pv-block-start:5pjwz1 */}
-            <DropdownItem data-pv-block="5pjwz1" value="opt2" label="Option Two" selected={false} />
-            {/* pv-block-end:5pjwz1 */}
-            {/* pv-block-start:536a76 */}
-            <DropdownItem data-pv-block="536a76" value="opt3" label="Option Three" selected={false} />
-            {/* pv-block-end:536a76 */}
-          {/* pv-editable-zone-end:63b0lh */}
-        </SelectDropdown>
-        {/* pv-block-end:ggfppw */}
-        {/* pv-block-start:llpliu */}
-        <RadioGroup data-pv-block="llpliu" orientation="vertical" value="opt1">
-          {/* pv-editable-zone-start:xljzdj */}
-            {/* pv-block-start:rydjad */}
-            <RadioItem data-pv-block="rydjad" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-            {/* pv-block-end:rydjad */}
-            {/* pv-block-start:2e8cb3 */}
-            <RadioItem data-pv-block="2e8cb3" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-            {/* pv-block-end:2e8cb3 */}
-            {/* pv-block-start:bosme3 */}
-            <RadioItem data-pv-block="bosme3" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-            {/* pv-block-end:bosme3 */}
-          {/* pv-editable-zone-end:xljzdj */}
-        </RadioGroup>
-        {/* pv-block-end:llpliu */}
 
         {/* pv-block-start:g6h7j8 */}
         <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-7">
@@ -315,9 +215,6 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g6h7j8 */}
 
-        {/* pv-block-start:e6x5fm */}
-        <Textarea data-pv-block="e6x5fm" placeholder="Enter text..." />
-        {/* pv-block-end:e6x5fm */}
         {/* pv-block-start:dkwss2 */}
         <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded" data-pv-block="dkwss2">
           {/* pv-editable-zone-start:inside-dkwss2 */}
@@ -688,16 +585,15 @@ function DetailField({
 }
 
 function SkillsPage() {
+  const { state, importSkills } = useStore();
   const importDialogRef = useRef<DialogHandle>(null);
   const [dialogFlow, setDialogFlow] = useState<'generate' | 'import' | null>(null);
   const [step, setStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [proficiencyOption, setProficiencyOption] = useState('opt1');
 
-  type SkillLevel = { id: string; name: string; levelIndex: number; description: string; positions: string[] };
-  type SkillPreview = { id: string; name: string; description: string; category: string; isExisting: boolean; totalLevels: number; levels: SkillLevel[]; applyAction: 'create' | 'skip' };
   const [skillPreviews, setSkillPreviews] = useState<SkillPreview[]>(
-    mockSkillPreviews.map(s => ({ ...s, applyAction: 'create' as const }))
+    skillsToImport.map(s => ({ ...s, applyAction: 'create' as const }))
   );
   const [editingLevelId, setEditingLevelId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '', description: '', positions: '' });
@@ -823,12 +719,111 @@ function SkillsPage() {
 
 
         {/* pv-block-start:skht8u */}
-        <EmptyState iconSize="xl" className="min-h-92"
-          data-pv-block="skht8u"
-          icon="mdi:text-box-outline"
-          bigHeading="Create your first skill"
-          secondaryText="You haven't added any skills yet. Start by adding your first skill."
-        />
+        {state.skillsLibrary.length === 0 ? (
+          <EmptyState iconSize="xl" className="min-h-92"
+            data-pv-block="skht8u"
+            icon="mdi:text-box-outline"
+            bigHeading="Create your first skill"
+            secondaryText="You haven't added any skills yet. Start by adding your first skill."
+          />
+        ) : (
+          <div data-pv-block="skht8u" className="flex flex-col gap-4 pt-3">
+            {/* pv-editable-zone-start:tb1q2w */}
+              {/* pv-block-start:tb3e4r */}
+              <div data-pv-block="tb3e4r" className="flex flex-col gap-3 px-5">
+                {/* Search & Pagination Row */}
+                <div className="flex items-center justify-between gap-4 w-full">
+                  <Input prefixIcon="search" placeholder="Search skill" className="max-w-2xl" />
+                  <div className="flex items-center gap-3 shrink-0">
+                    <TextParagraph typography="secondary" className="text-sm">
+                      1 - 10 of 120 skills
+                    </TextParagraph>
+                    <div className="inline-flex items-center">
+                      <Button variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-left" className="rounded-r-none" />
+                      <Button variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-right" className="rounded-l-none -ml-px" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filters Row */}
+                <div className="flex items-center gap-2">
+                  <DropdownButton 
+                    label="Status: Active" 
+                    variant="outline" 
+                    color="primary" 
+                    className="[&>button]:bg-background-primary-subtle [&>button]:border-background-primary-subtle [&>button]:text-foreground-primary" 
+                  />
+                  <DropdownButton label="Area of expertise" variant="outline" color="neutral" />
+                </div>
+              </div>
+              {/* pv-block-end:tb3e4r */}
+
+              {/* pv-block-start:07vjpp */}
+              <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-5">
+                {/* pv-editable-zone-start:dg0paq */}
+                {/* pv-block-start:tb5t6y */}
+                <Table data-pv-block="tb5t6y" className="">
+                  <TableRowHeading className="bg-background-default border-border-default">
+                    {/* pv-editable-zone-start:th7u8i */}
+                      {/* pv-block-start:th9o0p */}
+                      <TableCellHeading data-pv-block="th9o0p" label="Name" />
+                      {/* pv-block-end:th9o0p */}
+                      {/* pv-block-start:th1a2s */}
+                      <TableCellHeading data-pv-block="th1a2s" label="Area of expertise" />
+                      {/* pv-block-end:th1a2s */}
+                      {/* pv-block-start:th3d4f */}
+                      <TableCellHeading data-pv-block="th3d4f" label="Positions" />
+                      {/* pv-block-end:th3d4f */}
+                      {/* pv-block-start:th5g6h */}
+                      <TableCellHeading data-pv-block="th5g6h" label="Creation" />
+                      {/* pv-block-end:th5g6h */}
+                      {/* pv-block-start:th7j8k */}
+                      <TableCellHeading data-pv-block="th7j8k" label="Status" />
+                      {/* pv-block-end:th7j8k */}
+                      {/* pv-block-start:th9l0z */}
+                      <TableCellHeading data-pv-block="th9l0z" label="" className="w-12" />
+                      {/* pv-block-end:th9l0z */}
+                    {/* pv-editable-zone-end:th7u8i */}
+                  </TableRowHeading>
+                  <TableBody>
+                    {state.skillsLibrary.map(skill => (
+                      <TableRowContent key={skill.id} className="hover:bg-background-default even:bg-background-default">
+                        <TableCellContent>
+                          <TextParagraph typography="regular">{skill.name}</TextParagraph>
+                        </TableCellContent>
+                        <TableCellContent>
+                          <TextParagraph typography="regular">{skill.areaOfExpertise}</TextParagraph>
+                        </TableCellContent>
+                        <TableCellContent>
+                          <TextParagraph typography="regular">{skill.positionsCount.toString()}</TextParagraph>
+                        </TableCellContent>
+                        <TableCellContent>
+                          <TextParagraph typography="regular">{skill.creationDate}</TextParagraph>
+                        </TableCellContent>
+                        <TableCellContent>
+                          <Badge label={skill.status} color="success" />
+                        </TableCellContent>
+                        <TableCellContent className="text-right">
+                          <Button iconOnly variant="ghost" color="neutral" size="sm" leftIcon="MoreHorizontal" />
+                        </TableCellContent>
+                      </TableRowContent>
+                    ))}
+                  </TableBody>
+                </Table>
+                {/* pv-block-end:tb5t6y */}
+                {/* pv-editable-zone-end:dg0paq */}
+              </div>
+              {/* pv-block-end:07vjpp */}
+
+
+              {/* pv-block-start:tb7x8c */}
+              <div data-pv-block="tb7x8c" className="flex justify-end px-5 py-4">
+                <DropdownButton label="Per page: 10" variant="outline" color="neutral" size="md" />
+              </div>
+              {/* pv-block-end:tb7x8c */}
+            {/* pv-editable-zone-end:tb1q2w */}
+          </div>
+        )}
         {/* pv-block-end:skht8u */}
 
       {/* pv-editable-zone-end:sk1a2b */}
@@ -1351,7 +1346,14 @@ function SkillsPage() {
                     </div>
                     {/* pv-block-end:jzpvwl */}
                     {/* pv-block-start:ctfod2 */}
-                    <Button data-pv-block="ctfod2" leftIcon="mdi:download" label="Download file" variant="solid" color="primary" size="md" />
+                    <Button data-pv-block="ctfod2" leftIcon="mdi:download" label="Download file" variant="solid" color="primary" size="md" onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = 'https://recruitee-staging.s3.eu-central-1.amazonaws.com/uploads/592u8wsvurg762ch8mg6c3eedevav4/Company_Skills_Matrix_11.xlsx';
+                      link.download = 'Company_Skills_Matrix_11.xlsx';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }} />
                     {/* pv-block-end:ctfod2 */}
                     {/* pv-editable-zone-end:tnanie */}
                   </div>
@@ -1363,7 +1365,10 @@ function SkillsPage() {
                     <Button data-pv-block="wrud9e" leftIcon="mdi:arrow-left" label="Back to start" variant="ghost" color="neutral" size="md" onClick={() => setStep(1)} />
                     {/* pv-block-end:wrud9e */}
                     {/* pv-block-start:vadcyb */}
-                    <Button data-pv-block="vadcyb" leftIcon="mdi:check" label="Finish and close" variant="ghost" color="neutral" size="md" onClick={() => importDialogRef.current?.close()} />
+                    <Button data-pv-block="vadcyb" leftIcon="mdi:check" label="Finish and close" variant="ghost" color="neutral" size="md" onClick={() => {
+                      importSkills(skillPreviews.filter(s => s.applyAction === 'create'));
+                      importDialogRef.current?.close();
+                    }} />
                     {/* pv-block-end:vadcyb */}
                     {/* pv-editable-zone-end:94ubwd_2 */}
                   </div>
@@ -2143,7 +2148,7 @@ function SkillsPage() {
                                                   <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
                                                 </div>
                                                 <div className="flex items-start justify-between gap-2">
-                                                  <TextParagraph typography="regular">
+                                                  <TextParagraph typography="regular" className={level.positions.length === 0 ? 'text-foreground-tertiary' : ''}>
                                                     {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
                                                   </TextParagraph>
                                                   <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
@@ -2289,9 +2294,11 @@ function SkillsPage() {
                       {/* pv-editable-zone-start:66mq54 */}
                       {/* pv-block-start:y0z2d1 */}
                       <Button leftIcon="mdi:external-link" data-pv-block="y0z2d1" label="Give feedback" variant="outline" color="neutral" size="md" />
-                      {/* pv-block-end:y0z2d1 */}
                       {/* pv-block-start:aviqc7 */}
-                      <Button data-pv-block="aviqc7" label="Finish and close" variant="solid" color="primary" size="md" onClick={() => importDialogRef.current?.close()} />
+                      <Button data-pv-block="aviqc7" label="Finish and close" variant="solid" color="primary" size="md" onClick={() => {
+                         importSkills(skillPreviews.filter(s => s.applyAction === 'create'));
+                         importDialogRef.current?.close();
+                       }} />
                       {/* pv-block-end:aviqc7 */}
                       {/* pv-editable-zone-end:66mq54 */}
                     </div>
