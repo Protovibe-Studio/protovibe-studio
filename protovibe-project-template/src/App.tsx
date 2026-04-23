@@ -117,7 +117,7 @@ function DashboardPage() {
             <div data-pv-block="q958wn" className="flex flex-col gap-1">
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
-              <TextHeading className="py-0.5" data-pv-block="lw979w" typography="heading-md">
+              <TextHeading className="py-0.5 text-gradient-foreground-special" data-pv-block="lw979w" typography="heading-md">
                 Test heading
               </TextHeading>
               {/* pv-block-end:lw979w */}
@@ -228,6 +228,37 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
+        {/* pv-block-start:kl0ofb */}
+        <DialogTrigger data-pv-block="kl0ofb">
+          {/* pv-editable-zone-start:q0uowd */}
+            {/* pv-block-start:6pyw5j */}
+            <Button data-pv-block="6pyw5j" variant="outline" iconOnly leftIcon="Pencil" />
+            {/* pv-block-end:6pyw5j */}
+            {/* pv-block-start:b5suzg */}
+            <DialogOverlay className="flex flex-col overflow-hidden" data-pv-block="b5suzg">
+              <DialogWindow className="max-h-full min-h-0 flex-1" size="md">
+                {/* pv-editable-zone-start:lcojok */}
+                {/* pv-block-start:nuspwm */}
+                <div data-pv-block="nuspwm" className="p-8 flex flex-col gap-2 max-h-full">
+                  {/* pv-editable-zone-start:lrr7m2 */}
+                  {/* pv-block-start:vp16co */}
+                  <h2 data-pv-block="vp16co" className="text-xl font-semibold text-foreground-default">Dialog Title</h2>
+                  {/* pv-block-end:vp16co */}
+                  {/* pv-block-start:o5nw3a */}
+                  <p data-pv-block="o5nw3a" className="text-foreground-secondary">
+                    This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.
+                  </p>
+                  {/* pv-block-end:o5nw3a */}
+                  {/* pv-editable-zone-end:lrr7m2 */}
+                </div>
+                {/* pv-block-end:nuspwm */}
+                {/* pv-editable-zone-end:lcojok */}
+              </DialogWindow>
+            </DialogOverlay>
+            {/* pv-block-end:b5suzg */}
+          {/* pv-editable-zone-end:q0uowd */}
+        </DialogTrigger>
+        {/* pv-block-end:kl0ofb */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -1704,7 +1735,7 @@ function SkillsPage() {
                       <SuperLabel data-pv-block="0fqt9h" secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" />
                       {/* pv-block-end:0fqt9h */}
                       {/* pv-block-start:bkeq1m */}
-                      <div data-pv-block="bkeq1m" className="flex min-h-4 flex-row gap-2 rounded p-3 bg-background-special-gradient-subtle">
+                      <div data-pv-block="bkeq1m" className="flex min-h-4 flex-row gap-2 rounded p-3 bg-gradient-background-special-subtle">
                         {/* pv-editable-zone-start:fzw0z4 */}
                         {/* pv-block-start:mgc6pa */}
                         <div data-pv-block="mgc6pa" className="flex flex-col gap-2">
@@ -2050,7 +2081,7 @@ function SkillsPage() {
                       <Container className="items-stretch" data-pv-block="vs3109">
                         {/* pv-editable-zone-start:gvn75e */}
                           {/* pv-block-start:k8x2m1 */}
-                          <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 bg-background-special-gradient-subtle p-7">
+                          <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 bg-gradient-background-special-subtle p-7">
                             {/* pv-editable-zone-start:m1n2o3 */}
                               {/* pv-block-start:p1q2r3 */}
                               <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
@@ -2059,7 +2090,7 @@ function SkillsPage() {
                                   <Badge data-pv-block="v6w7x8" label="AI" color="special-gradient" />
                                   {/* pv-block-end:v6w7x8 */}
                                   {/* pv-block-start:859kkk */}
-                                  <TextParagraph className="text-foreground-special-gradient" data-pv-block="859kkk" typography="bold-primary">
+                                  <TextParagraph className="text-gradient-foreground-special" data-pv-block="859kkk" typography="bold-primary">
                                     Summary of the plan
                                   </TextParagraph>
                                   {/* pv-block-end:859kkk */}
