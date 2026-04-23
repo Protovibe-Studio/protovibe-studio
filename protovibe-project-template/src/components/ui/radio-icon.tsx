@@ -9,7 +9,7 @@ export function RadioIcon({ state = 'inherit', className, ...props }: RadioIconP
   return (
     <div
       data-state={state}
-      className={cn("rounded-full border-2 flex items-center justify-center transition-all shrink-0 data-[state=selected]:border-background-primary data-[state=unselected]:border-border-default data-[state=unselected]:bg-background-default data-[state=disabled]:border-border-default data-[state=disabled]:bg-background-default data-[state=disabled]:opacity-50 data-[state=error]:border-background-destructive data-[state=error]:bg-background-default data-[state=inherit]:border-border-default data-[state=inherit]:bg-background-default data-[state=selected]:bg-background-elevated w-[18px] h-[18px]", className)}
+      className={cn("rounded-full border-2 flex items-center justify-center transition-all shrink-0 data-[state=selected]:border-background-primary data-[state=unselected]:bg-background-default data-[state=disabled]:border-border-default data-[state=disabled]:bg-background-default data-[state=disabled]:opacity-50 data-[state=error]:border-background-destructive data-[state=error]:bg-background-default data-[state=inherit]:border-border-default data-[state=inherit]:bg-background-default data-[state=selected]:bg-background-elevated w-[18px] h-[18px] data-[state=unselected]:border-border-strong", className)}
       {...props}
       data-pv-component-id="RadioIcon"
     >

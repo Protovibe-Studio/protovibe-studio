@@ -1933,7 +1933,7 @@ function SkillsPage() {
                     <Container className="items-stretch" data-pv-block="vs3109">
                       {/* pv-editable-zone-start:gvn75e */}
                         {/* pv-block-start:k8x2m1 */}
-                        <div data-pv-block="k8x2m1" className="bg-background-primary-subtle rounded flex flex-col gap-2 p-5">
+                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 p-5 bg-background-primary-subtle/55">
                           {/* pv-editable-zone-start:m1n2o3 */}
                             {/* pv-block-start:p1q2r3 */}
                             <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
@@ -2052,87 +2052,98 @@ function SkillsPage() {
                           <div data-pv-block="rp1qa2" className="flex flex-col gap-4 w-full">
                             {skillPreviews.map(skill => (
                               <div key={skill.id} className="border border-border-default rounded overflow-hidden bg-background-elevated">
-                                <div className="flex flex-col gap-2 p-4 border-border-default items-start">
-                                  <div className="flex items-start justify-between gap-4 w-full">
+                                <div className="flex flex-col gap-2 items-start p-7">
+                                  <div className="flex justify-between gap-4 w-full items-center">
                                     <div className="flex flex-col gap-1 flex-1">
                                       <TextHeading typography="heading-lg">{skill.name}</TextHeading>
-                                      {skill.isExisting
-                                        ? <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
-                                        : <TextParagraph typography="small" className="text-foreground-primary">This is a new skill that will be created</TextParagraph>
-                                      }
+                                      {skill.isExisting && (
+                                        <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
+                                      )}
                                       <TextParagraph typography="regular">{skill.description}</TextParagraph>
                                     </div>
-                                    <Button variant="ghost" color="neutral" label={collapsedSkills.has(skill.id) ? 'Expand' : 'Collapse'} rightIcon={collapsedSkills.has(skill.id) ? 'mdi:chevron-down' : 'mdi:chevron-up'} size="sm" onClick={() => toggleSkillCollapse(skill.id)} />
+                                    {collapsedSkills.has(skill.id) && (
+                                      <Button variant="ghost" color="neutral" label="Expand" rightIcon="mdi:chevron-down" size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                    )}
                                   </div>
-                                  <div className="inline-flex items-center px-2 py-0.5 border border-border-default text-sm text-foreground-secondary rounded-full">{skill.category}</div>
                                 </div>
-                                {!collapsedSkills.has(skill.id) && (
-                                  <>
-                                    <div className="grid grid-cols-2 gap-4 px-4 py-2 border-b border-border-default">
-                                      <TextParagraph typography="semibold-primary">Proficiency levels</TextParagraph>
-                                      <TextParagraph typography="semibold-primary">Positions</TextParagraph>
+                                <div
+                                  data-collapsed={String(collapsedSkills.has(skill.id))}
+                                  className="grid [grid-template-rows:1fr] data-[collapsed=true]:[grid-template-rows:0fr] transition-all duration-600 ease-in-out"
+                                >
+                                  <div className="overflow-hidden flex flex-col items-stretch gap-6">
+                                    <div className="px-7">
+                                      <div className="inline-flex items-center px-2 py-0.5 border border-border-default text-sm text-foreground-secondary rounded-full">{skill.category}</div>
                                     </div>
-                                    {skill.levels.map(level => (
-                                      <div key={level.id} className="border-b border-border-default last:border-b-0">
-                                        {editingLevelId === level.id ? (
-                                          <div className="p-3 m-2 bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4">
-                                            <div className="flex items-center justify-between gap-4">
-                                              <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
-                                              <div className="flex gap-2">
-                                                <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
-                                                <Button variant="ghost" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
-                                              </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                              <div className="flex flex-col gap-1">
-                                                <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
-                                                <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
-                                              </div>
-                                              <div className="flex flex-col gap-1">
-                                                <TextParagraph typography="semibold-secondary">Assigned positions</TextParagraph>
-                                                <MultiSelectDropdown value={editFormData.positions} onSelectionChange={val => setEditFormData(prev => ({ ...prev, positions: val }))}>
-                                                  {availablePositions.map(pos => (
-                                                    <MultiSelectDropdownItem key={pos} value={pos} label={pos} />
-                                                  ))}
-                                                </MultiSelectDropdown>
-                                              </div>
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                              <TextParagraph typography="semibold-secondary">Description</TextParagraph>
-                                              <Textarea value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} />
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="grid grid-cols-2 gap-4 px-4 py-3 items-start">
-                                            <div className="flex flex-col gap-2">
-                                              <div className="flex items-center gap-2">
-                                                <div className="flex gap-0.5 items-center shrink-0">
-                                                  {[1, 2, 3, 4].map(i => (
-                                                    <div key={i} data-filled={String(i <= level.levelIndex)} className="w-2.5 h-2.5 rounded-full bg-background-tertiary data-[filled=true]:bg-foreground-primary" />
-                                                  ))}
+                                    <div className="px-7">
+                                      <div className="border-border-default rounded overflow-hidden">
+                                        <div className="grid grid-cols-2 gap-4 border-b border-border-default py-2">
+                                          <TextParagraph typography="semibold-primary">Proficiency levels</TextParagraph>
+                                          <TextParagraph typography="semibold-primary">Positions</TextParagraph>
+                                        </div>
+                                        {skill.levels.map(level => (
+                                          <div key={level.id} className="border-b border-border-default last:border-b-0">
+                                            {editingLevelId === level.id ? (
+                                              <div className="p-3 m-2 bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4">
+                                                <div className="flex items-center justify-between gap-4">
+                                                  <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
+                                                  <div className="flex gap-2">
+                                                    <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
+                                                    <Button variant="ghost" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
+                                                  </div>
                                                 </div>
-                                                <TextParagraph typography="bold-primary">{level.name}</TextParagraph>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                  <div className="flex flex-col gap-1">
+                                                    <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
+                                                    <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                    <TextParagraph typography="semibold-secondary">Assigned positions</TextParagraph>
+                                                    <MultiSelectDropdown value={editFormData.positions} onSelectionChange={val => setEditFormData(prev => ({ ...prev, positions: val }))}>
+                                                      {availablePositions.map(pos => (
+                                                        <MultiSelectDropdownItem key={pos} value={pos} label={pos} />
+                                                      ))}
+                                                    </MultiSelectDropdown>
+                                                  </div>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                  <TextParagraph typography="semibold-secondary">Description</TextParagraph>
+                                                  <Textarea value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} />
+                                                </div>
                                               </div>
-                                              <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
-                                            </div>
-                                            <div className="flex items-start justify-between gap-2">
-                                              <TextParagraph typography="regular">
-                                                {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
-                                              </TextParagraph>
-                                              <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
-                                            </div>
+                                            ) : (
+                                              <div className="grid grid-cols-2 gap-4 items-start py-3">
+                                                <div className="flex flex-col gap-2">
+                                                  <div className="flex items-center gap-2">
+                                                    <div className="flex items-center shrink-0 gap-1">
+                                                      {[1, 2, 3, 4].map(i => (
+                                                        <div key={i} data-filled={String(i <= level.levelIndex)} className="rounded-full data-[filled=true]:bg-foreground-primary rounded-tr-none rounded-bl-none rounded-br-[6px] rounded-tl-[6px] w-3 h-3 bg-background-tertiary" />
+                                                      ))}
+                                                    </div>
+                                                    <TextParagraph typography="semibold-primary">{level.name}</TextParagraph>
+                                                  </div>
+                                                  <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
+                                                </div>
+                                                <div className="flex items-start justify-between gap-2">
+                                                  <TextParagraph typography="regular">
+                                                    {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
+                                                  </TextParagraph>
+                                                  <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
+                                                </div>
+                                              </div>
+                                            )}
                                           </div>
-                                        )}
+                                        ))}
                                       </div>
-                                    ))}
-                                    <div className="flex items-center justify-between px-4 py-3">
+                                    </div>
+                                    <div className="flex items-center justify-between p-7">
                                       <RadioGroup value={skill.applyAction} onValueChange={val => setSkillPreviews(prev => prev.map(s => s.id === skill.id ? { ...s, applyAction: val as 'create' | 'skip' } : s))}>
                                         <RadioItem value="create" primaryText="Create this skill and assign positions" />
                                         <RadioItem value="skip" primaryText="Don't apply this" />
                                       </RadioGroup>
+                                      <Button variant="ghost" color="neutral" label={collapsedSkills.has(skill.id) ? 'Expand' : 'Collapse'} rightIcon={collapsedSkills.has(skill.id) ? 'mdi:chevron-down' : 'mdi:chevron-up'} size="md" onClick={() => toggleSkillCollapse(skill.id)} />
                                     </div>
-                                  </>
-                                )}
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>

@@ -17,9 +17,9 @@
  --background-secondary: oklch(97.23% 0.0067 295.5); /* cards, panels */
  --background-secondary-hover: oklch(98.7% 0.0067 295.5);
  --background-secondary-pressed: oklch(97.2% 0 295.5);
- --background-tertiary: oklch(92% 0.01 260); /* code blocks, elevated */
- --background-tertiary-hover: oklch(88.5% 0.012 260);
- --background-tertiary-pressed: oklch(85% 0.014 260);
+ --background-tertiary: oklch(88.89% 0.0168 301.2); /* code blocks, elevated */
+ --background-tertiary-hover: oklch(85.8% 0.0168 301.2);
+ --background-tertiary-pressed: oklch(80.8% 0.0168 301.2);
  --background-elevated: oklch(100% 0 0); /* floating surfaces, pure white */
  --background-elevated-hover: oklch(97.5% 0.007 259);
  --background-elevated-pressed: oklch(95% 0.009 258.5);
@@ -78,9 +78,9 @@
  --foreground-info: oklch(46.57% 0.1826 259.7);
 
  /* Borders */
- --border-default: oklch(86% 0.01 260); /* default hairline */
- --border-secondary: oklch(92% 0.008 260); /* subtle divider */
- --border-strong: oklch(68% 0.01 260); /* active tab, prominent */
+ --border-default: oklch(88.89% 0.0168 301.2); /* default hairline */
+ --border-secondary: oklch(93.73% 0.01528 302.5); /* subtle divider */
+ --border-strong: oklch(80.54% 0.0188 314.7); /* active tab, prominent */
  --border-focus: oklch(55% 0.22 260); /* focus ring */
  --border-primary: oklch(42.77% 0.21541 292.5);
  --border-destructive: oklch(60% 0.22 25);
