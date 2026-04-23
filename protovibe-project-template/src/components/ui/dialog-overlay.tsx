@@ -7,9 +7,11 @@ export interface DialogOverlayProps extends React.HTMLAttributes<HTMLDivElement>
   children?: React.ReactNode;
   /** Top padding in vh units before the dialog window */
   customDistanceFromTopEdge?: number;
+  /** Whether the overlay backdrop itself scrolls when content overflows. Default false. */
+  scrollable?: boolean;
 }
 
-export function DialogOverlay({ children, className, customDistanceFromTopEdge = 22, ...props }: DialogOverlayProps) {
+export function DialogOverlay({ children, className, customDistanceFromTopEdge = 22, scrollable = true, ...props }: DialogOverlayProps) {
   const dialog = useDialogContext();
 
   // Lock body scroll while overlay is mounted
@@ -29,16 +31,23 @@ export function DialogOverlay({ children, className, customDistanceFromTopEdge =
 
   return (
     <div
-      className={cn('fixed top-0 right-0 bottom-0 left-0 overflow-y-auto bg-background-overlay', className)}
+      data-scrollable={scrollable}
+      className={cn(
+        'fixed top-0 right-0 bottom-0 left-0 bg-background-overlay data-[scrollable=false]:overflow-hidden data-[scrollable=true]:overflow-y-auto',
+        className
+      )}
       onClick={handleBackdropClick}
       {...props}
       data-pv-component-id="DialogOverlay"
     >
       <div
-        className="w-full flex justify-center px-8 pb-8 pointer-events-none"
+        className={cn(
+          'w-full flex justify-center px-8 pointer-events-none',
+          scrollable ? 'pb-8' : 'h-full flex-col items-center'
+        )}
         style={{ paddingTop: `${customDistanceFromTopEdge}vh` }}
       >
-        <div className="pointer-events-auto w-full flex justify-center">
+        <div className={cn('pointer-events-auto w-full flex justify-center', !scrollable && 'flex-1 min-h-0')}>
           {children}
         </div>
       </div>
@@ -68,5 +77,6 @@ export const pvConfig = {
   ],
   props: {
     customDistanceFromTopEdge: { type: 'string' },
+    scrollable: { type: 'boolean' },
   },
 };

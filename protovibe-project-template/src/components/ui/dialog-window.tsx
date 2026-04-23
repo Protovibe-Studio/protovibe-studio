@@ -8,15 +8,21 @@ export interface DialogWindowProps extends React.HTMLAttributes<HTMLDivElement> 
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   /** Whether to show the built-in close button in the top-right corner */
   showCloseButton?: boolean;
+  /** Whether the window content scrolls when it overflows. Default false. */
+  scrollable?: boolean;
   children?: React.ReactNode;
 }
 
-export function DialogWindow({ size = 'md', showCloseButton = true, children, className, ...props }: DialogWindowProps) {
+export function DialogWindow({ size = 'md', showCloseButton = true, scrollable = false, children, className, ...props }: DialogWindowProps) {
   return (
     <div
       data-size={size}
       data-show-close-button={showCloseButton}
-      className={cn("shadow-2xl w-full overflow-y-auto data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated relative rounded", className)}
+      data-scrollable={scrollable}
+      className={cn(
+        'shadow-2xl w-full data-[size=sm]:max-w-sm data-[size=md]:max-w-lg data-[size=lg]:max-w-2xl data-[size=xl]:max-w-4xl data-[size=full]:max-w-full bg-background-elevated relative rounded data-[scrollable=true]:overflow-y-auto data-[scrollable=true]:max-h-full',
+        className
+      )}
       {...props}
       data-pv-component-id="DialogWindow"
     >
@@ -64,5 +70,6 @@ export const pvConfig = {
   props: {
     size: { type: 'select', options: ['sm', 'md', 'lg', 'xl', 'full'] },
     showCloseButton: { type: 'boolean' },
+    scrollable: { type: 'boolean' },
   },
 };

@@ -235,8 +235,8 @@ function DashboardPage() {
             <Button data-pv-block="6pyw5j" variant="outline" iconOnly leftIcon="Pencil" />
             {/* pv-block-end:6pyw5j */}
             {/* pv-block-start:b5suzg */}
-            <DialogOverlay className="flex flex-col overflow-hidden" data-pv-block="b5suzg">
-              <DialogWindow className="max-h-full min-h-0 flex-1" size="md">
+            <DialogOverlay scrollable={false}  className="flex flex-col overflow-hidden" data-pv-block="b5suzg">
+              <DialogWindow scrollable={false}  className="max-h-full min-h-0 flex-1" size="md">
                 {/* pv-editable-zone-start:lcojok */}
                 {/* pv-block-start:nuspwm */}
                 <div data-pv-block="nuspwm" className="p-8 flex flex-col gap-2 max-h-full">
@@ -245,10 +245,16 @@ function DashboardPage() {
                   <h2 data-pv-block="vp16co" className="text-xl font-semibold text-foreground-default">Dialog Title</h2>
                   {/* pv-block-end:vp16co */}
                   {/* pv-block-start:o5nw3a */}
-                  <p data-pv-block="o5nw3a" className="text-foreground-secondary">
+                  <p data-pv-block="o5nw3a" className="text-foreground-secondary overflow-auto shrink">
                     This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.This is the modal dialog content. Click the button below or press Escape to close. This is the modal dialog content. Click the button below or press Escape to close.
                   </p>
                   {/* pv-block-end:o5nw3a */}
+
+                  {/* pv-block-start:mmu9p9 */}
+                  <p data-pv-block="mmu9p9" className="text-foreground-secondary overflow-auto">
+                    Test
+                  </p>
+                  {/* pv-block-end:mmu9p9 */}
                   {/* pv-editable-zone-end:lrr7m2 */}
                 </div>
                 {/* pv-block-end:nuspwm */}
