@@ -32,7 +32,7 @@ export const skillsToImport: SkillPreview[] = [
       { id: 'l1a', name: 'Beginner', levelIndex: 1, description: '- Understands basic brand principles and color theory\n- Can apply existing brand guidelines consistently\n- Familiar with brand asset libraries and usage rules\n- Creates simple brand mockups under supervision\n- Recognizes brand inconsistencies in designs', positions: ['Junior Product Designer'] },
       { id: 'l1b', name: 'Intermediate', levelIndex: 2, description: '- Develops brand concepts from brief requirements\n- Refines visual identities and design systems\n- Creates mood boards and brand direction presentations\n- Manages brand consistency across multiple touchpoints\n- Collaborates with marketing and design teams on brand projects', positions: ['Product Designer'] },
       { id: 'l1c', name: 'Advanced', levelIndex: 3, description: '- Leads comprehensive brand strategy initiatives\n- Creates sophisticated visual identity systems from scratch\n- Develops brand guidelines and governance documentation\n- Mentors junior designers on brand application\n- Influences brand direction at organizational level', positions: ['Senior Product Designer'] },
-      { id: 'l1d', name: 'Expert', levelIndex: 4, description: '- Transforms organizational brand perception across markets\n- Establishes brand governance frameworks at enterprise scale\n- Advises C-suite on brand strategy and market positioning\n- Builds iconic brand identities recognized in industry\n- Leads cross-functional brand initiatives impacting revenue', positions: [] },
+      { id: 'l1d', name: 'Expert', levelIndex: 4, description: '- Transforms organizational brand perception across markets\n- Establishes brand governance frameworks at enterprise scale\n- Advises C-suite on brand strategy and market positioning\n- Builds iconic brand identities recognized in industry\n- Leads cross-functional brand initiatives impacting revenue', positions: ['Creative Director', 'VP of Design'] },
     ],
   },
   {
@@ -48,7 +48,7 @@ export const skillsToImport: SkillPreview[] = [
       { id: 'l2a', name: 'Beginner', levelIndex: 1, description: '- Understands basic business terminology and organizational hierarchy\n- Knows key business metrics and their definitions\n- Recognizes departmental roles and responsibilities\n- Understands profit and loss concepts at basic level\n- Participates in business discussions with guidance', positions: ['HR Generalist', 'Junior Recruiter'] },
       { id: 'l2b', name: 'Intermediate', levelIndex: 2, description: '- Analyzes departmental budgets and spending trends\n- Interprets business performance metrics independently\n- Understands market competition and industry dynamics\n- Connects HR initiatives to business objectives\n- Evaluates cost-benefit of operational decisions', positions: ['Recruiter', 'Talent Acquisition Manager'] },
       { id: 'l2c', name: 'Advanced', levelIndex: 3, description: '- Develops strategic initiatives aligned with company goals\n- Forecasts business impact of major decisions\n- Influences cross-functional business strategy\n- Manages complex P&L responsibilities\n- Drives revenue growth or cost optimization programs', positions: ['Senior Recruiter', 'HR Business Partner'] },
-      { id: 'l2d', name: 'Expert', levelIndex: 4, description: '- Shapes organizational strategy and five-year planning\n- Influences board-level business decisions\n- Manages multi-million dollar strategic investments\n- Drives organizational transformation initiatives\n- Mentors executives on strategic thinking', positions: [] },
+      { id: 'l2d', name: 'Expert', levelIndex: 4, description: '- Shapes organizational strategy and five-year planning\n- Influences board-level business decisions\n- Manages multi-million dollar strategic investments\n- Drives organizational transformation initiatives\n- Mentors executives on strategic thinking', positions: ['Chief Operating Officer', 'VP of Strategy'] },
     ],
   },
   {
@@ -80,7 +80,7 @@ export const skillsToImport: SkillPreview[] = [
       { id: 'l4a', name: 'Beginner', levelIndex: 1, description: '- Navigates Figma interface confidently\n- Creates and organizes basic design components\n- Uses Figma libraries for design consistency\n- Participates in collaborative design projects\n- Exports and shares designs for feedback', positions: ['Junior Product Designer'] },
       { id: 'l4b', name: 'Intermediate', levelIndex: 2, description: '- Builds reusable component systems in Figma\n- Creates interactive prototypes with multiple screens\n- Manages design files and team collaboration workflows\n- Uses advanced features like variants and auto-layout\n- Implements responsive design in Figma', positions: ['Product Designer'] },
       { id: 'l4c', name: 'Advanced', levelIndex: 3, description: '- Designs complex multi-screen interactive prototypes\n- Manages large-scale design systems at organizational level\n- Implements sophisticated auto-layout and constraint systems\n- Mentors junior designers on Figma best practices\n- Integrates Figma with development workflows', positions: ['Senior Product Designer'] },
-      { id: 'l4d', name: 'Expert', levelIndex: 4, description: '- Establishes design system governance and standards\n- Optimizes Figma workflows for entire teams\n- Creates advanced plugin integrations and automation\n- Leads design tool strategy and adoption\n- Mentors design leaders on Figma at scale', positions: [] },
+      { id: 'l4d', name: 'Expert', levelIndex: 4, description: '- Establishes design system governance and standards\n- Optimizes Figma workflows for entire teams\n- Creates advanced plugin integrations and automation\n- Leads design tool strategy and adoption\n- Mentors design leaders on Figma at scale', positions: ['Design Systems Lead', 'Principal Product Designer'] },
     ],
   },
   {
@@ -96,7 +96,7 @@ export const skillsToImport: SkillPreview[] = [
       { id: 'l5a', name: 'Beginner', levelIndex: 1, description: '- Takes initiative on assigned projects\n- Supports team members and offers help proactively\n- Follows through on commitments reliably\n- Shows enthusiasm and positive attitude\n- Seeks mentorship and learns from feedback', positions: ['HR Assistant', 'Junior Recruiter'] },
       { id: 'l5b', name: 'Intermediate', levelIndex: 2, description: '- Leads small projects from start to completion\n- Motivates team members and celebrates wins\n- Delegates tasks and holds team accountable\n- Develops informal mentoring relationships\n- Resolves conflicts between team members', positions: ['Recruiter', 'HR Generalist', 'Talent Acquisition Manager'] },
       { id: 'l5c', name: 'Advanced', levelIndex: 3, description: '- Manages departments of 5-20+ people effectively\n- Develops team members strategically for growth\n- Creates high-performing cultures within teams\n- Manages performance and difficult conversations\n- Balances business needs with employee development', positions: ['Senior Recruiter', 'HR Business Partner'] },
-      { id: 'l5d', name: 'Expert', levelIndex: 4, description: '- Leads cross-functional initiatives across organizations\n- Shapes organizational culture and values\n- Develops other leaders and succession pipelines\n- Influences company-wide strategic direction\n- Creates lasting impact on organizational capability', positions: [] },
+      { id: 'l5d', name: 'Expert', levelIndex: 4, description: '- Leads cross-functional initiatives across organizations\n- Shapes organizational culture and values\n- Develops other leaders and succession pipelines\n- Influences company-wide strategic direction\n- Creates lasting impact on organizational capability', positions: ['Chief People Officer', 'VP of People'] },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const skillsToImport: SkillPreview[] = [
       { id: 'l6a', name: 'Beginner', levelIndex: 1, description: '- Understands React component lifecycle and props\n- Builds functional components with basic hooks\n- Uses state management with useState\n- Handles simple form inputs and events\n- Creates basic component composition', positions: ['Junior Frontend Engineer'] },
       { id: 'l6b', name: 'Intermediate', levelIndex: 2, description: '- Develops full-featured applications with multiple pages\n- Implements complex state with Redux or Context API\n- Uses React hooks effectively (useEffect, useCallback, etc.)\n- Handles API integration and async operations\n- Creates reusable component libraries', positions: ['Frontend Engineer'] },
       { id: 'l6c', name: 'Advanced', levelIndex: 3, description: '- Optimizes application performance and rendering\n- Implements advanced patterns (render props, compound components)\n- Manages complex application state architecture\n- Builds real-time and data-intensive applications\n- Mentors junior developers on React best practices', positions: ['Senior Frontend Engineer'] },
-      { id: 'l6d', name: 'Expert', levelIndex: 4, description: '- Architects enterprise-scale React applications\n- Designs scalable state management solutions\n- Contributes to React ecosystem (libraries, frameworks)\n- Optimizes for performance at massive scale\n- Leads technical decisions for frontend platforms', positions: [] },
+      { id: 'l6d', name: 'Expert', levelIndex: 4, description: '- Architects enterprise-scale React applications\n- Designs scalable state management solutions\n- Contributes to React ecosystem (libraries, frameworks)\n- Optimizes for performance at massive scale\n- Leads technical decisions for frontend platforms', positions: ['Staff Frontend Engineer', 'Principal Frontend Engineer'] },
     ],
   },
 ];
@@ -142,5 +142,9 @@ export const availablePositions = [
   'HR Assistant', 'Junior Recruiter', 'Recruiter', 'HR Generalist',
   'Senior Recruiter', 'Talent Acquisition Manager', 'HR Business Partner',
   'Junior Product Designer', 'Product Designer', 'Senior Product Designer',
+  'Principal Product Designer', 'Design Systems Lead', 'Creative Director',
   'Junior Frontend Engineer', 'Frontend Engineer', 'Senior Frontend Engineer',
+  'Staff Frontend Engineer', 'Principal Frontend Engineer',
+  'VP of Design', 'VP of Strategy', 'VP of People',
+  'Chief Operating Officer', 'Chief People Officer',
 ];

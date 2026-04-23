@@ -213,6 +213,10 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (cls.startsWith('bg-[url(')) { const match = cls.match(/^bg-\[url\(['"]?(.*?)['"]?\)\]$/); if (match) { v.bgImage = match[1]; orig.bgImage_original = originalClass; } }
     else if (cls.startsWith('bg-')) { v.bg = cls.replace('bg-', ''); orig.bg_original = originalClass; }
     else if (cls.startsWith('fill-')) { v.fill = cls.replace('fill-', ''); orig.fill_original = originalClass; }
+    else if (cls === 'rounded-tl') { v.radiusTL = 'DEFAULT'; orig.radiusTL_original = originalClass; }
+    else if (cls === 'rounded-tr') { v.radiusTR = 'DEFAULT'; orig.radiusTR_original = originalClass; }
+    else if (cls === 'rounded-br') { v.radiusBR = 'DEFAULT'; orig.radiusBR_original = originalClass; }
+    else if (cls === 'rounded-bl') { v.radiusBL = 'DEFAULT'; orig.radiusBL_original = originalClass; }
     else if (cls.startsWith('rounded-tl-')) { v.radiusTL = cls.replace('rounded-tl-', ''); orig.radiusTL_original = originalClass; }
     else if (cls.startsWith('rounded-tr-')) { v.radiusTR = cls.replace('rounded-tr-', ''); orig.radiusTR_original = originalClass; }
     else if (cls.startsWith('rounded-br-')) { v.radiusBR = cls.replace('rounded-br-', ''); orig.radiusBR_original = originalClass; }

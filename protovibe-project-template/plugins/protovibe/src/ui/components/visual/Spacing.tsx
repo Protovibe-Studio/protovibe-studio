@@ -1,3 +1,4 @@
+
 // plugins/protovibe/src/ui/components/visual/Spacing.tsx
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
@@ -477,8 +478,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     let newClass = '';
     if (safeVal && safeVal !== '-') {
-      if (isAll && safeVal === 'DEFAULT') {
-        newClass = `${currentContextPrefix}rounded`;
+      if (safeVal === 'DEFAULT') {
+        newClass = isAll ? `${currentContextPrefix}rounded` : `${currentContextPrefix}rounded-${corner}`;
       } else {
         const pfx = isAll ? 'rounded-' : `rounded-${corner}-`;
         newClass = `${currentContextPrefix}${pfx}${safeVal}`;

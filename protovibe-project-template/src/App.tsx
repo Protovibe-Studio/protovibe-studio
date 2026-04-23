@@ -970,7 +970,7 @@ function SkillsPage() {
 
       <DialogTrigger ref={importDialogRef}>
         <span className="hidden" />
-        <DialogOverlay customDistanceFromTopEdge="7" className="" >
+        <DialogOverlay scrollable customDistanceFromTopEdge="7" className="" >
           {/* pv-editable-zone-start:sk9901 */}
           {dialogFlow === 'generate' && (
             <>
@@ -1924,7 +1924,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:8vzh4t */}
                   {/* pv-block-start:bvrioh */}
-                  <div data-pv-block="bvrioh" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5">
+                  <div data-pv-block="bvrioh" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-end py-3 px-5 rounded-br rounded-bl">
                     {/* pv-editable-zone-start:zbrnm6 */}
                     {/* pv-block-start:f42yvj */}
                     <div data-pv-block="f42yvj" className="flex gap-2 flex-row">
@@ -2032,7 +2032,7 @@ function SkillsPage() {
                 </DialogWindow>
               )}
               {step === 5 && (
-                <DialogWindow size="xl" data-pv-block="exm6jg">
+                <DialogWindow scrollable={false} className="max-h-full min-h-0" size="xl" data-pv-block="exm6jg">
                   {/* pv-editable-zone-start:gu24cs */}
                   {/* pv-block-start:jlpm2v */}
                   <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="jlpm2v">
@@ -2057,7 +2057,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:jlpm2v */}
                   {/* pv-block-start:7jh2x3 */}
-                  <div data-pv-block="7jh2x3" className="flex flex-col gap-2 max-h-[calc(100vh-250px)] overflow-auto">
+                  <div data-pv-block="7jh2x3" className="flex flex-col gap-2 overflow-auto flex-1 min-h-0">
                     {/* pv-editable-zone-start:qt7ebf */}
                     {/* pv-block-start:e5voje */}
                     <div data-pv-block="e5voje" className="flex-col p-5 gap-9 items-stretch justify-start flex">

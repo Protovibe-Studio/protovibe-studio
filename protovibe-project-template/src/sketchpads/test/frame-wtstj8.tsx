@@ -53,14 +53,6 @@ export default function Frame1() {
                       {/* pv-editable-zone-end:6cn0k3 */}
                     </div>
                     {/* pv-block-end:2smwac */}
-
-
-
-
-
-
-
-
                   {/* pv-editable-zone-end:q5tfc6 */}
                 </div>
                 {/* pv-block-end:oavs1y */}
