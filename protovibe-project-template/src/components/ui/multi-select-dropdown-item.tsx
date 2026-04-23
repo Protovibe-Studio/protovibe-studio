@@ -31,7 +31,11 @@ export function MultiSelectDropdownItem({
   const ctx = useMultiSelect();
 
   const itemValue = value ?? label ?? '';
-  const isSelected = ctx ? ctx.activeValues.includes(itemValue) : !!selected;
+
+  // Item is selected if its specific value is active, OR if the designated "All" option is active
+  const isSelected = ctx
+    ? (ctx.activeValues.includes(itemValue) || (!!ctx.allOptionValue && ctx.activeValues.includes(ctx.allOptionValue)))
+    : !!selected;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (disabled) return;

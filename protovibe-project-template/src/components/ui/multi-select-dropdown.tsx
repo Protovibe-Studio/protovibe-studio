@@ -13,6 +13,7 @@ import { MultiSelectDropdownMenu } from '@/components/ui/multi-select-dropdown-m
 export interface MultiSelectContextValue {
   activeValues: string[];
   toggleValue: (val: string) => void;
+  allOptionValue?: string;
 }
 
 export const MultiSelectContext = createContext<MultiSelectContextValue | null>(null);
@@ -34,6 +35,8 @@ export interface MultiSelectDropdownProps extends Omit<React.HTMLAttributes<HTML
   error?: boolean;
   disabled?: boolean;
   showClearButton?: boolean;
+  /** The value string that represents the "All" option. Defaults to 'all'. */
+  allOptionValue?: string;
   /** Controls the visual open state for canvas editing */
   menuOpen?: 'Auto (Default)' | 'Open temporarily for visual editing';
   zIndex?: number;
@@ -52,6 +55,7 @@ export function MultiSelectDropdown({
   error = false,
   disabled = false,
   showClearButton = true,
+  allOptionValue = 'all',
   menuOpen = 'Auto (Default)',
   zIndex = 9999,
   children,
@@ -65,11 +69,42 @@ export function MultiSelectDropdown({
 
   const isForcedOpen = menuOpen === 'Open temporarily for visual editing';
 
+  // Map values to display labels based on children, and collect available standard values recursively
+  const valueLabelMap = new Map<string, string>();
+  const allAvailableValues: string[] = [];
+
+  const extractItems = (nodes: React.ReactNode) => {
+    React.Children.forEach(nodes, (child) => {
+      if (!React.isValidElement(child)) return;
+      const el = child as React.ReactElement<any>;
+
+      const itemValue = el.props?.value ?? el.props?.label;
+      if (itemValue !== undefined && el.props?.label !== undefined) {
+        valueLabelMap.set(itemValue, el.props.label);
+        if (itemValue !== allOptionValue && !allAvailableValues.includes(itemValue)) {
+          allAvailableValues.push(itemValue);
+        }
+      }
+
+      if (el.props?.children) {
+        extractItems(el.props.children);
+      }
+    });
+  };
+  extractItems(children);
+
   // Sync incoming comma-separated string to state array
   useEffect(() => {
-    const arr = value ? value.split(',').map(v => v.trim()).filter(Boolean) : [];
+    let arr = value ? value.split(',').map((v) => v.trim()).filter(Boolean) : [];
+
+    if (allOptionValue && arr.includes(allOptionValue)) {
+      arr = [allOptionValue];
+    } else if (allOptionValue && arr.length === allAvailableValues.length && allAvailableValues.length > 0) {
+      arr = [allOptionValue];
+    }
+
     setActiveValues(arr);
-  }, [value]);
+  }, [value, allOptionValue, allAvailableValues.length]);
 
   const anchorRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -109,7 +144,22 @@ export function MultiSelectDropdown({
 
   const toggleValue = (val: string) => {
     setActiveValues((prev) => {
-      const next = prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val];
+      let next;
+      const isAllActive = allOptionValue && prev.includes(allOptionValue);
+
+      if (allOptionValue && val === allOptionValue) {
+        next = isAllActive ? [] : [val];
+      } else {
+        if (isAllActive) {
+          next = allAvailableValues.filter((v) => v !== val);
+        } else {
+          next = prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val];
+
+          if (allOptionValue && next.length === allAvailableValues.length && allAvailableValues.length > 0) {
+            next = [allOptionValue];
+          }
+        }
+      }
       onSelectionChange?.(next.join(','));
       return next;
     });
@@ -128,30 +178,36 @@ export function MultiSelectDropdown({
     onSelectionChange?.('');
   };
 
-  // Map values to display labels based on children
-  const valueLabelMap = new Map<string, string>();
-  React.Children.forEach(children, (child) => {
-    if (!React.isValidElement<MultiSelectDropdownItemProps>(child)) return;
-    const itemValue = child.props.value ?? child.props.label;
-    if (itemValue && child.props.label) {
-      valueLabelMap.set(itemValue, child.props.label);
-    }
-  });
-
   const lowerQuery = searchQuery.toLowerCase();
-  const enhancedChildren = React.Children.map(children, (child) => {
-    if (!React.isValidElement<MultiSelectDropdownItemProps>(child)) return child;
-    const itemValue = child.props.value ?? child.props.label;
-    if (itemValue !== undefined && lowerQuery && !(child.props.label ?? itemValue).toLowerCase().includes(lowerQuery)) {
-      return null;
-    }
-    return child; // children will read from context internally
-  });
+
+  const enhanceNodes = (nodes: React.ReactNode): React.ReactNode => {
+    return React.Children.map(nodes, (child) => {
+      if (!React.isValidElement(child)) return child;
+      const el = child as React.ReactElement<any>;
+
+      const itemValue = el.props?.value ?? el.props?.label;
+      if (itemValue !== undefined && el.props?.label !== undefined) {
+        if (lowerQuery && !String(el.props.label).toLowerCase().includes(lowerQuery)) {
+          return null;
+        }
+        return child;
+      }
+
+      if (el.props?.children) {
+        return React.cloneElement(el, {
+          children: enhanceNodes(el.props.children),
+        });
+      }
+      return child;
+    });
+  };
+
+  const enhancedChildren = enhanceNodes(children);
 
   const portalTarget = typeof document !== 'undefined' ? (document.getElementById('root') ?? document.body) : null;
 
   return (
-    <MultiSelectContext.Provider value={{ activeValues, toggleValue }}>
+    <MultiSelectContext.Provider value={{ activeValues, toggleValue, allOptionValue }}>
       <div
         ref={anchorRef}
         role="combobox"
@@ -287,7 +343,7 @@ export const pvConfig = {
   displayName: 'Multi-Select Dropdown',
   description: 'A select dropdown allowing multiple choices with visual chips.',
   importPath: '@/components/ui/multi-select-dropdown',
-  defaultProps: 'placeholder="Select..." value="alice,bob" menuOpen="Auto (Default)"',
+  defaultProps: 'placeholder="Select..." value="alice,bob" menuOpen="Auto (Default)" allOptionValue="all"',
   defaultContent: <PvDefaultContent />,
   additionalImportsForDefaultContent: [
     { name: 'MultiSelectDropdownItem', path: '@/components/ui/multi-select-dropdown-item' },
@@ -296,6 +352,7 @@ export const pvConfig = {
   props: {
     placeholder: { type: 'string', exampleValue: 'Select...' },
     value: { type: 'string', exampleValue: 'alice,bob' },
+    allOptionValue: { type: 'string', exampleValue: 'all' },
     prefixIcon: { type: 'iconSearch', exampleValue: 'users' },
     placement: { type: 'select', options: ['bottom', 'top'] },
     align: { type: 'select', options: ['left', 'center', 'right'] },

@@ -26,12 +26,13 @@ export const skillsToImport: SkillPreview[] = [
     areaOfExpertise: 'Marketing',
     category: 'Design',
     isExisting: false,
-    totalLevels: 3,
+    totalLevels: 4,
     applyAction: 'create',
     levels: [
       { id: 'l1a', name: 'Beginner', levelIndex: 1, description: '- Understands basic brand principles and color theory\n- Can apply existing brand guidelines consistently\n- Familiar with brand asset libraries and usage rules\n- Creates simple brand mockups under supervision\n- Recognizes brand inconsistencies in designs', positions: ['Junior Product Designer'] },
-      { id: 'l1b', name: 'Intermediate', levelIndex: 2, description: '- Develops brand concepts from brief requirements\n- Refines visual identities and design systems\n- Creates mood boards and brand direction presentations\n- Manages brand consistency across multiple touchpoints\n- Collaborates with marketing and design teams on brand projects', positions: ['Product Designer', 'Senior Product Designer'] },
+      { id: 'l1b', name: 'Intermediate', levelIndex: 2, description: '- Develops brand concepts from brief requirements\n- Refines visual identities and design systems\n- Creates mood boards and brand direction presentations\n- Manages brand consistency across multiple touchpoints\n- Collaborates with marketing and design teams on brand projects', positions: ['Product Designer'] },
       { id: 'l1c', name: 'Advanced', levelIndex: 3, description: '- Leads comprehensive brand strategy initiatives\n- Creates sophisticated visual identity systems from scratch\n- Develops brand guidelines and governance documentation\n- Mentors junior designers on brand application\n- Influences brand direction at organizational level', positions: ['Senior Product Designer'] },
+      { id: 'l1d', name: 'Expert', levelIndex: 4, description: '- Transforms organizational brand perception across markets\n- Establishes brand governance frameworks at enterprise scale\n- Advises C-suite on brand strategy and market positioning\n- Builds iconic brand identities recognized in industry\n- Leads cross-functional brand initiatives impacting revenue', positions: [] },
     ],
   },
   {
@@ -44,9 +45,9 @@ export const skillsToImport: SkillPreview[] = [
     totalLevels: 4,
     applyAction: 'create',
     levels: [
-      { id: 'l2a', name: 'Beginner', levelIndex: 1, description: '- Understands basic business terminology and organizational hierarchy\n- Knows key business metrics and their definitions\n- Recognizes departmental roles and responsibilities\n- Understands profit and loss concepts at basic level\n- Participates in business discussions with guidance', positions: ['HR Generalist', 'HR Business Partner'] },
-      { id: 'l2b', name: 'Intermediate', levelIndex: 2, description: '- Analyzes departmental budgets and spending trends\n- Interprets business performance metrics independently\n- Understands market competition and industry dynamics\n- Connects HR initiatives to business objectives\n- Evaluates cost-benefit of operational decisions', positions: ['HR Business Partner', 'Talent Acquisition Manager'] },
-      { id: 'l2c', name: 'Advanced', levelIndex: 3, description: '- Develops strategic initiatives aligned with company goals\n- Forecasts business impact of major decisions\n- Influences cross-functional business strategy\n- Manages complex P&L responsibilities\n- Drives revenue growth or cost optimization programs', positions: ['Senior Recruiter'] },
+      { id: 'l2a', name: 'Beginner', levelIndex: 1, description: '- Understands basic business terminology and organizational hierarchy\n- Knows key business metrics and their definitions\n- Recognizes departmental roles and responsibilities\n- Understands profit and loss concepts at basic level\n- Participates in business discussions with guidance', positions: ['HR Generalist', 'Junior Recruiter'] },
+      { id: 'l2b', name: 'Intermediate', levelIndex: 2, description: '- Analyzes departmental budgets and spending trends\n- Interprets business performance metrics independently\n- Understands market competition and industry dynamics\n- Connects HR initiatives to business objectives\n- Evaluates cost-benefit of operational decisions', positions: ['Recruiter', 'Talent Acquisition Manager'] },
+      { id: 'l2c', name: 'Advanced', levelIndex: 3, description: '- Develops strategic initiatives aligned with company goals\n- Forecasts business impact of major decisions\n- Influences cross-functional business strategy\n- Manages complex P&L responsibilities\n- Drives revenue growth or cost optimization programs', positions: ['Senior Recruiter', 'HR Business Partner'] },
       { id: 'l2d', name: 'Expert', levelIndex: 4, description: '- Shapes organizational strategy and five-year planning\n- Influences board-level business decisions\n- Manages multi-million dollar strategic investments\n- Drives organizational transformation initiatives\n- Mentors executives on strategic thinking', positions: [] },
     ],
   },
@@ -57,14 +58,13 @@ export const skillsToImport: SkillPreview[] = [
     areaOfExpertise: 'Soft skills',
     category: 'Interpersonal',
     isExisting: true,
-    totalLevels: 5,
+    totalLevels: 4,
     applyAction: 'create',
     levels: [
       { id: 'l3a', name: 'Beginner', levelIndex: 1, description: '- Writes clear, grammatically correct emails and documents\n- Explains tasks and updates in understandable language\n- Listens actively in one-on-one conversations\n- Asks clarifying questions when confused\n- Responds promptly to messages and communications', positions: ['HR Assistant', 'Junior Recruiter', 'Junior Product Designer'] },
       { id: 'l3b', name: 'Intermediate', levelIndex: 2, description: '- Presents ideas effectively in team meetings\n- Adapts communication style for different audiences\n- Writes compelling reports and proposals\n- Facilitates productive discussions and collaboration\n- Provides constructive feedback clearly and respectfully', positions: ['Recruiter', 'Product Designer', 'HR Generalist'] },
       { id: 'l3c', name: 'Advanced', levelIndex: 3, description: '- Persuasively presents complex ideas to senior stakeholders\n- Communicates with confidence in high-stakes situations\n- Crafts compelling narratives that drive decision-making\n- Mentors others on communication skills\n- Influences opinions through strategic messaging', positions: ['Senior Recruiter', 'Senior Product Designer', 'Talent Acquisition Manager', 'HR Business Partner'] },
       { id: 'l3d', name: 'Expert', levelIndex: 4, description: '- Influences organizational culture through authentic communication\n- Delivers transformational messages at scale\n- Navigates complex political situations diplomatically\n- Shapes company narrative and brand voice\n- Coaches executives on communication strategy', positions: [] },
-      { id: 'l3e', name: 'Master', levelIndex: 5, description: '- Sets organizational communication standards\n- Creates communication frameworks that outlast leadership\n- Recognized internally and externally as thought leader\n- Mentors future communication leaders\n- Transforms entire cultures through masterful communication', positions: [] },
     ],
   },
   {
@@ -90,14 +90,13 @@ export const skillsToImport: SkillPreview[] = [
     areaOfExpertise: 'Soft skills',
     category: 'Management',
     isExisting: true,
-    totalLevels: 5,
+    totalLevels: 4,
     applyAction: 'create',
     levels: [
       { id: 'l5a', name: 'Beginner', levelIndex: 1, description: '- Takes initiative on assigned projects\n- Supports team members and offers help proactively\n- Follows through on commitments reliably\n- Shows enthusiasm and positive attitude\n- Seeks mentorship and learns from feedback', positions: ['HR Assistant', 'Junior Recruiter'] },
       { id: 'l5b', name: 'Intermediate', levelIndex: 2, description: '- Leads small projects from start to completion\n- Motivates team members and celebrates wins\n- Delegates tasks and holds team accountable\n- Develops informal mentoring relationships\n- Resolves conflicts between team members', positions: ['Recruiter', 'HR Generalist', 'Talent Acquisition Manager'] },
       { id: 'l5c', name: 'Advanced', levelIndex: 3, description: '- Manages departments of 5-20+ people effectively\n- Develops team members strategically for growth\n- Creates high-performing cultures within teams\n- Manages performance and difficult conversations\n- Balances business needs with employee development', positions: ['Senior Recruiter', 'HR Business Partner'] },
       { id: 'l5d', name: 'Expert', levelIndex: 4, description: '- Leads cross-functional initiatives across organizations\n- Shapes organizational culture and values\n- Develops other leaders and succession pipelines\n- Influences company-wide strategic direction\n- Creates lasting impact on organizational capability', positions: [] },
-      { id: 'l5e', name: 'Master', levelIndex: 5, description: '- Visionary leader who transforms organizational culture\n- Develops multiple generations of future leaders\n- Creates legacy of leadership excellence\n- Recognized as thought leader in industry\n- Mentors C-suite executives and founders', positions: [] },
     ],
   },
   {
@@ -110,9 +109,9 @@ export const skillsToImport: SkillPreview[] = [
     totalLevels: 4,
     applyAction: 'create',
     levels: [
-      { id: 'l6a', name: 'Beginner', levelIndex: 1, description: '- Understands React component lifecycle and props\n- Builds functional components with basic hooks\n- Uses state management with useState\n- Handles simple form inputs and events\n- Creates basic component composition', positions: [] },
-      { id: 'l6b', name: 'Intermediate', levelIndex: 2, description: '- Develops full-featured applications with multiple pages\n- Implements complex state with Redux or Context API\n- Uses React hooks effectively (useEffect, useCallback, etc.)\n- Handles API integration and async operations\n- Creates reusable component libraries', positions: [] },
-      { id: 'l6c', name: 'Advanced', levelIndex: 3, description: '- Optimizes application performance and rendering\n- Implements advanced patterns (render props, compound components)\n- Manages complex application state architecture\n- Builds real-time and data-intensive applications\n- Mentors junior developers on React best practices', positions: [] },
+      { id: 'l6a', name: 'Beginner', levelIndex: 1, description: '- Understands React component lifecycle and props\n- Builds functional components with basic hooks\n- Uses state management with useState\n- Handles simple form inputs and events\n- Creates basic component composition', positions: ['Junior Frontend Engineer'] },
+      { id: 'l6b', name: 'Intermediate', levelIndex: 2, description: '- Develops full-featured applications with multiple pages\n- Implements complex state with Redux or Context API\n- Uses React hooks effectively (useEffect, useCallback, etc.)\n- Handles API integration and async operations\n- Creates reusable component libraries', positions: ['Frontend Engineer'] },
+      { id: 'l6c', name: 'Advanced', levelIndex: 3, description: '- Optimizes application performance and rendering\n- Implements advanced patterns (render props, compound components)\n- Manages complex application state architecture\n- Builds real-time and data-intensive applications\n- Mentors junior developers on React best practices', positions: ['Senior Frontend Engineer'] },
       { id: 'l6d', name: 'Expert', levelIndex: 4, description: '- Architects enterprise-scale React applications\n- Designs scalable state management solutions\n- Contributes to React ecosystem (libraries, frameworks)\n- Optimizes for performance at massive scale\n- Leads technical decisions for frontend platforms', positions: [] },
     ],
   },
@@ -142,5 +141,6 @@ export const mockDepartments = [
 export const availablePositions = [
   'HR Assistant', 'Junior Recruiter', 'Recruiter', 'HR Generalist',
   'Senior Recruiter', 'Talent Acquisition Manager', 'HR Business Partner',
-  'Junior Product Designer', 'Senior Product Designer', 'Product Designer',
+  'Junior Product Designer', 'Product Designer', 'Senior Product Designer',
+  'Junior Frontend Engineer', 'Frontend Engineer', 'Senior Frontend Engineer',
 ];

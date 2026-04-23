@@ -932,15 +932,15 @@ function SkillsPage() {
 
       <DialogTrigger ref={importDialogRef}>
         <span className="hidden" />
-        <DialogOverlay customDistanceFromTopEdge={9}>
+        <DialogOverlay customDistanceFromTopEdge="7" className="" >
           {/* pv-editable-zone-start:sk9901 */}
           {dialogFlow === 'generate' && (
             <>
               {step === 1 && (
-                <DialogWindow size="xl" data-pv-block="1obgh8">
+                <DialogWindow size="xl" data-pv-block="1obgh8" className="flex flex-col max-h-[85vh] overflow-hidden">
                   {/* pv-editable-zone-start:jcx4p4 */}
                   {/* pv-block-start:k4mn1h */}
-                  <div data-pv-block="k4mn1h" className="flex flex-col gap-2 p-12 animate-in fade-in duration-300">
+                  <div data-pv-block="k4mn1h" className="flex flex-col gap-2 p-12 animate-in fade-in duration-300 flex-1 overflow-y-auto">
                     {/* pv-editable-zone-start:xcg13x */}
                     {/* pv-block-start:2gcnka */}
                     <div data-pv-block="2gcnka" className="flex flex-row items-start gap-16">
@@ -1111,7 +1111,7 @@ function SkillsPage() {
                       <SuperLabel data-pv-block="eel6bk" heading="Which positions would you like to fill with skills?" />
                       {/* pv-block-end:eel6bk */}
                       {/* pv-block-start:ldmppg */}
-                      <MultiSelectDropdown data-pv-block="ldmppg" placeholder="Select..." value="all">
+                      <MultiSelectDropdown allOptionValue="all" data-pv-block="ldmppg" placeholder="Select..." value="all">
                         {/* pv-editable-zone-start:qxnsyn */}
                         {/* pv-block-start:e22vfj */}
                         <SelectDropdownSearch data-pv-block="e22vfj" placeholder="Search people..." />
@@ -1122,15 +1122,13 @@ function SkillsPage() {
                         {/* pv-block-start:tluv3b */}
                         <DropdownSeparator data-pv-block="tluv3b" />
                         {/* pv-block-end:tluv3b */}
-                        {/* pv-block-start:ms4sjs */}
-                        <MultiSelectDropdownItem data-pv-block="ms4sjs" value="2" label="Backend Developer" />
-                        {/* pv-block-end:ms4sjs */}
-                        {/* pv-block-start:m1d65b */}
-                        <MultiSelectDropdownItem data-pv-block="m1d65b" value="3" label="Senior Backend Developer" />
-                        {/* pv-block-end:m1d65b */}
-                        {/* pv-block-start:s64qm4 */}
-                        <MultiSelectDropdownItem data-pv-block="s64qm4" value="4" label="Junior Backend Developer" />
-                        {/* pv-block-end:s64qm4 */}
+                        {availablePositions.map((position, index) => (
+                          <div key={position}>
+                            {/* pv-block-start */}
+                            <MultiSelectDropdownItem data-pv-block="" value={position} label={position} />
+                            {/* pv-block-end */}
+                          </div>
+                        ))}
                         {/* pv-editable-zone-end:qxnsyn */}
                       </MultiSelectDropdown>
                       {/* pv-block-end:ldmppg */}
@@ -1627,7 +1625,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:awni33 */}
                   {/* pv-block-start:axe22k */}
-                  <div data-pv-block="axe22k" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-between py-3 px-5">
+                  <div data-pv-block="axe22k" className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 justify-between py-3 px-5 shrink-0">
                     {/* pv-editable-zone-start:8etqlx */}
                     {/* pv-block-start:v19je1 */}
                     <Checkbox data-pv-block="v19je1" primaryText="Don't show this intro again" />
@@ -2021,268 +2019,277 @@ function SkillsPage() {
                     {/* pv-editable-zone-end:t7nd3c */}
                   </div>
                   {/* pv-block-end:jlpm2v */}
-                  {/* pv-block-start:e5voje */}
-                  <div data-pv-block="e5voje" className="flex flex-col p-5 gap-9">
-                    {/* pv-editable-zone-start:hb3knb */}
-                    {/* pv-block-start:8vnpes */}
-                    <Stepper data-pv-block="8vnpes" fullWidth={false}>
-                      {/* pv-editable-zone-start:v4z32l */}
-                      {/* pv-block-start:m13np6 */}
-                      <StepCircle labelPosition="right" data-pv-block="m13np6" state="done" number={1} label="Upload file" />
-                      {/* pv-block-end:m13np6 */}
-                      {/* pv-block-start:v16pbl */}
-                      <StepperConnector data-pv-block="v16pbl" state="done" />
-                      {/* pv-block-end:v16pbl */}
-                      {/* pv-block-start:27weus */}
-                      <StepCircle labelPosition="right" data-pv-block="27weus" state="current" number={2} label="Preview skills" />
-                      {/* pv-block-end:27weus */}
-                      {/* pv-block-start:0ujm7q */}
-                      <StepperConnector data-pv-block="0ujm7q" state="upcoming" />
-                      {/* pv-block-end:0ujm7q */}
-                      {/* pv-block-start:wgqg5q */}
-                      <StepCircle labelPosition="right" data-pv-block="wgqg5q" state="upcoming" number={3} label="Apply changes" />
-                      {/* pv-block-end:wgqg5q */}
-                      {/* pv-editable-zone-end:v4z32l */}
-                    </Stepper>
-                    {/* pv-block-end:8vnpes */}
-                    {/* pv-block-start:vs3109 */}
-                    <Container className="items-stretch" data-pv-block="vs3109">
-                      {/* pv-editable-zone-start:gvn75e */}
-                        {/* pv-block-start:k8x2m1 */}
-                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 bg-background-special-gradient-subtle p-7">
-                          {/* pv-editable-zone-start:m1n2o3 */}
-                            {/* pv-block-start:p1q2r3 */}
-                            <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
-                              {/* pv-editable-zone-start:s3t4u5 */}
-                                {/* pv-block-start:v6w7x8 */}
-                                <Badge data-pv-block="v6w7x8" label="AI" color="special-gradient" />
-                                {/* pv-block-end:v6w7x8 */}
-                                {/* pv-block-start:859kkk */}
-                                <TextParagraph className="text-foreground-special-gradient" data-pv-block="859kkk" typography="bold-primary">
-                                  Summary of the plan
-                                </TextParagraph>
-                                {/* pv-block-end:859kkk */}
-                              {/* pv-editable-zone-end:s3t4u5 */}
-                            </div>
-                            {/* pv-block-end:p1q2r3 */}
-                            {/* pv-block-start:r6s7t8 */}
-                            <TextHeading data-pv-block="r6s7t8" typography="heading-lg">We are about to add 64 new skills to 32 positions</TextHeading>
-                            {/* pv-block-end:r6s7t8 */}
-                            {/* pv-block-start:u9v0w1 */}
-                            <TextParagraph data-pv-block="u9v0w1" typography="regular">I've analysed your file to prepare a draft suggestion of skills and their proficiency level.</TextParagraph>
-                            {/* pv-block-end:u9v0w1 */}
-                            {/* pv-block-start:x2y3z4 */}
-                            <div data-pv-block="x2y3z4" className="flex flex-col gap-0.5">
-                              {/* pv-editable-zone-start:a5b6c7 */}
-                                {/* pv-block-start:d8e9f0 */}
-                                <div data-pv-block="d8e9f0" className="flex gap-3 items-start">
-                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
-                                  <TextParagraph typography="regular">The file looks correct, no problems found</TextParagraph>
-                                </div>
-                                {/* pv-block-end:d8e9f0 */}
-                                {/* pv-block-start:g1h2i3 */}
-                                <div data-pv-block="g1h2i3" className="flex gap-3 items-start">
-                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
-                                  <TextParagraph typography="regular">We will create 52 skills and update 12 existing skills</TextParagraph>
-                                </div>
-                                {/* pv-block-end:g1h2i3 */}
-                                {/* pv-block-start:j4k5l6 */}
-                                <div data-pv-block="j4k5l6" className="flex gap-3 items-start">
-                                  <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
-                                  <TextParagraph typography="regular">We will create 12 new positions and assign 20 existing positions</TextParagraph>
-                                </div>
-                                {/* pv-block-end:j4k5l6 */}
-                                {/* pv-block-start:m7n8o9 */}
-                                <div data-pv-block="m7n8o9" className="flex gap-3 items-start">
-                                  <Icon iconSymbol="mdi:information-outline" size="sm" className="text-foreground-info shrink-0 mt-0.5" />
-                                  <TextParagraph typography="regular">Some skills from your file don't need to be created because they already existed, I will just update them</TextParagraph>
-                                </div>
-                                {/* pv-block-end:m7n8o9 */}
-                              {/* pv-editable-zone-end:a5b6c7 */}
-                            </div>
-                            {/* pv-block-end:x2y3z4 */}
-                          {/* pv-editable-zone-end:m1n2o3 */}
-                        </div>
-                        {/* pv-block-end:k8x2m1 */}
-                      {/* pv-editable-zone-end:gvn75e */}
-                    </Container>
-                    {/* pv-block-end:vs3109 */}
-                    {/* pv-block-start:hzjvx2 */}
-                    <Container className="gap-2" data-pv-block="hzjvx2">
-                      {/* pv-editable-zone-start:x62gm5 */}
-                        {/* pv-block-start:b2c3d4 */}
-                        <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to Tellent HR" />
-                        {/* pv-block-end:b2c3d4 */}
-                        {/* pv-block-start:e5f6g7 */}
-                        <Card data-pv-block="e5f6g7" className="w-full p-7">
-                          {/* pv-editable-zone-start:h8i9j0 */}
-                            {/* pv-block-start:k1l2m3 */}
-                            <div data-pv-block="k1l2m3" className="flex flex-wrap w-full gap-1">
-                              {/* pv-editable-zone-start:m1n2o3 */}
-                                {/* pv-block-start:n4o5p6 */}
-                                <Chip data-pv-block="n4o5p6" label="Junior Product Designer"  />
-                                {/* pv-block-end:n4o5p6 */}
-                                {/* pv-block-start:q7r8s9 */}
-                                <Chip data-pv-block="q7r8s9" label="Senior Product Designer"  />
-                                {/* pv-block-end:q7r8s9 */}
-                                {/* pv-block-start:t0u1v2 */}
-                                <Chip data-pv-block="t0u1v2" label="Product Designer"  />
-                                {/* pv-block-end:t0u1v2 */}
-                                {/* pv-block-start:w3x4y5 */}
-                                <Chip data-pv-block="w3x4y5" label="Product Designer"  />
-                                {/* pv-block-end:w3x4y5 */}
-                                {/* pv-block-start:z6a7b8 */}
-                                <Chip data-pv-block="z6a7b8" label="Product Designer"  />
-                                {/* pv-block-end:z6a7b8 */}
-                              {/* pv-editable-zone-end:m1n2o3 */}
-                            </div>
-                            {/* pv-block-end:k1l2m3 */}
-                            {/* pv-block-start:c9d0e1 */}
-                            <RadioGroup data-pv-block="c9d0e1" value="create" orientation="vertical" className="w-full pt-2 border-border-default mt-2">
-                              {/* pv-editable-zone-start:d0e1f2 */}
-                                {/* pv-block-start:f2g3h4 */}
-                                <RadioItem data-pv-block="f2g3h4" value="create" primaryText="Create these positions" />
-                                {/* pv-block-end:f2g3h4 */}
-                                {/* pv-block-start:i5j6k7 */}
-                                <RadioItem data-pv-block="i5j6k7" value="dont-create" primaryText="Don't create missing positions and don't assign them to skills" />
-                                {/* pv-block-end:i5j6k7 */}
-                              {/* pv-editable-zone-end:d0e1f2 */}
-                            </RadioGroup>
-                            {/* pv-block-end:c9d0e1 */}
-                          {/* pv-editable-zone-end:h8i9j0 */}
-                        </Card>
-                        {/* pv-block-end:e5f6g7 */}
-                      {/* pv-editable-zone-end:x62gm5 */}
-                    </Container>
-                    {/* pv-block-end:hzjvx2 */}
-                    {/* pv-block-start:m7kral */}
-                    <div  data-pv-block="m7kral" className="flex flex-col gap-2">
-                      {/* pv-editable-zone-start:dy3ds8 */}
-                      {/* pv-block-start:lvjh8x */}
-                      <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
-                      {/* pv-block-end:lvjh8x */}
-                      {/* pv-block-start:48gr18 */}
-                      <Container data-pv-block="48gr18">
-                        {/* pv-editable-zone-start:syk5ag */}
-                          {/* pv-block-start:rp1qa2 */}
-                          <div data-pv-block="rp1qa2" className="flex flex-col gap-4 w-full">
-                            {skillPreviews.map(skill => (
-                              <div key={skill.id} className="border border-border-default rounded overflow-hidden bg-background-elevated">
-                                <div className="flex flex-col gap-2 items-start p-7">
-                                  <div className="flex justify-between gap-4 w-full items-center">
-                                    {/* pv-editable-zone-start:b2k9f7 */}
-                                    <div className="flex flex-col flex-1 items-start gap-1">
-                                      {/* pv-block-start:m4x8p1 */}
-                                      <div data-pv-block="m4x8p1" className="inline-flex items-center border border-border-default text-sm text-foreground-secondary rounded-full leading-none py-0.5 px-1.5">{skill.category}</div>
-                                      {/* pv-block-end:m4x8p1 */}
-                                      {/* pv-block-start:n6w3t5 */}
-                                      <div data-pv-block="n6w3t5">
-                                        <TextHeading typography="heading-lg">{skill.name}</TextHeading>
+                  {/* pv-block-start:7jh2x3 */}
+                  <div data-pv-block="7jh2x3" className="flex flex-col gap-2 max-h-[calc(100vh-250px)] overflow-auto">
+                    {/* pv-editable-zone-start:qt7ebf */}
+                    {/* pv-block-start:e5voje */}
+                    <div data-pv-block="e5voje" className="flex-col p-5 gap-9 items-stretch justify-start flex">
+                      {/* pv-editable-zone-start:hb3knb */}
+                      {/* pv-block-start:8vnpes */}
+                      <Stepper data-pv-block="8vnpes" fullWidth={false}>
+                        {/* pv-editable-zone-start:v4z32l */}
+                        {/* pv-block-start:m13np6 */}
+                        <StepCircle labelPosition="right" data-pv-block="m13np6" state="done" number={1} label="Upload file" />
+                        {/* pv-block-end:m13np6 */}
+                        {/* pv-block-start:v16pbl */}
+                        <StepperConnector data-pv-block="v16pbl" state="done" />
+                        {/* pv-block-end:v16pbl */}
+                        {/* pv-block-start:27weus */}
+                        <StepCircle labelPosition="right" data-pv-block="27weus" state="current" number={2} label="Preview skills" />
+                        {/* pv-block-end:27weus */}
+                        {/* pv-block-start:0ujm7q */}
+                        <StepperConnector data-pv-block="0ujm7q" state="upcoming" />
+                        {/* pv-block-end:0ujm7q */}
+                        {/* pv-block-start:wgqg5q */}
+                        <StepCircle labelPosition="right" data-pv-block="wgqg5q" state="upcoming" number={3} label="Apply changes" />
+                        {/* pv-block-end:wgqg5q */}
+                        {/* pv-editable-zone-end:v4z32l */}
+                      </Stepper>
+                      {/* pv-block-end:8vnpes */}
+                      {/* pv-block-start:vs3109 */}
+                      <Container className="items-stretch" data-pv-block="vs3109">
+                        {/* pv-editable-zone-start:gvn75e */}
+                          {/* pv-block-start:k8x2m1 */}
+                          <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 bg-background-special-gradient-subtle p-7">
+                            {/* pv-editable-zone-start:m1n2o3 */}
+                              {/* pv-block-start:p1q2r3 */}
+                              <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
+                                {/* pv-editable-zone-start:s3t4u5 */}
+                                  {/* pv-block-start:v6w7x8 */}
+                                  <Badge data-pv-block="v6w7x8" label="AI" color="special-gradient" />
+                                  {/* pv-block-end:v6w7x8 */}
+                                  {/* pv-block-start:859kkk */}
+                                  <TextParagraph className="text-foreground-special-gradient" data-pv-block="859kkk" typography="bold-primary">
+                                    Summary of the plan
+                                  </TextParagraph>
+                                  {/* pv-block-end:859kkk */}
+                                {/* pv-editable-zone-end:s3t4u5 */}
+                              </div>
+                              {/* pv-block-end:p1q2r3 */}
+                              {/* pv-block-start:r6s7t8 */}
+                              <TextHeading data-pv-block="r6s7t8" typography="heading-lg">We are about to add 64 new skills to 32 positions</TextHeading>
+                              {/* pv-block-end:r6s7t8 */}
+                              {/* pv-block-start:u9v0w1 */}
+                              <TextParagraph data-pv-block="u9v0w1" typography="regular">I've analysed your file to prepare a draft suggestion of skills and their proficiency level.</TextParagraph>
+                              {/* pv-block-end:u9v0w1 */}
+                              {/* pv-block-start:x2y3z4 */}
+                              <div data-pv-block="x2y3z4" className="flex flex-col gap-0.5">
+                                {/* pv-editable-zone-start:a5b6c7 */}
+                                  {/* pv-block-start:d8e9f0 */}
+                                  <div data-pv-block="d8e9f0" className="flex gap-3 items-start">
+                                    <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                    <TextParagraph typography="regular">The file looks correct, no problems found</TextParagraph>
+                                  </div>
+                                  {/* pv-block-end:d8e9f0 */}
+                                  {/* pv-block-start:g1h2i3 */}
+                                  <div data-pv-block="g1h2i3" className="flex gap-3 items-start">
+                                    <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                    <TextParagraph typography="regular">We will create 52 skills and update 12 existing skills</TextParagraph>
+                                  </div>
+                                  {/* pv-block-end:g1h2i3 */}
+                                  {/* pv-block-start:j4k5l6 */}
+                                  <div data-pv-block="j4k5l6" className="flex gap-3 items-start">
+                                    <Icon iconSymbol="mdi:check" size="sm" className="text-foreground-success shrink-0 mt-0.5" />
+                                    <TextParagraph typography="regular">We will create 12 new positions and assign 20 existing positions</TextParagraph>
+                                  </div>
+                                  {/* pv-block-end:j4k5l6 */}
+                                  {/* pv-block-start:m7n8o9 */}
+                                  <div data-pv-block="m7n8o9" className="flex gap-3 items-start">
+                                    <Icon iconSymbol="mdi:information-outline" size="sm" className="text-foreground-info shrink-0 mt-0.5" />
+                                    <TextParagraph typography="regular">Some skills from your file don't need to be created because they already existed, I will just update them, see below</TextParagraph>
+                                  </div>
+                                  {/* pv-block-end:m7n8o9 */}
+                                {/* pv-editable-zone-end:a5b6c7 */}
+                              </div>
+                              {/* pv-block-end:x2y3z4 */}
+                            {/* pv-editable-zone-end:m1n2o3 */}
+                          </div>
+                          {/* pv-block-end:k8x2m1 */}
+                        {/* pv-editable-zone-end:gvn75e */}
+                      </Container>
+                      {/* pv-block-end:vs3109 */}
+                      {/* pv-block-start:hzjvx2 */}
+                      <Container className="gap-2" data-pv-block="hzjvx2">
+                        {/* pv-editable-zone-start:x62gm5 */}
+                          {/* pv-block-start:b2c3d4 */}
+                          <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to Tellent HR" />
+                          {/* pv-block-end:b2c3d4 */}
+                          {/* pv-block-start:e5f6g7 */}
+                          <Card data-pv-block="e5f6g7" className="w-full p-7">
+                            {/* pv-editable-zone-start:h8i9j0 */}
+                              {/* pv-block-start:k1l2m3 */}
+                              <div data-pv-block="k1l2m3" className="flex flex-wrap w-full gap-1">
+                                {/* pv-editable-zone-start:m1n2o3 */}
+                                  {/* pv-block-start:n4o5p6 */}
+                                  <Chip data-pv-block="n4o5p6" label="Junior Product Designer"  />
+                                  {/* pv-block-end:n4o5p6 */}
+                                  {/* pv-block-start:q7r8s9 */}
+                                  <Chip data-pv-block="q7r8s9" label="Senior Product Designer"  />
+                                  {/* pv-block-end:q7r8s9 */}
+                                  {/* pv-block-start:t0u1v2 */}
+                                  <Chip data-pv-block="t0u1v2" label="Product Designer"  />
+                                  {/* pv-block-end:t0u1v2 */}
+                                  {/* pv-block-start:w3x4y5 */}
+                                  <Chip data-pv-block="w3x4y5" label="Product Designer"  />
+                                  {/* pv-block-end:w3x4y5 */}
+                                  {/* pv-block-start:z6a7b8 */}
+                                  <Chip data-pv-block="z6a7b8" label="Product Designer"  />
+                                  {/* pv-block-end:z6a7b8 */}
+                                {/* pv-editable-zone-end:m1n2o3 */}
+                              </div>
+                              {/* pv-block-end:k1l2m3 */}
+                              {/* pv-block-start:c9d0e1 */}
+                              <RadioGroup data-pv-block="c9d0e1" value="create" orientation="vertical" className="w-full pt-2 border-border-default mt-2">
+                                {/* pv-editable-zone-start:d0e1f2 */}
+                                  {/* pv-block-start:f2g3h4 */}
+                                  <RadioItem data-pv-block="f2g3h4" value="create" primaryText="Create these positions" />
+                                  {/* pv-block-end:f2g3h4 */}
+                                  {/* pv-block-start:i5j6k7 */}
+                                  <RadioItem data-pv-block="i5j6k7" value="dont-create" primaryText="Don't create missing positions and don't assign them to skills" />
+                                  {/* pv-block-end:i5j6k7 */}
+                                {/* pv-editable-zone-end:d0e1f2 */}
+                              </RadioGroup>
+                              {/* pv-block-end:c9d0e1 */}
+                            {/* pv-editable-zone-end:h8i9j0 */}
+                          </Card>
+                          {/* pv-block-end:e5f6g7 */}
+                        {/* pv-editable-zone-end:x62gm5 */}
+                      </Container>
+                      {/* pv-block-end:hzjvx2 */}
+                      {/* pv-block-start:m7kral */}
+                      <div  data-pv-block="m7kral" className="flex flex-col gap-2">
+                        {/* pv-editable-zone-start:dy3ds8 */}
+                        {/* pv-block-start:lvjh8x */}
+                        <SuperLabel secondaryText="AI can make mistakes. Before applying changes, check if it correctly read your file." heading="Preview skills to import" data-pv-block="lvjh8x" primaryText="" />
+                        {/* pv-block-end:lvjh8x */}
+                        {/* pv-block-start:48gr18 */}
+                        <Container data-pv-block="48gr18">
+                          {/* pv-editable-zone-start:syk5ag */}
+                            {/* pv-block-start:rp1qa2 */}
+                            <div data-pv-block="rp1qa2" className="flex flex-col gap-4 w-full">
+                              {skillPreviews.map(skill => (
+                                <div key={skill.id} className="border border-border-default rounded overflow-hidden bg-background-elevated">
+                                  <div className="flex flex-col gap-2 items-start p-7">
+                                    <div className="flex justify-between gap-4 w-full items-center">
+                                      {/* pv-editable-zone-start:b2k9f7 */}
+                                      <div className="flex flex-col flex-1 items-start gap-1">
+                                        {/* pv-block-start:m4x8p1 */}
+                                        <div data-pv-block="m4x8p1" className="inline-flex items-center border border-border-default text-sm text-foreground-secondary rounded-full leading-none py-0.5 px-1.5">{skill.category}</div>
+                                        {/* pv-block-end:m4x8p1 */}
+                                        {/* pv-block-start:n6w3t5 */}
+                                        <div data-pv-block="n6w3t5">
+                                          <TextHeading typography="heading-lg">{skill.name}</TextHeading>
+                                        </div>
+                                        {/* pv-block-end:n6w3t5 */}
                                       </div>
-                                      {/* pv-block-end:n6w3t5 */}
+                                      {/* pv-editable-zone-end:b2k9f7 */}
+                                      {collapsedSkills.has(skill.id) && (
+                                        <Button variant="ghost" color="neutral" label="Expand" rightIcon="mdi:chevron-down" size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                      )}
                                     </div>
-                                    {/* pv-editable-zone-end:b2k9f7 */}
-                                    {collapsedSkills.has(skill.id) && (
-                                      <Button variant="ghost" color="neutral" label="Expand" rightIcon="mdi:chevron-down" size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                    {!collapsedSkills.has(skill.id) && (
+                                      <div className="flex flex-col gap-1">
+                                        {skill.isExisting && (
+                                          <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
+                                        )}
+                                        <TextParagraph typography="regular">{skill.description}</TextParagraph>
+                                      </div>
                                     )}
                                   </div>
-                                  {!collapsedSkills.has(skill.id) && (
-                                    <div className="flex flex-col gap-1">
-                                      {skill.isExisting && (
-                                        <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
-                                      )}
-                                      <TextParagraph typography="regular">{skill.description}</TextParagraph>
-                                    </div>
-                                  )}
-                                </div>
-                                <div
-                                  data-collapsed={String(collapsedSkills.has(skill.id))}
-                                  className="grid [grid-template-rows:1fr] data-[collapsed=true]:[grid-template-rows:0fr] transition-all duration-600 ease-in-out"
-                                >
-                                  <div className="overflow-hidden flex flex-col items-stretch gap-6">
-                                    <div className="px-7">
-                                      <div className="border-border-default rounded overflow-hidden">
-                                        <div className="grid grid-cols-2 gap-4 border-b border-border-default py-2">
-                                          <TextParagraph typography="semibold-primary">Proficiency levels</TextParagraph>
-                                          <TextParagraph typography="semibold-primary">Positions</TextParagraph>
-                                        </div>
-                                        {skill.levels.map(level => (
-                                          <div key={level.id} className="border-b border-border-default last:border-b-0">
-                                            {editingLevelId === level.id ? (
-                                              <div className="rounded border border-border-strong/15 flex flex-col gap-4 my-2 mr-2 p-3 bg-background-primary-subtle/70">
-                                                <div className="flex items-center justify-between gap-4">
-                                                  <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
-                                                  <div className="flex gap-2">
-                                                    <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
-                                                    <Button variant="solid" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
-                                                  </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                  <div className="flex flex-col gap-1 shrink self-start">
-                                                    <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
-                                                    <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
-                                                  </div>
-                                                  <div className="flex flex-col gap-1">
-                                                    <TextParagraph typography="semibold-secondary">Assigned positions</TextParagraph>
-                                                    <MultiSelectDropdown value={editFormData.positions} onSelectionChange={val => setEditFormData(prev => ({ ...prev, positions: val }))}>
-                                                      {availablePositions.map(pos => (
-                                                        <MultiSelectDropdownItem key={pos} value={pos} label={pos} />
-                                                      ))}
-                                                    </MultiSelectDropdown>
-                                                  </div>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                  <TextParagraph typography="semibold-secondary">Description</TextParagraph>
-                                                  <Textarea value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} />
-                                                </div>
-                                              </div>
-                                            ) : (
-                                              <div className="grid grid-cols-2 gap-4 items-start py-3">
-                                                <div className="flex flex-col gap-2">
-                                                  <div className="flex items-center gap-2">
-                                                    <div className="flex items-center shrink-0 gap-1">
-                                                      {[1, 2, 3, 4].map(i => (
-                                                        <div key={i} data-filled={String(i <= level.levelIndex)} className="rounded-full data-[filled=true]:bg-foreground-primary rounded-tr-none rounded-bl-none rounded-br-[6px] rounded-tl-[6px] w-3 h-3 bg-background-tertiary" />
-                                                      ))}
-                                                    </div>
-                                                    <TextParagraph typography="semibold-primary">{level.name}</TextParagraph>
-                                                  </div>
-                                                  <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
-                                                </div>
-                                                <div className="flex items-start justify-between gap-2">
-                                                  <TextParagraph typography="regular" className={level.positions.length === 0 ? 'text-foreground-tertiary' : ''}>
-                                                    {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
-                                                  </TextParagraph>
-                                                  <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
-                                                </div>
-                                              </div>
-                                            )}
+                                  <div
+                                    data-collapsed={String(collapsedSkills.has(skill.id))}
+                                    className="grid [grid-template-rows:1fr] data-[collapsed=true]:[grid-template-rows:0fr] transition-all duration-600 ease-in-out"
+                                  >
+                                    <div className="overflow-hidden flex flex-col items-stretch gap-6">
+                                      <div className="px-7">
+                                        <div className="border-border-default rounded overflow-hidden">
+                                          <div className="grid grid-cols-2 gap-4 border-b border-border-default py-2">
+                                            <TextParagraph typography="semibold-primary">Proficiency levels</TextParagraph>
+                                            <TextParagraph typography="semibold-primary">Positions</TextParagraph>
                                           </div>
-                                        ))}
+                                          {skill.levels.map(level => (
+                                            <div key={level.id} className="border-b border-border-default last:border-b-0">
+                                              {editingLevelId === level.id ? (
+                                                <div data-pv-block="rp1qa2" className="rounded border border-border-strong/15 my-2 mr-2 bg-background-primary-subtle/70 overflow-hidden flex flex-col">
+                                                  <div className="flex items-center justify-between gap-4 border-b border-border-default shrink-0 p-3">
+                                                    <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
+                                                    <div className="flex gap-2">
+                                                      <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
+                                                      <Button variant="solid" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
+                                                    </div>
+                                                  </div>
+                                                  <div className="flex flex-col gap-4 p-3">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                      <div className="flex flex-col gap-1 shrink self-start">
+                                                        <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
+                                                        <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
+                                                      </div>
+                                                      <div className="flex flex-col gap-1">
+                                                        <TextParagraph typography="semibold-secondary">Assigned positions</TextParagraph>
+                                                        <MultiSelectDropdown value={editFormData.positions} onSelectionChange={val => setEditFormData(prev => ({ ...prev, positions: val }))}>
+                                                          {availablePositions.map(pos => (
+                                                            <MultiSelectDropdownItem key={pos} value={pos} label={pos} />
+                                                          ))}
+                                                        </MultiSelectDropdown>
+                                                      </div>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                      <TextParagraph typography="semibold-secondary">Description</TextParagraph>
+                                                      <Textarea value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <div className="grid grid-cols-2 gap-4 items-start py-3">
+                                                  <div className="flex flex-col gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                      <div className="flex items-center shrink-0 gap-1">
+                                                        {[1, 2, 3, 4].map(i => (
+                                                          <div key={i} data-filled={String(i <= level.levelIndex)} className="rounded-full data-[filled=true]:bg-foreground-primary rounded-tr-none rounded-bl-none rounded-br-[6px] rounded-tl-[6px] w-3 h-3 bg-background-tertiary" />
+                                                        ))}
+                                                      </div>
+                                                      <TextParagraph typography="semibold-primary">{level.name}</TextParagraph>
+                                                    </div>
+                                                    <TextParagraph typography="small" className="whitespace-pre-line">{level.description}</TextParagraph>
+                                                  </div>
+                                                  <div className="flex items-start justify-between gap-2">
+                                                    <TextParagraph typography="regular" className={level.positions.length === 0 ? 'text-foreground-tertiary' : ''}>
+                                                      {level.positions.length > 0 ? level.positions.join(', ') : '(no positions)'}
+                                                    </TextParagraph>
+                                                    <Button variant="outline" color="neutral" label="Edit" leftIcon="mdi:pencil" size="sm" onClick={() => startEditLevel(level)} />
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
                                       </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-7">
-                                      <RadioGroup value={skill.applyAction} onValueChange={val => setSkillPreviews(prev => prev.map(s => s.id === skill.id ? { ...s, applyAction: val as 'create' | 'skip' } : s))}>
-                                        <RadioItem value="create" primaryText="Create this skill and assign positions" />
-                                        <RadioItem value="skip" primaryText="Don't apply this" />
-                                      </RadioGroup>
-                                      <Button variant="ghost" color="neutral" label={collapsedSkills.has(skill.id) ? 'Expand' : 'Collapse'} rightIcon={collapsedSkills.has(skill.id) ? 'mdi:chevron-down' : 'mdi:chevron-up'} size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                      <div className="flex items-center justify-between p-7">
+                                        <RadioGroup value={skill.applyAction} onValueChange={val => setSkillPreviews(prev => prev.map(s => s.id === skill.id ? { ...s, applyAction: val as 'create' | 'skip' } : s))}>
+                                          <RadioItem value="create" primaryText="Create this skill and assign positions" />
+                                          <RadioItem value="skip" primaryText="Don't apply this" />
+                                        </RadioGroup>
+                                        <Button variant="ghost" color="neutral" label={collapsedSkills.has(skill.id) ? 'Expand' : 'Collapse'} rightIcon={collapsedSkills.has(skill.id) ? 'mdi:chevron-down' : 'mdi:chevron-up'} size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                          {/* pv-block-end:rp1qa2 */}
-                        {/* pv-editable-zone-end:syk5ag */}
-                      </Container>
-                      {/* pv-block-end:48gr18 */}
-                      {/* pv-editable-zone-end:dy3ds8 */}
+                              ))}
+                            </div>
+                            {/* pv-block-end:rp1qa2 */}
+                          {/* pv-editable-zone-end:syk5ag */}
+                        </Container>
+                        {/* pv-block-end:48gr18 */}
+                        {/* pv-editable-zone-end:dy3ds8 */}
+                      </div>
+                      {/* pv-block-end:m7kral */}
+                      {/* pv-editable-zone-end:hb3knb */}
                     </div>
-                    {/* pv-block-end:m7kral */}
-                    {/* pv-editable-zone-end:hb3knb */}
+                    {/* pv-block-end:e5voje */}
+                    {/* pv-editable-zone-end:qt7ebf */}
                   </div>
-                  {/* pv-block-end:e5voje */}
+                  {/* pv-block-end:7jh2x3 */}
+
                   {/* pv-block-start:mbv43u */}
                   <div className="flex min-h-4 bg-background-subtle border-t border-border-default flex-row items-center gap-4 py-3 px-5 justify-between" data-pv-block="mbv43u">
                     {/* pv-editable-zone-start:2mi6w3 */}
