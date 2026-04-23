@@ -751,10 +751,11 @@ function SkillsPage() {
       return () => clearTimeout(timer);
     }
     if (dialogFlow === 'import' && step === 6) {
-      const timer = setTimeout(() => {
-        setStep(7);
-      }, 10000);
+      const timer = setTimeout(() => setStep(7), 10000);
       return () => clearTimeout(timer);
+    }
+    if (dialogFlow === 'import' && step === 7) {
+      importSkills(skillPreviews.filter(s => s.applyAction === 'create'));
     }
   }, [dialogFlow, step]);
 
@@ -1466,7 +1467,6 @@ function SkillsPage() {
                     {/* pv-block-end:wrud9e */}
                     {/* pv-block-start:vadcyb */}
                     <Button data-pv-block="vadcyb" leftIcon="mdi:check" label="Finish and close" variant="ghost" color="neutral" size="md" onClick={() => {
-                      importSkills(skillPreviews.filter(s => s.applyAction === 'create'));
                       importDialogRef.current?.close();
                     }} />
                     {/* pv-block-end:vadcyb */}
@@ -2405,7 +2405,6 @@ function SkillsPage() {
                       <Button leftIcon="mdi:external-link" data-pv-block="y0z2d1" label="Give feedback" variant="outline" color="neutral" size="md" />
                       {/* pv-block-start:aviqc7 */}
                       <Button data-pv-block="aviqc7" label="Finish and close" variant="solid" color="primary" size="md" onClick={() => {
-                         importSkills(skillPreviews.filter(s => s.applyAction === 'create'));
                          importDialogRef.current?.close();
                        }} />
                       {/* pv-block-end:aviqc7 */}
