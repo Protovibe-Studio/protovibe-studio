@@ -62,6 +62,8 @@
  --background-info-subtle: oklch(94.02% 0.02709 260.3);
  --background-info-subtle-hover: oklch(96.7% 0.02709 260.3);
  --background-info-subtle-pressed: oklch(88.2% 0.02709 260.3);
+ --background-special-gradient: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%);
+ --background-special-gradient-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
  --foreground-default: oklch(18.69% 0.01048 303.5); /* body */
@@ -76,6 +78,7 @@
  --foreground-success: oklch(54.08% 0.13855 153.2);
  --foreground-warning: oklch(56.88% 0.14711 51.6);
  --foreground-info: oklch(46.57% 0.1826 259.7);
+ --foreground-special-gradient: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
  /* Borders */
  --border-default: oklch(88.89% 0.0168 301.2); /* default hairline */
@@ -87,6 +90,7 @@
  --border-success: oklch(62.74% 0.16087 153.2);
  --border-warning: oklch(75% 0.18 80);
  --border-info: oklch(65% 0.18 220);
+ --border-special-gradient: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 }
 
 
@@ -148,6 +152,8 @@
  --background-info-subtle: oklch(19% 0.07 220);
  --background-info-subtle-hover: oklch(22% 0.09 220);
  --background-info-subtle-pressed: oklch(26% 0.12 220);
+ --background-special-gradient: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%);
+ --background-special-gradient-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
  --foreground-default: oklch(94% 0.01 260);
@@ -162,6 +168,7 @@
  --foreground-success: oklch(74% 0.17 145);
  --foreground-warning: oklch(85% 0.16 80);
  --foreground-info: oklch(74% 0.17 220);
+ --foreground-special-gradient: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
  /* Borders */
  --border-default: oklch(45.7% 0.01 260);
@@ -235,6 +242,8 @@
  --color-background-info-subtle: var(--background-info-subtle);
  --color-background-info-subtle-hover: var(--background-info-subtle-hover);
  --color-background-info-subtle-pressed: var(--background-info-subtle-pressed);
+ --color-background-special-gradient: var(--background-special-gradient);
+ --color-background-special-gradient-subtle: var(--background-special-gradient-subtle);
 
  /* Text */
  --color-foreground-default: var(--foreground-default);
@@ -249,6 +258,7 @@
  --color-foreground-success: var(--foreground-success);
  --color-foreground-warning: var(--foreground-warning);
  --color-foreground-info: var(--foreground-info);
+ --color-foreground-special-gradient: var(--foreground-special-gradient);
 
  /* Borders */
  --color-border-default: var(--border-default);
@@ -260,6 +270,7 @@
  --color-border-success: var(--border-success);
  --color-border-warning: var(--border-warning);
  --color-border-info: var(--border-info);
+ --color-border-special-gradient: var(--border-special-gradient);
 
  /* ── Palette — static, theme-independent ──────────────────────────── */
 
