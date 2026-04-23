@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   label: string;
-  color?: 'primary' | 'destructive' | 'success' | 'warning' | 'info' | 'neutral';
+  color?: 'primary' | 'destructive' | 'success' | 'warning' | 'info' | 'neutral' | 'special-gradient';
   prefixIcon?: string;
   suffixIcon?: string;
   className?: string;
@@ -19,16 +19,16 @@ export function Badge({
   ...props
 }: BadgeProps) {
   return (
-    <span
+    <div
       data-color={color}
-      className={cn("items-center gap-1 uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary font-semibold rounded-sm text-tiny flex-row leading-tight py-px px-1 w-fit-content inline-flex", className)}
+      className={cn("items-center gap-1 uppercase tracking-wider data-[color=primary]:bg-background-primary-subtle data-[color=primary]:text-foreground-primary data-[color=destructive]:bg-background-destructive-subtle data-[color=destructive]:text-foreground-destructive data-[color=success]:bg-background-success-subtle data-[color=success]:text-foreground-success data-[color=warning]:bg-background-warning-subtle data-[color=warning]:text-foreground-warning data-[color=info]:bg-background-info-subtle data-[color=info]:text-foreground-info data-[color=neutral]:bg-background-secondary data-[color=neutral]:text-foreground-secondary data-[color=special-gradient]:text-foreground-special-gradient font-semibold rounded-sm flex-row leading-tight py-px px-1 w-fit-content inline-flex text-tiny data-[color=special-gradient]:bg-background-special-gradient text-foreground-default", className)}
       {...props}
       data-pv-component-id="Badge"
     >
       {prefixIcon && <Icon iconSymbol={prefixIcon} size="xs" />}
       <span>{label}</span>
       {suffixIcon && <Icon iconSymbol={suffixIcon} size="xs" />}
-    </span>
+    </div>
   );
 }
 
@@ -47,8 +47,11 @@ export const pvConfig = {
   allowTextInChildren: false,
   props: {
     label: { type: 'string', exampleValue: 'Lorem ipsum' },
-    color: { type: 'select', options: ['primary', 'destructive', 'success', 'warning', 'info', 'neutral'] },
+    color: { type: 'select', options: ['primary', 'destructive', 'success', 'warning', 'info', 'neutral', 'special-gradient'] },
     prefixIcon: { type: 'iconSearch', exampleValue: 'cog' },
     suffixIcon: { type: 'iconSearch', exampleValue: 'arrow-right' },
   },
+  invalidCombinations: [
+    (props: Record<string, any>) => !props.label || props.label.trim() === '',
+  ],
 };

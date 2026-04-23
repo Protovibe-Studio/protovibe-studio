@@ -183,6 +183,18 @@ function DashboardPage() {
         {/* pv-block-start:jsb1vv */}
         <Checkbox  data-pv-block="jsb1vv" primaryText="Accept terms" />
         {/* pv-block-end:jsb1vv */}
+        {/* pv-block-start:7vk8nx */}
+        <Card className="bg-background-special-gradient border-0" data-pv-block="7vk8nx">
+          {/* pv-editable-zone-start:4wmm3u */}
+            {/* pv-block-start:fydn6m */}
+            <span className="text-foreground-special-gradient font-bold text-6xl" data-pv-block="fydn6m">Lorem ipsum</span>
+            {/* pv-block-end:fydn6m */}
+            {/* pv-block-start:nrgp99 */}
+            <Icon className="text-foreground-special-gradient" data-pv-block="nrgp99" iconSymbol="star" size="2xl" />
+            {/* pv-block-end:nrgp99 */}
+          {/* pv-editable-zone-end:4wmm3u */}
+        </Card>
+        {/* pv-block-end:7vk8nx */}
         {/* pv-block-start:q0b5zn */}
         <ToggleSwitch data-pv-block="q0b5zn" primaryText="Enable feature" />
         {/* pv-block-end:q0b5zn */}
@@ -679,7 +691,7 @@ function SkillsPage() {
   const importDialogRef = useRef<DialogHandle>(null);
   const [dialogFlow, setDialogFlow] = useState<'generate' | 'import' | null>(null);
   const [step, setStep] = useState(1);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [proficiencyOption, setProficiencyOption] = useState('opt1');
 
   type SkillLevel = { id: string; name: string; levelIndex: number; description: string; positions: string[] };
@@ -725,7 +737,7 @@ function SkillsPage() {
   const openDialog = (flow: 'generate' | 'import') => {
     setDialogFlow(flow);
     setStep(1);
-    setUploadedFile(null);
+    setUploadedFiles([]);
     importDialogRef.current?.open();
   };
 
@@ -779,7 +791,7 @@ function SkillsPage() {
               <DropdownItem prefixIcon="mdi:plus" label="Add new skill manually" secondaryText="Manually enter description and proficiency level" />
               <DropdownItem prefixIcon="mdi:upload" label="Import skills from a file" secondaryText="Upload your company document and let AI read the skills" onClick={() => openDialog('import')} />
               <DropdownItem onClick={() => openDialog('generate')}>
-                <Badge className="w-4 justify-center" label="AI" color="primary" />
+                <Badge color="special-gradient" className="w-4 justify-center" label="AI"  />
                 <div className="flex flex-col flex-1 gap-0.5">
                   <span className="text-foreground-default font-medium">Generate suggested skills in a sheet</span>
                   <span className="text-xs text-foreground-tertiary">Don't have company skills yet? Generate a starting template file, refine it with your team, then import.</span>
@@ -1587,13 +1599,13 @@ function SkillsPage() {
                       <SuperLabel data-pv-block="0fqt9h" secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" />
                       {/* pv-block-end:0fqt9h */}
                       {/* pv-block-start:bkeq1m */}
-                      <div data-pv-block="bkeq1m" className="flex min-h-4 flex-row gap-2 rounded bg-background-primary-subtle p-3">
+                      <div data-pv-block="bkeq1m" className="flex min-h-4 flex-row gap-2 rounded p-3 bg-background-special-gradient-subtle">
                         {/* pv-editable-zone-start:fzw0z4 */}
                         {/* pv-block-start:mgc6pa */}
                         <div data-pv-block="mgc6pa" className="flex flex-col gap-2">
                           {/* pv-editable-zone-start:a3ohvi */}
                           {/* pv-block-start:72nslo */}
-                          <Icon data-pv-block="72nslo" className="text-background-primary-soft" iconSymbol="glyphs:sparkle-bold" size="md" />
+                          <Icon data-pv-block="72nslo" className="text-[#9A1D99]" iconSymbol="glyphs:sparkle-bold" size="md" />
                           {/* pv-block-end:72nslo */}
                           {/* pv-editable-zone-end:a3ohvi */}
                         </div>
@@ -1618,8 +1630,8 @@ function SkillsPage() {
                         heading="Upload a file with skills, levels and positions"
                         multiple
                         onFilesChange={(files) => {
-                          if (files[0]) {
-                            setUploadedFile(files[0]);
+                          if (files.length > 0) {
+                            setUploadedFiles(files);
                             setStep(3);
                           }
                         }}
@@ -1705,25 +1717,22 @@ function SkillsPage() {
                       <SuperLabel data-pv-block="6qscpx" secondaryText="Supported file formats: PDF, DOCX, CSV or XLSX • Max. file size: 5 MB" heading="Upload files with skills" />
                       {/* pv-block-end:6qscpx */}
                       {/* pv-block-start:qyad0c */}
-                      <Card data-pv-block="qyad0c" className="gap-1 p-3 flex-row items-center">
-                        {/* pv-editable-zone-start:pgd735_1 */}
-                        {/* pv-block-start:d6c1v4 */}
-                        <Icon data-pv-block="d6c1v4" iconSymbol="mdi:file-text" size="md" />
-                        {/* pv-block-end:d6c1v4 */}
-                        {/* pv-block-start:k5n3e5 */}
-                        <TextParagraph data-pv-block="k5n3e5" className="flex-1" typography="regular">
-                          {uploadedFile?.name || 'company skills final.docx'}
-                        </TextParagraph>
-                        {/* pv-block-end:k5n3e5 */}
-                        {/* pv-block-start:kqeyjl */}
-                        <Button data-pv-block="kqeyjl" leftIcon="mdi:close" iconOnly label="Remove" variant="ghost" color="neutral" size="md" onClick={() => { setUploadedFile(null); setStep(2); }} />
-                        {/* pv-block-end:kqeyjl */}
-                        {/* pv-editable-zone-end:pgd735_1 */}
-                      </Card>
+                      <FileDropArea
+                        data-pv-block="qyad0c"
+                        heading=""
+                        secondaryText=""
+                        multiple
+                        files={uploadedFiles}
+                        onFilesChange={(files) => {
+                          if (files.length === 0) {
+                            setUploadedFiles([]);
+                            setStep(2);
+                          } else {
+                            setUploadedFiles(files);
+                          }
+                        }}
+                      />
                       {/* pv-block-end:qyad0c */}
-                      {/* pv-block-start:xl24qo */}
-                      <Button data-pv-block="xl24qo" leftIcon="mdi:upload" className="self-start" label="Upload more files" variant="outline" color="neutral" size="sm" />
-                      {/* pv-block-end:xl24qo */}
                       {/* pv-editable-zone-end:z2ub36 */}
                     </div>
                     {/* pv-block-end:gi7tw3 */}
@@ -1933,16 +1942,16 @@ function SkillsPage() {
                     <Container className="items-stretch" data-pv-block="vs3109">
                       {/* pv-editable-zone-start:gvn75e */}
                         {/* pv-block-start:k8x2m1 */}
-                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 p-5 bg-background-special-gradient-subtle">
+                        <div data-pv-block="k8x2m1" className="rounded flex flex-col gap-2 bg-background-special-gradient-subtle p-7">
                           {/* pv-editable-zone-start:m1n2o3 */}
                             {/* pv-block-start:p1q2r3 */}
                             <div data-pv-block="p1q2r3" className="flex gap-2 flex-row">
                               {/* pv-editable-zone-start:s3t4u5 */}
                                 {/* pv-block-start:v6w7x8 */}
-                                <Badge data-pv-block="v6w7x8" label="AI" color="primary" />
+                                <Badge data-pv-block="v6w7x8" label="AI" color="special-gradient" />
                                 {/* pv-block-end:v6w7x8 */}
                                 {/* pv-block-start:859kkk */}
-                                <TextParagraph data-pv-block="859kkk" typography="bold-primary">
+                                <TextParagraph className="text-foreground-special-gradient" data-pv-block="859kkk" typography="bold-primary">
                                   Summary of the plan
                                 </TextParagraph>
                                 {/* pv-block-end:859kkk */}
@@ -1998,7 +2007,7 @@ function SkillsPage() {
                         <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to Tellent HR" />
                         {/* pv-block-end:b2c3d4 */}
                         {/* pv-block-start:e5f6g7 */}
-                        <Card data-pv-block="e5f6g7" className="w-full">
+                        <Card data-pv-block="e5f6g7" className="w-full p-7">
                           {/* pv-editable-zone-start:h8i9j0 */}
                             {/* pv-block-start:k1l2m3 */}
                             <div data-pv-block="k1l2m3" className="flex flex-wrap w-full gap-1">
@@ -2054,26 +2063,36 @@ function SkillsPage() {
                               <div key={skill.id} className="border border-border-default rounded overflow-hidden bg-background-elevated">
                                 <div className="flex flex-col gap-2 items-start p-7">
                                   <div className="flex justify-between gap-4 w-full items-center">
-                                    <div className="flex flex-col gap-1 flex-1">
-                                      <TextHeading typography="heading-lg">{skill.name}</TextHeading>
+                                    {/* pv-editable-zone-start:b2k9f7 */}
+                                    <div className="flex flex-col flex-1 items-start gap-1">
+                                      {/* pv-block-start:m4x8p1 */}
+                                      <div data-pv-block="m4x8p1" className="inline-flex items-center border border-border-default text-sm text-foreground-secondary rounded-full leading-none py-0.5 px-1.5">{skill.category}</div>
+                                      {/* pv-block-end:m4x8p1 */}
+                                      {/* pv-block-start:n6w3t5 */}
+                                      <div data-pv-block="n6w3t5">
+                                        <TextHeading typography="heading-lg">{skill.name}</TextHeading>
+                                      </div>
+                                      {/* pv-block-end:n6w3t5 */}
+                                    </div>
+                                    {/* pv-editable-zone-end:b2k9f7 */}
+                                    {collapsedSkills.has(skill.id) && (
+                                      <Button variant="ghost" color="neutral" label="Expand" rightIcon="mdi:chevron-down" size="md" onClick={() => toggleSkillCollapse(skill.id)} />
+                                    )}
+                                  </div>
+                                  {!collapsedSkills.has(skill.id) && (
+                                    <div className="flex flex-col gap-1">
                                       {skill.isExisting && (
                                         <TextParagraph typography="small" className="text-foreground-success font-semibold">This skill already existed and will be updated</TextParagraph>
                                       )}
                                       <TextParagraph typography="regular">{skill.description}</TextParagraph>
                                     </div>
-                                    {collapsedSkills.has(skill.id) && (
-                                      <Button variant="ghost" color="neutral" label="Expand" rightIcon="mdi:chevron-down" size="md" onClick={() => toggleSkillCollapse(skill.id)} />
-                                    )}
-                                  </div>
+                                  )}
                                 </div>
                                 <div
                                   data-collapsed={String(collapsedSkills.has(skill.id))}
                                   className="grid [grid-template-rows:1fr] data-[collapsed=true]:[grid-template-rows:0fr] transition-all duration-600 ease-in-out"
                                 >
                                   <div className="overflow-hidden flex flex-col items-stretch gap-6">
-                                    <div className="px-7">
-                                      <div className="inline-flex items-center px-2 py-0.5 border border-border-default text-sm text-foreground-secondary rounded-full">{skill.category}</div>
-                                    </div>
                                     <div className="px-7">
                                       <div className="border-border-default rounded overflow-hidden">
                                         <div className="grid grid-cols-2 gap-4 border-b border-border-default py-2">
@@ -2083,16 +2102,16 @@ function SkillsPage() {
                                         {skill.levels.map(level => (
                                           <div key={level.id} className="border-b border-border-default last:border-b-0">
                                             {editingLevelId === level.id ? (
-                                              <div className="p-3 m-2 bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4">
+                                              <div className="bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4 my-2 mr-2 p-4">
                                                 <div className="flex items-center justify-between gap-4">
                                                   <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
                                                   <div className="flex gap-2">
                                                     <Button variant="solid" color="primary" label="Save" size="sm" onClick={() => saveEditLevel(skill.id, level.id)} />
-                                                    <Button variant="ghost" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
+                                                    <Button variant="solid" color="neutral" label="Cancel" size="sm" onClick={() => setEditingLevelId(null)} />
                                                   </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
-                                                  <div className="flex flex-col gap-1">
+                                                  <div className="flex flex-col gap-1 shrink self-start">
                                                     <TextParagraph typography="semibold-secondary">Proficiency level name</TextParagraph>
                                                     <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
                                                   </div>
@@ -2238,7 +2257,7 @@ function SkillsPage() {
                 </DialogWindow>
               )}
               {step === 7 && (
-                <DialogWindow size="lg" data-pv-block="iic05m">
+                <DialogWindow size="md" data-pv-block="iic05m">
                   {/* pv-editable-zone-start:lgeu7v */}
                   {/* pv-block-start:6sjda0 */}
                   <div data-pv-block="6sjda0" className="flex flex-col items-center py-16 px-5 gap-8">

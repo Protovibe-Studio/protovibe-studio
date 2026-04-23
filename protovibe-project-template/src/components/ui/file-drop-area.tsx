@@ -14,6 +14,7 @@ export interface FileDropAreaProps extends Omit<React.HTMLAttributes<HTMLDivElem
   disabled?: boolean;
   /** Mock state for visual builder to preview the filled state */
   previewMode?: 'empty' | 'filled';
+  files?: File[];
   onFilesChange?: (files: File[]) => void;
 }
 
@@ -27,10 +28,18 @@ export function FileDropArea({
   disabled = false,
   previewMode = 'empty',
   onFilesChange,
+  files: externalFiles,
   className,
   ...props
 }: FileDropAreaProps) {
-  const [files, setFiles] = useState<File[]>([]);
+  const [internalFiles, setInternalFiles] = useState<File[]>([]);
+  const files = externalFiles !== undefined ? externalFiles : internalFiles;
+  const setFiles = (newFiles: File[]) => {
+    if (externalFiles === undefined) {
+      setInternalFiles(newFiles);
+    }
+    onFilesChange?.(newFiles);
+  };
   const [isDragging, setIsDragging] = useState(false);
 
   // Mock files for the visual builder's preview mode

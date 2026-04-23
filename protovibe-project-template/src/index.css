@@ -62,7 +62,7 @@
  --background-info-subtle: oklch(94.02% 0.02709 260.3);
  --background-info-subtle-hover: oklch(96.7% 0.02709 260.3);
  --background-info-subtle-pressed: oklch(88.2% 0.02709 260.3);
- --background-special-gradient: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%);
+ --background-special-gradient: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%); /* see custom @utilities for gradients below */
  --background-special-gradient-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
@@ -729,7 +729,6 @@
  }
 }
 
-
 *, *::before, *::after { box-sizing: border-box; }
 button { cursor: pointer; }
 
@@ -743,4 +742,29 @@ body {
 
 html {
     font-size: 16px;
+}
+
+/* ── Custom Utilities for Gradients ───────────────────────────────────────── */
+/* These override the invalid background-color outputs from the @theme block */
+
+@utility bg-background-special-gradient {
+  background-image: var(--background-special-gradient) !important;
+}
+
+@utility bg-background-special-gradient-subtle {
+  background-image: var(--background-special-gradient-subtle) !important;
+}
+
+/* Smart Foreground Utility: Routes gradient to text, solid color to SVGs */
+@utility text-foreground-special-gradient {
+  /* The :not(:has(svg)) prevents layout wrappers (like the Badge's root <span>) 
+    from turning transparent, which saves the nested icons from disappearing. 
+  */
+  &:is(span, p, h1, h2, h3, h4, h5, h6, a, label):not(:has(svg)),
+  & :is(span, p, h1, h2, h3, h4, h5, h6, a, label):not(:has(svg)) {
+    background-image: var(--foreground-special-gradient) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+  }
 }
