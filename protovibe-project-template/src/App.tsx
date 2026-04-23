@@ -18,6 +18,8 @@ import { VerticalTabsExpandableSection } from '@/components/ui/vertical-tabs-exp
 import { DialogContext, DialogTrigger, DialogHandle } from '@/components/ui/dialog-trigger';
 import { DialogOverlay } from '@/components/ui/dialog-overlay';
 import { DialogWindow } from '@/components/ui/dialog-window';
+import { DrawerOverlay } from '@/components/ui/drawer-overlay';
+import { DrawerPanel } from '@/components/ui/drawer-panel';
 import { Table } from '@/components/ui/table';
 import { TableRowHeading } from '@/components/ui/table-row-heading';
 import { TableBody } from '@/components/ui/table-body';
@@ -584,10 +586,110 @@ function DetailField({
   );
 }
 
+function NewSkillDrawer({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex flex-col h-full bg-background-default">
+      {/* pv-editable-zone-start:nsd-header */}
+        {/* pv-block-start:nsdh1 */}
+        <div data-pv-block="nsdh1" className="flex items-center justify-between px-6 py-4 border-b border-border-default shrink-0">
+          <TextHeading typography="heading-md">New skill</TextHeading>
+          <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
+        </div>
+        {/* pv-block-end:nsdh1 */}
+      {/* pv-editable-zone-end:nsd-header */}
+
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+        {/* pv-editable-zone-start:nsd-body */}
+          {/* pv-block-start:nsdb1 */}
+          <TextParagraph data-pv-block="nsdb1" typography="secondary" className="text-sm">
+            Create skills to assess proficiency and growth.
+          </TextParagraph>
+          {/* pv-block-end:nsdb1 */}
+
+          {/* pv-block-start:nsdb2 */}
+          <div data-pv-block="nsdb2" className="flex flex-col gap-2">
+            <TextParagraph typography="semibold-primary" className="text-sm">Skill name</TextParagraph>
+            <Input defaultValue="Python" />
+          </div>
+          {/* pv-block-end:nsdb2 */}
+
+          {/* pv-block-start:nsdb3 */}
+          <div data-pv-block="nsdb3" className="flex flex-col gap-2">
+            <TextParagraph typography="semibold-primary" className="text-sm">Skill description</TextParagraph>
+            <Textarea
+              defaultValue="Python is a high-level, versatile programming language used for building websites, automating tasks, analyzing data, developing software, and more. It's known for its simple syntax and broad ecosystem of libraries, making it accessible for beginners and powerful for advanced users."
+              rows={4}
+            />
+          </div>
+          {/* pv-block-end:nsdb3 */}
+
+          {/* pv-block-start:nsdb4 */}
+          <div data-pv-block="nsdb4" className="flex flex-col gap-2">
+            <TextParagraph typography="semibold-primary" className="text-sm">Area of expertise</TextParagraph>
+            <SelectDropdown value="software-dev" placeholder="Select area...">
+              <DropdownItem value="software-dev" label="Software development" />
+              <DropdownItem value="marketing" label="Marketing" />
+              <DropdownItem value="design" label="Design" />
+            </SelectDropdown>
+          </div>
+          {/* pv-block-end:nsdb4 */}
+
+          {/* pv-block-start:nsdb5 */}
+          <div data-pv-block="nsdb5" className="border-t border-border-default pt-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <TextHeading typography="heading-md">Proficiency scale</TextHeading>
+              <TextParagraph typography="secondary" className="text-sm">Define a progressive scale to assess this skill.</TextParagraph>
+              <TextParagraph className="text-sm text-foreground-tertiary italic mt-1">Add at least 2 proficiency</TextParagraph>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              {[1, 2].map((num) => (
+                <div key={num} className="flex items-start gap-3">
+                  <div className="pt-2 cursor-grab">
+                    <Icon iconSymbol="mdi:drag-vertical" size="md" className="text-foreground-tertiary" />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-background-tertiary flex items-center justify-center text-xs font-semibold text-foreground-secondary shrink-0">
+                        {num}
+                      </div>
+                      <Input placeholder="Beginner, Intermediate, Expert" className="flex-1" />
+                      <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" className="shrink-0" />
+                    </div>
+                    <div className="flex flex-col gap-2 pl-9">
+                      <TextParagraph typography="semibold-primary" className="text-sm">Description</TextParagraph>
+                      <Textarea placeholder="Describe the expectations for this proficiency (optional)" rows={2} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button variant="outline" color="neutral" leftIcon="plus" label="Add proficiency" className="w-fit mt-2" />
+          </div>
+          {/* pv-block-end:nsdb5 */}
+        {/* pv-editable-zone-end:nsd-body */}
+      </div>
+
+      <div className="flex items-center justify-between px-6 py-4 border-t border-border-default bg-background-default shrink-0">
+        {/* pv-editable-zone-start:nsd-footer */}
+          {/* pv-block-start:nsdf1 */}
+          <Button data-pv-block="nsdf1" variant="ghost" color="neutral" label="Cancel" onClick={onClose} />
+          {/* pv-block-end:nsdf1 */}
+          {/* pv-block-start:nsdf2 */}
+          <Button data-pv-block="nsdf2" variant="solid" color="primary" label="Create skill" disabled className="opacity-50" />
+          {/* pv-block-end:nsdf2 */}
+        {/* pv-editable-zone-end:nsd-footer */}
+      </div>
+    </div>
+  );
+}
+
 function SkillsPage() {
   const { state, importSkills } = useStore();
   const importDialogRef = useRef<DialogHandle>(null);
   const [dialogFlow, setDialogFlow] = useState<'generate' | 'import' | null>(null);
+  const [drawerFlow, setDrawerFlow] = useState<'add-skill' | null>(null);
   const [step, setStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [proficiencyOption, setProficiencyOption] = useState('opt1');
@@ -684,7 +786,7 @@ function SkillsPage() {
           <PopoverTrigger closeOnClickInside={true} data-pv-block="skcn3o" placement="bottom" align="right">
             <Button label="Add skills" leftIcon="mdi:plus" />
             <DropdownList width="xl" className="">
-              <DropdownItem prefixIcon="mdi:plus" label="Add new skill manually" secondaryText="Manually enter description and proficiency level" />
+              <DropdownItem prefixIcon="mdi:plus" label="Add new skill manually" secondaryText="Manually enter description and proficiency level" onClick={() => setDrawerFlow('add-skill')} />
               <DropdownItem prefixIcon="mdi:upload" label="Import skills from a file" secondaryText="Upload your company document and let AI read the skills" onClick={() => openDialog('import')} />
               <DropdownItem onClick={() => openDialog('generate')}>
                 <Badge color="special-gradient" className="w-4 justify-center" label="AI"  />
@@ -1920,7 +2022,7 @@ function SkillsPage() {
                   </div>
                   {/* pv-block-end:jlpm2v */}
                   {/* pv-block-start:e5voje */}
-                  <div data-pv-block="e5voje" className="flex flex-col p-5 gap-7">
+                  <div data-pv-block="e5voje" className="flex flex-col p-5 gap-9">
                     {/* pv-editable-zone-start:hb3knb */}
                     {/* pv-block-start:8vnpes */}
                     <Stepper data-pv-block="8vnpes" fullWidth={false}>
@@ -2107,7 +2209,7 @@ function SkillsPage() {
                                         {skill.levels.map(level => (
                                           <div key={level.id} className="border-b border-border-default last:border-b-0">
                                             {editingLevelId === level.id ? (
-                                              <div className="bg-background-primary-subtle rounded border border-border-strong/15 flex flex-col gap-4 my-2 mr-2 p-4">
+                                              <div className="rounded border border-border-strong/15 flex flex-col gap-4 my-2 mr-2 p-3 bg-background-primary-subtle/70">
                                                 <div className="flex items-center justify-between gap-4">
                                                   <TextParagraph typography="semibold-primary">Edit level</TextParagraph>
                                                   <div className="flex gap-2">
@@ -2314,6 +2416,17 @@ function SkillsPage() {
           {/* pv-editable-zone-end:sk9901 */}
         </DialogOverlay>
       </DialogTrigger>
+
+      {drawerFlow === 'add-skill' && createPortal(
+        <DialogContext.Provider value={{ isOpen: true, close: () => setDrawerFlow(null) }}>
+          <DrawerOverlay>
+            <DrawerPanel >
+              <NewSkillDrawer onClose={() => setDrawerFlow(null)} />
+            </DrawerPanel>
+          </DrawerOverlay>
+        </DialogContext.Provider>,
+        document.body
+      )}
     </div>
   );
 }
