@@ -1653,7 +1653,7 @@ function SkillsPage() {
                       </div>
                       {/* pv-block-end:hv7kpz */}
                       {/* pv-block-start:tqgkud */}
-                      <Image data-pv-block="tqgkud" className="bg-cover bg-center bg-no-repeat w-full bg-[url('/src/images/from-protovibe/ai-skills-illustration.svg')] aspect-[314/371] max-w-[323px]" />
+                      <Image data-pv-block="tqgkud" className="bg-cover bg-center bg-no-repeat w-full max-w-[323px] bg-[url('/src/images/from-protovibe/ai-skills-illustration.svg')] aspect-[314/371]" />
                       {/* pv-block-end:tqgkud */}
                       {/* pv-editable-zone-end:fr3dox */}
                     </div>

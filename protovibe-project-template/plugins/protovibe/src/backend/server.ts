@@ -1,6 +1,7 @@
 // plugins/protovibe/backend/server.ts
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { spawn } from 'child_process';
 import { Connect } from 'vite';
 import * as babel from '@babel/core';
@@ -1905,6 +1906,23 @@ export const handleUploadImage: Connect.NextHandleFunction = (req, res) => {
       // Strip base64 header (supports SVG and all image types)
       const raw = base64Data.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
       const buffer = Buffer.from(raw, 'base64');
+      const uploadHash = crypto.createHash('sha256').update(buffer).digest('hex');
+
+      // Check if a file with the same content hash already exists
+      if (fs.existsSync(imagesDir)) {
+        const existingFiles = fs.readdirSync(imagesDir);
+        for (const file of existingFiles) {
+          const filePath = path.join(imagesDir, file);
+          if (!fs.statSync(filePath).isFile()) continue;
+          const existingHash = crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+          if (existingHash === uploadHash) {
+            const url = `/src/images/from-protovibe/${file}`;
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ success: true, url }));
+          }
+        }
+      }
+
       fs.writeFileSync(path.join(imagesDir, finalName), buffer);
 
       // Always use forward slashes in the URL
