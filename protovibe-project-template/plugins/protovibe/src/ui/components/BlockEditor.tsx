@@ -99,16 +99,22 @@ export const BlockEditor: React.FC = () => {
       if (!isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema)) return;
       const el = editorRef.current;
       if (!el) return;
-      el.focus();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(range);
+
+      // Defer focus and selection to ensure the DOM is settled
+      // and prevent the browser from overriding the range.
+      setTimeout(() => {
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }, 50);
     };
+
     window.addEventListener(PV_FOCUS_TEXT_CONTENT_EVENT, handleFocus);
     return () => window.removeEventListener(PV_FOCUS_TEXT_CONTENT_EVENT, handleFocus);
-  }, [currentBaseTarget, activeData?.code]);
+  }, [currentBaseTarget, activeData?.code, activeData?.configSchema]);
 
   useEffect(() => {
     const el = editorRef.current;
