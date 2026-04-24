@@ -148,7 +148,7 @@ function iconExampleForKey(key: string): string | null {
 function generateCombinations(
   propsSchema: Record<string, { type: string; options?: string[]; exampleValue?: string }>,
   baseProps: Record<string, any>
-): Record<string, any>[] {
+): { combos: Record<string, any>[], isCapped: boolean } {
   const varyEntries: [string, any[]][] = [];
   const textPropKeys: string[] = [];
   for (const [key, schema] of Object.entries(propsSchema || {})) {
@@ -173,26 +173,47 @@ function generateCombinations(
       textPropKeys.push(key);
     }
   }
-  if (varyEntries.length === 0) return [{ ...baseProps }];
-  let combos: Record<string, any>[] = [{ ...baseProps }];
-  for (const [key, values] of varyEntries) {
-    combos = combos.flatMap(combo => values.map(val => {
-      const next = { ...combo };
-      if (val === undefined) {
-        delete next[key];
-      } else {
-        next[key] = val;
-      }
-      return next;
-    }));
+
+  if (varyEntries.length === 0) return { combos: [{ ...baseProps }], isCapped: false };
+
+  const MAX_COMBOS = 1000;
+
+  // Pre-trim: only include props whose cumulative combinations stay under MAX_COMBOS.
+  // Skipped props are dropped entirely rather than causing a partial explosion.
+  const trimmedEntries: [string, any[]][] = [];
+  let estimatedTotal = 1;
+  for (const entry of varyEntries) {
+    const factor = entry[1].length;
+    if (estimatedTotal * factor > MAX_COMBOS) break;
+    trimmedEntries.push(entry);
+    estimatedTotal *= factor;
   }
+  const isCapped = trimmedEntries.length < varyEntries.length;
+
+  let combos: Record<string, any>[] = [{ ...baseProps }];
+  for (const [key, values] of trimmedEntries) {
+    const nextCombos: Record<string, any>[] = [];
+    for (const combo of combos) {
+      for (const val of values) {
+        const next = { ...combo };
+        if (val === undefined) {
+          delete next[key];
+        } else {
+          next[key] = val;
+        }
+        nextCombos.push(next);
+      }
+    }
+    combos = nextCombos;
+  }
+
   // Sort: ascending by total number of props set (least set -> most set)
   combos.sort((a, b) => {
     const countProps = (c: Record<string, any>) => Object.keys(c).length;
     const propDiff = countProps(a) - countProps(b);
-    
+
     if (propDiff !== 0) return propDiff;
-    
+
     // Tie-breaker: more text labels filled -> first
     if (textPropKeys.length > 1) {
       const countFilled = (c: Record<string, any>) =>
@@ -202,7 +223,7 @@ function generateCombinations(
     return 0;
   });
 
-  return combos;
+  return { combos, isCapped };
 }
 
 /** Build a short human-readable label for a variant combination. */
@@ -549,16 +570,17 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
   const { config } = entry;
   const displayName = config.displayName || config.name;
   const baseProps = parseDefaultProps(config.defaultProps || '');
-  const allCombos = generateCombinations(config.props || {}, baseProps);
+  const { combos: allCombos, isCapped: generationCapped } = generateCombinations(config.props || {}, baseProps);
   const checkers = config.invalidCombinations ?? [];
+  const isCapped = generationCapped && checkers.length === 0;
   const combos = checkers.length > 0
-    ? allCombos.filter(combo => !checkers.some(fn => fn(combo)))
+    ? allCombos.filter((combo: Record<string, any>) => !checkers.some(fn => fn(combo)))
     : allCombos;
   const [variantSearch, setVariantSearch] = useState('');
   const lastTargetPropsRef = useRef<Record<string, any> | null>(null);
 
   const visibleCombos = variantSearch.trim()
-    ? combos.filter(combo =>
+    ? combos.filter((combo: Record<string, any>) =>
         comboLabel(combo, config.props || {}).toLowerCase().includes(variantSearch.toLowerCase())
       )
     : combos;
@@ -571,7 +593,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
     let bestMatchIndex = 0;
     let maxScore = -1;
 
-    visibleCombos.forEach((combo, i) => {
+    visibleCombos.forEach((combo: Record<string, any>, i: number) => {
       let score = 0;
 
       for (const [key, schema] of Object.entries(config.props || {})) {
@@ -730,7 +752,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             alignContent: 'start',
           }}
         >
-          {visibleCombos.map((combo, i) => (
+          {visibleCombos.map((combo: Record<string, any>, i: number) => (
             <PreviewCell
               key={i}
               index={i}
@@ -740,6 +762,26 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             />
           ))}
         </div>
+
+        {isCapped && (
+          <div style={{
+            textAlign: 'center',
+            padding: '24px 16px',
+            marginTop: '16px',
+            borderTop: '1px solid #3a1a1a',
+            color: '#f87171',
+            fontSize: 13,
+            fontFamily: 'var(--font-sans, system-ui, sans-serif)',
+            lineHeight: 1.6,
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>
+              Some props were skipped — too many combinations to display safely.
+            </div>
+            <div style={{ color: '#fca5a5', fontSize: 12 }}>
+              Use <code style={{ background: '#2a1010', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>invalidCombinations</code> in your component's <code style={{ background: '#2a1010', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>pvConfig</code> to filter out prop combinations you don't want to preview, reducing the total count.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
