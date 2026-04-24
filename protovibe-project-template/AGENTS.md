@@ -103,6 +103,30 @@ Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse
   {/* pv-block-end:g6h7j8 */}
   ```
 
+### Rule: Wrap Conditionally-Rendered Elements Around the Logic
+
+A `pv-block` can wrap an element that only renders under a condition (or inside a `.map()`). Place the comment tags *outside* the `{...}` expression so the whole conditional moves/deletes as one unit.
+
+* **❌ BAD: Tags inside the logic expression**
+
+  ```jsx
+  {isAdmin && (
+    {/* pv-block-start:a1b2c3 */}
+    <Button data-pv-block="a1b2c3" label="Delete" />
+    {/* pv-block-end:a1b2c3 */}
+  )}
+  ```
+
+* **✅ GOOD: Tags wrap the entire conditional**
+
+  ```jsx
+  {/* pv-block-start:a1b2c3 */}
+  {isAdmin && (
+    <Button data-pv-block="a1b2c3" label="Delete" />
+  )}
+  {/* pv-block-end:a1b2c3 */}
+  ```
+
 ### Rule: The Root Node & `...props` Forwarding
 
 A Protovibe-compatible component must return a concrete root HTML element (e.g., `<div>`, `<button>`) and spread `...props` onto it. Never use fragments as the root. If rendering a wrapper `<div>` around a native input, spread props on the outer div, not the inner input.

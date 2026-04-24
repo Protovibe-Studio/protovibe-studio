@@ -23,6 +23,7 @@ import {
   Rocket,
   PencilRuler,
   Blocks,
+  Braces,
   Component,
   SquarePen,
   Palette,
@@ -144,6 +145,38 @@ export const PROMPTS: PromptDef[] = [
   - Preserve the existing pv-editable-zone / pv-block structure and IDs. Only add new IDs when inserting new blocks.
   - Do not change props or behaviour that are not mentioned in the user's request.
   
+  {{agentsRules}}`,
+  },
+  {
+    id: 'enrich-with-blocks',
+    title: 'Enrich with editable blocks',
+    description: 'Wrap the selected markup with pv-editable-zone and pv-block tags so it becomes editable on the canvas.',
+    icon: Braces,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'treat each list item as its own block',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Additional user instructions:
+  {{input}}
+
+  Enrich the selected markup with Protovibe editable blocks. The goal is to wrap every independently-editable element with the correct pv-editable-zone / pv-block comment tags and \`data-pv-block\` attributes so the user can move, reorder, and delete them on the canvas.
+
+  Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
+  File: \`{{file}}\`
+
+  Current source:
+  \`\`\`tsx
+  {{code}}
+  \`\`\`
+
+  Before writing any code, read AGENTS.md end-to-end — especially the "Creating New Views and Elements" section covering pv-editable-zone / pv-block IDs, block granularity, and the rule for wrapping conditionally-rendered elements.
+
+  Guidelines:
+  - Do NOT change markup structure, props, styling, or behavior. This task ONLY inserts the pv comment tags and \`data-pv-block\` attributes.
+  - Assign a fresh random 6-character alphanumeric ID to every zone and block you introduce. The ID on the comment tags MUST match the \`data-pv-block\` attribute on the root element.
+  - Be granular: every direct sibling inside a zone that a user might reorder, delete, or edit independently gets its own pv-block — including dividers and small visual separators. Don't collapse a whole section into one block.
+  - Elements rendered conditionally (e.g. \`{cond && <X />}\`) or via short logic like \`{items.map(...)}\` can still be wrapped. Place the pv-block-start / pv-block-end comment tags *outside* the \`{...}\` expression so the whole conditional (including its braces) moves as one unit. See the "Wrap Conditionally-Rendered Elements Around the Logic" rule in AGENTS.md.
+  - Preserve any existing pv tags and IDs already present in the selection. Only add new ones where they are missing.
+
   {{agentsRules}}`,
   },
   {
