@@ -1,3 +1,5 @@
+AI Agent! You MUST read the whole file below until the last line.
+
 # AGENTS.md: Protovibe AI Engineering Rules
 
 Protovibe is an AST-based visual builder that reads and writes React code directly. Because it relies on static AST parsing and specific DOM data-attributes to map the canvas to the code, you must adhere to these strict architectural rules based on the task you are performing.

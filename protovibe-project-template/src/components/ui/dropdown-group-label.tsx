@@ -8,10 +8,7 @@ export interface DropdownGroupLabelProps extends React.HTMLAttributes<HTMLDivEle
 export function DropdownGroupLabel({ label, className, ...props }: DropdownGroupLabelProps) {
   return (
     <div
-      className={cn(
-        'px-3 py-1 text-xs font-semibold text-foreground-tertiary uppercase tracking-wider',
-        className
-      )}
+      className={cn("text-xs font-semibold text-foreground-tertiary uppercase tracking-wider pt-2 pb-0 px-3", className)}
       {...props}
       data-pv-component-id="DropdownGroupLabel"
     >

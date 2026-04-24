@@ -31,6 +31,7 @@ import { PopoverTrigger } from '@/components/ui/popover-trigger';
 import { DropdownList } from '@/components/ui/dropdown-list';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { DropdownSeparator } from '@/components/ui/dropdown-separator';
+import { DropdownGroupLabel } from '@/components/ui/dropdown-group-label';
 import { TooltipProvider } from '@/components/ui/tooltip-provider';
 import { Rectangle } from '@/components/ui/sketchpad-rectangle'
 import { SelectDropdownSearch } from '@/components/ui/select-dropdown-search'
@@ -58,6 +59,7 @@ import { Chip } from '@/components/ui/chip'
 import { DropdownButton } from '@/components/ui/dropdown-button'
 
 import { skillsToImport, SkillPreview, SkillLevel } from '@/lib/mock-data';
+import { useThemeManager } from '@/theme-management/useThemeManager';
 
 // --- MOCK DATA ---
 
@@ -2479,6 +2481,7 @@ function SkillsPage() {
 export default function App() {
   const { state, navigate } = useStore();
   const currentPath = state.path;
+  const { themePreference, updateTheme } = useThemeManager();
 
   // Derive page title from path
   const pageTitle = currentPath.replace('/', '').charAt(0).toUpperCase() + currentPath.replace('/', '').slice(1);
@@ -2577,6 +2580,26 @@ export default function App() {
                 </DropdownItem>
                 <DropdownItem label="Account Settings" prefixIcon="settings" />
                 <DropdownItem label="Help & Support" prefixIcon="help-circle" />
+                <DropdownSeparator />
+                <DropdownGroupLabel label="Appearance" />
+                <DropdownItem
+                  label="Auto theme"
+                  prefixIcon="mdi:theme-light-dark"
+                  selected={themePreference === 'auto'}
+                  onClick={() => updateTheme('auto')}
+                />
+                <DropdownItem
+                  label="Light"
+                  prefixIcon="mdi:white-balance-sunny"
+                  selected={themePreference === 'light'}
+                  onClick={() => updateTheme('light')}
+                />
+                <DropdownItem
+                  label="Dark"
+                  prefixIcon="mdi:weather-night"
+                  selected={themePreference === 'dark'}
+                  onClick={() => updateTheme('dark')}
+                />
                 <DropdownSeparator />
                 <DropdownItem label="Sign out" prefixIcon="log-out" destructive />
               </DropdownList>

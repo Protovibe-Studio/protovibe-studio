@@ -47,19 +47,13 @@
     );
   };
 
-  // 1. Initialize on load: check user preference → check system → set data-theme
+  // Initialize on load only: check user preference → check system → set data-theme.
+  // We intentionally do NOT listen to OS theme changes at runtime — 'auto' is
+  // resolved once per page load. This prevents the app from flipping mid-session
+  // (and racing with Protovibe's PV_SET_THEME override).
   applyTheme(storage.get());
 
-  // 2. Listen for OS system theme changes in real-time
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    const preference = storage.get();
-    // Only react if the user has no explicit 'light'/'dark' preference
-    if (!preference || preference === 'auto') {
-      applyTheme(preference);
-    }
-  });
-
-  // 3. Expose the Public API globally
+  // Expose the Public API globally
   window.ThemeManager = {
     setTheme(theme) {
       if (!VALID_THEMES.includes(theme)) {
