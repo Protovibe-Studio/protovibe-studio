@@ -210,7 +210,7 @@ export interface ColorPickerProps {
 }
 
 export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, onSave, onCancel }: ColorPickerProps) {
-  const parsed = parseOklch(initialValue);
+  const parsed = parseOklch(initialValue) ?? cssColorToOklch(initialValue);
   const initL = parsed ? parsed[0] : 0.5;
   const initC = parsed ? parsed[1] : 0.1;
   const initH = parsed ? parsed[2] : 200;

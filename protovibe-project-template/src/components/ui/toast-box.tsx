@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const defaultIcons: Record<string, string> = {
-  success: 'CircleCheck',
-  destructive: 'XCircle',
-  warning: 'AlertTriangle',
-  neutral: 'Info',
+  success: 'mdi:check-circle',
+  destructive: 'mdi:close-circle',
+  warning: 'mdi:alert',
+  neutral: 'mdi:information',
 };
 
 export interface ToastBoxProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -38,10 +38,7 @@ export function ToastBox({
   return (
     <div
       data-variant={variant}
-      className={cn(
-        "flex items-start gap-3 rounded-lg border-l-4 p-4 shadow-lg min-w-[320px] max-w-[480px] data-[variant=success]:bg-background-success-subtle data-[variant=success]:border-l-success data-[variant=destructive]:bg-background-destructive-subtle data-[variant=destructive]:border-l-destructive data-[variant=warning]:bg-background-warning-subtle data-[variant=warning]:border-l-warning data-[variant=neutral]:bg-background-secondary data-[variant=neutral]:border-l-border-default",
-        className
-      )}
+      className={cn("flex gap-3 shadow-lg min-w-[320px] max-w-[480px] data-[variant=success]:bg-background-success-subtle data-[variant=success]:border-l-success data-[variant=destructive]:bg-background-destructive-subtle data-[variant=destructive]:border-l-destructive data-[variant=warning]:bg-background-warning-subtle data-[variant=warning]:border-l-warning data-[variant=neutral]:bg-background-secondary data-[variant=neutral]:border-l-border-default rounded items-center py-3 px-4", className)}
       {...props}
       data-pv-component-id="ToastBox"
     >

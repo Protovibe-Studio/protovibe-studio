@@ -60,6 +60,7 @@ import { DropdownButton } from '@/components/ui/dropdown-button'
 
 import { skillsToImport, SkillPreview, SkillLevel } from '@/lib/mock-data';
 import { useThemeManager } from '@/theme-management/useThemeManager';
+import { ToastBox } from '@/components/ui/toast-box'
 
 // --- MOCK DATA ---
 
@@ -220,7 +221,7 @@ function DashboardPage() {
         {/* pv-block-end:g6h7j8 */}
 
         {/* pv-block-start:dkwss2 */}
-        <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded" data-pv-block="dkwss2">
+        <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded bg-background-elevated" data-pv-block="dkwss2">
           {/* pv-editable-zone-start:inside-dkwss2 */}
             {/* pv-block-start:rkj7hq */}
             <span className="" data-pv-block="rkj7hq">
@@ -291,6 +292,9 @@ function DashboardPage() {
           {/* pv-editable-zone-end:83tzs4 */}
         </MultiSelectDropdown>
         {/* pv-block-end:en4mb7 */}
+        {/* pv-block-start:i7ts8b */}
+        <ToastBox  data-pv-block="i7ts8b" variant="success" heading="Success!" secondaryText="Your changes have been saved." />
+        {/* pv-block-end:i7ts8b */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
@@ -654,14 +658,14 @@ function NewSkillDrawer({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col h-full bg-background-default">
       {/* pv-editable-zone-start:nsd-header */}
         {/* pv-block-start:nsdh1 */}
-        <div data-pv-block="nsdh1" className="flex items-center justify-between px-6 py-4 border-b border-border-default shrink-0">
+        <div data-pv-block="nsdh1" className="flex items-center justify-between px-6 py-4 border-b border-border-default shrink-0 bg-background-elevated">
           <TextHeading typography="heading-md">New skill</TextHeading>
           <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
         </div>
         {/* pv-block-end:nsdh1 */}
       {/* pv-editable-zone-end:nsd-header */}
 
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 bg-background-subtle">
         {/* pv-editable-zone-start:nsd-body */}
           {/* pv-block-start:nsdb1 */}
           <TextParagraph data-pv-block="nsdb1" typography="secondary" className="text-sm">
@@ -769,7 +773,7 @@ function NewSkillDrawer({ onClose }: { onClose: () => void }) {
               {/* pv-block-end:nz5m3n */}
 
               {/* pv-block-start:nz5o4p */}
-              <Button data-pv-block="nz5o4p" variant="outline" color="neutral" leftIcon="plus" label="Add proficiency" className="w-fit mt-2" />
+              <Button data-pv-block="nz5o4p" variant="solid" color="neutral" leftIcon="plus" label="Add proficiency" className="w-fit mt-2" />
               {/* pv-block-end:nz5o4p */}
             {/* pv-editable-zone-end:nz5a6b */}
           </div>
@@ -777,7 +781,7 @@ function NewSkillDrawer({ onClose }: { onClose: () => void }) {
         {/* pv-editable-zone-end:nsd-body */}
       </div>
 
-      <div className="flex items-center justify-between px-6 py-4 border-t border-border-default bg-background-default shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-border-default shrink-0 bg-background-elevated">
         {/* pv-editable-zone-start:nsd-footer */}
           {/* pv-block-start:nsdf1 */}
           <Button data-pv-block="nsdf1" variant="ghost" color="neutral" label="Cancel" onClick={onClose} />

@@ -143,7 +143,7 @@
  --background-accent-soft: #bc94ea;
 
  /* Tinted semantic backgrounds */
- --background-primary-subtle: #322447;
+ --background-primary-subtle: oklch(33.5% 0.06379 301);
  --background-primary-subtle-hover: #3d2c56;
  --background-primary-subtle-pressed: #543680;
  --background-destructive-subtle: #4f1618;

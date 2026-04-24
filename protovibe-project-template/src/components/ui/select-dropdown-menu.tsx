@@ -18,10 +18,7 @@ export function SelectDropdownMenu({
     <div
       role="menu"
       data-width={menuMinWidth}
-      className={cn(
-        'bg-background-default shadow-lg ring-1 ring-border-default py-1 overflow-auto data-[width=sm]:w-40 data-[width=md]:w-56 data-[width=lg]:w-72 data-[width=xl]:w-96 rounded',
-        className
-      )}
+      className={cn("shadow-lg ring-1 ring-border-default py-1 overflow-auto data-[width=sm]:w-40 data-[width=md]:w-56 data-[width=lg]:w-72 data-[width=xl]:w-96 rounded bg-background-elevated", className)}
       {...props}
       data-pv-component-id="SelectDropdownMenu"
     >
