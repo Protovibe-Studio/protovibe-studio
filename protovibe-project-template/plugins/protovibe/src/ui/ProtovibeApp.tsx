@@ -124,6 +124,19 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-open-component-preview', handler);
   }, [handleIframeTabChange]);
 
+  // Forward zoom shortcuts to the sketchpad iframe when it's the active tab
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (activeIframeTab !== 'sketchpad') return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (!['Digit0', 'Numpad0', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract'].includes(e.code)) return;
+      e.preventDefault();
+      sketchpadIframeRef.current?.contentWindow?.postMessage({ type: 'PV_SKETCHPAD_ZOOM', code: e.code }, '*');
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [activeIframeTab]);
+
   // Listen for Vite error overlay detection from iframe bridge
   useEffect(() => {
     const handler = (e: MessageEvent) => {

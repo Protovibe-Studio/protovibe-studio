@@ -130,6 +130,13 @@ export function SketchpadApp() {
 
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const mutationLockRef = useRef(false);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const track = (e: MouseEvent) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; };
+    window.addEventListener('mousemove', track, { passive: true });
+    return () => window.removeEventListener('mousemove', track);
+  }, []);
 
   const runLockedMutation = useCallback(async <T,>(mutation: () => Promise<T>): Promise<T | undefined> => {
     if (mutationLockRef.current) return undefined;
@@ -210,6 +217,35 @@ export function SketchpadApp() {
       }
     });
   }, [loadAllFrameModules]);
+
+  const zoomToPoint = useCallback((newZoom: number, clientX: number, clientY: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const fx = clientX - rect.left;
+    const fy = clientY - rect.top;
+    setTransform(prev => {
+      const ratio = newZoom / prev.zoom;
+      return { zoom: newZoom, panX: fx - ratio * (fx - prev.panX), panY: fy - ratio * (fy - prev.panY) };
+    });
+  }, []);
+
+  const zoomToCenter = useCallback((newZoom: number) => {
+    const { x, y } = mousePosRef.current;
+    zoomToPoint(newZoom, x, y);
+  }, [zoomToPoint]);
+
+  const zoomByFactor = useCallback((factor: number) => {
+    const { x, y } = mousePosRef.current;
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const fx = x - rect.left;
+    const fy = y - rect.top;
+    setTransform(prev => {
+      const newZoom = Math.min(3, Math.max(0.1, prev.zoom * factor));
+      const ratio = newZoom / prev.zoom;
+      return { zoom: newZoom, panX: fx - ratio * (fx - prev.panX), panY: fy - ratio * (fy - prev.panY) };
+    });
+  }, []);
 
   const activeSketchpad = useMemo(
     () => sketchpads.find((s) => s.id === activeSketchpadId),
@@ -544,29 +580,44 @@ export function SketchpadApp() {
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
         reloadRegistry();
       }
-      // If any element inside the canvas is officially selected, drop the frame highlight
       if (e.data?.type === 'PV_SET_SELECTION' && e.data.runtimeIds && e.data.runtimeIds.length > 0) {
         setSelectedFrameId(null);
+      }
+      if (e.data?.type === 'PV_SKETCHPAD_ZOOM') {
+        const code: string = e.data.code;
+        if (code === 'Digit0' || code === 'Numpad0') zoomToCenter(1);
+        else if (code === 'Equal' || code === 'NumpadAdd') zoomByFactor(1.2);
+        else if (code === 'Minus' || code === 'NumpadSubtract') zoomByFactor(1 / 1.2);
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [reloadRegistry]);
+  }, [reloadRegistry, zoomToCenter, zoomByFactor]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handler = async (e: KeyboardEvent) => {
+      // Zoom shortcuts must intercept before isTypingInput to block native browser zoom
+      if (e.metaKey || e.ctrlKey) {
+        if (e.code === 'Digit0' || e.code === 'Numpad0') {
+          e.preventDefault();
+          zoomToCenter(1);
+          return;
+        } else if (e.code === 'Equal' || e.code === 'NumpadAdd') {
+          e.preventDefault();
+          zoomByFactor(1.2);
+          return;
+        } else if (e.code === 'Minus' || e.code === 'NumpadSubtract') {
+          e.preventDefault();
+          zoomByFactor(1 / 1.2);
+          return;
+        }
+      }
+
       if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
       if (e.key === 'Escape' && pendingAction) {
         setPendingAction(null);
-        return;
-      }
-
-      // Zoom to fit
-      if (e.key === '0' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setTransform(INITIAL_TRANSFORM);
         return;
       }
 
@@ -578,7 +629,7 @@ export function SketchpadApp() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [selectedFrameId, handleDeleteFrame, pendingAction]);
+  }, [selectedFrameId, handleDeleteFrame, pendingAction, zoomToCenter, zoomByFactor]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
@@ -1066,21 +1117,8 @@ export function SketchpadApp() {
               value={transform.zoom}
               onChange={(e) => {
                 let val = parseFloat(e.target.value);
-                // Magnetic snap to exactly 100% when close
                 if (val > 0.92 && val < 1.08) val = 1;
-
-                if (!containerRef.current) return;
-                const rect = containerRef.current.getBoundingClientRect();
-                // Slider zooms towards the center of the viewport
-                const viewCx = rect.width / 2;
-                const viewCy = rect.height / 2;
-                const ratio = val / transform.zoom;
-
-                setTransform(prev => ({
-                  zoom: val,
-                  panX: viewCx - ratio * (viewCx - prev.panX),
-                  panY: viewCy - ratio * (viewCy - prev.panY),
-                }));
+                zoomToCenter(val);
               }}
               style={{
                 width: '80px',
@@ -1098,20 +1136,7 @@ export function SketchpadApp() {
                 textAlign: 'right',
                 cursor: 'pointer'
               }}
-              onClick={() => {
-                // Reset to 100% on click
-                if (!containerRef.current) return;
-                const rect = containerRef.current.getBoundingClientRect();
-                const viewCx = rect.width / 2;
-                const viewCy = rect.height / 2;
-                const ratio = 1 / transform.zoom;
-
-                setTransform(prev => ({
-                  zoom: 1,
-                  panX: viewCx - ratio * (viewCx - prev.panX),
-                  panY: viewCy - ratio * (viewCy - prev.panY),
-                }));
-              }}
+              onClick={() => zoomToCenter(1)}
               title="Reset to 100%"
             >
               {Math.round(transform.zoom * 100)}%
