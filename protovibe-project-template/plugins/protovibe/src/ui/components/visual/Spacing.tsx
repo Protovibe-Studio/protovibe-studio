@@ -361,6 +361,17 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         safeVal === 'DEFAULT'
           ? `${currentContextPrefix}border`
           : `${currentContextPrefix}border-${safeVal}`;
+
+      const hasAnyBorderColor = 
+        v.borderColor || domV?.borderColor ||
+        v.borderColorT || domV?.borderColorT ||
+        v.borderColorR || domV?.borderColorR ||
+        v.borderColorB || domV?.borderColorB ||
+        v.borderColorL || domV?.borderColorL;
+
+      if (!hasAnyBorderColor) {
+        newClass += ` ${currentContextPrefix}border-border-default`;
+      }
     }
 
     await runLockedMutation(async () => {
@@ -420,6 +431,19 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     const newClassesStr = computeOptimalBorder(vals.t, vals.r, vals.b, vals.l);
     const newClasses = newClassesStr.split(' ').filter(Boolean);
+
+    const hasAnyBorderWidth = vals.t || vals.r || vals.b || vals.l;
+    const hasAnyBorderColor = 
+      v.borderColor || domV?.borderColor ||
+      v.borderColorT || domV?.borderColorT ||
+      v.borderColorR || domV?.borderColorR ||
+      v.borderColorB || domV?.borderColorB ||
+      v.borderColorL || domV?.borderColorL;
+
+    if (hasAnyBorderWidth && !hasAnyBorderColor) {
+      newClasses.push('border-border-default');
+    }
+
     const prefixedNewClasses = newClasses
       .map((c: string) => `${currentContextPrefix}${c}`)
       .join(' ');
