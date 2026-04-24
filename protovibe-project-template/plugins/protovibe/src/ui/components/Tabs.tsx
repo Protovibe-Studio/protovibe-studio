@@ -33,16 +33,18 @@ const SourceFileButton: React.FC<{
         border: `1px solid ${border}`,
         borderRadius: '6px',
         cursor: 'pointer',
-        whiteSpace: 'nowrap',
         transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
-        minWidth: '100px',
+        minWidth: '80px',
+        maxWidth: '160px',
+        overflow: 'hidden',
+        textAlign: 'left',
         boxShadow: isActive ? (isCompFolder ? '0 2px 8px rgba(168, 85, 247, 0.25)' : '0 2px 8px rgba(0,0,0,0.2)') : 'none'
       }}
     >
       <span style={{ fontSize: '10px', color: topLabelColor, marginBottom: '4px', fontWeight: 'bold'}}>
         {locationText}
       </span>
-      <span style={{ color: isActive ? theme.text_default : hovered ? theme.text_default : theme.text_secondary, fontSize: '12px', fontWeight: isActive ? '600' : '500', transition: 'color 0.15s' }}>
+      <span style={{ color: isActive ? theme.text_default : hovered ? theme.text_default : theme.text_secondary, fontSize: '12px', fontWeight: isActive ? '600' : '500', transition: 'color 0.15s', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
         {String(displayName)}
       </span>
     </button>

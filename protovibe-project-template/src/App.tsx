@@ -125,7 +125,7 @@ function DashboardPage() {
               {/* pv-block-end:lw979w */}
               
               {/* pv-block-start:krvk39 */}
-              <TextParagraph typography="small" className="asd bg-background-default-hover/75" data-pv-block="krvk39">
+              <TextParagraph typography="small" className="test5 overflow-hidden" data-pv-block="krvk39">
                 It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
               </TextParagraph>
               {/* pv-block-end:krvk39 */}
@@ -267,6 +267,30 @@ function DashboardPage() {
           {/* pv-editable-zone-end:q0uowd */}
         </DialogTrigger>
         {/* pv-block-end:kl0ofb */}
+        {/* pv-block-start:en4mb7 */}
+        <MultiSelectDropdown data-pv-block="en4mb7" placeholder="Select..." value="alice,bob" menuOpen="Auto (Default)" allOptionValue="all">
+          {/* pv-editable-zone-start:83tzs4 */}
+            {/* pv-block-start:5z41h4 */}
+            <SelectDropdownSearch data-pv-block="5z41h4" placeholder="Search people..." />
+            {/* pv-block-end:5z41h4 */}
+            {/* pv-block-start:w01fam */}
+            <MultiSelectDropdownItem data-pv-block="w01fam" value="all" label="All" />
+            {/* pv-block-end:w01fam */}
+            {/* pv-block-start:1hfv9o */}
+            <DropdownSeparator data-pv-block="1hfv9o" />
+            {/* pv-block-end:1hfv9o */}
+            {/* pv-block-start:5rlde8 */}
+            <MultiSelectDropdownItem data-pv-block="5rlde8" value="alice" label="Alice Johnson" badgeLabel="Design" />
+            {/* pv-block-end:5rlde8 */}
+            {/* pv-block-start:9l7moq */}
+            <MultiSelectDropdownItem data-pv-block="9l7moq" value="bob" label="Bob Smith" badgeLabel="Engineering" />
+            {/* pv-block-end:9l7moq */}
+            {/* pv-block-start:hm8ri5 */}
+            <MultiSelectDropdownItem data-pv-block="hm8ri5" value="carol" label="Carol Davis" badgeLabel="Marketing" />
+            {/* pv-block-end:hm8ri5 */}
+          {/* pv-editable-zone-end:83tzs4 */}
+        </MultiSelectDropdown>
+        {/* pv-block-end:en4mb7 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
