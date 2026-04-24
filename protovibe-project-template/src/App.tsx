@@ -117,7 +117,7 @@ function DashboardPage() {
             <div data-pv-block="q958wn" className="flex flex-col gap-1">
               {/* pv-editable-zone-start:f7otuc */}
               {/* pv-block-start:lw979w */}
-              <TextHeading className="py-0.5 text-gradient-foreground-special" data-pv-block="lw979w" typography="heading-md">
+              <TextHeading className="py-0.5 text-gradient-foreground-special self-start" data-pv-block="lw979w" typography="heading-md">
                 Test heading
               </TextHeading>
               {/* pv-block-end:lw979w */}
