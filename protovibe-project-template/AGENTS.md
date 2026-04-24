@@ -54,7 +54,37 @@ When writing blocks anywhere outside a component's `PvDefaultContent` definition
 
 ### Rule: Block Granularity
 
-Every direct sibling inside a zone gets its own `pv-block` pair. Do not collapse simple static UI into one large block. If a section contains elements that can be reordered or edited independently, break it down. Dividers made with custom divs should also be a separate block so that user can delete them.
+Every direct sibling inside a zone gets its own `pv-block` pair. Do not make one large block. If a section contains elements that have no logic and is a simple tree, break it down. Dividers made with custom divs should also be a separate block so that user can delete them. 
+
+**This applies inside container blocks too.** Whenever a block's root element contains multiple independently-editable children (e.g. a label + an input field), add a `pv-editable-zone` inside that root element and give each child its own `pv-block`. Without this inner zone the children cannot be deleted or reordered on the canvas. **This rule applies equally to compound components** (e.g. `SelectDropdown` containing `DropdownItem` children) — do not treat them as a single atomic unit just because they share a semantic purpose; if the children are independently reorderable or deletable, they each need their own `pv-block` inside an inner zone.
+
+* **❌ BAD: Form field container — label and input collapsed into one block with no inner zone**
+
+  ```jsx
+  {/* pv-block-start:a1b2c3 */}
+  <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
+    <TextParagraph typography="semibold-primary">Skill name</TextParagraph>
+    <Input defaultValue="Python" />
+  </div>
+  {/* pv-block-end:a1b2c3 */}
+  ```
+
+* **✅ GOOD: Form field container — inner zone exposes each child as its own block**
+
+  ```jsx
+  {/* pv-block-start:a1b2c3 */}
+  <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
+    {/* pv-editable-zone-start:z9x8y7 */}
+      {/* pv-block-start:f2a8k1 */}
+      <TextParagraph data-pv-block="f2a8k1" typography="semibold-primary">Skill name</TextParagraph>
+      {/* pv-block-end:f2a8k1 */}
+      {/* pv-block-start:j7c3p9 */}
+      <Input data-pv-block="j7c3p9" defaultValue="Python" />
+      {/* pv-block-end:j7c3p9 */}
+    {/* pv-editable-zone-end:z9x8y7 */}
+  </div>
+  {/* pv-block-end:a1b2c3 */}
+  ```
 
 * **❌ BAD: Too coarse (One block wrapping an entire grid of cards)**
 

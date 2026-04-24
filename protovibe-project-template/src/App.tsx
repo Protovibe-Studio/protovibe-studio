@@ -647,64 +647,107 @@ function NewSkillDrawer({ onClose }: { onClose: () => void }) {
 
           {/* pv-block-start:nsdb2 */}
           <div data-pv-block="nsdb2" className="flex flex-col gap-2">
-            <TextParagraph typography="semibold-primary" className="text-sm">Skill name</TextParagraph>
-            <Input defaultValue="Python" />
+            {/* pv-editable-zone-start:nz2a1b */}
+              {/* pv-block-start:nz2c3d */}
+              <TextParagraph data-pv-block="nz2c3d" typography="semibold-primary" className="text-sm">Skill name</TextParagraph>
+              {/* pv-block-end:nz2c3d */}
+              {/* pv-block-start:nz2e4f */}
+              <Input data-pv-block="nz2e4f" defaultValue="Python" />
+              {/* pv-block-end:nz2e4f */}
+            {/* pv-editable-zone-end:nz2a1b */}
           </div>
           {/* pv-block-end:nsdb2 */}
 
           {/* pv-block-start:nsdb3 */}
           <div data-pv-block="nsdb3" className="flex flex-col gap-2">
-            <TextParagraph typography="semibold-primary" className="text-sm">Skill description</TextParagraph>
-            <Textarea
-              defaultValue="Python is a high-level, versatile programming language used for building websites, automating tasks, analyzing data, developing software, and more. It's known for its simple syntax and broad ecosystem of libraries, making it accessible for beginners and powerful for advanced users."
-              rows={4}
-            />
+            {/* pv-editable-zone-start:nz3g5h */}
+              {/* pv-block-start:nz3i6j */}
+              <TextParagraph data-pv-block="nz3i6j" typography="semibold-primary" className="text-sm">Skill description</TextParagraph>
+              {/* pv-block-end:nz3i6j */}
+              {/* pv-block-start:nz3k7l */}
+              <Textarea
+                data-pv-block="nz3k7l"
+                defaultValue="Python is a high-level, versatile programming language used for building websites, automating tasks, analyzing data, developing software, and more. It's known for its simple syntax and broad ecosystem of libraries, making it accessible for beginners and powerful for advanced users."
+                rows={4}
+              />
+              {/* pv-block-end:nz3k7l */}
+            {/* pv-editable-zone-end:nz3g5h */}
           </div>
           {/* pv-block-end:nsdb3 */}
 
           {/* pv-block-start:nsdb4 */}
           <div data-pv-block="nsdb4" className="flex flex-col gap-2">
-            <TextParagraph typography="semibold-primary" className="text-sm">Area of expertise</TextParagraph>
-            <SelectDropdown value="software-dev" placeholder="Select area...">
-              <DropdownItem value="software-dev" label="Software development" />
-              <DropdownItem value="marketing" label="Marketing" />
-              <DropdownItem value="design" label="Design" />
-            </SelectDropdown>
+            {/* pv-editable-zone-start:nz4m8n */}
+              {/* pv-block-start:nz4o9p */}
+              <TextParagraph data-pv-block="nz4o9p" typography="semibold-primary" className="text-sm">Area of expertise</TextParagraph>
+              {/* pv-block-end:nz4o9p */}
+              {/* pv-block-start:nz4q1r */}
+              <SelectDropdown data-pv-block="nz4q1r" value="software-dev" placeholder="Select area...">
+                {/* pv-editable-zone-start:nz4s2t */}
+                  {/* pv-block-start:nz4u3v */}
+                  <DropdownItem data-pv-block="nz4u3v" value="software-dev" label="Software development" />
+                  {/* pv-block-end:nz4u3v */}
+                  {/* pv-block-start:nz4w4x */}
+                  <DropdownItem data-pv-block="nz4w4x" value="marketing" label="Marketing" />
+                  {/* pv-block-end:nz4w4x */}
+                  {/* pv-block-start:nz4y5z */}
+                  <DropdownItem data-pv-block="nz4y5z" value="design" label="Design" />
+                  {/* pv-block-end:nz4y5z */}
+                {/* pv-editable-zone-end:nz4s2t */}
+              </SelectDropdown>
+              {/* pv-block-end:nz4q1r */}
+            {/* pv-editable-zone-end:nz4m8n */}
           </div>
           {/* pv-block-end:nsdb4 */}
 
           {/* pv-block-start:nsdb5 */}
           <div data-pv-block="nsdb5" className="border-t border-border-default pt-6 flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <TextHeading typography="heading-md">Proficiency scale</TextHeading>
-              <TextParagraph typography="secondary" className="text-sm">Define a progressive scale to assess this skill.</TextParagraph>
-              <TextParagraph className="text-sm text-foreground-tertiary italic mt-1">Add at least 2 proficiency</TextParagraph>
-            </div>
+            {/* pv-editable-zone-start:nz5a6b */}
+              {/* pv-block-start:nz5c7d */}
+              <div data-pv-block="nz5c7d" className="flex flex-col gap-1">
+                {/* pv-editable-zone-start:nz5e8f */}
+                  {/* pv-block-start:nz5g9h */}
+                  <TextHeading data-pv-block="nz5g9h" typography="heading-md">Proficiency scale</TextHeading>
+                  {/* pv-block-end:nz5g9h */}
+                  {/* pv-block-start:nz5i1j */}
+                  <TextParagraph data-pv-block="nz5i1j" typography="secondary" className="text-sm">Define a progressive scale to assess this skill.</TextParagraph>
+                  {/* pv-block-end:nz5i1j */}
+                  {/* pv-block-start:nz5k2l */}
+                  <TextParagraph data-pv-block="nz5k2l" className="text-sm text-foreground-tertiary italic mt-1">Add at least 2 proficiency</TextParagraph>
+                  {/* pv-block-end:nz5k2l */}
+                {/* pv-editable-zone-end:nz5e8f */}
+              </div>
+              {/* pv-block-end:nz5c7d */}
 
-            <div className="flex flex-col gap-6">
-              {[1, 2].map((num) => (
-                <div key={num} className="flex items-start gap-3">
-                  <div className="pt-2 cursor-grab">
-                    <Icon iconSymbol="mdi:drag-vertical" size="md" className="text-foreground-tertiary" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-background-tertiary flex items-center justify-center text-xs font-semibold text-foreground-secondary shrink-0">
-                        {num}
+              {/* pv-block-start:nz5m3n */}
+              <div data-pv-block="nz5m3n" className="flex flex-col gap-6">
+                {[1, 2].map((num) => (
+                  <div key={num} className="flex items-start gap-3">
+                    <div className="pt-2 cursor-grab">
+                      <Icon iconSymbol="mdi:drag-vertical" size="md" className="text-foreground-tertiary" />
+                    </div>
+                    <div className="flex-1 flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-background-tertiary flex items-center justify-center text-xs font-semibold text-foreground-secondary shrink-0">
+                          {num}
+                        </div>
+                        <Input placeholder="Beginner, Intermediate, Expert" className="flex-1" />
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" className="shrink-0" />
                       </div>
-                      <Input placeholder="Beginner, Intermediate, Expert" className="flex-1" />
-                      <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" className="shrink-0" />
-                    </div>
-                    <div className="flex flex-col gap-2 pl-9">
-                      <TextParagraph typography="semibold-primary" className="text-sm">Description</TextParagraph>
-                      <Textarea placeholder="Describe the expectations for this proficiency (optional)" rows={2} />
+                      <div className="flex flex-col gap-2 pl-9">
+                        <TextParagraph typography="semibold-primary" className="text-sm">Description</TextParagraph>
+                        <Textarea placeholder="Describe the expectations for this proficiency (optional)" rows={2} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              {/* pv-block-end:nz5m3n */}
 
-            <Button variant="outline" color="neutral" leftIcon="plus" label="Add proficiency" className="w-fit mt-2" />
+              {/* pv-block-start:nz5o4p */}
+              <Button data-pv-block="nz5o4p" variant="outline" color="neutral" leftIcon="plus" label="Add proficiency" className="w-fit mt-2" />
+              {/* pv-block-end:nz5o4p */}
+            {/* pv-editable-zone-end:nz5a6b */}
           </div>
           {/* pv-block-end:nsdb5 */}
         {/* pv-editable-zone-end:nsd-body */}

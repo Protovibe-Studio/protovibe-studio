@@ -174,6 +174,34 @@ export const PROMPTS: PromptDef[] = [
   - Do NOT change markup structure, props, styling, or behavior. This task ONLY inserts the pv comment tags and \`data-pv-block\` attributes.
   - Assign a fresh random 6-character alphanumeric ID to every zone and block you introduce. The ID on the comment tags MUST match the \`data-pv-block\` attribute on the root element.
   - Be granular: every direct sibling inside a zone that a user might reorder, delete, or edit independently gets its own pv-block — including dividers and small visual separators. Don't collapse a whole section into one block.
+  - **Container blocks need inner zones too.** If a block's root element contains multiple independently-editable children (e.g. a label + an input field, a heading + a paragraph), add a \`pv-editable-zone\` inside the root element and give each child its own \`pv-block\`. Without this inner zone the children cannot be deleted or reordered on the canvas. This rule applies equally to compound components (e.g. \`SelectDropdown\` with \`DropdownItem\` children) — do not treat them as atomic just because they share a semantic purpose; if the children can be reordered or deleted independently, they each need a \`pv-block\` inside an inner zone.
+
+    ❌ BAD — label and input collapsed, no inner zone:
+    \`\`\`jsx
+    {/* pv-block-start:a1b2c3 */}
+    <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
+      <TextParagraph typography="semibold-primary">Skill name</TextParagraph>
+      <Input defaultValue="Python" />
+    </div>
+    {/* pv-block-end:a1b2c3 */}
+    \`\`\`
+
+    ✅ GOOD — inner zone exposes each child as its own block:
+    \`\`\`jsx
+    {/* pv-block-start:a1b2c3 */}
+    <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
+      {/* pv-editable-zone-start:z9x8y7 */}
+        {/* pv-block-start:f2a8k1 */}
+        <TextParagraph data-pv-block="f2a8k1" typography="semibold-primary">Skill name</TextParagraph>
+        {/* pv-block-end:f2a8k1 */}
+        {/* pv-block-start:j7c3p9 */}
+        <Input data-pv-block="j7c3p9" defaultValue="Python" />
+        {/* pv-block-end:j7c3p9 */}
+      {/* pv-editable-zone-end:z9x8y7 */}
+    </div>
+    {/* pv-block-end:a1b2c3 */}
+    \`\`\`
+
   - Elements rendered conditionally (e.g. \`{cond && <X />}\`) or via short logic like \`{items.map(...)}\` can still be wrapped. Place the pv-block-start / pv-block-end comment tags *outside* the \`{...}\` expression so the whole conditional (including its braces) moves as one unit. See the "Wrap Conditionally-Rendered Elements Around the Logic" rule in AGENTS.md.
   - Preserve any existing pv tags and IDs already present in the selection. Only add new ones where they are missing.
 
