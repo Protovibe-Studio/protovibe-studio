@@ -28,10 +28,10 @@ function canvasRgbToOklch(r: number, g: number, b: number): [number, number, num
 
 /**
  * Convert any valid CSS color string (hex, rgb, hsl, oklch, named, …) to OKLCH.
- * Returns null if the browser does not recognise the value.
+ * Returns [L 0-1, C, H, A 0-1] or null if the browser does not recognise the value.
  * Uses a two-sentinel strategy to avoid false-positives on the exact sentinel color.
  */
-export function cssColorToOklch(cssColor: string): [number, number, number] | null {
+export function cssColorToOklch(cssColor: string): [number, number, number, number] | null {
   if (!cssColor.trim()) return null;
   try {
     const canvas = document.createElement('canvas');
@@ -51,7 +51,8 @@ export function cssColorToOklch(cssColor: string): [number, number, number] | nu
       // Color was accepted – render and sample
       ctx.fillRect(0, 0, 1, 1);
       const d = ctx.getImageData(0, 0, 1, 1).data;
-      return canvasRgbToOklch(d[0], d[1], d[2]);
+      const [L, C, H] = canvasRgbToOklch(d[0], d[1], d[2]);
+      return [L, C, H, d[3] / 255];
     }
 
     // Edge case: the user might have typed the exact same color as sentinel A.
@@ -64,7 +65,8 @@ export function cssColorToOklch(cssColor: string): [number, number, number] | nu
     if (afterB !== beforeB) {
       ctx.fillRect(0, 0, 1, 1);
       const d = ctx.getImageData(0, 0, 1, 1).data;
-      return canvasRgbToOklch(d[0], d[1], d[2]);
+      const [L, C, H] = canvasRgbToOklch(d[0], d[1], d[2]);
+      return [L, C, H, d[3] / 255];
     }
 
     return null; // Both sentinels unchanged — color is invalid
@@ -93,41 +95,53 @@ export function cssColorToHex(cssColor: string): string {
 }
 
 /**
- * Convert OKLCH [L 0-1, C 0-0.4, H 0-360] to a #rrggbb hex string via canvas.
+ * Convert OKLCH [L 0-1, C 0-0.4, H 0-360] to a hex string via canvas.
+ * Returns #rrggbb for full opacity, #rrggbbaa when alpha < 1.
  */
-export function oklchToHex(L: number, C: number, H: number): string {
+export function oklchToHex(L: number, C: number, H: number, A: number = 1): string {
   try {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 1;
     const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = `oklch(${L} ${C} ${H})`;
+    ctx.fillStyle = `oklch(${L} ${C} ${H} / ${A})`;
     ctx.fillRect(0, 0, 1, 1);
     const d = ctx.getImageData(0, 0, 1, 1).data;
-    return `#${d[0].toString(16).padStart(2, '0')}${d[1].toString(16).padStart(2, '0')}${d[2].toString(16).padStart(2, '0')}`;
+    const hex = `#${d[0].toString(16).padStart(2, '0')}${d[1].toString(16).padStart(2, '0')}${d[2].toString(16).padStart(2, '0')}`;
+    if (A < 0.9999) {
+      const alpha = Math.round(A * 255).toString(16).padStart(2, '0');
+      return hex + alpha;
+    }
+    return hex;
   } catch {
     return '#000000';
   }
 }
 
 /**
- * Parse an OKLCH CSS string — both percentage and decimal forms:
- *   "oklch(99% 0.006 260)"  or  "oklch(0.99 0.006 260)"
- * Returns [L 0-1, C, H] or null.
+ * Parse an OKLCH CSS string — both percentage and decimal forms, with optional alpha:
+ *   "oklch(99% 0.006 260)"  or  "oklch(0.99 0.006 260 / 0.8)"
+ * Returns [L 0-1, C, H, A 0-1] or null.
  */
-export function parseOklch(value: string): [number, number, number] | null {
-  const m = value.match(/oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)/);
+export function parseOklch(value: string): [number, number, number, number] | null {
+  const m = value.match(/oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)/);
   if (!m) return null;
   let L = parseFloat(m[1]);
   if (m[2] === '%') L /= 100;
-  return [L, parseFloat(m[3]), parseFloat(m[4])];
+  const A = m[5] ? parseFloat(m[5]) : 1;
+  return [L, parseFloat(m[3]), parseFloat(m[4]), A];
 }
 
 /**
  * Serialise OKLCH values to a CSS string using the percentage form.
+ * Includes alpha if it's less than 1.
  */
-export function formatOklch(L: number, C: number, H: number): string {
+export function formatOklch(L: number, C: number, H: number, A: number = 1): string {
   const lPct = Math.round(L * 10000) / 100;   // up to 2 decimal places
   const cFmt = Math.round(C * 100000) / 100000; // up to 5 significant digits
   const hFmt = Math.round(H * 10) / 10;
+  const aFmt = Math.round(A * 100) / 100;
+  if (A < 0.9999) {
+    return `oklch(${lPct}% ${cFmt} ${hFmt} / ${aFmt})`;
+  }
   return `oklch(${lPct}% ${cFmt} ${hFmt})`;
 }

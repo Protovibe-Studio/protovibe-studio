@@ -9,6 +9,7 @@ import { cssColorToOklch, oklchToHex, parseOklch, formatOklch } from '../utils/c
 const L_MIN = 0, L_MAX = 100;   // user enters 0–100 (%), stored as 0–1
 const C_MIN = 0, C_MAX = 0.4;
 const H_MIN = 0, H_MAX = 360;
+const A_MIN = 0, A_MAX = 100;   // user enters 0–100 (%), stored as 0–1
 
 function parseL(raw: string): number | null {
   const n = parseFloat(raw);
@@ -21,6 +22,10 @@ function parseC(raw: string): number | null {
 function parseH(raw: string): number | null {
   const n = parseFloat(raw);
   return isNaN(n) || n < H_MIN || n > H_MAX ? null : n;
+}
+function parseA(raw: string): number | null {
+  const n = parseFloat(raw);
+  return isNaN(n) || n < A_MIN || n > A_MAX ? null : n / 100;
 }
 
 // ─── SliderWithInput ──────────────────────────────────────────────────────────
@@ -214,19 +219,23 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
   const initL = parsed ? parsed[0] : 0.5;
   const initC = parsed ? parsed[1] : 0.1;
   const initH = parsed ? parsed[2] : 200;
+  const initA = parsed ? parsed[3] : 1;
 
   // Ground-truth values (always valid)
   const [L, setL] = useState(initL);
   const [C, setC] = useState(initC);
   const [H, setH] = useState(initH);
+  const [A, setA] = useState(initA);
 
   // Input field raw text + focus tracking for each channel
   const [lRaw, setLRaw] = useState(() => (initL * 100).toFixed(1));
   const [cRaw, setCRaw] = useState(() => initC.toFixed(4));
   const [hRaw, setHRaw] = useState(() => initH.toFixed(1));
+  const [aRaw, setARaw] = useState(() => (initA * 100).toFixed(1));
   const [lFocused, setLFocused] = useState(false);
   const [cFocused, setCFocused] = useState(false);
   const [hFocused, setHFocused] = useState(false);
+  const [aFocused, setAFocused] = useState(false);
 
   // Hex convenience field
   const [hexRaw, setHexRaw] = useState('');
@@ -240,20 +249,22 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
 
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  const currentHex = oklchToHex(L, C, H);
-  const currentOklch = formatOklch(L, C, H);
+  const currentHex = oklchToHex(L, C, H, A);
+  const currentOklch = formatOklch(L, C, H, A);
 
   // ── Sync inputs FROM sliders (only when the input is not focused) ──
   useEffect(() => { if (!lFocused) setLRaw((L * 100).toFixed(1)); }, [L]);      // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!cFocused) setCRaw(C.toFixed(4)); }, [C]);               // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!hFocused) setHRaw(H.toFixed(1)); }, [H]);               // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!aFocused) setARaw((A * 100).toFixed(1)); }, [A]);       // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!hexFocused) { setHexRaw(currentHex); setHexError(false); } }, [currentHex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Derived validation ──
   const lError = parseL(lRaw) === null;
   const cError = parseC(cRaw) === null;
   const hError = parseH(hRaw) === null;
-  const canSave = !lError && !cError && !hError;
+  const aError = parseA(aRaw) === null;
+  const canSave = !lError && !cError && !hError && !aError;
 
   // ── Handlers for channel inputs ──
   function handleLInput(raw: string) {
@@ -271,6 +282,11 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
     const v = parseH(raw);
     if (v !== null) setH(v);
   }
+  function handleAInput(raw: string) {
+    setARaw(raw);
+    const v = parseA(raw);
+    if (v !== null) setA(v);
+  }
 
   // On blur: reset to last valid value if the field is in error
   function handleLBlur() {
@@ -285,6 +301,10 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
     setHFocused(false);
     if (hError) setHRaw(H.toFixed(1));
   }
+  function handleABlur() {
+    setAFocused(false);
+    if (aError) setARaw((A * 100).toFixed(1));
+  }
 
   // ── Hex handler ──
   function handleHexInput(raw: string) {
@@ -292,7 +312,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
     const normalized = raw.startsWith('#') ? raw : '#' + raw;
     const oklch = cssColorToOklch(normalized);
     if (oklch) {
-      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]);
+      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]); setA(oklch[3]);
       setHexError(false);
     } else {
       setHexError(true);
@@ -305,7 +325,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
     if (!raw.trim()) { setCssError(false); return; }
     const oklch = cssColorToOklch(raw.trim());
     if (oklch) {
-      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]);
+      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]); setA(oklch[3]);
       setCssError(false);
     } else {
       setCssError(true);
@@ -377,7 +397,13 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
         </div>
         <div style={{
           width: 48, height: 48, flexShrink: 0, borderRadius: 10,
-          background: `oklch(${L} ${C} ${H})`,
+          backgroundImage: A < 0.9999 ? 'repeating-conic-gradient(#aaa 0% 25%, #666 0% 50%)' : 'none',
+          backgroundSize: '6px 6px',
+          backgroundPosition: '0 0',
+          background: A < 0.9999
+            ? `repeating-conic-gradient(#aaa 0% 25%, #666 0% 50%), oklch(${L} ${C} ${H} / ${A})`
+            : `oklch(${L} ${C} ${H})`,
+          backgroundBlendMode: A < 0.9999 ? 'normal' : 'normal',
           border: `2px solid ${theme.border_strong}`,
           boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
         }} />
@@ -417,6 +443,18 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
           onInputChange={handleHInput}
           onInputFocus={() => setHFocused(true)}
           onInputBlur={handleHBlur}
+        />
+        <SliderWithInput
+          label="A" description="Opacity"
+          sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={A}
+          onSliderChange={v => { setA(v); }}
+          trackGradient={`linear-gradient(to right, oklch(${L} ${C} ${H} / 0), oklch(${L} ${C} ${H} / 1))`}
+          thumbColor={currentHex}
+          inputRaw={aRaw} inputError={aError} inputSuffix="%"
+          inputStep={1} inputMin={0} inputMax={100} inputDecimals={1}
+          onInputChange={handleAInput}
+          onInputFocus={() => setAFocused(true)}
+          onInputBlur={handleABlur}
         />
       </div>
 

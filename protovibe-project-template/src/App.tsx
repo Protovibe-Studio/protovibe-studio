@@ -1191,7 +1191,7 @@ function SkillsPage() {
                 <DialogWindow size="xl" data-pv-block="sdaeec">
                   {/* pv-editable-zone-start:tw6q5w */}
                   {/* pv-block-start:9la13c */}
-                  <div data-pv-block="9la13c" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300">
+                  <div data-pv-block="9la13c" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300 bg-background-elevated">
                     {/* pv-editable-zone-start:2xmyp4 */}
                     {/* pv-block-start:wiwrw5 */}
                     <div data-pv-block="wiwrw5" className="flex flex-col gap-0">
@@ -1425,7 +1425,7 @@ function SkillsPage() {
                 <DialogWindow size="xl" data-pv-block="4e1bxy">
                   {/* pv-editable-zone-start:bkrv6t */}
                   {/* pv-block-start:9hly6q */}
-                  <div data-pv-block="9hly6q" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300">
+                  <div data-pv-block="9hly6q" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300 bg-background-elevated">
                     {/* pv-editable-zone-start:wdklis */}
                     {/* pv-block-start:t5mn6q */}
                     <div data-pv-block="t5mn6q" className="flex flex-col gap-0">
@@ -1512,7 +1512,7 @@ function SkillsPage() {
                 <DialogWindow size="xl" data-pv-block="7tzslw">
                   {/* pv-editable-zone-start:x75tmm */}
                   {/* pv-block-start:2gwe6k */}
-                  <div data-pv-block="2gwe6k" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300">
+                  <div data-pv-block="2gwe6k" className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5 animate-in fade-in duration-300 bg-background-elevated">
                     {/* pv-editable-zone-start:94ubwd */}
                     {/* pv-block-start:tb0aj0 */}
                     <div data-pv-block="tb0aj0" className="flex flex-col gap-0">
