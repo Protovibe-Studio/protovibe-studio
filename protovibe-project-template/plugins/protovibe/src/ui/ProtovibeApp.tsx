@@ -281,9 +281,9 @@ export const ProtovibeApp: React.FC = () => {
           <div style={{ flex: 1, display: activeIframeTab === 'app' ? 'flex' : 'none', minHeight: 0, flexDirection: 'column' }}>
             <div
               style={{
-                height: 36,
-                background: theme.bg_strong,
-                borderBottom: `1px solid ${theme.border_default}`,
+                height: 38,
+                background: 'rgb(40 40 40)',
+                borderBottom: '1px solid rgb(60, 60, 60)',
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 8px',
@@ -298,7 +298,7 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'transparent', color: theme.text_secondary, fontSize: 14,
+                  background: 'transparent', color: 'rgb(179, 179, 179)', fontSize: 14,
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -311,7 +311,7 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'transparent', color: theme.text_secondary,
+                  background: 'transparent', color: 'rgb(179, 179, 179)',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -324,7 +324,7 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'transparent', color: theme.text_secondary,
+                  background: 'transparent', color: 'rgb(179, 179, 179)',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -340,7 +340,7 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'transparent', color: theme.text_secondary,
+                  background: 'transparent', color: 'rgb(179, 179, 179)',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -351,15 +351,14 @@ export const ProtovibeApp: React.FC = () => {
               {/* URL bar */}
               <div
                 style={{
-                  flex: 1, margin: '0 4px', height: 24,
-                  background: theme.bg_secondary, border: `1px solid ${theme.border_secondary}`,
-                  borderRadius: 5, display: 'flex', alignItems: 'center',
-                  padding: '0 8px', minWidth: 0,
+                  flex: '1 1 0%', margin: '0 4px', height: 24,
+                  background: 'rgb(56 56 56)', borderRadius: 118, display: 'flex', alignItems: 'center',
+                  padding: '0 15px', minWidth: 0,
                 }}
               >
                 <span
                   style={{
-                    fontSize: 12, color: theme.text_secondary,
+                    fontSize: 12, color: 'rgb(179, 179, 179)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     userSelect: 'all',
                   }}
@@ -382,7 +381,7 @@ export const ProtovibeApp: React.FC = () => {
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'transparent', color: theme.text_secondary,
+                  background: 'transparent', color: 'rgb(179, 179, 179)',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = theme.bg_secondary)}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -396,7 +395,7 @@ export const ProtovibeApp: React.FC = () => {
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: mobileWidth ? theme.accent_default : 'transparent',
-                  color: mobileWidth ? theme.text_default : theme.text_secondary,
+                  color: mobileWidth ? theme.text_default : 'rgb(179, 179, 179)',
                 }}
                 onMouseEnter={e => { if (!mobileWidth) e.currentTarget.style.background = theme.bg_secondary; }}
                 onMouseLeave={e => { if (!mobileWidth) e.currentTarget.style.background = 'transparent'; }}
