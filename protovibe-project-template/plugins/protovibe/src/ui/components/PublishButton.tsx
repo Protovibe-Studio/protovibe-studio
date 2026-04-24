@@ -73,6 +73,7 @@ function DeployHistory({ history, open, onToggle }: { history: string[]; open: b
 
 export function PublishButton() {
   const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -505,6 +506,8 @@ export function PublishButton() {
       <button
         ref={btnRef}
         onClick={() => setOpen((v) => !v)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         title="Publish"
         style={{
           marginLeft: '4px',
@@ -516,7 +519,7 @@ export function PublishButton() {
           borderRadius: '6px',
           border: 'none',
           cursor: 'pointer',
-          backgroundColor: open ? theme.bg_tertiary : 'transparent',
+          backgroundColor: open ? theme.bg_tertiary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
           color: open ? theme.text_default : theme.text_tertiary,
           transition: 'background-color 0.15s ease, color 0.15s ease',
         }}

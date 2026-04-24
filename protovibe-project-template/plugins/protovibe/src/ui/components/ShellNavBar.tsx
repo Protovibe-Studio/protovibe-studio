@@ -44,12 +44,15 @@ function TabButton({
   isActive: boolean;
   onClick: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   return (
     <button
       key={id}
       data-testid={`tab-${id}`}
       onClick={onClick}
       title={label}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -62,7 +65,7 @@ function TabButton({
         fontSize: '12px',
         fontFamily: 'sans-serif',
         fontWeight: isActive ? 600 : 400,
-        backgroundColor: isActive ? theme.bg_tertiary : 'transparent',
+        backgroundColor: isActive ? theme.bg_tertiary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
         color: isActive ? theme.text_default : theme.text_tertiary,
         transition: 'background-color 0.15s ease, color 0.15s ease',
       }}
@@ -85,6 +88,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
 }) => {
   const [projectName, setProjectName] = useState('');
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const [logoHovered, setLogoHovered] = useState(false);
+  const [inspectorHovered, setInspectorHovered] = useState(false);
   const logoRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -137,6 +142,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
         <button
           type="button"
           onClick={() => setProjectMenuOpen((o) => !o)}
+          onMouseEnter={() => setLogoHovered(true)}
+          onMouseLeave={() => setLogoHovered(false)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -146,7 +153,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             border: 'none',
             borderRadius: '6px',
             cursor: 'pointer',
-            backgroundColor: projectMenuOpen ? theme.bg_tertiary : 'transparent',
+            backgroundColor: projectMenuOpen ? theme.bg_tertiary : logoHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
             fontFamily: 'sans-serif',
             fontSize: '13px',
             fontWeight: 700,
@@ -248,6 +255,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
       {onToggleInspector && (
         <button
           onClick={onToggleInspector}
+          onMouseEnter={() => setInspectorHovered(true)}
+          onMouseLeave={() => setInspectorHovered(false)}
           title={inspectorOpen ? 'Enable live preview' : 'Back to editor'}
           style={{
             marginLeft: '4px',
@@ -259,7 +268,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             borderRadius: '6px',
             border: 'none',
             cursor: 'pointer',
-            backgroundColor: !inspectorOpen ? theme.bg_tertiary : 'transparent',
+            backgroundColor: !inspectorOpen ? theme.bg_tertiary : inspectorHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
             color: !inspectorOpen ? theme.text_default : theme.text_tertiary,
             transition: 'background-color 0.15s ease, color 0.15s ease',
           }}
