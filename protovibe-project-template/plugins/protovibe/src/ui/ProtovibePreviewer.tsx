@@ -215,7 +215,7 @@ function generateCombinations(
     if (propDiff !== 0) return propDiff;
 
     // Tie-breaker: more text labels filled -> first
-    if (textPropKeys.length > 1) {
+    if (textPropKeys.length > 0) {
       const countFilled = (c: Record<string, any>) =>
         textPropKeys.filter(k => c[k] != null && c[k] !== '').length;
       return countFilled(b) - countFilled(a);
@@ -311,26 +311,33 @@ const PreviewCell: React.FC<{
       {propTokens.length > 0 && (
         <div
           style={{
-            padding: '5px 8px 6px',
+            padding: '8px',
             borderTop: '1px solid #222',
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '3px 6px',
+            gap: '4px',
           }}
         >
-          {propTokens.map((token, i) => (
-            <span
-              key={i}
-              style={{
-                fontSize: 9,
-                color: '#999',
-                fontFamily: 'monospace',
-                lineHeight: 1.4,
-              }}
-            >
-              {token}
-            </span>
-          ))}
+          {propTokens.map((token, i) => {
+            const isNone = token.endsWith('=none');
+            return (
+              <span
+                key={i}
+                style={{
+                  fontSize: 9,
+                  fontFamily: 'monospace',
+                  lineHeight: 1,
+                  padding: '3px 6px',
+                  borderRadius: '4px',
+                  background: isNone ? 'transparent' : '#262626',
+                  color: isNone ? '#555' : '#aaa',
+                  border: isNone ? '1px dashed #333' : '1px solid #333',
+                }}
+              >
+                {token}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>
@@ -580,9 +587,11 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
   const lastTargetPropsRef = useRef<Record<string, any> | null>(null);
 
   const visibleCombos = variantSearch.trim()
-    ? combos.filter((combo: Record<string, any>) =>
-        comboLabel(combo, config.props || {}).toLowerCase().includes(variantSearch.toLowerCase())
-      )
+    ? combos.filter((combo: Record<string, any>) => {
+        const label = comboLabel(combo, config.props || {}).toLowerCase();
+        const searchTokens = variantSearch.toLowerCase().trim().split(/\s+/);
+        return searchTokens.every(token => label.includes(token));
+      })
     : combos;
 
   useEffect(() => {
