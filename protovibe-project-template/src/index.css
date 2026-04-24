@@ -23,6 +23,9 @@
  --background-elevated: oklch(100% 0 0); /* floating surfaces, pure white */
  --background-elevated-hover: oklch(97.5% 0.007 259);
  --background-elevated-pressed: oklch(95% 0.009 258.5);
+ --background-sunken: oklch(100% 0.0067 295.5); /* recessed wells — same as secondary in light, darker than default in dark */
+ --background-sunken-hover: oklch(95.8% 0.0067 295.5);
+ --background-sunken-pressed: oklch(93.8% 0.0067 295.5);
  --background-strong: oklch(12% 0.01 260); /* inverse chip / tooltip */
  --background-strong-hover: oklch(18% 0.01 260);
  --background-strong-pressed: oklch(8% 0.01 260);
@@ -98,88 +101,91 @@
  color-scheme: dark;
 
  /* Backgrounds */
- --background-default: oklch(0% 0.095 260);
- --background-default-hover: oklch(14% 0.01 260);
- --background-default-pressed: oklch(19% 0.01 260);
- --background-subtle: oklch(8.5% 0.01 260); /* zebra rows, ghost cards — between default and secondary */
- --background-subtle-hover: oklch(12% 0.01 260);
- --background-subtle-pressed: oklch(16% 0.01 260);
- --background-secondary: oklch(17% 0.01 260);
- --background-secondary-hover: oklch(21% 0.01 260);
- --background-secondary-pressed: oklch(25% 0.01 260);
- --background-tertiary: oklch(22% 0.01 260);
- --background-tertiary-hover: oklch(26.5% 0.01 260);
- --background-tertiary-pressed: oklch(31% 0.01 260);
- --background-elevated: oklch(20% 0.01 260); /* lighter than background-default */
- --background-elevated-hover: oklch(24% 0.01 260);
- --background-elevated-pressed: oklch(28% 0.01 260);
- --background-strong: oklch(95% 0.01 260);
- --background-strong-hover: oklch(91% 0.01 260);
- --background-strong-pressed: oklch(87% 0.01 260);
- --background-overlay: oklch(6% 0.01 260 / 70%);
- --background-disabled: oklch(19% 0.01 260);
+ --background-default: #222326;
+ --background-default-hover: #2e2f33;
+ --background-default-pressed: #36353b;
+ --background-subtle: #272829; /* zebra rows, ghost cards — between default and secondary */
+ --background-subtle-hover: #2e2f33;
+ --background-subtle-pressed: #313235;
+ --background-secondary: #2b2b2e;
+ --background-secondary-hover: #38393d;
+ --background-secondary-pressed: #414045;
+ --background-tertiary: #313235;
+ --background-tertiary-hover: #38393d;
+ --background-tertiary-pressed: #414045;
+ --background-elevated: #2e2f33; /* lighter than background-default */
+ --background-elevated-hover: #38393d;
+ --background-elevated-pressed: #414045;
+ --background-sunken: #1b1c1e; /* recessed wells — darker than default in dark mode */
+ --background-sunken-hover: #222326;
+ --background-sunken-pressed: #2b2b2e;
+ --background-strong: #c9cbcf;
+ --background-strong-hover: #dfe0e2;
+ --background-strong-pressed: #d1d3d6;
+ --background-overlay: rgba(0, 0, 0, 0.80);
+ --background-disabled: #36353b;
  --background-transparent: transparent;
- --background-transparent-hover: oklch(100% 0 0 / 8%); /* alpha tint for elements with no base background */
- --background-transparent-pressed: oklch(100% 0 0 / 16%);
+ --background-transparent-hover: rgba(255, 255, 255, 0.10); /* alpha tint for elements with no base background */
+ --background-transparent-pressed: rgba(255, 255, 255, 0.20);
 
  /* Solid accent fills */
- --background-primary: oklch(55% 0.22 260);
- --background-primary-hover: oklch(50% 0.22 260);
- --background-primary-pressed: oklch(45% 0.22 260);
- --background-destructive: oklch(60% 0.22 25);
- --background-destructive-hover: oklch(55% 0.22 25);
- --background-destructive-pressed: oklch(50% 0.22 25);
- --background-success: oklch(65% 0.18 145);
- --background-warning: oklch(75% 0.18 80);
- --background-info: oklch(65% 0.18 220);
- --background-primary-soft: oklch(51.7% 0.1315 296.1);
- --background-accent: oklch(58.35% 0.22472 358.3);
- --background-accent-soft: oklch(55.75% 0.16195 352.9);
+ --background-primary: #af80f4;
+ --background-primary-hover: #bf99f6;
+ --background-primary-pressed: #cfb3f8;
+ --background-destructive: #ff7073;
+ --background-destructive-hover: #ff8d8f;
+ --background-destructive-pressed: #ffa9ab;
+ --background-success: #23bd7d;
+ --background-warning: #ed913b;
+ --background-info: #5a9dfc;
+ --background-primary-soft: #724ea7;
+ --background-accent: #fd62b0;
+ --background-accent-soft: #bc94ea;
 
  /* Tinted semantic backgrounds */
- --background-primary-subtle: oklch(19% 0.09 260);
- --background-primary-subtle-hover: oklch(22% 0.11 260);
- --background-primary-subtle-pressed: oklch(26% 0.13 260);
- --background-destructive-subtle: oklch(19% 0.07 25);
- --background-destructive-subtle-hover: oklch(22% 0.09 25);
- --background-destructive-subtle-pressed: oklch(26% 0.12 25);
- --background-success-subtle: oklch(19% 0.07 145);
- --background-success-subtle-hover: oklch(22% 0.09 145);
- --background-success-subtle-pressed: oklch(26% 0.12 145);
- --background-warning-subtle: oklch(19% 0.07 80);
- --background-warning-subtle-hover: oklch(22% 0.09 80);
- --background-warning-subtle-pressed: oklch(26% 0.12 80);
- --background-info-subtle: oklch(19% 0.07 220);
- --background-info-subtle-hover: oklch(22% 0.09 220);
- --background-info-subtle-pressed: oklch(26% 0.12 220);
- --gradient-background-special: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%);
- --gradient-background-special-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
+ --background-primary-subtle: #322447;
+ --background-primary-subtle-hover: #3d2c56;
+ --background-primary-subtle-pressed: #543680;
+ --background-destructive-subtle: #4f1618;
+ --background-destructive-subtle-hover: #7b2d2f;
+ --background-destructive-subtle-pressed: #a74345;
+ --background-success-subtle: #0b412b;
+ --background-success-subtle-hover: #0f5235;
+ --background-success-subtle-pressed: #16784f;
+ --background-warning-subtle: #512f10;
+ --background-warning-subtle-hover: #603915;
+ --background-warning-subtle-pressed: #995d25;
+ --background-info-subtle: #152e51;
+ --background-info-subtle-hover: #1d3a63;
+ --background-info-subtle-pressed: #3663a1;
+ --gradient-background-special: linear-gradient(270deg, #322447 0%, #4e1432 100%);
+ --gradient-background-special-subtle: linear-gradient(270deg, #271838 0%, #3a0e23 100%);
 
  /* Text */
- --foreground-default: oklch(94% 0.01 260);
- --foreground-secondary: oklch(65% 0.01 260);
- --foreground-tertiary: oklch(45% 0.01 260);
- --foreground-strong: oklch(99% 0 0);
- --foreground-disabled: oklch(36% 0.01 260);
- --foreground-inverse: oklch(12% 0.01 260);
- --foreground-on-primary: oklch(98% 0.01 260);
- --foreground-primary: oklch(72% 0.18 260);
- --foreground-destructive: oklch(74% 0.18 25);
- --foreground-success: oklch(74% 0.17 145);
- --foreground-warning: oklch(85% 0.16 80);
- --foreground-info: oklch(74% 0.17 220);
+ --foreground-default: #c9cbcf;
+ --foreground-secondary: #95989d;
+ --foreground-tertiary: #6d6b70;
+ --foreground-strong: #ffffff;
+ --foreground-disabled: #57585c;
+ --foreground-inverse: #1b1c1e;
+ --foreground-on-primary: #000000;
+ --foreground-primary: #af80f4;
+ --foreground-destructive: #ff7073;
+ --foreground-success: #23bd7d;
+ --foreground-warning: #ed913b;
+ --foreground-info: #5a9dfc;
  --gradient-foreground-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
  /* Borders */
- --border-default: oklch(45.7% 0.01 260);
- --border-secondary: oklch(22% 0.01 260);
- --border-strong: oklch(46% 0.01 260);
- --border-focus: oklch(55% 0.22 260);
- --border-primary: oklch(55% 0.22 260);
- --border-destructive: oklch(60% 0.22 25);
- --border-success: oklch(65% 0.18 145);
- --border-warning: oklch(75% 0.18 80);
- --border-info: oklch(65% 0.18 220);
+ --border-default: #414045;
+ --border-secondary: #36353b;
+ --border-strong: #504f54;
+ --border-focus: #af80f4;
+ --border-primary: #af80f4;
+ --border-destructive: #ff7073;
+ --border-success: #23bd7d;
+ --border-warning: #ed913b;
+ --border-info: #5a9dfc;
  --gradient-border-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
 }
@@ -208,6 +214,9 @@
  --color-background-elevated: var(--background-elevated);
  --color-background-elevated-hover: var(--background-elevated-hover);
  --color-background-elevated-pressed: var(--background-elevated-pressed);
+ --color-background-sunken: var(--background-sunken);
+ --color-background-sunken-hover: var(--background-sunken-hover);
+ --color-background-sunken-pressed: var(--background-sunken-pressed);
  --color-background-strong: var(--background-strong);
  --color-background-strong-hover: var(--background-strong-hover);
  --color-background-strong-pressed: var(--background-strong-pressed);

@@ -73,7 +73,7 @@ export function Checkbox({
           <div
             data-state={isChecked ? 'checked' : 'unchecked'}
             data-error={error}
-            className="peer-focus-visible:ring-2 peer-focus-visible:ring-background-primary peer-focus-visible:ring-offset-2 data-[state=checked]:bg-background-primary data-[state=checked]:border-background-primary data-[error=true]:border-background-destructive flex items-center justify-center transition-colors bg-background-default border-2 border-border-strong rounded-sm w-4.5 h-4.5"
+            className="peer-focus-visible:ring-2 peer-focus-visible:ring-background-primary peer-focus-visible:ring-offset-2 data-[state=checked]:bg-background-primary data-[state=checked]:border-background-primary data-[error=true]:border-background-destructive flex items-center justify-center transition-colors border-2 border-border-strong rounded-sm w-4.5 h-4.5 bg-background-sunken"
           >
             {isChecked && <Icon iconSymbol="Check" size="sm"  className="text-foreground-on-primary" />}
           </div>

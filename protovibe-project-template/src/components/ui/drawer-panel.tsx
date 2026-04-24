@@ -11,7 +11,7 @@ export function DrawerPanel({ width = 'md', children, className, ...props }: Dra
   return (
     <div
       data-width={width}
-      className={cn('w-full h-full bg-background-elevated shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 relative data-[width=sm]:max-w-sm data-[width=md]:max-w-[600px] data-[width=lg]:max-w-2xl data-[width=xl]:max-w-4xl', className)}
+      className={cn("w-full h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 relative data-[width=sm]:max-w-sm data-[width=md]:max-w-[600px] data-[width=lg]:max-w-2xl data-[width=xl]:max-w-4xl bg-background-default", className)}
       {...props}
       data-pv-component-id="DrawerPanel"
     >

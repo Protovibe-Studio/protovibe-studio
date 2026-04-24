@@ -535,7 +535,7 @@ function EmployeeDetailsDialog({ emp }: { emp: any }) {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className="flex flex-col min-w-[500px]">
+    <div className="flex flex-col min-w-[500px] p-8">
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center gap-5">

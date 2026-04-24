@@ -711,6 +711,9 @@ Components should have a default size when property size is not set. Use a diffe
   <Button label="Create Project" />
   ```
 
+### Rule: When adding new colors into index.css, don't forget to add them to @theme block
+When you add new tokens, also add them in @theme section, follow existing index.css patterns
+
 ### Rule: Avoid Custom Text Styles—Use TextBlock with Typography Property
 
 Never add custom Tailwind classes for text styling. Instead, use the `TextBlock` component with its `typography` property to apply predefined, consistent text styles. This keeps your design system cohesive and makes the visual builder's text variant control work properly.
