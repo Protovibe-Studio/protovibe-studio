@@ -47,6 +47,8 @@ interface ProtovibeContextType {
   refreshThemeTokens: () => Promise<void>;
   htmlFontSize: number;
   setHtmlFontSize: (size: number) => void;
+  iframeTheme: 'light' | 'dark';
+  setIframeTheme: (theme: 'light' | 'dark') => void;
 }
 
 const ProtovibeContext = createContext<ProtovibeContextType | undefined>(undefined);
@@ -67,6 +69,19 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
   const [themeTokens, setThemeTokens] = useState<ThemeToken[]>([]);
   const [htmlFontSize, setHtmlFontSize] = useState(16);
+  const [iframeTheme, _setIframeTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem('pv-iframe-theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch {}
+    return 'light';
+  });
+
+  const setIframeTheme = useCallback((t: 'light' | 'dark') => {
+    _setIframeTheme(t);
+    try { localStorage.setItem('pv-iframe-theme', t); } catch {}
+  }, []);
+
   const sourcesRef = useRef<string[]>([]);
   const activeSourceIdRef = useRef<string | null>(null);
   const componentIdOverrideRef = useRef<string | null>(null);
@@ -388,6 +403,8 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       refreshThemeTokens,
       htmlFontSize,
       setHtmlFontSize,
+      iframeTheme,
+      setIframeTheme,
     }}>
       {children}
     </ProtovibeContext.Provider>

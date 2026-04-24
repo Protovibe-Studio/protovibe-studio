@@ -31,20 +31,9 @@ export const ProtovibeApp: React.FC = () => {
     () => parseTabParam(window.location.search)
   );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
-  const [iframeTheme, setIframeTheme] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = localStorage.getItem('pv-iframe-theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-    } catch {}
-    return 'light';
-  });
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
-  const updateIframeTheme = useCallback((t: 'light' | 'dark') => {
-    setIframeTheme(t);
-    try { localStorage.setItem('pv-iframe-theme', t); } catch {}
-  }, []);
-  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize, runLockedMutation } = useProtovibe();
+  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -454,7 +443,7 @@ export const ProtovibeApp: React.FC = () => {
               {(['light', 'dark'] as const).map(t => (
                 <button
                   key={t}
-                  onClick={() => updateIframeTheme(t)}
+                  onClick={() => setIframeTheme(t)}
                   title={t === 'light' ? 'Light mode' : 'Dark mode'}
                   style={{
                     width: 26,

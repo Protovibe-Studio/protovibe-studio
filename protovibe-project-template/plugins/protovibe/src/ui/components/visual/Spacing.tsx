@@ -200,7 +200,6 @@ const BorderColorAutocomplete: React.FC<{
     placeholder={inheritedValue && !value ? inheritedValue : '—'}
     zIndex={9999999}
     prefix={icon}
-    showColorModeToggle={colorOptions.some((o: any) => o.lightValue !== undefined || o.darkValue !== undefined || o.hex !== undefined)}
     renderOption={(opt: any, colorMode?: any) => {
       let swatchColor: string | undefined;
       if (colorMode === 'light' && opt.lightValue) swatchColor = opt.lightValue;
@@ -800,7 +799,6 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           options={prioritizeColors(themeColors as any[], 'background-')}
           onCommit={handleBgColorChange}
           zIndex={9999999}
-          showColorModeToggle={(themeColors as any[]).some((o: any) => o.lightValue !== undefined || o.darkValue !== undefined || o.hex !== undefined)}
           prefix={
             !bgColor
               ? (

@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { InspectorInput } from '../InspectorInput';
 import { theme } from '../../theme';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
+import { useProtovibe } from '../../context/ProtovibeContext';
 
 export interface AutocompleteOption {
   val: string;
@@ -28,7 +29,6 @@ interface AutocompleteDropdownProps {
   showNoneOption?: boolean;
   zIndex?: number;
   renderOption?: (option: AutocompleteOption, colorMode?: ColorMode) => React.ReactNode;
-  showColorModeToggle?: boolean;
   onInputFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onInputBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onInputMouseEnter?: (e: React.MouseEvent<HTMLElement>) => void;
@@ -53,7 +53,6 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   showNoneOption = true,
   zIndex = 9999999,
   renderOption,
-  showColorModeToggle = false,
   onInputFocus,
   onInputBlur,
   onInputMouseEnter,
@@ -64,10 +63,14 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   testId,
   showApplyToAllHint,
 }) => {
+  const { iframeTheme: colorMode } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
-  const [colorMode, setColorMode] = useState<ColorMode>('light');
   const [activeIndex, setActiveIndex] = useState(-1);
+
+  const isColorDropdown = useMemo(() =>
+    options.some(o => o.lightValue !== undefined || o.darkValue !== undefined || (o as any).hex !== undefined),
+  [options]);
 
   const inputElRef = useRef<HTMLInputElement | null>(null);
   const dropdownElRef = useRef<HTMLDivElement | null>(null);
@@ -89,17 +92,17 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     lastCommittedValueRef.current = cleanValue;
   }, [value]);
 
-  // Split into semantic and palette for color mode toggle processing
+  // Split into semantic and palette for color mode processing
   const { semanticOptions, paletteOptions, hasColorGroups } = useMemo(() => {
-    if (!showColorModeToggle) return { semanticOptions: [], paletteOptions: [], hasColorGroups: false };
+    if (!isColorDropdown) return { semanticOptions: [], paletteOptions: [], hasColorGroups: false };
     const semantic = options.filter(o => o.lightValue !== undefined || o.darkValue !== undefined);
     const palette = options.filter(o => o.lightValue === undefined && o.darkValue === undefined);
     return { semanticOptions: semantic, paletteOptions: palette, hasColorGroups: semantic.length > 0 };
-  }, [showColorModeToggle, options]);
+  }, [isColorDropdown, options]);
 
   // Unified list that dynamically injects Custom values at the best semantic/numeric index
   const renderableOptions = useMemo(() => {
-    const baseOpts = showColorModeToggle && hasColorGroups ? [...semanticOptions, ...paletteOptions] : [...options];
+    const baseOpts = isColorDropdown && hasColorGroups ? [...semanticOptions, ...paletteOptions] : [...options];
 
     if (localValue) {
       const query = localValue.toLowerCase().trim();
@@ -134,7 +137,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
       }
     }
     return baseOpts;
-  }, [options, localValue, showColorModeToggle, hasColorGroups, semanticOptions, paletteOptions]);
+  }, [options, localValue, isColorDropdown, hasColorGroups, semanticOptions, paletteOptions]);
 
   // Sync activeIndex
   useEffect(() => {
@@ -154,7 +157,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   }, [localValue, isOpen, renderableOptions]);
 
   const currentSwatchColor = useMemo(() => {
-    if (!showColorModeToggle) return undefined;
+    if (!isColorDropdown) return undefined;
     const match = options.find(o => o.val === localValue);
     if (!match) return undefined;
     if (colorMode === 'light' && match.lightValue) return match.lightValue as string;
@@ -162,7 +165,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (match.lightValue) return match.lightValue as string;
     if ((match as any).hex) return (match as any).hex as string;
     return undefined;
-  }, [showColorModeToggle, options, localValue, colorMode]);
+  }, [isColorDropdown, options, localValue, colorMode]);
 
   const { style: floatingStyle } = useFloatingDropdownPosition({
     isOpen,
@@ -266,7 +269,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         onMouseLeave={() => setActiveIndex(-1)}
       >
         {renderOption ? (
-          renderOption(opt, showColorModeToggle ? colorMode : undefined)
+          renderOption(opt, isColorDropdown ? colorMode : undefined)
         ) : (
           <>
             <span style={{ fontWeight: 'bold' }}>{String(opt.val)}</span>
@@ -276,17 +279,6 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
       </div>
     );
   };
-
-  const modeBtnStyle = (isActive: boolean): React.CSSProperties => ({
-    flex: 1,
-    padding: '4px 6px',
-    background: isActive ? theme.bg_tertiary : 'transparent',
-    border: 'none',
-    color: isActive ? theme.text_default : theme.text_tertiary,
-    fontSize: '10px',
-    fontFamily: 'sans-serif',
-    cursor: 'pointer',
-  });
 
   return (
     <div data-testid={testId} style={{ position: 'relative', ...containerStyle }}>
@@ -345,31 +337,6 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             ...safeDropdownStyle,
           }}
         >
-          {showColorModeToggle && hasColorGroups && (
-            <div
-              onMouseDown={(e) => e.preventDefault()}
-              style={{
-                display: 'flex',
-                background: theme.bg_strong,
-                borderBottom: `1px solid ${theme.border_default}`,
-                flexShrink: 0,
-              }}
-            >
-              {(['light', 'dark'] as ColorMode[]).map((mode, idx) => (
-                <React.Fragment key={mode}>
-                  {idx > 0 && <div style={{ width: '1px', background: theme.border_default }} />}
-                  <button
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setColorMode(mode)}
-                    style={modeBtnStyle(colorMode === mode)}
-                  >
-                    {mode === 'light' ? '☀ Light' : '🌙 Dark'}
-                  </button>
-                </React.Fragment>
-              ))}
-            </div>
-          )}
-
           {strictOptions && localValue && !options.some(o => o.val === localValue) && (
             <div
               style={{
@@ -428,7 +395,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
 
             return renderableOptions.map((opt, i) => {
               let group = '';
-              if (showColorModeToggle && hasColorGroups) {
+              if (isColorDropdown && hasColorGroups) {
                 const isSemantic = semanticOptions.some(so => so.val === opt.val) || opt.lightValue !== undefined || opt.darkValue !== undefined;
                 const isPalette = paletteOptions.some(po => po.val === opt.val) || (!isSemantic && opt.desc !== 'Custom');
 
