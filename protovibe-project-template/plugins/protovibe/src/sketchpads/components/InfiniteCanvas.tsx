@@ -206,6 +206,16 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
       >
         {children}
       </div>
+      {spaceHeld && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 9999,
+            cursor: isPanning ? 'grabbing' : 'grab',
+          }}
+        />
+      )}
     </div>
   );
 }

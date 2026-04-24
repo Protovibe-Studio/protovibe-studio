@@ -82,6 +82,12 @@ export const ProtovibeApp: React.FC = () => {
     if (tab === 'components') {
       componentsIframeRef.current?.contentWindow?.postMessage({ type: 'PV_REFRESH_COMPONENTS' }, '*');
     }
+    if (tab === 'sketchpad') {
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      requestAnimationFrame(() => {
+        sketchpadIframeRef.current?.contentWindow?.focus();
+      });
+    }
   }, [clearFocus, refreshComponents]);
 
   // Ensure ?tab param is always present in the URL on initial load
