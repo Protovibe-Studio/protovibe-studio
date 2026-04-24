@@ -6,7 +6,7 @@ import { SegmentedControl } from './SegmentedControl';
 import { cleanVal } from '../../utils/tailwind';
 import { useScales } from '../../hooks/useScales';
 import { prioritizeColors } from '../../constants/tailwind';
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting, Italic, ArrowBigUpDash, ArrowDownNarrowWide } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Underline, Strikethrough, RemoveFormatting, Italic, ArrowBigUpDash, ArrowDownNarrowWide, RulerDimensionLine, TypeOutline } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 
@@ -17,8 +17,8 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     <VisualSection title="Typography">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={prioritizeColors(themeColors as any[], 'foreground-')} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} />
-          <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} />
+          <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={prioritizeColors(themeColors as any[], 'foreground-')} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} inputPrefix={<TypeOutline size={14} />} />
+          <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} inputPrefix={<RulerDimensionLine size={14} style={{ transform: 'rotate(90deg)' }} />} />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <VisualControl label="Font family" prefix="font-" value={v.fontFamily} options={scales.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={domV?.fontFamily} />

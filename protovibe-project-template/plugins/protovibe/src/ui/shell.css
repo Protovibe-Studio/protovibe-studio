@@ -29,3 +29,31 @@
 vite-error-overlay {
   display: none !important;
 }
+
+/* Opacity sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #6a6a6a; /* border_strong */
+  border: 1.5px solid #333333; /* border_secondary */
+  cursor: pointer;
+  margin-top: -2px;
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: #3c3c3c; /* border_default */
+  cursor: not-allowed;
+}

@@ -852,7 +852,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             </div>
             <div style={{ position: 'relative', height: '16px', display: 'flex', alignItems: 'center' }}>
               <div style={{ position: 'absolute', left: 0, right: 0, height: '3px', borderRadius: '2px', background: theme.bg_tertiary, pointerEvents: 'none' }}>
-                <div style={{ height: '100%', width: `${localBgOpacity ?? bgOpacityNum}%`, background: bgColor ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
+                <div style={{ height: '100%', width: `${localBgOpacity ?? bgOpacityNum}%`, background: (localBgOpacity ?? bgOpacityNum) !== 100 ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
               </div>
               <input
                 type="range"
@@ -864,7 +864,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
                 onChange={e => setLocalBgOpacity(Number(e.target.value))}
                 onMouseUp={() => handleBgOpacityCommit(localBgOpacity ?? bgOpacityNum)}
                 onTouchEnd={() => handleBgOpacityCommit(localBgOpacity ?? bgOpacityNum)}
-                style={{ position: 'relative', width: '100%', margin: 0, cursor: bgColor ? 'pointer' : 'not-allowed', accentColor: theme.accent_default, background: 'transparent', WebkitAppearance: 'none', appearance: 'none', height: '16px' } as React.CSSProperties}
+                style={{ position: 'relative', width: '100%', margin: 0, cursor: bgColor ? 'pointer' : 'not-allowed', background: 'transparent', height: '16px' } as React.CSSProperties}
               />
             </div>
           </div>
@@ -917,7 +917,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             </div>
             <div style={{ position: 'relative', height: '16px', display: 'flex', alignItems: 'center' }}>
               <div style={{ position: 'absolute', left: 0, right: 0, height: '3px', borderRadius: '2px', background: theme.bg_tertiary, pointerEvents: 'none' }}>
-                <div style={{ height: '100%', width: `${localBorderOpacity ?? borderOpacityNum}%`, background: borderColor ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
+                <div style={{ height: '100%', width: `${localBorderOpacity ?? borderOpacityNum}%`, background: (localBorderOpacity ?? borderOpacityNum) !== 100 ? theme.accent_default : theme.border_strong, borderRadius: '2px', transition: 'width 0.05s' }} />
               </div>
               <input
                 type="range"
@@ -929,7 +929,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
                 onChange={e => setLocalBorderOpacity(Number(e.target.value))}
                 onMouseUp={() => handleBorderOpacityCommit(localBorderOpacity ?? borderOpacityNum)}
                 onTouchEnd={() => handleBorderOpacityCommit(localBorderOpacity ?? borderOpacityNum)}
-                style={{ position: 'relative', width: '100%', margin: 0, cursor: borderColor ? 'pointer' : 'not-allowed', accentColor: theme.accent_default, background: 'transparent', WebkitAppearance: 'none', appearance: 'none', height: '16px' } as React.CSSProperties}
+                style={{ position: 'relative', width: '100%', margin: 0, cursor: borderColor ? 'pointer' : 'not-allowed', background: 'transparent', height: '16px' } as React.CSSProperties}
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
