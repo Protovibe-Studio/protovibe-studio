@@ -231,6 +231,26 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
+        {/* pv-block-start:xd90sk */}
+        <Container data-pv-block="xd90sk">
+          {/* pv-editable-zone-start:8xlvs5 */}
+          {/* pv-editable-zone-end:8xlvs5 */}
+        </Container>
+        {/* pv-block-end:xd90sk */}
+
+        {/* pv-block-start:cidstp */}
+        <Container data-pv-block="cidstp">
+          {/* pv-editable-zone-start:8xlvs5 */}
+          {/* pv-editable-zone-end:8xlvs5 */}
+        </Container>
+        {/* pv-block-end:cidstp */}
+
+        {/* pv-block-start:oryj2b */}
+        <Container data-pv-block="oryj2b">
+          {/* pv-editable-zone-start:8xlvs5 */}
+          {/* pv-editable-zone-end:8xlvs5 */}
+        </Container>
+        {/* pv-block-end:oryj2b */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

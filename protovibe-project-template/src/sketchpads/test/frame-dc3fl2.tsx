@@ -24,6 +24,9 @@ export default function Frame2() {
             {/* pv-block-start:xyanr3 */}
             <p data-pv-block="xyanr3" className="text-foreground-secondary" data-pv-sketchpad-el="xyanr3" style={{ position: 'absolute', left: 38, top: 37 }}>This is the modal dialog content. Click the button below or press Escape to close.</p>
             {/* pv-block-end:xyanr3 */}
+            {/* pv-block-start:bs3pgl */}
+            <p data-pv-block="bs3pgl" className="text-foreground-secondary" data-pv-sketchpad-el="bs3pgl" style={{ position: 'absolute', left: 53, top: 112 }}>This is the modal dialog content. Click the button below or press Escape to close.</p>
+            {/* pv-block-end:bs3pgl */}
           {/* pv-editable-zone-end:d2ziz0 */}
         </Rectangle>
         {/* pv-block-end:w036di */}
