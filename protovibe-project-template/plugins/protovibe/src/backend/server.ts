@@ -887,6 +887,64 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, blockIds } = JSON.parse(body || '{}');
+      if (!file || !blockIds || blockIds.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Missing parameters' }));
+      }
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      const blockMatches: { id: string, index: number, length: number }[] = [];
+
+      for (const blockId of blockIds) {
+        const regex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
+        const match = fileContent.match(regex);
+        if (match) {
+          blockMatches.push({
+            id: blockId,
+            index: match.index!,
+            length: match[0].length
+          });
+        }
+      }
+
+      if (blockMatches.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Blocks not found' }));
+      }
+
+      // Sort reverse so we delete from bottom up without invalidating earlier indices
+      blockMatches.sort((a, b) => b.index - a.index);
+
+      let smallestIndex = Infinity;
+      for (const match of blockMatches) {
+        smallestIndex = Math.min(smallestIndex, match.index);
+        const deleteRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${match.id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${match.id}\\s*\\*\\/\\}\\n?`);
+        fileContent = fileContent.replace(deleteRegex, "\n");
+      }
+
+      const safeIndex = Math.min(smallestIndex, fileContent.length - 1);
+      const zoneRange = findEnclosingZoneRange(fileContent, safeIndex);
+      fileContent = zoneRange
+        ? cleanupBlankLinesInRange(fileContent, zoneRange.start, zoneRange.end)
+        : cleanupBlankLinesInRange(fileContent, safeIndex, safeIndex + 1);
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, deletedCount: blockMatches.length }));
+
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
 export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });

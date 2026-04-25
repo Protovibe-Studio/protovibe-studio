@@ -38,6 +38,16 @@ export async function blockAction(action: string, blockId: string, file: string,
   return await res.json();
 }
 
+export async function deleteBlocks(file: string, blockIds: string[]) {
+  const res = await fetch('/__delete-blocks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file, blockIds }),
+  });
+  if (!res.ok) throw new Error('Failed to delete blocks');
+  return await res.json();
+}
+
 export async function addBlock(params: {
   file: string;
   zoneId?: string;

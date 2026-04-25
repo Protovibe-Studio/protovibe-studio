@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { addBlock, takeSnapshot } from '../api/client';
+import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
 import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
@@ -15,6 +15,7 @@ export const FloatingToolbar: React.FC = () => {
     zones, availableComponents, refreshComponents,
     refreshActiveData, focusElement, focusNewBlock,
     runLockedMutation, isMutationLocked, inspectorOpen,
+    clearFocus,
   } = useProtovibe();
 
   const [addMode, setAddMode] = useState<'child' | 'after' | null>(null);
@@ -139,6 +140,26 @@ export const FloatingToolbar: React.FC = () => {
     });
 
     if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
+  };
+
+  const handleDeleteBlocks = async () => {
+    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+
+    const isNested = selectedTargets.some(t1 =>
+      selectedTargets.some(t2 => t1 !== t2 && t1.contains(t2))
+    );
+    if (isNested) {
+      emitToast({ message: "Can't delete nested selection together", variant: 'error' });
+      return;
+    }
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      await deleteBlocks(activeData.file, uniqueSelectedBlockIds);
+    });
+
+    clearFocus();
+    await refreshActiveData();
   };
 
   const handleAddBlock = async (type: 'block' | 'component' | 'text', comp?: any) => {
@@ -364,6 +385,7 @@ export const FloatingToolbar: React.FC = () => {
         }}
       >
           {isMultiSelect ? (
+            <>
             <button
               disabled={locked}
               onClick={handleWrapBlocks}
@@ -374,6 +396,23 @@ export const FloatingToolbar: React.FC = () => {
               <SquareDashed size={13} strokeWidth={2.5} />
               Wrap {selectedTargets.length} elements
             </button>
+            {divider}
+            <button
+              disabled={locked}
+              onClick={handleDeleteBlocks}
+              onMouseEnter={() => setHoveredBtn('del')}
+              onMouseLeave={() => setHoveredBtn(null)}
+              style={mkBtnStyle('del', {
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                padding: '0 14px',
+                color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
+              })}
+              title="Delete selected blocks"
+            >
+              <Trash2 size={13} strokeWidth={2} />
+              Delete {uniqueSelectedBlockIds.length}
+            </button>
+          </>
           ) : (
             <>
               {canAdd && (

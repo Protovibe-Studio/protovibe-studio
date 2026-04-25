@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -141,6 +141,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__get-zones', handleGetZones);
       server.middlewares.use('/__add-block', handleAddBlock);
       server.middlewares.use('/__wrap-blocks', handleWrapBlocks);
+      server.middlewares.use('/__delete-blocks', handleDeleteBlocks);
       server.middlewares.use('/__block-action', handleBlockAction);
       server.middlewares.use('/__take-snapshot', handleTakeSnapshot);
       server.middlewares.use('/__undo', handleUndo);

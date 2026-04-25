@@ -107,6 +107,14 @@
           "height": 900,
           "canvasX": 6542,
           "canvasY": 1624
+        },
+        {
+          "id": "frame-dc3fl2",
+          "name": "Frame 2",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 8086,
+          "canvasY": 1628
         }
       ]
     }

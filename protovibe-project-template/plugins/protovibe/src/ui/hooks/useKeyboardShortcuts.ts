@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot, addBlock } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock, deleteBlocks } from '../api/client';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -284,6 +284,38 @@ export function useKeyboardShortcuts() {
         });
         if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
         return;
+      }
+
+      // 3.5. Delete multiple selected blocks (Backspace/Delete with multi-select)
+      if ((e.key === 'Backspace' || e.key === 'Delete') && selectedTargets && selectedTargets.length > 1) {
+        const multiBlockIds = [...new Set(
+          selectedTargets
+            .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+            .filter(Boolean) as string[]
+        )];
+        if (multiBlockIds.length > 1 && activeData?.file) {
+          const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+          if (!isBlockInCurrentFile) {
+            emitToast({ message: "Can't modify these elements here", variant: 'error' });
+            return;
+          }
+          const isNested = selectedTargets.some(t1 =>
+            selectedTargets.some(t2 => t1 !== t2 && t1.contains(t2))
+          );
+          if (isNested) {
+            emitToast({ message: "Can't delete nested selection together", variant: 'error' });
+            return;
+          }
+          e.preventDefault();
+          await runLockedMutation(async () => {
+            await takeSnapshot(activeData.file, activeSourceId!);
+            await deleteBlocks(activeData.file, multiBlockIds);
+          });
+          clearFocus();
+          await refreshActiveData();
+          return;
+        }
+        // If only 0-1 blocks resolved, fall through to single delete
       }
 
       // 4. Delete or Move Block
