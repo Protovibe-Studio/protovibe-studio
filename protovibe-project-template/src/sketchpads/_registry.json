@@ -105,7 +105,7 @@
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 8164,
+          "canvasX": 8165,
           "canvasY": 1630
         },
         {
@@ -113,7 +113,7 @@
           "name": "Frame 3",
           "width": 1440,
           "height": 900,
-          "canvasX": 9796,
+          "canvasX": 9797,
           "canvasY": 1626
         },
         {
@@ -129,8 +129,8 @@
           "name": "Frame 4 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 9817,
-          "canvasY": 2853
+          "canvasX": 9805,
+          "canvasY": 2833
         }
       ]
     }
