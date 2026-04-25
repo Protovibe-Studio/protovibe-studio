@@ -11,6 +11,22 @@ const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
 
 function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
+// Debounce snapshots for high-frequency drag/resize endpoints. A multi-element drag
+// fires N position-update calls in rapid succession; we want one undo step covering the
+// whole gesture. Snapshot only the first call within the window — its content is the
+// pre-gesture state; subsequent skipped snapshots would just capture intermediate states.
+const recentBurstSnapshots = new Map<string, number>();
+const BURST_SNAPSHOT_WINDOW_MS = 1000;
+
+function maybeSnapshotForBurst(activeId: string | null, relPath: string): void {
+  const now = Date.now();
+  const last = recentBurstSnapshots.get(relPath) ?? 0;
+  if (now - last > BURST_SNAPSHOT_WINDOW_MS) {
+    snapshotFiles(activeId, '?tab=sketchpad', relPath);
+  }
+  recentBurstSnapshots.set(relPath, now);
+}
+
 // Snapshot one or more files into the undo stack before mutating them.
 function snapshotFiles(activeId: string | null, currentURLQueryString: string, ...relPaths: string[]): void {
   const uniquePaths = Array.from(new Set(relPaths.filter((f) => f)));
@@ -682,7 +698,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(activeSourceId, '?tab=sketchpad', path.relative(process.cwd(), filePath));
+    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Independently update left and top to avoid regex failures if code formatting changes
@@ -718,7 +734,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    snapshotFiles(activeSourceId, '?tab=sketchpad', path.relative(process.cwd(), filePath));
+    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath));
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Helper to update or insert a dimension in the style object
