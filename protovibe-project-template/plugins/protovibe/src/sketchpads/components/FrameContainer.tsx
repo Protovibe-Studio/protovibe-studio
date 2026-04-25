@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useFloatingDropdownPosition } from '../../ui/hooks/useFloatingDropdownPosition';
 import { theme } from '../../ui/theme';
@@ -57,6 +57,19 @@ export function FrameContainer({
 }: FrameContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isAltDragging, setIsAltDragging] = useState(false);
+  // Set when this frame is a passive sibling in another frame's alt+multi-drag
+  const [externalAltGhost, setExternalAltGhost] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ ids: string[]; active: boolean; leaderId: string }>).detail;
+      if (!detail || detail.leaderId === frameId) return;
+      const inGroup = detail.ids.includes(frameId);
+      setExternalAltGhost(detail.active && inGroup);
+    };
+    window.addEventListener('pv-frame-altghost', handler as EventListener);
+    return () => window.removeEventListener('pv-frame-altghost', handler as EventListener);
+  }, [frameId]);
   const isDuplicateDragRef = useRef(false);
   const [isResizing, setIsResizing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -134,8 +147,13 @@ export function FrameContainer({
       const altHeld = e.altKey;
       isDuplicateDragRef.current = altHeld;
       setIsAltDragging(altHeld);
+      if (groupDragRef.current.length > 0) {
+        window.dispatchEvent(new CustomEvent('pv-frame-altghost', {
+          detail: { ids: groupDragRef.current.map((s) => s.id), active: altHeld, leaderId: frameId },
+        }));
+      }
     },
-    [isDragging, zoom],
+    [isDragging, zoom, frameId],
   );
 
   const handleTitlePointerUp = useCallback(
@@ -154,6 +172,12 @@ export function FrameContainer({
         const siblings = groupDragRef.current;
         groupDragRef.current = [];
         const isMulti = siblings.length > 0;
+
+        if (isMulti) {
+          window.dispatchEvent(new CustomEvent('pv-frame-altghost', {
+            detail: { ids: siblings.map((s) => s.id), active: false, leaderId: frameId },
+          }));
+        }
 
         if (isDuplicateDragRef.current) {
           // Alt+drag: restore source frame(s) to original position, create duplicates at drop offset
@@ -315,8 +339,8 @@ export function FrameContainer({
 
   return (
     <>
-      {/* Ghost — shown at original position when alt is held during drag */}
-      {isDragging && isAltDragging && (
+      {/* Ghost — shown at original position when alt is held during drag (also for passive siblings in a multi-drag) */}
+      {((isDragging && isAltDragging) || externalAltGhost) && (
         <div
           style={{
             position: 'absolute',

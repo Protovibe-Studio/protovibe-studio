@@ -519,26 +519,20 @@ export function SketchpadApp() {
     async (entries: Array<{ frameId: string; canvasX: number; canvasY: number }>) => {
       if (!activeSketchpadId || entries.length === 0) return;
       await runLockedMutation(async () => {
-        const newFrames: SketchpadFrame[] = [];
-        for (const entry of entries) {
-          const result = await api.duplicateFrame(
-            activeSketchpadId,
-            entry.frameId,
-            Math.round(entry.canvasX),
-            Math.round(entry.canvasY),
-          );
-          if (result?.ok) {
-            await loadFrameModule(activeSketchpadId, result.frame.id);
-            newFrames.push(result.frame);
+        const result = await api.duplicateFramesMulti(
+          activeSketchpadId,
+          entries.map((e) => ({ frameId: e.frameId, canvasX: Math.round(e.canvasX), canvasY: Math.round(e.canvasY) })),
+        );
+        if (result?.ok && result.frames.length > 0) {
+          for (const f of result.frames) {
+            await loadFrameModule(activeSketchpadId, f.id);
           }
-        }
-        if (newFrames.length > 0) {
           setSketchpads((prev) =>
             prev.map((s) =>
-              s.id === activeSketchpadId ? { ...s, frames: [...s.frames, ...newFrames] } : s,
+              s.id === activeSketchpadId ? { ...s, frames: [...s.frames, ...result.frames] } : s,
             ),
           );
-          setSelectedFrameIds(newFrames.map((f) => f.id));
+          setSelectedFrameIds(result.frames.map((f) => f.id));
         }
       });
     },
@@ -549,9 +543,7 @@ export function SketchpadApp() {
     async (frameIds: string[]) => {
       if (!activeSketchpadId || frameIds.length === 0) return;
       await runLockedMutation(async () => {
-        for (const frameId of frameIds) {
-          await api.deleteFrame(activeSketchpadId, frameId);
-        }
+        await api.deleteFramesMulti(activeSketchpadId, frameIds);
         setSketchpads((prev) =>
           prev.map((s) =>
             s.id === activeSketchpadId

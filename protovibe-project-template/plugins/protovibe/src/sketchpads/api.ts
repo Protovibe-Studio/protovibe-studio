@@ -49,6 +49,17 @@ export async function deleteFrame(sketchpadId: string, frameId: string): Promise
   await post('/__frame-delete', { sketchpadId, frameId });
 }
 
+export async function deleteFramesMulti(sketchpadId: string, frameIds: string[]): Promise<void> {
+  await post('/__frame-delete-multi', { sketchpadId, frameIds });
+}
+
+export async function duplicateFramesMulti(
+  sketchpadId: string,
+  entries: Array<{ frameId: string; canvasX: number; canvasY: number }>,
+): Promise<{ ok: boolean; frames: SketchpadFrame[] }> {
+  return post('/__frame-duplicate-multi', { sketchpadId, entries });
+}
+
 export async function renameFrame(sketchpadId: string, frameId: string, name: string): Promise<void> {
   await post('/__frame-rename', { sketchpadId, frameId, name });
 }

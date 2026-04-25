@@ -461,6 +461,101 @@ export const handleFrameDuplicate: Connect.NextHandleFunction = async (req, res)
   }
 };
 
+export const handleFrameDuplicateMulti: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, entries } = await parseBody(req);
+    if (!sketchpadId || !Array.isArray(entries) || entries.length === 0)
+      return sendError(res, 'sketchpadId and non-empty entries array required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    type Plan = { sourceFrameId: string; newFrameId: string; newRelPath: string; sourceContent: string; canvasX: number; canvasY: number };
+    const plans: Plan[] = [];
+    const existingNames = [...sp.frames.map((f) => f.name)];
+
+    for (const entry of entries) {
+      const { frameId, canvasX, canvasY } = entry;
+      const sourceFrame = sp.frames.find((f) => f.id === frameId);
+      if (!sourceFrame) continue;
+      const baseName = sourceFrame.name.replace(/ Copy( \d+)?$/, '');
+      const newName = generateCopyName(baseName, existingNames);
+      existingNames.push(newName);
+      const newFrameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
+      const sourceRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`));
+      const newRelPath = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${newFrameId}.tsx`));
+      const sourceContent = fs.readFileSync(path.resolve(process.cwd(), sourceRelPath), 'utf-8');
+      plans.push({
+        sourceFrameId: frameId,
+        newFrameId,
+        newRelPath,
+        sourceContent,
+        canvasX: canvasX ?? sourceFrame.canvasX + 40,
+        canvasY: canvasY ?? sourceFrame.canvasY + 40,
+      });
+      sp.frames.push({
+        id: newFrameId,
+        name: newName,
+        width: sourceFrame.width,
+        height: sourceFrame.height,
+        canvasX: canvasX ?? sourceFrame.canvasX + 40,
+        canvasY: canvasY ?? sourceFrame.canvasY + 40,
+      });
+    }
+
+    // Single snapshot capturing registry + all about-to-be-created files
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...plans.map((p) => p.newRelPath));
+
+    const dirPath = path.join(SKETCHPADS_DIR, sketchpadId);
+    fs.mkdirSync(dirPath, { recursive: true });
+    for (const p of plans) {
+      const renamed = renameComponentInContent(p.sourceContent, p.sourceFrameId, p.newFrameId);
+      const fresh = reassignIds(renamed);
+      fs.writeFileSync(path.resolve(process.cwd(), p.newRelPath), fresh);
+    }
+    writeRegistry(reg);
+
+    const newFrames = plans.map((p) => {
+      const f = sp.frames.find((ff) => ff.id === p.newFrameId)!;
+      return f;
+    });
+    sendJson(res, { ok: true, frames: newFrames });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleFrameDeleteMulti: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frameIds } = await parseBody(req);
+    if (!sketchpadId || !Array.isArray(frameIds) || frameIds.length === 0)
+      return sendError(res, 'sketchpadId and non-empty frameIds array required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    const targets = sp.frames.filter((f) => frameIds.includes(f.id));
+    const relPaths = targets.map((f) =>
+      path.relative(process.cwd(), path.join(SKETCHPADS_DIR, sketchpadId, `${f.id}.tsx`)),
+    );
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...relPaths);
+
+    sp.frames = sp.frames.filter((f) => !frameIds.includes(f.id));
+    writeRegistry(reg);
+
+    for (const id of frameIds) {
+      const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${id}.tsx`);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
 export const handleFrameDelete: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { sketchpadId, frameId } = await parseBody(req);
