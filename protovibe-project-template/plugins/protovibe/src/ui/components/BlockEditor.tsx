@@ -137,17 +137,22 @@ export const BlockEditor: React.FC = () => {
 
   const persistIfChanged = useCallback(async () => {
     const el = editorRef.current;
-    if (!el || !closestBlockId || !activeData?.file) return;
+    if (!el || !activeData?.file) return;
+    if (!closestBlockId && !activeData?.startLine) return;
 
     const newHtml = normalizeHtml(el.innerHTML);
     if (newHtml === originalHtmlRef.current) return;
 
+    const locInfo = !closestBlockId
+      ? { startLine: activeData.startLine, nameEnd: activeData.nameEnd }
+      : undefined;
+
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
-      await blockAction('edit-text', closestBlockId, activeData.file, newHtml);
+      await blockAction('edit-text', closestBlockId || '', activeData.file, newHtml, locInfo);
       originalHtmlRef.current = newHtml;
     });
-  }, [closestBlockId, activeData?.file, activeSourceId, runLockedMutation]);
+  }, [closestBlockId, activeData?.file, activeData?.startLine, activeData?.nameEnd, activeSourceId, runLockedMutation]);
 
   const handleBlur = useCallback(async () => {
     if (suppressBlurRef.current) return;

@@ -1469,7 +1469,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockId, blockIds, action, text } = JSON.parse(body || '{}');
+      const { file, blockId, blockIds, action, text, startLine, nameEnd } = JSON.parse(body || '{}');
       const targetIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
@@ -1730,6 +1730,30 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           }
         });
+
+        if (!targetNode && startLine) {
+          const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
+          const candidates: Array<{ node: any; nameEndCol: number }> = [];
+
+          babel.traverse(ast, {
+            JSXOpeningElement(p) {
+              if (p.node.loc?.start.line !== Number(startLine)) return;
+              const nameNode = p.node.name;
+              if (!nameNode?.loc) return;
+              candidates.push({
+                node: p.parentPath.node,
+                nameEndCol: nameNode.loc.end.column,
+              });
+            },
+          });
+
+          if (candidates.length > 0) {
+            candidates.sort((a, b) =>
+              Math.abs(a.nameEndCol - hintCol) - Math.abs(b.nameEndCol - hintCol)
+            );
+            targetNode = candidates[0].node;
+          }
+        }
 
         if (targetNode) {
           const opening = targetNode.openingElement;
