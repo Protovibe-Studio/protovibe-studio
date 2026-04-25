@@ -147,11 +147,11 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
+            gap: '8px',
             height: '30px',
             padding: '0 6px',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: 'pointer',
             backgroundColor: projectMenuOpen ? theme.bg_tertiary : logoHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
             fontFamily: 'sans-serif',
@@ -163,9 +163,9 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             transition: 'background-color 0.15s ease',
           }}
         >
-          <span style={{ opacity: 0.9 }}>Protovibe</span>
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAAWCAMAAACysiPzAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMA30CAIGC/n+8QMJBvUM+vpPgdEQAAAtRJREFUWMPdl9mW2yAMQFlkzGab///aDraQiEQeJu3pmVYPMySWhC5aTMzPkdC67OafFwZxoYv/nrnTktNnkSTokn4fZPskN20l5+4+iGS/bbefBNLdpL8KwvKnQVr4X0BkROCmdRa9JEG06scgqTtAc+0YBMgZJrGcEntL9x2axelQzjhYY6jwfNnV4vNdXw7VMKmWfMd13i4rBVDvz2fCxfEC4go6sHPXpm23Uz8fE8hrb5dna3p6H/YDctgm5OooTnx5YwRVrV21Ps7TONjHoTfGY0IZBIKwfjB8FH6tewMCFA0uSkMQ37TEbQnil+WqXnx7Q98aBKyIF4hc+V2DOAGyjc0q1cnu/R7GJ1iAbFKVNsrPKs9nBisQ2zcNXxIHSU+jpZIqvlwn7pJGqPQqSwCbpVNCB/efaziJNWHmPFaXanZS9WnUAzdewRXbeLMAiW0fTe4wek8HtIMsTSqQ4npvocVIPq1d4kyB6iYNksXko2ymLyhLVYC5TgJEj80w4ANykOR458fw+0/0VgQE4TareP4sCdEUyNEe95NEqqiDpyKZaJBAlmQS0YuWaLg43IuOzYabHcXrF1VcgaxjObkbAy55zq56ZNm2GJ0SbnaY+UJNRoNUER0ZpTcZibNqJBBcW7DPPwWijM02MkxlKYWHCd9+QTwVx+K5si4cCwokSVV82uagubCWPXJxHNmOJOGO/Cj5LlWM3zWmaLkxTVKlYSJAWDUcj+oxTHF3q+50ukea3Y8MJsFReHg7rK0Nx3c90e+3QDIXH95IcOhoEIhLVeDkosA7kFKbkIKDEsWy4wjfAMEbipITjALRb2BZEVfjbK5BvLgc8FBQErP5JoiB3QqM7d3tN3mhGn1SvW/NW5Dt9dzswTEIvyV181tgRUFPxY9jfwVr+yU37DXPs/5WzrNqvVXjrSoO65AbOzLP/Mj50K/LV3mxTgfFcJWnC38BYWRqDsmXTakAAAAASUVORK5CYII=" style={{ height: 10, opacity: 0.6 }} />
           <ChevronDown
-            size={13}
+            size={14}
             strokeWidth={2}
             style={{
               color: theme.text_tertiary,
