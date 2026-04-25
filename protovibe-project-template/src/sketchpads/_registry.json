@@ -26,16 +26,16 @@
           "name": "generate-file-loading",
           "width": 1440,
           "height": 900,
-          "canvasX": 5955,
-          "canvasY": 1043
+          "canvasX": 6163,
+          "canvasY": 1032
         },
         {
           "id": "frame-generate-file-intro-copy-3",
           "name": "generate-file-done",
           "width": 1440,
           "height": 900,
-          "canvasX": 7553,
-          "canvasY": 1042
+          "canvasX": 7764,
+          "canvasY": 1032
         },
         {
           "id": "frame-generate-file-intro-copy-4",
@@ -105,24 +105,24 @@
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 8165,
-          "canvasY": 1630
+          "canvasX": 8155,
+          "canvasY": 1659
         },
         {
           "id": "frame-jcveqt",
           "name": "Frame 3",
           "width": 1440,
           "height": 900,
-          "canvasX": 9797,
-          "canvasY": 1626
+          "canvasX": 9801,
+          "canvasY": 1637
         },
         {
           "id": "frame-zueh1y",
           "name": "Frame 4",
           "width": 1440,
           "height": 900,
-          "canvasX": 8159,
-          "canvasY": 2826
+          "canvasX": 8162,
+          "canvasY": 2827
         },
         {
           "id": "frame-6cf72x",

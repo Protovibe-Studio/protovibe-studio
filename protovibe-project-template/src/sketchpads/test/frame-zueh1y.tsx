@@ -10,7 +10,7 @@ export default function Frame4() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:kxdzso */}
         {/* pv-block-start:nstft8 */}
-        <Rectangle data-pv-block="nstft8" data-pv-sketchpad-el="nstft8" style={{ position: 'absolute', height: 607, width: 702, left: 390, top: 154 }} className="w-[200px] h-[200px] bg-background-elevated">
+        <Rectangle data-pv-block="nstft8" data-pv-sketchpad-el="nstft8" style={{ position: 'absolute', height: 607, width: 702, left: 378, top: 142 }} className="w-[200px] h-[200px] bg-background-elevated">
           {/* pv-editable-zone-start:oiskll */}
             {/* pv-block-start:ggb6n6 */}
             <TextHeading data-pv-block="ggb6n6" data-pv-sketchpad-el="ggb6n6" style={{ position: 'absolute', left: 27, top: 24 }} typography="heading-md">

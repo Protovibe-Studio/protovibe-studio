@@ -74,7 +74,7 @@ export default function Frame2() {
         </RadioGroup>
         {/* pv-block-end:h7lval */}
         {/* pv-block-start:2n40cz */}
-        <Rectangle data-pv-block="2n40cz" data-pv-sketchpad-el="2n40cz" style={{ position: 'absolute', width: 542, left: 76, top: 60 }} className="w-[200px] h-[200px]">
+        <Rectangle data-pv-block="2n40cz" data-pv-sketchpad-el="2n40cz" style={{ position: 'absolute', width: 542, left: 41, top: 31 }} className="w-[200px] h-[200px]">
           {/* pv-editable-zone-start:o6rx04 */}
             {/* pv-block-start:tibi0q */}
             <Button data-pv-block="tibi0q"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="tibi0q" style={{ position: 'absolute', left: 58, top: 21 }}/>
@@ -88,7 +88,7 @@ export default function Frame2() {
         {/* pv-block-end:2n40cz */}
         
         {/* pv-block-start:fyu1og */}
-        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 220, top: 446 }}>
+        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 41, top: 259 }}>
           {/* pv-editable-zone-start:d3pro3 */}
             {/* pv-block-start:4xupvu */}
             <RadioGroup data-pv-block="4xupvu"  orientation="vertical" value="opt1" >

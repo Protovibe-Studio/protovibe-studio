@@ -785,13 +785,13 @@ export function SketchpadApp() {
       if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
-      // Title bar / resize handle live inside frame-root but outside frame-content → skip
       if (frameRoot && !frameContent) return;
       const onCanvas = !!t.closest('[data-sketchpad-canvas]');
       if (!frameContent && !onCanvas) return;
 
-      e.stopPropagation();
-      e.preventDefault();
+      // Don't preempt the bridge here — let it handle plain clicks (e.g. empty-frame click
+      // selects the frame root so the user can paste into it). We only take over once the
+      // user actually drags past the threshold.
       dragging = true;
       started = false;
       startClientX = e.clientX;
@@ -807,6 +807,7 @@ export function SketchpadApp() {
         if (dx < MOVE_THRESHOLD && dy < MOVE_THRESHOLD) return;
         started = true;
       }
+      e.preventDefault();
       setMarquee({ x1: startClientX, y1: startClientY, x2: e.clientX, y2: e.clientY });
 
       const left = Math.min(startClientX, e.clientX);
@@ -829,9 +830,11 @@ export function SketchpadApp() {
       setMarquee(null);
       setMarqueePreview([]);
 
+      // Plain click (no drag): bridge already handled element-side selection (frame-root pick or
+      // deselect). It doesn't know about frame multi-selection though, so we clear that here —
+      // any plain click on empty area means the user is exiting the frame-set selection.
       if (!wasMarquee) {
         setSelectedFrameIds([]);
-        window.dispatchEvent(new CustomEvent('pv-clear-selection'));
         return;
       }
 

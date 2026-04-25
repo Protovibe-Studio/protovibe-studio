@@ -877,12 +877,12 @@ export default function App() {
       <div className="relative z-[2] max-w-[1240px] mx-auto px-[20px] md:px-[40px]">
         {/* Hero */}
         <section className="relative pt-[60px] pb-[80px] text-center">
-          <h1 className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out font-[Syne,ui-sans-serif,system-ui,sans-serif] font-extrabold text-[clamp(44px,6.6vw,84px)] leading-[0.98] tracking-[-0.035em] text-[#f4f4f6] mt-[24px] max-w-[14ch] mx-auto text-balance">
+          <h1 className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out font-[Syne,ui-sans-serif,system-ui,sans-serif] font-extrabold text-[clamp(44px,6.6vw,84px)] leading-[0.98] text-[#f4f4f6] mt-[24px] max-w-[14ch] mx-auto text-balance tracking-tighter">
             {parts.before}
             <span style={{ color: t.accent }}>{parts.accent}</span>
             {parts.after}
           </h1>
-          <p className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out text-[clamp(16px,1.3vw,19px)] text-[#c8c8d0] max-w-[52ch] mt-[22px] mx-auto text-pretty">
+          <p className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out text-[clamp(16px,1.3vw,19px)] text-[#c8c8d0] max-w-[52ch] text-pretty mt-6 mx-auto">
             Protovibe is an open-source, AI-first design tool for pros who
             vibe-code but refuse to ship sloppy pixels. Bring your own agent —
             Copilot, Claude Code, Gemini, Cursor, whatever. It runs on your
