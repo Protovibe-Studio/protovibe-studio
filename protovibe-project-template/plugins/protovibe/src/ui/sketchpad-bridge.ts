@@ -419,7 +419,14 @@ function setSelection(el: HTMLElement, isMulti = false) {
     selectedEls = [el];
   }
 
-  selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+  // Keep drill-down context (selectedParentEl) sticky while extending a multi-selection.
+  // Recompute only on first selection; preserve when adding/removing siblings so subsequent
+  // shift-clicks resolve to the same drill depth instead of jumping back to the top of the path.
+  if (selectedEls.length === 0) {
+    selectedParentEl = null;
+  } else if (selectedEls.length === 1) {
+    selectedParentEl = findInspectableParent(selectedEls[0]);
+  }
   updateOutlines(hoveredEl, oldSelections, oldParent);
 }
 
@@ -1149,7 +1156,12 @@ function handleParentMessage(e: MessageEvent) {
       const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
       if (el) selectedEls.push(el);
     });
-    selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
+    // Same sticky-drill rule as setSelection: keep parent across multi-select echoes from the shell.
+    if (selectedEls.length === 0) {
+      selectedParentEl = null;
+    } else if (selectedEls.length === 1) {
+      selectedParentEl = findInspectableParent(selectedEls[0]);
+    }
     updateOutlines(hoveredEl, oldSelections, oldParent);
   }
   if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
