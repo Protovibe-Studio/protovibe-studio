@@ -16,7 +16,8 @@
       "Bash(pnpm ls *)",
       "Bash(git stash *)",
       "Bash(echo \"exit=$?\")",
-      "Bash(awk -F: '$1 >= 2380 && $1 <= 2420')"
+      "Bash(awk -F: '$1 >= 2380 && $1 <= 2420')",
+      "Bash(ls *)"
     ]
   },
   "outputStyle": "Explanatory"

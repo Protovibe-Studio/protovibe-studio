@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 // Absolute path to the plugin's source directory (one level above dist/)
 const PLUGIN_DIR = path.resolve(__dirname, '..');
+const PLUGIN_VERSION = JSON.parse(fs.readFileSync(path.join(PLUGIN_DIR, 'package.json'), 'utf-8')).version as string;
 
 export function protovibeSourcePlugin(): Plugin {
   return {
@@ -133,6 +134,19 @@ export function protovibeSourcePlugin(): Plugin {
           console.error(`[protovibe] Error serving ${pathname}:`, e);
           next(e);
         }
+      });
+
+      // Inject plugin version into protovibe-data.json responses
+      server.middlewares.use('/protovibe-data.json', (req, res) => {
+        const dataPath = path.resolve(process.cwd(), 'protovibe-data.json');
+        let data: Record<string, any> = {};
+        if (fs.existsSync(dataPath)) {
+          try { data = JSON.parse(fs.readFileSync(dataPath, 'utf-8')); } catch { /* serve empty */ }
+        }
+        data['plugin-version'] = PLUGIN_VERSION;
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify(data));
       });
 
       // API middleware

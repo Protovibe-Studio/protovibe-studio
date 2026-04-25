@@ -303,7 +303,7 @@ function handleStart(_req, res, id) {
   const proc = spawn('pnpm', ['run', 'dev'], {
     cwd: project.path,
     stdio: 'pipe',
-    shell: process.platform === 'win32',
+    shell: true,
     env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
@@ -410,7 +410,7 @@ function handleInstall(_req, res, id) {
   const proc = spawn('pnpm', ['install'], {
     cwd: project.path,
     stdio: 'pipe',
-    shell: process.platform === 'win32',
+    shell: true,
     env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
@@ -566,7 +566,7 @@ function handleSetup(req, res, id) {
   const install = spawn('pnpm', ['install'], {
     cwd: project.path,
     stdio: 'pipe',
-    shell: process.platform === 'win32',
+    shell: true,
     env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
@@ -609,7 +609,7 @@ function handleSetup(req, res, id) {
     const dev = spawn('pnpm', ['run', 'dev'], {
       cwd: project.path,
       stdio: 'pipe',
-      shell: process.platform === 'win32',
+      shell: true,
       env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     })
 
