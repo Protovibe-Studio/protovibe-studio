@@ -125,6 +125,20 @@ export function SketchpadApp() {
       return [...prev, frameId];
     });
   }, []);
+  const [marquee, setMarquee] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [marqueePreview, setMarqueePreview] = useState<Array<{ left: number; top: number; width: number; height: number }>>([]);
+  const spaceHeldRef = useRef(false);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.code === 'Space') spaceHeldRef.current = true; };
+    const up = (e: KeyboardEvent) => { if (e.code === 'Space') spaceHeldRef.current = false; };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, []);
+
   const [showSketchpadPanel, setShowSketchpadPanel] = useState(false);
   const [dragComp, setDragComp] = useState<ComponentEntry | null>(null);
 
@@ -722,6 +736,134 @@ export function SketchpadApp() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedFrameIds, handleDeleteFramesMulti, pendingAction, zoomToCenter, zoomByFactor]);
 
+  // Marquee selection: starts on canvas background or empty area inside a frame.
+  // Containment-only: an element/frame must be fully enclosed.
+  // If any frame is fully contained, only frames are selected (no mixed selection).
+  // Otherwise, selects top-level pv-blocks within the frame the marquee started in.
+  useEffect(() => {
+    const MOVE_THRESHOLD = 3;
+    let dragging = false;
+    let started = false;
+    let startClientX = 0;
+    let startClientY = 0;
+    let startFrameContent: HTMLElement | null = null;
+
+    const isInside = (outer: DOMRect, inner: DOMRect) =>
+      outer.left <= inner.left && outer.top <= inner.top && outer.right >= inner.right && outer.bottom >= inner.bottom;
+
+    type Candidates =
+      | { mode: 'frames'; frameIds: string[]; els: HTMLElement[] }
+      | { mode: 'blocks'; blockIds: string[]; els: HTMLElement[] }
+      | { mode: 'none'; els: [] };
+
+    const computeCandidates = (rect: DOMRect, startFrame: HTMLElement | null): Candidates => {
+      const frameRoots = Array.from(document.querySelectorAll('[data-sketchpad-frame-root]')) as HTMLElement[];
+      const containedFrames = frameRoots.filter((el) => isInside(rect, el.getBoundingClientRect()));
+      if (containedFrames.length > 0) {
+        return {
+          mode: 'frames',
+          frameIds: containedFrames.map((el) => el.getAttribute('data-sketchpad-frame-root')!).filter(Boolean),
+          els: containedFrames,
+        };
+      }
+      if (!startFrame) return { mode: 'none', els: [] };
+      const allBlocks = Array.from(startFrame.querySelectorAll('[data-pv-block]')) as HTMLElement[];
+      const topLevel = allBlocks.filter((el) => !el.parentElement?.closest('[data-pv-block]'));
+      const contained = topLevel.filter((el) => isInside(rect, el.getBoundingClientRect()));
+      return {
+        mode: 'blocks',
+        blockIds: contained.map((el) => el.getAttribute('data-pv-block')!).filter(Boolean),
+        els: contained,
+      };
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      if (spaceHeldRef.current) return;
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
+      const frameRoot = t.closest('[data-sketchpad-frame-root]');
+      const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
+      // Title bar / resize handle live inside frame-root but outside frame-content → skip
+      if (frameRoot && !frameContent) return;
+      const onCanvas = !!t.closest('[data-sketchpad-canvas]');
+      if (!frameContent && !onCanvas) return;
+
+      e.stopPropagation();
+      e.preventDefault();
+      dragging = true;
+      started = false;
+      startClientX = e.clientX;
+      startClientY = e.clientY;
+      startFrameContent = frameContent;
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      if (!started) {
+        const dx = Math.abs(e.clientX - startClientX);
+        const dy = Math.abs(e.clientY - startClientY);
+        if (dx < MOVE_THRESHOLD && dy < MOVE_THRESHOLD) return;
+        started = true;
+      }
+      setMarquee({ x1: startClientX, y1: startClientY, x2: e.clientX, y2: e.clientY });
+
+      const left = Math.min(startClientX, e.clientX);
+      const right = Math.max(startClientX, e.clientX);
+      const top = Math.min(startClientY, e.clientY);
+      const bottom = Math.max(startClientY, e.clientY);
+      const rect = new DOMRect(left, top, right - left, bottom - top);
+      const candidates = computeCandidates(rect, startFrameContent);
+      setMarqueePreview(candidates.els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, top: r.top, width: r.width, height: r.height };
+      }));
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      const wasMarquee = started;
+      started = false;
+      setMarquee(null);
+      setMarqueePreview([]);
+
+      if (!wasMarquee) {
+        setSelectedFrameIds([]);
+        window.dispatchEvent(new CustomEvent('pv-clear-selection'));
+        return;
+      }
+
+      const left = Math.min(startClientX, e.clientX);
+      const right = Math.max(startClientX, e.clientX);
+      const top = Math.min(startClientY, e.clientY);
+      const bottom = Math.max(startClientY, e.clientY);
+      const rect = new DOMRect(left, top, right - left, bottom - top);
+      const candidates = computeCandidates(rect, startFrameContent);
+
+      if (candidates.mode === 'frames') {
+        setSelectedFrameIds(candidates.frameIds);
+        window.dispatchEvent(new CustomEvent('pv-clear-selection'));
+      } else if (candidates.mode === 'blocks' && candidates.blockIds.length > 0) {
+        setSelectedFrameIds([]);
+        window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockIds: candidates.blockIds } }));
+      } else {
+        setSelectedFrameIds([]);
+        window.dispatchEvent(new CustomEvent('pv-clear-selection'));
+      }
+    };
+
+    window.addEventListener('pointerdown', onPointerDown, true);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+  }, []);
+
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
     const handleDropElement = async (e: Event) => {
@@ -919,6 +1061,40 @@ export function SketchpadApp() {
           </FrameContainer>
         ))}
       </InfiniteCanvas>
+
+      {marquee && (
+        <>
+          {marqueePreview.map((r, i) => (
+            <div
+              key={i}
+              style={{
+                position: 'fixed',
+                left: r.left,
+                top: r.top,
+                width: r.width,
+                height: r.height,
+                outline: '2px solid #18a0fb',
+                outlineOffset: -1,
+                pointerEvents: 'none',
+                zIndex: 9998,
+              }}
+            />
+          ))}
+          <div
+            style={{
+              position: 'fixed',
+              left: Math.min(marquee.x1, marquee.x2),
+              top: Math.min(marquee.y1, marquee.y2),
+              width: Math.abs(marquee.x2 - marquee.x1),
+              height: Math.abs(marquee.y2 - marquee.y1),
+              background: 'rgba(24, 160, 251, 0.12)',
+              border: '1px solid #18a0fb',
+              pointerEvents: 'none',
+              zIndex: 9999,
+            }}
+          />
+        </>
+      )}
 
       {/* Toolbar */}
       <div

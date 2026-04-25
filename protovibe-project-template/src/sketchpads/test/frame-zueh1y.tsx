@@ -10,7 +10,7 @@ export default function Frame4() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:kxdzso */}
         {/* pv-block-start:nstft8 */}
-        <Rectangle data-pv-block="nstft8" data-pv-sketchpad-el="nstft8" style={{ position: 'absolute', height: 607, width: 702, left: 377, top: 141 }} className="w-[200px] h-[200px] bg-background-elevated">
+        <Rectangle data-pv-block="nstft8" data-pv-sketchpad-el="nstft8" style={{ position: 'absolute', height: 607, width: 702, left: 390, top: 154 }} className="w-[200px] h-[200px] bg-background-elevated">
           {/* pv-editable-zone-start:oiskll */}
             {/* pv-block-start:ggb6n6 */}
             <TextHeading data-pv-block="ggb6n6" data-pv-sketchpad-el="ggb6n6" style={{ position: 'absolute', left: 27, top: 24 }} typography="heading-md">
@@ -65,7 +65,7 @@ export default function Frame4() {
             </Rectangle>
             {/* pv-block-end:5ciyhi */}
             {/* pv-block-start:gbbomq */}
-            <Rectangle data-pv-block="gbbomq" data-pv-sketchpad-el="gbbomq" style={{ position: 'absolute', left: 29, top: 273, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
+            <Rectangle data-pv-block="gbbomq" data-pv-sketchpad-el="gbbomq" style={{ position: 'absolute', left: 29, top: 268, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
               {/* pv-editable-zone-start:pvjfwm */}
                 {/* pv-block-start:v011ik */}
                 <TextParagraph className="text-foreground-secondary" data-pv-block="v011ik" data-pv-sketchpad-el="v011ik" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
@@ -79,7 +79,7 @@ export default function Frame4() {
             </Rectangle>
             {/* pv-block-end:gbbomq */}
             {/* pv-block-start:htbic2 */}
-            <Rectangle data-pv-block="htbic2" data-pv-sketchpad-el="htbic2" style={{ position: 'absolute', left: 29, top: 361, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
+            <Rectangle data-pv-block="htbic2" data-pv-sketchpad-el="htbic2" style={{ position: 'absolute', left: 29, top: 354, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
               {/* pv-editable-zone-start:pvjfwm */}
                 {/* pv-block-start:4800f2 */}
                 <TextParagraph className="text-foreground-secondary" data-pv-block="4800f2" data-pv-sketchpad-el="4800f2" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">

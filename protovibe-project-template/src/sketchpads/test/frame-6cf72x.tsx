@@ -62,7 +62,7 @@ export default function Frame4() {
               {/* pv-editable-zone-start:in18au */}
                 {/* pv-block-start:qagr8g */}
                 <TextParagraph className="text-foreground-secondary" data-pv-block="qagr8g" data-pv-sketchpad-el="qagr8g" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
-                  Restart
+                  Restart server
                 </TextParagraph>
                 {/* pv-block-end:qagr8g */}
                 {/* pv-block-start:zjw5ez */}
@@ -80,7 +80,7 @@ export default function Frame4() {
                 </TextParagraph>
                 {/* pv-block-end:aaqnf8 */}
                 {/* pv-block-start:yi5de6 */}
-                <Icon data-pv-block="yi5de6" data-pv-sketchpad-el="yi5de6" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="majesticons:open" size="lg" />
+                <Icon data-pv-block="yi5de6" data-pv-sketchpad-el="yi5de6" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="material-symbols:code" size="lg" />
                 {/* pv-block-end:yi5de6 */}
               {/* pv-editable-zone-end:in18au */}
             </Rectangle>
@@ -104,7 +104,7 @@ export default function Frame4() {
               {/* pv-editable-zone-start:in18au */}
                 {/* pv-block-start:u0zrlj */}
                 <TextParagraph className="text-foreground-secondary" data-pv-block="u0zrlj" data-pv-sketchpad-el="u0zrlj" style={{ position: 'absolute', left: 57, top: 22 }} typography="regular">
-                  Stop
+                  Stop server
                 </TextParagraph>
                 {/* pv-block-end:u0zrlj */}
                 {/* pv-block-start:6tfmjt */}
@@ -113,6 +113,11 @@ export default function Frame4() {
               {/* pv-editable-zone-end:in18au */}
             </Rectangle>
             {/* pv-block-end:2rrq8y */}
+            {/* pv-block-start:61lc03 */}
+            <TextParagraph className="text-foreground-tertiary" data-pv-block="61lc03" data-pv-sketchpad-el="61lc03" style={{ position: 'absolute', left: 491, top: 552 }} typography="small">
+              Protovibe plugin v0.4 beta
+            </TextParagraph>
+            {/* pv-block-end:61lc03 */}
           {/* pv-editable-zone-end:kiqhby */}
         </Rectangle>
         {/* pv-block-end:x3twqb */}
@@ -125,10 +130,13 @@ export default function Frame4() {
             </TextHeading>
             {/* pv-block-end:5wdq6n */}
             {/* pv-block-start:j8yk8w */}
-            <TextParagraph className="text-foreground-tertiary" data-pv-block="j8yk8w" data-pv-sketchpad-el="j8yk8w" style={{ position: 'absolute', left: 1312, top: 18 }} typography="small">
+            <TextParagraph className="text-foreground-tertiary" data-pv-block="j8yk8w" data-pv-sketchpad-el="j8yk8w" style={{ position: 'absolute', left: 1271, top: 19 }} typography="small">
               Version. 0.4 beta
             </TextParagraph>
             {/* pv-block-end:j8yk8w */}
+            {/* pv-block-start:y390lp */}
+            <Button leftIcon="material-symbols:help-outline" iconOnly data-pv-block="y390lp" data-pv-sketchpad-el="y390lp" style={{ position: 'absolute', left: 1386, top: 5 }} label="Button" variant="ghost" color="neutral" size="lg" />
+            {/* pv-block-end:y390lp */}
           {/* pv-editable-zone-end:yuk6mh */}
         </Rectangle>
         {/* pv-block-end:vj8asi */}

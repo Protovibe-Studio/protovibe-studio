@@ -1184,7 +1184,12 @@ function init() {
   // Allow SketchpadApp to programmatically select one or more elements by blockId(s)
   window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId?: string; blockIds?: string[] }>) => {
     const ids = e.detail.blockIds?.length ? e.detail.blockIds : (e.detail.blockId ? [e.detail.blockId] : []);
-    if (ids.length === 0) return;
+    if (ids.length === 0) {
+      clearHover();
+      clearSelection();
+      window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+      return;
+    }
     const els = ids
       .map(id => document.querySelector(`[data-pv-block="${id}"]`) as HTMLElement | null)
       .filter(Boolean) as HTMLElement[];
@@ -1192,6 +1197,13 @@ function init() {
     els.forEach((el, i) => setSelection(el, i > 0));
     notifyInspector(els[els.length - 1], true); // skipSnapshot = true
   }) as EventListener);
+
+  // Allow SketchpadApp to programmatically clear element selection (e.g. when frames are marquee-selected)
+  window.addEventListener('pv-clear-selection', () => {
+    clearHover();
+    clearSelection();
+    window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+  });
 }
 
 if (document.readyState === 'loading') {
