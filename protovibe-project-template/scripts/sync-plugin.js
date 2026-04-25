@@ -25,6 +25,7 @@ function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     if (EXCLUDE.has(entry.name)) continue;
+    if (!entry.isDirectory() && entry.name.endsWith('.lock')) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
@@ -39,6 +40,7 @@ function cleanDir(src, dest) {
   if (!fs.existsSync(dest)) return;
   for (const entry of fs.readdirSync(dest, { withFileTypes: true })) {
     if (EXCLUDE.has(entry.name)) continue;
+    if (!entry.isDirectory() && entry.name.endsWith('.lock')) continue;
     const destPath = path.join(dest, entry.name);
     const srcPath = path.join(src, entry.name);
     if (entry.isDirectory()) {

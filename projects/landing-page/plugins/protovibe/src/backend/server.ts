@@ -5,6 +5,11 @@ import crypto from 'crypto';
 import { spawn } from 'child_process';
 import { Connect } from 'vite';
 import * as babel from '@babel/core';
+// Import babel plugins as modules so they resolve from the plugin's own
+// node_modules instead of being resolved by string at Babel's runtime
+// (which would look relative to the user's source files and fail).
+import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
+import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
 import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
@@ -299,7 +304,7 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
 
       const ast = babel.parseSync(fileContent, {
         filename: absolutePath,
-        plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+        plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
       });
 
       let classNameStr = null;
@@ -489,7 +494,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
         try {
           const freshAst = babel.parseSync(originalContent, {
             filename: absolutePath,
-            plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+            plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
           });
           if (!freshAst) throw new Error('parse returned null');
           const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
@@ -684,7 +689,7 @@ export const handleGetZones: Connect.NextHandleFunction = (req, res) => {
       if (startLine != null && startCol != null) {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,
-          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+          plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
         });
 
         const zones: any[] = [];
@@ -1103,7 +1108,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       if (elementType === 'component' || (elementType === 'paste' && pastedImports.length > 0)) {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,
-          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+          plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
         });
 
         const existingNames = new Set<string>();
@@ -1469,7 +1474,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockId, blockIds, action, text } = JSON.parse(body || '{}');
+      const { file, blockId, blockIds, action, text, startLine, nameEnd } = JSON.parse(body || '{}');
       const targetIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
@@ -1495,7 +1500,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
           try {
             const fileAst = babel.parseSync(fileContent, {
               filename: absolutePath,
-              plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+              plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
             });
             if (!fileAst) throw new Error('Failed to parse file AST');
             babel.traverse(fileAst, {
@@ -1520,7 +1525,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             try {
               const blockAst = babel.parseSync(`<>${block}</>`, {
                 filename: 'temp.tsx',
-                plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+                plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
               });
               if (!blockAst) continue;
               babel.traverse(blockAst, {
@@ -1712,7 +1717,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
       else if (action === 'edit-text') {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,
-          plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+          plugins: [babelPluginSyntaxJsx, [babelPluginSyntaxTypeScript, { isTSX: true }]]
         });
 
         let targetNode: any = null;
@@ -1730,6 +1735,30 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           }
         });
+
+        if (!targetNode && startLine) {
+          const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
+          const candidates: Array<{ node: any; nameEndCol: number }> = [];
+
+          babel.traverse(ast, {
+            JSXOpeningElement(p) {
+              if (p.node.loc?.start.line !== Number(startLine)) return;
+              const nameNode = p.node.name;
+              if (!nameNode?.loc) return;
+              candidates.push({
+                node: p.parentPath.node,
+                nameEndCol: nameNode.loc.end.column,
+              });
+            },
+          });
+
+          if (candidates.length > 0) {
+            candidates.sort((a, b) =>
+              Math.abs(a.nameEndCol - hintCol) - Math.abs(b.nameEndCol - hintCol)
+            );
+            targetNode = candidates[0].node;
+          }
+        }
 
         if (targetNode) {
           const opening = targetNode.openingElement;

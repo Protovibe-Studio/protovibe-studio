@@ -2,6 +2,11 @@
 import path from 'path';
 import { Plugin } from 'vite';
 import * as babel from '@babel/core';
+// Import babel plugins as modules so they resolve from the plugin's own
+// node_modules instead of being resolved by string at Babel's runtime
+// (which would look relative to the user's source files and fail).
+import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
+import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
 import { locatorMap } from '../shared/state';
 
 export function jsxLocatorPlugin(): Plugin {
@@ -26,8 +31,8 @@ export function jsxLocatorPlugin(): Plugin {
         filename: id,
         sourceMaps: true,
         plugins: [
-          '@babel/plugin-syntax-jsx',
-          ['@babel/plugin-syntax-typescript', { isTSX: true }],
+          babelPluginSyntaxJsx,
+          [babelPluginSyntaxTypeScript, { isTSX: true }],
           function injectSourceLocation({ types: t }) {
             return {
               visitor: {

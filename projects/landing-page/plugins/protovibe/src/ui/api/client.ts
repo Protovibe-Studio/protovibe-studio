@@ -28,10 +28,14 @@ export async function fetchComponents() {
   return await res.json();
 }
 
-export async function blockAction(action: string, blockId: string | string[], file: string, text?: string) {
-  const payload = Array.isArray(blockId) 
+export async function blockAction(action: string, blockId: string | string[], file: string, text?: string, locInfo?: { startLine?: number; nameEnd?: number[] }) {
+  const payload = Array.isArray(blockId)
     ? { action, blockIds: blockId, file, text }
     : { action, blockId, file, text };
+  if (locInfo) {
+    payload.startLine = locInfo.startLine;
+    payload.nameEnd = locInfo.nameEnd;
+  }
   const res = await fetch('/__block-action', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

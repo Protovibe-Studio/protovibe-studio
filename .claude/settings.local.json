@@ -14,7 +14,8 @@
       "Bash(git commit -m ' *)",
       "Bash(git checkout *)",
       "Bash(git stash *)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(pnpm dev *)"
     ]
   }
 }

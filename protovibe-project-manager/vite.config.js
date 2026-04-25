@@ -23,7 +23,15 @@ const processes = new Map() // id → { proc, logs: [], port: null, status }
 
 function readProjects() {
   try {
-    return JSON.parse(fs.readFileSync(PROJECTS_JSON, 'utf-8'))
+    const list = JSON.parse(fs.readFileSync(PROJECTS_JSON, 'utf-8'))
+    // Stored paths are relative to PROJECTS_DIR. Resolve them to absolute for
+    // internal use. Absolute paths are also accepted for backward compatibility.
+    return list.map((p) => ({
+      ...p,
+      path: path.isAbsolute(p.path)
+        ? p.path
+        : path.resolve(PROJECTS_DIR, p.path),
+    }))
   } catch {
     return []
   }
@@ -31,7 +39,13 @@ function readProjects() {
 
 function writeProjects(list) {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true })
-  const stripped = list.map(({ id, path, createdAt }) => ({ id, path, createdAt }))
+  // Always persist paths as relative to PROJECTS_DIR so the file is portable
+  // across machines regardless of where the repo is cloned.
+  const stripped = list.map(({ id, path: absPath, createdAt }) => ({
+    id,
+    path: path.relative(PROJECTS_DIR, absPath),
+    createdAt,
+  }))
   fs.writeFileSync(PROJECTS_JSON, JSON.stringify(stripped, null, 2), 'utf-8')
 }
 

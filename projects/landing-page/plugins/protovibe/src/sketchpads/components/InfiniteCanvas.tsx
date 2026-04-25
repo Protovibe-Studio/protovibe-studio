@@ -134,7 +134,7 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (e.button === 1 || (e.button === 0 && spaceHeld) || (e.button === 0 && isBackgroundTarget(e.target))) {
+      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = {
@@ -180,6 +180,7 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
   return (
     <div
       ref={containerRef}
+      data-sketchpad-canvas=""
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -189,7 +190,7 @@ containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'move',
+        cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'default',
         backgroundColor: 'oklch(0.32 0 0)',
         touchAction: 'none',
       }}
