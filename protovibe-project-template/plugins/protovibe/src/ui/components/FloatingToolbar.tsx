@@ -167,7 +167,9 @@ export const FloatingToolbar: React.FC = () => {
     if (addMode === 'child' && !selectedZone) return;
 
     const zone = addMode === 'child' ? zones.find(z => z.id === selectedZone) : undefined;
-    const targetLayoutMode = currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
+    const targetLayoutMode = addMode === 'after'
+      ? (currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || 'flow')
+      : (currentBaseTarget?.getAttribute('data-layout-mode') || 'flow');
 
     const res = await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!);
