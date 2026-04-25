@@ -1,0 +1,130 @@
+{
+  "sketchpads": [
+    {
+      "id": "sketchpad-1",
+      "name": "Sketchpad 1",
+      "createdAt": "2026-04-08T06:27:12.445Z",
+      "frames": [
+        {
+          "id": "frame-frame-1",
+          "name": "generate-file-intro",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 2688,
+          "canvasY": 1040
+        },
+        {
+          "id": "frame-generate-file-intro-copy",
+          "name": "generate-file-form",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 4279,
+          "canvasY": 1051
+        },
+        {
+          "id": "frame-generate-file-intro-copy-2",
+          "name": "generate-file-loading",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5955,
+          "canvasY": 1043
+        },
+        {
+          "id": "frame-generate-file-intro-copy-3",
+          "name": "generate-file-done",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 7553,
+          "canvasY": 1042
+        },
+        {
+          "id": "frame-generate-file-intro-copy-4",
+          "name": "import-file-intro",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 2660,
+          "canvasY": 2519
+        },
+        {
+          "id": "frame-generate-file-form-copy",
+          "name": "import-file-form",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 4295,
+          "canvasY": 2523
+        },
+        {
+          "id": "frame-generate-file-loading-copy",
+          "name": "import-importing-in-progress",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 7625,
+          "canvasY": 2514
+        },
+        {
+          "id": "frame-pkowi1",
+          "name": "import-file-form-file-uploaded",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5934,
+          "canvasY": 2520
+        },
+        {
+          "id": "frame-m2o15i",
+          "name": "import-review-skills",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9241,
+          "canvasY": 2517
+        },
+        {
+          "id": "frame-sxq9ea",
+          "name": "import-importing",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 10834,
+          "canvasY": 2524
+        },
+        {
+          "id": "frame-kgnokg",
+          "name": "import-done",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 12465,
+          "canvasY": 2528
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "name": "Test",
+      "createdAt": "2026-04-22T12:37:36.796Z",
+      "frames": [
+        {
+          "id": "frame-wtstj8",
+          "name": "Frame 1",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 6542,
+          "canvasY": 1624
+        },
+        {
+          "id": "frame-h6syak",
+          "name": "Frame 2",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 8162,
+          "canvasY": 1628
+        },
+        {
+          "id": "frame-jcveqt",
+          "name": "Frame 3",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 6563,
+          "canvasY": 2706
+        }
+      ]
+    }
+  ]
+}

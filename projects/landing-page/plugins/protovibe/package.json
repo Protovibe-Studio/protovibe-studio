@@ -1,0 +1,41 @@
+{
+  "name": "vite-plugin-protovibe",
+  "version": "1.0.0",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "concurrently \"pnpm run watch:node\" \"pnpm run watch:ui\"",
+    "build": "tsup src/index.ts --format esm --dts && esbuild src/ui/inspector.tsx --bundle --minify --outfile=dist/ui/inspector.js && esbuild src/ui/bridge.ts --bundle --minify --outfile=dist/ui/bridge.js && esbuild src/ui/sketchpad-bridge.ts --bundle --minify --outfile=dist/ui/sketchpad-bridge.js",
+    "watch:node": "tsup src/index.ts --format esm --dts --watch",
+    "watch:ui": "node scripts/watch-ui.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/plugin-syntax-jsx": "^7.20.0",
+    "@babel/plugin-syntax-typescript": "^7.20.0"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "concurrently": "^8.2.0",
+    "esbuild": "^0.20.0",
+    "lucide-react": "^0.577.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.0.0"
+  }
+}

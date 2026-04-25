@@ -1,0 +1,15 @@
+// plugins/protovibe/shared.ts
+export const locatorMap = new Map<string, any>();
+
+export const undoStack: {
+  files: { file: string; content: string }[];
+  activeId: string;
+  currentURLQueryString?: string;
+}[] = [];
+export const clipboard = { data: null as { file: string; blocks: string[]; imports: Array<{ name: string; path: string; isDefault: boolean }> } | null };
+
+export const redoStack: {
+  files: { file: string; content: string }[];
+  activeId: string;
+  currentURLQueryString?: string;
+}[] = [];
