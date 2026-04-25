@@ -115,7 +115,16 @@ export function SketchpadApp() {
   const [sketchpads, setSketchpads] = useState<Sketchpad[]>([]);
   const [activeSketchpadId, setActiveSketchpadId] = useState<string>('');
   const [transform, setTransform] = useState<CanvasTransform>(INITIAL_TRANSFORM);
-  const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
+  const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
+  const selectedFrameId = selectedFrameIds[selectedFrameIds.length - 1] ?? null;
+  const handleFrameSelect = useCallback((frameId: string | null, additive?: boolean) => {
+    setSelectedFrameIds((prev) => {
+      if (frameId === null) return [];
+      if (!additive) return [frameId];
+      if (prev.includes(frameId)) return prev.filter((id) => id !== frameId);
+      return [...prev, frameId];
+    });
+  }, []);
   const [showSketchpadPanel, setShowSketchpadPanel] = useState(false);
   const [dragComp, setDragComp] = useState<ComponentEntry | null>(null);
 
@@ -353,7 +362,7 @@ export function SketchpadApp() {
               : s,
           ),
         );
-        setSelectedFrameId(frame.id);
+        setSelectedFrameIds([frame.id]);
         await loadFrameModule(activeSketchpadId, frame.id);
       });
     },
@@ -386,7 +395,7 @@ export function SketchpadApp() {
                 : s,
             ),
           );
-          setSelectedFrameId(result.frame.id);
+          setSelectedFrameIds([result.frame.id]);
         }
       });
     },
@@ -410,10 +419,10 @@ export function SketchpadApp() {
           delete next[frameId];
           return next;
         });
-        if (selectedFrameId === frameId) setSelectedFrameId(null);
+        setSelectedFrameIds((prev) => prev.filter((id) => id !== frameId));
       });
     },
-    [activeSketchpadId, selectedFrameId, runLockedMutation],
+    [activeSketchpadId, runLockedMutation],
   );
 
   const handleRenameFrame = useCallback(
@@ -470,6 +479,93 @@ export function SketchpadApp() {
       if (activeSketchpadId) {
         runLockedMutation(() => api.updateFramePosition(activeSketchpadId, frameId, Math.round(x), Math.round(y)));
       }
+    },
+    [activeSketchpadId, runLockedMutation],
+  );
+
+  const handleMoveFramesMulti = useCallback(
+    (updates: Array<{ frameId: string; x: number; y: number }>) => {
+      setSketchpads((prev) =>
+        prev.map((s) =>
+          s.id === activeSketchpadId
+            ? {
+                ...s,
+                frames: s.frames.map((f) => {
+                  const u = updates.find((u) => u.frameId === f.id);
+                  return u ? { ...f, canvasX: u.x, canvasY: u.y } : f;
+                }),
+              }
+            : s,
+        ),
+      );
+    },
+    [activeSketchpadId],
+  );
+
+  const handleMoveFramesMultiEnd = useCallback(
+    (updates: Array<{ frameId: string; x: number; y: number }>) => {
+      if (!activeSketchpadId || updates.length === 0) return;
+      runLockedMutation(() =>
+        api.updateFramePositionMulti(
+          activeSketchpadId,
+          updates.map((u) => ({ frameId: u.frameId, canvasX: Math.round(u.x), canvasY: Math.round(u.y) })),
+        ),
+      );
+    },
+    [activeSketchpadId, runLockedMutation],
+  );
+
+  const handleDuplicateFramesMulti = useCallback(
+    async (entries: Array<{ frameId: string; canvasX: number; canvasY: number }>) => {
+      if (!activeSketchpadId || entries.length === 0) return;
+      await runLockedMutation(async () => {
+        const newFrames: SketchpadFrame[] = [];
+        for (const entry of entries) {
+          const result = await api.duplicateFrame(
+            activeSketchpadId,
+            entry.frameId,
+            Math.round(entry.canvasX),
+            Math.round(entry.canvasY),
+          );
+          if (result?.ok) {
+            await loadFrameModule(activeSketchpadId, result.frame.id);
+            newFrames.push(result.frame);
+          }
+        }
+        if (newFrames.length > 0) {
+          setSketchpads((prev) =>
+            prev.map((s) =>
+              s.id === activeSketchpadId ? { ...s, frames: [...s.frames, ...newFrames] } : s,
+            ),
+          );
+          setSelectedFrameIds(newFrames.map((f) => f.id));
+        }
+      });
+    },
+    [activeSketchpadId, loadFrameModule, runLockedMutation],
+  );
+
+  const handleDeleteFramesMulti = useCallback(
+    async (frameIds: string[]) => {
+      if (!activeSketchpadId || frameIds.length === 0) return;
+      await runLockedMutation(async () => {
+        for (const frameId of frameIds) {
+          await api.deleteFrame(activeSketchpadId, frameId);
+        }
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId
+              ? { ...s, frames: s.frames.filter((f) => !frameIds.includes(f.id)) }
+              : s,
+          ),
+        );
+        setFrameModules((prev) => {
+          const next = { ...prev };
+          for (const id of frameIds) delete next[id];
+          return next;
+        });
+        setSelectedFrameIds((prev) => prev.filter((id) => !frameIds.includes(id)));
+      });
     },
     [activeSketchpadId, runLockedMutation],
   );
@@ -584,7 +680,7 @@ export function SketchpadApp() {
         reloadRegistry();
       }
       if (e.data?.type === 'PV_SET_SELECTION' && e.data.runtimeIds && e.data.runtimeIds.length > 0) {
-        setSelectedFrameId(null);
+        setSelectedFrameIds([]);
       }
       if (e.data?.type === 'PV_SKETCHPAD_ZOOM') {
         const code: string = e.data.code;
@@ -624,15 +720,15 @@ export function SketchpadApp() {
         return;
       }
 
-      // Delete selected frame via keyboard
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrameId) {
-        handleDeleteFrame(selectedFrameId);
+      // Delete selected frame(s) via keyboard
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFrameIds.length > 0) {
+        handleDeleteFramesMulti(selectedFrameIds);
         return;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [selectedFrameId, handleDeleteFrame, pendingAction, zoomToCenter, zoomByFactor]);
+  }, [selectedFrameIds, handleDeleteFramesMulti, pendingAction, zoomToCenter, zoomByFactor]);
 
   // Context-aware drop — resolves target zone (frame root or nested editable zone), then cut/paste.
   useEffect(() => {
@@ -793,14 +889,19 @@ export function SketchpadApp() {
             canvasX={frame.canvasX}
             canvasY={frame.canvasY}
             zoom={transform.zoom}
-            isSelected={selectedFrameId === frame.id}
+            isSelected={selectedFrameIds.includes(frame.id)}
+            selectedFrameIds={selectedFrameIds}
             onMove={handleMoveFrame}
             onMoveEnd={handleMoveFrameEnd}
+            onMoveMulti={handleMoveFramesMulti}
+            onMoveMultiEnd={handleMoveFramesMultiEnd}
             onResize={handleResizeFrame}
             onResizeEnd={handleResizeFrameEnd}
-            onSelect={setSelectedFrameId}
+            onSelect={handleFrameSelect}
             onDuplicate={handleDuplicateFrame}
+            onDuplicateMulti={handleDuplicateFramesMulti}
             onDelete={handleDeleteFrame}
+            onDeleteMulti={handleDeleteFramesMulti}
             onRename={handleRenameFrame}
           >
             {/* Render frame module — components come from the frame .tsx file */}
@@ -885,7 +986,7 @@ export function SketchpadApp() {
                 const relX = canvasX - targetFrame.canvasX;
                 const relY = canvasY - targetFrame.canvasY;
                 handleAddComponent(pendingAction.comp, targetFrame.id, relX, relY);
-                setSelectedFrameId(targetFrame.id);
+                setSelectedFrameIds([targetFrame.id]);
                 setPendingAction(null);
               }
             }}
@@ -1197,7 +1298,7 @@ export function SketchpadApp() {
         onSelect={(id) => {
           setActiveSketchpadId(id);
           setShowSketchpadPanel(false);
-          setSelectedFrameId(null);
+          setSelectedFrameIds([]);
           const sp = sketchpads.find((s) => s.id === id);
           if (sp) loadAllFrameModules(id, sp.frames);
         }}

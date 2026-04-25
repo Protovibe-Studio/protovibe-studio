@@ -71,6 +71,13 @@ export async function updateFramePosition(
   await post('/__frame-update-position', { sketchpadId, frameId, canvasX, canvasY });
 }
 
+export async function updateFramePositionMulti(
+  sketchpadId: string,
+  frames: Array<{ frameId: string; canvasX: number; canvasY: number }>,
+): Promise<void> {
+  await post('/__frame-update-position-multi', { sketchpadId, frames });
+}
+
 export async function updateElementPosition(
   sketchpadId: string,
   frameId: string,

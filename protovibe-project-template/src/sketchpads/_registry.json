@@ -113,16 +113,16 @@
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 8162,
-          "canvasY": 1628
+          "canvasX": 8164,
+          "canvasY": 1630
         },
         {
           "id": "frame-jcveqt",
           "name": "Frame 3",
           "width": 1440,
           "height": 900,
-          "canvasX": 6563,
-          "canvasY": 2706
+          "canvasX": 9828,
+          "canvasY": 1590
         }
       ]
     }

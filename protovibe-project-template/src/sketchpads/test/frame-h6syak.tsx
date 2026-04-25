@@ -88,7 +88,7 @@ export default function Frame2() {
         {/* pv-block-end:2n40cz */}
         
         {/* pv-block-start:fyu1og */}
-        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 133, top: 462 }}>
+        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 220, top: 446 }}>
           {/* pv-editable-zone-start:d3pro3 */}
             {/* pv-block-start:4xupvu */}
             <RadioGroup data-pv-block="4xupvu"  orientation="vertical" value="opt1" >

@@ -552,6 +552,32 @@ export const handleFrameUpdatePosition: Connect.NextHandleFunction = async (req,
   }
 };
 
+export const handleFrameUpdatePositionMulti: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frames } = await parseBody(req);
+    if (!sketchpadId || !Array.isArray(frames) || frames.length === 0)
+      return sendError(res, 'sketchpadId and non-empty frames array required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json');
+    for (const update of frames) {
+      const { frameId, canvasX, canvasY } = update;
+      const frame = sp.frames.find((f) => f.id === frameId);
+      if (!frame) continue;
+      if (canvasX !== undefined) frame.canvasX = canvasX;
+      if (canvasY !== undefined) frame.canvasY = canvasY;
+    }
+    writeRegistry(reg);
+
+    sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
 export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { sketchpadId, frameId, blockId, x, y, activeSourceId } = await parseBody(req);

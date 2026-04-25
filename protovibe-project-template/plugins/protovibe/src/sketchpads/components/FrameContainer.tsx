@@ -12,14 +12,19 @@ interface FrameContainerProps {
   canvasY: number;
   zoom: number;
   isSelected: boolean;
+  selectedFrameIds: string[];
   children: React.ReactNode;
   onMove: (frameId: string, x: number, y: number) => void;
   onMoveEnd: (frameId: string, x: number, y: number) => void;
+  onMoveMulti: (updates: Array<{ frameId: string; x: number; y: number }>) => void;
+  onMoveMultiEnd: (updates: Array<{ frameId: string; x: number; y: number }>) => void;
   onResize: (frameId: string, w: number, h: number) => void;
   onResizeEnd: (frameId: string, w: number, h: number) => void;
-  onSelect: (frameId: string | null) => void;
+  onSelect: (frameId: string | null, additive?: boolean) => void;
   onDuplicate: (frameId: string, canvasX: number, canvasY: number) => void;
+  onDuplicateMulti: (entries: Array<{ frameId: string; canvasX: number; canvasY: number }>) => void;
   onDelete: (frameId: string) => void;
+  onDeleteMulti: (frameIds: string[]) => void;
   onRename: (frameId: string) => void;
 }
 
@@ -35,14 +40,19 @@ export function FrameContainer({
   canvasY,
   zoom,
   isSelected,
+  selectedFrameIds,
   children,
   onMove,
   onMoveEnd,
+  onMoveMulti,
+  onMoveMultiEnd,
   onResize,
   onResizeEnd,
   onDuplicate,
+  onDuplicateMulti,
   onSelect,
   onDelete,
+  onDeleteMulti,
   onRename,
 }: FrameContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -51,6 +61,7 @@ export function FrameContainer({
   const [isResizing, setIsResizing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, frameX: 0, frameY: 0 });
+  const groupDragRef = useRef<Array<{ id: string; el: HTMLElement; startX: number; startY: number }>>([]);
   const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const frameRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -70,16 +81,43 @@ export function FrameContainer({
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
       e.stopPropagation();
+      const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+      const isAlreadySelected = selectedFrameIds.includes(frameId);
+      // Selection rule: if shift/cmd, toggle. If clicking an already-selected frame in a
+      // multi-selection without modifier, keep the group (so the user can drag the whole
+      // group with a plain click). Otherwise replace selection with this single frame.
+      if (additive) {
+        onSelect(frameId, true);
+      } else if (!isAlreadySelected) {
+        onSelect(frameId, false);
+      }
+
       isDuplicateDragRef.current = e.altKey;
       setIsAltDragging(e.altKey);
       setIsDragging(true);
       dragStartRef.current = { x: e.clientX, y: e.clientY, frameX: canvasX, frameY: canvasY };
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      onSelect(frameId);
-      // Focus the frame div so keyboard Delete works after clicking title bar
+
+      // Snapshot all sibling frames in the active multi-selection. Skip on additive clicks
+      // (the user is editing the selection, not initiating a drag).
+      if (!additive && isAlreadySelected && selectedFrameIds.length > 1) {
+        const snap: Array<{ id: string; el: HTMLElement; startX: number; startY: number }> = [];
+        for (const id of selectedFrameIds) {
+          if (id === frameId) continue;
+          const el = document.querySelector(`[data-sketchpad-frame-root="${id}"]`) as HTMLElement | null;
+          if (!el) continue;
+          const startX = parseFloat(el.style.left) || 0;
+          const startY = parseFloat(el.style.top) || 0;
+          snap.push({ id, el, startX, startY });
+        }
+        groupDragRef.current = snap;
+      } else {
+        groupDragRef.current = [];
+      }
+
       frameRef.current?.focus({ preventScroll: true });
     },
-    [canvasX, canvasY, frameId, onSelect],
+    [canvasX, canvasY, frameId, onSelect, selectedFrameIds],
   );
 
   const handleTitlePointerMove = useCallback(
@@ -89,6 +127,9 @@ export function FrameContainer({
       const dy = (e.clientY - dragStartRef.current.y) / zoom;
       // GPU-accelerated translation during drag
       frameRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+      for (const sib of groupDragRef.current) {
+        sib.el.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
       // Track alt key state mid-drag (mirrors sketchpad-bridge pattern)
       const altHeld = e.altKey;
       isDuplicateDragRef.current = altHeld;
@@ -110,34 +151,63 @@ export function FrameContainer({
 
         setIsAltDragging(false);
 
+        const siblings = groupDragRef.current;
+        groupDragRef.current = [];
+        const isMulti = siblings.length > 0;
+
         if (isDuplicateDragRef.current) {
-          // Alt+drag: restore source frame to its original position, create duplicate at drop position
+          // Alt+drag: restore source frame(s) to original position, create duplicates at drop offset
           isDuplicateDragRef.current = false;
           if (frameRef.current) {
             frameRef.current.style.transform = '';
             frameRef.current.style.left = `${dragStartRef.current.frameX}px`;
             frameRef.current.style.top = `${dragStartRef.current.frameY}px`;
           }
-          onMove(frameId, dragStartRef.current.frameX, dragStartRef.current.frameY);
-          onDuplicate(frameId, newX, newY);
+          for (const sib of siblings) {
+            sib.el.style.transform = '';
+            sib.el.style.left = `${sib.startX}px`;
+            sib.el.style.top = `${sib.startY}px`;
+          }
+          if (isMulti) {
+            const entries = [
+              { frameId, canvasX: newX, canvasY: newY },
+              ...siblings.map((s) => ({ frameId: s.id, canvasX: s.startX + dx, canvasY: s.startY + dy })),
+            ];
+            onDuplicateMulti(entries);
+          } else {
+            onMove(frameId, dragStartRef.current.frameX, dragStartRef.current.frameY);
+            onDuplicate(frameId, newX, newY);
+          }
         } else {
           if (frameRef.current) {
-            // Clear the temporary drag transform and immediately set exact left/top to prevent a 1-frame micro-stutter
             frameRef.current.style.transform = '';
             frameRef.current.style.left = `${newX}px`;
             frameRef.current.style.top = `${newY}px`;
           }
+          for (const sib of siblings) {
+            sib.el.style.transform = '';
+            sib.el.style.left = `${sib.startX + dx}px`;
+            sib.el.style.top = `${sib.startY + dy}px`;
+          }
 
-          // Only persist position if the frame actually moved; a plain click has dx=dy=0
-          // and calling onMoveEnd would trigger an unnecessary _registry.json write.
+          // Only persist position if the frame actually moved
           if (dx !== 0 || dy !== 0) {
-            onMove(frameId, newX, newY);
-            onMoveEnd(frameId, newX, newY);
+            if (isMulti) {
+              const updates = [
+                { frameId, x: newX, y: newY },
+                ...siblings.map((s) => ({ frameId: s.id, x: s.startX + dx, y: s.startY + dy })),
+              ];
+              onMoveMulti(updates);
+              onMoveMultiEnd(updates);
+            } else {
+              onMove(frameId, newX, newY);
+              onMoveEnd(frameId, newX, newY);
+            }
           }
         }
       }
     },
-    [isDragging, zoom, frameId, onMove, onMoveEnd, onDuplicate],
+    [isDragging, zoom, frameId, onMove, onMoveEnd, onMoveMulti, onMoveMultiEnd, onDuplicate, onDuplicateMulti],
   );
 
   // Resize handle (bottom-right corner)
@@ -214,11 +284,34 @@ export function FrameContainer({
     [onSelect],
   );
 
+  const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
   const menuItems = [
-    { label: 'Rename', action: () => onRename(frameId) },
-    { label: 'Duplicate', action: () => onDuplicate(frameId, canvasX + 40, canvasY + 40) },
-    { label: 'Delete', action: () => onDelete(frameId) },
-  ];
+    { label: 'Rename', action: () => onRename(frameId), hidden: isInMultiSelection },
+    {
+      label: isInMultiSelection ? `Duplicate ${selectedFrameIds.length} frames` : 'Duplicate',
+      action: () => {
+        if (isInMultiSelection) {
+          onDuplicateMulti(selectedFrameIds.map((id) => {
+            const el = document.querySelector(`[data-sketchpad-frame-root="${id}"]`) as HTMLElement | null;
+            const sx = el ? (parseFloat(el.style.left) || 0) : 0;
+            const sy = el ? (parseFloat(el.style.top) || 0) : 0;
+            return { frameId: id, canvasX: sx + 40, canvasY: sy + 40 };
+          }));
+        } else {
+          onDuplicate(frameId, canvasX + 40, canvasY + 40);
+        }
+      },
+      hidden: false,
+    },
+    {
+      label: isInMultiSelection ? `Delete ${selectedFrameIds.length} frames` : 'Delete',
+      action: () => {
+        if (isInMultiSelection) onDeleteMulti(selectedFrameIds);
+        else onDelete(frameId);
+      },
+      hidden: false,
+    },
+  ].filter((m) => !m.hidden);
 
   return (
     <>
@@ -283,6 +376,7 @@ export function FrameContainer({
       <div
         ref={frameRef}
         tabIndex={-1}
+        data-sketchpad-frame-root={frameId}
         style={{
           position: 'absolute',
           left: canvasX,
