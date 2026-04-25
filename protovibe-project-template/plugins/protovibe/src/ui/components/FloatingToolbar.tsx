@@ -190,7 +190,8 @@ export const FloatingToolbar: React.FC = () => {
       });
     });
     setAddMode(null);
-    if (res?.blockId) focusNewBlock(res.blockId, { maxAttempts: 20 });
+    const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+    if (focusIds.length > 0) focusNewBlock(focusIds, { maxAttempts: 20 });
   };
 
   const locked = isMutationLocked;

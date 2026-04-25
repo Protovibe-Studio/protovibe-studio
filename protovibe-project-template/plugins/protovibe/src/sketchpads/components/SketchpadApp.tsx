@@ -99,7 +99,8 @@ type SketchpadDropDetail = {
   sketchpadId: string;
   sourceFrameId: string;
   targetFrameId: string;
-  draggedBlockId: string;
+  draggedBlockId: string; // legacy fallback
+  draggedBlockIds: string[];
   targetLocatorId?: string | null;
   targetBlockId?: string | null;
   isFrameTarget: boolean;
@@ -503,13 +504,15 @@ export function SketchpadApp() {
   // Element interactions — components are rendered from frame .tsx modules.
   // When an element is added, the backend writes to the frame file and we re-import the module.
   // After adding an element, poll for it in the DOM and select it via the bridge
-  const focusNewBlock = useCallback(async (blockId: string) => {
+  const focusNewBlock = useCallback(async (blockId: string | string[]) => {
     const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+    const ids = Array.isArray(blockId) ? blockId : [blockId];
+    if (ids.length === 0) return;
     const maxAttempts = 20;
     for (let attempts = 0; attempts < maxAttempts; attempts++) {
-      const el = document.querySelector(`[data-pv-block="${blockId}"]`);
-      if (el) {
-        window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+      const allFound = ids.every(id => !!document.querySelector(`[data-pv-block="${id}"]`));
+      if (allFound) {
+        window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockIds: ids } }));
         return;
       }
       await wait(50);
@@ -641,7 +644,7 @@ export function SketchpadApp() {
         sketchpadId,
         sourceFrameId,
         targetFrameId,
-        draggedBlockId,
+        draggedBlockIds,
         targetLocatorId,
         isFrameTarget,
         targetLayoutMode,
@@ -651,17 +654,17 @@ export function SketchpadApp() {
         activeSourceId,
       } = data;
 
-      if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockId) return;
+      if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockIds?.length) return;
 
       const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
-        const fallbackTargetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
+      const fallbackTargetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
 
       try {
         await runLockedMutation(async () => {
-            // 1. Copy the element first
-          await blockAction('copy', draggedBlockId, sourceFile);
+            // 1. Copy the elements first
+            await blockAction('copy', draggedBlockIds, sourceFile);
 
-            // 2. Fetch the target fresh so zone IDs and line numbers are current.
+            // 2. Resolve target
             let currentTargetFile = fallbackTargetFile;
             let currentTargetZoneId = 'target-zone-placeholder';
             let currentTargetIsPristine = false;
@@ -675,27 +678,18 @@ export function SketchpadApp() {
                 }));
                 return;
               }
-
               try {
                 const sourceInfo = await fetchSourceInfo(targetLocatorId);
                 currentTargetFile = sourceInfo.file;
                 currentTargetStartLine = sourceInfo.startLine;
                 currentTargetEndLine = sourceInfo.endLine;
-
-                const zonesData = await fetchZones(
-                  sourceInfo.file,
-                  sourceInfo.startLine,
-                  sourceInfo.startCol,
-                  sourceInfo.endLine,
-                );
-
-                if (!zonesData?.zones || zonesData.zones.length === 0) {
+                const zonesData = await fetchZones(sourceInfo.file, sourceInfo.startLine, sourceInfo.startCol, sourceInfo.endLine);
+                if (!zonesData?.zones?.length) {
                   window.dispatchEvent(new CustomEvent('pv-toast', {
                     detail: { message: 'Cannot drop here - no editable zone', variant: 'error' },
                   }));
                   return;
                 }
-
                 currentTargetZoneId = zonesData.zones[0].id;
                 currentTargetIsPristine = zonesData.zones[0].isPristine;
               } catch (err) {
@@ -710,7 +704,7 @@ export function SketchpadApp() {
             const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
             await takeSnapshot(sourceFile, activeSourceId || '', extraFiles);
 
-            // 3. Paste into the freshly fetched target
+            // 3. Paste
             const res = await addBlock({
               file: currentTargetFile,
               zoneId: currentTargetZoneId,
@@ -723,14 +717,13 @@ export function SketchpadApp() {
               targetEndLine: currentTargetEndLine,
             });
 
-            // 4. Delete the original block (if not duplicating)
+            // 4. Delete originals (single bulk call to avoid N HMR cycles)
             if (!isDuplicate) {
-              await blockAction('delete', draggedBlockId, sourceFile);
+              await blockAction('delete', draggedBlockIds, sourceFile);
             }
 
-            if (res?.blockId) {
-              await focusNewBlock(res.blockId);
-            }
+            const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+            if (focusIds.length > 0) await focusNewBlock(focusIds);
         });
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);

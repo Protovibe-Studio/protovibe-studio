@@ -147,14 +147,18 @@ export function useKeyboardShortcuts() {
       const key = e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'v' || key === 'd')) {
         e.preventDefault();
-        const closestBlock = currentBaseTarget.closest('[data-pv-block]');
-        const blockId = closestBlock?.getAttribute('data-pv-block');
+        const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+        const blockIds = [...new Set(
+          targets
+            .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+            .filter(Boolean) as string[]
+        )];
         const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
 
         if (!activeData?.file) return;
 
         if (key === 'c' || key === 'x' || key === 'd') {
-          if (!blockId || !isBlockInCurrentFile) {
+          if (blockIds.length === 0 || !isBlockInCurrentFile) {
             emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
             return;
           }
@@ -163,7 +167,7 @@ export function useKeyboardShortcuts() {
             await runLockedMutation(async () => {
               await executeClipboardBlockAction({
                 action: 'duplicate',
-                blockId,
+                blockId: blockIds,
                 file: activeData.file,
                 activeSourceId: activeSourceId!,
                 focusElement,
@@ -178,7 +182,7 @@ export function useKeyboardShortcuts() {
             await runLockedMutation(async () => {
               await executeClipboardBlockAction({
                 action: 'cut',
-                blockId,
+                blockId: blockIds,
                 file: activeData.file,
                 activeSourceId: activeSourceId!,
                 focusElement,
@@ -191,7 +195,7 @@ export function useKeyboardShortcuts() {
             await runLockedMutation(async () => {
               await executeClipboardBlockAction({
                 action,
-                blockId,
+                blockId: blockIds,
                 file: activeData.file,
                 activeSourceId: activeSourceId!,
                 focusElement,
@@ -205,8 +209,9 @@ export function useKeyboardShortcuts() {
 
         if (key === 'v') {
           const isPasteAfter = e.shiftKey;
+          const targetBlockId = blockIds[0];
 
-          if (isPasteAfter && (!blockId || !isBlockInCurrentFile)) {
+          if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
             emitToast({ message: "Can't paste after this element", variant: 'error' });
             return;
           }
@@ -231,7 +236,7 @@ export function useKeyboardShortcuts() {
             const res = await addBlock({
               file: activeData.file,
               zoneId: isPasteAfter ? undefined : targetZone.id,
-              afterBlockId: isPasteAfter ? blockId! : undefined,
+              afterBlockId: isPasteAfter ? targetBlockId! : undefined,
               isPristine: isPasteAfter ? false : targetZone.isPristine,
               elementType: 'paste',
               targetStartLine: activeData.startLine,
@@ -241,9 +246,10 @@ export function useKeyboardShortcuts() {
               pasteY: 100,
             });
 
-            if (res.blockId) {
+            const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+            if (focusIds.length > 0) {
               emitToast({ message: 'Pasted successfully', variant: 'info' });
-              focusNewBlock(res.blockId);
+              focusNewBlock(focusIds);
             }
           }).catch((err: any) => {
             emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });

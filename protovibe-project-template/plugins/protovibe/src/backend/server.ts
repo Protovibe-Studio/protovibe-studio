@@ -971,19 +971,29 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       // 1. Handle component imports safely without breaking formatting
       let pastedContent = '';
       let pastedImports: Array<{ name: string; path: string }> = [];
+      let newBlockIds: string[] = [];
 
       if (elementType === 'paste') {
         if (!clipboard.data) {
           throw new Error('Clipboard is empty.');
         }
-        pastedContent = clipboard.data.content;
+        const originalBlocks = clipboard.data.blocks;
+        pastedContent = originalBlocks.join('\n');
         pastedImports = clipboard.data.imports || [];
 
-        const rootMatch = pastedContent.match(/pv-block-start:([a-zA-Z0-9_-]{6})/);
-        const rootOldId = rootMatch ? rootMatch[1] : null;
+        // Identify top-level IDs
+        const topLevelOldIds = originalBlocks.map(b => {
+          const m = b.match(/pv-block-start:([a-zA-Z0-9_-]{6})/);
+          return m ? m[1] : null;
+        }).filter(Boolean) as string[];
 
         const idMap: Record<string, string> = {};
-        if (rootOldId) idMap[rootOldId] = blockId;
+
+        topLevelOldIds.forEach((oldId, index) => {
+          const newId = index === 0 ? blockId : Math.random().toString(36).substring(2, 8);
+          idMap[oldId] = newId;
+          newBlockIds.push(newId);
+        });
 
         const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
         let match;
@@ -993,58 +1003,98 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           }
         }
 
-        for (const [oldId, newId] of Object.entries(idMap)) {
-          pastedContent = pastedContent.split(oldId).join(newId);
-        }
+        // Apply ID mappings directly to individual blocks to avoid \n\n splitting issues
+        let mappedBlocks = originalBlocks.map(b => {
+          let mapped = b;
+          for (const [oldId, newId] of Object.entries(idMap)) {
+            mapped = mapped.split(oldId).join(newId);
+          }
+          return mapped;
+        });
+
+        pastedContent = mappedBlocks.join('\n');
 
         // Hybrid style transform: add, update, or strip absolute-positioning styles
         if (targetLayoutMode) {
-          const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
-          pastedContent = pastedContent.replace(firstTagRegex, (match, tag, attrs, closing) => {
-            let newAttrs = attrs;
-            const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
-            const hasStyle = styleRegex.test(attrs);
+          let minLeft = Infinity;
+          let minTop = Infinity;
 
-            if (targetLayoutMode === 'flow') {
-              if (hasStyle) {
-                newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                  // Strip absolute positioning and sketchpad-injected dimensions
-                  let cleaned = innerStyles
-                    .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
-                    .trim()
-                    .replace(/,$/, '')
-                    .trim();
-                  return cleaned ? `style={{ ${cleaned} }}` : '';
-                });
+          if (targetLayoutMode === 'absolute') {
+            mappedBlocks.forEach(block => {
+              // Only check the first opening tag of the root block for bounding box
+              const firstTagMatch = block.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/);
+              if (firstTagMatch) {
+                const attrs = firstTagMatch[2];
+                const styleMatch = attrs.match(/style=\{\s*\{([\s\S]*?)\}\s*\}/);
+                if (styleMatch) {
+                  const leftMatch = styleMatch[1].match(/left:\s*(-?[\d.]+)/);
+                  const topMatch = styleMatch[1].match(/top:\s*(-?[\d.]+)/);
+                  if (leftMatch) minLeft = Math.min(minLeft, parseFloat(leftMatch[1]));
+                  if (topMatch) minTop = Math.min(minTop, parseFloat(topMatch[1]));
+                }
               }
-            } else if (targetLayoutMode === 'absolute') {
-              // Ensure dragged marker exists so bridge can drag this block again.
-              if (!newAttrs.includes('data-pv-sketchpad-el')) {
-                newAttrs += ` data-pv-sketchpad-el="${blockId}"`;
+            });
+            if (minLeft === Infinity) minLeft = 100;
+            if (minTop === Infinity) minTop = 100;
+          }
+
+          const deltaX = (pasteX ?? 100) - minLeft;
+          const deltaY = (pasteY ?? 100) - minTop;
+
+          const processedBlocks = mappedBlocks.map(block => {
+            const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
+            
+            // Only replace the very first tag in the block (the root element)
+            return block.replace(firstTagRegex, (match, tag, attrs, closing) => {
+              let newAttrs = attrs;
+              const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
+              const hasStyle = styleRegex.test(attrs);
+
+              if (targetLayoutMode === 'flow') {
+                if (hasStyle) {
+                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                    let cleaned = innerStyles
+                      .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
+                      .trim().replace(/,$/, '').trim();
+                    return cleaned ? `style={{ ${cleaned} }}` : '';
+                  });
+                }
+              } else if (targetLayoutMode === 'absolute') {
+                if (!newAttrs.includes('data-pv-sketchpad-el')) {
+                  const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
+                  if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
+                }
+
+                if (hasStyle) {
+                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+                    let leftVal = pasteX ?? 100;
+                    let topVal = pasteY ?? 100;
+                    
+                    const leftMatch = innerStyles.match(/left:\s*(-?[\d.]+)/);
+                    const topMatch = innerStyles.match(/top:\s*(-?[\d.]+)/);
+                    
+                    if (leftMatch) leftVal = parseFloat(leftMatch[1]) + deltaX;
+                    if (topMatch) topVal = parseFloat(topMatch[1]) + deltaY;
+
+                    let cleaned = innerStyles
+                      .replace(/(?:position|left|top)\s*:\s*[^,}]*,?/g, '')
+                      .trim().replace(/,$/, '').trim();
+                    
+                    const separator = cleaned ? ', ' : '';
+                    return `style={{ position: 'absolute', left: ${Math.round(leftVal)}, top: ${Math.round(topVal)}${separator}${cleaned} }}`;
+                  });
+                } else {
+                  newAttrs = `${newAttrs} style={{ position: 'absolute', left: ${Math.round(pasteX ?? 100)}, top: ${Math.round(pasteY ?? 100)} }}`;
+                }
               }
 
-              const absStyles = `position: 'absolute', left: ${pasteX}, top: ${pasteY}`;
-              if (hasStyle) {
-                newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                  // Clear old position keys, preserve remaining style entries.
-                  let cleaned = innerStyles
-                    .replace(/(?:position|left|top)\s*:\s*[^,}]*,?/g, '')
-                    .trim()
-                    .replace(/,$/, '')
-                    .trim();
-                  const separator = cleaned ? ', ' : '';
-                  return `style={{ ${absStyles}${separator}${cleaned} }}`;
-                });
-              } else {
-                newAttrs = `${newAttrs} style={{ ${absStyles} }}`;
-              }
-            }
-
-            return `${tag}${newAttrs}${closing}`;
+              return `${tag}${newAttrs}${closing}`;
+            });
           });
 
+          pastedContent = processedBlocks.join('\n');
+
           if (targetLayoutMode === 'flow') {
-            // Universally strip sketchpad draggable attribute from the entire pasted block
             pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
           }
         }
@@ -1305,7 +1355,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ success: true, blockId }));
+      res.end(JSON.stringify({ success: true, blockId, newBlockIds: newBlockIds.length > 0 ? newBlockIds : [blockId] }));
     } catch (err) {
       res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
     }
@@ -1395,20 +1445,49 @@ const findEnclosingZoneRange = (content: string, anchorIndex: number): { start: 
   };
 };
 
+// Deduplicate enclosing zones across N anchor positions and run blank-line
+// cleanup once per unique zone, bottom-up so earlier indices stay valid.
+const cleanupZonesAtAnchors = (content: string, anchors: number[]): string => {
+  const seen = new Set<string>();
+  const targets: { start: number; end: number }[] = [];
+  for (const pos of anchors) {
+    const zr = findEnclosingZoneRange(content, pos);
+    const key = zr ? `z:${zr.start}-${zr.end}` : `b:${pos}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    targets.push(zr ?? { start: pos, end: pos + 1 });
+  }
+  targets.sort((a, b) => b.start - a.start);
+  for (const t of targets) {
+    content = cleanupBlankLinesInRange(content, t.start, t.end);
+  }
+  return content;
+};
+
 export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockId, action, text } = JSON.parse(body || '{}');
+      const { file, blockId, blockIds, action, text } = JSON.parse(body || '{}');
+      const targetIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
 
       if (action === 'copy' || action === 'cut') {
-        const extractRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
-        const match = extractRegex.exec(fileContent);
-        if (match) {
-          const rawBlock = match[0];
+        const rawBlocksArr: string[] = [];
+        const matchesToCut: { start: number; end: number }[] = [];
+
+        for (const id of targetIds) {
+          const extractRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${id}\\s*\\*\\/\\}\\n?`);
+          const match = extractRegex.exec(fileContent);
+          if (match) {
+            rawBlocksArr.push(match[0].trimEnd());
+            matchesToCut.push({ start: match.index, end: match.index + match[0].length });
+          }
+        }
+
+        if (rawBlocksArr.length > 0) {
           const usedComponents = new Set<string>();
           const fileImports = new Map<string, { source: string; isDefault: boolean }>();
 
@@ -1435,28 +1514,31 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             console.warn('Protovibe: Failed to parse source file imports', e);
           }
 
-          // 2. Parse the extracted block (wrapped in a fragment) to find used components
-          try {
-            const blockAst = babel.parseSync(`<>${rawBlock}</>`, {
-              filename: 'temp.tsx',
-              plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
-            });
-            if (!blockAst) throw new Error('Failed to parse block AST');
-            babel.traverse(blockAst, {
-              JSXOpeningElement(p) {
-                let compName = '';
-                if (babel.types.isJSXIdentifier(p.node.name)) {
-                  compName = p.node.name.name;
-                } else if (babel.types.isJSXMemberExpression(p.node.name)) {
-                  compName = (p.node.name.object as babel.types.JSXIdentifier).name;
+          // 2. Parse each extracted block independently so a single malformed
+          //    block can't poison import discovery for the rest of the selection.
+          for (const block of rawBlocksArr) {
+            try {
+              const blockAst = babel.parseSync(`<>${block}</>`, {
+                filename: 'temp.tsx',
+                plugins: ['@babel/plugin-syntax-jsx', ['@babel/plugin-syntax-typescript', { isTSX: true }]]
+              });
+              if (!blockAst) continue;
+              babel.traverse(blockAst, {
+                JSXOpeningElement(p) {
+                  let compName = '';
+                  if (babel.types.isJSXIdentifier(p.node.name)) {
+                    compName = p.node.name.name;
+                  } else if (babel.types.isJSXMemberExpression(p.node.name)) {
+                    compName = (p.node.name.object as babel.types.JSXIdentifier).name;
+                  }
+                  if (compName && /^[A-Z]/.test(compName)) {
+                    usedComponents.add(compName);
+                  }
                 }
-                if (compName && /^[A-Z]/.test(compName)) {
-                  usedComponents.add(compName);
-                }
-              }
-            });
-          } catch (e) {
-            console.warn('Protovibe: Failed to parse copied block for imports', e);
+              });
+            } catch (e) {
+              console.warn('Protovibe: Failed to parse copied block for imports', e);
+            }
           }
 
           // 3. Intersect used components with available imports.
@@ -1469,61 +1551,78 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           });
 
-          clipboard.data = { file, content: rawBlock, imports: requiredImports };
+          clipboard.data = { file, blocks: rawBlocksArr, imports: requiredImports };
         }
         if (action === 'copy') {
           res.setHeader('Content-Type', 'application/json');
           return res.end(JSON.stringify({ success: true }));
         }
-        // If cut, we delete it from the file
-        if (match) {
-          const deleteStart = match.index;
-          fileContent = fileContent.replace(extractRegex, "\n");
-          const zoneRange = findEnclosingZoneRange(fileContent, deleteStart);
-          fileContent = zoneRange
-            ? cleanupBlankLinesInRange(fileContent, zoneRange.start, zoneRange.end)
-            : cleanupBlankLinesInRange(fileContent, deleteStart, deleteStart + 1);
+        // If cut, splice all bottom-up first so indices stay valid, then run a
+        // single cleanup pass per unique enclosing zone — running cleanup per
+        // splice would shrink the zone and shift sibling cuts' anchors mid-loop.
+        matchesToCut.sort((a, b) => b.start - a.start);
+        const cutAnchors: number[] = [];
+        for (const match of matchesToCut) {
+          fileContent = fileContent.slice(0, match.start) + "\n" + fileContent.slice(match.end);
+          cutAnchors.push(match.start);
         }
-      } 
+        fileContent = cleanupZonesAtAnchors(fileContent, cutAnchors);
+      }
       else if (action === 'duplicate') {
-        // Group the entire match so we can inject the copy right after it
-        const extractRegex = new RegExp(`(\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?)`);
-        const match = fileContent.match(extractRegex);
+        const matches: { index: number; length: number; content: string }[] = [];
         
-        if (match) {
-          let duplicatedContent = match[1];
-          
-          // Remap all IDs inside the duplicated block
-          const idMap: Record<string, string> = {};
-          const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+        for (const id of targetIds) {
+          const extractRegex = new RegExp(`(\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${id}\\s*\\*\\/\\}\\n?)`);
+          const match = fileContent.match(extractRegex);
+          if (match) {
+            matches.push({ index: match.index!, length: match[0].length, content: match[1] });
+          }
+        }
+
+        // Build ONE shared idMap across all duplicated blocks first, so cross-block
+        // references (e.g., a sibling pointing at another sibling's id) stay linked
+        // in the duplicated copies instead of getting independently re-randomised.
+        const idMap: Record<string, string> = {};
+        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+        for (const match of matches) {
           let idMatch;
-          while ((idMatch = idRegex.exec(duplicatedContent)) !== null) {
+          const r = new RegExp(idRegex.source, 'g');
+          while ((idMatch = r.exec(match.content)) !== null) {
             if (!idMap[idMatch[1]]) {
               idMap[idMatch[1]] = Math.random().toString(36).substring(2, 8);
             }
           }
-          
+        }
+
+        // Process bottom to top so inserting doesn't invalidate earlier string indices
+        matches.sort((a, b) => b.index - a.index);
+
+        for (const match of matches) {
+          let duplicatedContent = match.content;
           for (const [oldId, newId] of Object.entries(idMap)) {
             duplicatedContent = duplicatedContent.split(oldId).join(newId);
           }
-          
           // Inject the duplicated content immediately following the original block
-          fileContent = fileContent.replace(extractRegex, `$1${duplicatedContent}`);
+          fileContent = fileContent.slice(0, match.index + match.length) + duplicatedContent + fileContent.slice(match.index + match.length);
         }
       }
       else if (action === 'delete') {
-        // Includes optional newlines to keep code clean
-        const deleteRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
-        const match = deleteRegex.exec(fileContent);
-        if (match) {
-          const deleteStart = match.index;
-          fileContent = fileContent.replace(deleteRegex, "\n");
-          const zoneRange = findEnclosingZoneRange(fileContent, deleteStart);
-          fileContent = zoneRange
-            ? cleanupBlankLinesInRange(fileContent, zoneRange.start, zoneRange.end)
-            : cleanupBlankLinesInRange(fileContent, deleteStart, deleteStart + 1);
+        // Collect every match against the original file content, splice bottom-up,
+        // then run a single cleanup pass per unique enclosing zone.
+        const deletions: { start: number; end: number }[] = [];
+        for (const id of targetIds) {
+          const deleteRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${id}\\s*\\*\\/\\}\\n?`);
+          const match = deleteRegex.exec(fileContent);
+          if (match) deletions.push({ start: match.index, end: match.index + match[0].length });
         }
-      } 
+        deletions.sort((a, b) => b.start - a.start);
+        const deleteAnchors: number[] = [];
+        for (const d of deletions) {
+          fileContent = fileContent.slice(0, d.start) + "\n" + fileContent.slice(d.end);
+          deleteAnchors.push(d.start);
+        }
+        fileContent = cleanupZonesAtAnchors(fileContent, deleteAnchors);
+      }
       else if (action === 'move-up' || action === 'move-down') {
         // 1. Find all block start and end tags
         const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-block-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;

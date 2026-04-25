@@ -28,15 +28,19 @@ export async function fetchComponents() {
   return await res.json();
 }
 
-export async function blockAction(action: string, blockId: string, file: string, text?: string) {
+export async function blockAction(action: string, blockId: string | string[], file: string, text?: string) {
+  const payload = Array.isArray(blockId) 
+    ? { action, blockIds: blockId, file, text }
+    : { action, blockId, file, text };
   const res = await fetch('/__block-action', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, blockId, file, text }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Failed to perform block action');
   return await res.json();
 }
+
 
 export async function deleteBlocks(file: string, blockIds: string[]) {
   const res = await fetch('/__delete-blocks', {

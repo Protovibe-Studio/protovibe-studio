@@ -109,12 +109,20 @@
           "canvasY": 1624
         },
         {
-          "id": "frame-dc3fl2",
+          "id": "frame-h6syak",
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 8086,
+          "canvasX": 8162,
           "canvasY": 1628
+        },
+        {
+          "id": "frame-jcveqt",
+          "name": "Frame 3",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 6563,
+          "canvasY": 2706
         }
       ]
     }

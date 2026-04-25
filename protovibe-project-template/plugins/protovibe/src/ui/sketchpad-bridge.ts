@@ -35,20 +35,22 @@ let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
 
 let dragState: {
-  target: HTMLElement;
   pointerId: number;
   startX: number;
   startY: number;
-  origLeft: number;
-  origTop: number;
-  origOffsetLeft: number;
-  origOffsetTop: number;
-  origWidth: number;
-  origHeight: number;
-  origZIndex: string;
   moved: boolean;
-  isFlow: boolean;
-  origTransform: string;
+  targets: {
+    el: HTMLElement;
+    origLeft: number;
+    origTop: number;
+    origOffsetLeft: number;
+    origOffsetTop: number;
+    origWidth: number;
+    origHeight: number;
+    origZIndex: string;
+    isFlow: boolean;
+    origTransform: string;
+  }[];
 } | null = null;
 
 type ResizeEdge = 'e' | 'w' | 'n' | 's' | 'ne' | 'nw' | 'se' | 'sw';
@@ -80,7 +82,7 @@ let nudgeState: {
 } | null = null;
 
 let currentDropTarget: HTMLElement | null = null;
-let ghostEl: HTMLElement | null = null;
+let ghostEls: HTMLElement[] = [];
 let currentActiveSourceId: string | null = null;
 
 let lastClickTime = 0;
@@ -90,39 +92,37 @@ let lastClickY = 0;
 function updateGhost(isAltHeld: boolean) {
   if (!dragState) return;
 
-  if (isAltHeld && !ghostEl) {
-    ghostEl = dragState.target.cloneNode(true) as HTMLElement;
-    ghostEl.style.opacity = '0.3';
-    ghostEl.style.pointerEvents = 'none';
-    ghostEl.style.transform = dragState.origTransform;
-    ghostEl.style.transition = 'none';
-    ghostEl.style.position = 'absolute';
-    ghostEl.style.left = `${dragState.origOffsetLeft}px`;
-    ghostEl.style.top = `${dragState.origOffsetTop}px`;
-    ghostEl.style.width = `${dragState.origWidth}px`;
-    ghostEl.style.height = `${dragState.origHeight}px`;
-    ghostEl.style.margin = '0';
-    
-    // Strip identifying attributes so the bridge ignores this fake element entirely
-    const stripIdentifiers = (el: Element) => {
-      el.removeAttribute('data-pv-sketchpad-el');
-      el.removeAttribute('data-pv-block');
-      el.removeAttribute('data-pv-runtime-id');
+  if (isAltHeld && ghostEls.length === 0) {
+    dragState.targets.forEach(t => {
+      const ghost = t.el.cloneNode(true) as HTMLElement;
+      ghost.style.opacity = '0.3';
+      ghost.style.pointerEvents = 'none';
+      ghost.style.transform = t.origTransform;
+      ghost.style.transition = 'none';
+      ghost.style.position = 'absolute';
+      ghost.style.left = `${t.origOffsetLeft}px`;
+      ghost.style.top = `${t.origOffsetTop}px`;
+      ghost.style.width = `${t.origWidth}px`;
+      ghost.style.height = `${t.origHeight}px`;
+      ghost.style.margin = '0';
       
-      Array.from(el.attributes).forEach(attr => {
-        if (attr.name.startsWith('data-pv-loc-')) {
-          el.removeAttribute(attr.name);
-        }
-      });
-    };
+      const stripIdentifiers = (el: Element) => {
+        el.removeAttribute('data-pv-sketchpad-el');
+        el.removeAttribute('data-pv-block');
+        el.removeAttribute('data-pv-runtime-id');
+        Array.from(el.attributes).forEach(attr => {
+          if (attr.name.startsWith('data-pv-loc-')) el.removeAttribute(attr.name);
+        });
+      };
 
-    stripIdentifiers(ghostEl);
-    ghostEl.querySelectorAll('*').forEach(stripIdentifiers);
-
-    dragState.target.parentElement?.insertBefore(ghostEl, dragState.target);
-  } else if (!isAltHeld && ghostEl) {
-    ghostEl.remove();
-    ghostEl = null;
+      stripIdentifiers(ghost);
+      ghost.querySelectorAll('*').forEach(stripIdentifiers);
+      t.el.parentElement?.insertBefore(ghost, t.el);
+      ghostEls.push(ghost);
+    });
+  } else if (!isAltHeld && ghostEls.length > 0) {
+    ghostEls.forEach(g => g.remove());
+    ghostEls = [];
   }
 }
 
@@ -231,15 +231,15 @@ function findInspectableParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-function findDropContainerAtPoint(clientX: number, clientY: number, dragTarget: HTMLElement): HTMLElement | null {
-  dragTarget.style.pointerEvents = 'none';
+function findDropContainerAtPoint(clientX: number, clientY: number, dragTargets: HTMLElement[]): HTMLElement | null {
+  dragTargets.forEach(el => { el.style.pointerEvents = 'none'; });
   const raw = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
-  dragTarget.style.pointerEvents = '';
+  dragTargets.forEach(el => { el.style.pointerEvents = ''; });
   if (!raw) return null;
 
   const container = raw.closest('[data-pv-block], [data-sketchpad-frame]') as HTMLElement | null;
   if (!container) return null;
-  if (container === dragTarget) return null;
+  if (dragTargets.includes(container)) return null;
   return container;
 }
 
@@ -536,17 +536,21 @@ function applyPointerMoveUpdate() {
       if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
       dragState.moved = true;
       setForcedCursor('grabbing');
-      dragState.target.style.transition = 'none';
-      dragState.target.style.zIndex = '2147483647';
+      dragState.targets.forEach(t => {
+        t.el.style.transition = 'none';
+        t.el.style.zIndex = '2147483647';
+      });
     }
 
     // Universally use GPU-accelerated transform for BOTH flow and absolute elements during drag
-    const existingTransform = dragState.origTransform && dragState.origTransform !== 'none'
-      ? dragState.origTransform + ' '
-      : '';
-    dragState.target.style.transform = `${existingTransform}translate(${dx}px, ${dy}px)`;
+    dragState.targets.forEach(t => {
+      const existingTransform = t.origTransform && t.origTransform !== 'none' ? t.origTransform + ' ' : '';
+      t.el.style.transform = `${existingTransform}translate(${dx}px, ${dy}px)`;
+    });
 
-    const dropContainer = findDropContainerAtPoint(latestClientX, latestClientY, dragState.target);
+    // Use all targets to find container through the selection
+    const dragEls = dragState.targets.map(t => t.el);
+    const dropContainer = findDropContainerAtPoint(latestClientX, latestClientY, dragEls);
     setCurrentDropTarget(dropContainer);
   }
 }
@@ -618,19 +622,23 @@ function handlePointerDown(e: PointerEvent) {
 
   // Determine click target based on hierarchy & modifiers
   let nextTarget: HTMLElement | null = null;
+  let isClickingSelected = false;
+
   if (path.length > 0) {
     if (e.metaKey || e.ctrlKey) {
       // Cmd/Ctrl + Click -> Direct deep selection
       nextTarget = path[path.length - 1];
+    } else if (!isMulti && selectedEls.some(sel => path.includes(sel))) {
+      // Clicked down on an already selected element in a group -> keep group selection to drag it
+      nextTarget = selectedEls.find(sel => path.includes(sel))!;
+      isClickingSelected = true;
     } else if (selectedEls.length === 1 && path.includes(selectedEls[0]) && !isMulti) {
-      // Clicked inside current single selection -> keep selection (double click handles drill-down)
       nextTarget = selectedEls[0];
+      isClickingSelected = true;
     } else if (selectedParentEl && path.includes(selectedParentEl)) {
-      // Clicked inside a sibling -> select at the sibling's depth level
       const parentIdx = path.indexOf(selectedParentEl);
       nextTarget = parentIdx + 1 < path.length ? path[parentIdx + 1] : path[parentIdx];
     } else {
-      // Default -> top-most parent
       nextTarget = path[0];
     }
   }
@@ -639,7 +647,6 @@ function handlePointerDown(e: PointerEvent) {
     clearHover();
     clearSelection();
 
-    // Fall back to frame root selection
     const frameRoot = findFrameRoot(e.target as HTMLElement);
     if (frameRoot) {
       setSelection(frameRoot, false);
@@ -654,8 +661,10 @@ function handlePointerDown(e: PointerEvent) {
   e.stopPropagation();
 
   clearHover();
-  setSelection(nextTarget, isMulti);
-  notifyInspector(nextTarget);
+  if (!isClickingSelected) {
+    setSelection(nextTarget, isMulti);
+    notifyInspector(nextTarget);
+  }
 
   const targetEdge = !isMulti && nextTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(nextTarget, e.clientX, e.clientY) : null;
   if (targetEdge) {
@@ -678,22 +687,27 @@ function handlePointerDown(e: PointerEvent) {
     return;
   }
 
-  const pos = getComputedPos(nextTarget);
+  const dragTargets = selectedEls.includes(nextTarget) ? selectedEls : [nextTarget];
   dragState = {
-    target: nextTarget,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
-    origLeft: pos.left,
-    origTop: pos.top,
-    origOffsetLeft: nextTarget.offsetLeft,
-    origOffsetTop: nextTarget.offsetTop,
-    origWidth: nextTarget.offsetWidth,
-    origHeight: nextTarget.offsetHeight,
-    origZIndex: nextTarget.style.zIndex,
     moved: false,
-    isFlow: !nextTarget.hasAttribute('data-pv-sketchpad-el'),
-    origTransform: nextTarget.style.transform
+    targets: dragTargets.map(t => {
+      const pos = getComputedPos(t);
+      return {
+        el: t,
+        origLeft: pos.left,
+        origTop: pos.top,
+        origOffsetLeft: t.offsetLeft,
+        origOffsetTop: t.offsetTop,
+        origWidth: t.offsetWidth,
+        origHeight: t.offsetHeight,
+        origZIndex: t.style.zIndex,
+        isFlow: !t.hasAttribute('data-pv-sketchpad-el'),
+        origTransform: t.style.transform
+      };
+    })
   };
 }
 
@@ -817,62 +831,69 @@ function handlePointerUp(e: PointerEvent) {
   clearForcedCursor();
 
   // Restore transitions
-  dragState.target.style.transition = '';
-  dragState.target.style.zIndex = dragState.origZIndex;
-  
-  // Capture the bounding rect BEFORE resetting the transform so we know where it was dropped
-  const draggedRect = dragState.target.getBoundingClientRect();
+  dragState.targets.forEach(t => {
+    t.el.style.transition = '';
+    t.el.style.zIndex = t.origZIndex;
+  });
 
   if (!dragState.moved) {
-    // No actual movement — revert transform and bail
-    dragState.target.style.transform = dragState.origTransform;
+    dragState.targets.forEach(t => t.el.style.transform = t.origTransform);
   } else if (dragState.moved) {
-    const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragState.target);
+    const dragEls = dragState.targets.map(t => t.el);
+    const dropContainer = findDropContainerAtPoint(e.clientX, e.clientY, dragEls);
     clearCurrentDropTarget();
 
-    const sourceFrameId = findFrameContainer(dragState.target)?.getAttribute('data-sketchpad-frame');
+    const sourceFrameId = findFrameContainer(dragState.targets[0].el)?.getAttribute('data-sketchpad-frame');
     const targetFrameId = findFrameContainer(dropContainer as HTMLElement)?.getAttribute('data-sketchpad-frame') ?? null;
-    const draggedBlockId = dragState.target.getAttribute('data-pv-sketchpad-el') || dragState.target.getAttribute('data-pv-block');
+    const draggedBlockIds = dragState.targets.map(t => t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block')).filter(Boolean) as string[];
     const sketchpadId = getSketchpadId();
 
-    const currentContainer = dragState.target.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
+    const currentContainer = dragState.targets[0].el.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
+    const isAnyFlow = dragState.targets.some(t => t.isFlow);
 
-    // Calculate final drop delta
+    // Calculate final drop delta for same-container drops
     const zoom = getCanvasZoom();
     const dx = (e.clientX - dragState.startX) / zoom;
     const dy = (e.clientY - dragState.startY) / zoom;
 
-    if (sketchpadId && draggedBlockId && sourceFrameId && targetFrameId && dropContainer && dropContainer !== dragState.target) {
+    if (sketchpadId && draggedBlockIds.length > 0 && sourceFrameId && targetFrameId && dropContainer && !dragEls.includes(dropContainer as HTMLElement)) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
 
-      if (dragState.isFlow && dropContainer === currentContainer && !e.altKey) {
-        // Dropped inside its own flow container -> revert transform cleanly.
-        dragState.target.style.transform = dragState.origTransform;
-      } else if (!dragState.isFlow && dropContainer === currentContainer && !e.altKey) {
-        // Same-container absolute move - revert transform, then immediately pin final left/top
-        dragState.target.style.transform = dragState.origTransform;
-        const newLeft = dragState.origLeft + dx;
-        const newTop = dragState.origTop + dy;
+      if (dropContainer === currentContainer && !e.altKey) {
+        // Same-container drop: handle each target by its own layout type so a
+        // mixed flow+absolute selection doesn't snap absolute elements back.
+        dragState.targets.forEach(t => {
+          t.el.style.transform = t.origTransform;
+          if (t.isFlow) return;
+          const newLeft = t.origLeft + dx;
+          const newTop = t.origTop + dy;
+          t.el.style.left = `${newLeft}px`;
+          t.el.style.top = `${newTop}px`;
 
-        // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
-        dragState.target.style.left = `${newLeft}px`;
-        dragState.target.style.top = `${newTop}px`;
-
-        postApi('/__sketchpad-update-element-position', {
-          sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
-          activeSourceId: currentActiveSourceId
+          const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
+          if (blockId) {
+            postApi('/__sketchpad-update-element-position', {
+              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
+              activeSourceId: currentActiveSourceId
+            });
+          }
         });
       } else {
         // Dragged to a different container OR duplicating
         const containerRect = dropContainer.getBoundingClientRect();
-        const newLeft = layoutMode === 'absolute' ? (draggedRect.left - containerRect.left) / zoom : 0;
-        const newTop = layoutMode === 'absolute' ? (draggedRect.top - containerRect.top) / zoom : 0;
+        
+        // Find the visual bounding box of the group relative to the new container BEFORE resetting transform
+        let minNewLeft = Infinity;
+        let minNewTop = Infinity;
+        
+        dragState.targets.forEach(t => {
+          const rect = t.el.getBoundingClientRect();
+          minNewLeft = Math.min(minNewLeft, layoutMode === 'absolute' ? (rect.left - containerRect.left) / zoom : 0);
+          minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom);
+        });
 
-        // Always revert original element's transform immediately.
-        // If we don't, React's index-based reconciliation during the HMR update
-        // will reuse this DOM node for a different sibling, leaking the drag offset.
-        dragState.target.style.transform = dragState.origTransform;
+        dragState.targets.forEach(t => t.el.style.transform = t.origTransform);
 
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
@@ -882,12 +903,13 @@ function handlePointerUp(e: PointerEvent) {
             sketchpadId,
             sourceFrameId,
             targetFrameId,
-            draggedBlockId,
+            draggedBlockId: draggedBlockIds[0],
+            draggedBlockIds, 
             targetLocatorId,
             targetBlockId,
             isFrameTarget,
-            x: newLeft,
-            y: newTop,
+            x: minNewLeft,
+            y: minNewTop,
             targetLayoutMode: layoutMode,
             isDuplicate: e.altKey,
             activeSourceId: currentActiveSourceId,
@@ -896,55 +918,69 @@ function handlePointerUp(e: PointerEvent) {
 
         clearCurrentDropTarget();
         dragState = null;
-        if (ghostEl) {
-          ghostEl.remove();
-          ghostEl = null;
+        if (ghostEls.length > 0) {
+          ghostEls.forEach(g => g.remove());
+          ghostEls = [];
         }
         return;
       }
-    } else if (!dragState.isFlow) {
+    } else if (!isAnyFlow) {
       // Fallback for same-frame move on empty canvas
-      dragState.target.style.transform = dragState.origTransform;
-      const newLeft = dragState.origLeft + dx;
-      const newTop = dragState.origTop + dy;
+      if (e.altKey && sketchpadId && sourceFrameId && draggedBlockIds.length > 0) {
+         // Duplicating in place: calculate bounding box relative to its original parent
+         const containerRect = dragState.targets[0].el.parentElement!.getBoundingClientRect();
+         let minNewLeft = Infinity;
+         let minNewTop = Infinity;
+         
+         dragState.targets.forEach(t => {
+           const rect = t.el.getBoundingClientRect();
+           minNewLeft = Math.min(minNewLeft, (rect.left - containerRect.left) / zoom);
+           minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom);
+         });
 
-      if (e.altKey && sketchpadId && sourceFrameId && draggedBlockId) {
-        window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
+         dragState.targets.forEach(t => t.el.style.transform = t.origTransform);
+
+         window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
           detail: {
             sketchpadId,
             sourceFrameId,
             targetFrameId: sourceFrameId,
-            draggedBlockId,
+            draggedBlockId: draggedBlockIds[0],
+            draggedBlockIds,
             targetLocatorId: null,
             targetBlockId: null,
             isFrameTarget: true,
-            x: newLeft,
-            y: newTop,
+            x: minNewLeft,
+            y: minNewTop,
             targetLayoutMode: 'absolute',
             isDuplicate: true,
             activeSourceId: currentActiveSourceId,
           },
-        }));
+         }));
       } else {
-        // Instantly apply final coordinates to the DOM to prevent flicker before HMR reloads the file
-        dragState.target.style.left = `${newLeft}px`;
-        dragState.target.style.top = `${newTop}px`;
+        dragState.targets.forEach(t => {
+          const newLeft = t.origLeft + dx;
+          const newTop = t.origTop + dy;
+          t.el.style.left = `${newLeft}px`;
+          t.el.style.top = `${newTop}px`;
 
-        if (sketchpadId && sourceFrameId && draggedBlockId) {
-          postApi('/__sketchpad-update-element-position', {
-            sketchpadId, frameId: sourceFrameId, blockId: draggedBlockId, x: newLeft, y: newTop,
-            activeSourceId: currentActiveSourceId
-          });
-        }
+          const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
+          if (sketchpadId && sourceFrameId && blockId) {
+            postApi('/__sketchpad-update-element-position', {
+              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
+              activeSourceId: currentActiveSourceId
+            });
+          }
+        });
       }
     }
   }
 
   clearCurrentDropTarget();
   dragState = null;
-  if (ghostEl) {
-    ghostEl.remove();
-    ghostEl = null;
+  if (ghostEls.length > 0) {
+    ghostEls.forEach(g => g.remove());
+    ghostEls = [];
   }
 }
 
@@ -1145,13 +1181,16 @@ function init() {
   window.addEventListener('keyup', handleKeyUp, true);
   window.addEventListener('message', handleParentMessage);
 
-  // Allow SketchpadApp to programmatically select an element by blockId
-  window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId: string }>) => {
-    const el = document.querySelector(`[data-pv-block="${e.detail.blockId}"]`) as HTMLElement | null;
-    if (el) {
-      setSelection(el, false);
-      notifyInspector(el, true); // skipSnapshot = true
-    }
+  // Allow SketchpadApp to programmatically select one or more elements by blockId(s)
+  window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId?: string; blockIds?: string[] }>) => {
+    const ids = e.detail.blockIds?.length ? e.detail.blockIds : (e.detail.blockId ? [e.detail.blockId] : []);
+    if (ids.length === 0) return;
+    const els = ids
+      .map(id => document.querySelector(`[data-pv-block="${id}"]`) as HTMLElement | null)
+      .filter(Boolean) as HTMLElement[];
+    if (els.length === 0) return;
+    els.forEach((el, i) => setSelection(el, i > 0));
+    notifyInspector(els[els.length - 1], true); // skipSnapshot = true
   }) as EventListener);
 }
 

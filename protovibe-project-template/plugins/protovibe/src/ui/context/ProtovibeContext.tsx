@@ -38,7 +38,7 @@ interface ProtovibeContextType {
   zones: Zone[];
   focusElement: (el: HTMLElement | HTMLElement[], skipSnapshot?: boolean) => void;
   clearFocus: () => void;
-  focusNewBlock: (blockId: string, options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
+  focusNewBlock: (blockId: string | string[], options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
   isMutationLocked: boolean;
   runLockedMutation: <T>(mutation: () => Promise<T>) => Promise<T | undefined>;
   themeColors: ThemeColor[];
@@ -310,30 +310,39 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   }, [setHighlightedElement]);
 
-  const focusNewBlock = useCallback((blockId: string, options: { maxAttempts?: number; initialDelay?: number; interval?: number } = {}) => {
+  const focusNewBlock = useCallback((blockId: string | string[], options: { maxAttempts?: number; initialDelay?: number; interval?: number } = {}) => {
     const { maxAttempts = 20, initialDelay = 300, interval = 100 } = options;
+    const ids = Array.isArray(blockId) ? blockId : [blockId];
+    if (ids.length === 0) return;
     let attempts = 0;
-    const tryFocus = () => {
-      // Search across all iframes, then fall back to the parent document.
+
+    const findEl = (id: string): HTMLElement | null => {
       const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
-      let target: HTMLElement | null = null;
       for (const iframe of allIframes) {
-        target = (iframe.contentDocument?.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement | null) ?? null;
-        if (target) break;
+        const t = iframe.contentDocument?.querySelector(`[data-pv-block="${id}"]`) as HTMLElement | null;
+        if (t) return t;
       }
-      if (!target) target = document.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement;
-      const hasPvLoc = !!target && Array.from(target.attributes).some(a => a.name.startsWith('data-pv-loc-'));
-      if (hasPvLoc) {
-        focusElement(target, true);
-      } else {
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(tryFocus, interval);
-          return;
-        }
-        if (target) focusElement(target, true);
-        refreshActiveData();
+      return document.querySelector(`[data-pv-block="${id}"]`) as HTMLElement | null;
+    };
+
+    const tryFocus = () => {
+      const targets = ids.map(findEl);
+      const allFound = targets.every(t => !!t);
+      const allHavePvLoc = allFound && targets.every(t => Array.from(t!.attributes).some(a => a.name.startsWith('data-pv-loc-')));
+
+      if (allHavePvLoc) {
+        focusElement(targets as HTMLElement[], true);
+        return;
       }
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(tryFocus, interval);
+        return;
+      }
+      // Last resort: focus whatever did show up, even without locator attributes
+      const found = targets.filter(Boolean) as HTMLElement[];
+      if (found.length > 0) focusElement(found, true);
+      refreshActiveData();
     };
     setTimeout(tryFocus, initialDelay);
   }, [focusElement, refreshActiveData]);

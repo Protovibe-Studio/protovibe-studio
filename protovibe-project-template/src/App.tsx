@@ -241,6 +241,16 @@ function DashboardPage() {
         {/* pv-block-start:cidstp */}
         <Container data-pv-block="cidstp">
           {/* pv-editable-zone-start:8xlvs5 */}
+            {/* pv-block-start:u00jtm */}
+            <Button data-pv-block="u00jtm"  label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:u00jtm */}
+            {/* pv-block-start:gnbzmd */}
+            <Button data-pv-block="gnbzmd"  label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:gnbzmd */}
+            
+            {/* pv-block-start:wdwsok */}
+            <Button data-pv-block="wdwsok"  label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:wdwsok */}
           {/* pv-editable-zone-end:8xlvs5 */}
         </Container>
         {/* pv-block-end:cidstp */}

@@ -23,7 +23,7 @@ interface ExecuteBlockActionParams {
 
 interface ExecuteClipboardBlockActionParams {
   action: ClipboardBlockAction;
-  blockId: string;
+  blockId: string | string[];
   file: string;
   activeSourceId: string;
   focusElement: (el: HTMLElement, skipSnapshot?: boolean) => void;
