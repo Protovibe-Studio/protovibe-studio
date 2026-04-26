@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot, addBlock, deleteBlocks } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock, deleteBlocks, uploadImage } from '../api/client';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -33,6 +33,8 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     if (!inspectorOpen) return;
+
+    let pasteShiftRef = false;
 
     const focusRestoredElement = (sourceId: string | undefined): Promise<void> => {
       return new Promise((resolve) => {
@@ -145,7 +147,13 @@ export function useKeyboardShortcuts() {
 
       // Copy, Cut, Paste, Duplicate
       const key = e.key.toLowerCase();
-      if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'v' || key === 'd')) {
+      if ((e.metaKey || e.ctrlKey) && key === 'v') {
+        // Defer to the `paste` event so we can route image clipboard data
+        // to the image-insert flow even when a protovibe block was previously copied.
+        pasteShiftRef = e.shiftKey;
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'd')) {
         e.preventDefault();
         const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
         const blockIds = [...new Set(
@@ -157,7 +165,7 @@ export function useKeyboardShortcuts() {
 
         if (!activeData?.file) return;
 
-        if (key === 'c' || key === 'x' || key === 'd') {
+        {
           if (blockIds.length === 0 || !isBlockInCurrentFile) {
             emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
             return;
@@ -204,56 +212,6 @@ export function useKeyboardShortcuts() {
             });
             emitToast({ message: 'Block copied to clipboard', variant: 'info' });
           }
-          return;
-        }
-
-        if (key === 'v') {
-          const isPasteAfter = e.shiftKey;
-          const targetBlockId = blockIds[0];
-
-          if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
-            emitToast({ message: "Can't paste after this element", variant: 'error' });
-            return;
-          }
-
-          if (!isPasteAfter && zones.length === 0) {
-            emitToast({ message: "Can't paste inside this element", variant: 'error' });
-            return;
-          }
-
-          const targetZone = zones[0];
-
-          if (!isPasteAfter && !targetZone) {
-            emitToast({ message: "Can't paste inside this element", variant: 'error' });
-            return;
-          }
-
-          const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
-          const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
-
-          await runLockedMutation(async () => {
-            await takeSnapshot(activeData.file, activeSourceId!);
-            const res = await addBlock({
-              file: activeData.file,
-              zoneId: isPasteAfter ? undefined : targetZone.id,
-              afterBlockId: isPasteAfter ? targetBlockId! : undefined,
-              isPristine: isPasteAfter ? false : targetZone.isPristine,
-              elementType: 'paste',
-              targetStartLine: activeData.startLine,
-              targetEndLine: activeData.endLine,
-              targetLayoutMode,
-              pasteX: 100,
-              pasteY: 100,
-            });
-
-            const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
-            if (focusIds.length > 0) {
-              emitToast({ message: 'Pasted successfully', variant: 'info' });
-              focusNewBlock(focusIds);
-            }
-          }).catch((err: any) => {
-            emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
-          });
           return;
         }
       }
@@ -399,11 +357,107 @@ export function useKeyboardShortcuts() {
       }
     };
 
+    const getImageDimensions = (file: File): Promise<{ w: number; h: number }> =>
+      new Promise((resolve) => {
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { resolve({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(objectUrl); };
+        img.onerror = () => { resolve({ w: 0, h: 0 }); URL.revokeObjectURL(objectUrl); };
+        img.src = objectUrl;
+      });
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (isMutationLocked) return;
+      if (isTypingInput(e.target as HTMLElement)) return;
+      if (!activeData?.file) return;
+      if (!currentBaseTarget) return;
+
+      const items = e.clipboardData?.items;
+      const imageItem = items
+        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
+        : null;
+      const imageFile = imageItem?.getAsFile() || null;
+
+      const isPasteAfter = pasteShiftRef;
+      pasteShiftRef = false;
+
+      const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+      const blockIds = [...new Set(
+        targets
+          .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+          .filter(Boolean) as string[]
+      )];
+      const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+      const targetZone = zones[0];
+      const targetBlockId = blockIds[0];
+
+      // For image paste from system clipboard, default to "inside" but fall back
+      // to "after" the selected block when there is no target zone.
+      const imgUseAfter = imageFile ? (!targetZone && !!targetBlockId && !!isBlockInCurrentFile) : isPasteAfter;
+      const wantAfter = imageFile ? imgUseAfter : isPasteAfter;
+
+      if (wantAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+        if (imageFile) {
+          e.preventDefault();
+          emitToast({ message: "Can't paste image here", variant: 'error' });
+        } else {
+          emitToast({ message: "Can't paste after this element", variant: 'error' });
+        }
+        return;
+      }
+      if (!wantAfter && !targetZone) {
+        if (imageFile) {
+          e.preventDefault();
+          emitToast({ message: "Can't paste image here", variant: 'error' });
+        } else {
+          emitToast({ message: "Can't paste inside this element", variant: 'error' });
+        }
+        return;
+      }
+
+      e.preventDefault();
+
+      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+      await runLockedMutation(async () => {
+        let extraParams: Record<string, any>;
+        if (imageFile) {
+          const [url, dims] = await Promise.all([uploadImage(imageFile), getImageDimensions(imageFile)]);
+          extraParams = { elementType: 'image', imageUrl: url, imageWidth: dims.w, imageHeight: dims.h };
+        } else {
+          extraParams = { elementType: 'paste' };
+        }
+        await takeSnapshot(activeData.file, activeSourceId!);
+        const res = await addBlock({
+          file: activeData.file,
+          zoneId: wantAfter ? undefined : targetZone.id,
+          afterBlockId: wantAfter ? targetBlockId! : undefined,
+          isPristine: wantAfter ? false : targetZone.isPristine,
+          targetStartLine: activeData.startLine,
+          targetEndLine: activeData.endLine,
+          targetLayoutMode,
+          pasteX: 100,
+          pasteY: 100,
+          ...extraParams,
+        } as any);
+        const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+        if (focusIds.length > 0) {
+          emitToast({ message: imageFile ? 'Image pasted' : 'Pasted successfully', variant: 'info' });
+          focusNewBlock(focusIds);
+        }
+      }).catch((err: any) => {
+        emitToast({ message: err.message || (imageFile ? 'Failed to paste image' : 'Failed to paste block'), variant: 'error' });
+      });
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('paste', handlePaste);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('paste', handlePaste);
     };
   }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
 }
