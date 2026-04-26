@@ -87,11 +87,26 @@ if [ ! -d "$ROOT" ]; then
   exec bash
 fi
 
+print_banner() {
+  clear
+  printf '\\n\\033[36m'
+  cat <<'LOGO'
+   ▄▄▄▄▄▄▄                                     ▄▄
+   ███▀▀███▄              ██               ▀▀  ██
+   ███▄▄███▀ ████▄ ▄███▄ ▀██▀▀ ▄███▄ ██ ██ ██  ████▄ ▄█▀█▄
+   ███▀▀▀▀   ██ ▀▀ ██ ██  ██   ██ ██ ██▄██ ██  ██ ██ ██▄█▀
+   ███       ██    ▀███▀  ██   ▀███▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄
+LOGO
+  printf '\\033[0m\\n'
+}
+
 # Already running? The project-manager exposes /api/projects, so a 200 there
 # means a Protovibe dev server is live on the default port. Just open the
 # browser and exit instead of spawning a duplicate.
 PROTOVIBE_URL="http://127.0.0.1:5173/"
 if curl -fsS --max-time 2 "\${PROTOVIBE_URL}api/projects" >/dev/null 2>&1; then
+  print_banner
+  printf '   \\033[1mAlready running — opening browser…\\033[0m\\n\\n'
   open "$PROTOVIBE_URL"
   exit 0
 fi
@@ -113,19 +128,7 @@ fi
   fi
 } >/dev/null 2>&1
 
-clear
-printf '\\n'
-printf '\\033[36m'
-cat <<'LOGO'
-   ██████╗ ██████╗  ██████╗ ████████╗ ██████╗ ██╗   ██╗██╗██████╗ ███████╗
-   ██╔══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔═══██╗██║   ██║██║██╔══██╗██╔════╝
-   ██████╔╝██████╔╝██║   ██║   ██║   ██║   ██║██║   ██║██║██████╔╝█████╗
-   ██╔═══╝ ██╔══██╗██║   ██║   ██║   ██║   ██║╚██╗ ██╔╝██║██╔══██╗██╔══╝
-   ██║     ██║  ██║╚██████╔╝   ██║   ╚██████╔╝ ╚████╔╝ ██║██████╔╝███████╗
-   ╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝   ╚═══╝  ╚═╝╚═════╝ ╚══════╝
-LOGO
-printf '\\033[0m'
-printf '\\n'
+print_banner
 printf '   \\033[1mStarting dev server, please wait…\\033[0m\\n'
 printf '   The browser will open automatically when it is ready.\\n\\n'
 
@@ -206,7 +209,56 @@ end run`;
     log.warn(`Failed to create /Applications symlink: ${e.message}`);
   }
 
-  spawnSync('open', [installerDir], { stdio: 'ignore' });
+  // Drop in the pre-baked .DS_Store so the DMG volume opens with the
+  // classic drag-to-Applications layout. Mounted DMGs are read-only, so
+  // Finder respects this layout reliably (unlike a plain folder, where it
+  // gets clobbered by Finder's in-memory state).
+  const dsStoreTemplate = path.join(ASSETS_DIR, 'installer.DS_Store');
+  if (fs.existsSync(dsStoreTemplate)) {
+    try {
+      fs.copyFileSync(dsStoreTemplate, path.join(installerDir, '.DS_Store'));
+    } catch (e) {
+      log.warn(`Failed to apply installer .DS_Store: ${e.message}`);
+    }
+  }
+
+  // Build a real DMG from the staged folder and mount it. This gives the
+  // user the canonical drag-to-install window — and bakes in the layout.
+  const dmgVolName = `${APP_NAME} Installer`;
+  const dmgPath = path.join(installerDir, `${dmgVolName}.dmg`);
+  const volPath = `/Volumes/${dmgVolName}`;
+
+  // Unmount any prior mount of the same volume name so hdiutil doesn't
+  // append " 1" to the new mount.
+  try { execSync(`hdiutil detach ${JSON.stringify(volPath)} -force`, { stdio: 'pipe' }); } catch {}
+  try { fs.rmSync(dmgPath, { force: true }); } catch {}
+
+  // Build the DMG into the OS tmpdir first so hdiutil's snapshot of
+  // installerDir doesn't accidentally include the .dmg in its own payload.
+  const dmgTmp = path.join(os.tmpdir(), `protovibe-${process.pid}-${Date.now()}.dmg`);
+  try {
+    execSync(
+      `hdiutil create -volname ${JSON.stringify(dmgVolName)} -srcfolder ${JSON.stringify(installerDir)} -ov -format UDZO ${JSON.stringify(dmgTmp)}`,
+      { stdio: 'pipe' }
+    );
+    fs.renameSync(dmgTmp, dmgPath);
+  } catch (e) {
+    log.err(`hdiutil create failed: ${e.message}`);
+    try { fs.rmSync(dmgTmp, { force: true }); } catch {}
+    process.exit(1);
+  }
+
+  // Mount the DMG. -noautoopen suppresses Finder's auto window so we can
+  // open it ourselves once it's ready (Finder otherwise sometimes opens
+  // before the volume is fully attached).
+  try {
+    execSync(`hdiutil attach ${JSON.stringify(dmgPath)} -noverify -noautoopen`, { stdio: 'pipe' });
+  } catch (e) {
+    log.warn(`Could not mount DMG automatically: ${e.message.split('\n')[0]}`);
+    log.info(`Open it manually: ${dmgPath}`);
+  }
+
+  spawnSync('open', [volPath], { stdio: 'ignore' });
 
   log.ok(`Created ${APP_NAME}.app at ${appPath}`);
   log.info(`Drag ${APP_NAME}.app onto Applications in the window that just opened.`);
