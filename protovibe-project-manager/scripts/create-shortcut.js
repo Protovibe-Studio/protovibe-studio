@@ -87,6 +87,15 @@ if [ ! -d "$ROOT" ]; then
   exec bash
 fi
 
+# Already running? The project-manager exposes /api/projects, so a 200 there
+# means a Protovibe dev server is live on the default port. Just open the
+# browser and exit instead of spawning a duplicate.
+PROTOVIBE_URL="http://127.0.0.1:5173/"
+if curl -fsS --max-time 2 "\${PROTOVIBE_URL}api/projects" >/dev/null 2>&1; then
+  open "$PROTOVIBE_URL"
+  exit 0
+fi
+
 # Bootstrap nvm/pnpm silently so the user never sees the plumbing.
 {
   export NVM_DIR="$HOME/.nvm"
