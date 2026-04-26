@@ -9,3 +9,5 @@ coverage/
 package-lock.json
 pnpm-lock.yaml
 test-results/
+.install.lock
+.mac-installer/
