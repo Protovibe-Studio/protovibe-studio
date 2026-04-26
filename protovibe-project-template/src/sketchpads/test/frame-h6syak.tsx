@@ -36,10 +36,6 @@ export default function Frame2() {
             </Card>
             {/* pv-block-end:jn33ge */}
 
-            {/* pv-block-start:cwetnv */}
-            <Button data-pv-block="cwetnv"  label="Button" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:cwetnv */}
-
             {/* pv-block-start:0onna7 */}
             <Button data-pv-block="0onna7"  label="Button" variant="solid" color="primary" size="md" />
             {/* pv-block-end:0onna7 */}
@@ -83,6 +79,9 @@ export default function Frame2() {
             {/* pv-block-start:jfgfe8 */}
             <Button data-pv-block="jfgfe8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="jfgfe8" style={{ position: 'absolute', left: 59, top: 72 }}/>
             {/* pv-block-end:jfgfe8 */}
+            {/* pv-block-start:gz0pkx */}
+            <Button data-pv-block="gz0pkx"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="gz0pkx" style={{ position: 'absolute', left: 250, top: 116 }}/>
+            {/* pv-block-end:gz0pkx */}
           {/* pv-editable-zone-end:o6rx04 */}
         </Rectangle>
         {/* pv-block-end:2n40cz */}

@@ -966,6 +966,7 @@ function handlePointerUp(e: PointerEvent) {
          }));
       } else {
         dragState.targets.forEach(t => {
+          t.el.style.transform = t.origTransform;
           const newLeft = t.origLeft + dx;
           const newTop = t.origTop + dy;
           t.el.style.left = `${newLeft}px`;
@@ -980,6 +981,9 @@ function handlePointerUp(e: PointerEvent) {
           }
         });
       }
+    } else {
+      // No valid drop target (e.g. flow element dragged outside any frame). Snap back.
+      dragState.targets.forEach(t => { t.el.style.transform = t.origTransform; });
     }
   }
 
