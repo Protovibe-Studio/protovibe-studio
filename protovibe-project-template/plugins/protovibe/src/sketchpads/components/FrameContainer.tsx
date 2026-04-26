@@ -505,6 +505,7 @@ export function FrameContainer({
 
         {/* Resize handle */}
         <div
+          data-sketchpad-resize-handle=""
           onPointerDown={handleResizePointerDown}
           onPointerMove={handleResizePointerMove}
           onPointerUp={handleResizePointerUp}

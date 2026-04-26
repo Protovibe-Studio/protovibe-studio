@@ -783,6 +783,7 @@ export function SketchpadApp() {
       const t = e.target as HTMLElement | null;
       if (!t) return;
       if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
+      if (t.closest('[data-sketchpad-resize-handle]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
       if (frameRoot && !frameContent) return;
@@ -857,11 +858,13 @@ export function SketchpadApp() {
       }
     };
 
-    window.addEventListener('pointerdown', onPointerDown, true);
+    // Bubble phase so the sketchpad bridge's capture-phase handler can stopPropagation
+    // (e.g. when entering element resize from the 8px safe-margin) before we start a marquee.
+    window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     return () => {
-      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
