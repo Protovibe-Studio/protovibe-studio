@@ -93,7 +93,12 @@
           "canvasX": 12465,
           "canvasY": 2528
         }
-      ]
+      ],
+      "viewState": {
+        "zoom": 0.14112442384302146,
+        "panX": -172.31210599555607,
+        "panY": 52.89916125638581
+      }
     },
     {
       "id": "test",
@@ -107,14 +112,6 @@
           "height": 900,
           "canvasX": 8062,
           "canvasY": 1638
-        },
-        {
-          "id": "frame-jcveqt",
-          "name": "Frame 3",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 9801,
-          "canvasY": 1637
         },
         {
           "id": "frame-zueh1y",
@@ -131,8 +128,74 @@
           "height": 900,
           "canvasX": 9805,
           "canvasY": 2833
+        },
+        {
+          "id": "frame-s2fwnj",
+          "name": "Frame 2 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 11443,
+          "canvasY": 1681
+        },
+        {
+          "id": "frame-ogyahb",
+          "name": "Frame 3 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9803,
+          "canvasY": 1648
         }
-      ]
+      ],
+      "viewState": {
+        "zoom": 0.24916915886248167,
+        "panX": -1787.4991656547527,
+        "panY": -206.37960161212004
+      }
+    },
+    {
+      "id": "test-copy",
+      "name": "Test Copy",
+      "createdAt": "2026-04-26T13:21:15.319Z",
+      "frames": [
+        {
+          "id": "frame-bu240y",
+          "name": "Frame 3",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9801,
+          "canvasY": 1637
+        },
+        {
+          "id": "frame-6y3n69",
+          "name": "Frame 4",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 8162,
+          "canvasY": 2827
+        },
+        {
+          "id": "frame-58q8px",
+          "name": "Frame 4 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9805,
+          "canvasY": 2833
+        },
+        {
+          "id": "frame-oc9rv6",
+          "name": "Frame 3 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 8041,
+          "canvasY": 1626
+        }
+      ],
+      "viewState": {
+        "zoom": 0.29872333231486403,
+        "panX": -2023.9021784424876,
+        "panY": -341.948338747786
+      }
     }
-  ]
+  ],
+  "lastActiveSketchpadId": "test"
 }

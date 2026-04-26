@@ -300,15 +300,48 @@ export function FrameContainer({
     [],
   );
 
+  const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
+
   const handleContentClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      // In a multi-selection, clicking the content of a selected frame keeps the group.
+      if (isInMultiSelection) return;
       onSelect(null);
     },
-    [onSelect],
+    [onSelect, isInMultiSelection],
   );
 
-  const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
+  // When this frame is part of a multi-selection, dragging anywhere on its content area
+  // moves the whole group (mirrors title-bar drag behavior).
+  const handleContentPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      if (!isInMultiSelection) return;
+      if (e.shiftKey || e.metaKey || e.ctrlKey) return;
+      e.stopPropagation();
+
+      isDuplicateDragRef.current = e.altKey;
+      setIsAltDragging(e.altKey);
+      setIsDragging(true);
+      dragStartRef.current = { x: e.clientX, y: e.clientY, frameX: canvasX, frameY: canvasY };
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+      const snap: Array<{ id: string; el: HTMLElement; startX: number; startY: number }> = [];
+      for (const id of selectedFrameIds) {
+        if (id === frameId) continue;
+        const el = document.querySelector(`[data-sketchpad-frame-root="${id}"]`) as HTMLElement | null;
+        if (!el) continue;
+        const startX = parseFloat(el.style.left) || 0;
+        const startY = parseFloat(el.style.top) || 0;
+        snap.push({ id, el, startX, startY });
+      }
+      groupDragRef.current = snap;
+
+      frameRef.current?.focus({ preventScroll: true });
+    },
+    [isInMultiSelection, canvasX, canvasY, frameId, selectedFrameIds],
+  );
   const menuItems = [
     { label: 'Rename', action: () => onRename(frameId), hidden: isInMultiSelection },
     {
@@ -499,6 +532,9 @@ export function FrameContainer({
               : '0 2px 12px rgba(0,0,0,0.2)',
           }}
           onClick={handleContentClick}
+          onPointerDown={handleContentPointerDown}
+          onPointerMove={handleTitlePointerMove}
+          onPointerUp={handleTitlePointerUp}
         >
           {children}
         </div>
