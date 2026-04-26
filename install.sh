@@ -8,7 +8,10 @@
 #  - Friendly error messages with hints (proxy, permissions)
 #  - Self-test after install
 #  - Path-independent shortcut (reads ~/.protovibe/project-path at runtime)
-set -uo pipefail
+set -o pipefail
+# Note: intentionally NOT using `set -u`. nvm.sh isn't nounset-clean
+# (e.g. references $1 unconditionally), and sourcing it under -u aborts
+# the script. All our own var reads use ${VAR:-} defaults already.
 
 # ── colors ───────────────────────────────────────────────────────────────────
 if [ -t 1 ]; then

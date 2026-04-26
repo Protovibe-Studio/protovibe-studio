@@ -997,10 +997,40 @@ function projectManagerPlugin() {
   }
 }
 
+// ── Auto-open browser on dev start ───────────────────────────────────────────
+// Vite's built-in `--open` uses sindresorhus/open, which on macOS drives the
+// browser via AppleScript — that triggers a "Terminal wants to control Chrome"
+// permission prompt and can land on the wrong Chrome profile. Shelling out to
+// /usr/bin/open ourselves goes through LaunchServices, which behaves like any
+// other app (last-used window, no automation prompt).
+function autoOpenPlugin() {
+  return {
+    name: 'protovibe-auto-open',
+    apply: 'serve',
+    configureServer(server) {
+      server.httpServer?.once('listening', () => {
+        if (process.env.PROTOVIBE_NO_OPEN) return
+        const addr = server.httpServer.address()
+        if (!addr || typeof addr === 'string') return
+        const host = addr.address === '::' || addr.address === '0.0.0.0' ? '127.0.0.1' : addr.address
+        const url = `http://${host}:${addr.port}/`
+        const platform = process.platform
+        const cmd = platform === 'darwin' ? 'open' : platform === 'win32' ? 'cmd' : 'xdg-open'
+        const args = platform === 'win32' ? ['/c', 'start', '', url] : [url]
+        try {
+          spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref()
+        } catch (err) {
+          console.warn('[protovibe] failed to open browser:', err.message)
+        }
+      })
+    },
+  }
+}
+
 // ── Config ────────────────────────────────────────────────────────────────────
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), projectManagerPlugin()],
+  plugins: [react(), tailwindcss(), projectManagerPlugin(), autoOpenPlugin()],
   server: {
     host: '127.0.0.1',
     port: 5173,
