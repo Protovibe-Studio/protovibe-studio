@@ -26,6 +26,7 @@ const STATUS_LABELS = {
   stopped: 'Stopped',
   installing: 'Installing',
   starting: 'Starting',
+  'updating-plugin': 'Updating plugin',
 }
 
 function MenuItem({ icon, label, onClick, danger, disabled }) {
@@ -109,7 +110,8 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
             data-status={status}
             className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium
               data-[status=installing]:bg-background-warning-subtle data-[status=installing]:text-foreground-warning
-              data-[status=starting]:bg-background-info-subtle data-[status=starting]:text-foreground-info"
+              data-[status=starting]:bg-background-info-subtle data-[status=starting]:text-foreground-info
+              data-[status=updating-plugin]:bg-background-info-subtle data-[status=updating-plugin]:text-foreground-info"
           >
             {STATUS_LABELS[status] ?? status}
           </span>

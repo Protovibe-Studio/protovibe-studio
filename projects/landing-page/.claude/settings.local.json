@@ -18,7 +18,8 @@
       "Bash(echo \"exit=$?\")",
       "Bash(awk -F: '$1 >= 2380 && $1 <= 2420')",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
-      "Bash(grep -E \"\\\\.\\(ts|js|tsx|jsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|js|tsx|jsx\\)$\")",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "outputStyle": "Explanatory"

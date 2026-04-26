@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
+import { showToast } from './ToastViewport.jsx'
 import {
   ArrowLeft,
   X,
@@ -12,6 +13,8 @@ import {
   Play,
   List,
   ChevronDown,
+  RefreshCw,
+  Puzzle,
 } from 'lucide-react'
 
 export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
@@ -21,12 +24,18 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const [setupMode, setSetupMode] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
+  const [updatingPlugin, setUpdatingPlugin] = useState(false)
   const bottomRef = useRef(null)
 
-  const { id, name, status, port } = project
+  const { id, name, status, port, pluginVersion, pluginLastUpdated } = project
   const isRunning = status === 'running'
   const isStopped = status === 'stopped'
+  // isBusy is the trigger for SetupScreen, so 'updating-plugin' deliberately
+  // stays out of it — we render an inline indicator instead of hijacking the
+  // page with the setup overlay.
   const isBusy = status === 'installing' || status === 'starting'
+  const isUpdatingPluginServer = status === 'updating-plugin'
+  const isUpdating = updatingPlugin || isUpdatingPluginServer
 
   // Auto-enter setup mode when project is busy (e.g. navigated to mid-start)
   useEffect(() => {
@@ -76,6 +85,46 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
   const createdDate = fmt(project.createdAt)
   const updatedDate = fmt(project.updatedAt)
+
+  // pluginLastUpdated is stored as YYYY-MM-DD (no timezone). Reformat to the
+  // same human-friendly style as the other dates without sliding by a day.
+  const pluginUpdatedDate = (() => {
+    if (!pluginLastUpdated) return null
+    const [y, m, d] = pluginLastUpdated.split('-').map(Number)
+    if (!y || !m || !d) return pluginLastUpdated
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  })()
+
+  const handleUpdatePlugin = async () => {
+    if (updatingPlugin) return
+    if (isBusy) {
+      setError('Wait for setup to finish before updating the plugin.')
+      return
+    }
+    if (isRunning) {
+      const ok = window.confirm('Updating the plugin will stop the dev server. Continue?')
+      if (!ok) return
+    }
+    setError('')
+    setUpdatingPlugin(true)
+    try {
+      const res = await fetch(`/api/projects/${id}/update-plugin`, { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data.error || 'Failed to update plugin.')
+        showToast('Plugin update failed', 'error')
+      } else {
+        const v = data.pluginVersion ? ` v${data.pluginVersion}` : ''
+        showToast(`Plugin${v} synced from template`, 'success')
+        onRenamed && onRenamed()
+      }
+    } catch {
+      setError('Network error. Make sure the dev server is running.')
+      showToast('Plugin update failed', 'error')
+    } finally {
+      setUpdatingPlugin(false)
+    }
+  }
 
   const startRename = () => { setNameDraft(name); setEditingName(true) }
   const submitRename = async () => {
@@ -233,7 +282,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
                   <button
                     onClick={callRestart}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
+                    disabled={isUpdating}
+                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCcw size={28} strokeWidth={1.5} />
                     <span className="text-xs font-semibold">Restart</span>
@@ -259,8 +309,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             </div>
           )}
 
-          {/* ── Stopped state ── */}
-          {isStopped && (
+          {/* ── Stopped / updating-plugin state ── */}
+          {(isStopped || isUpdatingPluginServer) && (
             <div className="flex items-start justify-between gap-6">
               {/* Left: title + status */}
               <div className="flex flex-col gap-3">
@@ -277,10 +327,22 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground-disabled" />
-                  </span>
-                  <span className="text-xl font-semibold text-foreground-tertiary">Project is not running</span>
+                  {isUpdatingPluginServer ? (
+                    <>
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground-info opacity-60" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground-info" />
+                      </span>
+                      <span className="text-xl font-semibold text-foreground-info">Updating plugin…</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="relative flex h-3 w-3">
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground-disabled" />
+                      </span>
+                      <span className="text-xl font-semibold text-foreground-tertiary">Project is not running</span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -293,7 +355,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   <button
                     data-testid="btn-run"
                     onClick={() => setSetupMode(true)}
-                    className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
+                    disabled={isUpdating}
+                    className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Play size={28} fill="currentColor" strokeWidth={0} />
                     <span className="text-xs font-semibold">Run project</span>
@@ -318,6 +381,34 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Plugin section — present in stopped + running states */}
+          {!isBusy && (
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-border-default bg-background-secondary px-4 py-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-background-tertiary flex items-center justify-center text-foreground-tertiary shrink-0">
+                  <Puzzle size={16} strokeWidth={1.75} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-medium text-foreground-default">Protovibe plugin</span>
+                  <span className="text-xs text-foreground-tertiary truncate">
+                    {pluginVersion ? `v${pluginVersion}` : 'Version unknown'}
+                    {pluginUpdatedDate ? ` · Updated ${pluginUpdatedDate}` : ' · Never updated in this project'}
+                  </span>
+                </div>
+              </div>
+              <button
+                data-testid="btn-update-plugin"
+                onClick={handleUpdatePlugin}
+                disabled={isUpdating || isBusy}
+                title={isRunning ? 'Stops the running dev server before updating' : 'Sync plugin source from protovibe-project-template'}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
+                {isUpdating ? 'Updating…' : 'Update plugin'}
+              </button>
             </div>
           )}
 

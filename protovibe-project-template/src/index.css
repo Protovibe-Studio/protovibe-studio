@@ -745,7 +745,7 @@ body {
  margin: 0;
  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
  background: var(--color-background-default);
- color: var(--color-foreground);
+ color: var(--color-foreground-default);
  min-height: 100vh;
 }
 

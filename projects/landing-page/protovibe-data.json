@@ -2,5 +2,7 @@
   "project-name": "landing-page",
   "cloudflare-wrangler-project-name": "landing-page",
   "cloudflare-pages-url": "",
-  "cloudflare-deploy-history": []
+  "cloudflare-deploy-history": [],
+  "plugin-version": "1.0.0",
+  "plugin-last-updated": "2026-04-26"
 }

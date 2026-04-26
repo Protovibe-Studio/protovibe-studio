@@ -282,6 +282,12 @@ export const BlockEditor: React.FC = () => {
             suppressContentEditableWarning
             onInput={handleInput}
             onBlur={handleBlur}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                editorRef.current?.blur();
+              }
+            }}
             style={{
               color: isEmpty ? theme.text_tertiary : theme.accent_default,
               padding: '6px',
