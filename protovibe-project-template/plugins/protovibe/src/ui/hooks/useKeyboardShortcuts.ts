@@ -366,6 +366,56 @@ export function useKeyboardShortcuts() {
         img.src = objectUrl;
       });
 
+    const insertImageFile = async (imageFile: File) => {
+      if (!activeData?.file || !currentBaseTarget) return;
+
+      const targets = selectedTargets?.length > 0 ? selectedTargets : [currentBaseTarget];
+      const blockIds = [...new Set(
+        targets
+          .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+          .filter(Boolean) as string[]
+      )];
+      const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+      const targetZone = zones[0];
+      const targetBlockId = blockIds[0];
+      const wantAfter = !targetZone && !!targetBlockId && !!isBlockInCurrentFile;
+
+      if (!wantAfter && !targetZone) {
+        emitToast({ message: "Can't paste image here", variant: 'error' });
+        return;
+      }
+
+      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+      await runLockedMutation(async () => {
+        const [url, dims] = await Promise.all([uploadImage(imageFile), getImageDimensions(imageFile)]);
+        await takeSnapshot(activeData.file, activeSourceId!);
+        const res = await addBlock({
+          file: activeData.file,
+          zoneId: wantAfter ? undefined : targetZone.id,
+          afterBlockId: wantAfter ? targetBlockId! : undefined,
+          isPristine: wantAfter ? false : targetZone.isPristine,
+          elementType: 'image',
+          imageUrl: url,
+          imageWidth: dims.w,
+          imageHeight: dims.h,
+          targetStartLine: activeData.startLine,
+          targetEndLine: activeData.endLine,
+          targetLayoutMode,
+          pasteX: 100,
+          pasteY: 100,
+        });
+        const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+        if (focusIds.length > 0) {
+          emitToast({ message: 'Image inserted', variant: 'info' });
+          focusNewBlock(focusIds);
+        }
+      }).catch((err: any) => {
+        emitToast({ message: err.message || 'Failed to insert image', variant: 'error' });
+      });
+    };
+
     const handlePaste = async (e: ClipboardEvent) => {
       if (isMutationLocked) return;
       if (isTypingInput(e.target as HTMLElement)) return;
@@ -381,6 +431,12 @@ export function useKeyboardShortcuts() {
       const isPasteAfter = pasteShiftRef;
       pasteShiftRef = false;
 
+      if (imageFile) {
+        e.preventDefault();
+        await insertImageFile(imageFile);
+        return;
+      }
+
       const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
       const blockIds = [...new Set(
         targets
@@ -390,28 +446,14 @@ export function useKeyboardShortcuts() {
       const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
       const targetZone = zones[0];
       const targetBlockId = blockIds[0];
-
-      // For image paste from system clipboard, default to "inside" but fall back
-      // to "after" the selected block when there is no target zone.
-      const imgUseAfter = imageFile ? (!targetZone && !!targetBlockId && !!isBlockInCurrentFile) : isPasteAfter;
-      const wantAfter = imageFile ? imgUseAfter : isPasteAfter;
+      const wantAfter = isPasteAfter;
 
       if (wantAfter && (!targetBlockId || !isBlockInCurrentFile)) {
-        if (imageFile) {
-          e.preventDefault();
-          emitToast({ message: "Can't paste image here", variant: 'error' });
-        } else {
-          emitToast({ message: "Can't paste after this element", variant: 'error' });
-        }
+        emitToast({ message: "Can't paste after this element", variant: 'error' });
         return;
       }
       if (!wantAfter && !targetZone) {
-        if (imageFile) {
-          e.preventDefault();
-          emitToast({ message: "Can't paste image here", variant: 'error' });
-        } else {
-          emitToast({ message: "Can't paste inside this element", variant: 'error' });
-        }
+        emitToast({ message: "Can't paste inside this element", variant: 'error' });
         return;
       }
 
@@ -421,43 +463,97 @@ export function useKeyboardShortcuts() {
       const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
 
       await runLockedMutation(async () => {
-        let extraParams: Record<string, any>;
-        if (imageFile) {
-          const [url, dims] = await Promise.all([uploadImage(imageFile), getImageDimensions(imageFile)]);
-          extraParams = { elementType: 'image', imageUrl: url, imageWidth: dims.w, imageHeight: dims.h };
-        } else {
-          extraParams = { elementType: 'paste' };
-        }
         await takeSnapshot(activeData.file, activeSourceId!);
         const res = await addBlock({
           file: activeData.file,
           zoneId: wantAfter ? undefined : targetZone.id,
           afterBlockId: wantAfter ? targetBlockId! : undefined,
           isPristine: wantAfter ? false : targetZone.isPristine,
+          elementType: 'paste',
           targetStartLine: activeData.startLine,
           targetEndLine: activeData.endLine,
           targetLayoutMode,
           pasteX: 100,
           pasteY: 100,
-          ...extraParams,
-        } as any);
+        });
         const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
         if (focusIds.length > 0) {
-          emitToast({ message: imageFile ? 'Image pasted' : 'Pasted successfully', variant: 'info' });
+          emitToast({ message: 'Pasted successfully', variant: 'info' });
           focusNewBlock(focusIds);
         }
       }).catch((err: any) => {
-        emitToast({ message: err.message || (imageFile ? 'Failed to paste image' : 'Failed to paste block'), variant: 'error' });
+        emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
       });
+    };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (!activeData?.file || !currentBaseTarget) return;
+      const types = e.dataTransfer?.types;
+      if (types && Array.from(types).includes('Files')) {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+      }
+    };
+
+    const handleDrop = async (e: DragEvent) => {
+      if (isMutationLocked) return;
+      if (!activeData?.file || !currentBaseTarget) return;
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+      const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+      if (!imageFile) return;
+      e.preventDefault();
+      await insertImageFile(imageFile);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('paste', handlePaste);
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('drop', handleDrop);
+
+    // Mirror drag/drop listeners onto same-origin iframe documents so users can
+    // drop image files onto the canvas (which lives inside an iframe).
+    const attachedDocs = new WeakSet<Document>();
+    const attachToIframeDoc = (doc: Document | null | undefined) => {
+      if (!doc || attachedDocs.has(doc)) return;
+      attachedDocs.add(doc);
+      doc.addEventListener('dragover', handleDragOver as EventListener);
+      doc.addEventListener('drop', handleDrop as EventListener);
+    };
+    const iframeLoadHandlers = new Map<HTMLIFrameElement, () => void>();
+    const wireIframes = () => {
+      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+        const el = iframe as HTMLIFrameElement;
+        try { attachToIframeDoc(el.contentDocument); } catch {}
+        if (!iframeLoadHandlers.has(el)) {
+          const onLoad = () => { try { attachToIframeDoc(el.contentDocument); } catch {} };
+          el.addEventListener('load', onLoad);
+          iframeLoadHandlers.set(el, onLoad);
+        }
+      });
+    };
+    wireIframes();
+    const iframeObserver = new MutationObserver(wireIframes);
+    iframeObserver.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('paste', handlePaste);
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('drop', handleDrop);
+      iframeObserver.disconnect();
+      iframeLoadHandlers.forEach((handler, el) => el.removeEventListener('load', handler));
+      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+        try {
+          const doc = (iframe as HTMLIFrameElement).contentDocument;
+          if (doc) {
+            doc.removeEventListener('dragover', handleDragOver as EventListener);
+            doc.removeEventListener('drop', handleDrop as EventListener);
+          }
+        } catch {}
+      });
     };
   }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
 }

@@ -97,6 +97,12 @@ export default function Frame1() {
         {/* pv-editable-zone-end:x75tmm */}
       </DialogWindow>
       {/* pv-block-end:7tzslw */}
+        {/* pv-block-start:9vz0fx */}
+        <div data-pv-block="9vz0fx" data-pv-sketchpad-el="9vz0fx" style={{ position: 'absolute', width: 544, left: 68, top: 49 }} className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-04-24-at-161759.png')] bg-contain bg-center bg-no-repeat aspect-[96/29]" />
+        {/* pv-block-end:9vz0fx */}
+        {/* pv-block-start:t574l6 */}
+        <div data-pv-block="t574l6" data-pv-sketchpad-el="t574l6" style={{ position: 'absolute', width: 426, left: -2502, top: 1608 }} className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-04-24-at-161759.png')] bg-contain bg-center bg-no-repeat aspect-[96/29]" />
+        {/* pv-block-end:t574l6 */}
       {/* pv-editable-zone-end:puwew6 */}
     </div>
   );
