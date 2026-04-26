@@ -123,8 +123,16 @@ export async function executeClipboardBlockAction({
   refreshActiveData
 }: ExecuteClipboardBlockActionParams): Promise<void> {
   const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+  // Overwrite the OS clipboard with a marker so any previously-copied image
+  // is evicted — pasting an image only works when the image was copied AFTER
+  // the most recent protovibe copy/cut.
+  const clearOsClipboard = () => {
+    try { navigator.clipboard?.writeText('protovibe-block'); } catch {}
+  };
+
   if (action === 'copy') {
     await blockAction('copy', blockId, file);
+    clearOsClipboard();
     return;
   }
 
@@ -132,6 +140,7 @@ export async function executeClipboardBlockAction({
 
   await takeSnapshot(file, activeSourceId);
   await blockAction(action, blockId, file);
+  if (action === 'cut') clearOsClipboard();
 
   if (action === 'duplicate') {
     await wait(300);

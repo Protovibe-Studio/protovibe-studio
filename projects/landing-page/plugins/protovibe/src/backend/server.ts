@@ -955,7 +955,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode } = JSON.parse(body || '{}');
+      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -1255,6 +1255,16 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
         if (elementType === 'text') {
           return `${i}{/* pv-block-start:${blockId} */}\n${i}<span data-pv-block="${blockId}"${layoutAttrs}>Lorem ipsum</span>\n${i}{/* pv-block-end:${blockId} */}`;
+        }
+        if (elementType === 'image') {
+          let aspectClass = '';
+          if (imageWidth && imageHeight) {
+            const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+            const d = gcd(Math.round(imageWidth), Math.round(imageHeight));
+            aspectClass = ` aspect-[${Math.round(imageWidth / d)}/${Math.round(imageHeight / d)}]`;
+          }
+          const className = `w-full bg-[url('${imageUrl}')] bg-contain bg-center bg-no-repeat${aspectClass}`;
+          return `${i}{/* pv-block-start:${blockId} */}\n${i}<div data-pv-block="${blockId}"${layoutAttrs} className="${className}" />\n${i}{/* pv-block-end:${blockId} */}`;
         }
         if (elementType === 'component') {
           const propsStr = defaultProps ? ` ${defaultProps}` : '';

@@ -72,6 +72,9 @@ export async function addBlock(params: {
   targetLayoutMode?: string;
   pasteX?: number;
   pasteY?: number;
+  imageUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
 }) {
   const res = await fetch('/__add-block', {
     method: 'POST',

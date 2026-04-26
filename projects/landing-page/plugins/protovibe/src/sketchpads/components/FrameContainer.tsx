@@ -300,15 +300,47 @@ export function FrameContainer({
     [],
   );
 
-  const handleContentClick = useCallback(
+  const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
+
+  // Overlay over the content area when the frame is focused: intercepts clicks/drags so
+  // the frame moves as a unit instead of drilling into a child. Double-click pierces
+  // the overlay by releasing frame focus.
+  const handleOverlayPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      if (e.shiftKey || e.metaKey || e.ctrlKey) return;
+      e.stopPropagation();
+
+      isDuplicateDragRef.current = e.altKey;
+      setIsAltDragging(e.altKey);
+      setIsDragging(true);
+      dragStartRef.current = { x: e.clientX, y: e.clientY, frameX: canvasX, frameY: canvasY };
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+      const snap: Array<{ id: string; el: HTMLElement; startX: number; startY: number }> = [];
+      for (const id of selectedFrameIds) {
+        if (id === frameId) continue;
+        const el = document.querySelector(`[data-sketchpad-frame-root="${id}"]`) as HTMLElement | null;
+        if (!el) continue;
+        const startX = parseFloat(el.style.left) || 0;
+        const startY = parseFloat(el.style.top) || 0;
+        snap.push({ id, el, startX, startY });
+      }
+      groupDragRef.current = snap;
+
+      frameRef.current?.focus({ preventScroll: true });
+    },
+    [canvasX, canvasY, frameId, selectedFrameIds],
+  );
+
+  const handleOverlayDoubleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      // Release frame focus so the next click drills into a child via the bridge.
       onSelect(null);
     },
     [onSelect],
   );
-
-  const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
   const menuItems = [
     { label: 'Rename', action: () => onRename(frameId), hidden: isInMultiSelection },
     {
@@ -498,13 +530,29 @@ export function FrameContainer({
               ? '0 0 0 1px #18a0fb, 0 4px 24px rgba(0,0,0,0.3)'
               : '0 2px 12px rgba(0,0,0,0.2)',
           }}
-          onClick={handleContentClick}
         >
           {children}
+          {isSelected && (
+            <div
+              data-sketchpad-frame-overlay=""
+              onPointerDown={handleOverlayPointerDown}
+              onPointerMove={handleTitlePointerMove}
+              onPointerUp={handleTitlePointerUp}
+              onDoubleClick={handleOverlayDoubleClick}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                background: 'transparent',
+                zIndex: 100,
+              }}
+            />
+          )}
         </div>
 
         {/* Resize handle */}
         <div
+          data-sketchpad-resize-handle=""
           onPointerDown={handleResizePointerDown}
           onPointerMove={handleResizePointerMove}
           onPointerUp={handleResizePointerUp}

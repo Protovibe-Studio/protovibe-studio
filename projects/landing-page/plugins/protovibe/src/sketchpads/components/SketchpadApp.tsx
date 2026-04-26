@@ -156,6 +156,17 @@ export function SketchpadApp() {
   const mutationLockRef = useRef(false);
   const mousePosRef = useRef({ x: 0, y: 0 });
 
+  type FrameClipboardEntry = {
+    sourceFrameId: string;
+    name: string;
+    width: number;
+    height: number;
+    canvasX: number;
+    canvasY: number;
+    content: string;
+  };
+  const frameClipboardRef = useRef<FrameClipboardEntry[] | null>(null);
+
   useEffect(() => {
     const track = (e: MouseEvent) => { mousePosRef.current = { x: e.clientX, y: e.clientY }; };
     window.addEventListener('mousemove', track, { passive: true });
@@ -225,13 +236,24 @@ export function SketchpadApp() {
     [],
   );
 
-  // Load registry on mount — auto-create a default sketchpad if none exist
+  // Tracks whether initial transform has been applied for the currently-loaded sketchpad
+  // so we can skip the auto-center effect when a saved viewState was restored.
+  const initialTransformAppliedRef = useRef(false);
+
+  // Load registry on mount — auto-create a default sketchpad if none exist.
+  // Restores last-active sketchpad and its persisted pan/zoom.
   useEffect(() => {
     api.fetchRegistry().then(async (reg) => {
       if (reg.sketchpads?.length > 0) {
         setSketchpads(reg.sketchpads);
-        setActiveSketchpadId(reg.sketchpads[0].id);
-        loadAllFrameModules(reg.sketchpads[0].id, reg.sketchpads[0].frames);
+        const initial =
+          reg.sketchpads.find((s) => s.id === reg.lastActiveSketchpadId) ?? reg.sketchpads[0];
+        setActiveSketchpadId(initial.id);
+        if (initial.viewState) {
+          setTransform(initial.viewState);
+          initialTransformAppliedRef.current = true;
+        }
+        loadAllFrameModules(initial.id, initial.frames);
       } else {
         const sp = await api.createSketchpad('Sketchpad 1');
         const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
@@ -241,6 +263,53 @@ export function SketchpadApp() {
       }
     });
   }, [loadAllFrameModules]);
+
+  // Persist active sketchpad id whenever it changes.
+  const lastPersistedActiveRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!activeSketchpadId) return;
+    if (lastPersistedActiveRef.current === activeSketchpadId) return;
+    lastPersistedActiveRef.current = activeSketchpadId;
+    api.updateSketchpadView(activeSketchpadId, { makeActive: true }).catch(() => {});
+  }, [activeSketchpadId]);
+
+  // Debounced + unload-safe persistence of pan/zoom for the active sketchpad.
+  // Skips the very first transform value after switching sketchpads (set programmatically
+  // from saved viewState or from auto-centering) to avoid a redundant write back.
+  const lastSavedTransformRef = useRef<{ id: string; transform: CanvasTransform } | null>(null);
+  useEffect(() => {
+    if (!activeSketchpadId) return;
+    // Reset baseline whenever active sketchpad changes
+    if (lastSavedTransformRef.current?.id !== activeSketchpadId) {
+      lastSavedTransformRef.current = { id: activeSketchpadId, transform };
+      return;
+    }
+    const last = lastSavedTransformRef.current.transform;
+    if (last.zoom === transform.zoom && last.panX === transform.panX && last.panY === transform.panY) return;
+    const handle = setTimeout(() => {
+      lastSavedTransformRef.current = { id: activeSketchpadId, transform };
+      api.updateSketchpadView(activeSketchpadId, { viewState: transform }).catch(() => {});
+    }, 3000);
+    return () => clearTimeout(handle);
+  }, [activeSketchpadId, transform]);
+
+  // Save view state on tab close / refresh via sendBeacon.
+  useEffect(() => {
+    const flush = () => {
+      if (!activeSketchpadId) return;
+      api.updateSketchpadView(
+        activeSketchpadId,
+        { viewState: transform, makeActive: true },
+        { keepalive: true },
+      );
+    };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+    };
+  }, [activeSketchpadId, transform]);
 
   const zoomToPoint = useCallback((newZoom: number, clientX: number, clientY: number) => {
     if (!containerRef.current) return;
@@ -281,6 +350,10 @@ export function SketchpadApp() {
 
   useEffect(() => {
     if (hasInitiallyCentered.current || !activeSketchpad) return;
+    if (initialTransformAppliedRef.current) {
+      hasInitiallyCentered.current = true;
+      return;
+    }
 
     const container = containerRef.current;
     if (!container) return;
@@ -351,6 +424,27 @@ export function SketchpadApp() {
       });
     },
     [activeSketchpadId, sketchpads, loadAllFrameModules, runLockedMutation],
+  );
+
+  const handleDuplicateSketchpad = useCallback(
+    async (id: string) => {
+      await runLockedMutation(async () => {
+        const newSp = await api.duplicateSketchpad(id);
+        if (!newSp?.id) return;
+        setSketchpads((prev) => [...prev, newSp]);
+        setActiveSketchpadId(newSp.id);
+        setSelectedFrameIds([]);
+        await loadAllFrameModules(newSp.id, newSp.frames);
+        if (containerRef.current && newSp.frames.length > 0) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setTransform(centeredTransformForFrames(newSp.frames, rect.width, rect.height));
+        }
+        window.dispatchEvent(new CustomEvent('pv-toast', {
+          detail: { message: `Sketchpad "${newSp.name}" created`, variant: 'info' },
+        }));
+      });
+    },
+    [runLockedMutation, loadAllFrameModules],
   );
 
   const handleRenameSketchpad = useCallback(async (id: string, name: string) => {
@@ -553,6 +647,141 @@ export function SketchpadApp() {
     [activeSketchpadId, loadFrameModule, runLockedMutation],
   );
 
+  const copyFramesToClipboard = useCallback(
+    async (frameIds: string[]): Promise<FrameClipboardEntry[] | null> => {
+      if (!activeSketchpad || frameIds.length === 0) return null;
+      const frames = activeSketchpad.frames.filter((f) => frameIds.includes(f.id));
+      if (frames.length === 0) return null;
+      const entries: FrameClipboardEntry[] = [];
+      for (const f of frames) {
+        try {
+          const { content } = await api.readFrame(activeSketchpad.id, f.id);
+          if (content) {
+            entries.push({
+              sourceFrameId: f.id,
+              name: f.name,
+              width: f.width,
+              height: f.height,
+              canvasX: f.canvasX,
+              canvasY: f.canvasY,
+              content,
+            });
+          }
+        } catch (e) {
+          console.warn('[Sketchpad] Failed to read frame', f.id, e);
+        }
+      }
+      return entries.length > 0 ? entries : null;
+    },
+    [activeSketchpad],
+  );
+
+  const handleCopyFrames = useCallback(
+    async (frameIds: string[]) => {
+      const entries = await copyFramesToClipboard(frameIds);
+      if (entries) {
+        frameClipboardRef.current = entries;
+        window.dispatchEvent(new CustomEvent('pv-toast', {
+          detail: {
+            message: `${entries.length} frame${entries.length !== 1 ? 's' : ''} copied`,
+            variant: 'info',
+          },
+        }));
+      }
+    },
+    [copyFramesToClipboard],
+  );
+
+  const handleCutFrames = useCallback(
+    async (frameIds: string[]) => {
+      const entries = await copyFramesToClipboard(frameIds);
+      if (!entries) return;
+      frameClipboardRef.current = entries;
+      await runLockedMutation(async () => {
+        if (!activeSketchpadId) return;
+        await api.deleteFramesMulti(activeSketchpadId, frameIds);
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId
+              ? { ...s, frames: s.frames.filter((f) => !frameIds.includes(f.id)) }
+              : s,
+          ),
+        );
+        setFrameModules((prev) => {
+          const next = { ...prev };
+          for (const id of frameIds) delete next[id];
+          return next;
+        });
+        setSelectedFrameIds((prev) => prev.filter((id) => !frameIds.includes(id)));
+      });
+      window.dispatchEvent(new CustomEvent('pv-toast', {
+        detail: {
+          message: `${entries.length} frame${entries.length !== 1 ? 's' : ''} cut`,
+          variant: 'info',
+        },
+      }));
+    },
+    [copyFramesToClipboard, runLockedMutation, activeSketchpadId],
+  );
+
+  const handlePasteFrames = useCallback(async () => {
+    const entries = frameClipboardRef.current;
+    if (!entries || entries.length === 0 || !activeSketchpadId) return;
+
+    // Compute paste positions: preserve relative arrangement from source bounding box
+    // origin, anchor at viewport center (or origin offset by 40,40 if same sketchpad).
+    const minX = Math.min(...entries.map((e) => e.canvasX));
+    const minY = Math.min(...entries.map((e) => e.canvasY));
+
+    let anchorX = minX + 40;
+    let anchorY = minY + 40;
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewCx = rect.width / 2;
+      const viewCy = rect.height / 2;
+      const canvasCx = (viewCx - transform.panX) / transform.zoom;
+      const canvasCy = (viewCy - transform.panY) / transform.zoom;
+      const maxX = Math.max(...entries.map((e) => e.canvasX + e.width));
+      const maxY = Math.max(...entries.map((e) => e.canvasY + e.height));
+      const groupCx = (minX + maxX) / 2;
+      const groupCy = (minY + maxY) / 2;
+      anchorX = canvasCx - (groupCx - minX);
+      anchorY = canvasCy - (groupCy - minY);
+    }
+
+    await runLockedMutation(async () => {
+      const result = await api.pasteFrames(
+        activeSketchpadId,
+        entries.map((e) => ({
+          name: e.name,
+          width: e.width,
+          height: e.height,
+          canvasX: Math.round(anchorX + (e.canvasX - minX)),
+          canvasY: Math.round(anchorY + (e.canvasY - minY)),
+          content: e.content,
+          sourceFrameId: e.sourceFrameId,
+        })),
+      );
+      if (result?.ok && result.frames.length > 0) {
+        for (const f of result.frames) {
+          await loadFrameModule(activeSketchpadId, f.id);
+        }
+        setSketchpads((prev) =>
+          prev.map((s) =>
+            s.id === activeSketchpadId ? { ...s, frames: [...s.frames, ...result.frames] } : s,
+          ),
+        );
+        setSelectedFrameIds(result.frames.map((f) => f.id));
+        window.dispatchEvent(new CustomEvent('pv-toast', {
+          detail: {
+            message: `${result.frames.length} frame${result.frames.length !== 1 ? 's' : ''} pasted`,
+            variant: 'info',
+          },
+        }));
+      }
+    });
+  }, [activeSketchpadId, transform, runLockedMutation, loadFrameModule]);
+
   const handleDeleteFramesMulti = useCallback(
     async (frameIds: string[]) => {
       if (!activeSketchpadId || frameIds.length === 0) return;
@@ -731,10 +960,30 @@ export function SketchpadApp() {
         handleDeleteFramesMulti(selectedFrameIds);
         return;
       }
+
+      // Frame-level clipboard: copy/cut/paste between sketchpads
+      if (e.metaKey || e.ctrlKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'c' && selectedFrameIds.length > 0) {
+          e.preventDefault();
+          handleCopyFrames(selectedFrameIds);
+          return;
+        }
+        if (key === 'x' && selectedFrameIds.length > 0) {
+          e.preventDefault();
+          handleCutFrames(selectedFrameIds);
+          return;
+        }
+        if (key === 'v' && frameClipboardRef.current && frameClipboardRef.current.length > 0) {
+          e.preventDefault();
+          handlePasteFrames();
+          return;
+        }
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [selectedFrameIds, handleDeleteFramesMulti, pendingAction, zoomToCenter, zoomByFactor]);
+  }, [selectedFrameIds, handleDeleteFramesMulti, pendingAction, zoomToCenter, zoomByFactor, handleCopyFrames, handleCutFrames, handlePasteFrames]);
 
   // Marquee selection: starts on canvas background or empty area inside a frame.
   // Containment-only: an element/frame must be fully enclosed.
@@ -783,6 +1032,7 @@ export function SketchpadApp() {
       const t = e.target as HTMLElement | null;
       if (!t) return;
       if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
+      if (t.closest('[data-sketchpad-resize-handle]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
       if (frameRoot && !frameContent) return;
@@ -857,11 +1107,13 @@ export function SketchpadApp() {
       }
     };
 
-    window.addEventListener('pointerdown', onPointerDown, true);
+    // Bubble phase so the sketchpad bridge's capture-phase handler can stopPropagation
+    // (e.g. when entering element resize from the 8px safe-margin) before we start a marquee.
+    window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     return () => {
-      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
@@ -1467,15 +1719,37 @@ export function SketchpadApp() {
         sketchpads={sketchpads}
         activeSketchpadId={activeSketchpadId}
         onSelect={(id) => {
+          if (id === activeSketchpadId) {
+            setShowSketchpadPanel(false);
+            return;
+          }
+          // Persist current transform to the outgoing sketchpad before switching.
+          if (activeSketchpadId) {
+            api.updateSketchpadView(activeSketchpadId, { viewState: transform }).catch(() => {});
+            setSketchpads((prev) =>
+              prev.map((s) => (s.id === activeSketchpadId ? { ...s, viewState: transform } : s)),
+            );
+          }
           setActiveSketchpadId(id);
           setShowSketchpadPanel(false);
           setSelectedFrameIds([]);
           const sp = sketchpads.find((s) => s.id === id);
-          if (sp) loadAllFrameModules(id, sp.frames);
+          if (sp) {
+            if (sp.viewState) {
+              setTransform(sp.viewState);
+              initialTransformAppliedRef.current = true;
+            } else {
+              initialTransformAppliedRef.current = false;
+              hasInitiallyCentered.current = false;
+            }
+            loadAllFrameModules(id, sp.frames);
+          }
+          api.updateSketchpadView(id, { makeActive: true }).catch(() => {});
         }}
         onCreate={handleCreateSketchpad}
         onDelete={handleDeleteSketchpad}
         onRename={handleRenameSketchpad}
+        onDuplicate={handleDuplicateSketchpad}
       />
       {isMutationLocked && (
         <div

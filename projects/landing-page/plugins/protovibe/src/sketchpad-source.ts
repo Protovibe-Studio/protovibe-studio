@@ -18,6 +18,10 @@ import {
   handleFrameUpdatePositionMulti,
   handleSketchpadUpdateElementPosition,
   handleSketchpadUpdateElementSize,
+  handleSketchpadDuplicate,
+  handleFrameRead,
+  handleFramePaste,
+  handleSketchpadUpdateView,
 } from './backend/sketchpad-server';
 
 /**
@@ -28,6 +32,10 @@ export function registerSketchpadMiddleware(server: ViteDevServer) {
   server.middlewares.use('/__sketchpad-create', handleSketchpadCreate);
   server.middlewares.use('/__sketchpad-delete', handleSketchpadDelete);
   server.middlewares.use('/__sketchpad-rename', handleSketchpadRename);
+  server.middlewares.use('/__sketchpad-duplicate', handleSketchpadDuplicate);
+  server.middlewares.use('/__frame-read', handleFrameRead);
+  server.middlewares.use('/__frame-paste', handleFramePaste);
+  server.middlewares.use('/__sketchpad-update-view', handleSketchpadUpdateView);
   server.middlewares.use('/__frame-create', handleFrameCreate);
   server.middlewares.use('/__frame-delete', handleFrameDelete);
   server.middlewares.use('/__frame-delete-multi', handleFrameDeleteMulti);

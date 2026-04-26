@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot, addBlock, deleteBlocks } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock, deleteBlocks, uploadImage } from '../api/client';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -33,6 +33,8 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     if (!inspectorOpen) return;
+
+    let pasteShiftRef = false;
 
     const focusRestoredElement = (sourceId: string | undefined): Promise<void> => {
       return new Promise((resolve) => {
@@ -145,7 +147,13 @@ export function useKeyboardShortcuts() {
 
       // Copy, Cut, Paste, Duplicate
       const key = e.key.toLowerCase();
-      if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'v' || key === 'd')) {
+      if ((e.metaKey || e.ctrlKey) && key === 'v') {
+        // Defer to the `paste` event so we can route image clipboard data
+        // to the image-insert flow even when a protovibe block was previously copied.
+        pasteShiftRef = e.shiftKey;
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'd')) {
         e.preventDefault();
         const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
         const blockIds = [...new Set(
@@ -157,7 +165,7 @@ export function useKeyboardShortcuts() {
 
         if (!activeData?.file) return;
 
-        if (key === 'c' || key === 'x' || key === 'd') {
+        {
           if (blockIds.length === 0 || !isBlockInCurrentFile) {
             emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
             return;
@@ -204,56 +212,6 @@ export function useKeyboardShortcuts() {
             });
             emitToast({ message: 'Block copied to clipboard', variant: 'info' });
           }
-          return;
-        }
-
-        if (key === 'v') {
-          const isPasteAfter = e.shiftKey;
-          const targetBlockId = blockIds[0];
-
-          if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
-            emitToast({ message: "Can't paste after this element", variant: 'error' });
-            return;
-          }
-
-          if (!isPasteAfter && zones.length === 0) {
-            emitToast({ message: "Can't paste inside this element", variant: 'error' });
-            return;
-          }
-
-          const targetZone = zones[0];
-
-          if (!isPasteAfter && !targetZone) {
-            emitToast({ message: "Can't paste inside this element", variant: 'error' });
-            return;
-          }
-
-          const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
-          const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
-
-          await runLockedMutation(async () => {
-            await takeSnapshot(activeData.file, activeSourceId!);
-            const res = await addBlock({
-              file: activeData.file,
-              zoneId: isPasteAfter ? undefined : targetZone.id,
-              afterBlockId: isPasteAfter ? targetBlockId! : undefined,
-              isPristine: isPasteAfter ? false : targetZone.isPristine,
-              elementType: 'paste',
-              targetStartLine: activeData.startLine,
-              targetEndLine: activeData.endLine,
-              targetLayoutMode,
-              pasteX: 100,
-              pasteY: 100,
-            });
-
-            const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
-            if (focusIds.length > 0) {
-              emitToast({ message: 'Pasted successfully', variant: 'info' });
-              focusNewBlock(focusIds);
-            }
-          }).catch((err: any) => {
-            emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
-          });
           return;
         }
       }
@@ -399,11 +357,203 @@ export function useKeyboardShortcuts() {
       }
     };
 
+    const getImageDimensions = (file: File): Promise<{ w: number; h: number }> =>
+      new Promise((resolve) => {
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { resolve({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(objectUrl); };
+        img.onerror = () => { resolve({ w: 0, h: 0 }); URL.revokeObjectURL(objectUrl); };
+        img.src = objectUrl;
+      });
+
+    const insertImageFile = async (imageFile: File) => {
+      if (!activeData?.file || !currentBaseTarget) return;
+
+      const targets = selectedTargets?.length > 0 ? selectedTargets : [currentBaseTarget];
+      const blockIds = [...new Set(
+        targets
+          .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+          .filter(Boolean) as string[]
+      )];
+      const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+      const targetZone = zones[0];
+      const targetBlockId = blockIds[0];
+      const wantAfter = !targetZone && !!targetBlockId && !!isBlockInCurrentFile;
+
+      if (!wantAfter && !targetZone) {
+        emitToast({ message: "Can't paste image here", variant: 'error' });
+        return;
+      }
+
+      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+      await runLockedMutation(async () => {
+        const [url, dims] = await Promise.all([uploadImage(imageFile), getImageDimensions(imageFile)]);
+        await takeSnapshot(activeData.file, activeSourceId!);
+        const res = await addBlock({
+          file: activeData.file,
+          zoneId: wantAfter ? undefined : targetZone.id,
+          afterBlockId: wantAfter ? targetBlockId! : undefined,
+          isPristine: wantAfter ? false : targetZone.isPristine,
+          elementType: 'image',
+          imageUrl: url,
+          imageWidth: dims.w,
+          imageHeight: dims.h,
+          targetStartLine: activeData.startLine,
+          targetEndLine: activeData.endLine,
+          targetLayoutMode,
+          pasteX: 100,
+          pasteY: 100,
+        });
+        const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+        if (focusIds.length > 0) {
+          emitToast({ message: 'Image inserted', variant: 'info' });
+          focusNewBlock(focusIds);
+        }
+      }).catch((err: any) => {
+        emitToast({ message: err.message || 'Failed to insert image', variant: 'error' });
+      });
+    };
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (isMutationLocked) return;
+      if (isTypingInput(e.target as HTMLElement)) return;
+      if (!activeData?.file) return;
+      if (!currentBaseTarget) return;
+
+      const items = e.clipboardData?.items;
+      const imageItem = items
+        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
+        : null;
+      const imageFile = imageItem?.getAsFile() || null;
+
+      const isPasteAfter = pasteShiftRef;
+      pasteShiftRef = false;
+
+      if (imageFile) {
+        e.preventDefault();
+        await insertImageFile(imageFile);
+        return;
+      }
+
+      const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+      const blockIds = [...new Set(
+        targets
+          .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+          .filter(Boolean) as string[]
+      )];
+      const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+      const targetZone = zones[0];
+      const targetBlockId = blockIds[0];
+      const wantAfter = isPasteAfter;
+
+      if (wantAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+        emitToast({ message: "Can't paste after this element", variant: 'error' });
+        return;
+      }
+      if (!wantAfter && !targetZone) {
+        emitToast({ message: "Can't paste inside this element", variant: 'error' });
+        return;
+      }
+
+      e.preventDefault();
+
+      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+      await runLockedMutation(async () => {
+        await takeSnapshot(activeData.file, activeSourceId!);
+        const res = await addBlock({
+          file: activeData.file,
+          zoneId: wantAfter ? undefined : targetZone.id,
+          afterBlockId: wantAfter ? targetBlockId! : undefined,
+          isPristine: wantAfter ? false : targetZone.isPristine,
+          elementType: 'paste',
+          targetStartLine: activeData.startLine,
+          targetEndLine: activeData.endLine,
+          targetLayoutMode,
+          pasteX: 100,
+          pasteY: 100,
+        });
+        const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+        if (focusIds.length > 0) {
+          emitToast({ message: 'Pasted successfully', variant: 'info' });
+          focusNewBlock(focusIds);
+        }
+      }).catch((err: any) => {
+        emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
+      });
+    };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (!activeData?.file || !currentBaseTarget) return;
+      const types = e.dataTransfer?.types;
+      if (types && Array.from(types).includes('Files')) {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+      }
+    };
+
+    const handleDrop = async (e: DragEvent) => {
+      if (isMutationLocked) return;
+      if (!activeData?.file || !currentBaseTarget) return;
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+      const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+      if (!imageFile) return;
+      e.preventDefault();
+      await insertImageFile(imageFile);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('paste', handlePaste);
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('drop', handleDrop);
+
+    // Mirror drag/drop listeners onto same-origin iframe documents so users can
+    // drop image files onto the canvas (which lives inside an iframe).
+    const attachedDocs = new WeakSet<Document>();
+    const attachToIframeDoc = (doc: Document | null | undefined) => {
+      if (!doc || attachedDocs.has(doc)) return;
+      attachedDocs.add(doc);
+      doc.addEventListener('dragover', handleDragOver as EventListener);
+      doc.addEventListener('drop', handleDrop as EventListener);
+    };
+    const iframeLoadHandlers = new Map<HTMLIFrameElement, () => void>();
+    const wireIframes = () => {
+      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+        const el = iframe as HTMLIFrameElement;
+        try { attachToIframeDoc(el.contentDocument); } catch {}
+        if (!iframeLoadHandlers.has(el)) {
+          const onLoad = () => { try { attachToIframeDoc(el.contentDocument); } catch {} };
+          el.addEventListener('load', onLoad);
+          iframeLoadHandlers.set(el, onLoad);
+        }
+      });
+    };
+    wireIframes();
+    const iframeObserver = new MutationObserver(wireIframes);
+    iframeObserver.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('paste', handlePaste);
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('drop', handleDrop);
+      iframeObserver.disconnect();
+      iframeLoadHandlers.forEach((handler, el) => el.removeEventListener('load', handler));
+      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+        try {
+          const doc = (iframe as HTMLIFrameElement).contentDocument;
+          if (doc) {
+            doc.removeEventListener('dragover', handleDragOver as EventListener);
+            doc.removeEventListener('drop', handleDrop as EventListener);
+          }
+        } catch {}
+      });
     };
   }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
 }
