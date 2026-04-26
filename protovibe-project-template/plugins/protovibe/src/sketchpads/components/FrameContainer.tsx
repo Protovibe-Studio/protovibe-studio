@@ -302,22 +302,12 @@ export function FrameContainer({
 
   const isInMultiSelection = isSelected && selectedFrameIds.length > 1;
 
-  const handleContentClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // In a multi-selection, clicking the content of a selected frame keeps the group.
-      if (isInMultiSelection) return;
-      onSelect(null);
-    },
-    [onSelect, isInMultiSelection],
-  );
-
-  // When this frame is part of a multi-selection, dragging anywhere on its content area
-  // moves the whole group (mirrors title-bar drag behavior).
-  const handleContentPointerDown = useCallback(
+  // Overlay over the content area when the frame is focused: intercepts clicks/drags so
+  // the frame moves as a unit instead of drilling into a child. Double-click pierces
+  // the overlay by releasing frame focus.
+  const handleOverlayPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
-      if (!isInMultiSelection) return;
       if (e.shiftKey || e.metaKey || e.ctrlKey) return;
       e.stopPropagation();
 
@@ -340,7 +330,16 @@ export function FrameContainer({
 
       frameRef.current?.focus({ preventScroll: true });
     },
-    [isInMultiSelection, canvasX, canvasY, frameId, selectedFrameIds],
+    [canvasX, canvasY, frameId, selectedFrameIds],
+  );
+
+  const handleOverlayDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // Release frame focus so the next click drills into a child via the bridge.
+      onSelect(null);
+    },
+    [onSelect],
   );
   const menuItems = [
     { label: 'Rename', action: () => onRename(frameId), hidden: isInMultiSelection },
@@ -531,12 +530,24 @@ export function FrameContainer({
               ? '0 0 0 1px #18a0fb, 0 4px 24px rgba(0,0,0,0.3)'
               : '0 2px 12px rgba(0,0,0,0.2)',
           }}
-          onClick={handleContentClick}
-          onPointerDown={handleContentPointerDown}
-          onPointerMove={handleTitlePointerMove}
-          onPointerUp={handleTitlePointerUp}
         >
           {children}
+          {isSelected && (
+            <div
+              data-sketchpad-frame-overlay=""
+              onPointerDown={handleOverlayPointerDown}
+              onPointerMove={handleTitlePointerMove}
+              onPointerUp={handleTitlePointerUp}
+              onDoubleClick={handleOverlayDoubleClick}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                background: 'transparent',
+                zIndex: 100,
+              }}
+            />
+          )}
         </div>
 
         {/* Resize handle */}
