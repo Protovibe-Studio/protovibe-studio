@@ -76,15 +76,23 @@ interface Frame {
   canvasY: number;
 }
 
+interface ViewState {
+  zoom: number;
+  panX: number;
+  panY: number;
+}
+
 interface SketchpadEntry {
   id: string;
   name: string;
   createdAt: string;
   frames: Frame[];
+  viewState?: ViewState;
 }
 
 interface Registry {
   sketchpads: SketchpadEntry[];
+  lastActiveSketchpadId?: string;
 }
 
 function readRegistry(): Registry {
@@ -759,6 +767,159 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
 
     fs.writeFileSync(filePath, content, 'utf-8');
     sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleSketchpadDuplicate: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { id } = await parseBody(req);
+    if (!id) return sendError(res, 'ID required');
+
+    const reg = readRegistry();
+    const source = reg.sketchpads.find((s) => s.id === id);
+    if (!source) return sendError(res, 'Sketchpad not found', 404);
+
+    const baseName = source.name.replace(/ Copy( \d+)?$/, '');
+    const newName = generateCopyName(baseName, reg.sketchpads.map((s) => s.name));
+    const newId = uniqueSlug(slugify(newName), reg.sketchpads.map((s) => s.id));
+
+    type FramePlan = { oldId: string; newId: string; oldRel: string; newRel: string; content: string };
+    const framePlans: FramePlan[] = [];
+    const newFrames: Frame[] = [];
+
+    for (const f of source.frames) {
+      const newFrameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
+      const oldRel = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, id, `${f.id}.tsx`));
+      const newRel = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, newId, `${newFrameId}.tsx`));
+      const oldAbs = path.resolve(process.cwd(), oldRel);
+      const content = fs.existsSync(oldAbs) ? fs.readFileSync(oldAbs, 'utf-8') : generateFrameContent(f.name);
+      framePlans.push({ oldId: f.id, newId: newFrameId, oldRel, newRel, content });
+      newFrames.push({ ...f, id: newFrameId });
+    }
+
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...framePlans.map((p) => p.newRel));
+
+    const newDir = path.join(SKETCHPADS_DIR, newId);
+    fs.mkdirSync(newDir, { recursive: true });
+    for (const p of framePlans) {
+      const renamed = renameComponentInContent(p.content, p.oldId, p.newId);
+      const fresh = reassignIds(renamed);
+      fs.writeFileSync(path.resolve(process.cwd(), p.newRel), fresh);
+    }
+
+    const newSketchpad: SketchpadEntry = {
+      id: newId,
+      name: newName,
+      createdAt: new Date().toISOString(),
+      frames: newFrames,
+    };
+    reg.sketchpads.push(newSketchpad);
+    writeRegistry(reg);
+
+    sendJson(res, newSketchpad);
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleFrameRead: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, frameId } = await parseBody(req);
+    if (!sketchpadId || !frameId) return sendError(res, 'sketchpadId and frameId required');
+    const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
+    if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    sendJson(res, { content });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+// Persist per-sketchpad view state (pan/zoom) and last-active id. Does NOT snapshot
+// for undo — view state is ambient and shouldn't generate undo entries.
+export const handleSketchpadUpdateView: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { sketchpadId, viewState, makeActive } = await parseBody(req);
+    if (!sketchpadId) return sendError(res, 'sketchpadId required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
+    if (!sp) return sendError(res, 'Sketchpad not found', 404);
+
+    if (viewState && typeof viewState === 'object') {
+      const { zoom, panX, panY } = viewState as ViewState;
+      if (
+        typeof zoom === 'number' && isFinite(zoom) &&
+        typeof panX === 'number' && isFinite(panX) &&
+        typeof panY === 'number' && isFinite(panY)
+      ) {
+        sp.viewState = { zoom, panX, panY };
+      }
+    }
+    if (makeActive) {
+      reg.lastActiveSketchpadId = sketchpadId;
+    }
+
+    writeRegistry(reg);
+    sendJson(res, { success: true });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+export const handleFramePaste: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { targetSketchpadId, frames } = await parseBody(req);
+    if (!targetSketchpadId || !Array.isArray(frames) || frames.length === 0)
+      return sendError(res, 'targetSketchpadId and non-empty frames array required');
+
+    const reg = readRegistry();
+    const sp = reg.sketchpads.find((s) => s.id === targetSketchpadId);
+    if (!sp) return sendError(res, 'Target sketchpad not found', 404);
+
+    type Plan = { newFrameId: string; newRel: string; content: string; sourceFrameId: string };
+    const plans: Plan[] = [];
+    const existingNames = [...sp.frames.map((f) => f.name)];
+    const newFrameMetas: Frame[] = [];
+
+    for (const entry of frames) {
+      const { name, width, height, canvasX, canvasY, content, sourceFrameId } = entry;
+      if (typeof content !== 'string' || !content) continue;
+      const baseName = String(name || 'Frame').replace(/ Copy( \d+)?$/, '');
+      const finalName = generateCopyName(baseName, existingNames);
+      existingNames.push(finalName);
+      const newFrameId = `frame-${Math.random().toString(36).substring(2, 8)}`;
+      const newRel = path.relative(process.cwd(), path.join(SKETCHPADS_DIR, targetSketchpadId, `${newFrameId}.tsx`));
+      plans.push({ newFrameId, newRel, content, sourceFrameId: sourceFrameId || '' });
+      newFrameMetas.push({
+        id: newFrameId,
+        name: finalName,
+        width: width || 1440,
+        height: height || 900,
+        canvasX: canvasX ?? 0,
+        canvasY: canvasY ?? 0,
+      });
+    }
+
+    if (plans.length === 0) return sendError(res, 'No valid frames to paste');
+
+    snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...plans.map((p) => p.newRel));
+
+    const dirPath = path.join(SKETCHPADS_DIR, targetSketchpadId);
+    fs.mkdirSync(dirPath, { recursive: true });
+    for (const p of plans) {
+      const renamed = p.sourceFrameId
+        ? renameComponentInContent(p.content, p.sourceFrameId, p.newFrameId)
+        : p.content;
+      const fresh = reassignIds(renamed);
+      fs.writeFileSync(path.resolve(process.cwd(), p.newRel), fresh);
+    }
+    sp.frames.push(...newFrameMetas);
+    writeRegistry(reg);
+
+    sendJson(res, { ok: true, frames: newFrameMetas });
   } catch (err) {
     sendError(res, String(err), 500);
   }

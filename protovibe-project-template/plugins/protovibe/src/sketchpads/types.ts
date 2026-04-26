@@ -12,10 +12,12 @@ export interface Sketchpad {
   name: string;
   createdAt: string;
   frames: SketchpadFrame[];
+  viewState?: CanvasTransform;
 }
 
 export interface Registry {
   sketchpads: Sketchpad[];
+  lastActiveSketchpadId?: string;
 }
 
 export interface CanvasTransform {

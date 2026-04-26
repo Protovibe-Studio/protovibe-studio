@@ -12,6 +12,7 @@ interface SketchpadOverlayPanelProps {
   onCreate: (name: string) => void;
   onDelete: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  onDuplicate: (id: string) => void;
 }
 
 export function SketchpadOverlayPanel({
@@ -23,6 +24,7 @@ export function SketchpadOverlayPanel({
   onCreate,
   onDelete,
   onRename,
+  onDuplicate,
 }: SketchpadOverlayPanelProps) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -224,6 +226,31 @@ export function SketchpadOverlayPanel({
                 </>
               )}
 
+              {/* Duplicate button */}
+              {renamingId !== sp.id && (
+                <button
+                  data-testid={`btn-duplicate-${sp.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(sp.id);
+                  }}
+                  title="Duplicate sketchpad"
+                  style={{
+                    marginLeft: 4,
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#999',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CopyIcon />
+                </button>
+              )}
+
               {/* Delete button */}
               {renamingId !== sp.id && (
                 <button
@@ -264,6 +291,15 @@ function TrashIcon() {
       <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <line x1="10" x2="10" y1="11" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       <line x1="14" x2="14" y1="11" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
