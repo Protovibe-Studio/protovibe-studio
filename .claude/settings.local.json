@@ -22,7 +22,16 @@
       "Bash(git -C /Users/maciejsawicki/Documents/Coding/protovibe log --oneline -5)",
       "mcp__ide__getDiagnostics",
       "Bash(node --check /Users/maciejsawicki/Documents/Coding/protovibe/protovibe-project-manager/scripts/create-shortcut.js)",
-      "Bash(bash -n /Users/maciejsawicki/Documents/Coding/protovibe/install.sh)"
+      "Bash(bash -n /Users/maciejsawicki/Documents/Coding/protovibe/install.sh)",
+      "Bash(/Users/maciejsawicki/Documents/Coding/protovibe/install.sh *)",
+      "Read(//Users/maciejsawicki/.protovibe/**)",
+      "Bash(bash -c 'source ~/.zshrc 2>/dev/null; which pnpm; which node')",
+      "Bash(zsh -c 'source ~/.zshrc; which pnpm; which node')",
+      "Bash(command -v pnpm)",
+      "Read(//Users/maciejsawicki/.nvm/versions/node/**)",
+      "Read(//Users/maciejsawicki/Library/pnpm/**)",
+      "Read(//Users/maciejsawicki/**)",
+      "Bash(nvm current *)"
     ]
   }
 }

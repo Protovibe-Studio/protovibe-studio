@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "concat:all": "node scripts/concat.js all",
     "concat:plugins": "node scripts/concat.js plugins",

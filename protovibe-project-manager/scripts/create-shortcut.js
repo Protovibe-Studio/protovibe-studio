@@ -17,7 +17,8 @@ import { execSync, spawnSync } from 'node:child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PROJECT_ROOT = path.resolve(__dirname, '..');
+// Monorepo root (one above protovibe-project-manager/)
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 const ASSETS_DIR = path.join(__dirname, 'assets');
 const APP_NAME = 'Protovibe';
 
@@ -93,7 +94,11 @@ function createMacShortcut() {
         return
     end try
     set logPath to projectRoot & "/dev.log"
-    set cmd to "source ~/.zshrc 2>/dev/null || source ~/.bash_profile 2>/dev/null; cd " & quoted form of projectRoot & " && pnpm --dir protovibe-project-manager dev 2>&1 | tee " & quoted form of logPath
+    -- Load nvm and pick a Node that actually has pnpm. The 'default' alias is
+    -- often unset, so fall through to --lts, then to the latest installed
+    -- Node, then scan nvm versions directly. Falls back to rc files for
+    -- non-nvm setups (e.g. Homebrew-installed Node).
+    set cmd to "export NVM_DIR=\\"$HOME/.nvm\\"; [ -s \\"$NVM_DIR/nvm.sh\\" ] && . \\"$NVM_DIR/nvm.sh\\"; if command -v nvm >/dev/null 2>&1; then nvm use default >/dev/null 2>&1 || nvm use --lts >/dev/null 2>&1 || nvm use node >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1; then source ~/.zshrc >/dev/null 2>&1 || source ~/.bash_profile >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1 && [ -d \\"$NVM_DIR/versions/node\\" ]; then for d in \\"$NVM_DIR\\"/versions/node/*/bin; do [ -x \\"$d/pnpm\\" ] && export PATH=\\"$d:$PATH\\" && break; done; fi; cd " & quoted form of projectRoot & " && pnpm --dir protovibe-project-manager dev 2>&1 | tee " & quoted form of logPath
     tell application "Terminal"
         activate
         do script cmd
@@ -234,7 +239,7 @@ function createLinuxShortcut() {
   const iconPath = checkIcon('icon.png');
 
   // Path-independent: read config at runtime.
-  const execLine = `bash -c 'CFG="$HOME/.protovibe/project-path"; if [ ! -f "$CFG" ]; then echo "Protovibe not configured. Run ./install.sh first."; exec bash; fi; ROOT=$(cat "$CFG"); if [ ! -d "$ROOT" ]; then echo "Protovibe folder not found at $ROOT. Re-run ./install.sh."; exec bash; fi; cd "$ROOT" && pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"; exec bash'`;
+  const execLine = `bash -c 'CFG="$HOME/.protovibe/project-path"; if [ ! -f "$CFG" ]; then echo "Protovibe not configured. Run ./install.sh first."; exec bash; fi; ROOT=$(cat "$CFG"); if [ ! -d "$ROOT" ]; then echo "Protovibe folder not found at $ROOT. Re-run ./install.sh."; exec bash; fi; export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; if command -v nvm >/dev/null 2>&1; then nvm use default >/dev/null 2>&1 || nvm use --lts >/dev/null 2>&1 || nvm use node >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1; then source ~/.bashrc >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1 && [ -d "$NVM_DIR/versions/node" ]; then for d in "$NVM_DIR"/versions/node/*/bin; do [ -x "$d/pnpm" ] && export PATH="$d:$PATH" && break; done; fi; cd "$ROOT" && pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"; exec bash'`;
 
   const lines = [
     `[Desktop Entry]`,

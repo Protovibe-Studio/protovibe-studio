@@ -89,7 +89,7 @@ REM ── pnpm via corepack ─────────────────
 set "STEP=pnpm via corepack"
 call :step
 call corepack enable pnpm >>"%LOG%" 2>&1
-call corepack prepare pnpm@9.15.0 --activate >>"%LOG%" 2>&1
+call corepack prepare pnpm@9.15.9 --activate >>"%LOG%" 2>&1
 if errorlevel 1 (
   call :die "Failed to activate pnpm via corepack. See %LOG%."
   exit /b 1

@@ -166,13 +166,26 @@ step "install Node from .nvmrc"
 NODE_VERSION="$(cat "$SCRIPT_DIR/.nvmrc" 2>/dev/null || echo 22)"
 nvm install "$NODE_VERSION" >/dev/null
 nvm use "$NODE_VERSION" >/dev/null
-nvm alias default "$(nvm version)" >/dev/null
+
+# Ensure 'default' alias points to a real, installed version. The launcher
+# relies on `nvm use default`; without this alias it silently fails and pnpm
+# never lands on PATH. nvm doesn't always create 'default' on its own (e.g.
+# when nvm was installed previously without a node install), so set it
+# unconditionally to whatever we just activated.
+ACTIVE_NODE="$(nvm version)"
+CURRENT_DEFAULT="$(nvm alias default 2>/dev/null | awk '{print $3}')"
+if [ -z "$CURRENT_DEFAULT" ] || [ "$CURRENT_DEFAULT" = "N/A" ] || ! [ -d "$NVM_DIR/versions/node/$CURRENT_DEFAULT" ]; then
+  nvm alias default "$ACTIVE_NODE" >/dev/null
+  ok "Set nvm 'default' alias → $ACTIVE_NODE"
+else
+  say "nvm 'default' alias already set → $CURRENT_DEFAULT"
+fi
 ok "Node $(node --version) / npm $(npm --version)"
 
 # ── 7. pnpm ──────────────────────────────────────────────────────────────────
 step "enable pnpm via corepack"
 corepack enable pnpm >/dev/null 2>&1 || warn "corepack enable returned non-zero — continuing"
-corepack prepare pnpm@9.15.0 --activate >/dev/null
+corepack prepare pnpm@9.15.9 --activate >/dev/null
 ok "pnpm $(pnpm --version) ready."
 
 # ── 8. Install workspaces ────────────────────────────────────────────────────
