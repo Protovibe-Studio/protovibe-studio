@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "install:all": "pnpm --dir protovibe-project-manager install && pnpm --dir protovibe-project-template install",
-    "dev": "node scripts/dev.mjs",
+    "dev": "pnpm --dir protovibe-project-manager dev",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
