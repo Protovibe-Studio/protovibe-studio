@@ -16,7 +16,10 @@
       "Bash(git stash *)",
       "Bash(npx playwright *)",
       "Bash(pnpm dev *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git -C /Users/maciejsawicki/Documents/Coding/protovibe status)",
+      "Bash(git -C /Users/maciejsawicki/Documents/Coding/protovibe diff)",
+      "Bash(git -C /Users/maciejsawicki/Documents/Coding/protovibe log --oneline -5)"
     ]
   }
 }

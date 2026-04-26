@@ -219,9 +219,10 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     }
 
     if (e.key === 'Escape') {
-      e.currentTarget.blur();
-      setIsOpen(false);
+      pendingBlurValueRef.current = lastCommittedValueRef.current;
       setLocalValue(lastCommittedValueRef.current);
+      setIsOpen(false);
+      e.currentTarget.blur();
       return;
     }
 
