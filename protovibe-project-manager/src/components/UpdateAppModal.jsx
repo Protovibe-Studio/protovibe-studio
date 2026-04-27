@@ -21,9 +21,6 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
     pluginsDone: 0,
     pluginFailures: [],
   })
-  const summaryRef = useRef(summary)
-  useEffect(() => { summaryRef.current = summary }, [summary])
-
   const logRef = useRef(null)
   const restartPollRef = useRef(null)
   const startedRef = useRef(false)
@@ -175,18 +172,21 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
       }
 
       // 1) Template (do first so the project plugin sweep uses fresh source).
+      let templateActuallyUpdated = false
       if (tplOutdated) {
         setStatus('running-template')
         const r = await streamUpdate('template')
         if (!r.ok) { setError(r.error); setStatus('failed'); return }
         if (r.data?.templateUpdated) {
+          templateActuallyUpdated = true
           setSummary((s) => ({ ...s, templateUpdated: true, templateVersion: r.data.templateVersion }))
         }
       }
 
       // 2) Project plugin sweep — only meaningful if template was actually
-      //    refreshed and the user opted in.
-      if (summaryRef.current.templateUpdated && updatePluginsInProjects) {
+      //    refreshed and the user opted in. Use the local flag rather than
+      //    summaryRef, which lags behind setSummary by one render.
+      if (templateActuallyUpdated && updatePluginsInProjects) {
         setStatus('updating-plugins')
         try {
           await updatePluginsForAllProjects()
