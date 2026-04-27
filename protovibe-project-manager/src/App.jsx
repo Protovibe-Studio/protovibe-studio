@@ -241,7 +241,7 @@ export default function App() {
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
                 <button
@@ -296,7 +296,7 @@ export default function App() {
     <div className="min-h-screen bg-background-default">
       {/* Header */}
       <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between">
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -305,6 +305,7 @@ export default function App() {
             </div>
             <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Projects</h1>
           </button>
+          <span className="text-xs text-foreground-tertiary">Version 1.0 beta</span>
         </div>
       </header>
 

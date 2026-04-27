@@ -41,7 +41,7 @@ const STAGE_LABELS = {
 
 function Spinner() {
   return (
-    <div className="w-12 h-12 rounded-full border-4 border-border-default border-t-primary animate-spin" />
+    <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
   )
 }
 
@@ -130,14 +130,12 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
   const funnyText = messages.length > 0 ? messages[funnyIndex % messages.length] : ''
 
   return (
-    <div className={inline ? 'flex flex-col items-center gap-6 py-6' : 'fixed inset-0 z-50 bg-background-default flex flex-col items-center justify-center p-6'}>
+    <div className={inline ? 'flex flex-col items-center gap-6 py-12' : 'fixed inset-0 z-50 bg-background-default flex flex-col items-center justify-center p-6'}>
       <div className="flex flex-col items-center gap-6 max-w-md w-full">
         {/* Spinner / ready / error icon */}
         {stage === 'ready' ? (
-          <div className="relative w-12 h-12">
-            <div className="w-12 h-12 rounded-full bg-background-success-subtle flex items-center justify-center text-foreground-success">
-              <Check size={24} strokeWidth={2.5} />
-            </div>
+          <div className="w-8 h-8 rounded-full bg-background-success-subtle flex items-center justify-center text-foreground-success">
+            <Check size={16} strokeWidth={2.5} />
           </div>
         ) : stage === 'error' ? (
           <div className="w-12 h-12 rounded-full bg-background-destructive-subtle flex items-center justify-center text-foreground-destructive">

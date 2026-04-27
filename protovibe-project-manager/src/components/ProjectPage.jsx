@@ -296,9 +296,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 </span>
               )}
               {isBusy && (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-secondary">
-                  <span className="w-3 h-3 rounded-full border-2 border-border-default border-t-foreground-secondary animate-spin inline-block" />
-                  {status === 'installing' ? 'Installing' : 'Starting'}
+                <span className="text-xs font-medium text-foreground-secondary">
+                  {status === 'installing' ? 'Installing...' : 'Starting...'}
                 </span>
               )}
               <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
@@ -318,14 +317,14 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             />
           </div>
         ) : stopping ? (
-          <div className="min-h-64 flex items-center justify-center">
+          <div className="min-h-64 flex items-center justify-center py-12">
             <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
           </div>
         ) : (
           <div className="flex flex-col">
 
             {/* Action buttons */}
-            <div className="flex flex-col gap-2 p-7">
+            <div className="flex flex-col gap-2.5 p-7">
             {isRunning && (
               <>
                 {port && (
@@ -334,7 +333,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     href={`http://localhost:${port}/protovibe.html`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-primary-subtle text-foreground-primary text-sm font-semibold hover:shadow-sm transition-all cursor-pointer"
+                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer"
                   >
                     <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />
                     Open Protovibe editor
@@ -406,10 +405,11 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             {!isBusy && (
               <div className="flex items-center justify-between gap-4 px-7 py-5">
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-medium text-foreground-secondary">Protovibe plugin</span>
+                  <span className="text-sm font-medium text-foreground-secondary">
+                    Protovibe plugin{pluginVersion ? ` · v${pluginVersion}` : ''}
+                  </span>
                   <span className="text-xs text-foreground-tertiary truncate">
-                    {pluginVersion ? `v${pluginVersion}` : 'Version unknown'}
-                    {pluginUpdatedDate ? ` · Updated ${pluginUpdatedDate}` : ' · Never updated in this project'}
+                    {pluginUpdatedDate ? `Updated ${pluginUpdatedDate}` : 'Never updated in this project'}
                   </span>
                 </div>
                 <button

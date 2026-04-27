@@ -46,10 +46,10 @@
   color-scheme: dark;
 
   --background-default: #0a0a0a;
-  --background-secondary: #222222;
+  --background-secondary: #232323;
   --background-tertiary: #343434;
-  --background-elevated: #131313;
-  --background-primary-subtle: rgba(24, 160, 251, 0.15);
+  --background-elevated: #171717;
+  --background-primary-subtle: oklch(61.59% 0.20711 262.9 / 0.15);
   --background-destructive-subtle: rgba(242, 72, 34, 0.15);
   --background-destructive: rgba(242, 72, 34, 0.3);
   --background-success-subtle: rgba(26, 188, 156, 0.15);
@@ -59,7 +59,7 @@
 
   /* Text */
   --foreground-default: #FFFFFF;
-  --foreground-primary: #18A0FB;
+  --foreground-primary: oklch(0.6159 0.2071 262.88);
   --foreground-secondary: #B3B3B3;
   --foreground-tertiary: #7c7c7c;
   --foreground-disabled: #646464;
@@ -69,15 +69,15 @@
   --foreground-info: #60B4FF;
 
   /* Borders */
-  --border-default: #3c3c3c;
+  --border-default: #242424;
   --border-secondary: #333333;
   --border-strong: #6a6a6a;
-  --border-focus: #18A0FB;
+  --border-focus: oklch(61.59% 0.20711 262.9);
   --border-destructive: #F24822;
 
   /* Accents */
-  --primary: #18A0FB;
-  --primary-hover: #0D8CE6;
+  --primary: oklch(61.59% 0.20711 262.9);
+  --primary-hover: oklch(55% 0.20711 262.9);
   --foreground-on-primary: #FFFFFF;
 
   /* Destructive */
