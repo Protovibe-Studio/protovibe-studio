@@ -1,15 +1,15 @@
 # Protovibe bootstrap (Windows PowerShell)
 #
 # One-liner (run in PowerShell):
-#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/bootstrap.ps1 | iex
+#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.ps1 | iex
 #
 # Custom install location:
 #   $env:PROTOVIBE_DIR = "C:\code\protovibe"
-#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/bootstrap.ps1 | iex
+#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
 
-$RepoUrl     = if ($env:PROTOVIBE_REPO)   { $env:PROTOVIBE_REPO }   else { 'https://github.com/Protovibe-Studio/protovibe.git' }
+$RepoUrl     = if ($env:PROTOVIBE_REPO)   { $env:PROTOVIBE_REPO }   else { 'https://github.com/Protovibe-Studio/protovibe-studio.git' }
 $InstallDir  = if ($env:PROTOVIBE_DIR)    { $env:PROTOVIBE_DIR }    else { Join-Path $HOME 'Protovibe' }
 $Branch      = if ($env:PROTOVIBE_BRANCH) { $env:PROTOVIBE_BRANCH } else { 'main' }
 
