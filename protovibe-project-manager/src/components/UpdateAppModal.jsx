@@ -7,20 +7,87 @@ function forceReload() {
   window.location.assign(window.location.href)
 }
 
-export default function UpdateAppModal({ onClose }) {
+export default function UpdateAppModal({ onClose, updatePluginsInProjects = false }) {
   const [logs, setLogs] = useState([])
-  const [status, setStatus] = useState('running') // running | restarting | restarted | done | failed
+  // running | restarting | updating-plugins | restarted | done | failed
+  const [status, setStatus] = useState('running')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [pluginProgress, setPluginProgress] = useState({ done: 0, total: 0, failures: [] })
   const logRef = useRef(null)
   const restartPollRef = useRef(null)
-  // React StrictMode mounts effects twice in dev — without this guard the
-  // second mount fires another POST and gets "Update already in progress".
   const startedRef = useRef(false)
+  // Mirror result + opts in refs so async chains read fresh values without
+  // closing over stale props/state.
+  const optsRef = useRef({ updatePluginsInProjects })
+  useEffect(() => { optsRef.current = { updatePluginsInProjects } }, [updatePluginsInProjects])
+  const resultRef = useRef(null)
+
+  const appendLog = (text) => setLogs((l) => [...l, text])
 
   useEffect(() => {
     if (startedRef.current) return
     startedRef.current = true
+
+    const finishSuccess = () => {
+      // Use restarted (which renders Reload now) only if the manager actually
+      // restarted; otherwise plain done with a Done button.
+      const restarted = !!resultRef.current?.restartScheduled
+      setStatus(restarted ? 'restarted' : 'done')
+    }
+
+    const runPluginUpdates = async () => {
+      const updateTemplate = !!resultRef.current?.templateUpdated
+      if (!updateTemplate || !optsRef.current.updatePluginsInProjects) {
+        finishSuccess()
+        return
+      }
+      setStatus('updating-plugins')
+      appendLog('--- updating Protovibe shell in all projects ---')
+
+      let projects
+      try {
+        const res = await fetch('/api/projects', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`GET /api/projects failed (${res.status})`)
+        projects = await res.json()
+      } catch (e) {
+        appendLog(`failed to list projects: ${e.message}`)
+        setError(e.message)
+        setStatus('failed')
+        return
+      }
+
+      setPluginProgress({ done: 0, total: projects.length, failures: [] })
+      if (projects.length === 0) {
+        appendLog('no projects to update.')
+        finishSuccess()
+        return
+      }
+
+      const failures = []
+      for (let i = 0; i < projects.length; i++) {
+        const p = projects[i]
+        appendLog(`[${i + 1}/${projects.length}] updating ${p.name} ...`)
+        try {
+          const res = await fetch(`/api/projects/${p.id}/update-plugin`, { method: 'POST' })
+          const data = await res.json().catch(() => ({}))
+          if (res.ok) {
+            appendLog(`[${i + 1}/${projects.length}] ${p.name} → v${data.pluginVersion ?? '?'}`)
+          } else {
+            const msg = data?.error || `HTTP ${res.status}`
+            appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${msg}`)
+            failures.push({ name: p.name, error: msg })
+          }
+        } catch (e) {
+          appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${e.message}`)
+          failures.push({ name: p.name, error: e.message })
+        }
+        setPluginProgress({ done: i + 1, total: projects.length, failures: [...failures] })
+      }
+
+      appendLog('--- finished updating projects ---')
+      finishSuccess()
+    }
 
     const pollUntilRestarted = () => {
       restartPollRef.current = setInterval(async () => {
@@ -28,7 +95,8 @@ export default function UpdateAppModal({ onClose }) {
           const res = await fetch('/api/version', { cache: 'no-store' })
           if (res.ok) {
             clearInterval(restartPollRef.current)
-            setStatus('restarted')
+            // Manager is back. Run plugin sweep (if requested) then finish.
+            runPluginUpdates()
           }
         } catch {}
       }, 1000)
@@ -59,22 +127,23 @@ export default function UpdateAppModal({ onClose }) {
             if (!evType || !dataLine) continue
             let data
             try { data = JSON.parse(dataLine) } catch { continue }
-            if (evType === 'log') setLogs((l) => [...l, data.text])
+            if (evType === 'log') appendLog(data.text)
             else if (evType === 'fail') { setError(data.message || 'Update failed'); setStatus('failed') }
             else if (evType === 'done') {
               setResult(data)
+              resultRef.current = data
               if (data.restartScheduled) {
                 setStatus('restarting')
                 pollUntilRestarted()
               } else {
-                setStatus('done')
+                runPluginUpdates()
               }
             }
           }
         }
       } catch (e) {
         // Manager-restart drops the connection mid-stream — that's expected.
-        setStatus((prev) => (prev === 'restarting' || prev === 'restarted' ? prev : 'failed'))
+        setStatus((prev) => (prev === 'restarting' || prev === 'updating-plugins' || prev === 'restarted' ? prev : 'failed'))
         setError((prevErr) => prevErr || e.message || 'Connection lost')
       }
     }
@@ -91,6 +160,18 @@ export default function UpdateAppModal({ onClose }) {
 
   const closable = status === 'done' || status === 'failed' || status === 'restarted'
 
+  const title = (() => {
+    switch (status) {
+      case 'running': return 'Downloading update…'
+      case 'restarting': return 'Restarting Protovibe…'
+      case 'updating-plugins': return 'Updating projects…'
+      case 'done':
+      case 'restarted': return 'Update complete'
+      case 'failed': return 'Update failed'
+      default: return ''
+    }
+  })()
+
   return (
     <div
       className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center p-4"
@@ -98,12 +179,7 @@ export default function UpdateAppModal({ onClose }) {
     >
       <div className="bg-background-elevated border border-border-default rounded-2xl shadow-xl w-full max-w-xl flex flex-col gap-4 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground-default">
-            {status === 'running' && 'Downloading update…'}
-            {status === 'restarting' && 'Restarting Protovibe…'}
-            {(status === 'done' || status === 'restarted') && 'Update complete'}
-            {status === 'failed' && 'Update failed'}
-          </h2>
+          <h2 className="text-base font-semibold text-foreground-default">{title}</h2>
           <button
             onClick={onClose}
             disabled={!closable}
@@ -138,6 +214,13 @@ export default function UpdateAppModal({ onClose }) {
           </div>
         )}
 
+        {status === 'updating-plugins' && (
+          <div className="flex items-center gap-2 text-sm text-foreground-secondary">
+            <Loader2 size={14} className="animate-spin" />
+            Updating Protovibe shell in projects ({pluginProgress.done}/{pluginProgress.total})…
+          </div>
+        )}
+
         {(status === 'done' || status === 'restarted') && result && (
           <div className="flex items-start gap-2 text-sm text-foreground-default">
             <CheckCircle2 size={16} className="text-foreground-success shrink-0 mt-0.5" />
@@ -145,6 +228,16 @@ export default function UpdateAppModal({ onClose }) {
               {result.managerUpdated && <span>Project manager updated to <span className="font-mono">{result.managerVersion}</span>.</span>}
               {result.templateUpdated && <span>Project template updated to <span className="font-mono">{result.templateVersion}</span>.</span>}
               {!result.managerUpdated && !result.templateUpdated && <span>Already up to date.</span>}
+              {pluginProgress.total > 0 && (
+                <span>
+                  Updated Protovibe shell in {pluginProgress.done - pluginProgress.failures.length}/{pluginProgress.total} project{pluginProgress.total === 1 ? '' : 's'}.
+                </span>
+              )}
+              {pluginProgress.failures.length > 0 && (
+                <span className="text-foreground-destructive">
+                  Failed: {pluginProgress.failures.map((f) => f.name).join(', ')}
+                </span>
+              )}
               {status === 'restarted' && (
                 <span className="text-foreground-secondary">Protovibe has been restarted on the new version. Reload the page to apply.</span>
               )}
@@ -178,7 +271,7 @@ export default function UpdateAppModal({ onClose }) {
                   : 'px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-40 cursor-pointer'
               }
             >
-              {status === 'done' ? 'Done' : closable ? 'Close' : 'Please wait…'}
+              {status === 'done' ? 'Acknowledge' : closable ? 'Close' : 'Please wait…'}
             </button>
           )}
         </div>

@@ -40,6 +40,7 @@ export default function App() {
 
   // Version / self-update
   const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const [updateOptions, setUpdateOptions] = useState({ updatePluginsInProjects: false })
 
   useEffect(() => {
     const handlePopState = () => {
@@ -306,7 +307,7 @@ export default function App() {
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <Logo className="w-auto text-foreground-default" style={{ height: '14px' }} />
           </button>
-          <VersionInfoMenu onUpdateClick={() => setUpdateModalOpen(true)} />
+          <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
         </div>
       </header>
 
@@ -347,6 +348,7 @@ export default function App() {
 
       {updateModalOpen && (
         <UpdateAppModal
+          updatePluginsInProjects={!!updateOptions.updatePluginsInProjects}
           onClose={() => setUpdateModalOpen(false)}
         />
       )}
