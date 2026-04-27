@@ -77,25 +77,25 @@ export const ClassesRaw: React.FC = () => {
   return (
     <div>
       {/* ── Classes ── */}
-      {activeData.hasClass && activeData.parsedClasses && Object.keys(activeData.parsedClasses).length > 0 && (
-        <div>
-          <button onClick={toggleClasses} style={sectionButtonStyle}>
-            <span>Classes</span>
-            <ChevronIcon expanded={classesExpanded} />
-          </button>
-          {classesExpanded && (
-            <div style={{ padding: '0 16px 16px 16px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <InspectorInput
-                  type="text"
-                  placeholder="Add custom class..."
-                  value={newClass}
-                  onChange={(e) => setNewClass(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
-                  style={{ color: theme.text_default }}
-                  prefix={<Plus size={11} />}
-                />
-              </div>
+      <div>
+        <button onClick={toggleClasses} style={sectionButtonStyle}>
+          <span>Classes</span>
+          <ChevronIcon expanded={classesExpanded} />
+        </button>
+        {classesExpanded && (
+          <div style={{ padding: '0 16px 16px 16px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <InspectorInput
+                type="text"
+                placeholder="Add custom class..."
+                value={newClass}
+                onChange={(e) => setNewClass(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
+                style={{ color: theme.text_default }}
+                prefix={<Plus size={11} />}
+              />
+            </div>
+            {activeData.parsedClasses && Object.keys(activeData.parsedClasses).length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {Object.entries(activeData.parsedClasses).map(([category, classes]: [string, any]) => (
                   <div key={category}>
@@ -125,10 +125,10 @@ export const ClassesRaw: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Source code ── */}
       <div>
