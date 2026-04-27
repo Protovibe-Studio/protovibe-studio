@@ -11,7 +11,7 @@ export default function Frame2() {
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:bibqg8 */}
         {/* pv-block-start:8c8sfy */}
-        <Card data-pv-block="8c8sfy" data-pv-sketchpad-el="8c8sfy" style={{ position: 'absolute', width: 614, left: 651, top: 54 }}>
+        <Card data-pv-block="8c8sfy" data-pv-sketchpad-el="8c8sfy" style={{ position: 'absolute', width: 614, left: 640, top: 33 }}>
           {/* pv-editable-zone-start:dupkaw */}
             {/* pv-block-start:ou8li2 */}
             <Card data-pv-block="ou8li2" >
@@ -70,59 +70,58 @@ export default function Frame2() {
         </RadioGroup>
         {/* pv-block-end:h7lval */}
         {/* pv-block-start:2n40cz */}
-        <Rectangle data-pv-block="2n40cz" data-pv-sketchpad-el="2n40cz" style={{ position: 'absolute', width: 542, left: 41, top: 31 }} className="w-[200px] h-[200px]">
+        <Rectangle data-pv-block="2n40cz" data-pv-sketchpad-el="2n40cz" style={{ position: 'absolute', height: 690, width: 542, left: 44, top: 33 }} className="w-[200px] h-[200px]">
           {/* pv-editable-zone-start:o6rx04 */}
             {/* pv-block-start:tibi0q */}
-            <Button data-pv-block="tibi0q"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="tibi0q" style={{ position: 'absolute', left: 58, top: 21 }}/>
+            <Button data-pv-block="tibi0q"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="tibi0q" style={{ position: 'absolute', left: 33, top: 31 }}/>
             {/* pv-block-end:tibi0q */}
             
             {/* pv-block-start:jfgfe8 */}
-            <Button data-pv-block="jfgfe8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="jfgfe8" style={{ position: 'absolute', left: 59, top: 72 }}/>
+            <Button data-pv-block="jfgfe8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="jfgfe8" style={{ position: 'absolute', left: 33, top: 120 }}/>
             {/* pv-block-end:jfgfe8 */}
             {/* pv-block-start:gz0pkx */}
-            <Button data-pv-block="gz0pkx"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="gz0pkx" style={{ position: 'absolute', left: 250, top: 116 }}/>
+            <Button data-pv-block="gz0pkx"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="gz0pkx" style={{ position: 'absolute', left: 33, top: 75 }}/>
             {/* pv-block-end:gz0pkx */}
+            {/* pv-block-start:n1pq8y */}
+            <Card data-pv-block="n1pq8y"  data-pv-sketchpad-el="n1pq8y" style={{ position: 'absolute', left: 141, top: 31 }}>
+              {/* pv-editable-zone-start:d3pro3 */}
+                {/* pv-block-start:e9q27f */}
+                <RadioGroup data-pv-block="e9q27f"  orientation="vertical" value="opt1" >
+                  {/* pv-editable-zone-start:jf0hi0 */}
+                    {/* pv-block-start:m96zeb */}
+                    <RadioItem data-pv-block="m96zeb" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+                    {/* pv-block-end:m96zeb */}
+                    {/* pv-block-start:hvax8k */}
+                    <RadioItem data-pv-block="hvax8k" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+                    {/* pv-block-end:hvax8k */}
+                    {/* pv-block-start:fe9spd */}
+                    <RadioItem data-pv-block="fe9spd" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+                    {/* pv-block-end:fe9spd */}
+                  {/* pv-editable-zone-end:jf0hi0 */}
+                </RadioGroup>
+                {/* pv-block-end:e9q27f */}
+                
+                {/* pv-block-start:hbmw9o */}
+                <RadioGroup data-pv-block="hbmw9o"  orientation="vertical" value="opt1" >
+                  {/* pv-editable-zone-start:jf0hi0 */}
+                    {/* pv-block-start:9ahxt7 */}
+                    <RadioItem data-pv-block="9ahxt7" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
+                    {/* pv-block-end:9ahxt7 */}
+                    {/* pv-block-start:2vd0pz */}
+                    <RadioItem data-pv-block="2vd0pz" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
+                    {/* pv-block-end:2vd0pz */}
+                    {/* pv-block-start:6e4sad */}
+                    <RadioItem data-pv-block="6e4sad" value="opt3" primaryText="Option Three" secondaryText="Third option" />
+                    {/* pv-block-end:6e4sad */}
+                  {/* pv-editable-zone-end:jf0hi0 */}
+                </RadioGroup>
+                {/* pv-block-end:hbmw9o */}
+              {/* pv-editable-zone-end:d3pro3 */}
+            </Card>
+            {/* pv-block-end:n1pq8y */}
           {/* pv-editable-zone-end:o6rx04 */}
         </Rectangle>
         {/* pv-block-end:2n40cz */}
-        
-        {/* pv-block-start:fyu1og */}
-        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 41, top: 259 }}>
-          {/* pv-editable-zone-start:d3pro3 */}
-            {/* pv-block-start:4xupvu */}
-            <RadioGroup data-pv-block="4xupvu"  orientation="vertical" value="opt1" >
-              {/* pv-editable-zone-start:jf0hi0 */}
-                {/* pv-block-start:m5nnip */}
-                <RadioItem data-pv-block="m5nnip" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                {/* pv-block-end:m5nnip */}
-                {/* pv-block-start:nm1ccd */}
-                <RadioItem data-pv-block="nm1ccd" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                {/* pv-block-end:nm1ccd */}
-                {/* pv-block-start:8oj7n8 */}
-                <RadioItem data-pv-block="8oj7n8" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                {/* pv-block-end:8oj7n8 */}
-              {/* pv-editable-zone-end:jf0hi0 */}
-            </RadioGroup>
-            {/* pv-block-end:4xupvu */}
-            
-            {/* pv-block-start:fo2t4c */}
-            <RadioGroup data-pv-block="fo2t4c"  orientation="vertical" value="opt1" >
-              {/* pv-editable-zone-start:jf0hi0 */}
-                {/* pv-block-start:4w5n6i */}
-                <RadioItem data-pv-block="4w5n6i" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                {/* pv-block-end:4w5n6i */}
-                {/* pv-block-start:s5hpyd */}
-                <RadioItem data-pv-block="s5hpyd" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                {/* pv-block-end:s5hpyd */}
-                {/* pv-block-start:j0oupt */}
-                <RadioItem data-pv-block="j0oupt" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                {/* pv-block-end:j0oupt */}
-              {/* pv-editable-zone-end:jf0hi0 */}
-            </RadioGroup>
-            {/* pv-block-end:fo2t4c */}
-          {/* pv-editable-zone-end:d3pro3 */}
-        </Card>
-        {/* pv-block-end:fyu1og */}
       {/* pv-editable-zone-end:bibqg8 */}
     </div>
   );

@@ -28,7 +28,7 @@ const DROP_TARGET_OFFSET = '-1px';
 const DRAG_THRESHOLD = 3;
 const RESIZE_EDGE_PX = 8;
 const SNAP_THRESHOLD_SCREEN_PX = 6;
-const SNAP_GUIDE_COLOR = '#ff3b6b';
+const SNAP_GUIDE_COLOR = 'rgba(255, 59, 107, 0.65)';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -809,6 +809,11 @@ function handlePointerDown(e: PointerEvent) {
   window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
 
   if (e.button !== 0) return;
+
+  const targetNode = e.target as HTMLElement | null;
+  if (targetNode && targetNode.closest('[data-sketchpad-frame-overlay]')) {
+    return;
+  }
 
   const now = Date.now();
   const dist = Math.hypot(e.clientX - lastClickX, e.clientY - lastClickY);

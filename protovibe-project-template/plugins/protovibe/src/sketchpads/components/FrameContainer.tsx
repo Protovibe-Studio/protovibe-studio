@@ -338,6 +338,16 @@ export function FrameContainer({
       e.stopPropagation();
       // Release frame focus so the next click drills into a child via the bridge.
       onSelect(null);
+
+      if (contentRef.current) {
+        const rootNode = contentRef.current.querySelector('[data-pv-block]');
+        if (rootNode) {
+          const blockId = rootNode.getAttribute('data-pv-block');
+          if (blockId) {
+            window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+          }
+        }
+      }
     },
     [onSelect],
   );
