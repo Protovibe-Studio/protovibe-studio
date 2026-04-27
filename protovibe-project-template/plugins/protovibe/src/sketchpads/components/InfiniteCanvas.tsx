@@ -4,8 +4,18 @@ import { isTypingInput } from '../../ui/utils/elementType';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
-const TARGET_PRIMARY_PX = 80;
-const SUBDIVISIONS = 4;
+
+const CANVAS_BG_COLOR = 'oklch(0.32 0 0)';
+
+const TARGET_PRIMARY_PX = 24;
+const SUBDIVISIONS = 3;
+
+const PRIMARY_DOT_COLOR = 'oklch(0.6 0 0)';
+const PRIMARY_DOT_RADIUS = 1.5;
+
+const SECONDARY_DOT_COLOR_BASE = 'oklch(0.6 0 0)';
+const SECONDARY_DOT_RADIUS = 1;
+const SECONDARY_MAX_ALPHA = 1;
 
 interface InfiniteCanvasProps {
   children: React.ReactNode;
@@ -46,11 +56,12 @@ export function InfiniteCanvas({
     const lower = TARGET_PRIMARY_PX / Math.SQRT2;
     const upper = TARGET_PRIMARY_PX * Math.SQRT2;
     const t = Math.min(1, Math.max(0, (primarySpacing - lower) / (upper - lower)));
-    const secondaryAlpha = (t * 0.55).toFixed(3);
+    const secondaryAlpha = (t * SECONDARY_MAX_ALPHA).toFixed(3);
+    const secondaryColor = SECONDARY_DOT_COLOR_BASE.replace(/\)$/, ` / ${secondaryAlpha})`);
 
     containerRef.current.style.backgroundImage =
-      `radial-gradient(circle, oklch(0.50 0 0) 1.1px, transparent 1.6px),` +
-      `radial-gradient(circle, oklch(0.42 0 0 / ${secondaryAlpha}) 0.7px, transparent 1.1px)`;
+      `radial-gradient(circle at 0 0, ${PRIMARY_DOT_COLOR} ${PRIMARY_DOT_RADIUS}px, transparent ${PRIMARY_DOT_RADIUS}px),` +
+      `radial-gradient(circle at 0 0, ${secondaryColor} ${SECONDARY_DOT_RADIUS}px, transparent ${SECONDARY_DOT_RADIUS}px)`;
     containerRef.current.style.backgroundSize =
       `${primarySpacing}px ${primarySpacing}px, ${secondarySpacing}px ${secondarySpacing}px`;
     containerRef.current.style.backgroundPosition =
@@ -208,7 +219,7 @@ export function InfiniteCanvas({
         overflow: 'hidden',
         position: 'relative',
         cursor: isPanning ? 'grabbing' : spaceHeld ? 'grab' : 'default',
-        backgroundColor: 'oklch(0.32 0 0)',
+        backgroundColor: CANVAS_BG_COLOR,
         touchAction: 'none',
       }}
     >

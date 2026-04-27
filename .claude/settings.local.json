@@ -31,7 +31,8 @@
       "Read(//Users/maciejsawicki/.nvm/versions/node/**)",
       "Read(//Users/maciejsawicki/Library/pnpm/**)",
       "Read(//Users/maciejsawicki/**)",
-      "Bash(nvm current *)"
+      "Bash(nvm current *)",
+      "Bash(pnpm exec *)"
     ]
   }
 }

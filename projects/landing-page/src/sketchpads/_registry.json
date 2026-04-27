@@ -26,16 +26,16 @@
           "name": "generate-file-loading",
           "width": 1440,
           "height": 900,
-          "canvasX": 5955,
-          "canvasY": 1043
+          "canvasX": 7247,
+          "canvasY": 85
         },
         {
           "id": "frame-generate-file-intro-copy-3",
           "name": "generate-file-done",
           "width": 1440,
           "height": 900,
-          "canvasX": 7553,
-          "canvasY": 1042
+          "canvasX": 9603,
+          "canvasY": 336
         },
         {
           "id": "frame-generate-file-intro-copy-4",
@@ -93,7 +93,12 @@
           "canvasX": 12465,
           "canvasY": 2528
         }
-      ]
+      ],
+      "viewState": {
+        "zoom": 0.134288961763583,
+        "panX": -314.34041935457196,
+        "panY": 363.98344095425773
+      }
     },
     {
       "id": "test",
@@ -113,8 +118,8 @@
           "name": "Frame 2",
           "width": 1440,
           "height": 900,
-          "canvasX": 8162,
-          "canvasY": 1628
+          "canvasX": 8977,
+          "canvasY": 1685
         },
         {
           "id": "frame-jcveqt",
@@ -124,8 +129,13 @@
           "canvasX": 6563,
           "canvasY": 2706
         }
-      ]
+      ],
+      "viewState": {
+        "zoom": 0.1566566346338323,
+        "panX": -370.79421943320085,
+        "panY": -27.19338121294055
+      }
     }
   ],
-  "lastActiveSketchpadId": "sketchpad-1"
+  "lastActiveSketchpadId": "test"
 }
