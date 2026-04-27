@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Loader2, CheckCircle2, AlertCircle, RotateCw } from 'lucide-react'
 
+// `window.location.reload` is stubbed to a no-op in main.jsx so Vite's HMR
+// can't blank the page during a self-update. Use this to force a real reload.
+function forceReload() {
+  window.location.assign(window.location.href)
+}
+
 export default function UpdateAppModal({ onClose }) {
   const [logs, setLogs] = useState([])
   const [status, setStatus] = useState('running') // running | restarting | restarted | done | failed
@@ -8,8 +14,8 @@ export default function UpdateAppModal({ onClose }) {
   const [error, setError] = useState('')
   const logRef = useRef(null)
   const restartPollRef = useRef(null)
-  // Guard against React StrictMode double-mounting in dev — without it, the
-  // second mount POSTs again and gets "Update already in progress" back.
+  // React StrictMode mounts effects twice in dev — without this guard the
+  // second mount fires another POST and gets "Update already in progress".
   const startedRef = useRef(false)
 
   useEffect(() => {
@@ -67,7 +73,7 @@ export default function UpdateAppModal({ onClose }) {
           }
         }
       } catch (e) {
-        // Manager-restart drops the connection mid-stream; that's expected.
+        // Manager-restart drops the connection mid-stream — that's expected.
         setStatus((prev) => (prev === 'restarting' || prev === 'restarted' ? prev : 'failed'))
         setError((prevErr) => prevErr || e.message || 'Connection lost')
       }
@@ -140,7 +146,7 @@ export default function UpdateAppModal({ onClose }) {
               {result.templateUpdated && <span>Project template updated to <span className="font-mono">{result.templateVersion}</span>.</span>}
               {!result.managerUpdated && !result.templateUpdated && <span>Already up to date.</span>}
               {status === 'restarted' && (
-                <span className="text-foreground-secondary">Protovibe has been restarted. Reload the page to use the new version.</span>
+                <span className="text-foreground-secondary">Protovibe has been restarted on the new version. Reload the page to apply.</span>
               )}
             </div>
           </div>
@@ -156,11 +162,11 @@ export default function UpdateAppModal({ onClose }) {
         <div className="flex items-center justify-end gap-2">
           {status === 'restarted' ? (
             <button
-              onClick={() => window.location.reload()}
+              onClick={forceReload}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors cursor-pointer"
             >
               <RotateCw size={14} />
-              Reload now
+              Confirm and reload
             </button>
           ) : (
             <button
