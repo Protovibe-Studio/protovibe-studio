@@ -75,4 +75,7 @@ export const pvConfig = {
     outline: { type: 'boolean' },
     icon: { type: 'iconSearch', exampleValue: 'cog' },
   },
+  invalidCombinations: [
+    (props: Record<string, unknown>) => !props.imageSrc && !props.initials && !props.icon,
+  ],
 };
