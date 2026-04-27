@@ -98,7 +98,9 @@ function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:da1sh2 */}
-        <TextHeading className="" data-pv-block="da1sh2" typography="heading-lg">Dashboard</TextHeading>
+        <TextHeading className="" data-pv-block="da1sh2" typography="heading-lg">
+          Welcome!
+        </TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
         <InfoBoxBanner color="info" className=""
@@ -112,37 +114,18 @@ function DashboardPage() {
           
         </InfoBoxBanner>
         {/* pv-block-end:i3b4c5 */}
-        
-        {/* pv-block-start:g0fqyb */}
-        <div className="flex flex-col min-h-4" data-pv-block="g0fqyb">
-          {/* pv-editable-zone-start:inside-g0fqyb */}
-            {/* pv-block-start:q958wn */}
-            <div data-pv-block="q958wn" className="flex flex-col gap-1">
-              {/* pv-editable-zone-start:f7otuc */}
-              {/* pv-block-start:lw979w */}
-              <TextHeading className="py-0.5 text-gradient-foreground-special self-start" data-pv-block="lw979w" typography="heading-md">
-                Test heading
-              </TextHeading>
-              {/* pv-block-end:lw979w */}
-              
-              {/* pv-block-start:krvk39 */}
-              <TextParagraph typography="small" className="test5 overflow-hidden" data-pv-block="krvk39">
-                It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">that</a> it has a more-or-less normal distribution of letters, as opposed to using 'Content here, <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">content</a> here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their <u>default</u> model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">evolved</a> over the years, sometimes by accident, sometimes on purpose (injected humour and the like). <br />
-              </TextParagraph>
-              {/* pv-block-end:krvk39 */}
-              {/* pv-editable-zone-end:f7otuc */}
-            </div>
-            {/* pv-block-end:q958wn */}
-          {/* pv-editable-zone-end:inside-g0fqyb */}
-        </div>
-        {/* pv-block-end:g0fqyb */}
 
         {/* pv-block-start:g6h7j8 */}
-        <div data-pv-block="g6h7j8" className="grid grid-cols-1 md:grid-cols-3 gap-7">
+        <div data-pv-block="g6h7j8" className="grid grid-cols-1 gap-7 md:grid md:grid-cols-4">
           {/* pv-editable-zone-start:w2x3y4 */}
             {/* pv-block-start:z5a6b7 */}
             <Card data-pv-block="z5a6b7" className="">
               {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:r5s6t7 */}
+                <TextHeading data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">
+                  25
+                </TextHeading>
+                {/* pv-block-end:r5s6t7 */}
                 {/* pv-block-start:f2g3h4 */}
                 <div data-pv-block="f2g3h4" className="flex items-center gap-3 mb-2 text-foreground-secondary">
                   {/* pv-editable-zone-start:i5j6k7 */}
@@ -155,11 +138,6 @@ function DashboardPage() {
                   {/* pv-editable-zone-end:i5j6k7 */}
                 </div>
                 {/* pv-block-end:f2g3h4 */}
-                {/* pv-block-start:r5s6t7 */}
-                <TextHeading data-pv-block="r5s6t7" typography="heading-xxl" className="mb-2">
-                  25
-                </TextHeading>
-                {/* pv-block-end:r5s6t7 */}
                 {/* pv-block-start:u8v9w1 */}
                 <Badge data-pv-block="u8v9w1" label="+12% vs last year" color="success" prefixIcon="trending-up" />
                 {/* pv-block-end:u8v9w1 */}
@@ -167,9 +145,41 @@ function DashboardPage() {
             </Card>
             {/* pv-block-end:z5a6b7 */}
 
+            {/* pv-block-start:kx9968 */}
+            <Card data-pv-block="kx9968" className="">
+              {/* pv-editable-zone-start:c8d9e1 */}
+                {/* pv-block-start:5ingd7 */}
+                <TextHeading data-pv-block="5ingd7" typography="heading-xxl" className="mb-2">
+                  25
+                </TextHeading>
+                {/* pv-block-end:5ingd7 */}
+                {/* pv-block-start:pvq9ce */}
+                <div data-pv-block="pvq9ce" className="flex items-center gap-3 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:i5j6k7 */}
+                    {/* pv-block-start:reh2tx */}
+                    <Icon data-pv-block="reh2tx" iconSymbol="Users" size="sm" />
+                    {/* pv-block-end:reh2tx */}
+                    {/* pv-block-start:yn22da */}
+                    <TextParagraph typography="secondary" data-pv-block="yn22da" className="">
+                      eNPS score
+                    </TextParagraph>
+                    {/* pv-block-end:yn22da */}
+                  {/* pv-editable-zone-end:i5j6k7 */}
+                </div>
+                {/* pv-block-end:pvq9ce */}
+                {/* pv-block-start:vx10c1 */}
+                <Badge data-pv-block="vx10c1" label="+12% vs last year" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:vx10c1 */}
+              {/* pv-editable-zone-end:c8d9e1 */}
+            </Card>
+            {/* pv-block-end:kx9968 */}
+
             {/* pv-block-start:x2y3z4 */}
             <Card data-pv-block="x2y3z4" className="">
               {/* pv-editable-zone-start:a5b6c7 */}
+                {/* pv-block-start:p2q3r4 */}
+                <TextHeading data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextHeading>
+                {/* pv-block-end:p2q3r4 */}
                 {/* pv-block-start:d8e9f1 */}
                 <div data-pv-block="d8e9f1" className="flex gap-3 mb-2 text-foreground-secondary items-center">
                   {/* pv-editable-zone-start:g2h3i4 */}
@@ -182,9 +192,6 @@ function DashboardPage() {
                   {/* pv-editable-zone-end:g2h3i4 */}
                 </div>
                 {/* pv-block-end:d8e9f1 */}
-                {/* pv-block-start:p2q3r4 */}
-                <TextHeading data-pv-block="p2q3r4" typography="heading-xxl" className="mb-2">18</TextHeading>
-                {/* pv-block-end:p2q3r4 */}
                 {/* pv-block-start:s5t6u7 */}
                 <Badge data-pv-block="s5t6u7" label="4 critical to fill" color="warning" prefixIcon="alert-circle" />
                 {/* pv-block-end:s5t6u7 */}
@@ -195,6 +202,9 @@ function DashboardPage() {
             {/* pv-block-start:v8w9x1 */}
             <Card data-pv-block="v8w9x1" className="">
               {/* pv-editable-zone-start:y2z3a4 */}
+                {/* pv-block-start:n8o9p1 */}
+                <TextHeading data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextHeading>
+                {/* pv-block-end:n8o9p1 */}
                 {/* pv-block-start:b5c6d7 */}
                 <div data-pv-block="b5c6d7" className="flex items-center gap-3 mb-2 text-foreground-secondary">
                   {/* pv-editable-zone-start:e8f9g1 */}
@@ -207,9 +217,6 @@ function DashboardPage() {
                   {/* pv-editable-zone-end:e8f9g1 */}
                 </div>
                 {/* pv-block-end:b5c6d7 */}
-                {/* pv-block-start:n8o9p1 */}
-                <TextHeading data-pv-block="n8o9p1" typography="heading-xxl" className="mb-2">6</TextHeading>
-                {/* pv-block-end:n8o9p1 */}
                 {/* pv-block-start:q2r3s4 */}
                 <Badge data-pv-block="q2r3s4" label="2 returning this week" color="info" prefixIcon="clock" />
                 {/* pv-block-end:q2r3s4 */}
@@ -219,6 +226,11 @@ function DashboardPage() {
           {/* pv-editable-zone-end:w2x3y4 */}
         </div>
         {/* pv-block-end:g6h7j8 */}
+        {/* pv-block-start:lib3xn */}
+        <TextHeading data-pv-block="lib3xn" typography="heading-md">
+          Heading
+        </TextHeading>
+        {/* pv-block-end:lib3xn */}
 
         {/* pv-block-start:dkwss2 */}
         <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded bg-background-elevated" data-pv-block="dkwss2">
@@ -231,29 +243,6 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
-        {/* pv-block-start:xd90sk */}
-        <Container data-pv-block="xd90sk">
-          {/* pv-editable-zone-start:8xlvs5 */}
-          {/* pv-editable-zone-end:8xlvs5 */}
-        </Container>
-        {/* pv-block-end:xd90sk */}
-
-        {/* pv-block-start:cidstp */}
-        <Container data-pv-block="cidstp">
-          {/* pv-editable-zone-start:8xlvs5 */}
-            {/* pv-block-start:wdwsok */}
-            <Button data-pv-block="wdwsok"  label="Button" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:wdwsok */}
-          {/* pv-editable-zone-end:8xlvs5 */}
-        </Container>
-        {/* pv-block-end:cidstp */}
-
-        {/* pv-block-start:oryj2b */}
-        <Container data-pv-block="oryj2b">
-          {/* pv-editable-zone-start:8xlvs5 */}
-          {/* pv-editable-zone-end:8xlvs5 */}
-        </Container>
-        {/* pv-block-end:oryj2b */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

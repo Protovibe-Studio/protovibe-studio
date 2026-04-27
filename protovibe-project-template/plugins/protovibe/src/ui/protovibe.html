@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="/@fs/[PLUGIN_DIR]/src/ui/shell.css" />
     <script>
       // Suppress Vite full-reloads of the editor shell. New sketchpad .tsx files
-      // (and other unhandled HMR cases) make Vite broadcast `full-reload` to every
-      // connected client; we don't want that to wipe editor state. The iframe at
+      // (and other unhandled HMR cases) make Vite broadcast `update` or `full-reload`
+      // to every connected client; we don't want that to wipe editor state. The iframe at
       // /index.html runs a separate HMR client in its own window context, so its
       // reloads / HMR keep working normally.
       (function () {
@@ -19,26 +19,31 @@
             Array.isArray(protocols) ? protocols.includes('vite-hmr') : protocols === 'vite-hmr';
           if (!isViteHmr) return ws;
 
-          const filter = (event) => {
-            if (typeof event.data !== 'string') return false;
-            try {
-              const data = JSON.parse(event.data);
-              if (data && data.type === 'full-reload') {
-                console.info('[protovibe] Suppressed Vite full-reload of shell', data);
-                window.dispatchEvent(
-                  new CustomEvent('protovibe:suppressed-full-reload', { detail: data })
-                );
-                return true;
-              }
-            } catch (_) {}
-            return false;
-          };
-
           const origAdd = ws.addEventListener.bind(ws);
           ws.addEventListener = function (type, listener, options) {
             if (type === 'message' && typeof listener === 'function') {
               const wrapped = function (event) {
-                if (filter(event)) return;
+                if (typeof event.data === 'string') {
+                  try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.type === 'full-reload') {
+                      console.info('[protovibe] Suppressed Vite full-reload of shell', data);
+                      window.dispatchEvent(
+                        new CustomEvent('protovibe:suppressed-full-reload', { detail: data })
+                      );
+                      return;
+                    }
+                    if (data && data.type === 'update') {
+                      const origLen = data.updates.length;
+                      data.updates = data.updates.filter(u => !u.path.includes('/src/sketchpads/'));
+                      if (data.updates.length === 0) return;
+                      if (data.updates.length !== origLen) {
+                        const newEvent = new MessageEvent('message', { data: JSON.stringify(data) });
+                        return listener.call(this, newEvent);
+                      }
+                    }
+                  } catch (_) {}
+                }
                 return listener.call(this, event);
               };
               return origAdd(type, wrapped, options);
