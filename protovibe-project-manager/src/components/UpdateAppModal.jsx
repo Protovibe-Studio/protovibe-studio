@@ -83,15 +83,27 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
     })()
   })
 
-  const pollUntilManagerBack = () => new Promise((resolve) => {
+  const pollUntilManagerBack = () => new Promise((resolve, reject) => {
+    const startedAt = Date.now()
+    const TIMEOUT_MS = 3 * 60 * 1000 // 3 minutes — plenty for pnpm install + dev start
     restartPollRef.current = setInterval(async () => {
       try {
         const res = await fetch('/api/version', { cache: 'no-store' })
         if (res.ok) {
           clearInterval(restartPollRef.current)
+          // Read the fresh version so the success card can show it.
+          const v = await res.json().catch(() => null)
+          if (v?.manager?.current) {
+            setSummary((s) => ({ ...s, managerVersion: v.manager.current }))
+          }
           resolve()
+          return
         }
       } catch {}
+      if (Date.now() - startedAt > TIMEOUT_MS) {
+        clearInterval(restartPollRef.current)
+        reject(new Error('Project manager did not come back online in time. Check dev.log for details.'))
+      }
     }, 1000)
   })
 
@@ -196,7 +208,13 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
         }
         if (r.data?.restartScheduled) {
           setStatus('restarting')
-          await pollUntilManagerBack()
+          try {
+            await pollUntilManagerBack()
+          } catch (e) {
+            setError(e.message || 'Manager restart timed out.')
+            setStatus('failed')
+            return
+          }
           setStatus('restarted')
           return
         }
