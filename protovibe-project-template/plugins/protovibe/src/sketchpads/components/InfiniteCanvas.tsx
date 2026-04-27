@@ -4,7 +4,8 @@ import { isTypingInput } from '../../ui/utils/elementType';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
-const GRID_SIZE = 20;
+const TARGET_PRIMARY_PX = 80;
+const SUBDIVISIONS = 4;
 
 interface InfiniteCanvasProps {
   children: React.ReactNode;
@@ -32,12 +33,28 @@ export function InfiniteCanvas({
     if (!containerRef.current || !innerRef.current) return;
     const { zoom, panX, panY } = currentTransform.current;
 
-    const gridSpacing = GRID_SIZE * zoom;
-    const offsetX = panX % gridSpacing;
-    const offsetY = panY % gridSpacing;
-containerRef.current.style.backgroundSize = `${gridSpacing}px ${gridSpacing}px`;
-    containerRef.current.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
-    containerRef.current.style.backgroundImage = `radial-gradient(circle, oklch(0.40 0 0) 1px, transparent 1px)`;
+    const baseUnit = Math.pow(2, Math.round(Math.log2(TARGET_PRIMARY_PX / zoom)));
+    const primarySpacing = baseUnit * zoom;
+    const secondarySpacing = primarySpacing / SUBDIVISIONS;
+
+    const mod = (a: number, b: number) => ((a % b) + b) % b;
+    const primaryX = mod(panX, primarySpacing);
+    const primaryY = mod(panY, primarySpacing);
+    const secondaryX = mod(panX, secondarySpacing);
+    const secondaryY = mod(panY, secondarySpacing);
+
+    const lower = TARGET_PRIMARY_PX / Math.SQRT2;
+    const upper = TARGET_PRIMARY_PX * Math.SQRT2;
+    const t = Math.min(1, Math.max(0, (primarySpacing - lower) / (upper - lower)));
+    const secondaryAlpha = (t * 0.55).toFixed(3);
+
+    containerRef.current.style.backgroundImage =
+      `radial-gradient(circle, oklch(0.50 0 0) 1.1px, transparent 1.6px),` +
+      `radial-gradient(circle, oklch(0.42 0 0 / ${secondaryAlpha}) 0.7px, transparent 1.1px)`;
+    containerRef.current.style.backgroundSize =
+      `${primarySpacing}px ${primarySpacing}px, ${secondarySpacing}px ${secondarySpacing}px`;
+    containerRef.current.style.backgroundPosition =
+      `${primaryX}px ${primaryY}px, ${secondaryX}px ${secondaryY}px`;
 
     innerRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     innerRef.current.setAttribute('data-sketchpad-zoom', String(zoom));
