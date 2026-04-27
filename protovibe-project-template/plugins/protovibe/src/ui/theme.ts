@@ -2,8 +2,8 @@
 export const theme = {
   // Backgrounds
   bg_default: '#131313',       // Main panels & sidebar
-  bg_secondary: '#222222',     // Inputs, dropdowns, hover states
-  bg_tertiary: '#343434',      // Active Segmented / Lighter elements
+  bg_secondary: '#282828',     // Inputs, dropdowns, hover states
+  bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
   bg_strong: '#0a0a0a',        // Headers, deep backgrounds
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
@@ -20,8 +20,8 @@ export const theme = {
   accent_low: 'rgba(24, 160, 251, 0.15)',
 
   // Borders
-  border_default: '#3c3c3c',   // Standard dividers
-  border_secondary: '#333333', // Subtle dividers
+  border_default: '#333333',   // Standard dividers
+  border_secondary: '#3a3a3a', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
   border_accent: '#18A0FB',    // Focused borders
   border_strong: '#6a6a6a',    // High contrast borders

@@ -110,6 +110,14 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const currentSources = sourcesRef.current;
     const requestSourcesKey = currentSources.join('|');
 
+    // Fetch theme colors and tokens regardless of whether a source is selected,
+    // so the Tokens tab stays in sync after an undo.
+    fetchThemeColors().then((colors) => {
+      setThemeColors(colors);
+    }).catch(() => {});
+
+    fetchThemeTokens().then(setThemeTokens).catch(() => {});
+
     if (currentSources.length === 0) {
       setSourceDataList([]);
       setZones([]);
@@ -157,14 +165,6 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     setSourceDataList(results);
     setIsLoading(false);
-
-    // Fetch theme colors alongside source data
-    fetchThemeColors().then((colors) => {
-      setThemeColors(colors);
-    }).catch(() => {});
-
-    // Fetch other tokens so the "Other" tab syncs after an undo
-    fetchThemeTokens().then(setThemeTokens).catch(() => {});
     
     const currentActiveSourceId = activeSourceIdRef.current;
     if (results.length > 0 && (!currentActiveSourceId || !currentSources.includes(currentActiveSourceId))) {

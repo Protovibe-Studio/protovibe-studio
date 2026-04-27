@@ -645,6 +645,7 @@ export const TokensTab: React.FC = () => {
                       </button>
                     ) : (
                       <input
+                        key={t.value}
                         defaultValue={t.value}
                         onBlur={e => { if (e.target.value !== t.value) handleTokenSave(t.name, e.target.value); }}
                         onKeyDown={e => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
