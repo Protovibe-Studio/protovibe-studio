@@ -36,15 +36,15 @@ export default function Frame4() {
             <Button leftIcon="ri:more-fill" iconOnly data-pv-block="80fnz3" data-pv-sketchpad-el="80fnz3" style={{ position: 'absolute', left: 638, top: 25 }} label="Button" variant="ghost" color="neutral" size="md" />
             {/* pv-block-end:80fnz3 */}
             {/* pv-block-start:brq2ii */}
-            <Rectangle data-pv-block="brq2ii" data-pv-sketchpad-el="brq2ii" style={{ position: 'absolute', left: 27, top: 102, height: 69, width: 638 }} className="w-[200px] h-[200px] border-0 bg-background-strong-pressed">
+            <Rectangle data-pv-block="brq2ii" data-pv-sketchpad-el="brq2ii" style={{ position: 'absolute', left: 27, top: 102, height: 69, width: 638 }} className="w-[200px] h-[200px] border-0 bg-background-primary">
               {/* pv-editable-zone-start:nhhnog */}
                 {/* pv-block-start:d9srur */}
-                <TextParagraph className="text-base text-foreground-default" data-pv-block="d9srur" data-pv-sketchpad-el="d9srur" style={{ position: 'absolute', left: 62, top: 25 }} typography="regular">
+                <TextParagraph className="text-base text-foreground-on-primary" data-pv-block="d9srur" data-pv-sketchpad-el="d9srur" style={{ position: 'absolute', left: 62, top: 25 }} typography="regular">
                   Open Protovibe Editor
                 </TextParagraph>
                 {/* pv-block-end:d9srur */}
                 {/* pv-block-start:8lgt70 */}
-                <Icon data-pv-block="8lgt70" data-pv-sketchpad-el="8lgt70" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="majesticons:open" size="lg" />
+                <Icon className="text-foreground-on-primary" data-pv-block="8lgt70" data-pv-sketchpad-el="8lgt70" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="majesticons:open" size="lg" />
                 {/* pv-block-end:8lgt70 */}
               {/* pv-editable-zone-end:nhhnog */}
             </Rectangle>
