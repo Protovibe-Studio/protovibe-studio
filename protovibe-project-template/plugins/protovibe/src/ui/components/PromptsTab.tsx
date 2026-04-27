@@ -363,7 +363,7 @@ export const PromptsTab: React.FC = () => {
   if (!selectedPrompt) {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
+        <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontFamily: 'sans-serif', fontSize: 14, fontWeight: 600, color: theme.text_default }}>
               Prompts
@@ -384,7 +384,7 @@ export const PromptsTab: React.FC = () => {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 16 }}>
           <div style={{
-            padding: '12px 16px 8px',
+            padding: '12px 20px 8px',
             fontFamily: 'sans-serif', fontSize: 11, fontWeight: 600,
             color: theme.text_tertiary,
           }}>
@@ -401,7 +401,7 @@ export const PromptsTab: React.FC = () => {
               onClick={() => handleSelect(p.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                width: '100%', padding: '12px 16px',
+                width: '100%', padding: '12px 20px',
                 background: 'transparent', border: 'none',
                 borderBottom: `1px solid ${theme.border_default}`,
                 cursor: 'pointer', color: theme.text_default, textAlign: 'left',
@@ -458,7 +458,7 @@ export const PromptsTab: React.FC = () => {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
-      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
+      <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             onClick={handleBack}
@@ -467,14 +467,13 @@ export const PromptsTab: React.FC = () => {
           >
             <ArrowLeft size={16} />
           </button>
-          {React.createElement(selectedPrompt.icon, { size: 14, strokeWidth: 1.8 })}
           <span style={{ fontFamily: 'sans-serif', fontSize: 14, fontWeight: 600, color: theme.text_default }}>
             {selectedPrompt.title}
           </span>
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Step 1 — describe */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

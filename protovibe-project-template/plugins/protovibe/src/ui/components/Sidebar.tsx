@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     flexShrink: 0,
     width: isOpen ? `${INSPECTOR_WIDTH_PX}px` : '0',
     overflow: 'hidden',
-    backgroundColor: theme.bg_default,
+    backgroundColor: theme.bg_strong,
     color: theme.text_default,
     padding: '0',
     boxSizing: 'border-box',

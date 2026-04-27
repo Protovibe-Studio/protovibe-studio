@@ -361,13 +361,13 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
       <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
         <div style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 16px', color: theme.text_default, fontSize: '10px', fontWeight: '600',
+          padding: '12px 20px', color: theme.text_default, fontSize: '10px', fontWeight: '600',
         }}>
           <span>Background Image</span>
           {headerAction}
         </div>
         {showBody && (
-          <div style={{ padding: '0 16px 16px 16px' }}>
+          <div style={{ padding: '0 20px 16px 20px' }}>
 
       {hasImage && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

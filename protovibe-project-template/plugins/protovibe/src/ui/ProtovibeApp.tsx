@@ -444,42 +444,40 @@ export const ProtovibeApp: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '0 12px',
+              padding: '0 12px 0 4px',
               gap: 8,
               flexShrink: 0,
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                background: theme.bg_secondary,
-                border: `1px solid ${theme.border_secondary}`,
-                borderRadius: 5,
-                overflow: 'hidden',
-              }}
-            >
-              {(['light', 'dark'] as const).map(t => (
-                <button
-                  key={t}
-                  onClick={() => setIframeTheme(t)}
-                  title={t === 'light' ? 'Light mode' : 'Dark mode'}
-                  style={{
-                    width: 26,
-                    height: 24,
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    background: iframeTheme === t ? theme.bg_tertiary : 'transparent',
-                    color: iframeTheme === t ? theme.text_default : theme.text_tertiary,
-                    transition: 'background 0.15s, color 0.15s',
-                  }}
-                >
-                  {t === 'light' ? '☀' : '☽'}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: 2 }}>
+              {(['light', 'dark'] as const).map(t => {
+                const active = iframeTheme === t;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setIframeTheme(t)}
+                    title={t === 'light' ? 'Light mode' : 'Dark mode'}
+                    style={{
+                      width: 26,
+                      height: 24,
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 12,
+                      background: active ? theme.bg_tertiary : 'transparent',
+                      color: active ? theme.text_default : theme.text_tertiary,
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { if (!active) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
+                    onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
+                  >
+                    {t === 'light' ? '☀' : '☽'}
+                  </button>
+                );
+              })}
             </div>
             <button
               ref={moreButtonRef}

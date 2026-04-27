@@ -243,6 +243,9 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
+        {/* pv-block-start:v8sko8 */}
+        <span data-pv-block="v8sko8">Lorem ipsum</span>
+        {/* pv-block-end:v8sko8 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

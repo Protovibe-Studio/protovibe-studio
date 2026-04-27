@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
+import { emitToast } from '../events/toast';
 
 export const ComponentsTab: React.FC = () => {
   const { availableComponents, refreshComponents } = useProtovibe();
@@ -42,7 +43,7 @@ export const ComponentsTab: React.FC = () => {
             Components
           </span>
           <button
-            onClick={refreshComponents}
+            onClick={() => { refreshComponents(); emitToast({ message: 'Components refreshed', variant: 'success' }); }}
             title="Refresh"
             style={{
               background: 'transparent',

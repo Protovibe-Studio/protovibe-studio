@@ -832,11 +832,18 @@ export function ProtovibePreviewer() {
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
+  const [refreshFlash, setRefreshFlash] = useState(false);
 
   const refresh = useCallback(async () => {
     const entries = await discoverComponents();
     setDiscovered(entries);
   }, []);
+
+  const handleRefreshClick = useCallback(() => {
+    refresh();
+    setRefreshFlash(true);
+    setTimeout(() => setRefreshFlash(false), 400);
+  }, [refresh]);
 
   useEffect(() => {
     refresh();
@@ -953,8 +960,8 @@ export function ProtovibePreviewer() {
           role="button"
           tabIndex={0}
           aria-label="Refresh components"
-          onClick={refresh}
-          onKeyDown={e => activateOnEnterOrSpace(e, refresh)}
+          onClick={handleRefreshClick}
+          onKeyDown={e => activateOnEnterOrSpace(e, handleRefreshClick)}
           style={{
             width: 16,
             height: 16,
@@ -962,16 +969,17 @@ export function ProtovibePreviewer() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#666',
+            color: refreshFlash ? '#fff' : '#666',
             fontSize: 14,
             flexShrink: 0,
-            transition: 'color 0.15s',
+            transition: 'color 0.15s, transform 0.4s ease',
+            transform: refreshFlash ? 'rotate(360deg)' : 'rotate(0deg)',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.color = '#aaa';
+            if (!refreshFlash) e.currentTarget.style.color = '#aaa';
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = '#666';
+            if (!refreshFlash) e.currentTarget.style.color = '#666';
           }}
         >
           ↻

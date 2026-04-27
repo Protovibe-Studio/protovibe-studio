@@ -12,8 +12,8 @@ export type ShellTab = IframeTab | SidebarTab;
 
 const IFRAME_TABS: { id: IframeTab; icon: React.ElementType; label: string }[] = [
   { id: 'app', icon: Monitor, label: 'App' },
-  { id: 'components', icon: LayoutGrid, label: 'Components' },
   { id: 'sketchpad', icon: PenTool, label: 'Sketchpad' },
+  { id: 'components', icon: LayoutGrid, label: 'Components' },
 ];
 
 const SIDEBAR_TABS: { id: SidebarTab; icon: React.ElementType; label: string }[] = [
