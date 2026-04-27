@@ -244,7 +244,9 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:dkwss2 */}
         {/* pv-block-start:v8sko8 */}
-        <span data-pv-block="v8sko8">Lorem ipsum</span>
+        <span data-pv-block="v8sko8">
+          Test <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">sfsdf</a> <a className="text-foreground-primary-link hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">sdf</a>
+        </span>
         {/* pv-block-end:v8sko8 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>

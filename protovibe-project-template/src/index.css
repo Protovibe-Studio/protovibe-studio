@@ -77,6 +77,7 @@
  --foreground-inverse: oklch(100% 0 89.9); /* text on dark/strong bg */
  --foreground-on-primary: oklch(100% 0 89.9); /* text inside filled primary */
  --foreground-primary: oklch(42.77% 0.21541 292.5); /* primary-tinted text & links */
+ --foreground-primary-link: oklch(49% 0.21541 292.5); /* links — same hue, slightly lighter */
  --foreground-destructive: oklch(52% 0.22 25);
  --foreground-success: oklch(54.08% 0.13855 153.2);
  --foreground-warning: oklch(56.88% 0.14711 51.6);
@@ -170,6 +171,7 @@
  --foreground-inverse: #1b1c1e;
  --foreground-on-primary: #000000;
  --foreground-primary: #af80f4;
+ --foreground-primary-link: #bc8ef5;
  --foreground-destructive: #ff7073;
  --foreground-success: #23bd7d;
  --foreground-warning: #ed913b;
@@ -264,6 +266,7 @@
  --color-foreground-inverse: var(--foreground-inverse);
  --color-foreground-on-primary: var(--foreground-on-primary);
  --color-foreground-primary: var(--foreground-primary);
+ --color-foreground-primary-link: var(--foreground-primary-link);
  --color-foreground-destructive: var(--foreground-destructive);
  --color-foreground-success: var(--foreground-success);
  --color-foreground-warning: var(--foreground-warning);
