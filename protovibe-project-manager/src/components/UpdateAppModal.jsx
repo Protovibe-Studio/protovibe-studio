@@ -9,106 +9,41 @@ function forceReload() {
 
 export default function UpdateAppModal({ onClose, updatePluginsInProjects = false }) {
   const [logs, setLogs] = useState([])
-  // running | restarting | updating-plugins | restarted | done | failed
-  const [status, setStatus] = useState('running')
-  const [result, setResult] = useState(null)
+  // running-template | updating-plugins | running-manager | restarting | restarted | done | failed
+  const [status, setStatus] = useState('running-template')
   const [error, setError] = useState('')
-  const [pluginProgress, setPluginProgress] = useState({ done: 0, total: 0, failures: [] })
+  const [summary, setSummary] = useState({
+    templateUpdated: false,
+    templateVersion: null,
+    managerUpdated: false,
+    managerVersion: null,
+    pluginsTotal: 0,
+    pluginsDone: 0,
+    pluginFailures: [],
+  })
+  const summaryRef = useRef(summary)
+  useEffect(() => { summaryRef.current = summary }, [summary])
+
   const logRef = useRef(null)
   const restartPollRef = useRef(null)
   const startedRef = useRef(false)
-  // Mirror result + opts in refs so async chains read fresh values without
-  // closing over stale props/state.
-  const optsRef = useRef({ updatePluginsInProjects })
-  useEffect(() => { optsRef.current = { updatePluginsInProjects } }, [updatePluginsInProjects])
-  const resultRef = useRef(null)
 
   const appendLog = (text) => setLogs((l) => [...l, text])
 
-  useEffect(() => {
-    if (startedRef.current) return
-    startedRef.current = true
-
-    const finishSuccess = () => {
-      // Use restarted (which renders Reload now) only if the manager actually
-      // restarted; otherwise plain done with a Done button.
-      const restarted = !!resultRef.current?.restartScheduled
-      setStatus(restarted ? 'restarted' : 'done')
-    }
-
-    const runPluginUpdates = async () => {
-      const updateTemplate = !!resultRef.current?.templateUpdated
-      if (!updateTemplate || !optsRef.current.updatePluginsInProjects) {
-        finishSuccess()
-        return
-      }
-      setStatus('updating-plugins')
-      appendLog('--- updating Protovibe shell in all projects ---')
-
-      let projects
+  // Stream SSE from /api/update-app and resolve when the script finishes.
+  // Resolution shape: { ok, data, connectionLost }.
+  // - ok=true / connectionLost=false: normal completion (any phase except manager-restart).
+  // - ok=true / connectionLost=true: connection dropped after a `done` event (manager phase).
+  // - ok=false: failure.
+  const streamUpdate = (which) => new Promise((resolve) => {
+    let saw = null
+    let saidFail = false
+    ;(async () => {
       try {
-        const res = await fetch('/api/projects', { cache: 'no-store' })
-        if (!res.ok) throw new Error(`GET /api/projects failed (${res.status})`)
-        projects = await res.json()
-      } catch (e) {
-        appendLog(`failed to list projects: ${e.message}`)
-        setError(e.message)
-        setStatus('failed')
-        return
-      }
-
-      setPluginProgress({ done: 0, total: projects.length, failures: [] })
-      if (projects.length === 0) {
-        appendLog('no projects to update.')
-        finishSuccess()
-        return
-      }
-
-      const failures = []
-      for (let i = 0; i < projects.length; i++) {
-        const p = projects[i]
-        appendLog(`[${i + 1}/${projects.length}] updating ${p.name} ...`)
-        try {
-          const res = await fetch(`/api/projects/${p.id}/update-plugin`, { method: 'POST' })
-          const data = await res.json().catch(() => ({}))
-          if (res.ok) {
-            appendLog(`[${i + 1}/${projects.length}] ${p.name} → v${data.pluginVersion ?? '?'}`)
-          } else {
-            const msg = data?.error || `HTTP ${res.status}`
-            appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${msg}`)
-            failures.push({ name: p.name, error: msg })
-          }
-        } catch (e) {
-          appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${e.message}`)
-          failures.push({ name: p.name, error: e.message })
-        }
-        setPluginProgress({ done: i + 1, total: projects.length, failures: [...failures] })
-      }
-
-      appendLog('--- finished updating projects ---')
-      finishSuccess()
-    }
-
-    const pollUntilRestarted = () => {
-      restartPollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch('/api/version', { cache: 'no-store' })
-          if (res.ok) {
-            clearInterval(restartPollRef.current)
-            // Manager is back. Run plugin sweep (if requested) then finish.
-            runPluginUpdates()
-          }
-        } catch {}
-      }, 1000)
-    }
-
-    const run = async () => {
-      try {
-        const res = await fetch('/api/update-app', { method: 'POST' })
+        const res = await fetch(`/api/update-app?which=${which}`, { method: 'POST' })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || `Request failed (${res.status})`)
-          setStatus('failed')
+          resolve({ ok: false, error: data.error || `Request failed (${res.status})` })
           return
         }
         const reader = res.body.getReader()
@@ -128,31 +63,154 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
             let data
             try { data = JSON.parse(dataLine) } catch { continue }
             if (evType === 'log') appendLog(data.text)
-            else if (evType === 'fail') { setError(data.message || 'Update failed'); setStatus('failed') }
-            else if (evType === 'done') {
-              setResult(data)
-              resultRef.current = data
-              if (data.restartScheduled) {
-                setStatus('restarting')
-                pollUntilRestarted()
-              } else {
-                runPluginUpdates()
-              }
+            else if (evType === 'fail') {
+              saidFail = true
+              resolve({ ok: false, error: data.message || 'Update failed' })
+            } else if (evType === 'done') {
+              saw = data
             }
           }
         }
+        if (saidFail) return
+        if (saw) resolve({ ok: true, data: saw, connectionLost: false })
+        else resolve({ ok: false, error: 'Updater closed without a result' })
       } catch (e) {
-        // Manager-restart drops the connection mid-stream — that's expected.
-        setStatus((prev) => (prev === 'restarting' || prev === 'updating-plugins' || prev === 'restarted' ? prev : 'failed'))
-        setError((prevErr) => prevErr || e.message || 'Connection lost')
+        // Connection drops mid-stream are expected for the manager phase
+        // because the manager process exits after sending `done`.
+        if (saw) resolve({ ok: true, data: saw, connectionLost: true })
+        else resolve({ ok: false, error: e.message || 'Connection lost' })
       }
+    })()
+  })
+
+  const pollUntilManagerBack = () => new Promise((resolve) => {
+    restartPollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch('/api/version', { cache: 'no-store' })
+        if (res.ok) {
+          clearInterval(restartPollRef.current)
+          resolve()
+        }
+      } catch {}
+    }, 1000)
+  })
+
+  const updatePluginsForAllProjects = async () => {
+    appendLog('--- updating Protovibe shell in all projects ---')
+    let projects
+    try {
+      const res = await fetch('/api/projects', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`GET /api/projects failed (${res.status})`)
+      projects = await res.json()
+    } catch (e) {
+      appendLog(`failed to list projects: ${e.message}`)
+      throw e
     }
-    run()
+
+    setSummary((s) => ({ ...s, pluginsTotal: projects.length, pluginsDone: 0, pluginFailures: [] }))
+    if (projects.length === 0) {
+      appendLog('no projects to update.')
+      return
+    }
+
+    const failures = []
+    for (let i = 0; i < projects.length; i++) {
+      const p = projects[i]
+      appendLog(`[${i + 1}/${projects.length}] updating ${p.name} ...`)
+      try {
+        const res = await fetch(`/api/projects/${p.id}/update-plugin`, { method: 'POST' })
+        const data = await res.json().catch(() => ({}))
+        if (res.ok) {
+          appendLog(`[${i + 1}/${projects.length}] ${p.name} → v${data.pluginVersion ?? '?'}`)
+        } else {
+          const msg = data?.error || `HTTP ${res.status}`
+          appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${msg}`)
+          failures.push({ name: p.name, error: msg })
+        }
+      } catch (e) {
+        appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${e.message}`)
+        failures.push({ name: p.name, error: e.message })
+      }
+      setSummary((s) => ({ ...s, pluginsDone: i + 1, pluginFailures: [...failures] }))
+    }
+    appendLog('--- finished updating projects ---')
+  }
+
+  useEffect(() => {
+    if (startedRef.current) return
+    startedRef.current = true
+
+    const orchestrate = async () => {
+      // Snapshot what's outdated up-front so we don't rely on the script's
+      // self-detection between phases.
+      let v
+      try {
+        const res = await fetch('/api/version', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`GET /api/version failed (${res.status})`)
+        v = await res.json()
+      } catch (e) {
+        setError(e.message)
+        setStatus('failed')
+        return
+      }
+      const tplOutdated = !!v?.template?.outdated
+      const mgrOutdated = !!v?.manager?.outdated
+
+      if (!tplOutdated && !mgrOutdated) {
+        appendLog('Nothing to update — already on the latest version.')
+        setStatus('done')
+        return
+      }
+
+      // 1) Template (do first so the project plugin sweep uses fresh source).
+      if (tplOutdated) {
+        setStatus('running-template')
+        const r = await streamUpdate('template')
+        if (!r.ok) { setError(r.error); setStatus('failed'); return }
+        if (r.data?.templateUpdated) {
+          setSummary((s) => ({ ...s, templateUpdated: true, templateVersion: r.data.templateVersion }))
+        }
+      }
+
+      // 2) Project plugin sweep — only meaningful if template was actually
+      //    refreshed and the user opted in.
+      if (summaryRef.current.templateUpdated && updatePluginsInProjects) {
+        setStatus('updating-plugins')
+        try {
+          await updatePluginsForAllProjects()
+        } catch (e) {
+          setError(e.message || 'Failed to update project plugins.')
+          setStatus('failed')
+          return
+        }
+      }
+
+      // 3) Manager last — its restart kills the SSE connection and the dev
+      //    server, so by ordering it last, every prior step gets to finish.
+      if (mgrOutdated) {
+        setStatus('running-manager')
+        const r = await streamUpdate('manager')
+        if (!r.ok) { setError(r.error); setStatus('failed'); return }
+        if (r.data?.managerUpdated) {
+          setSummary((s) => ({ ...s, managerUpdated: true, managerVersion: r.data.managerVersion }))
+        }
+        if (r.data?.restartScheduled) {
+          setStatus('restarting')
+          await pollUntilManagerBack()
+          setStatus('restarted')
+          return
+        }
+      }
+
+      setStatus('done')
+    }
+
+    orchestrate()
 
     return () => {
       if (restartPollRef.current) clearInterval(restartPollRef.current)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
@@ -162,15 +220,18 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
 
   const title = (() => {
     switch (status) {
-      case 'running': return 'Downloading update…'
-      case 'restarting': return 'Restarting Protovibe…'
+      case 'running-template': return 'Updating project template…'
       case 'updating-plugins': return 'Updating projects…'
+      case 'running-manager':  return 'Updating project manager…'
+      case 'restarting':       return 'Restarting Protovibe…'
       case 'done':
-      case 'restarted': return 'Update complete'
-      case 'failed': return 'Update failed'
+      case 'restarted':        return 'Update complete'
+      case 'failed':           return 'Update failed'
       default: return ''
     }
   })()
+
+  const inFlight = status === 'running-template' || status === 'updating-plugins' || status === 'running-manager' || status === 'restarting'
 
   return (
     <div
@@ -200,42 +261,33 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
           )}
         </div>
 
-        {status === 'running' && (
+        {inFlight && (
           <div className="flex items-center gap-2 text-sm text-foreground-secondary">
             <Loader2 size={14} className="animate-spin" />
-            Downloading and installing latest version…
+            {status === 'running-template' && 'Downloading and installing latest project template…'}
+            {status === 'updating-plugins' && (
+              <span>Updating Protovibe shell in projects ({summary.pluginsDone}/{summary.pluginsTotal})…</span>
+            )}
+            {status === 'running-manager' && 'Downloading and installing latest project manager…'}
+            {status === 'restarting' && 'Project manager updated — restarting the dev server…'}
           </div>
         )}
 
-        {status === 'restarting' && (
-          <div className="flex items-center gap-2 text-sm text-foreground-secondary">
-            <Loader2 size={14} className="animate-spin" />
-            Project manager updated — restarting the dev server…
-          </div>
-        )}
-
-        {status === 'updating-plugins' && (
-          <div className="flex items-center gap-2 text-sm text-foreground-secondary">
-            <Loader2 size={14} className="animate-spin" />
-            Updating Protovibe shell in projects ({pluginProgress.done}/{pluginProgress.total})…
-          </div>
-        )}
-
-        {(status === 'done' || status === 'restarted') && result && (
+        {(status === 'done' || status === 'restarted') && (
           <div className="flex items-start gap-2 text-sm text-foreground-default">
             <CheckCircle2 size={16} className="text-foreground-success shrink-0 mt-0.5" />
             <div className="flex flex-col gap-1">
-              {result.managerUpdated && <span>Project manager updated to <span className="font-mono">{result.managerVersion}</span>.</span>}
-              {result.templateUpdated && <span>Project template updated to <span className="font-mono">{result.templateVersion}</span>.</span>}
-              {!result.managerUpdated && !result.templateUpdated && <span>Already up to date.</span>}
-              {pluginProgress.total > 0 && (
+              {summary.templateUpdated && <span>Project template updated to <span className="font-mono">{summary.templateVersion}</span>.</span>}
+              {summary.managerUpdated && <span>Project manager updated to <span className="font-mono">{summary.managerVersion}</span>.</span>}
+              {!summary.templateUpdated && !summary.managerUpdated && <span>Already up to date.</span>}
+              {summary.pluginsTotal > 0 && (
                 <span>
-                  Updated Protovibe shell in {pluginProgress.done - pluginProgress.failures.length}/{pluginProgress.total} project{pluginProgress.total === 1 ? '' : 's'}.
+                  Updated Protovibe shell in {summary.pluginsDone - summary.pluginFailures.length}/{summary.pluginsTotal} project{summary.pluginsTotal === 1 ? '' : 's'}.
                 </span>
               )}
-              {pluginProgress.failures.length > 0 && (
+              {summary.pluginFailures.length > 0 && (
                 <span className="text-foreground-destructive">
-                  Failed: {pluginProgress.failures.map((f) => f.name).join(', ')}
+                  Failed: {summary.pluginFailures.map((f) => f.name).join(', ')}
                 </span>
               )}
               {status === 'restarted' && (

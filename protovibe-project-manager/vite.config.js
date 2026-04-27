@@ -1032,7 +1032,7 @@ async function handleGetVersion(_req, res) {
 
 let updateInProgress = false
 
-function handleUpdateApp(req, res) {
+function handleUpdateApp(req, res, which) {
   if (updateInProgress) {
     return sendJson(res, 409, { error: 'Update already in progress.' })
   }
@@ -1058,7 +1058,10 @@ function handleUpdateApp(req, res) {
     try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`) } catch {}
   }
 
-  const proc = spawn('bash', [UPDATER_SCRIPT], {
+  const args = [UPDATER_SCRIPT]
+  if (which === 'template' || which === 'manager') args.push(`--only=${which}`)
+
+  const proc = spawn('bash', args, {
     cwd: REPO_ROOT,
     stdio: 'pipe',
     env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
@@ -1177,7 +1180,8 @@ function projectManagerPlugin() {
             return await handleGetVersion(req, res)
           }
           if (method === 'POST' && pathname === '/update-app') {
-            return handleUpdateApp(req, res)
+            const which = url.searchParams.get('which') || 'auto'
+            return handleUpdateApp(req, res, which)
           }
 
           const match = pathname.match(/^\/projects\/([^/]+)(?:\/(.+))?$/)

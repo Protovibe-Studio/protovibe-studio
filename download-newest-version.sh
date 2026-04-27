@@ -43,12 +43,17 @@ if [ ! -d "$PM_DIR" ] || [ ! -d "$TPL_DIR" ]; then
 fi
 
 MODE="auto"
-case "${1:-}" in
-  --force) MODE="force" ;;
-  --check) MODE="check" ;;
-  "" )     MODE="auto" ;;
-  *)       err "Unknown flag: $1"; exit 1 ;;
-esac
+ONLY=""   # ""=both, "template", "manager"
+for arg in "$@"; do
+  case "$arg" in
+    --force) MODE="force" ;;
+    --check) MODE="check" ;;
+    --only=template) ONLY="template" ;;
+    --only=manager)  ONLY="manager" ;;
+    "" ) ;;
+    *) err "Unknown flag: $arg"; exit 1 ;;
+  esac
+done
 
 # ── version helpers ─────────────────────────────────────────────────────────
 read_pkg_version() {
@@ -127,6 +132,10 @@ else
     update_tpl=1
   fi
 fi
+
+# Filter by --only=...
+if [ "$ONLY" = "template" ]; then update_pm=0; fi
+if [ "$ONLY" = "manager" ];  then update_tpl=0; fi
 
 if [ "$update_pm" -eq 0 ] && [ "$update_tpl" -eq 0 ]; then
   ok "Already up to date — manager $LOCAL_PM_VER, template $LOCAL_TPL_VER."
