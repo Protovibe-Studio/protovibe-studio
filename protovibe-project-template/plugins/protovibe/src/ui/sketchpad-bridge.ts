@@ -27,12 +27,36 @@ const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
 const DROP_TARGET_OFFSET = '-1px';
 const DRAG_THRESHOLD = 3;
 const RESIZE_EDGE_PX = 8;
+const SNAP_THRESHOLD_SCREEN_PX = 6;
+const SNAP_GUIDE_COLOR = '#ff3b6b';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let hoveredEl: HTMLElement | null = null;
 let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
+
+interface SnapRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  hcenter: number;
+  vcenter: number;
+}
+
+interface SnapGuide {
+  axis: 'x' | 'y';
+  coord: number;       // frame-relative logical
+  perpStart: number;   // frame-relative logical
+  perpEnd: number;     // frame-relative logical
+}
+
+interface SnapContext {
+  frameEl: HTMLElement;
+  targets: SnapRect[];
+  startRects: SnapRect[]; // one per moving element (drag) or one (resize)
+}
 
 let dragState: {
   pointerId: number;
@@ -51,6 +75,7 @@ let dragState: {
     isFlow: boolean;
     origTransform: string;
   }[];
+  snap: SnapContext | null;
 } | null = null;
 
 type ResizeEdge = 'e' | 'w' | 'n' | 's' | 'ne' | 'nw' | 'se' | 'sw';
@@ -65,6 +90,7 @@ let resizeState: {
   origLeft: number;
   origTop: number;
   edge: ResizeEdge;
+  snap: SnapContext | null;
 } | null = null;
 
 let nudgeState: {
@@ -337,6 +363,169 @@ function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): Resiz
   return null;
 }
 
+// ─── Snap (magnet lines) ──────────────────────────────────────────────────────
+
+function makeSnapRect(left: number, top: number, w: number, h: number): SnapRect {
+  return {
+    left, top,
+    right: left + w,
+    bottom: top + h,
+    hcenter: left + w / 2,
+    vcenter: top + h / 2,
+  };
+}
+
+function unionSnapRect(rects: SnapRect[]): SnapRect {
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  for (const x of rects) {
+    if (x.left < l) l = x.left;
+    if (x.top < t) t = x.top;
+    if (x.right > r) r = x.right;
+    if (x.bottom > b) b = x.bottom;
+  }
+  return makeSnapRect(l, t, r - l, b - t);
+}
+
+function rectFromElement(el: HTMLElement, frameRect: DOMRect, zoom: number): SnapRect {
+  const r = el.getBoundingClientRect();
+  return makeSnapRect((r.left - frameRect.left) / zoom, (r.top - frameRect.top) / zoom, r.width / zoom, r.height / zoom);
+}
+
+function collectSnapContext(frameEl: HTMLElement, exclude: HTMLElement[]): SnapContext | null {
+  const zoom = getCanvasZoom();
+  const fr = frameEl.getBoundingClientRect();
+  const all = Array.from(frameEl.querySelectorAll<HTMLElement>('[data-pv-sketchpad-el], [data-pv-block]'));
+  const isExcluded = (el: HTMLElement) => exclude.some(x => x === el || x.contains(el) || el.contains(x));
+  const targets: SnapRect[] = [];
+  for (const el of all) {
+    if (isExcluded(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) continue;
+    targets.push(makeSnapRect((r.left - fr.left) / zoom, (r.top - fr.top) / zoom, r.width / zoom, r.height / zoom));
+  }
+  const startRects = exclude.map(el => rectFromElement(el, fr, zoom));
+  return { frameEl, targets, startRects };
+}
+
+function computeSnap(
+  movingRect: SnapRect,
+  movingEdgesX: Array<'left' | 'right' | 'hcenter'>,
+  movingEdgesY: Array<'top' | 'bottom' | 'vcenter'>,
+  targets: SnapRect[],
+  threshold: number,
+): { adjustX: number; adjustY: number; guides: SnapGuide[] } {
+  let bestX: { delta: number; coord: number } | null = null;
+  let bestY: { delta: number; coord: number } | null = null;
+
+  for (const me of movingEdgesX) {
+    const mv = movingRect[me];
+    for (const t of targets) {
+      for (const tv of [t.left, t.right, t.hcenter]) {
+        const delta = tv - mv;
+        const ad = Math.abs(delta);
+        if (ad <= threshold && (!bestX || ad < Math.abs(bestX.delta))) {
+          bestX = { delta, coord: tv };
+        }
+      }
+    }
+  }
+  for (const me of movingEdgesY) {
+    const mv = movingRect[me];
+    for (const t of targets) {
+      for (const tv of [t.top, t.bottom, t.vcenter]) {
+        const delta = tv - mv;
+        const ad = Math.abs(delta);
+        if (ad <= threshold && (!bestY || ad < Math.abs(bestY.delta))) {
+          bestY = { delta, coord: tv };
+        }
+      }
+    }
+  }
+
+  const guides: SnapGuide[] = [];
+  const adjustX = bestX ? bestX.delta : 0;
+  const adjustY = bestY ? bestY.delta : 0;
+
+  if (bestX) {
+    const tops: number[] = [movingRect.top + adjustY, movingRect.bottom + adjustY];
+    for (const t of targets) {
+      if (Math.abs(t.left - bestX.coord) < 0.5 || Math.abs(t.right - bestX.coord) < 0.5 || Math.abs(t.hcenter - bestX.coord) < 0.5) {
+        tops.push(t.top, t.bottom);
+      }
+    }
+    guides.push({ axis: 'x', coord: bestX.coord, perpStart: Math.min(...tops), perpEnd: Math.max(...tops) });
+  }
+  if (bestY) {
+    const lefts: number[] = [movingRect.left + adjustX, movingRect.right + adjustX];
+    for (const t of targets) {
+      if (Math.abs(t.top - bestY.coord) < 0.5 || Math.abs(t.bottom - bestY.coord) < 0.5 || Math.abs(t.vcenter - bestY.coord) < 0.5) {
+        lefts.push(t.left, t.right);
+      }
+    }
+    guides.push({ axis: 'y', coord: bestY.coord, perpStart: Math.min(...lefts), perpEnd: Math.max(...lefts) });
+  }
+
+  return { adjustX, adjustY, guides };
+}
+
+let guideOverlayEl: HTMLDivElement | null = null;
+
+function ensureGuideOverlay(): HTMLDivElement {
+  if (guideOverlayEl && guideOverlayEl.isConnected) return guideOverlayEl;
+  const d = document.createElement('div');
+  d.setAttribute('data-sketchpad-snap-guides', '');
+  d.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9997;';
+  document.body.appendChild(d);
+  guideOverlayEl = d;
+  return d;
+}
+
+function renderGuides(guides: SnapGuide[], frameEl: HTMLElement | null) {
+  const overlay = ensureGuideOverlay();
+  overlay.textContent = '';
+  if (!frameEl || guides.length === 0) return;
+  const fr = frameEl.getBoundingClientRect();
+  const zoom = getCanvasZoom();
+  for (const g of guides) {
+    const line = document.createElement('div');
+    line.style.position = 'absolute';
+    line.style.background = SNAP_GUIDE_COLOR;
+    line.style.pointerEvents = 'none';
+    if (g.axis === 'x') {
+      const screenX = fr.left + g.coord * zoom;
+      const y1 = fr.top + g.perpStart * zoom;
+      const y2 = fr.top + g.perpEnd * zoom;
+      line.style.left = `${screenX - 0.5}px`;
+      line.style.top = `${y1}px`;
+      line.style.width = '1px';
+      line.style.height = `${Math.max(1, y2 - y1)}px`;
+    } else {
+      const screenY = fr.top + g.coord * zoom;
+      const x1 = fr.left + g.perpStart * zoom;
+      const x2 = fr.left + g.perpEnd * zoom;
+      line.style.top = `${screenY - 0.5}px`;
+      line.style.left = `${x1}px`;
+      line.style.height = '1px';
+      line.style.width = `${Math.max(1, x2 - x1)}px`;
+    }
+    overlay.appendChild(line);
+  }
+}
+
+function clearGuides() {
+  if (guideOverlayEl) guideOverlayEl.textContent = '';
+}
+
+function snapEdgesForResize(edge: ResizeEdge): { x: Array<'left' | 'right' | 'hcenter'>; y: Array<'top' | 'bottom' | 'vcenter'> } {
+  const x: Array<'left' | 'right' | 'hcenter'> = [];
+  const y: Array<'top' | 'bottom' | 'vcenter'> = [];
+  if (edge.includes('e')) x.push('right');
+  if (edge.includes('w')) x.push('left');
+  if (edge.includes('n')) y.push('top');
+  if (edge.includes('s')) y.push('bottom');
+  return { x, y };
+}
+
 const RESIZE_CURSOR_MAP: Record<ResizeEdge, string> = {
   e: 'ew-resize', w: 'ew-resize',
   n: 'ns-resize', s: 'ns-resize',
@@ -502,6 +691,7 @@ function notifyInspector(primaryTarget: HTMLElement, skipSnapshot = false) {
 let pointerMoveRafId: number | null = null;
 let latestClientX = 0;
 let latestClientY = 0;
+let latestMetaKey = false;
 
 function applyPointerMoveUpdate() {
   pointerMoveRafId = null;
@@ -509,9 +699,44 @@ function applyPointerMoveUpdate() {
   // Handle resize
   if (resizeState) {
     const zoom = getCanvasZoom();
-    const dx = (latestClientX - resizeState.startX) / zoom;
-    const dy = (latestClientY - resizeState.startY) / zoom;
+    let dx = (latestClientX - resizeState.startX) / zoom;
+    let dy = (latestClientY - resizeState.startY) / zoom;
     const edge = resizeState.edge;
+
+    if (resizeState.snap && !latestMetaKey && resizeState.snap.startRects[0]) {
+      const start = resizeState.snap.startRects[0];
+      // Build proposed rect from current edge logic
+      let pl = start.left, pt = start.top, pr = start.right, pb = start.bottom;
+      if (edge.includes('e')) pr = start.right + dx;
+      if (edge.includes('w')) pl = start.left + dx;
+      if (edge.includes('s')) pb = start.bottom + dy;
+      if (edge.includes('n')) pt = start.top + dy;
+      // Enforce min size in proposed coords (matches downstream Math.max(20, ...))
+      if (pr - pl < 20) {
+        if (edge.includes('e')) pr = pl + 20;
+        else pl = pr - 20;
+      }
+      if (pb - pt < 20) {
+        if (edge.includes('s')) pb = pt + 20;
+        else pt = pb - 20;
+      }
+      const proposed = makeSnapRect(pl, pt, pr - pl, pb - pt);
+      const moving = snapEdgesForResize(edge);
+      const { adjustX, adjustY, guides } = computeSnap(
+        proposed,
+        moving.x,
+        moving.y,
+        resizeState.snap.targets,
+        SNAP_THRESHOLD_SCREEN_PX / zoom,
+      );
+      if (edge.includes('e')) dx += adjustX;
+      else if (edge.includes('w')) dx += adjustX;
+      if (edge.includes('s')) dy += adjustY;
+      else if (edge.includes('n')) dy += adjustY;
+      renderGuides(guides, resizeState.snap.frameEl);
+    } else {
+      clearGuides();
+    }
 
     // Width changes
     if (edge.includes('e')) {
@@ -536,8 +761,8 @@ function applyPointerMoveUpdate() {
   // Handle drag
   if (dragState) {
     const zoom = getCanvasZoom();
-    const dx = (latestClientX - dragState.startX) / zoom;
-    const dy = (latestClientY - dragState.startY) / zoom;
+    let dx = (latestClientX - dragState.startX) / zoom;
+    let dy = (latestClientY - dragState.startY) / zoom;
 
     if (!dragState.moved) {
       if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
@@ -547,6 +772,24 @@ function applyPointerMoveUpdate() {
         t.el.style.transition = 'none';
         t.el.style.zIndex = '2147483647';
       });
+    }
+
+    if (dragState.snap && !latestMetaKey && dragState.snap.startRects.length > 0) {
+      const proposed = unionSnapRect(dragState.snap.startRects.map(r =>
+        makeSnapRect(r.left + dx, r.top + dy, r.right - r.left, r.bottom - r.top)
+      ));
+      const { adjustX, adjustY, guides } = computeSnap(
+        proposed,
+        ['left', 'right', 'hcenter'],
+        ['top', 'bottom', 'vcenter'],
+        dragState.snap.targets,
+        SNAP_THRESHOLD_SCREEN_PX / zoom,
+      );
+      dx += adjustX;
+      dy += adjustY;
+      renderGuides(guides, dragState.snap.frameEl);
+    } else {
+      clearGuides();
     }
 
     // Universally use GPU-accelerated transform for BOTH flow and absolute elements during drag
@@ -588,6 +831,7 @@ function handlePointerDown(e: PointerEvent) {
     const rect = primarySel.getBoundingClientRect();
     const zoom = getCanvasZoom();
     const pos = getComputedPos(primarySel);
+    const frameForSnap = findFrameContainer(primarySel);
     resizeState = {
       target: primarySel,
       pointerId: e.pointerId,
@@ -598,6 +842,7 @@ function handlePointerDown(e: PointerEvent) {
       origLeft: pos.left,
       origTop: pos.top,
       edge: selEdge,
+      snap: frameForSnap ? collectSnapContext(frameForSnap, [primarySel]) : null,
     };
     setForcedCursor(RESIZE_CURSOR_MAP[selEdge]);
     primarySel.style.transition = 'none';
@@ -678,6 +923,7 @@ function handlePointerDown(e: PointerEvent) {
     const rect = nextTarget.getBoundingClientRect();
     const zoom = getCanvasZoom();
     const pos = getComputedPos(nextTarget);
+    const frameForSnap = findFrameContainer(nextTarget);
     resizeState = {
       target: nextTarget,
       pointerId: e.pointerId,
@@ -688,6 +934,7 @@ function handlePointerDown(e: PointerEvent) {
       origLeft: pos.left,
       origTop: pos.top,
       edge: targetEdge,
+      snap: frameForSnap ? collectSnapContext(frameForSnap, [nextTarget]) : null,
     };
     setForcedCursor(RESIZE_CURSOR_MAP[targetEdge]);
     nextTarget.style.transition = 'none';
@@ -695,6 +942,8 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   const dragTargets = selectedEls.includes(nextTarget) ? selectedEls : [nextTarget];
+  const frameForDragSnap = findFrameContainer(nextTarget);
+  const dragAllAbsolute = dragTargets.every(t => t.hasAttribute('data-pv-sketchpad-el'));
   dragState = {
     pointerId: e.pointerId,
     startX: e.clientX,
@@ -714,7 +963,8 @@ function handlePointerDown(e: PointerEvent) {
         isFlow: !t.hasAttribute('data-pv-sketchpad-el'),
         origTransform: t.style.transform
       };
-    })
+    }),
+    snap: frameForDragSnap && dragAllAbsolute ? collectSnapContext(frameForDragSnap, dragTargets) : null,
   };
 }
 
@@ -726,6 +976,7 @@ function handlePointerMove(e: PointerEvent) {
 
     latestClientX = e.clientX;
     latestClientY = e.clientY;
+    latestMetaKey = e.metaKey || e.ctrlKey;
 
     if (dragState) {
       updateGhost(e.altKey);
@@ -794,6 +1045,7 @@ function handlePointerUp(e: PointerEvent) {
     e.preventDefault();
     e.stopPropagation();
     clearForcedCursor();
+    clearGuides();
     resizeState.target.style.transition = '';
 
     const frame = findFrameContainer(resizeState.target);
@@ -836,6 +1088,7 @@ function handlePointerUp(e: PointerEvent) {
   e.preventDefault();
   e.stopPropagation();
   clearForcedCursor();
+  clearGuides();
 
   // Restore transitions
   dragState.targets.forEach(t => {
@@ -860,8 +1113,24 @@ function handlePointerUp(e: PointerEvent) {
 
     // Calculate final drop delta for same-container drops
     const zoom = getCanvasZoom();
-    const dx = (e.clientX - dragState.startX) / zoom;
-    const dy = (e.clientY - dragState.startY) / zoom;
+    let dx = (e.clientX - dragState.startX) / zoom;
+    let dy = (e.clientY - dragState.startY) / zoom;
+
+    // Re-apply snap so persisted position matches what was visible during drag.
+    if (dragState.snap && !(e.metaKey || e.ctrlKey) && dragState.snap.startRects.length > 0) {
+      const proposed = unionSnapRect(dragState.snap.startRects.map(r =>
+        makeSnapRect(r.left + dx, r.top + dy, r.right - r.left, r.bottom - r.top)
+      ));
+      const { adjustX, adjustY } = computeSnap(
+        proposed,
+        ['left', 'right', 'hcenter'],
+        ['top', 'bottom', 'vcenter'],
+        dragState.snap.targets,
+        SNAP_THRESHOLD_SCREEN_PX / zoom,
+      );
+      dx += adjustX;
+      dy += adjustY;
+    }
 
     if (sketchpadId && draggedBlockIds.length > 0 && sourceFrameId && targetFrameId && dropContainer && !dragEls.includes(dropContainer as HTMLElement)) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
