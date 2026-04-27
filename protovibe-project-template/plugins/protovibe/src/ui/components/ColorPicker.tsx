@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { theme } from '../theme';
-import { cssColorToOklch, oklchToHex, parseOklch, formatOklch } from '../utils/colorConversion';
+import { cssColorToOklch, oklchToHex, oklchToRgbString, parseOklch, formatOklch } from '../utils/colorConversion';
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 
@@ -237,26 +237,30 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
   const [hFocused, setHFocused] = useState(false);
   const [aFocused, setAFocused] = useState(false);
 
-  // Hex convenience field
+  // Conversion fields (each always editable, accepts any CSS color)
+  const [oklchRaw, setOklchRaw] = useState('');
+  const [oklchError, setOklchError] = useState(false);
+  const [oklchFocused, setOklchFocused] = useState(false);
+  const [rgbRaw, setRgbRaw] = useState('');
+  const [rgbError, setRgbError] = useState(false);
+  const [rgbFocused, setRgbFocused] = useState(false);
   const [hexRaw, setHexRaw] = useState('');
   const [hexError, setHexError] = useState(false);
   const [hexFocused, setHexFocused] = useState(false);
-
-  // "Any CSS color" convenience field
-  const [cssRaw, setCssRaw] = useState('');
-  const [cssError, setCssError] = useState(false);
-  const [cssFocused, setCssFocused] = useState(false);
 
   const pickerRef = useRef<HTMLDivElement>(null);
 
   const currentHex = oklchToHex(L, C, H, A);
   const currentOklch = formatOklch(L, C, H, A);
+  const currentRgb = oklchToRgbString(L, C, H, A);
 
   // ── Sync inputs FROM sliders (only when the input is not focused) ──
   useEffect(() => { if (!lFocused) setLRaw((L * 100).toFixed(1)); }, [L]);      // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!cFocused) setCRaw(C.toFixed(4)); }, [C]);               // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!hFocused) setHRaw(H.toFixed(1)); }, [H]);               // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!aFocused) setARaw((A * 100).toFixed(1)); }, [A]);       // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!oklchFocused) { setOklchRaw(currentOklch); setOklchError(false); } }, [currentOklch]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!rgbFocused) { setRgbRaw(currentRgb); setRgbError(false); } }, [currentRgb]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!hexFocused) { setHexRaw(currentHex); setHexError(false); } }, [currentHex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Derived validation ──
@@ -306,35 +310,37 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
     if (aError) setARaw((A * 100).toFixed(1));
   }
 
-  // ── Hex handler ──
-  function handleHexInput(raw: string) {
-    setHexRaw(raw);
-    const normalized = raw.startsWith('#') ? raw : '#' + raw;
-    const oklch = cssColorToOklch(normalized);
-    if (oklch) {
-      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]); setA(oklch[3]);
-      setHexError(false);
-    } else {
-      setHexError(true);
-    }
+  // ── Conversion field handlers (each accepts any valid CSS color) ──
+  function applyAnyCssColor(raw: string): boolean {
+    const trimmed = raw.trim();
+    if (!trimmed) return false;
+    const oklch = parseOklch(trimmed) ?? cssColorToOklch(trimmed);
+    if (!oklch) return false;
+    setL(oklch[0]); setC(oklch[1]); setH(oklch[2]); setA(oklch[3]);
+    return true;
   }
 
-  // ── Any CSS color handler ──
-  function handleCssInput(raw: string) {
-    setCssRaw(raw);
-    if (!raw.trim()) { setCssError(false); return; }
-    const oklch = cssColorToOklch(raw.trim());
-    if (oklch) {
-      setL(oklch[0]); setC(oklch[1]); setH(oklch[2]); setA(oklch[3]);
-      setCssError(false);
-    } else {
-      setCssError(true);
-    }
+  function handleOklchInput(raw: string) {
+    setOklchRaw(raw);
+    if (!raw.trim()) { setOklchError(false); return; }
+    setOklchError(!applyAnyCssColor(raw));
+  }
+  function handleRgbInput(raw: string) {
+    setRgbRaw(raw);
+    if (!raw.trim()) { setRgbError(false); return; }
+    setRgbError(!applyAnyCssColor(raw));
+  }
+  function handleHexInput(raw: string) {
+    setHexRaw(raw);
+    if (!raw.trim()) { setHexError(false); return; }
+    const trimmed = raw.trim();
+    const normalized = trimmed.startsWith('#') || /[(,]/.test(trimmed) ? trimmed : '#' + trimmed;
+    setHexError(!applyAnyCssColor(normalized));
   }
 
   // ── Positioning ──
   const PICKER_W = 310;
-  const PICKER_H = 540;
+  const PICKER_H = 580;
   const PAD = 10;
   let left = anchorRect.left;
   let top = anchorRect.bottom + 8;
@@ -458,45 +464,41 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
         />
       </div>
 
-      {/* ── OKLCH output ── */}
-      <div style={{ padding: '0 16px 4px' }}>
-        <div style={{
-          fontFamily: 'monospace', fontSize: 10, color: theme.text_tertiary,
-          padding: '5px 8px', background: theme.bg_secondary, borderRadius: 5,
-          border: `1px solid ${theme.border_secondary}`, wordBreak: 'break-all',
-        }}>
-          {currentOklch}
-        </div>
-      </div>
-
       {/* ── Divider ── */}
-      <div style={{ margin: '10px 0 0', borderTop: `1px solid ${theme.border_secondary}` }} />
+      <div style={{ margin: '6px 0 0', borderTop: `1px solid ${theme.border_secondary}` }} />
 
-      {/* ── Conversion inputs ── */}
+      {/* ── Conversion inputs (all editable, all in sync) ── */}
       <div style={{ padding: '10px 16px 4px' }}>
         <ConversionInput
+          label="OKLCH"
+          placeholder="oklch(…)"
+          value={oklchRaw}
+          error={oklchError}
+          onChange={handleOklchInput}
+          onFocus={() => setOklchFocused(true)}
+          onBlur={() => { setOklchFocused(false); setOklchError(false); setOklchRaw(currentOklch); }}
+        />
+        <ConversionInput
+          label="RGB"
+          placeholder="rgb(…) or rgba(…)"
+          value={rgbRaw}
+          error={rgbError}
+          onChange={handleRgbInput}
+          onFocus={() => setRgbFocused(true)}
+          onBlur={() => { setRgbFocused(false); setRgbError(false); setRgbRaw(currentRgb); }}
+        />
+        <ConversionInput
           label="Hex"
-          placeholder="#rrggbb"
+          placeholder="#rrggbb or #rrggbbaa"
           value={hexRaw}
           error={hexError}
           onChange={handleHexInput}
           onFocus={() => setHexFocused(true)}
           onBlur={() => { setHexFocused(false); setHexError(false); setHexRaw(currentHex); }}
         />
-        <ConversionInput
-          label="Any CSS color"
-          placeholder="rgb(…)  hsl(…)  oklch(…)  color(…)"
-          value={cssRaw}
-          error={cssError}
-          onChange={handleCssInput}
-          onFocus={() => setCssFocused(true)}
-          onBlur={() => { setCssFocused(false); if (!cssError) setCssRaw(''); }}
-        />
-        {cssFocused && !cssError && cssRaw && (
-          <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.success_default, marginTop: -6, marginBottom: 6 }}>
-            ✓ converted
-          </div>
-        )}
+        <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary, marginTop: -2, marginBottom: 4, lineHeight: 1.4 }}>
+          Tip: paste any CSS color (hsl, named, color(…), etc.) into any field — it'll convert.
+        </div>
       </div>
 
       {/* ── Footer ── */}
