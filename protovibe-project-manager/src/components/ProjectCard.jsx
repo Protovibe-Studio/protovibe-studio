@@ -119,9 +119,13 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
         {isRunning && (
           <button
             onClick={(e) => { e.stopPropagation(); onStop && onStop() }}
-            className="group/stop shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-background-success-subtle text-foreground-success transition-colors cursor-pointer"
+            className="group/stop shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-background-success-subtle text-foreground-success hover:bg-background-destructive-subtle hover:text-foreground-destructive transition-colors cursor-pointer"
           >
-            <span className="flex items-center justify-center gap-1" style={{ minWidth: '3.5rem' }}>
+            <span className="flex items-center justify-center gap-1.5" style={{ minWidth: '3.5rem' }}>
+              <span className="relative flex h-2 w-2 group-hover/stop:hidden shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+              </span>
               <Square size={8} fill="currentColor" strokeWidth={0} className="hidden group-hover/stop:block shrink-0" />
               <span className="group-hover/stop:hidden">Running</span>
               <span className="hidden group-hover/stop:inline">Stop</span>

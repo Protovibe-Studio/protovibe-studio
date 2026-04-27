@@ -10,7 +10,7 @@ export default function Frame4() {
     <div className="bg-background-sunken" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:2qgryk */}
         {/* pv-block-start:trph48 */}
-        <Rectangle data-pv-block="trph48" data-pv-sketchpad-el="trph48" style={{ position: 'absolute', height: 607, width: 702, left: 377, top: 141 }} className="w-[200px] h-[200px] bg-background-default">
+        <Rectangle data-pv-block="trph48" data-pv-sketchpad-el="trph48" style={{ position: 'absolute', height: 683, width: 702, left: 377, top: 141 }} className="w-[200px] h-[200px] bg-background-default">
           {/* pv-editable-zone-start:tcajes */}
             {/* pv-block-start:ngm7rv */}
             <TextHeading data-pv-block="ngm7rv" data-pv-sketchpad-el="ngm7rv" style={{ position: 'absolute', left: 27, top: 24 }} typography="heading-md">
@@ -36,7 +36,7 @@ export default function Frame4() {
             <Button leftIcon="ri:more-fill" iconOnly data-pv-block="80fnz3" data-pv-sketchpad-el="80fnz3" style={{ position: 'absolute', left: 638, top: 25 }} label="Button" variant="ghost" color="neutral" size="md" />
             {/* pv-block-end:80fnz3 */}
             {/* pv-block-start:brq2ii */}
-            <Rectangle data-pv-block="brq2ii" data-pv-sketchpad-el="brq2ii" style={{ position: 'absolute', left: 27, top: 102, height: 69, width: 638 }} className="w-[200px] h-[200px] bg-background-primary-subtle border-0">
+            <Rectangle data-pv-block="brq2ii" data-pv-sketchpad-el="brq2ii" style={{ position: 'absolute', left: 27, top: 102, height: 69, width: 638 }} className="w-[200px] h-[200px] border-0 bg-background-strong-pressed">
               {/* pv-editable-zone-start:nhhnog */}
                 {/* pv-block-start:d9srur */}
                 <TextParagraph className="text-base text-foreground-default" data-pv-block="d9srur" data-pv-sketchpad-el="d9srur" style={{ position: 'absolute', left: 62, top: 25 }} typography="regular">
@@ -55,7 +55,7 @@ export default function Frame4() {
             </TextParagraph>
             {/* pv-block-end:ytk9a8 */}
             {/* pv-block-start:j87d9l */}
-            <Button rightIcon="mdi:chevron-down" data-pv-block="j87d9l" data-pv-sketchpad-el="j87d9l" style={{ position: 'absolute', left: 33, top: 542 }} label="Show logs" variant="ghost" color="neutral" size="md" />
+            <Button rightIcon="mdi:chevron-down" data-pv-block="j87d9l" data-pv-sketchpad-el="j87d9l" style={{ position: 'absolute', left: 33, top: 604 }} label="Show logs" variant="ghost" color="neutral" size="md" />
             {/* pv-block-end:j87d9l */}
             {/* pv-block-start:obx64f */}
             <Rectangle data-pv-block="obx64f" data-pv-sketchpad-el="obx64f" style={{ position: 'absolute', left: 30, top: 261, height: 64, width: 635 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
@@ -86,7 +86,7 @@ export default function Frame4() {
             </Rectangle>
             {/* pv-block-end:qcevel */}
             {/* pv-block-start:abl55o */}
-            <Rectangle data-pv-block="abl55o" data-pv-sketchpad-el="abl55o" style={{ position: 'absolute', left: 33, top: 423, height: 69, width: 628 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
+            <Rectangle data-pv-block="abl55o" data-pv-sketchpad-el="abl55o" style={{ position: 'absolute', left: 33, top: 418, height: 69, width: 628 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
               {/* pv-editable-zone-start:nhhnog */}
                 {/* pv-block-start:659p4t */}
                 <TextParagraph className="text-foreground-secondary" data-pv-block="659p4t" data-pv-sketchpad-el="659p4t" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
@@ -114,10 +114,24 @@ export default function Frame4() {
             </Rectangle>
             {/* pv-block-end:9dg1kc */}
             {/* pv-block-start:swqjw9 */}
-            <TextParagraph className="text-foreground-tertiary" data-pv-block="swqjw9" data-pv-sketchpad-el="swqjw9" style={{ position: 'absolute', left: 491, top: 552 }} typography="small">
+            <TextParagraph className="text-foreground-tertiary" data-pv-block="swqjw9" data-pv-sketchpad-el="swqjw9" style={{ position: 'absolute', left: 491, top: 614 }} typography="small">
               Protovibe plugin v0.4 beta
             </TextParagraph>
             {/* pv-block-end:swqjw9 */}
+            {/* pv-block-start:59qwj4 */}
+            <Rectangle data-pv-block="59qwj4" data-pv-sketchpad-el="59qwj4" style={{ position: 'absolute', left: 33, top: 501, height: 69, width: 628 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
+              {/* pv-editable-zone-start:nhhnog */}
+                {/* pv-block-start:n0ej49 */}
+                <TextParagraph className="text-foreground-secondary" data-pv-block="n0ej49" data-pv-sketchpad-el="n0ej49" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
+                  Open Folder
+                </TextParagraph>
+                {/* pv-block-end:n0ej49 */}
+                {/* pv-block-start:0zflak */}
+                <Icon data-pv-block="0zflak" data-pv-sketchpad-el="0zflak" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="material-symbols:folder-outline" size="lg" />
+                {/* pv-block-end:0zflak */}
+              {/* pv-editable-zone-end:nhhnog */}
+            </Rectangle>
+            {/* pv-block-end:59qwj4 */}
           {/* pv-editable-zone-end:tcajes */}
         </Rectangle>
         {/* pv-block-end:trph48 */}

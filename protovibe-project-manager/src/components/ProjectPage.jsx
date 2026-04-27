@@ -11,10 +11,8 @@ import {
   Folder,
   Code2,
   Play,
-  List,
   ChevronDown,
   RefreshCw,
-  Puzzle,
 } from 'lucide-react'
 
 export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
@@ -22,6 +20,9 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const [error, setError] = useState('')
   const [showLogs, setShowLogs] = useState(false)
   const [setupMode, setSetupMode] = useState(false)
+  const [awaitingRunning, setAwaitingRunning] = useState(false)
+  const [stopping, setStopping] = useState(false)
+  const [restartAfterStop, setRestartAfterStop] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const [updatingPlugin, setUpdatingPlugin] = useState(false)
@@ -41,6 +42,25 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   useEffect(() => {
     if (isBusy) setSetupMode(true)
   }, [isBusy])
+
+  // Once ready was signalled, wait for polling to confirm running before dismissing setup
+  useEffect(() => {
+    if (awaitingRunning && isRunning) {
+      setAwaitingRunning(false)
+      setSetupMode(false)
+    }
+  }, [awaitingRunning, isRunning])
+
+  // Clear stopping spinner once polling confirms stopped; enter setup if restarting
+  useEffect(() => {
+    if (stopping && isStopped) {
+      setStopping(false)
+      if (restartAfterStop) {
+        setRestartAfterStop(false)
+        setSetupMode(true)
+      }
+    }
+  }, [stopping, isStopped, restartAfterStop])
 
   // SSE for logs
   useEffect(() => {
@@ -68,13 +88,38 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     }
   }
 
-  const callRestart = async () => {
+  const callStop = async () => {
     setError('')
+    setStopping(true)
     try {
-      await fetch(`/api/projects/${id}/stop`, { method: 'POST' })
-      setSetupMode(true)
+      const res = await fetch(`/api/projects/${id}/stop`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to stop.')
+        setStopping(false)
+      }
     } catch {
       setError('Network error. Make sure the dev server is running.')
+      setStopping(false)
+    }
+  }
+
+  const callRestart = async () => {
+    setError('')
+    setStopping(true)
+    setRestartAfterStop(true)
+    try {
+      const res = await fetch(`/api/projects/${id}/stop`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to stop.')
+        setStopping(false)
+        setRestartAfterStop(false)
+      }
+    } catch {
+      setError('Network error. Make sure the dev server is running.')
+      setStopping(false)
+      setRestartAfterStop(false)
     }
   }
 
@@ -158,20 +203,20 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         if (e.key === 'Enter') submitRename()
         if (e.key === 'Escape') setEditingName(false)
       }}
-      className="text-3xl font-bold text-foreground-default tracking-tight leading-tight bg-background-secondary border border-border-focus rounded-md px-2 -mx-2 outline-none w-full"
+      className="text-lg font-semibold text-foreground-default bg-background-secondary border border-border-focus rounded px-2 -mx-2 outline-none w-full"
     />
   ) : (
     <h1
       onDoubleClick={startRename}
       title="Double-click to rename"
-      className="text-3xl font-bold text-foreground-default tracking-tight leading-tight cursor-text"
+      className="text-lg font-semibold text-foreground-default cursor-text"
     >
       {name}
     </h1>
   )
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col gap-6">
+    <div className="max-w-[700px] mx-auto px-6 py-8 flex flex-col gap-6">
       {/* Breadcrumb */}
       <button
         onClick={onBack}
@@ -196,271 +241,233 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
       {/* Main card */}
       <div className="bg-background-elevated rounded-2xl border border-border-default shadow-sm overflow-hidden">
-        {setupMode ? (
-          <SetupScreen
-            inline
-            projectId={id}
-            projectName={name}
-            onBack={() => setSetupMode(false)}
-            onReady={() => setSetupMode(false)}
-          />
-        ) : (
-        <div className="p-8 flex flex-col gap-10">
 
-          {/* Project title + dates — shown when busy (no left/right split) */}
-          {isBusy && (
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                {renderTitle()}
-                <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
-                  {createdDate && <span>Created {createdDate}</span>}
-                  {updatedDate && updatedDate !== createdDate && (
-                    <>
-                      <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-                      <span>Modified {updatedDate}</span>
-                    </>
-                  )}
-                </div>
+        {/* ── Card header — always visible ── */}
+        <div className="px-7 py-5 flex items-center justify-between gap-4 border-b border-border-default">
+            <div className="min-w-0">
+              {renderTitle()}
+              <div className="flex items-center gap-2 mt-1 text-xs text-foreground-tertiary">
+                {createdDate && <span>Created {createdDate}</span>}
+                {updatedDate && updatedDate !== createdDate && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
+                    <span>Modified {updatedDate}</span>
+                  </>
+                )}
               </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Status pill */}
+              {isRunning && (
+                <button
+                  onClick={callStop}
+                  className="group/stop px-2.5 py-1 rounded-full text-xs font-medium bg-background-success-subtle text-foreground-success hover:bg-background-destructive-subtle hover:text-foreground-destructive transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center justify-center gap-1.5" style={{ minWidth: '3.5rem' }}>
+                    <span className="relative flex h-2 w-2 group-hover/stop:hidden shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+                    </span>
+                    <Square size={8} fill="currentColor" strokeWidth={0} className="hidden group-hover/stop:block shrink-0" />
+                    <span className="group-hover/stop:hidden">Running</span>
+                    <span className="hidden group-hover/stop:inline">Stop</span>
+                  </span>
+                </button>
+              )}
+              {stopping && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-tertiary">
+                  <span className="w-3 h-3 rounded-full border-2 border-border-default border-t-foreground-tertiary animate-spin inline-block" />
+                  Stopping
+                </span>
+              )}
+              {!stopping && isStopped && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-tertiary">
+                  <span className="inline-block h-2 w-2 rounded-full bg-foreground-disabled" />
+                  Not running
+                </span>
+              )}
+              {isUpdatingPluginServer && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-info">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground-info opacity-60" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-foreground-info" />
+                  </span>
+                  Updating plugin
+                </span>
+              )}
+              {isBusy && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-secondary">
+                  <span className="w-3 h-3 rounded-full border-2 border-border-default border-t-foreground-secondary animate-spin inline-block" />
+                  {status === 'installing' ? 'Installing' : 'Starting'}
+                </span>
+              )}
               <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
             </div>
-          )}
+        </div>
 
-          {/* ── Running state ── */}
-          {isRunning && (
-            <div className="flex items-start justify-between gap-6">
-              {/* Left: title + status */}
-              <div className="flex flex-col gap-3">
-                <div>
-                  {renderTitle()}
-                  <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
-                    {createdDate && <span>Created {createdDate}</span>}
-                    {updatedDate && updatedDate !== createdDate && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-                        <span>Modified {updatedDate}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success" />
-                  </span>
-                  <span className="text-xl font-semibold text-foreground-success">Project is running...</span>
-                </div>
-              </div>
+        {/* ── Card body ── */}
+        {setupMode ? (
+          <div className="min-h-64">
+            <SetupScreen
+              inline
+              hideName
+              projectId={id}
+              projectName={name}
+              onBack={() => setSetupMode(false)}
+              onReady={() => setAwaitingRunning(true)}
+            />
+          </div>
+        ) : stopping ? (
+          <div className="min-h-64 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
+          </div>
+        ) : (
+          <div className="flex flex-col">
 
-              {/* Right: action cards */}
-              <div className="flex flex-col gap-3 flex-shrink-0">
-                <div className="flex justify-end">
-                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
-                </div>
-                <div className="grid grid-cols-3 gap-3 auto-rows-[7rem]">
-                  {port && (
-                    <a
-                      data-testid="btn-open-editor"
-                      href={`http://localhost:${port}/protovibe.html`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="col-span-2 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer"
-                    >
-                      <ExternalLink size={28} strokeWidth={1.5} />
-                      <span className="text-xs font-semibold">Open Protovibe editor</span>
-                    </a>
-                  )}
-
-                  <button
-                    data-testid="btn-stop"
-                    onClick={() => callAction('stop')}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-destructive-subtle hover:shadow-md transition-all text-foreground-destructive/50 hover:text-foreground-destructive cursor-pointer"
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2 p-7">
+            {isRunning && (
+              <>
+                {port && (
+                  <a
+                    data-testid="btn-open-editor"
+                    href={`http://localhost:${port}/protovibe.html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-primary-subtle text-foreground-primary text-sm font-semibold hover:shadow-sm transition-all cursor-pointer"
                   >
-                    <Square size={28} fill="currentColor" strokeWidth={0} />
-                    <span className="text-xs font-semibold">Stop</span>
-                  </button>
+                    <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />
+                    Open Protovibe editor
+                  </a>
+                )}
+                <button
+                  data-testid="btn-stop"
+                  onClick={callStop}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <Square size={18} fill="currentColor" strokeWidth={0} className="shrink-0" />
+                  Stop
+                </button>
+                <button
+                  onClick={callRestart}
+                  disabled={isUpdating}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <RotateCcw size={18} strokeWidth={1.75} className="shrink-0" />
+                  Restart
+                </button>
+                <button
+                  onClick={onShowFolder}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <Folder size={18} strokeWidth={1.75} className="shrink-0" />
+                  Show in Finder
+                </button>
+                <button
+                  onClick={onOpenVSCode}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <Code2 size={18} strokeWidth={1.75} className="shrink-0" />
+                  Open in VS Code
+                </button>
+              </>
+            )}
 
-                  <button
-                    onClick={callRestart}
-                    disabled={isUpdating}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <RotateCcw size={28} strokeWidth={1.5} />
-                    <span className="text-xs font-semibold">Restart</span>
-                  </button>
-
-                  <button
-                    onClick={onShowFolder}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
-                  >
-                    <Folder size={28} strokeWidth={1.5} />
-                    <span className="text-xs font-semibold">Show folder</span>
-                  </button>
-
-                  <button
-                    onClick={onOpenVSCode}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
-                  >
-                    <Code2 size={28} strokeWidth={1.5} />
-                    <span className="text-xs font-semibold">VS Code</span>
-                  </button>
-                </div>
-              </div>
+            {(isStopped || isUpdatingPluginServer) && (
+              <>
+                <button
+                  data-testid="btn-run"
+                  onClick={() => setSetupMode(true)}
+                  disabled={isUpdating}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-primary-subtle text-foreground-primary text-sm font-semibold hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0" />
+                  Run project
+                </button>
+                <button
+                  onClick={onShowFolder}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <Folder size={18} strokeWidth={1.75} className="shrink-0" />
+                  Show in Finder
+                </button>
+                <button
+                  onClick={onOpenVSCode}
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-secondary text-foreground-secondary text-sm font-semibold hover:bg-background-tertiary hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <Code2 size={18} strokeWidth={1.75} className="shrink-0" />
+                  Open in VS Code
+                </button>
+              </>
+            )}
             </div>
-          )}
 
-          {/* ── Stopped / updating-plugin state ── */}
-          {(isStopped || isUpdatingPluginServer) && (
-            <div className="flex items-start justify-between gap-6">
-              {/* Left: title + status */}
-              <div className="flex flex-col gap-3">
-                <div>
-                  {renderTitle()}
-                  <div className="flex items-center gap-2.5 mt-2 text-sm text-foreground-tertiary">
-                    {createdDate && <span>Created {createdDate}</span>}
-                    {updatedDate && updatedDate !== createdDate && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-                        <span>Modified {updatedDate}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {isUpdatingPluginServer ? (
-                    <>
-                      <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground-info opacity-60" />
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground-info" />
-                      </span>
-                      <span className="text-xl font-semibold text-foreground-info">Updating plugin…</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="relative flex h-3 w-3">
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground-disabled" />
-                      </span>
-                      <span className="text-xl font-semibold text-foreground-tertiary">Project is not running</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Right: action cards */}
-              <div className="flex flex-col gap-3 flex-shrink-0">
-                <div className="flex justify-end">
-                  <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    data-testid="btn-run"
-                    onClick={() => setSetupMode(true)}
-                    disabled={isUpdating}
-                    className="flex flex-col items-center justify-center gap-2.5 w-full h-28 rounded-2xl bg-background-primary-subtle hover:shadow-md transition-all text-foreground-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Play size={28} fill="currentColor" strokeWidth={0} />
-                    <span className="text-xs font-semibold">Run project</span>
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={onShowFolder}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
-                  >
-                    <Folder size={28} strokeWidth={1.5} />
-                    <span className="text-xs font-semibold">Show folder</span>
-                  </button>
-
-                  <button
-                    onClick={onOpenVSCode}
-                    className="flex flex-col items-center justify-center gap-2.5 w-28 h-28 rounded-2xl bg-background-secondary hover:bg-background-tertiary hover:shadow-md transition-all text-foreground-tertiary hover:text-foreground-default cursor-pointer"
-                  >
-                    <Code2 size={28} strokeWidth={1.5} />
-                    <span className="text-xs font-semibold">VS Code</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Plugin section — present in stopped + running states */}
-          {!isBusy && (
-            <div className="flex items-center justify-between gap-4 rounded-xl border border-border-default bg-background-secondary px-4 py-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-background-tertiary flex items-center justify-center text-foreground-tertiary shrink-0">
-                  <Puzzle size={16} strokeWidth={1.75} />
-                </div>
+            {/* Plugin section */}
+            {!isBusy && (
+              <div className="flex items-center justify-between gap-4 px-7 py-5">
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-medium text-foreground-default">Protovibe plugin</span>
+                  <span className="text-sm font-medium text-foreground-secondary">Protovibe plugin</span>
                   <span className="text-xs text-foreground-tertiary truncate">
                     {pluginVersion ? `v${pluginVersion}` : 'Version unknown'}
                     {pluginUpdatedDate ? ` · Updated ${pluginUpdatedDate}` : ' · Never updated in this project'}
                   </span>
                 </div>
+                <button
+                  data-testid="btn-update-plugin"
+                  onClick={handleUpdatePlugin}
+                  disabled={isUpdating || isBusy}
+                  title={isRunning ? 'Stops the running dev server before updating' : 'Sync plugin source from protovibe-project-template'}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                >
+                  <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
+                  {isUpdating ? 'Updating…' : 'Update plugin'}
+                </button>
               </div>
-              <button
-                data-testid="btn-update-plugin"
-                onClick={handleUpdatePlugin}
-                disabled={isUpdating || isBusy}
-                title={isRunning ? 'Stops the running dev server before updating' : 'Sync plugin source from protovibe-project-template'}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              >
-                <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
-                {isUpdating ? 'Updating…' : 'Update plugin'}
-              </button>
-            </div>
-          )}
-
-          {/* Logs toggle */}
-          <button
-            onClick={() => setShowLogs((v) => !v)}
-            className="flex items-center gap-2 text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer w-fit"
-          >
-            <List size={14} />
-            {showLogs ? 'Hide logs' : 'Show logs'}
-            <ChevronDown size={10} className={`transition-transform duration-200 ${showLogs ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-        )}
-
-        {!setupMode && (
-        <>
-        {/* Card footer: logs label */}
-        {showLogs && (
-        <div className="border-t border-border-default px-8 py-3.5 flex items-center justify-between">
-          <span className="text-sm text-foreground-tertiary">Project logs</span>
-          <button
-            onClick={() => setLines([])}
-            className="text-xs text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
-          >
-            Clear
-          </button>
-        </div>
-        )}
-
-        {/* Logs panel */}
-        {showLogs && (
-          <div className="px-8 pb-8">
-            <div className="h-72 overflow-y-auto rounded-xl bg-background-tertiary border border-border-default p-4 font-mono text-xs">
-              {lines.length === 0 ? (
-                <p className="text-foreground-tertiary italic">Waiting for output...</p>
-              ) : (
-                lines.map((line, i) => (
-                  <p
-                    key={i}
-                    data-separator={line.startsWith('---')}
-                    className="text-foreground-secondary leading-relaxed whitespace-pre-wrap break-all data-[separator=true]:text-foreground-tertiary data-[separator=true]:mt-2 data-[separator=true]:mb-1"
-                  >
-                    {line}
-                  </p>
-                ))
-              )}
-              <div ref={bottomRef} />
-            </div>
+            )}
           </div>
         )}
-        </>
+
+        {/* ── Card footer: logs ── */}
+        {!setupMode && !stopping && (
+          <>
+            <div className="border-t border-border-default px-7 py-4 flex items-center justify-between">
+              <button
+                onClick={() => setShowLogs((v) => !v)}
+                className="flex items-center gap-1.5 text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
+              >
+                {showLogs ? 'Hide logs' : 'Show logs'}
+                <ChevronDown size={10} className={`transition-transform duration-200 ${showLogs ? 'rotate-180' : ''}`} />
+              </button>
+              {showLogs && (
+                <button
+                  onClick={() => setLines([])}
+                  className="text-xs text-foreground-tertiary hover:text-foreground-secondary transition-colors cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {showLogs && (
+              <div className="px-7 pb-7">
+                <div className="h-72 overflow-y-auto rounded-xl bg-background-tertiary border border-border-default p-4 font-mono text-xs">
+                  {lines.length === 0 ? (
+                    <p className="text-foreground-tertiary italic">Waiting for output...</p>
+                  ) : (
+                    lines.map((line, i) => (
+                      <p
+                        key={i}
+                        data-separator={line.startsWith('---')}
+                        className="text-foreground-secondary leading-relaxed whitespace-pre-wrap break-all data-[separator=true]:text-foreground-tertiary data-[separator=true]:mt-2 data-[separator=true]:mb-1"
+                      >
+                        {line}
+                      </p>
+                    ))
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

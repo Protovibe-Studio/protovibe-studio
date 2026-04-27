@@ -45,7 +45,7 @@ function Spinner() {
   )
 }
 
-export default function SetupScreen({ projectId, projectName, onBack, onReady, inline = false, initialStage = 'installing' }) {
+export default function SetupScreen({ projectId, projectName, onBack, onReady, inline = false, initialStage = 'installing', hideName = false }) {
   const [stage, setStage] = useState(initialStage)
   const [funnyIndex, setFunnyIndex] = useState(0)
   const [logs, setLogs] = useState([])
@@ -148,7 +148,7 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
         )}
 
         {/* Project name */}
-        <h2 className="text-lg font-semibold text-foreground-default">{projectName}</h2>
+        {!hideName && <h2 className="text-lg font-semibold text-foreground-default">{projectName}</h2>}
 
         {/* Stage label */}
         <p className="text-sm font-medium text-foreground-secondary">{STAGE_LABELS[stage]}</p>
