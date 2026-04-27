@@ -6,6 +6,7 @@ import CreateProjectModal from './components/CreateProjectModal.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
 import { ToastViewport, showToast } from './components/ToastViewport.jsx'
+import Logo from './assets/Logo.jsx'
 
 async function apiFetch(method, path, body) {
   const res = await fetch(`/api${path}`, {
@@ -298,12 +299,7 @@ export default function App() {
       <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z" fill="currentColor" className="text-foreground-on-primary" />
-              </svg>
-            </div>
-            <h1 className="text-lg font-semibold text-foreground-default tracking-tight">Protovibe Projects</h1>
+            <Logo className="w-auto text-foreground-default" style={{ height: '14px' }} />
           </button>
           <span className="text-xs text-foreground-tertiary">Version 1.0 beta</span>
         </div>

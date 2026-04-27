@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+    "projects/landing-page": true
+  },
+  "search.exclude": {
+    "projects/landing-page": true
+  }
+}
