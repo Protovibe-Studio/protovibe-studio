@@ -41,7 +41,7 @@ export const TooltipEditor: React.FC = () => {
   };
 
   return (
-    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 16px' }}>
+    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 20px' }}>
       <div style={{ fontSize: '10px', fontWeight: '600', color: theme.text_default, marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
         <span>Tooltip</span>
         {textProp && (

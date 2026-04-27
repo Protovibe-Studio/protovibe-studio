@@ -2,8 +2,8 @@
 export const theme = {
   // Backgrounds
   bg_default: '#131313',       // Main panels & sidebar
-  bg_secondary: '#222222',     // Inputs, dropdowns, hover states
-  bg_tertiary: '#343434',      // Active Segmented / Lighter elements
+  bg_secondary: '#282828',     // Inputs, dropdowns, hover states
+  bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
   bg_strong: '#0a0a0a',        // Headers, deep backgrounds
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
@@ -14,16 +14,16 @@ export const theme = {
   text_low: '#6d6d6d',         // Lowest text
 
   // Accents (Figma Blue)
-  accent_default: '#18A0FB',
-  accent_secondary: '#0D8CE6',
-  accent_tertiary: '#006EB8',
-  accent_low: 'rgba(24, 160, 251, 0.15)',
+  accent_default: '#0092ff',
+  accent_secondary: '#386ad1',
+  accent_tertiary: '#1745a8',
+  accent_low: 'rgba(61, 123, 255, 0.14)',
 
   // Borders
-  border_default: '#3c3c3c',   // Standard dividers
-  border_secondary: '#333333', // Subtle dividers
+  border_default: '#363636',   // Standard dividers
+  border_secondary: '#383838', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
-  border_accent: '#18A0FB',    // Focused borders
+  border_accent: '#0092ff',    // Focused borders
   border_strong: '#6a6a6a',    // High contrast borders
 
   // Warnings (Yellow/Orange)

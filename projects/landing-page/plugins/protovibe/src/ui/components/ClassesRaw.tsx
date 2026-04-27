@@ -17,7 +17,7 @@ const ChevronIcon: React.FC<{ expanded: boolean }> = ({ expanded }) => (
 
 const sectionButtonStyle: React.CSSProperties = {
   width: '100%',
-  padding: '12px 16px',
+  padding: '12px 20px',
   color: theme.text_default,
   fontSize: '10px',
   fontWeight: '600',
@@ -77,25 +77,25 @@ export const ClassesRaw: React.FC = () => {
   return (
     <div>
       {/* ── Classes ── */}
-      {activeData.hasClass && activeData.parsedClasses && Object.keys(activeData.parsedClasses).length > 0 && (
-        <div>
-          <button onClick={toggleClasses} style={sectionButtonStyle}>
-            <span>Classes</span>
-            <ChevronIcon expanded={classesExpanded} />
-          </button>
-          {classesExpanded && (
-            <div style={{ padding: '0 16px 16px 16px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <InspectorInput
-                  type="text"
-                  placeholder="Add custom class..."
-                  value={newClass}
-                  onChange={(e) => setNewClass(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
-                  style={{ color: theme.text_default }}
-                  prefix={<Plus size={11} />}
-                />
-              </div>
+      <div>
+        <button onClick={toggleClasses} style={sectionButtonStyle}>
+          <span>Classes</span>
+          <ChevronIcon expanded={classesExpanded} />
+        </button>
+        {classesExpanded && (
+          <div style={{ padding: '0 20px 16px 20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <InspectorInput
+                type="text"
+                placeholder="Add custom class..."
+                value={newClass}
+                onChange={(e) => setNewClass(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
+                style={{ color: theme.text_default }}
+                prefix={<Plus size={11} />}
+              />
+            </div>
+            {activeData.parsedClasses && Object.keys(activeData.parsedClasses).length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {Object.entries(activeData.parsedClasses).map(([category, classes]: [string, any]) => (
                   <div key={category}>
@@ -125,10 +125,10 @@ export const ClassesRaw: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Source code ── */}
       <div>
@@ -137,7 +137,7 @@ export const ClassesRaw: React.FC = () => {
           <ChevronIcon expanded={sourceExpanded} />
         </button>
         {sourceExpanded && (
-          <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '0 20px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {activeData.file && (
               <span style={{ fontSize: '10px', fontFamily: 'monospace', color: theme.text_tertiary, wordBreak: 'break-all' }}>
                 {activeData.file}{activeData.startLine ? `:${activeData.startLine}` : ''}

@@ -1033,6 +1033,11 @@ export function SketchpadApp() {
       if (!t) return;
       if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
       if (t.closest('[data-sketchpad-resize-handle]')) return;
+      // The focused-frame drag overlay handles its own pointer flow. Without
+      // this guard the window-level marquee handler also engages on the same
+      // pointerdown and runs querySelectorAll + setMarqueePreview on every
+      // move, which manifests as severe lag while dragging the frame.
+      if (t.closest('[data-sketchpad-frame-overlay]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
       if (frameRoot && !frameContent) return;
@@ -1328,7 +1333,7 @@ export function SketchpadApp() {
                 top: r.top,
                 width: r.width,
                 height: r.height,
-                outline: '2px solid #18a0fb',
+                outline: '2px solid #0092ff',
                 outlineOffset: -1,
                 pointerEvents: 'none',
                 zIndex: 9998,
@@ -1342,8 +1347,8 @@ export function SketchpadApp() {
               top: Math.min(marquee.y1, marquee.y2),
               width: Math.abs(marquee.x2 - marquee.x1),
               height: Math.abs(marquee.y2 - marquee.y1),
-              background: 'rgba(24, 160, 251, 0.12)',
-              border: '1px solid #18a0fb',
+              background: 'rgba(0,146,255, 0.12)',
+              border: '1px solid #0092ff',
               pointerEvents: 'none',
               zIndex: 9999,
             }}

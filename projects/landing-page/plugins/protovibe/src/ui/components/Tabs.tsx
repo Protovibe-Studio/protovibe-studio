@@ -65,13 +65,13 @@ export const Tabs: React.FC = () => {
   if (sourceDataList.length <= 1 && !hasComponentsFolderSource) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, flexShrink: 0 }}>
-      <div style={{ padding: '12px 16px 0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', background: theme.bg_strong, flexShrink: 0 }}>
+      <div style={{ padding: '12px 20px 0' }}>
         <span style={{ fontSize: '10px', fontWeight: '600', color: theme.text_default }}>
           Source files
         </span>
       </div>
-      <div style={{ display: 'flex', padding: '8px 16px 12px', gap: '8px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', padding: '8px 20px 12px', gap: '8px', overflowX: 'auto' }}>
       {sourceDataList.map((source) => {
         const isActive = source.id === activeSourceId;
         // Extract folder and file for context

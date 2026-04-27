@@ -103,10 +103,10 @@ export function SketchpadOverlayPanel({
             data-testid="btn-new-sketchpad"
             onClick={() => setShowNewInput(true)}
             style={{
-              background: 'rgba(24,160,251,0.15)',
+              background: 'rgba(0,146,255,0.15)',
               border: 'none',
               borderRadius: 4,
-              color: '#18a0fb',
+              color: '#0092ff',
               cursor: 'pointer',
               fontSize: 11,
               fontWeight: 600,
@@ -134,7 +134,7 @@ export function SketchpadOverlayPanel({
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(24,160,251,0.3)',
+                border: '1px solid rgba(0,146,255,0.3)',
                 borderRadius: 4,
                 padding: '6px 8px',
                 color: '#eee',
@@ -167,7 +167,7 @@ export function SketchpadOverlayPanel({
                 cursor: 'pointer',
                 background:
                   activeSketchpadId === sp.id
-                    ? 'rgba(24,160,251,0.12)'
+                    ? 'rgba(0,146,255,0.12)'
                     : 'transparent',
                 transition: 'background 0.12s',
               }}
@@ -194,7 +194,7 @@ export function SketchpadOverlayPanel({
                   style={{
                     flex: 1,
                     background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(24,160,251,0.3)',
+                    border: '1px solid rgba(0,146,255,0.3)',
                     borderRadius: 3,
                     padding: '3px 6px',
                     color: '#eee',
@@ -205,11 +205,11 @@ export function SketchpadOverlayPanel({
                 />
               ) : (
                 <>
-                  <FileIcon color={activeSketchpadId === sp.id ? '#18a0fb' : '#888'} />
+                  <FileIcon color={activeSketchpadId === sp.id ? '#0092ff' : '#888'} />
                   <span
                     style={{
                       fontSize: 12,
-                      color: activeSketchpadId === sp.id ? '#18a0fb' : '#ccc',
+                      color: activeSketchpadId === sp.id ? '#0092ff' : '#ccc',
                       fontWeight: activeSketchpadId === sp.id ? 600 : 400,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',

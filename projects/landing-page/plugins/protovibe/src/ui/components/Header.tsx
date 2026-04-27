@@ -48,7 +48,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 12px 8px 16px', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: '8px' }}>
+    <div style={{ padding: '8px 12px 8px 20px', borderBottom: `1px solid ${theme.border_default}`, background: theme.bg_strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: '8px' }}>
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <strong style={{ fontSize: '14px', color: theme.text_default, whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'block' }}>{displayName}</strong>
       </div>

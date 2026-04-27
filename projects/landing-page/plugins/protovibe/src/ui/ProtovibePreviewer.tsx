@@ -3,6 +3,7 @@
 // and shows a full-screen catalog + variant-matrix playground.
 import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
+import { theme } from './theme';
 
 // ─── Component discovery ───────────────────────────────────────────────────────
 // The static glob creates HMR boundaries for all existing component files so
@@ -274,8 +275,8 @@ const PreviewCell: React.FC<{
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 8,
-        border: '1px solid #262626',
-        background: '#161616',
+        border: `1px solid ${theme.border_tertiary}`,
+        background: '#222222',
         height: '100%',
       }}
     >
@@ -312,7 +313,7 @@ const PreviewCell: React.FC<{
         <div
           style={{
             padding: '8px',
-            borderTop: '1px solid #222',
+            borderTop: `1px solid ${theme.border_tertiary}`,
             display: 'flex',
             flexWrap: 'wrap',
             gap: '4px',
@@ -329,9 +330,9 @@ const PreviewCell: React.FC<{
                   lineHeight: 1,
                   padding: '3px 6px',
                   borderRadius: '4px',
-                  background: isNone ? 'transparent' : '#262626',
-                  color: isNone ? '#555' : '#aaa',
-                  border: isNone ? '1px dashed #333' : '1px solid #333',
+                  background: isNone ? 'transparent' : theme.bg_tertiary,
+                  color: isNone ? theme.text_low : theme.text_secondary,
+                  border: isNone ? `1px dashed ${theme.border_default}` : `1px solid ${theme.border_default}`,
                 }}
               >
                 {token}
@@ -357,8 +358,8 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
       onClick={onClick}
       onKeyDown={e => activateOnEnterOrSpace(e, onClick)}
       style={{
-        background: '#161616',
-        border: '1px solid #262626',
+        background: '#222222',
+        border: `1px solid ${theme.border_tertiary}`,
         borderRadius: 10,
         padding: 0,
         cursor: 'pointer',
@@ -369,11 +370,11 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
         transition: 'border-color 0.15s, transform 0.1s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = '#3a7bfd';
+        e.currentTarget.style.borderColor = theme.border_accent;
         e.currentTarget.style.transform = 'translateY(-1px)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = '#262626';
+        e.currentTarget.style.borderColor = theme.border_tertiary;
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
@@ -383,7 +384,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
           width: '30%',
           flexShrink: 0,
           padding: '14px 14px',
-          borderRight: '1px solid #222',
+          borderRight: `1px solid ${theme.border_tertiary}`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -395,7 +396,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: '#e5e5e5',
+            color: theme.text_default,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -407,7 +408,7 @@ const CatalogCard: React.FC<{ entry: ComponentEntry; onClick: () => void }> = ({
           <div
             style={{
               fontSize: 11,
-              color: '#666',
+              color: theme.text_tertiary,
               overflow: 'hidden',
               display: '-webkit-box',
               WebkitLineClamp: 3,
@@ -473,12 +474,12 @@ const CatalogView: React.FC<{
       <div
         style={{
           padding: '10px 16px',
-          borderBottom: '1px solid #222',
+          borderBottom: `1px solid ${theme.border_tertiary}`,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
           flexShrink: 0,
-          background: '#111',
+          background: theme.bg_default,
         }}
       >
         <div style={{ flex: 1, position: 'relative' }}>
@@ -491,10 +492,10 @@ const CatalogView: React.FC<{
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              background: '#1a1a1a',
-              border: '1px solid #333',
+              background: theme.bg_secondary,
+              border: `1px solid ${theme.border_default}`,
               borderRadius: 6,
-              color: '#e5e5e5',
+              color: theme.text_default,
               fontSize: 12,
               fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               padding: '6px 10px',
@@ -516,7 +517,7 @@ const CatalogView: React.FC<{
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
-                color: '#666',
+                color: theme.text_tertiary,
                 cursor: 'pointer',
                 fontSize: 14,
                 lineHeight: 1,
@@ -530,7 +531,7 @@ const CatalogView: React.FC<{
             </div>
           )}
         </div>
-        <span style={{ fontSize: 11, color: '#444', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 11, color: theme.text_low, whiteSpace: 'nowrap' }}>
           {filtered.length} / {entries.length}
         </span>
       </div>
@@ -556,7 +557,7 @@ const CatalogView: React.FC<{
             <div
               style={{
                 textAlign: 'center',
-                color: '#444',
+                color: theme.text_low,
                 fontSize: 13,
                 paddingTop: 48,
               }}
@@ -657,12 +658,12 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
       <div
         style={{
           padding: '10px 16px',
-          borderBottom: '1px solid #222',
+          borderBottom: `1px solid ${theme.border_tertiary}`,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
           flexShrink: 0,
-          background: '#111',
+          background: theme.bg_default,
         }}
       >
         <div
@@ -672,10 +673,10 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
           onClick={onBack}
           onKeyDown={e => activateOnEnterOrSpace(e, onBack)}
           style={{
-            background: '#222',
+            background: theme.bg_secondary,
             border: 'none',
             borderRadius: 6,
-            color: '#aaa',
+            color: theme.text_secondary,
             fontSize: 12,
             padding: '5px 10px',
             cursor: 'pointer',
@@ -685,9 +686,9 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
         >
           ← Back
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#e5e5e5' }}>{displayName}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text_default }}>{displayName}</span>
         {config.description && (
-          <span style={{ fontSize: 12, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, color: theme.text_low, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {config.description}
           </span>
         )}
@@ -700,10 +701,10 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              background: '#1a1a1a',
-              border: '1px solid #333',
+              background: theme.bg_secondary,
+              border: `1px solid ${theme.border_default}`,
               borderRadius: 6,
-              color: '#e5e5e5',
+              color: theme.text_default,
               fontSize: 12,
               fontFamily: 'var(--font-sans, system-ui, sans-serif)',
               padding: '5px 10px',
@@ -725,7 +726,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
-                color: '#666',
+                color: theme.text_tertiary,
                 cursor: 'pointer',
                 fontSize: 14,
                 lineHeight: 1,
@@ -739,7 +740,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             </div>
           )}
         </div>
-        <span style={{ fontSize: 11, color: '#444', flexShrink: 0 }}>
+        <span style={{ fontSize: 11, color: theme.text_low, flexShrink: 0 }}>
           {visibleCombos.length}/{combos.length}
         </span>
       </div>
@@ -777,8 +778,8 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             textAlign: 'center',
             padding: '24px 16px',
             marginTop: '16px',
-            borderTop: '1px solid #3a1a1a',
-            color: '#f87171',
+            borderTop: `1px solid ${theme.destructive_secondary}`,
+            color: theme.destructive_default,
             fontSize: 13,
             fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             lineHeight: 1.6,
@@ -786,8 +787,8 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
             <div style={{ fontWeight: 600, marginBottom: 6 }}>
               Some props were skipped — too many combinations to display safely.
             </div>
-            <div style={{ color: '#fca5a5', fontSize: 12 }}>
-              Use <code style={{ background: '#2a1010', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>invalidCombinations</code> in your component's <code style={{ background: '#2a1010', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>pvConfig</code> to filter out prop combinations you don't want to preview, reducing the total count.
+            <div style={{ color: theme.destructive_default, fontSize: 12 }}>
+              Use <code style={{ background: theme.destructive_low, padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>invalidCombinations</code> in your component's <code style={{ background: theme.destructive_low, padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>pvConfig</code> to filter out prop combinations you don't want to preview, reducing the total count.
             </div>
           </div>
         )}
@@ -811,19 +812,19 @@ const PREVIEWER_STYLE = `
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #222222;
+    background: ${theme.bg_strong};
   }
   ::-webkit-scrollbar-thumb {
-    background: #444444;
+    background: ${theme.border_default};
     border-radius: 4px;
-    border: 2px solid #222222;
+    border: 2px solid ${theme.bg_strong};
   }
   ::-webkit-scrollbar-thumb:hover,
   *:hover::-webkit-scrollbar-thumb {
-    background: #6a6a6a;
+    background: ${theme.border_strong};
   }
   ::-webkit-scrollbar-corner {
-    background: #222222;
+    background: ${theme.bg_strong};
   }
 `;
 
@@ -832,11 +833,18 @@ export function ProtovibePreviewer() {
   const [selected, setSelected] = useState<ComponentEntry | null>(null);
   const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
+  const [refreshFlash, setRefreshFlash] = useState(false);
 
   const refresh = useCallback(async () => {
     const entries = await discoverComponents();
     setDiscovered(entries);
   }, []);
+
+  const handleRefreshClick = useCallback(() => {
+    refresh();
+    setRefreshFlash(true);
+    setTimeout(() => setRefreshFlash(false), 400);
+  }, [refresh]);
 
   useEffect(() => {
     refresh();
@@ -901,8 +909,8 @@ export function ProtovibePreviewer() {
         position: 'fixed',
         inset: 0,
         zIndex: 999999,
-        backgroundColor: '#0d0d0d',
-        color: '#e5e5e5',
+        backgroundColor: theme.bg_strong,
+        color: theme.text_default,
         fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         display: 'flex',
         flexDirection: 'column',
@@ -916,8 +924,8 @@ export function ProtovibePreviewer() {
           alignItems: 'center',
           padding: '0 16px',
           height: 44,
-          backgroundColor: '#111',
-          borderBottom: '1px solid #222',
+          backgroundColor: theme.bg_default,
+          borderBottom: `1px solid ${theme.border_tertiary}`,
           flexShrink: 0,
           gap: 8,
         }}
@@ -926,7 +934,7 @@ export function ProtovibePreviewer() {
           style={{
             fontSize: 13,
             fontWeight: 700,
-            color: '#e5e5e5',
+            color: theme.text_default,
             letterSpacing: '-0.3px',
             userSelect: 'none',
           }}
@@ -934,18 +942,9 @@ export function ProtovibePreviewer() {
           Component Playground
         </span>
 
-        {selected && (
-          <>
-            <span style={{ color: '#333', fontSize: 14 }}>›</span>
-            <span style={{ fontSize: 13, color: '#3a7bfd', fontWeight: 600 }}>
-              {selected.config.displayName || selected.config.name}
-            </span>
-          </>
-        )}
-
         <div style={{ flex: 1 }} />
 
-        <span style={{ fontSize: 11, color: '#444' }}>
+        <span style={{ fontSize: 11, color: theme.text_low }}>
           Click any element to inspect &amp; edit styles
         </span>
 
@@ -953,8 +952,8 @@ export function ProtovibePreviewer() {
           role="button"
           tabIndex={0}
           aria-label="Refresh components"
-          onClick={refresh}
-          onKeyDown={e => activateOnEnterOrSpace(e, refresh)}
+          onClick={handleRefreshClick}
+          onKeyDown={e => activateOnEnterOrSpace(e, handleRefreshClick)}
           style={{
             width: 16,
             height: 16,
@@ -962,16 +961,17 @@ export function ProtovibePreviewer() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#666',
+            color: refreshFlash ? theme.text_default : theme.text_tertiary,
             fontSize: 14,
             flexShrink: 0,
-            transition: 'color 0.15s',
+            transition: 'color 0.15s, transform 0.4s ease',
+            transform: refreshFlash ? 'rotate(360deg)' : 'rotate(0deg)',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.color = '#aaa';
+            if (!refreshFlash) e.currentTarget.style.color = theme.text_secondary;
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = '#666';
+            if (!refreshFlash) e.currentTarget.style.color = theme.text_tertiary;
           }}
         >
           ↻

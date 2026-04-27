@@ -17,7 +17,7 @@ export const VisualSection: React.FC<VisualSectionProps> = ({ title, children, h
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 16px',
+          padding: '12px 20px',
           color: theme.text_default,
           fontSize: '10px',
           fontWeight: '600',
@@ -26,7 +26,7 @@ export const VisualSection: React.FC<VisualSectionProps> = ({ title, children, h
         <span>{title}</span>
         {headerAction}
       </div>
-      <div style={{ padding: '0 16px 16px 16px' }}>
+      <div style={{ padding: '0 20px 16px 20px' }}>
         {children}
       </div>
     </div>

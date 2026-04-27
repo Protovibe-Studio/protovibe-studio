@@ -19,26 +19,22 @@
             Array.isArray(protocols) ? protocols.includes('vite-hmr') : protocols === 'vite-hmr';
           if (!isViteHmr) return ws;
 
-          const filter = (event) => {
-            if (typeof event.data !== 'string') return false;
-            try {
-              const data = JSON.parse(event.data);
-              if (data && data.type === 'full-reload') {
-                console.info('[protovibe] Suppressed Vite full-reload of shell', data);
-                window.dispatchEvent(
-                  new CustomEvent('protovibe:suppressed-full-reload', { detail: data })
-                );
-                return true;
-              }
-            } catch (_) {}
-            return false;
-          };
-
           const origAdd = ws.addEventListener.bind(ws);
           ws.addEventListener = function (type, listener, options) {
             if (type === 'message' && typeof listener === 'function') {
               const wrapped = function (event) {
-                if (filter(event)) return;
+                if (typeof event.data === 'string') {
+                  try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.type === 'full-reload') {
+                      console.info('[protovibe] Suppressed Vite full-reload of shell', data);
+                      window.dispatchEvent(
+                        new CustomEvent('protovibe:suppressed-full-reload', { detail: data })
+                      );
+                      return;
+                    }
+                  } catch (_) {}
+                }
                 return listener.call(this, event);
               };
               return origAdd(type, wrapped, options);
@@ -56,6 +52,7 @@
           });
           return ws;
         }
+        
         PatchedWS.prototype = OrigWS.prototype;
         PatchedWS.CONNECTING = OrigWS.CONNECTING;
         PatchedWS.OPEN = OrigWS.OPEN;

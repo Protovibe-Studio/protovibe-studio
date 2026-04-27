@@ -29,6 +29,7 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             { val: 'medium', desc: '500' },
             { val: 'semibold', desc: '600' },
             { val: 'bold', desc: '700' },
+            { val: 'extrabold', desc: '800' },
             { val: 'black', desc: '900' }
           ]} originalClass={v.fontWeight_original} inheritedValue={domV?.fontWeight} />
         </div>

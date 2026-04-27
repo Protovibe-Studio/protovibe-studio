@@ -338,6 +338,16 @@ export function FrameContainer({
       e.stopPropagation();
       // Release frame focus so the next click drills into a child via the bridge.
       onSelect(null);
+
+      if (contentRef.current) {
+        const rootNode = contentRef.current.querySelector('[data-pv-block]');
+        if (rootNode) {
+          const blockId = rootNode.getAttribute('data-pv-block');
+          if (blockId) {
+            window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+          }
+        }
+      }
     },
     [onSelect],
   );
@@ -460,7 +470,7 @@ export function FrameContainer({
             fontSize: 12,
             fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             fontWeight: 600,
-            color: isSelected ? '#18a0fb' : '#999',
+            color: isSelected ? '#0092ff' : '#999',
             cursor: isDragging ? 'grabbing' : 'grab',
             userSelect: 'none',
             letterSpacing: '-0.2px',
@@ -497,7 +507,7 @@ export function FrameContainer({
               justifyContent: 'center',
               borderRadius: '50%',
               border: 'none',
-              background: isSelected ? '#18a0fb' : (showContextMenu ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.85)'),
+              background: isSelected ? '#0092ff' : (showContextMenu ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.85)'),
               color: isSelected ? '#fff' : '#333',
               cursor: 'pointer',
               fontSize: 12,
@@ -524,10 +534,10 @@ export function FrameContainer({
             height,
             position: 'relative',
             borderRadius: 4,
-            border: isSelected ? '2px solid #18a0fb' : '1px solid rgba(255,255,255,0.1)',
+            border: isSelected ? '2px solid #0092ff' : '1px solid rgba(255,255,255,0.1)',
             overflow: 'visible',
             boxShadow: isSelected
-              ? '0 0 0 1px #18a0fb, 0 4px 24px rgba(0,0,0,0.3)'
+              ? '0 0 0 1px #0092ff, 0 4px 24px rgba(0,0,0,0.3)'
               : '0 2px 12px rgba(0,0,0,0.2)',
           }}
         >
@@ -564,7 +574,7 @@ export function FrameContainer({
             height: 12,
             cursor: 'nwse-resize',
             borderRadius: '0 0 4px 0',
-            background: isSelected ? '#18a0fb' : 'transparent',
+            background: isSelected ? '#0092ff' : 'transparent',
             opacity: isSelected ? 1 : 0,
             transition: 'opacity 0.15s',
           }}

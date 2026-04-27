@@ -118,6 +118,27 @@ export function oklchToHex(L: number, C: number, H: number, A: number = 1): stri
 }
 
 /**
+ * Convert OKLCH to an `rgb(r, g, b)` or `rgba(r, g, b, a)` CSS string via canvas.
+ */
+export function oklchToRgbString(L: number, C: number, H: number, A: number = 1): string {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = `oklch(${L} ${C} ${H} / ${A})`;
+    ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    if (A < 0.9999) {
+      const a = Math.round(A * 1000) / 1000;
+      return `rgba(${d[0]}, ${d[1]}, ${d[2]}, ${a})`;
+    }
+    return `rgb(${d[0]}, ${d[1]}, ${d[2]})`;
+  } catch {
+    return 'rgb(0, 0, 0)';
+  }
+}
+
+/**
  * Parse an OKLCH CSS string — both percentage and decimal forms, with optional alpha:
  *   "oklch(99% 0.006 260)"  or  "oklch(0.99 0.006 260 / 0.8)"
  * Returns [L 0-1, C, H, A 0-1] or null.

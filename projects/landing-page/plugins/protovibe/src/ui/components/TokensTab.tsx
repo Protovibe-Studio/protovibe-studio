@@ -6,9 +6,11 @@ import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken, u
 import { FontFamilyPicker } from './FontFamilyPicker';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
+import { GradientPicker } from './GradientPicker';
 import { ShadowEditor } from './ShadowEditor';
 import { RemPxEditor } from './RemPxEditor';
 import { cssColorToHex } from '../utils/colorConversion';
+import { emitToast } from '../events/toast';
 
 
 // Module-level cache to avoid redundant canvas calls on every render
@@ -303,7 +305,7 @@ export const TokensTab: React.FC = () => {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
       
       {/* ─── Sticky Header ─── */}
-      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
+      <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           {selectedCategory ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -323,7 +325,7 @@ export const TokensTab: React.FC = () => {
             </span>
           )}
           <button
-            onClick={() => { refreshComponents(); refreshThemeColors(); refreshThemeTokens(); }}
+            onClick={() => { refreshComponents(); refreshThemeColors(); refreshThemeTokens(); emitToast({ message: 'Tokens refreshed', variant: 'success' }); }}
             title="Refresh"
             style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif', padding: '2px 6px', borderRadius: '4px' }}
           >
@@ -359,7 +361,7 @@ export const TokensTab: React.FC = () => {
             {visibleSections.map(section => (
               <div key={section.title} style={{ marginBottom: '8px' }}>
                 <div style={{
-                  padding: '16px 16px 8px',
+                  padding: '16px 20px 8px',
                   fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
                   color: theme.text_tertiary, textTransform: 'uppercase',
                   letterSpacing: '0.08em'
@@ -372,7 +374,7 @@ export const TokensTab: React.FC = () => {
                     onClick={() => { setSelectedCategory(cat.id); setSearch(''); }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      width: '100%', padding: '12px 16px', background: 'transparent', border: 'none',
+                      width: '100%', padding: '12px 20px', background: 'transparent', border: 'none',
                       borderBottom: `1px solid ${theme.border_default}`, cursor: 'pointer',
                       color: theme.text_default, fontFamily: 'sans-serif', fontSize: '13px',
                       transition: 'background 0.15s'
@@ -468,7 +470,7 @@ export const TokensTab: React.FC = () => {
         ) : activeCategoryObj?.type === 'color_palette' ? (
           
           /* Palette Colors View */
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
             {filteredPalette.length === 0 && (
               <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
                 No tokens found.
@@ -519,7 +521,7 @@ export const TokensTab: React.FC = () => {
         ) : (
           
           /* Other Base Tokens View */
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
             {activeOtherTokens.length === 0 && (
               <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
                 No tokens found.
@@ -645,6 +647,7 @@ export const TokensTab: React.FC = () => {
                       </button>
                     ) : (
                       <input
+                        key={t.value}
                         defaultValue={t.value}
                         onBlur={e => { if (e.target.value !== t.value) handleTokenSave(t.name, e.target.value); }}
                         onKeyDown={e => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
@@ -665,19 +668,32 @@ export const TokensTab: React.FC = () => {
         )}
       </div>
 
-      {/* Color picker portal */}
-      {editing && (
-        <ColorPicker
-          tokenName={editing.token.val}
-          themeMode={editing.themeMode}
-          initialValue={editing.themeMode === 'light'
-            ? (editing.token.lightValue ?? editing.token.hex)
-            : (editing.token.darkValue ?? editing.token.hex)}
-          anchorRect={editing.anchorRect}
-          onSave={saving ? () => {} : handleSave}
-          onCancel={() => setEditing(null)}
-        />
-      )}
+      {/* Color / gradient picker portal */}
+      {editing && (() => {
+        const initialValue = editing.themeMode === 'light'
+          ? (editing.token.lightValue ?? editing.token.hex)
+          : (editing.token.darkValue ?? editing.token.hex);
+        const isGradient = editing.token.val.startsWith('gradient-');
+        return isGradient ? (
+          <GradientPicker
+            tokenName={editing.token.val}
+            themeMode={editing.themeMode}
+            initialValue={initialValue}
+            anchorRect={editing.anchorRect}
+            onSave={saving ? () => {} : handleSave}
+            onCancel={() => setEditing(null)}
+          />
+        ) : (
+          <ColorPicker
+            tokenName={editing.token.val}
+            themeMode={editing.themeMode}
+            initialValue={initialValue}
+            anchorRect={editing.anchorRect}
+            onSave={saving ? () => {} : handleSave}
+            onCancel={() => setEditing(null)}
+          />
+        );
+      })()}
 
       {/* Shadow editor portal */}
       {editingShadow && (
