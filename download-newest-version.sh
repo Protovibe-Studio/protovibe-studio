@@ -75,7 +75,17 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 say "Downloading latest protovibe from github.com/$REPO@$BRANCH ..."
-if ! curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/$BRANCH" -o "$TMP/repo.tgz"; then
+TOKEN="${PROTOVIBE_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}"
+if [ -z "$TOKEN" ] && command -v gh >/dev/null 2>&1; then
+  TOKEN="$(gh auth token 2>/dev/null || true)"
+fi
+auth_args=()
+if [ -n "$TOKEN" ]; then
+  auth_args=(-H "Authorization: Bearer $TOKEN")
+fi
+# API tarball endpoint works for both public and private repos with a token.
+TARBALL_URL="https://api.github.com/repos/$REPO/tarball/$BRANCH"
+if ! curl -fsSL "${auth_args[@]}" -H "Accept: application/vnd.github+json" "$TARBALL_URL" -o "$TMP/repo.tgz"; then
   err "Failed to download tarball. Check your internet connection."
   exit 1
 fi

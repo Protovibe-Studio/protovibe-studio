@@ -971,10 +971,32 @@ function semverGt(a, b) {
   return false
 }
 
-async function fetchRemoteVersion(folder) {
-  const url = `https://raw.githubusercontent.com/${REMOTE_REPO}/${REMOTE_BRANCH}/${folder}/package.json`
+// Cache so we only shell out to `gh` once per dev-server lifetime.
+let cachedGhToken = null
+function githubToken() {
+  const env = process.env.PROTOVIBE_GITHUB_TOKEN || process.env.GITHUB_TOKEN
+  if (env) return env
+  if (cachedGhToken !== null) return cachedGhToken
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+    const out = execFileSync('gh', ['auth', 'token'], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+    cachedGhToken = out || ''
+  } catch {
+    cachedGhToken = ''
+  }
+  return cachedGhToken
+}
+
+async function fetchRemoteVersion(folder) {
+  // Contents API works for both public and private repos and accepts a token.
+  const url = `https://api.github.com/repos/${REMOTE_REPO}/contents/${folder}/package.json?ref=${REMOTE_BRANCH}`
+  const token = githubToken()
+  const headers = {
+    Accept: 'application/vnd.github.raw+json',
+    'User-Agent': 'protovibe-project-manager',
+  }
+  if (token) headers.Authorization = `Bearer ${token}`
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return { version: null, error: `GitHub returned ${res.status}` }
     const pkg = await res.json()
     const version = typeof pkg?.version === 'string' ? pkg.version : null
