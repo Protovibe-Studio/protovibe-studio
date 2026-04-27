@@ -5,6 +5,8 @@ import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
+import VersionInfoMenu from './components/VersionInfoMenu.jsx'
+import UpdateAppModal from './components/UpdateAppModal.jsx'
 import { ToastViewport, showToast } from './components/ToastViewport.jsx'
 import Logo from './assets/Logo.jsx'
 
@@ -35,6 +37,9 @@ export default function App() {
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Version / self-update
+  const [updateModalOpen, setUpdateModalOpen] = useState(false)
 
   useEffect(() => {
     const handlePopState = () => {
@@ -301,7 +306,7 @@ export default function App() {
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <Logo className="w-auto text-foreground-default" style={{ height: '14px' }} />
           </button>
-          <span className="text-xs text-foreground-tertiary">Version 1.0 beta</span>
+          <VersionInfoMenu onUpdateClick={() => setUpdateModalOpen(true)} />
         </div>
       </header>
 
@@ -339,6 +344,13 @@ export default function App() {
       )}
 
       {setupOverlay}
+
+      {updateModalOpen && (
+        <UpdateAppModal
+          onClose={() => setUpdateModalOpen(false)}
+        />
+      )}
+
       <ToastViewport />
     </div>
   )

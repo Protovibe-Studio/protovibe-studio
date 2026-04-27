@@ -15,6 +15,9 @@ const PROJECTS_JSON = path.join(PROJECTS_DIR, 'projects.json')
 const TEMPLATE_DIR = path.join(REPO_ROOT, 'protovibe-project-template')
 const PLUGIN_REL_DIR = path.join('plugins', 'protovibe')
 const SOURCE_PLUGIN_DIR = path.join(TEMPLATE_DIR, PLUGIN_REL_DIR)
+const UPDATER_SCRIPT = path.join(REPO_ROOT, 'download-newest-version.sh')
+const REMOTE_REPO = 'Protovibe-Studio/protovibe-studio'
+const REMOTE_BRANCH = 'main'
 // Plugin sync exclusions: huge / generated / lockfile artefacts stay
 // project-local instead of being overwritten by the template.
 const PLUGIN_EXCLUDE = new Set(['node_modules', 'dist'])
@@ -944,6 +947,186 @@ function handleSetup(req, res, id) {
   })
 }
 
+// ── App self-update ──────────────────────────────────────────────────────────
+// Reads protovibe-project-manager/protovibe-project-template versions locally
+// and from GitHub raw, runs ./download-newest-version.sh on demand, and
+// auto-restarts the project-manager dev server when its own files change.
+
+function readLocalVersion(pkgPath) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+    return typeof pkg?.version === 'string' ? pkg.version : null
+  } catch { return null }
+}
+
+function semverGt(a, b) {
+  if (!a || !b) return false
+  const pa = a.split('.').map((n) => parseInt(n, 10) || 0)
+  const pb = b.split('.').map((n) => parseInt(n, 10) || 0)
+  for (let i = 0; i < 3; i++) {
+    const x = pa[i] || 0, y = pb[i] || 0
+    if (x > y) return true
+    if (x < y) return false
+  }
+  return false
+}
+
+async function fetchRemoteVersion(folder) {
+  const url = `https://raw.githubusercontent.com/${REMOTE_REPO}/${REMOTE_BRANCH}/${folder}/package.json`
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) return { version: null, error: `GitHub returned ${res.status}` }
+    const pkg = await res.json()
+    const version = typeof pkg?.version === 'string' ? pkg.version : null
+    if (!version) return { version: null, error: 'Remote package.json has no version field' }
+    return { version, error: null }
+  } catch (e) {
+    return { version: null, error: e?.message || 'Network error' }
+  }
+}
+
+async function handleGetVersion(_req, res) {
+  const managerCurrent = readLocalVersion(path.join(ROOT, 'package.json'))
+  const templateCurrent = readLocalVersion(path.join(TEMPLATE_DIR, 'package.json'))
+  const [managerRemote, templateRemote] = await Promise.all([
+    fetchRemoteVersion('protovibe-project-manager'),
+    fetchRemoteVersion('protovibe-project-template'),
+  ])
+  sendJson(res, 200, {
+    manager: {
+      current: managerCurrent,
+      latest: managerRemote.version,
+      error: managerRemote.error,
+      outdated: semverGt(managerRemote.version, managerCurrent),
+    },
+    template: {
+      current: templateCurrent,
+      latest: templateRemote.version,
+      error: templateRemote.error,
+      outdated: semverGt(templateRemote.version, templateCurrent),
+    },
+  })
+}
+
+let updateInProgress = false
+
+function handleUpdateApp(req, res) {
+  if (updateInProgress) {
+    return sendJson(res, 409, { error: 'Update already in progress.' })
+  }
+  if (!fs.existsSync(UPDATER_SCRIPT)) {
+    return sendJson(res, 500, { error: `Updater script not found at ${UPDATER_SCRIPT}` })
+  }
+
+  updateInProgress = true
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+    'Access-Control-Allow-Origin': '*',
+  })
+  res.write(':\n\n')
+
+  let aborted = false
+  req.on('close', () => { aborted = true })
+  const send = (event, data) => {
+    if (aborted) return
+    try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`) } catch {}
+  }
+
+  const proc = spawn('bash', [UPDATER_SCRIPT], {
+    cwd: REPO_ROOT,
+    stdio: 'pipe',
+    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+  })
+
+  let buffer = ''
+  let result = null
+
+  const onChunk = (chunk) => {
+    buffer += chunk.toString()
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+    for (const line of lines) {
+      if (!line.trim()) continue
+      const marker = line.indexOf('__PROTOVIBE_UPDATE_RESULT__')
+      if (marker >= 0) {
+        try { result = JSON.parse(line.slice(marker + '__PROTOVIBE_UPDATE_RESULT__'.length).trim()) } catch {}
+        continue
+      }
+      send('log', { text: line })
+    }
+  }
+  proc.stdout.on('data', onChunk)
+  proc.stderr.on('data', onChunk)
+
+  proc.on('error', (err) => {
+    updateInProgress = false
+    send('fail', { message: err.message })
+    try { res.end() } catch {}
+  })
+
+  proc.on('exit', (code) => {
+    if (buffer.trim()) send('log', { text: buffer })
+    // Exit 2 = "nothing to update"; treat as success with no changes.
+    const ok = code === 0 || code === 2
+    if (!ok) {
+      updateInProgress = false
+      send('fail', { message: `Updater exited with code ${code}` })
+      try { res.end() } catch {}
+      return
+    }
+
+    const managerUpdated = !!result?.manager
+    const templateUpdated = !!result?.template
+
+    send('done', {
+      managerUpdated,
+      templateUpdated,
+      managerVersion: result?.managerVersion ?? null,
+      templateVersion: result?.templateVersion ?? null,
+      restartScheduled: managerUpdated,
+    })
+
+    if (managerUpdated) {
+      // Spawn a detached restarter, then exit this vite process. The restarter
+      // waits long enough for our process to die, then re-launches
+      // `pnpm --dir protovibe-project-manager dev` from REPO_ROOT with
+      // PROTOVIBE_NO_OPEN=1 so we don't pop a duplicate browser tab.
+      const restartCmd = [
+        `sleep 2`,
+        `cd ${JSON.stringify(REPO_ROOT)}`,
+        `PROTOVIBE_NO_OPEN=1 pnpm --dir protovibe-project-manager dev >> ${JSON.stringify(path.join(REPO_ROOT, 'dev.log'))} 2>&1`,
+      ].join(' && ')
+
+      try {
+        const child = spawn('bash', ['-lc', restartCmd], {
+          detached: true,
+          stdio: 'ignore',
+          env: { ...process.env, PROTOVIBE_NO_OPEN: '1' },
+        })
+        child.unref()
+      } catch (err) {
+        send('fail', { message: `Failed to schedule restart: ${err.message}` })
+        updateInProgress = false
+        try { res.end() } catch {}
+        return
+      }
+
+      try { res.end() } catch {}
+      // Give the SSE response time to flush, then exit so the detached
+      // restarter can take over the port.
+      setTimeout(() => process.exit(0), 500)
+      return
+    }
+
+    updateInProgress = false
+    try { res.end() } catch {}
+  })
+}
+
 // ── Plugin ────────────────────────────────────────────────────────────────────
 
 function projectManagerPlugin() {
@@ -967,6 +1150,12 @@ function projectManagerPlugin() {
           }
           if (method === 'POST' && pathname === '/projects') {
             return await handleCreateProject(req, res)
+          }
+          if (method === 'GET' && pathname === '/version') {
+            return await handleGetVersion(req, res)
+          }
+          if (method === 'POST' && pathname === '/update-app') {
+            return handleUpdateApp(req, res)
           }
 
           const match = pathname.match(/^\/projects\/([^/]+)(?:\/(.+))?$/)
