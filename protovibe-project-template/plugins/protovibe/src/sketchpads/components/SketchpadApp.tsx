@@ -1033,6 +1033,11 @@ export function SketchpadApp() {
       if (!t) return;
       if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
       if (t.closest('[data-sketchpad-resize-handle]')) return;
+      // The focused-frame drag overlay handles its own pointer flow. Without
+      // this guard the window-level marquee handler also engages on the same
+      // pointerdown and runs querySelectorAll + setMarqueePreview on every
+      // move, which manifests as severe lag while dragging the frame.
+      if (t.closest('[data-sketchpad-frame-overlay]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
       if (frameRoot && !frameContent) return;
