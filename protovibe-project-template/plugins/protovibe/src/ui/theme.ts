@@ -14,16 +14,16 @@ export const theme = {
   text_low: '#6d6d6d',         // Lowest text
 
   // Accents (Figma Blue)
-  accent_default: '#18A0FB',
-  accent_secondary: '#0D8CE6',
-  accent_tertiary: '#006EB8',
-  accent_low: 'rgba(24, 160, 251, 0.15)',
+  accent_default: '#0092ff',
+  accent_secondary: '#386ad1',
+  accent_tertiary: '#1745a8',
+  accent_low: 'rgba(61, 123, 255, 0.14)',
 
   // Borders
   border_default: '#333333',   // Standard dividers
-  border_secondary: '#3a3a3a', // Subtle dividers
+  border_secondary: '#383838', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
-  border_accent: '#18A0FB',    // Focused borders
+  border_accent: '#0092ff',    // Focused borders
   border_strong: '#6a6a6a',    // High contrast borders
 
   // Warnings (Yellow/Orange)

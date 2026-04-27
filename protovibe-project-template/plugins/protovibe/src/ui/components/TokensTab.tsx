@@ -6,6 +6,7 @@ import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken, u
 import { FontFamilyPicker } from './FontFamilyPicker';
 import { theme } from '../theme';
 import { ColorPicker } from './ColorPicker';
+import { GradientPicker } from './GradientPicker';
 import { ShadowEditor } from './ShadowEditor';
 import { RemPxEditor } from './RemPxEditor';
 import { cssColorToHex } from '../utils/colorConversion';
@@ -666,19 +667,32 @@ export const TokensTab: React.FC = () => {
         )}
       </div>
 
-      {/* Color picker portal */}
-      {editing && (
-        <ColorPicker
-          tokenName={editing.token.val}
-          themeMode={editing.themeMode}
-          initialValue={editing.themeMode === 'light'
-            ? (editing.token.lightValue ?? editing.token.hex)
-            : (editing.token.darkValue ?? editing.token.hex)}
-          anchorRect={editing.anchorRect}
-          onSave={saving ? () => {} : handleSave}
-          onCancel={() => setEditing(null)}
-        />
-      )}
+      {/* Color / gradient picker portal */}
+      {editing && (() => {
+        const initialValue = editing.themeMode === 'light'
+          ? (editing.token.lightValue ?? editing.token.hex)
+          : (editing.token.darkValue ?? editing.token.hex);
+        const isGradient = editing.token.val.startsWith('gradient-');
+        return isGradient ? (
+          <GradientPicker
+            tokenName={editing.token.val}
+            themeMode={editing.themeMode}
+            initialValue={initialValue}
+            anchorRect={editing.anchorRect}
+            onSave={saving ? () => {} : handleSave}
+            onCancel={() => setEditing(null)}
+          />
+        ) : (
+          <ColorPicker
+            tokenName={editing.token.val}
+            themeMode={editing.themeMode}
+            initialValue={initialValue}
+            anchorRect={editing.anchorRect}
+            onSave={saving ? () => {} : handleSave}
+            onCancel={() => setEditing(null)}
+          />
+        );
+      })()}
 
       {/* Shadow editor portal */}
       {editingShadow && (
