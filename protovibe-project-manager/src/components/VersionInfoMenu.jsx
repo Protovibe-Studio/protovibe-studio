@@ -15,17 +15,31 @@ export default function VersionInfoMenu({ onUpdateClick }) {
     try {
       const res = await fetch('/api/version')
       if (!res.ok) throw new Error('Request failed')
-      setInfo(await res.json())
+      const data = await res.json()
+      setInfo(data)
+      return data
     } catch (e) {
       setError(e.message || 'Failed to check for updates')
+      return null
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const data = await check()
+      if (cancelled || !data) return
+      if (data.manager?.outdated || data.template?.outdated) {
+        setOpen(true)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [check])
+
+  useEffect(() => {
     if (!open) return
-    check()
     const onClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('mousedown', onClick)
@@ -34,7 +48,15 @@ export default function VersionInfoMenu({ onUpdateClick }) {
       window.removeEventListener('mousedown', onClick)
       window.removeEventListener('keydown', onKey)
     }
-  }, [open, check])
+  }, [open])
+
+  const handleToggle = () => {
+    setOpen((v) => {
+      const next = !v
+      if (next) check()
+      return next
+    })
+  }
 
   const outdated = info && (info.manager?.outdated || info.template?.outdated)
   const fetchFailed = info && (info.manager?.error || info.template?.error)
@@ -43,11 +65,19 @@ export default function VersionInfoMenu({ onUpdateClick }) {
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
+        onClick={handleToggle}
+        className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+          outdated
+            ? 'bg-primary text-foreground-on-primary hover:bg-primary-hover'
+            : 'bg-background-secondary text-foreground-default hover:bg-background-tertiary'
+        }`}
       >
-        Version info
+        {outdated ? <Download size={14} /> : null}
+        {outdated ? 'Update available' : 'Version info'}
         <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        {outdated && (
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-foreground-destructive border-2 border-background-elevated" />
+        )}
       </button>
 
       {open && (
