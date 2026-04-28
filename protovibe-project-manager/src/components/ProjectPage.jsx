@@ -258,7 +258,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {/* Status pill */}
-              {isRunning && (
+              {isRunning && !stopping && (
                 <button
                   onClick={callStop}
                   className="group/stop px-2.5 py-1 rounded-full text-xs font-medium bg-background-success-subtle text-foreground-success hover:bg-background-destructive-subtle hover:text-foreground-destructive transition-colors cursor-pointer"
@@ -280,11 +280,19 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   Stopping
                 </span>
               )}
-              {!stopping && isStopped && (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-tertiary">
-                  <span className="inline-block h-2 w-2 rounded-full bg-foreground-disabled" />
-                  Not running
-                </span>
+              {!stopping && isStopped && !setupMode && (
+                <button
+                  onClick={() => setSetupMode(true)}
+                  disabled={isUpdating}
+                  className="group/run px-2.5 py-1 rounded-full text-xs font-medium text-foreground-tertiary hover:bg-background-primary-subtle hover:text-foreground-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <span className="flex items-center justify-center gap-1.5" style={{ minWidth: '4.5rem' }}>
+                    <span className="inline-block h-2 w-2 rounded-full bg-foreground-disabled group-hover/run:hidden shrink-0" />
+                    <Play size={8} fill="currentColor" strokeWidth={0} className="hidden group-hover/run:block shrink-0" />
+                    <span className="group-hover/run:hidden">Not running</span>
+                    <span className="hidden group-hover/run:inline">Run project</span>
+                  </span>
+                </button>
               )}
               {isUpdatingPluginServer && (
                 <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-info">
@@ -298,6 +306,11 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               {isBusy && (
                 <span className="text-xs font-medium text-foreground-secondary">
                   {status === 'installing' ? 'Installing...' : 'Starting...'}
+                </span>
+              )}
+              {!isBusy && !stopping && isStopped && setupMode && (
+                <span className="text-xs font-medium text-foreground-secondary">
+                  Starting...
                 </span>
               )}
               <ProjectMoreMenu project={project} onDuplicate={onDuplicate} onDelete={onDelete} onStop={onStop} onShowFolder={onShowFolder} onOpenVSCode={onOpenVSCode} onRename={startRename} />
