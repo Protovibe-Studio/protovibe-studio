@@ -122,7 +122,7 @@ export default function Frame1() {
                 {/* pv-block-end:7s71o1 */}
                 {/* pv-block-start:iejkht */}
                 <TextParagraph className="pt-0.5" data-pv-block="iejkht" typography="regular">
-                  <span></span>Once you’re done, import the file to Tellent HR
+                  <span></span>Once you’re done, import the file to SaaS HR
                 </TextParagraph>
                 {/* pv-block-end:iejkht */}
                 {/* pv-editable-zone-end:qyqjnc */}

@@ -42,7 +42,7 @@ export default function Frame1() {
               {/* pv-block-end:vw310f */}
               {/* pv-block-start:rwtf2d */}
               <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="rwtf2d" typography="regular">
-                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to SaaS HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
               </TextParagraph>
               {/* pv-block-end:rwtf2d */}
               {/* pv-editable-zone-end:7l5x7c */}
@@ -100,7 +100,7 @@ export default function Frame1() {
                       {/* pv-editable-zone-start:vhplpm */}
                       {/* pv-block-start:4r4rdw */}
                       <TextParagraph data-pv-block="4r4rdw" typography="secondary">
-                        <span></span><span></span>No special template is required, Tellent AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
+                        <span></span><span></span>No special template is required, SaaS AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
                       </TextParagraph>
                       {/* pv-block-end:4r4rdw */}
                       {/* pv-editable-zone-end:vhplpm */}

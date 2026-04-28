@@ -40,7 +40,7 @@ export default function Frame1() {
               {/* pv-block-end:bw2j4o */}
               {/* pv-block-start:t23xtp */}
               <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="t23xtp" typography="regular">
-                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to Tellent HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
+                <span></span><span></span><span></span>Upload your document and AI will read it and import skills to SaaS HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
               </TextParagraph>
               {/* pv-block-end:t23xtp */}
               {/* pv-editable-zone-end:ux6dfh */}

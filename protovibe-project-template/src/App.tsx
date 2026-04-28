@@ -1087,7 +1087,7 @@ function SkillsPage() {
                               {/* pv-block-end:7s71o1 */}
                               {/* pv-block-start:iejkht */}
                               <TextParagraph className="pt-0.5" data-pv-block="iejkht" typography="regular">
-                                Once you’re done, import the file to Tellent HR
+                                Once you’re done, import the file to SaaS HR
                               </TextParagraph>
                               {/* pv-block-end:iejkht */}
                               {/* pv-editable-zone-end:qyqjnc */}
@@ -1722,7 +1722,7 @@ function SkillsPage() {
                       {/* pv-block-end:vw310f */}
                       {/* pv-block-start:rwtf2d */}
                       <TextParagraph data-pv-block="rwtf2d" className="pt-0.5 text-sm text-foreground-secondary" typography="regular">
-                        Upload your document and AI will read it and import skills to Tellent HR. <a href="#" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+                        Upload your document and AI will read it and import skills to SaaS HR. <a href="#" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
                       </TextParagraph>
                       {/* pv-block-end:rwtf2d */}
                       {/* pv-editable-zone-end:7l5x7c */}
@@ -1778,7 +1778,7 @@ function SkillsPage() {
                           {/* pv-editable-zone-start:vhplpm */}
                           {/* pv-block-start:4r4rdw */}
                           <TextParagraph data-pv-block="4r4rdw" typography="secondary">
-                            No special template is required, Tellent AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="#" onClick={(e) => { e.preventDefault(); openDialog('generate'); }} className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
+                            No special template is required, SaaS AI is smart enough to analyse any file with company skills. Don’t have such a file yet? <a href="#" onClick={(e) => { e.preventDefault(); openDialog('generate'); }} className="text-foreground-primary hover:opacity-80 transition-opacity">Generate suggested skills in a sheet</a>
                           </TextParagraph>
                           {/* pv-block-end:4r4rdw */}
                           {/* pv-editable-zone-end:vhplpm */}
@@ -1840,7 +1840,7 @@ function SkillsPage() {
                       {/* pv-block-end:q0aexa */}
                       {/* pv-block-start:utdpi0 */}
                       <TextParagraph data-pv-block="utdpi0" className="pt-0.5 text-sm text-foreground-secondary" typography="regular">
-                        Upload your document and AI will read it and import skills to Tellent HR. <a href="#" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+                        Upload your document and AI will read it and import skills to SaaS HR. <a href="#" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
                       </TextParagraph>
                       {/* pv-block-end:utdpi0 */}
                       {/* pv-editable-zone-end:7l5x7c_2 */}
@@ -1981,7 +1981,7 @@ function SkillsPage() {
                       {/* pv-block-end:bw2j4o */}
                       {/* pv-block-start:t23xtp */}
                       <TextParagraph data-pv-block="t23xtp" className="pt-0.5 text-sm text-foreground-secondary" typography="regular">
-                        Upload your document and AI will read it and import skills to Tellent HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="#">Learn more</a>
+                        Upload your document and AI will read it and import skills to SaaS HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="#">Learn more</a>
                       </TextParagraph>
                       {/* pv-block-end:t23xtp */}
                       {/* pv-editable-zone-end:ux6dfh */}
@@ -2068,7 +2068,7 @@ function SkillsPage() {
                       {/* pv-block-end:xedfkz */}
                       {/* pv-block-start:ahfwpg */}
                       <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="ahfwpg" typography="regular">
-                        Upload your document and AI will read it and import skills to Tellent HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
+                        Upload your document and AI will read it and import skills to SaaS HR. <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary hover:opacity-80 transition-opacity">Learn more</a>
                       </TextParagraph>
                       {/* pv-block-end:ahfwpg */}
                       {/* pv-editable-zone-end:7l5x7c */}
@@ -2170,7 +2170,7 @@ function SkillsPage() {
                       <Container className="gap-2" data-pv-block="hzjvx2">
                         {/* pv-editable-zone-start:x62gm5 */}
                           {/* pv-block-start:b2c3d4 */}
-                          <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to Tellent HR" />
+                          <SuperLabel data-pv-block="b2c3d4" heading="Missing positions" secondaryText="Some positions from your file are not yet added to SaaS HR" />
                           {/* pv-block-end:b2c3d4 */}
                           {/* pv-block-start:e5f6g7 */}
                           <Card data-pv-block="e5f6g7" className="w-full p-7">
@@ -2385,7 +2385,7 @@ function SkillsPage() {
                       {/* pv-block-end:8fber7 */}
                       {/* pv-block-start:hhaij0 */}
                       <TextParagraph className="pt-0.5 text-sm text-foreground-secondary" data-pv-block="hhaij0" typography="regular">
-                        Upload your document and AI will read it and import skills to Tellent HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
+                        Upload your document and AI will read it and import skills to SaaS HR. <a className="text-foreground-primary hover:opacity-80 transition-opacity" href="https://" target="_blank" rel="noopener noreferrer">Learn more</a>
                       </TextParagraph>
                       {/* pv-block-end:hhaij0 */}
                       {/* pv-editable-zone-end:2s35ui */}
