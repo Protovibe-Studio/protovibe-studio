@@ -100,6 +100,9 @@ export default function Frame3() {
         {/* pv-block-start:y12rqf */}
         <Button data-pv-block="y12rqf"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="y12rqf" style={{ position: 'absolute', left: 100, top: 100 }}/>
         {/* pv-block-end:y12rqf */}
+        {/* pv-block-start:n0vxbc */}
+        <span data-pv-block="n0vxbc" data-pv-sketchpad-el="n0vxbc" style={{ position: 'absolute', left: 462, top: 49 }}>Lorem ipsum</span>
+        {/* pv-block-end:n0vxbc */}
       {/* pv-editable-zone-end:ia82r5 */}
     </div>
   );

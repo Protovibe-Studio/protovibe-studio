@@ -315,6 +315,7 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
       let componentProps: any[] = [];
       let importedComponents: Record<string, string> = {};
       let compNameStr = data.comp || 'Element';
+      let targetNode: any = null;
 
       // Helper to process a matched JSXOpeningElement and extract className/props info.
       const processOpeningElement = (openingEl: any) => {
@@ -385,18 +386,19 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
             }
           });
         },
-        JSXOpeningElement(path) {
+        JSXElement(path) {
           const loc = path.node.loc;
           if (!loc) return;
           // Exact match — process immediately and stop traversal.
           if (loc.start.line === data.bStart[0] && loc.start.column === data.bStart[1]) {
-            processOpeningElement(path.node);
+            targetNode = path.node;
+            processOpeningElement(path.node.openingElement);
             path.stop();
             return;
           }
           // Collect all elements on the same line as a fallback pool.
           if (loc.start.line === data.bStart[0]) {
-            const nameEndCol = path.node.name.loc?.end.column ?? -1;
+            const nameEndCol = path.node.openingElement.name.loc?.end.column ?? -1;
             lineMatches.push({ el: path.node, nameEndCol });
           }
         }
@@ -409,7 +411,17 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
         lineMatches.sort((a, b) =>
           Math.abs(a.nameEndCol - hintCol) - Math.abs(b.nameEndCol - hintCol)
         );
-        processOpeningElement(lineMatches[0].el);
+        targetNode = lineMatches[0].el;
+        processOpeningElement(targetNode.openingElement);
+      }
+
+      // Re-extract the codeBlock using the live AST node bounds if possible.
+      // This gives the EXACT element string and fixes stale data.bEnd caused by multi-line text edits.
+      let finalCodeBlock = codeBlock;
+      if (targetNode && targetNode.start != null && targetNode.end != null) {
+        finalCodeBlock = fileContent.substring(targetNode.start, targetNode.end);
+      } else if (targetNode?.loc) {
+        finalCodeBlock = lines.slice(targetNode.loc.start.line - 1, targetNode.loc.end.line).join('\n');
       }
 
       const parsedClasses = parseTailwindClasses(classNameStr);
@@ -461,8 +473,8 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
 
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({
-        code: codeBlock, classNameStr, parsedClasses, file: data.file,
-        startLine: data.bStart[0], startCol: data.bStart[1], endLine: data.bEnd[0], compName: compNameStr,
+        code: finalCodeBlock, classNameStr, parsedClasses, file: data.file,
+        startLine: data.bStart[0], startCol: data.bStart[1], endLine: targetNode?.loc?.end.line || data.bEnd[0], compName: compNameStr,
         hasClass: hasClass, nameEnd: nameEnd || data.nameEnd, cStart: cStart || data.cStart, cEnd,
         componentProps,
         configSchema // Expose the co-located schema to the frontend!
