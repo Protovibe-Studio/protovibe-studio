@@ -11,7 +11,7 @@ import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
-import { Frame, Square, Plus, Menu } from 'lucide-react';
+import { Frame, Square, Plus, Menu, Type } from 'lucide-react';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -149,7 +149,11 @@ export function SketchpadApp() {
   const [showComponentPalette, setShowComponentPalette] = useState(false);
   const [renamePrompt, setRenamePrompt] = useState<{ frameId: string, name: string } | null>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
-  const [pendingAction, setPendingAction] = useState<{ type: 'add-rectangle'; comp: ComponentEntry } | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    | { type: 'add-rectangle'; comp: ComponentEntry }
+    | { type: 'add-text' }
+    | null
+  >(null);
   const [isZoomControlsHovered, setIsZoomControlsHovered] = useState(false);
 
   const [isMutationLocked, setIsMutationLocked] = useState(false);
@@ -888,6 +892,32 @@ export function SketchpadApp() {
     setPendingAction({ type: 'add-rectangle', comp: rectComp });
   }, [activeSketchpadId, components]);
 
+  const handleAddText = useCallback(
+    async (frameId: string, x: number, y: number) => {
+      if (!activeSketchpadId) return;
+      const targetFile = `src/sketchpads/${activeSketchpadId}/${frameId}.tsx`;
+
+      await runLockedMutation(async () => {
+        await takeSnapshot(targetFile, '');
+        const result = await addBlock({
+          file: targetFile,
+          zoneId: 'target-zone-placeholder',
+          elementType: 'text',
+          targetLayoutMode: 'absolute',
+          pasteX: Math.round(x),
+          pasteY: Math.round(y),
+        });
+        if (result?.blockId) await focusNewBlock(result.blockId);
+      });
+    },
+    [activeSketchpadId, runLockedMutation, focusNewBlock],
+  );
+
+  const handleAddTextCentered = useCallback(async () => {
+    if (!activeSketchpadId) return;
+    setPendingAction({ type: 'add-text' });
+  }, [activeSketchpadId]);
+
   // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
   const reloadRegistry = useCallback(async () => {
     const reg = await api.fetchRegistry();
@@ -1413,7 +1443,11 @@ export function SketchpadApp() {
               if (targetFrame) {
                 const relX = canvasX - targetFrame.canvasX;
                 const relY = canvasY - targetFrame.canvasY;
-                handleAddComponent(pendingAction.comp, targetFrame.id, relX, relY);
+                if (pendingAction.type === 'add-rectangle') {
+                  handleAddComponent(pendingAction.comp, targetFrame.id, relX, relY);
+                } else if (pendingAction.type === 'add-text') {
+                  handleAddText(targetFrame.id, relX, relY);
+                }
                 setSelectedFrameIds([targetFrame.id]);
                 setPendingAction(null);
               }
@@ -1439,7 +1473,11 @@ export function SketchpadApp() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
-            <span>Click inside a frame to place the rectangle</span>
+            <span>
+              {pendingAction.type === 'add-text'
+                ? 'Click inside a frame to place the text'
+                : 'Click inside a frame to place the rectangle'}
+            </span>
             <button
               onClick={(e) => { e.stopPropagation(); setPendingAction(null); }}
               style={{
@@ -1486,6 +1524,7 @@ export function SketchpadApp() {
             {[
               { label: 'Frame', icon: Frame, action: handleAddFrameCentered },
               { label: 'Rectangle', icon: Square, action: handleAddRectangleCentered },
+              { label: 'Text', icon: Type, action: handleAddTextCentered },
               { label: 'Component', icon: Plus, action: () => setShowComponentPalette(true) },
             ].map((item) => (
               <div
