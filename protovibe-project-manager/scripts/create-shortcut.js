@@ -167,6 +167,7 @@ end run`;
   const tmpScpt = path.join(installerDir, '_protovibe.applescript');
   fs.writeFileSync(tmpScpt, appleScript, 'utf8');
 
+  log.info('  → Compiling Protovibe.app …');
   try {
     execSync(`osacompile -o "${appPath}" "${tmpScpt}"`, { stdio: 'pipe' });
   } catch (e) {
@@ -188,6 +189,7 @@ end run`;
   // Ad-hoc codesign and clear quarantine so Gatekeeper is less hostile on
   // first launch (this is locally-built, not downloaded, so it shouldn't
   // carry quarantine — but belt and suspenders).
+  log.info('  → Signing & clearing quarantine …');
   try {
     execSync(`codesign --force --deep --sign - "${appPath}"`, { stdio: 'pipe' });
   } catch (e) {
@@ -237,6 +239,7 @@ end run`;
   // Build the DMG into the OS tmpdir first so hdiutil's snapshot of
   // installerDir doesn't accidentally include the .dmg in its own payload.
   const dmgTmp = path.join(os.tmpdir(), `protovibe-${process.pid}-${Date.now()}.dmg`);
+  log.info('  → Building installer disk image (this takes ~10s) …');
   try {
     execSync(
       `hdiutil create -volname ${JSON.stringify(dmgVolName)} -srcfolder ${JSON.stringify(installerDir)} -ov -format UDZO ${JSON.stringify(dmgTmp)}`,
@@ -252,6 +255,7 @@ end run`;
   // Mount the DMG. -noautoopen suppresses Finder's auto window so we can
   // open it ourselves once it's ready (Finder otherwise sometimes opens
   // before the volume is fully attached).
+  log.info('  → Mounting installer …');
   try {
     execSync(`hdiutil attach ${JSON.stringify(dmgPath)} -noverify -noautoopen`, { stdio: 'pipe' });
   } catch (e) {
@@ -259,6 +263,7 @@ end run`;
     log.info(`Open it manually: ${dmgPath}`);
   }
 
+  log.info('  → Opening Finder window …');
   spawnSync('open', [volPath], { stdio: 'ignore' });
 
   log.ok(`Created ${APP_NAME}.app at ${appPath}`);
