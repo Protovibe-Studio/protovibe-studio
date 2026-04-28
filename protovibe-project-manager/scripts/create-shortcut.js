@@ -44,6 +44,15 @@ function writeProjectPathConfig() {
 }
 
 function resolveDesktopDir() {
+  if (os.platform() === 'win32') {
+    try {
+      const result = execSync(
+        `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[System.Environment]::GetFolderPath('Desktop')"`,
+        { stdio: 'pipe', encoding: 'utf8' }
+      ).trim();
+      if (result && fs.existsSync(result)) return result;
+    } catch {}
+  }
   const candidates = [
     path.join(HOME, 'Desktop'),
     path.join(HOME, 'OneDrive', 'Desktop'),

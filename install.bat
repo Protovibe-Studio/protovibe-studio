@@ -190,15 +190,24 @@ if "%SELF_FAIL%"=="1" (
 )
 call :ok "Self-test passed: node, pnpm, vite, plugin dist all good."
 
-REM ── Launch the app in a new window ────────────────────────────────────────
-echo.
-echo ====== Setup complete! ======
-echo  A "Protovibe" shortcut has been placed on your Desktop.
-echo  Launching the app now... (next time, just double-click the Desktop icon)
-echo.
-echo  If you ever move this folder, re-run install.bat to rebind the shortcut.
-echo.
+REM ── Success banner ────────────────────────────────────────────────────────
 del /f /q "%LOCK%" >nul 2>&1
+echo.
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "Write-Host '';" ^
+  "Write-Host '  +---------------------------------------+' -ForegroundColor Green;" ^
+  "Write-Host '  |                                       |' -ForegroundColor Green;" ^
+  "Write-Host '  |   Protovibe installed successfully!   |' -ForegroundColor Green;" ^
+  "Write-Host '  |                                       |' -ForegroundColor Green;" ^
+  "Write-Host '  +---------------------------------------+' -ForegroundColor Green;" ^
+  "Write-Host '';" ^
+  "Write-Host '  A shortcut has been placed on your Desktop.' -ForegroundColor Cyan;" ^
+  "Write-Host '  To reinstall or move this folder, just re-run install.bat.' -ForegroundColor Cyan;" ^
+  "Write-Host '';" ^
+  "Write-Host '  Press any key to open Protovibe...' -ForegroundColor Green;" ^
+  "$null = $host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')"
+echo.
 start "" "%USERPROFILE%\.protovibe\Protovibe.bat"
 exit /b 0
 
