@@ -206,9 +206,9 @@ if [ "$USE_EXISTING_NODE" -ne 1 ]; then
     rm -f "$TMP_TARBALL"
   fi
 
-  step "symlink node/npm/npx/corepack into $LOCAL_BIN"
+  step "symlink node/npm/npx into $LOCAL_BIN"
   mkdir -p "$LOCAL_BIN"
-  for bin in node npm npx corepack; do
+  for bin in node npm npx; do
     src="$NODE_INSTALL_DIR/bin/$bin"
     if [ -x "$src" ] || [ -L "$src" ]; then
       ln -sf "$src" "$LOCAL_BIN/$bin"
@@ -238,19 +238,34 @@ fi
 ok "Node $(node --version) / npm $(npm --version)"
 
 # ── 6. pnpm ──────────────────────────────────────────────────────────────────
-step "enable pnpm via corepack"
-# When we use a system-installed Node, default to the shim location next to
-# corepack itself. When we installed our own Node into ~/.local, point shims
-# at ~/.local/bin so they land on PATH alongside our node symlink.
-if [ "$USE_EXISTING_NODE" -ne 1 ]; then
-  mkdir -p "$LOCAL_BIN"
-  corepack enable --install-directory "$LOCAL_BIN" pnpm >/dev/null 2>&1 \
-    || warn "corepack enable returned non-zero — continuing"
+# Single path: install pnpm via `npm install -g pnpm@9.15.9` (the way a dev
+# would do it themselves). Lands in whatever global prefix the user's npm is
+# configured with — for our bundled Node that's $NODE_INSTALL_DIR; for an
+# existing Node it's brew/nvm/volta/etc. We then symlink the resulting pnpm
+# into ~/.local/bin only when we're running our bundled Node, since that's
+# the dir we already added to PATH for it.
+if command -v pnpm >/dev/null 2>&1; then
+  step "pnpm already installed ($(command -v pnpm))"
 else
-  corepack enable pnpm >/dev/null 2>&1 \
-    || warn "corepack enable returned non-zero — continuing"
+  step "install pnpm globally via npm"
+  if ! npm install -g pnpm@9.15.9; then
+    err "npm install -g pnpm@9.15.9 failed."
+    err "If your global npm prefix needs sudo, either:"
+    err "  • re-run with sudo, or"
+    err "  • set a user-writable prefix: npm config set prefix \"\$HOME/.npm-global\""
+    err "    and add \"\$HOME/.npm-global/bin\" to your PATH, then re-run."
+    exit 1
+  fi
+  if [ "$USE_EXISTING_NODE" -ne 1 ] && [ -x "$NODE_INSTALL_DIR/bin/pnpm" ]; then
+    ln -sf "$NODE_INSTALL_DIR/bin/pnpm" "$LOCAL_BIN/pnpm"
+  fi
 fi
-corepack prepare pnpm@9.15.9 --activate >/dev/null
+if ! command -v pnpm >/dev/null 2>&1; then
+  err "pnpm is still not on PATH after install."
+  err "If npm just installed it, its global bin dir may not be on PATH."
+  err "Run: npm config get prefix    — and add <prefix>/bin to your PATH."
+  exit 1
+fi
 ok "pnpm $(pnpm --version) ready."
 
 # ── 7. Install workspaces ────────────────────────────────────────────────────

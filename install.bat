@@ -18,11 +18,11 @@ set "LOG=%ROOT%\install.log"
 set "LOCK=%ROOT%\.install.lock"
 set "STEP=(starting up)"
 
-REM ── Auto-elevate (Always require Admin for Corepack) ──────────────────────
+REM ── Auto-elevate (Admin needed for global npm install) ───────────────────
 net session >nul 2>&1
 if errorlevel 1 (
   echo.
-  echo Administrator privileges are required to configure Node.js and Corepack.
+  echo Administrator privileges are required to configure Node.js and install pnpm globally.
   echo Requesting elevation...
   powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Start-Process -FilePath '%~f0' -WorkingDirectory '%~dp0' -Verb RunAs } catch { exit 1 }"
   if errorlevel 1 (
@@ -102,16 +102,27 @@ if errorlevel 1 (
 for /f "tokens=*" %%v in ('node --version') do set "NODE_VER=%%v"
 call :ok "Node !NODE_VER! found."
 
-REM ── pnpm via corepack ─────────────────────────────────────────────────────
-set "STEP=pnpm via corepack"
+REM ── pnpm ──────────────────────────────────────────────────────────────────
+REM Install via `npm install -g pnpm@9.15.9` — the same way a dev would
+REM install it themselves. Avoids corepack, which Node 25+ no longer ships.
+set "STEP=install pnpm"
 call :step
-echo.
-echo --- corepack enable + prepare pnpm@9.15.9 ---
-echo.
-call :run_streamed "corepack enable pnpm"
-call :run_streamed "corepack prepare pnpm@9.15.9 --activate"
+where pnpm >nul 2>&1
+if not errorlevel 1 (
+  call :ok "pnpm already installed."
+) else (
+  echo.
+  echo --- npm install -g pnpm@9.15.9 ---
+  echo.
+  call :run_streamed "npm install -g pnpm@9.15.9"
+  if errorlevel 1 (
+    call :die "npm install -g pnpm@9.15.9 failed. See %LOG%."
+    exit /b 1
+  )
+)
+where pnpm >nul 2>&1
 if errorlevel 1 (
-  call :die "Failed to activate pnpm via corepack. See %LOG%."
+  call :die "pnpm is still not on PATH after install. Check 'npm config get prefix' and ensure <prefix> is on PATH."
   exit /b 1
 )
 for /f "tokens=*" %%v in ('cmd /c "pnpm --version"') do set "PNPM_VER=%%v"
