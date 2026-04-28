@@ -15,12 +15,71 @@ static class Protovibe {
     static extern int SetCurrentProcessExplicitAppUserModelID(
         [MarshalAs(UnmanagedType.LPWStr)] string AppID);
 
+    [DllImport("kernel32.dll")]
+    static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    static extern uint ExtractIconEx(string lpszFile, int nIconIndex,
+        IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
+
+    const uint WM_SETICON = 0x80;
+    const int ICON_SMALL = 0;
+    const int ICON_BIG = 1;
+
     const string PROTOVIBE_URL = "http://127.0.0.1:5173";
 
+    // The console window inherits its icon from the host process (conhost.exe
+    // or wt.exe), not from us. Force the taskbar/title-bar icon to our own by
+    // extracting the icon resource from this exe and sending it via WM_SETICON.
+    static void ApplyConsoleIcon() {
+        try {
+            IntPtr hwnd = GetConsoleWindow();
+            if (hwnd == IntPtr.Zero) return;
+            string self = Process.GetCurrentProcess().MainModule.FileName;
+            var big = new IntPtr[1];
+            var small = new IntPtr[1];
+            ExtractIconEx(self, 0, big, small, 1);
+            if (big[0] != IntPtr.Zero)
+                SendMessage(hwnd, WM_SETICON, (IntPtr)ICON_BIG, big[0]);
+            if (small[0] != IntPtr.Zero)
+                SendMessage(hwnd, WM_SETICON, (IntPtr)ICON_SMALL, small[0]);
+        } catch {}
+    }
+
     static int Main() {
+        // If Windows Terminal is hosting us (system default on Win11), re-spawn
+        // ourselves under conhost.exe and exit. The shortcut already routes
+        // through conhost, but a direct double-click on the .exe goes through
+        // whatever the user has set as the default terminal — which is usually
+        // wt.exe, has tabs, and uses its own taskbar icon. WT_SESSION is set
+        // by Windows Terminal for every hosted process, so it's the canonical
+        // way to detect that case. Conhost does not set it, so the relaunched
+        // copy won't loop.
+        if (Environment.GetEnvironmentVariable("WT_SESSION") != null) {
+            try {
+                string self = Process.GetCurrentProcess().MainModule.FileName;
+                var relaunch = new ProcessStartInfo("conhost.exe", "\"" + self + "\"") {
+                    UseShellExecute = false,
+                    CreateNoWindow = false,
+                };
+                // Strip WT_* so the child doesn't think it's still under WT.
+                relaunch.EnvironmentVariables.Remove("WT_SESSION");
+                relaunch.EnvironmentVariables.Remove("WT_PROFILE_ID");
+                Process.Start(relaunch);
+                return 0;
+            } catch {
+                // If conhost relaunch fails for any reason, fall through and
+                // run in WT — degraded UX is better than a broken launch.
+            }
+        }
+
         try { SetCurrentProcessExplicitAppUserModelID("Protovibe.Studio.ProjectManager"); } catch {}
         try { Console.OutputEncoding = Encoding.UTF8; } catch {}
         Console.Title = "Protovibe";
+        ApplyConsoleIcon();
 
         string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string cfg = Path.Combine(home, ".protovibe", "project-path");
