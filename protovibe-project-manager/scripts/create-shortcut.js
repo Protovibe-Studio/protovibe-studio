@@ -276,6 +276,43 @@ end run`;
 }
 
 // ───────────────────────────── Windows ───────────────────────────
+function findCsc() {
+  // csc.exe ships with .NET Framework 4 — present on every Windows since 2010.
+  // Prefer 64-bit; fall back to 32-bit. Returns null if neither exists.
+  const candidates = [
+    'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe',
+    'C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe',
+  ];
+  for (const p of candidates) if (fs.existsSync(p)) return p;
+  return null;
+}
+
+function buildWindowsExe(launcherDir, iconPath) {
+  const csc = findCsc();
+  if (!csc) return null;
+  const cs = path.join(__dirname, 'launcher', 'Protovibe.cs');
+  if (!fs.existsSync(cs)) return null;
+  const exe = path.join(launcherDir, 'Protovibe.exe');
+  const args = [
+    '/nologo', '/target:exe', '/optimize+', '/codepage:65001',
+    `/out:${exe}`,
+  ];
+  if (iconPath) args.push(`/win32icon:${iconPath}`);
+  args.push(cs);
+  try {
+    // Use spawnSync so paths with spaces don't need shell quoting.
+    const r = spawnSync(csc, args, { stdio: 'pipe', encoding: 'utf8' });
+    if (r.status !== 0) {
+      log.warn(`csc.exe failed (exit ${r.status}): ${(r.stderr || r.stdout || '').trim().split('\n')[0]}`);
+      return null;
+    }
+    return exe;
+  } catch (e) {
+    log.warn(`csc.exe invocation failed: ${e.message}`);
+    return null;
+  }
+}
+
 function createWindowsShortcut() {
   const desktop = resolveDesktopDir();
   const launcherDir = PROTOVIBE_CONFIG_DIR;
@@ -284,6 +321,43 @@ function createWindowsShortcut() {
   const iconPath = checkIcon('icon.ico');
 
   fs.mkdirSync(launcherDir, { recursive: true });
+
+  // Preferred path: compile a tiny C# launcher exe with the icon embedded as a
+  // Win32 resource. The shortcut + taskbar + Alt-Tab all pick up that icon
+  // instead of the generic cmd.exe one. Falls back to the .bat launcher if
+  // csc.exe is unavailable (vanishingly rare, but handled).
+  const exePath = buildWindowsExe(launcherDir, iconPath);
+  if (exePath) {
+    // Launch via conhost.exe to bypass Windows Terminal — when a .lnk targets a
+    // console exe directly on Win11, Windows hosts it in the user's default
+    // terminal (usually Windows Terminal), which uses its own icon and opens
+    // tabs. Routing through conhost forces the classic single-window console
+    // and lets the hosted exe's embedded icon appear in the taskbar.
+    // We can't override the user's GLOBAL default terminal (that lives under
+    // HKCU\Console\%%Startup) without affecting other apps, and per-app
+    // delegation isn't supported. The shortcut indirection is the cleanest
+    // user-scoped fix.
+    const conhost = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'conhost.exe');
+    createWindowsShortcutLnk({
+      target: conhost,
+      args: `"${exePath}"`,
+      workingDir: launcherDir,
+      lnkPath,
+      // IconLocation is needed because the .lnk now targets conhost, not our
+      // exe. Point at our exe so the desktop shortcut shows the Protovibe
+      // icon. The running window's taskbar icon comes from the hosted exe
+      // (Protovibe.exe), which has its own icon resources embedded.
+      iconPath: exePath,
+    });
+    // Drop the legacy bat so re-installs don't leave a stale launcher behind.
+    for (const f of [launcherBat, path.join(launcherDir, 'banner.ps1')]) {
+      try { fs.rmSync(f, { force: true }); } catch {}
+    }
+    log.ok(`Launcher built: ${exePath}`);
+    log.ok(`Shortcut created: ${lnkPath}`);
+    return;
+  }
+  log.warn('csc.exe not available — falling back to .bat launcher (taskbar will show generic terminal icon).');
 
   const PROTOVIBE_URL = 'http://127.0.0.1:5173';
 
@@ -353,32 +427,7 @@ function createWindowsShortcut() {
   ];
   fs.writeFileSync(launcherBat, batLines.join('\r\n') + '\r\n', 'utf8');
 
-  if (fs.existsSync(lnkPath)) fs.rmSync(lnkPath, { force: true });
-
-  const psEscape = (s) => s.replace(/`/g, '``').replace(/"/g, '`"');
-  const psLines = [
-    `$WshShell = New-Object -ComObject WScript.Shell`,
-    `$Shortcut = $WshShell.CreateShortcut("${psEscape(lnkPath)}")`,
-    `$Shortcut.TargetPath = "${psEscape(launcherBat)}"`,
-    `$Shortcut.WorkingDirectory = "${psEscape(launcherDir)}"`,
-    `$Shortcut.WindowStyle = 1`,
-    `$Shortcut.Description = "Run Protovibe Project Manager"`,
-  ];
-  if (iconPath) psLines.push(`$Shortcut.IconLocation = "${psEscape(iconPath)}"`);
-  psLines.push(`$Shortcut.Save()`);
-
-  const psPath = path.join(launcherDir, '_create-shortcut.ps1');
-  fs.writeFileSync(psPath, psLines.join('\r\n'), 'utf8');
-
-  try {
-    execSync(`powershell.exe -ExecutionPolicy Bypass -NoProfile -File "${psPath}"`, { stdio: 'pipe' });
-  } catch (e) {
-    log.err(`PowerShell shortcut creation failed: ${e.message}`);
-    log.err(`Hint: Windows Script Host may be disabled by group policy.`);
-    fs.rmSync(psPath, { force: true });
-    process.exit(1);
-  }
-  fs.rmSync(psPath, { force: true });
+  createWindowsShortcutLnk({ target: launcherBat, workingDir: launcherDir, lnkPath, iconPath });
 
   // Clean up legacy in-repo bat from older installs
   const legacyBat = path.join(PROJECT_ROOT, 'start-protovibe.bat');
@@ -386,6 +435,38 @@ function createWindowsShortcut() {
 
   log.ok(`Shortcut created: ${lnkPath}`);
   log.info(`Launcher: ${launcherBat}`);
+}
+
+function createWindowsShortcutLnk({ target, args, workingDir, lnkPath, iconPath }) {
+  if (fs.existsSync(lnkPath)) fs.rmSync(lnkPath, { force: true });
+
+  const psEscape = (s) => s.replace(/`/g, '``').replace(/"/g, '`"');
+  const psLines = [
+    `$WshShell = New-Object -ComObject WScript.Shell`,
+    `$Shortcut = $WshShell.CreateShortcut("${psEscape(lnkPath)}")`,
+    `$Shortcut.TargetPath = "${psEscape(target)}"`,
+    `$Shortcut.WorkingDirectory = "${psEscape(workingDir)}"`,
+    `$Shortcut.WindowStyle = 1`,
+    `$Shortcut.Description = "Run Protovibe Project Manager"`,
+  ];
+  if (args) psLines.push(`$Shortcut.Arguments = "${psEscape(args)}"`);
+  // For the EXE path the icon is already embedded as a Win32 resource, so we
+  // skip IconLocation and let Windows pull it from the binary.
+  if (iconPath) psLines.push(`$Shortcut.IconLocation = "${psEscape(iconPath)}"`);
+  psLines.push(`$Shortcut.Save()`);
+
+  const psFile = path.join(workingDir, '_create-shortcut.ps1');
+  fs.writeFileSync(psFile, psLines.join('\r\n'), 'utf8');
+
+  try {
+    execSync(`powershell.exe -ExecutionPolicy Bypass -NoProfile -File "${psFile}"`, { stdio: 'pipe' });
+  } catch (e) {
+    log.err(`PowerShell shortcut creation failed: ${e.message}`);
+    log.err(`Hint: Windows Script Host may be disabled by group policy.`);
+    fs.rmSync(psFile, { force: true });
+    process.exit(1);
+  }
+  fs.rmSync(psFile, { force: true });
 }
 
 // ───────────────────────────── Linux ─────────────────────────────

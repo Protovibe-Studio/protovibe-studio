@@ -208,7 +208,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "Write-Host '  Press any key to open Protovibe...' -ForegroundColor Green;" ^
   "$null = $host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')"
 echo.
-start "" "%USERPROFILE%\.protovibe\Protovibe.bat"
+if exist "%USERPROFILE%\.protovibe\Protovibe.exe" (
+  start "" "%USERPROFILE%\.protovibe\Protovibe.exe"
+) else (
+  start "" "%USERPROFILE%\.protovibe\Protovibe.bat"
+)
 exit /b 0
 
 
