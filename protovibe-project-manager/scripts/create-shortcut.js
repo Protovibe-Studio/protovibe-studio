@@ -98,13 +98,14 @@ fi
 
 print_banner() {
   clear
-  printf '\\n\\033[36m'
+  printf '\\n\\033[33m   Keep this window open while using Protovibe.\\033[0m\\n\\n'
+  printf '\\033[36m'
   cat <<'LOGO'
-   ▄▄▄▄▄▄▄                                     ▄▄
-   ███▀▀███▄              ██               ▀▀  ██
-   ███▄▄███▀ ████▄ ▄███▄ ▀██▀▀ ▄███▄ ██ ██ ██  ████▄ ▄█▀█▄
-   ███▀▀▀▀   ██ ▀▀ ██ ██  ██   ██ ██ ██▄██ ██  ██ ██ ██▄█▀
-   ███       ██    ▀███▀  ██   ▀███▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄
+   ▄▄▄▄▄▄▄▄                                        ▄▄
+   ███▀▀▀███                ██                 ▀▀  ██
+   ███   ███ ████▄ ▄█████▄ ▀██▀▀ ▄█████▄ ██ ██ ██  ████▄ ▄█▀█▄
+   ███  ▀▀▀  ██ ▀▀ ██   ██  ██   ██   ██ ██▄██ ██  ██ ██ ██▄█▀
+   ███       ██    ▀█████▀  ██   ▀█████▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄
 LOGO
   printf '\\033[0m\\n'
 }
@@ -141,6 +142,7 @@ print_banner
 printf '   \\033[1mStarting dev server, please wait…\\033[0m\\n'
 printf '   The browser will open automatically when it is ready.\\n\\n'
 
+export NODE_NO_WARNINGS=1
 cd "$ROOT" && exec pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"
 `;
   fs.mkdirSync(PROTOVIBE_CONFIG_DIR, { recursive: true });
@@ -283,11 +285,35 @@ function createWindowsShortcut() {
 
   fs.mkdirSync(launcherDir, { recursive: true });
 
+  const PROTOVIBE_URL = 'http://127.0.0.1:5173';
+
+  // Banner written as a separate .ps1 so Unicode block chars survive with correct
+  // encoding (UTF-8 BOM). Embedding them in a -Command arg fails because cmd.exe
+  // reads .bat files using the system ANSI code page, corrupting the multi-byte
+  // UTF-8 sequences before PowerShell ever sees them.
+  const bannerPs1Path = path.join(launcherDir, 'banner.ps1');
+  const bannerPs1 = [
+    `$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8`,
+    `Write-Host ''`,
+    `Write-Host '   Keep this window open while using Protovibe.' -ForegroundColor Yellow`,
+    `Write-Host ''`,
+    `Write-Host '   ▄▄▄▄▄▄▄▄                                        ▄▄' -ForegroundColor Cyan`,
+    `Write-Host '   ███▀▀▀███                ██                 ▀▀  ██' -ForegroundColor Cyan`,
+    `Write-Host '   ███   ███ ████▄ ▄█████▄ ▀██▀▀ ▄█████▄ ██ ██ ██  ████▄ ▄█▀█▄' -ForegroundColor Cyan`,
+    `Write-Host '   ███  ▀▀▀  ██ ▀▀ ██   ██  ██   ██   ██ ██▄██ ██  ██ ██ ██▄█▀' -ForegroundColor Cyan`,
+    `Write-Host '   ███       ██    ▀█████▀  ██   ▀█████▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄' -ForegroundColor Cyan`,
+    `Write-Host ''`,
+  ].join('\r\n');
+  // UTF-8 BOM prefix so PowerShell reads this file as UTF-8 on all Windows locales
+  fs.writeFileSync(bannerPs1Path, '﻿' + bannerPs1, 'utf8');
+
   // Launcher reads project path from config file at runtime (path-independent).
+  // Mirrors the Mac launch.sh UX: banner, double-server guard, status messages.
   const batLines = [
     '@echo off',
-    'setlocal',
+    'setlocal EnableDelayedExpansion',
     'title Protovibe',
+    '',
     'set "CFG=%USERPROFILE%\\.protovibe\\project-path"',
     'if not exist "%CFG%" (',
     '  echo Protovibe is not configured.',
@@ -297,12 +323,26 @@ function createWindowsShortcut() {
     ')',
     'set /p PROJECT_ROOT=<"%CFG%"',
     'if not exist "%PROJECT_ROOT%" (',
-    '  echo Protovibe folder not found at:',
-    '  echo   %PROJECT_ROOT%',
+    '  echo Protovibe folder not found at: %PROJECT_ROOT%',
     '  echo If you moved it, re-run install.bat from the new location.',
     '  pause',
     '  exit /b 1',
     ')',
+    '',
+    'cls',
+    // Call the pre-written banner.ps1 (UTF-8 BOM) — avoids ANSI code page corruption
+    `powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\\.protovibe\\banner.ps1"`,
+    '',
+    // Already-running guard: hit the project-manager API; if it responds, just open browser
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 -Uri '${PROTOVIBE_URL}/api/projects' | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1`,
+    'if not errorlevel 1 (',
+    `  powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Already running -- opening browser...' -ForegroundColor Yellow; Write-Host ''"`,
+    `  start "" "${PROTOVIBE_URL}"`,
+    '  exit /b 0',
+    ')',
+    '',
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Starting dev server, please wait...' -ForegroundColor Cyan; Write-Host '   The browser will open automatically when it is ready.' -ForegroundColor Gray; Write-Host ''"`,
+    'set "NODE_NO_WARNINGS=1"',
     'cd /d "%PROJECT_ROOT%"',
     'call pnpm --dir protovibe-project-manager dev',
     'if errorlevel 1 (',
