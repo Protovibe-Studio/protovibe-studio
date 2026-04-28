@@ -33,7 +33,8 @@
       "Read(//Users/maciejsawicki/**)",
       "Bash(nvm current *)",
       "Bash(pnpm exec *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(git checkout -b fix/windows-install)"
     ]
   }
 }

@@ -8,11 +8,11 @@
     "concat:all": "node scripts/concat.js all",
     "concat:plugins": "node scripts/concat.js plugins",
     "concat:no-ui": "node scripts/concat.js no-ui",
-    "postinstall": "pnpm --dir plugins/protovibe install && rm -rf plugins/protovibe/dist && pnpm --dir plugins/protovibe run build",
+    "postinstall": "pnpm --dir plugins/protovibe install && node -e \"require('fs').rmSync('plugins/protovibe/dist',{recursive:true,force:true})\" && pnpm --dir plugins/protovibe run build",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
