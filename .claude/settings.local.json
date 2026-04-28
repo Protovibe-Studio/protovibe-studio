@@ -33,7 +33,12 @@
       "Read(//Users/maciejsawicki/**)",
       "Bash(nvm current *)",
       "Bash(pnpm exec *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(git checkout -b fix/windows-install)",
+      "Bash(/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe /nologo /target:exe /optimize+ /codepage:65001 \"/out:/tmp/Protovibe.exe\" \"/win32icon:protovibe-project-manager/scripts/assets/icon.ico\" \"protovibe-project-manager/scripts/launcher/Protovibe.cs\")",
+      "PowerShell(Test-Path *)",
+      "Bash(node *)",
+      "WebSearch"
     ]
   }
 }

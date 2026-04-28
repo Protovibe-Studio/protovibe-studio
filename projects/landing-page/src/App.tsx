@@ -735,7 +735,7 @@ export default function App() {
       <div className="relative z-[2] max-w-[1240px] mx-auto px-[20px] md:px-[40px]">
         {/* Hero */}
         <section className="relative pt-[60px] pb-[80px] text-center">
-          <h1 className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out font-[Syne,ui-sans-serif,system-ui,sans-serif] text-[clamp(44px,6.6vw,84px)] leading-[0.98] text-foreground-strong mt-[24px] max-w-[14ch] mx-auto text-balance tracking-tighter font-bold">
+          <h1 className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out font-[Syne,ui-sans-serif,system-ui,sans-serif] text-[clamp(44px,6.6vw,84px)] leading-[0.98] text-foreground-strong max-w-[14ch] text-balance tracking-tighter font-bold mt-6 mx-auto">
             {parts.before}
             <span className="text-foreground-primary">{parts.accent}</span>
             {parts.after}
