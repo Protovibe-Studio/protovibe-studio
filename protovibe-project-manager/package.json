@@ -6,6 +6,7 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "vite",
+    "dev:watch": "vite --mode watch",
     "build": "vite build",
     "preview": "vite preview",
     "create-shortcut": "node scripts/create-shortcut.js"

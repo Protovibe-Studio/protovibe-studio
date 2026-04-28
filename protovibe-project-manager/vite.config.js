@@ -1290,13 +1290,18 @@ function autoOpenPlugin() {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), projectManagerPlugin(), autoOpenPlugin()],
-  server: {
-    host: '127.0.0.1',
-    port: 5173,
-    watch: {
-      ignored: ['**/projects/**', '**/projects.json'],
+// `pnpm dev` is the end-user runtime (launched by Protovibe.exe) — HMR and the
+// file watcher are pure overhead there, so we disable them. `pnpm dev:watch`
+// (mode=watch) keeps the dev experience for working on the app itself.
+export default defineConfig(({ mode }) => {
+  const watchMode = mode === 'watch'
+  return {
+    plugins: [react(), tailwindcss(), projectManagerPlugin(), autoOpenPlugin()],
+    server: {
+      host: '127.0.0.1',
+      port: 5173,
+      hmr: watchMode,
+      watch: watchMode ? { ignored: ['**/projects/**', '**/projects.json'] } : null,
     },
-  },
+  }
 })
