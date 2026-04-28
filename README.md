@@ -27,7 +27,7 @@ curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/ini
   | PROTOVIBE_DIR=~/code/protovibe bash
 ```
 
-The init script installs git if missing (via `xcode-select --install` on macOS, `winget install Git.Git` on Windows), clones the repo, then hands off to `install.sh` / `install.bat` which install nvm/Node/pnpm, install all dependencies, and create a desktop shortcut.
+The init script installs git if missing (via `xcode-select --install` on macOS, `winget install Git.Git` on Windows), clones the repo, then hands off to `install.sh` / `install.bat` which install Node + pnpm into `~/.local/`, install all dependencies, and create a desktop shortcut. No sudo required; if you already have Node ≥ v22 on PATH it's reused.
 
 ### Already cloned the repo?
 

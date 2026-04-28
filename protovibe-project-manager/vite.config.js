@@ -1158,7 +1158,8 @@ function scheduleManagerUpdate(_req, res) {
 
   // The helper waits for this very process to exit (tracked by PID), then
   // runs ./download-newest-version.sh --only=manager and re-launches the dev
-  // server. `bash -lc` loads the user's shell profile so nvm/pnpm are on PATH.
+  // server. `bash -lc` loads the user's shell profile so ~/.local/bin (where
+  // install.sh puts node/pnpm) is on PATH.
   const myPid = process.pid
   const helperCmd = [
     `while kill -0 ${myPid} 2>/dev/null; do sleep 0.5; done`,

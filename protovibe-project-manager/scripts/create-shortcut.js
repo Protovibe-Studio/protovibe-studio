@@ -111,22 +111,12 @@ if curl -fsS --max-time 2 "\${PROTOVIBE_URL}api/projects" >/dev/null 2>&1; then
   exit 0
 fi
 
-# Bootstrap nvm/pnpm silently so the user never sees the plumbing.
-{
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  if command -v nvm >/dev/null 2>&1; then
-    nvm use default >/dev/null 2>&1 || nvm use --lts >/dev/null 2>&1 || nvm use node >/dev/null 2>&1 || true
-  fi
-  if ! command -v pnpm >/dev/null 2>&1; then
-    source "$HOME/.zshrc" >/dev/null 2>&1 || source "$HOME/.bash_profile" >/dev/null 2>&1 || true
-  fi
-  if ! command -v pnpm >/dev/null 2>&1 && [ -d "$NVM_DIR/versions/node" ]; then
-    for d in "$NVM_DIR"/versions/node/*/bin; do
-      [ -x "$d/pnpm" ] && export PATH="$d:$PATH" && break
-    done
-  fi
-} >/dev/null 2>&1
+# Make the bundled Node + pnpm visible without relying on the user's rc
+# being sourced. install.sh symlinks them into ~/.local/bin.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
 
 print_banner
 printf '   \\033[1mStarting dev server, please wait…\\033[0m\\n'
@@ -346,7 +336,7 @@ function createLinuxShortcut() {
   const iconPath = checkIcon('icon.png');
 
   // Path-independent: read config at runtime.
-  const execLine = `bash -c 'CFG="$HOME/.protovibe/project-path"; if [ ! -f "$CFG" ]; then echo "Protovibe not configured. Run ./install.sh first."; exec bash; fi; ROOT=$(cat "$CFG"); if [ ! -d "$ROOT" ]; then echo "Protovibe folder not found at $ROOT. Re-run ./install.sh."; exec bash; fi; export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; if command -v nvm >/dev/null 2>&1; then nvm use default >/dev/null 2>&1 || nvm use --lts >/dev/null 2>&1 || nvm use node >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1; then source ~/.bashrc >/dev/null 2>&1 || true; fi; if ! command -v pnpm >/dev/null 2>&1 && [ -d "$NVM_DIR/versions/node" ]; then for d in "$NVM_DIR"/versions/node/*/bin; do [ -x "$d/pnpm" ] && export PATH="$d:$PATH" && break; done; fi; cd "$ROOT" && pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"; exec bash'`;
+  const execLine = `bash -c 'CFG="$HOME/.protovibe/project-path"; if [ ! -f "$CFG" ]; then echo "Protovibe not configured. Run ./install.sh first."; exec bash; fi; ROOT=$(cat "$CFG"); if [ ! -d "$ROOT" ]; then echo "Protovibe folder not found at $ROOT. Re-run ./install.sh."; exec bash; fi; case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac; cd "$ROOT" && pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"; exec bash'`;
 
   const lines = [
     `[Desktop Entry]`,

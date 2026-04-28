@@ -203,15 +203,13 @@ fi
 # ── 6. pnpm install in updated dirs ─────────────────────────────────────────
 ensure_pnpm() {
   if command -v pnpm >/dev/null 2>&1; then return 0; fi
-  export NVM_DIR="$HOME/.nvm"
-  # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  command -v nvm >/dev/null 2>&1 && (nvm use default >/dev/null 2>&1 || nvm use --lts >/dev/null 2>&1 || true)
-  if ! command -v pnpm >/dev/null 2>&1 && [ -d "$NVM_DIR/versions/node" ]; then
-    for d in "$NVM_DIR"/versions/node/*/bin; do
-      [ -x "$d/pnpm" ] && export PATH="$d:$PATH" && break
-    done
-  fi
+  # install.sh symlinks node/pnpm into ~/.local/bin. Prepend it if the
+  # current shell hasn't sourced the user's rc file yet (e.g. when launched
+  # from a GUI helper).
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) export PATH="$HOME/.local/bin:$PATH" ;;
+  esac
   command -v pnpm >/dev/null 2>&1
 }
 

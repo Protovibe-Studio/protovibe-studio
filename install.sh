@@ -8,10 +8,12 @@
 #  - Friendly error messages with hints (proxy, permissions)
 #  - Self-test after install
 #  - Path-independent shortcut (reads ~/.protovibe/project-path at runtime)
+#
+# Node is installed without sudo and without Xcode CLT: we download the
+# official Node tarball from nodejs.org into ~/.local/share/protovibe/ and
+# symlink the binaries into ~/.local/bin. If the user already has a recent
+# enough Node on PATH, we use it instead and touch nothing.
 set -o pipefail
-# Note: intentionally NOT using `set -u`. nvm.sh isn't nounset-clean
-# (e.g. references $1 unconditionally), and sourcing it under -u aborts
-# the script. All our own var reads use ${VAR:-} defaults already.
 
 # ── colors ───────────────────────────────────────────────────────────────────
 if [ -t 1 ]; then
@@ -73,7 +75,7 @@ on_error() {
   echo ""
   echo "Hints:"
   case "$CURRENT_STEP" in
-    *internet*|*nvm*|*pnpm\ install*)
+    *internet*|*download*|*pnpm\ install*)
       echo "  • Network step. If you're behind a corporate proxy:"
       echo "      export HTTPS_PROXY=http://your.proxy:port"
       echo "      export HTTP_PROXY=http://your.proxy:port"
@@ -130,68 +132,128 @@ touch "$RC_FILE" 2>/dev/null || {
   exit 1
 }
 
-# ── 5. nvm ───────────────────────────────────────────────────────────────────
-step "install/load nvm"
-NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-export NVM_DIR
+# ── 5. Node ──────────────────────────────────────────────────────────────────
+NODE_MAJOR="$(tr -d ' \t\r\n' < "$SCRIPT_DIR/.nvmrc" 2>/dev/null || echo 22)"
+LOCAL_BIN="$HOME/.local/bin"
+LOCAL_SHARE="$HOME/.local/share/protovibe"
 
-if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-  say "nvm not found — installing v0.40.3..."
-  curl -fsSL -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+step "check for existing Node ≥ v$NODE_MAJOR"
+USE_EXISTING_NODE=0
+if command -v node >/dev/null 2>&1; then
+  EXISTING_VER="$(node -p 'process.versions.node' 2>/dev/null || echo '')"
+  EXISTING_MAJOR="${EXISTING_VER%%.*}"
+  if [ -n "$EXISTING_MAJOR" ] && [ "$EXISTING_MAJOR" -ge "$NODE_MAJOR" ] 2>/dev/null; then
+    ok "Found existing Node v$EXISTING_VER at $(command -v node) — using it."
+    USE_EXISTING_NODE=1
+  else
+    say "Existing Node v${EXISTING_VER:-?} is older than v$NODE_MAJOR — installing bundled Node."
+  fi
 fi
 
-# shellcheck source=/dev/null
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+if [ "$USE_EXISTING_NODE" -ne 1 ]; then
+  step "download Node v$NODE_MAJOR (no sudo, into ~/.local)"
 
-if ! command -v nvm >/dev/null 2>&1; then
-  err "nvm could not be loaded after installation."
-  err "Open a new terminal and re-run ./install.sh"
-  exit 1
+  case "$OSTYPE" in
+    darwin*) NODE_OS="darwin" ;;
+    linux*)  NODE_OS="linux" ;;
+    *) err "Unsupported OS for tarball install: $OSTYPE"; exit 1 ;;
+  esac
+  case "$(uname -m)" in
+    arm64|aarch64) NODE_ARCH="arm64" ;;
+    x86_64|amd64)  NODE_ARCH="x64" ;;
+    *) err "Unsupported architecture: $(uname -m)"; exit 1 ;;
+  esac
+
+  # Discover the latest patch of v$NODE_MAJOR via SHASUMS256.txt — that file
+  # also gives us a checksum to verify the download against.
+  SHA_URL="https://nodejs.org/dist/latest-v${NODE_MAJOR}.x/SHASUMS256.txt"
+  SHA_LINE="$(curl -fsSL "$SHA_URL" | grep -E "  node-v[^ ]+-${NODE_OS}-${NODE_ARCH}\.tar\.gz$" | head -n1)"
+  if [ -z "$SHA_LINE" ]; then
+    err "Could not find Node tarball for $NODE_OS-$NODE_ARCH at $SHA_URL"
+    exit 1
+  fi
+  EXPECTED_SHA="${SHA_LINE%% *}"
+  TARBALL_NAME="${SHA_LINE##* }"
+  NODE_DIR_NAME="${TARBALL_NAME%.tar.gz}"
+  TARBALL_URL="https://nodejs.org/dist/latest-v${NODE_MAJOR}.x/${TARBALL_NAME}"
+  NODE_INSTALL_DIR="$LOCAL_SHARE/$NODE_DIR_NAME"
+
+  if [ -x "$NODE_INSTALL_DIR/bin/node" ]; then
+    say "Node already extracted at $NODE_INSTALL_DIR — skipping download."
+  else
+    mkdir -p "$LOCAL_SHARE"
+    TMP_TARBALL="$(mktemp -t protovibe-node).tar.gz"
+    say "Downloading $TARBALL_NAME (~50 MB)…"
+    curl -fsSL -o "$TMP_TARBALL" "$TARBALL_URL"
+
+    if command -v shasum >/dev/null 2>&1; then
+      ACTUAL_SHA="$(shasum -a 256 "$TMP_TARBALL" | awk '{print $1}')"
+    elif command -v sha256sum >/dev/null 2>&1; then
+      ACTUAL_SHA="$(sha256sum "$TMP_TARBALL" | awk '{print $1}')"
+    else
+      err "Neither shasum nor sha256sum available — cannot verify download."
+      rm -f "$TMP_TARBALL"; exit 1
+    fi
+    if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+      err "Checksum mismatch for $TARBALL_NAME"
+      err "  expected: $EXPECTED_SHA"
+      err "  actual:   $ACTUAL_SHA"
+      rm -f "$TMP_TARBALL"; exit 1
+    fi
+
+    say "Extracting to $LOCAL_SHARE…"
+    tar -xzf "$TMP_TARBALL" -C "$LOCAL_SHARE"
+    rm -f "$TMP_TARBALL"
+  fi
+
+  step "symlink node/npm/npx/corepack into $LOCAL_BIN"
+  mkdir -p "$LOCAL_BIN"
+  for bin in node npm npx corepack; do
+    src="$NODE_INSTALL_DIR/bin/$bin"
+    if [ -x "$src" ] || [ -L "$src" ]; then
+      ln -sf "$src" "$LOCAL_BIN/$bin"
+    fi
+  done
+
+  # Make node visible in *this* shell so the subsequent steps work without
+  # requiring the user to open a new terminal.
+  export PATH="$LOCAL_BIN:$PATH"
+  ok "Installed Node from $NODE_DIR_NAME"
 fi
-ok "nvm $(nvm --version) ready."
 
-step "persist nvm in $RC_FILE"
-if ! grep -q 'NVM_DIR' "$RC_FILE" 2>/dev/null; then
-  cat >> "$RC_FILE" << 'NVMBLOCK'
+step "ensure ~/.local/bin is on PATH ($RC_FILE)"
+if ! grep -q '\.local/bin' "$RC_FILE" 2>/dev/null; then
+  cat >> "$RC_FILE" << 'PATHBLOCK'
 
-# nvm — added by Protovibe install.sh
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-NVMBLOCK
-  ok "nvm will load automatically in new terminals."
+# Protovibe — added by install.sh
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+PATHBLOCK
+  ok "Added ~/.local/bin to PATH in $RC_FILE."
 else
-  say "nvm already configured — skipping."
-fi
-
-# ── 6. Node ──────────────────────────────────────────────────────────────────
-step "install Node from .nvmrc"
-NODE_VERSION="$(cat "$SCRIPT_DIR/.nvmrc" 2>/dev/null || echo 22)"
-nvm install "$NODE_VERSION" >/dev/null
-nvm use "$NODE_VERSION" >/dev/null
-
-# Ensure 'default' alias points to a real, installed version. The launcher
-# relies on `nvm use default`; without this alias it silently fails and pnpm
-# never lands on PATH. nvm doesn't always create 'default' on its own (e.g.
-# when nvm was installed previously without a node install), so set it
-# unconditionally to whatever we just activated.
-ACTIVE_NODE="$(nvm version)"
-CURRENT_DEFAULT="$(nvm alias default 2>/dev/null | awk '{print $3}')"
-if [ -z "$CURRENT_DEFAULT" ] || [ "$CURRENT_DEFAULT" = "N/A" ] || ! [ -d "$NVM_DIR/versions/node/$CURRENT_DEFAULT" ]; then
-  nvm alias default "$ACTIVE_NODE" >/dev/null
-  ok "Set nvm 'default' alias → $ACTIVE_NODE"
-else
-  say "nvm 'default' alias already set → $CURRENT_DEFAULT"
+  say "~/.local/bin already on PATH in $RC_FILE — skipping."
 fi
 ok "Node $(node --version) / npm $(npm --version)"
 
-# ── 7. pnpm ──────────────────────────────────────────────────────────────────
+# ── 6. pnpm ──────────────────────────────────────────────────────────────────
 step "enable pnpm via corepack"
-corepack enable pnpm >/dev/null 2>&1 || warn "corepack enable returned non-zero — continuing"
+# When we use a system-installed Node, default to the shim location next to
+# corepack itself. When we installed our own Node into ~/.local, point shims
+# at ~/.local/bin so they land on PATH alongside our node symlink.
+if [ "$USE_EXISTING_NODE" -ne 1 ]; then
+  mkdir -p "$LOCAL_BIN"
+  corepack enable --install-directory "$LOCAL_BIN" pnpm >/dev/null 2>&1 \
+    || warn "corepack enable returned non-zero — continuing"
+else
+  corepack enable pnpm >/dev/null 2>&1 \
+    || warn "corepack enable returned non-zero — continuing"
+fi
 corepack prepare pnpm@9.15.9 --activate >/dev/null
 ok "pnpm $(pnpm --version) ready."
 
-# ── 8. Install workspaces ────────────────────────────────────────────────────
+# ── 7. Install workspaces ────────────────────────────────────────────────────
 run_pnpm_install() {
   local dir=$1
   local name=$2
@@ -209,11 +271,11 @@ run_pnpm_install "$PM_DIR" "protovibe-project-manager"
 run_pnpm_install "$TPL_DIR" "protovibe-project-template"
 ok "All deps installed."
 
-# ── 9. Create shortcut ───────────────────────────────────────────────────────
+# ── 8. Create shortcut ───────────────────────────────────────────────────────
 step "create desktop shortcut"
 node "$PM_DIR/scripts/create-shortcut.js"
 
-# ── 10. Self-test ────────────────────────────────────────────────────────────
+# ── 9. Self-test ────────────────────────────────────────────────────────────
 step "self-test"
 self_test_failed=0
 node -v >/dev/null 2>&1 || { err "self-test: node missing"; self_test_failed=1; }
@@ -233,7 +295,7 @@ if [ "$self_test_failed" -ne 0 ]; then
 fi
 ok "Self-test passed: node, pnpm, vite, plugin dist all good."
 
-# ── 11. Final guidance ───────────────────────────────────────────────────────
+# ── 10. Final guidance ───────────────────────────────────────────────────────
 echo ""
 echo "────────────────────────────────────────────────────────────"
 case "$OSTYPE" in
