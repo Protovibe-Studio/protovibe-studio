@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Protovibe bootstrap (macOS / Linux)
+# Protovibe init-installation-via-curl (macOS / Linux)
 #
 # One-liner:
-#   curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.sh | bash
 #
 # Custom install location:
-#   curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.sh | PROTOVIBE_DIR=~/code/protovibe bash
+#   curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.sh | PROTOVIBE_DIR=~/code/protovibe bash
 set -euo pipefail
 
 REPO_URL="${PROTOVIBE_REPO:-https://github.com/Protovibe-Studio/protovibe-studio.git}"

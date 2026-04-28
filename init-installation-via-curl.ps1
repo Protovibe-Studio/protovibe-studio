@@ -1,11 +1,11 @@
-# Protovibe bootstrap (Windows PowerShell)
+# Protovibe init-installation-via-curl (Windows PowerShell)
 #
 # One-liner (run in PowerShell):
-#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.ps1 | iex
+#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.ps1 | iex
 #
 # Custom install location:
 #   $env:PROTOVIBE_DIR = "C:\code\protovibe"
-#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/bootstrap.ps1 | iex
+#   iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
 
@@ -30,7 +30,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
   $sysPath  = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
   $env:Path = "$sysPath;$userPath"
   if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Fail "Git was installed but is not on PATH in this session. Open a new PowerShell window and re-run the bootstrap."
+    Fail "Git was installed but is not on PATH in this session. Open a new PowerShell window and re-run the installer."
   }
 }
 
