@@ -658,7 +658,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
   const cornerVal = (key: 'TL' | 'TR' | 'BR' | 'BL') => {
     const raw = v[`radius${key}`];
-    return raw && raw !== '-' ? raw : '';
+    return raw && raw !== '-' ? cleanVal(raw) : '';
   };
 
   // ── Border side value helper ────────────────────────────────────────────────
@@ -1016,7 +1016,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {/* All corners */}
         <RadiusAutocomplete
-          value={v.radius === '-' ? '' : v.radius}
+          value={cleanVal(v.radius)}
           onChange={(val, prevVal) => handleRadiusUpdate('all', val, prevVal)}
           placeholder="—"
           icon={<CornerAllIcon />}

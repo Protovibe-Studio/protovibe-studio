@@ -58,7 +58,7 @@ export interface ActiveModifiers {
 
 export function filterClassesByContext(classesArray: string[], activeModifiers: ActiveModifiers) {
   const expectedDataMods = Object.entries(activeModifiers.dataAttrs || {})
-    .filter(([k, v]) => v !== null && v !== 'none' && v !== '__unset__')
+    .filter(([, v]) => v !== null && v !== 'none' && v !== '__unset__')
     .map(([k, v]) => `data-[${k}=${v}]`);
 
   const expectedBp = activeModifiers.breakpoint && activeModifiers.breakpoint !== 'none' ? activeModifiers.breakpoint : null;
@@ -99,6 +99,44 @@ export function buildContextPrefix(activeModifiers: ActiveModifiers) {
     activeModifiers.pseudoClasses.forEach(i => p += `${i}:`);
   }
   return p;
+}
+
+const LENGTH_UNIT_RE = /^-?[0-9]*\.?[0-9]+(px|rem|em|vh|vw|vmin|vmax|svh|svw|lvh|lvw|dvh|dvw|ch|ex|%|fr|cm|mm|in|pt|pc|deg|rad|turn|s|ms)$/i;
+const COLOR_PREFIX_RE = /^(#|rgb\(|rgba\(|hsl\(|hsla\(|oklch\(|oklab\(|lab\(|lch\(|color\()/i;
+const CSS_FUNC_RE = /^(var\(|calc\(|min\(|max\(|clamp\(|env\()/i;
+
+const stripBrackets = (val: string) => val.replace(/^\[|\]$/g, '');
+
+export function isArbitraryLength(val: string): boolean {
+  if (!val.startsWith('[') || !val.endsWith(']')) return false;
+  const inner = stripBrackets(val);
+  if (inner.startsWith('length:')) return true;
+  if (inner.startsWith('color:') || inner.startsWith('family-name:') || inner.startsWith('number:')) return false;
+  if (LENGTH_UNIT_RE.test(inner)) return true;
+  if (CSS_FUNC_RE.test(inner)) return true;
+  return false;
+}
+
+export function isArbitraryColor(val: string): boolean {
+  if (!val.startsWith('[') || !val.endsWith(']')) return false;
+  const inner = stripBrackets(val);
+  if (inner.startsWith('color:')) return true;
+  if (inner.startsWith('length:') || inner.startsWith('family-name:') || inner.startsWith('number:')) return false;
+  return COLOR_PREFIX_RE.test(inner);
+}
+
+export function isArbitraryNumber(val: string): boolean {
+  if (!val.startsWith('[') || !val.endsWith(']')) return false;
+  const inner = stripBrackets(val);
+  if (inner.startsWith('number:')) return true;
+  return /^[0-9]+(\.[0-9]+)?$/.test(inner);
+}
+
+export function stripTypedPrefix(val: string): string {
+  if (!val.startsWith('[') || !val.endsWith(']')) return val;
+  const inner = stripBrackets(val);
+  const stripped = inner.replace(/^(length:|color:|family-name:|number:)/, '');
+  return `[${stripped}]`;
 }
 
 export function extractVisualValues(classesArray: (string | ClassInfo)[], textSizes?: string[]) {
@@ -195,7 +233,12 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (['uppercase', 'lowercase', 'capitalize', 'normal-case'].includes(cls)) { v.textTransform = cls; orig.textTransform_original = originalClass; }
     else if (cls.startsWith('font-')) {
       const val = cls.replace('font-', '');
-      if (weights.includes(val) || val.startsWith('[')) { v.fontWeight = val; orig.fontWeight_original = originalClass; }
+      if (val.startsWith('[')) {
+        const stripped = stripTypedPrefix(val);
+        if (isArbitraryNumber(val)) { v.fontWeight = stripped; orig.fontWeight_original = originalClass; }
+        else { v.fontFamily = stripped; orig.fontFamily_original = originalClass; }
+      }
+      else if (weights.includes(val)) { v.fontWeight = val; orig.fontWeight_original = originalClass; }
       else { v.fontFamily = val; orig.fontFamily_original = originalClass; }
     }
     else if (cls.startsWith('leading-')) { v.leading = cls.replace('leading-', ''); orig.leading_original = originalClass; }
@@ -203,8 +246,14 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (cls.startsWith('text-')) {
       const val = cls.replace('text-', '');
       if (textAligns.includes(val)) { v.textAlign = val; orig.textAlign_original = originalClass; }
-      else if (sizes.includes(val) || /^\[[0-9.]+(px|rem|em|%)\]$/.test(val)) { v.textSize = val; orig.textSize_original = originalClass; }
       else if (['balance', 'pretty', 'nowrap', 'wrap'].includes(val)) { v.textWrap = val; orig.textWrap_original = originalClass; }
+      else if (val.startsWith('[')) {
+        const stripped = stripTypedPrefix(val);
+        if (isArbitraryLength(val)) { v.textSize = stripped; orig.textSize_original = originalClass; }
+        else if (isArbitraryColor(val)) { v.textColor = stripped; orig.textColor_original = originalClass; }
+        else { v.textColor = stripped; orig.textColor_original = originalClass; }
+      }
+      else if (sizes.includes(val)) { v.textSize = val; orig.textSize_original = originalClass; }
       else { v.textColor = val; orig.textColor_original = originalClass; }
     }
     else if (['bg-auto', 'bg-cover', 'bg-contain'].includes(cls) || cls.startsWith('bg-[length:')) { v.bgSize = cls; orig.bgSize_original = originalClass; }
@@ -223,8 +272,11 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (cls.startsWith('rounded-bl-')) { v.radiusBL = cls.replace('rounded-bl-', ''); orig.radiusBL_original = originalClass; }
     else if (cls.startsWith('rounded')) { v.radius = cls === 'rounded' ? 'DEFAULT' : cls.replace('rounded-', ''); orig.radius_original = originalClass; }
     else if (cls.startsWith('border')) {
-      if (/^border-(0|2|4|8)$/.test(cls) || cls === 'border' || /^border-\[.*(?:px|rem|em)\]$/.test(cls)) {
-        v.borderWidth = cls === 'border' ? 'DEFAULT' : cls.replace('border-', '');
+      const borderRest = cls.replace(/^border-?/, '');
+      const isBorderArbLength = borderRest.startsWith('[') && isArbitraryLength(borderRest);
+      if (/^border-(0|2|4|8)$/.test(cls) || cls === 'border' || isBorderArbLength) {
+        const raw = cls === 'border' ? 'DEFAULT' : cls.replace('border-', '');
+        v.borderWidth = isBorderArbLength ? stripTypedPrefix(raw) : raw;
         orig.borderWidth_original = originalClass;
       } else if (/^border-[trbl]$/.test(cls) || /^border-[trbl]-(0|2|4|8)$/.test(cls)) {
         const parts = cls.split('-');
@@ -302,8 +354,13 @@ export const makeSafe = (v: string) => {
   const core = isNeg ? s.slice(1) : s;
   const sign = isNeg ? '-' : '';
 
-  if (/^[0-9.]+(px|rem|em|vh|vw|%)$/.test(core)) return `${sign}[${core}]`;
-  if (/^(#|rgb|rgba|hsl)/.test(core)) return `${sign}[${core}]`;
+  if (core.startsWith('[') && core.endsWith(']')) return s;
+
+  if (LENGTH_UNIT_RE.test(core)) return `${sign}[${core}]`;
+  if (COLOR_PREFIX_RE.test(core)) return `${sign}[${core}]`;
+  if (CSS_FUNC_RE.test(core)) return `${sign}[${core}]`;
+  if (/[\s'"(),#]/.test(core)) return `${sign}[${core}]`;
+
   return s;
 };
 

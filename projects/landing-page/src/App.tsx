@@ -751,9 +751,7 @@ export default function App() {
               <span className="transition-transform duration-200 group-hover:translate-x-[3px]">→</span>
             </button>
             <a className="appearance-none border-0 inline-flex items-center gap-[8px] text-[15px] font-medium text-foreground-strong px-[20px] py-[13px] rounded-[10px] bg-background-tertiary transition-colors duration-150 hover:bg-background-tertiary-hover" href="#">
-              <span className="text-[14px] text-foreground-primary">★</span>
-              Star on GitHub
-              <span className="font-['JetBrains_Mono',monospace] text-[12px] text-foreground-secondary ml-[4px] pl-[10px] border-l border-border-strong">4.2k</span>
+              <span className="text-[14px] text-foreground-primary">★</span> Star on GitHub <span className="font-['JetBrains_Mono',monospace] text-[12px] text-foreground-secondary ml-[4px] pl-[10px] border-l border-border-strong">4.1k</span>
             </a>
           </div>
           <div className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out mt-[24px] flex justify-center">
