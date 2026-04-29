@@ -212,9 +212,10 @@ export interface ColorPickerProps {
   anchorRect: DOMRect;
   onSave: (oklchValue: string) => void;
   onCancel: () => void;
+  onLivePreview?: (oklchValue: string) => void;
 }
 
-export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, onSave, onCancel }: ColorPickerProps) {
+export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, onSave, onCancel, onLivePreview }: ColorPickerProps) {
   const parsed = parseOklch(initialValue) ?? cssColorToOklch(initialValue);
   const initL = parsed ? parsed[0] : 0.5;
   const initC = parsed ? parsed[1] : 0.1;
@@ -253,6 +254,10 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
   const currentHex = oklchToHex(L, C, H, A);
   const currentOklch = formatOklch(L, C, H, A);
   const currentRgb = oklchToRgbString(L, C, H, A);
+
+  useEffect(() => {
+    onLivePreview?.(currentOklch);
+  }, [currentOklch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Sync inputs FROM sliders (only when the input is not focused) ──
   useEffect(() => { if (!lFocused) setLRaw((L * 100).toFixed(1)); }, [L]);      // eslint-disable-line react-hooks/exhaustive-deps

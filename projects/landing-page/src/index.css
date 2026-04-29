@@ -22,7 +22,7 @@
  --background-secondary: rgba(255,255,255,0.035);
  --background-secondary-hover: rgba(255,255,255,0.06);
  --background-secondary-pressed: rgba(255,255,255,0.08);
- --background-tertiary: rgba(255,255,255,0.06);
+ --background-tertiary: oklch(100% 0.044 331.6 / 0.09);
  --background-tertiary-hover: rgba(255,255,255,0.10);
  --background-tertiary-pressed: rgba(255,255,255,0.14);
  --background-elevated: rgba(255,255,255,0.06);

@@ -243,6 +243,12 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
+        {/* pv-block-start:ex3xz0 */}
+        <Card className="bg-background-tertiary-hover" data-pv-block="ex3xz0">
+          {/* pv-editable-zone-start:xqhvyt */}
+          {/* pv-editable-zone-end:xqhvyt */}
+        </Card>
+        {/* pv-block-end:ex3xz0 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

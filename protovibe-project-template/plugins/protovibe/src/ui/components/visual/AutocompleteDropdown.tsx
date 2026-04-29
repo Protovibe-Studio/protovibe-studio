@@ -7,6 +7,7 @@ import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosi
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { ColorPicker } from '../ColorPicker';
 import { updateThemeColor } from '../../api/client';
+import { createColorLivePreview } from '../../utils/colorPreview';
 
 export interface AutocompleteOption {
   val: string;
@@ -250,6 +251,13 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
       setLocalValue(renderableOptions[prev].val);
     }
   };
+
+  const livePreviewRef = useRef(createColorLivePreview());
+  const applyLivePreview = (tokenName: string, themeMode: ColorMode, oklchValue: string) =>
+    livePreviewRef.current.apply(tokenName, themeMode, oklchValue);
+  const clearLivePreview = () => livePreviewRef.current.clear();
+
+  useEffect(() => clearLivePreview, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSemanticToken = (opt: AutocompleteOption) =>
     isColorDropdown && (opt.lightValue !== undefined || opt.darkValue !== undefined);
@@ -508,6 +516,9 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           themeMode={editingToken.themeMode}
           initialValue={editingToken.initialValue}
           anchorRect={editingToken.anchorRect}
+          onLivePreview={(oklchValue) => {
+            applyLivePreview(editingToken.tokenName, editingToken.themeMode, oklchValue);
+          }}
           onSave={async (oklchValue) => {
             try {
               await updateThemeColor(editingToken.tokenName, editingToken.themeMode, oklchValue);
@@ -515,10 +526,14 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             } catch (err) {
               console.error('[protovibe] Failed to update color:', err);
             } finally {
+              clearLivePreview();
               setEditingToken(null);
             }
           }}
-          onCancel={() => setEditingToken(null)}
+          onCancel={() => {
+            clearLivePreview();
+            setEditingToken(null);
+          }}
         />
       )}
     </div>

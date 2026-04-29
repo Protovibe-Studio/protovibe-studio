@@ -202,7 +202,7 @@ function LogoReact() {
   return (
     <>
       {/* pv-block-start:b00037 */}
-      <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
           {/* pv-block-start:b00038 */}
           <svg data-pv-block="b00038" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -225,7 +225,7 @@ function LogoReact() {
       {/* pv-block-end:eum4ww */}
 
       {/* pv-block-start:uxnkm4 */}
-      <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
           {/* pv-block-start:8wvffo */}
           <svg data-pv-block="8wvffo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -253,7 +253,7 @@ function LogoTailwind() {
   return (
     <>
       {/* pv-block-start:b00040 */}
-      <div data-pv-block="b00040" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00040" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00011 */}
           {/* pv-block-start:b00041 */}
           <svg data-pv-block="b00041" viewBox="0 0 32 20" width="28" height="18" aria-hidden="true">
@@ -274,7 +274,7 @@ function LogoVite() {
   return (
     <>
       {/* pv-block-start:b00043 */}
-      <div data-pv-block="b00043" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00043" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00012 */}
           {/* pv-block-start:b00044 */}
           <svg data-pv-block="b00044" viewBox="0 0 24 24" width="20" height="22" aria-hidden="true">
@@ -1742,7 +1742,7 @@ export default function App() {
                       </button>
                       {/* pv-block-end:b00308 */}
                       {/* pv-block-start:b00309 */}
-                      <a data-pv-block="b00309" className="appearance-none border-0 inline-flex items-center gap-[8px] text-[15px] font-medium text-foreground-strong px-[20px] py-[13px] rounded-[10px] bg-background-tertiary transition-colors duration-150 hover:bg-background-tertiary-hover justify-center" href="#">
+                      <a data-pv-block="b00309" className="appearance-none border-0 inline-flex items-center gap-[8px] text-[15px] font-medium text-foreground-strong px-[20px] py-[13px] rounded-[10px] transition-colors duration-150 hover:bg-background-tertiary-hover justify-center bg-background-tertiary" href="#">
                         <span className="text-[14px] text-foreground-primary">★</span> Star on GitHub <span className="font-mono text-[12px] text-foreground-secondary ml-[4px] pl-[10px] border-l border-border-strong">4.1k</span>
                       </a>
                       {/* pv-block-end:b00309 */}
@@ -1824,7 +1824,7 @@ export default function App() {
                   {/* pv-editable-zone-start:z00114 */}
                     {/* pv-block-start:b00324 */}
                     <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                      Protovibe combines the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro design system.
+                      Protovibe combines the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary">design system</span>.
                     </p>
                     {/* pv-block-end:b00324 */}
                     
