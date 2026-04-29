@@ -324,12 +324,30 @@ export const BlockEditor: React.FC = () => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 editorRef.current?.blur();
+                return;
+              }
+              // macOS Opt+Space (and Win Alt+Space) — force a literal nbsp.
+              // Some browsers swallow this combo or insert a normal space, so
+              // we intercept and use insertText which preserves U+00A0.
+              if ((e.altKey || e.metaKey) && (e.key === ' ' || e.code === 'Space')) {
+                e.preventDefault();
+                document.execCommand('insertText', false, ' ');
               }
             }}
+            onPaste={(e) => {
+              // Default paste runs the clipboard through the browser's HTML
+              // sanitizer, which collapses nbsp into regular space. Reading
+              // text/plain and inserting it ourselves preserves U+00A0 verbatim.
+              const text = e.clipboardData?.getData('text/plain');
+              if (text === undefined) return;
+              e.preventDefault();
+              document.execCommand('insertText', false, text);
+            }}
             style={{
-              color: isEmpty ? theme.text_tertiary : theme.accent_default,
+              color: isEmpty ? theme.text_tertiary : theme.text_default,
               padding: '6px',
-              fontSize: '11px',
+              fontSize: '12px',
+              lineHeight: '135%',
               fontFamily: 'inherit',
               minHeight: '40px',
               outline: 'none',

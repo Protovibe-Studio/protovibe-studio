@@ -75,7 +75,7 @@
 
  /* Text */
  --foreground-default: oklch(100% 0.01104 286.2);
- --foreground-secondary: #7c7c88;
+ --foreground-secondary: oklch(72.1% 0.01812 285.8);
  --foreground-tertiary: #4a4a55;
  --foreground-strong: #f4f4f6;
  --foreground-disabled: #52525d;
@@ -168,7 +168,7 @@
 
  /* Text */
  --foreground-default: oklch(100% 0.01104 286.2);
- --foreground-secondary: #7c7c88;
+ --foreground-secondary: oklch(68.1% 0.01812 285.8);
  --foreground-tertiary: #4a4a55;
  --foreground-strong: #f4f4f6;
  --foreground-disabled: #52525d;

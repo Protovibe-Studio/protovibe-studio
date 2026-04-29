@@ -14,7 +14,7 @@ export const theme = {
   text_low: '#6d6d6d',         // Lowest text
 
   // Accents (Figma Blue)
-  accent_default: '#0092ff',
+  accent_default: '#39a9ff',
   accent_secondary: '#386ad1',
   accent_tertiary: '#1745a8',
   accent_low: 'rgba(61, 123, 255, 0.14)',

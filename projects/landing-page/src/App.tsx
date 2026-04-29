@@ -1721,16 +1721,12 @@ export default function App() {
                   {/* pv-editable-zone-start:ger2rz */}
                   {/* pv-block-start:b00305 */}
                   <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter mt-6 mx-auto font-secondary font-extrabold">
-                    You design. AI agent prototypes. Pixel-perfect.
+                    You design. AI prototypes. <br /><span className="text-foreground-primary">Pixel-perfect.</span>
                   </h1>
                   {/* pv-block-end:b00305 */}
                   {/* pv-block-start:b00306 */}
-                  <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default max-w-[52ch] text-pretty mt-6 mx-auto">
-                    Protovibe Studio is an open-source design tool for professional product designers who want to vibe-code, but refuse to ship inconsistent AI slop. It runs
-                    
-                     on your machine in pure React.js so your own
-                     
-                     coding agent can implement anything you imagine.
+                  <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default max-w-[52ch] mt-6 mx-auto text-balance">
+                    Protovibe Studio is an open-source design tool for professional product designers who vibe-code, but refuse to deliver inconsistent slop. It runs on your machine in pure React.js so your coding agent can implement anything you imagine.
                   </p>
                   {/* pv-block-end:b00306 */}
                   {/* pv-block-start:b00307 */}
@@ -1764,13 +1760,15 @@ export default function App() {
                 <div data-pv-block="b00310" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] mt-[24px] flex justify-center">
                   {/* pv-editable-zone-start:z00109 */}
                     {/* pv-block-start:b00311 */}
-                    <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] font-mono text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
+                    <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px] font-sans">
                       {/* pv-editable-zone-start:z00110 */}
                         {/* pv-block-start:b00312 */}
                         <span data-pv-block="b00312" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
                         {/* pv-block-end:b00312 */}
                         {/* pv-block-start:b00313 */}
-                        <span data-pv-block="b00313">open source · MIT · runs on your machine</span>
+                        <span data-pv-block="b00313">
+                          Open-source • AGPL-3.0 • Runs locally
+                        </span>
                         {/* pv-block-end:b00313 */}
                       {/* pv-editable-zone-end:z00110 */}
                     </div>

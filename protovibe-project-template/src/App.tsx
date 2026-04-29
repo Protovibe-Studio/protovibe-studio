@@ -231,11 +231,6 @@ function DashboardPage() {
           Heading
         </TextHeading>
         {/* pv-block-end:lib3xn */}
-        {/* pv-block-start:g36e8l */}
-        <span className="w-60" data-pv-block="g36e8l">
-          The term non-breaking space ( ) can mean different things depending on your goal. Here are the best alternatives categorized by use case:<br />1. CSS Alternatives (For Web Development)<br />If you want to prevent text wrapping in HTML without cluttering your code with , use CSS: <br />white-space: nowrap;: This is the best practice for keeping text on a single line. Apply it to a span or parent element.<br />white-space: pre-wrap;: Preserves multiple spaces and tabs while allowing text to wrap naturally. <br />Stack Overflow<br />Stack Overflow<br /> +3<br />2. Unicode Space Alternatives (Varying Widths)<br />If you need a space that does not break but has a differ
-        </span>
-        {/* pv-block-end:g36e8l */}
 
         {/* pv-block-start:dkwss2 */}
         <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded bg-background-elevated" data-pv-block="dkwss2">

@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 import { InspectorInput } from '../InspectorInput';
 import { theme } from '../../theme';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
 import { useProtovibe } from '../../context/ProtovibeContext';
+import { ColorPicker } from '../ColorPicker';
+import { updateThemeColor } from '../../api/client';
 
 export interface AutocompleteOption {
   val: string;
@@ -63,10 +65,16 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   testId,
   showApplyToAllHint,
 }) => {
-  const { iframeTheme: colorMode } = useProtovibe();
+  const { iframeTheme: colorMode, refreshThemeColors } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [editingToken, setEditingToken] = useState<{
+    tokenName: string;
+    themeMode: ColorMode;
+    initialValue: string;
+    anchorRect: DOMRect;
+  } | null>(null);
 
   const isColorDropdown = useMemo(() =>
     options.some(o => o.lightValue !== undefined || o.darkValue !== undefined || (o as any).hex !== undefined),
@@ -243,8 +251,26 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     }
   };
 
+  const isSemanticToken = (opt: AutocompleteOption) =>
+    isColorDropdown && (opt.lightValue !== undefined || opt.darkValue !== undefined);
+
+  const openTokenEditor = (opt: AutocompleteOption, anchor: HTMLElement) => {
+    const initialValue =
+      colorMode === 'light'
+        ? ((opt.lightValue as string | undefined) ?? (opt as any).hex ?? '')
+        : ((opt.darkValue as string | undefined) ?? (opt as any).hex ?? '');
+    setEditingToken({
+      tokenName: opt.val,
+      themeMode: colorMode,
+      initialValue,
+      anchorRect: anchor.getBoundingClientRect(),
+    });
+    setIsOpen(false);
+  };
+
   const renderRow = (opt: AutocompleteOption, index: number) => {
     const isActive = index === activeIndex;
+    const showEdit = isSemanticToken(opt);
     return (
       <div
         key={opt.val + index}
@@ -260,6 +286,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: '8px',
           borderBottom: `1px solid ${theme.border_secondary}`,
           background: isActive ? theme.accent_default : 'transparent',
         }}
@@ -269,13 +296,52 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         }}
         onMouseLeave={() => setActiveIndex(-1)}
       >
-        {renderOption ? (
-          renderOption(opt, isColorDropdown ? colorMode : undefined)
-        ) : (
-          <>
-            <span style={{ fontWeight: 'bold' }}>{String(opt.val)}</span>
-            <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{String(opt.desc ?? '')}</span>
-          </>
+        <div style={{ display: 'flex', flex: 1, minWidth: 0, justifyContent: 'space-between', alignItems: 'center' }}>
+          {renderOption ? (
+            renderOption(opt, isColorDropdown ? colorMode : undefined)
+          ) : (
+            <>
+              <span style={{ fontWeight: 'bold' }}>{String(opt.val)}</span>
+              <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{String(opt.desc ?? '')}</span>
+            </>
+          )}
+        </div>
+        {showEdit && (
+          <button
+            type="button"
+            title={`Edit ${opt.val} (${colorMode} mode)`}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openTokenEditor(opt, e.currentTarget);
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+            style={{
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 18,
+              height: 18,
+              padding: 0,
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 3,
+              color: isActive ? theme.text_default : theme.text_tertiary,
+              cursor: 'pointer',
+            }}
+          >
+            <Pencil size={10} strokeWidth={2} />
+          </button>
         )}
       </div>
     );
@@ -434,6 +500,26 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           })()}
         </div>,
         document.body
+      )}
+
+      {editingToken && (
+        <ColorPicker
+          tokenName={editingToken.tokenName}
+          themeMode={editingToken.themeMode}
+          initialValue={editingToken.initialValue}
+          anchorRect={editingToken.anchorRect}
+          onSave={async (oklchValue) => {
+            try {
+              await updateThemeColor(editingToken.tokenName, editingToken.themeMode, oklchValue);
+              await refreshThemeColors();
+            } catch (err) {
+              console.error('[protovibe] Failed to update color:', err);
+            } finally {
+              setEditingToken(null);
+            }
+          }}
+          onCancel={() => setEditingToken(null)}
+        />
       )}
     </div>
   );
