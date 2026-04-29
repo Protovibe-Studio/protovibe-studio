@@ -1188,7 +1188,7 @@ function scheduleManagerUpdate(_req, res) {
 function buildIgnoreFilter(projectPath) {
   const ig = ignoreFactory()
   // Always exclude these regardless of .gitignore content.
-  ig.add(['.git', 'node_modules', 'dist'])
+  ig.add(['.git', 'node_modules', 'dist', 'test-results'])
   try {
     const gi = fs.readFileSync(path.join(projectPath, '.gitignore'), 'utf-8')
     ig.add(gi)
