@@ -579,18 +579,6 @@ async function handleUpdatePlugin(_req, res, id) {
   }
 
   try {
-    // 1) Stop the running dev server so it releases handles on the plugin
-    //    files we're about to swap. We escalate to SIGTERM → SIGKILL.
-    const wasRunning = state.status === 'running' || state.status === 'starting'
-    // Testing: keep dev server running through plugin update.
-    // if (wasRunning) {
-    //   await stopProjectProcess(id)
-    //   state.logs.push('--- stopped to update plugin ---')
-    // }
-
-    // Testing: don't flip status / clear port so UI keeps showing "Running".
-    // state.status = 'updating-plugin'
-    // state.port = null
     state.logs.push('--- updating protovibe plugin ---')
 
     const targetPluginDir = path.join(project.path, PLUGIN_REL_DIR)
@@ -619,9 +607,6 @@ async function handleUpdatePlugin(_req, res, id) {
         shell: true,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
       })
-      // Testing: don't overwrite state.proc so the running dev server handle
-      // stays intact and Stop keeps working.
-      // state.proc = proc
       const onData = (chunk) => {
         chunk.toString().split('\n').forEach((line) => {
           if (line.trim()) state.logs.push(line)
@@ -644,15 +629,9 @@ async function handleUpdatePlugin(_req, res, id) {
       try { fs.rmSync(path.join(targetPluginDir, 'dist'), { recursive: true, force: true }) } catch {}
       await runStep('pnpm run build (plugins/protovibe)', 'pnpm run build')
     } catch (err) {
-      state.status = 'stopped'
-      state.proc = null
       state.logs.push(`--- update failed: ${err.message} ---`)
       return sendJson(res, 500, { error: err.message || 'Plugin install/build failed.' })
     }
-
-    // Testing: preserve proc/status so the running dev server stays controllable.
-    // state.proc = null
-    // state.status = 'stopped'
 
     // 4) Stamp plugin-version + plugin-last-updated in protovibe-data.json.
     let info
@@ -668,12 +647,9 @@ async function handleUpdatePlugin(_req, res, id) {
       ok: true,
       pluginVersion: info.pluginVersion,
       pluginLastUpdated: info.pluginLastUpdated,
-      wasRunning,
     })
   } catch (err) {
     console.error('[protovibe-home] update-plugin error:', err)
-    state.status = 'stopped'
-    state.proc = null
     if (!res.headersSent) sendJson(res, 500, { error: err.message || 'Failed to update plugin.' })
   } finally {
     updatingPlugins.delete(id)
@@ -1301,7 +1277,7 @@ function autoOpenPlugin() {
 export default defineConfig(({ mode }) => {
   const watchMode = mode === 'watch'
   return {
-    plugins: [react(), tailwindcss(), projectManagerPlugin(), autoOpenPlugin()],
+    plugins: [react(), tailwindcss(), projectManagerPlugin(), ...(watchMode ? [] : [autoOpenPlugin()])],
     server: {
       host: '127.0.0.1',
       port: 5173,

@@ -146,11 +146,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
       setError('Wait for setup to finish before updating the plugin.')
       return
     }
-    // Testing: keep dev server running through plugin update.
-    // if (isRunning) {
-    //   const ok = window.confirm('Updating the plugin will stop the dev server. Continue?')
-    //   if (!ok) return
-    // }
     setError('')
     setUpdatingPlugin(true)
     try {
@@ -430,7 +425,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   data-testid="btn-update-plugin"
                   onClick={handleUpdatePlugin}
                   disabled={isUpdating || isBusy}
-                  title={isRunning ? 'Stops the running dev server before updating' : 'Sync plugin source from protovibe-project-template'}
+                  title="Sync plugin source from protovibe-project-template"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 >
                   <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
