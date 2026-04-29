@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui/icon';
+import { Image } from '@/components/ui/image'
 
 const GLOBAL_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
   @keyframes pulse-custom {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.55; transform: scale(0.82); }
@@ -61,11 +60,11 @@ function FeatureGrid() {
           <div data-pv-block="b00003" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00002 */}
               {/* pv-block-start:b00004 */}
-              <div data-pv-block="b00004" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Features</div>
+              <div data-pv-block="b00004" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Features</div>
               {/* pv-block-end:b00004 */}
               {/* pv-block-start:b00005 */}
-              <h2 data-pv-block="b00005" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Designed for people who care about the <em className="italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-strong">actual</em> pixels.
+              <h2 data-pv-block="b00005" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+                Designed for people who care about the <em className="italic font-secondary font-bold text-foreground-strong">actual</em> pixels.
               </h2>
               {/* pv-block-end:b00005 */}
             {/* pv-editable-zone-end:z00002 */}
@@ -79,16 +78,16 @@ function FeatureGrid() {
               <div data-pv-block="b00007" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:b00008 */}
-                  <div data-pv-block="b00008" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">01 · agent</div>
+                  <div data-pv-block="b00008" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">01 · agent</div>
                   {/* pv-block-end:b00008 */}
                   {/* pv-block-start:b00009 */}
-                  <h3 data-pv-block="b00009" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">An AI that actually respects your design system.</h3>
+                  <h3 data-pv-block="b00009" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">An AI that actually respects your design system.</h3>
                   {/* pv-block-end:b00009 */}
                   {/* pv-block-start:b00010 */}
                   <p data-pv-block="b00010" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Protovibe's agent reads your tokens, components, and grid — and refuses to hardcode a single pixel. No rogue hex codes. No off-brand radii. No AI shit.</p>
                   {/* pv-block-end:b00010 */}
                   {/* pv-block-start:b00011 */}
-                  <div data-pv-block="b00011" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00011" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00011 */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
@@ -98,16 +97,16 @@ function FeatureGrid() {
               <div data-pv-block="b00012" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00005 */}
                   {/* pv-block-start:b00013 */}
-                  <div data-pv-block="b00013" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">02 · pixels</div>
+                  <div data-pv-block="b00013" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">02 · pixels</div>
                   {/* pv-block-end:b00013 */}
                   {/* pv-block-start:b00014 */}
-                  <h3 data-pv-block="b00014" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Pixel-perfect, not vibe-adjacent.</h3>
+                  <h3 data-pv-block="b00014" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Pixel-perfect, not vibe-adjacent.</h3>
                   {/* pv-block-end:b00014 */}
                   {/* pv-block-start:b00015 */}
                   <p data-pv-block="b00015" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Ship mocks that line up to the baseline, match component specs, and pass a designer's squint test. Because "roughly right" is the enemy.</p>
                   {/* pv-block-end:b00015 */}
                   {/* pv-block-start:b00016 */}
-                  <div data-pv-block="b00016" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00016" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00016 */}
                 {/* pv-editable-zone-end:z00005 */}
               </div>
@@ -117,16 +116,16 @@ function FeatureGrid() {
               <div data-pv-block="b00017" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00006 */}
                   {/* pv-block-start:b00018 */}
-                  <div data-pv-block="b00018" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">03 · prompt</div>
+                  <div data-pv-block="b00018" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">03 · prompt</div>
                   {/* pv-block-end:b00018 */}
                   {/* pv-block-start:b00019 */}
-                  <h3 data-pv-block="b00019" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Prompt like a designer. Commit like an engineer.</h3>
+                  <h3 data-pv-block="b00019" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Prompt like a designer. Commit like an engineer.</h3>
                   {/* pv-block-end:b00019 */}
                   {/* pv-block-start:b00020 */}
                   <p data-pv-block="b00020" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Natural language in, real React + Tailwind out. Every change is a diff you can read, review, and roll back — not a black box.</p>
                   {/* pv-block-end:b00020 */}
                   {/* pv-block-start:b00021 */}
-                  <div data-pv-block="b00021" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00021" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00021 */}
                 {/* pv-editable-zone-end:z00006 */}
               </div>
@@ -136,16 +135,16 @@ function FeatureGrid() {
               <div data-pv-block="b00022" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00007 */}
                   {/* pv-block-start:b00023 */}
-                  <div data-pv-block="b00023" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">04 · control</div>
+                  <div data-pv-block="b00023" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">04 · control</div>
                   {/* pv-block-end:b00023 */}
                   {/* pv-block-start:b00024 */}
-                  <h3 data-pv-block="b00024" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">You stay in the driver's seat.</h3>
+                  <h3 data-pv-block="b00024" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">You stay in the driver's seat.</h3>
                   {/* pv-block-end:b00024 */}
                   {/* pv-block-start:b00025 */}
                   <p data-pv-block="b00025" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Inspect anything. Tweak props. Override the agent mid-thought. This isn't vibe-coding that runs away from you — it's you, just faster.</p>
                   {/* pv-block-end:b00025 */}
                   {/* pv-block-start:b00026 */}
-                  <div data-pv-block="b00026" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00026" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00026 */}
                 {/* pv-editable-zone-end:z00007 */}
               </div>
@@ -155,16 +154,16 @@ function FeatureGrid() {
               <div data-pv-block="b00027" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00008 */}
                   {/* pv-block-start:b00028 */}
-                  <div data-pv-block="b00028" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">05 · system</div>
+                  <div data-pv-block="b00028" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">05 · system</div>
                   {/* pv-block-end:b00028 */}
                   {/* pv-block-start:b00029 */}
-                  <h3 data-pv-block="b00029" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Brings your whole team up to spec.</h3>
+                  <h3 data-pv-block="b00029" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Brings your whole team up to spec.</h3>
                   {/* pv-block-end:b00029 */}
                   {/* pv-block-start:b00030 */}
                   <p data-pv-block="b00030" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Import your component library once. Every prototype after that is on-brand by default. Consistency isn't a policy — it's the floor.</p>
                   {/* pv-block-end:b00030 */}
                   {/* pv-block-start:b00031 */}
-                  <div data-pv-block="b00031" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00031" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00031 */}
                 {/* pv-editable-zone-end:z00008 */}
               </div>
@@ -174,16 +173,16 @@ function FeatureGrid() {
               <div data-pv-block="b00032" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00009 */}
                   {/* pv-block-start:b00033 */}
-                  <div data-pv-block="b00033" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">06 · open</div>
+                  <div data-pv-block="b00033" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">06 · open</div>
                   {/* pv-block-end:b00033 */}
                   {/* pv-block-start:b00034 */}
-                  <h3 data-pv-block="b00034" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Open source. Yours, forever.</h3>
+                  <h3 data-pv-block="b00034" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Open source. Yours, forever.</h3>
                   {/* pv-block-end:b00034 */}
                   {/* pv-block-start:b00035 */}
                   <p data-pv-block="b00035" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">MIT-licensed. Runs on your computer, not ours. No telemetry, no accounts, no rug-pull. Fork it, extend it, ship it. Your prototypes never leave your machine unless you push them.</p>
                   {/* pv-block-end:b00035 */}
                   {/* pv-block-start:b00036 */}
-                  <div data-pv-block="b00036" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-['JetBrains_Mono',monospace] text-[10px]">Miejsce na grafikę</div>
+                  <div data-pv-block="b00036" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
                   {/* pv-block-end:b00036 */}
                 {/* pv-editable-zone-end:z00009 */}
               </div>
@@ -203,7 +202,7 @@ function LogoReact() {
   return (
     <>
       {/* pv-block-start:b00037 */}
-      <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
           {/* pv-block-start:b00038 */}
           <svg data-pv-block="b00038" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -226,7 +225,7 @@ function LogoReact() {
       {/* pv-block-end:eum4ww */}
 
       {/* pv-block-start:uxnkm4 */}
-      <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
           {/* pv-block-start:8wvffo */}
           <svg data-pv-block="8wvffo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -254,7 +253,7 @@ function LogoTailwind() {
   return (
     <>
       {/* pv-block-start:b00040 */}
-      <div data-pv-block="b00040" className="inline-flex items-center gap-[10px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00040" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00011 */}
           {/* pv-block-start:b00041 */}
           <svg data-pv-block="b00041" viewBox="0 0 32 20" width="28" height="18" aria-hidden="true">
@@ -275,7 +274,7 @@ function LogoVite() {
   return (
     <>
       {/* pv-block-start:b00043 */}
-      <div data-pv-block="b00043" className="inline-flex items-center gap-[10px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
+      <div data-pv-block="b00043" className="inline-flex items-center gap-[10px] font-secondary font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00012 */}
           {/* pv-block-start:b00044 */}
           <svg data-pv-block="b00044" viewBox="0 0 24 24" width="20" height="22" aria-hidden="true">
@@ -300,7 +299,7 @@ function PoweredBy() {
       <section data-pv-block="b00046" className="py-[56px] border-y border-border-secondary grid grid-cols-1 md:grid-cols-[minmax(120px,0.7fr)_auto_minmax(140px,0.9fr)] items-center gap-[24px] md:gap-[32px] text-center md:text-left max-md:py-[64px]">
         {/* pv-editable-zone-start:z00013 */}
           {/* pv-block-start:b00047 */}
-          <div data-pv-block="b00047" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] tracking-[0.18em] uppercase text-foreground-tertiary md:text-right">
+          <div data-pv-block="b00047" className="font-bold text-[11px] tracking-[0.18em] uppercase text-foreground-tertiary md:text-right">
             Powered by
           </div>
           {/* pv-block-end:b00047 */}
@@ -349,11 +348,11 @@ function BYOAgent() {
           <div data-pv-block="b00056" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00016 */}
               {/* pv-block-start:b00057 */}
-              <div data-pv-block="b00057" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Bring your own agent</div>
+              <div data-pv-block="b00057" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Bring your own agent</div>
               {/* pv-block-end:b00057 */}
               {/* pv-block-start:b00058 */}
-              <h2 data-pv-block="b00058" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Your favourite agent. <em className="italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-strong">Your</em> way.
+              <h2 data-pv-block="b00058" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+                Your favourite agent. <em className="italic font-secondary font-bold text-foreground-strong">Your</em> way.
               </h2>
               {/* pv-block-end:b00058 */}
               {/* pv-block-start:b00059 */}
@@ -374,16 +373,16 @@ function BYOAgent() {
               <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:b00062 */}
-                  <div data-pv-block="b00062" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">⟡</div>
+                  <div data-pv-block="b00062" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">⟡</div>
                   {/* pv-block-end:b00062 */}
                   {/* pv-block-start:b00063 */}
-                  <div data-pv-block="b00063" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">GitHub Copilot</div>
+                  <div data-pv-block="b00063" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">GitHub Copilot</div>
                   {/* pv-block-end:b00063 */}
                   {/* pv-block-start:b00064 */}
-                  <div data-pv-block="b00064" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli + ide</div>
+                  <div data-pv-block="b00064" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli + ide</div>
                   {/* pv-block-end:b00064 */}
                   {/* pv-block-start:b00065 */}
-                  <div data-pv-block="b00065" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00065" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00065 */}
                 {/* pv-editable-zone-end:z00018 */}
               </div>
@@ -393,16 +392,16 @@ function BYOAgent() {
               <div data-pv-block="b00066" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00019 */}
                   {/* pv-block-start:b00067 */}
-                  <div data-pv-block="b00067" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">∗</div>
+                  <div data-pv-block="b00067" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">∗</div>
                   {/* pv-block-end:b00067 */}
                   {/* pv-block-start:b00068 */}
-                  <div data-pv-block="b00068" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Claude Code</div>
+                  <div data-pv-block="b00068" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Claude Code</div>
                   {/* pv-block-end:b00068 */}
                   {/* pv-block-start:b00069 */}
-                  <div data-pv-block="b00069" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
+                  <div data-pv-block="b00069" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
                   {/* pv-block-end:b00069 */}
                   {/* pv-block-start:b00070 */}
-                  <div data-pv-block="b00070" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00070" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00070 */}
                 {/* pv-editable-zone-end:z00019 */}
               </div>
@@ -412,16 +411,16 @@ function BYOAgent() {
               <div data-pv-block="b00071" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00020 */}
                   {/* pv-block-start:b00072 */}
-                  <div data-pv-block="b00072" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">◇</div>
+                  <div data-pv-block="b00072" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◇</div>
                   {/* pv-block-end:b00072 */}
                   {/* pv-block-start:b00073 */}
-                  <div data-pv-block="b00073" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Gemini CLI</div>
+                  <div data-pv-block="b00073" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Gemini CLI</div>
                   {/* pv-block-end:b00073 */}
                   {/* pv-block-start:b00074 */}
-                  <div data-pv-block="b00074" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
+                  <div data-pv-block="b00074" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
                   {/* pv-block-end:b00074 */}
                   {/* pv-block-start:b00075 */}
-                  <div data-pv-block="b00075" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00075" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00075 */}
                 {/* pv-editable-zone-end:z00020 */}
               </div>
@@ -431,16 +430,16 @@ function BYOAgent() {
               <div data-pv-block="b00076" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00021 */}
                   {/* pv-block-start:b00077 */}
-                  <div data-pv-block="b00077" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">▸</div>
+                  <div data-pv-block="b00077" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">▸</div>
                   {/* pv-block-end:b00077 */}
                   {/* pv-block-start:b00078 */}
-                  <div data-pv-block="b00078" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Cursor</div>
+                  <div data-pv-block="b00078" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Cursor</div>
                   {/* pv-block-end:b00078 */}
                   {/* pv-block-start:b00079 */}
-                  <div data-pv-block="b00079" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">ide</div>
+                  <div data-pv-block="b00079" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">ide</div>
                   {/* pv-block-end:b00079 */}
                   {/* pv-block-start:b00080 */}
-                  <div data-pv-block="b00080" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00080" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00080 */}
                 {/* pv-editable-zone-end:z00021 */}
               </div>
@@ -450,16 +449,16 @@ function BYOAgent() {
               <div data-pv-block="b00081" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00022 */}
                   {/* pv-block-start:b00082 */}
-                  <div data-pv-block="b00082" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">◦</div>
+                  <div data-pv-block="b00082" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◦</div>
                   {/* pv-block-end:b00082 */}
                   {/* pv-block-start:b00083 */}
-                  <div data-pv-block="b00083" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Aider</div>
+                  <div data-pv-block="b00083" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Aider</div>
                   {/* pv-block-end:b00083 */}
                   {/* pv-block-start:b00084 */}
-                  <div data-pv-block="b00084" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
+                  <div data-pv-block="b00084" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
                   {/* pv-block-end:b00084 */}
                   {/* pv-block-start:b00085 */}
-                  <div data-pv-block="b00085" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00085" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00085 */}
                 {/* pv-editable-zone-end:z00022 */}
               </div>
@@ -469,16 +468,16 @@ function BYOAgent() {
               <div data-pv-block="b00086" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
                 {/* pv-editable-zone-start:z00023 */}
                   {/* pv-block-start:b00087 */}
-                  <div data-pv-block="b00087" className="text-[28px] leading-none mb-[14px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-primary">◼</div>
+                  <div data-pv-block="b00087" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◼</div>
                   {/* pv-block-end:b00087 */}
                   {/* pv-block-start:b00088 */}
-                  <div data-pv-block="b00088" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Codex</div>
+                  <div data-pv-block="b00088" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Codex</div>
                   {/* pv-block-end:b00088 */}
                   {/* pv-block-start:b00089 */}
-                  <div data-pv-block="b00089" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli</div>
+                  <div data-pv-block="b00089" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli</div>
                   {/* pv-block-end:b00089 */}
                   {/* pv-block-start:b00090 */}
-                  <div data-pv-block="b00090" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
+                  <div data-pv-block="b00090" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
                   {/* pv-block-end:b00090 */}
                 {/* pv-editable-zone-end:z00023 */}
               </div>
@@ -510,11 +509,11 @@ function HowItWorks() {
           <div data-pv-block="b00093" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00025 */}
               {/* pv-block-start:b00094 */}
-              <div data-pv-block="b00094" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">How it works</div>
+              <div data-pv-block="b00094" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">How it works</div>
               {/* pv-block-end:b00094 */}
               {/* pv-block-start:b00095 */}
-              <h2 data-pv-block="b00095" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Four steps. <em className="italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-strong">Zero</em> BS.
+              <h2 data-pv-block="b00095" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+                Four steps. <em className="italic font-secondary font-bold text-foreground-strong">Zero</em> BS.
               </h2>
               {/* pv-block-end:b00095 */}
             {/* pv-editable-zone-end:z00025 */}
@@ -532,7 +531,7 @@ function HowItWorks() {
                   <div data-pv-block="b00098" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00098 */}
                   {/* pv-block-start:b00099 */}
-                  <div data-pv-block="b00099" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00099" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     1
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
@@ -541,7 +540,7 @@ function HowItWorks() {
                   <div data-pv-block="b00100" className="pt-[14px] min-w-0 md:col-auto col-span-1">
                     {/* pv-editable-zone-start:z00028 */}
                       {/* pv-block-start:b00101 */}
-                      <h3 data-pv-block="b00101" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Set up your Protovibe folder.</h3>
+                      <h3 data-pv-block="b00101" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Set up your Protovibe folder.</h3>
                       {/* pv-block-end:b00101 */}
                       {/* pv-block-start:b00102 */}
                       <p data-pv-block="b00102" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">Clone the repo to your machine. No installer, no sign-up, no dashboard — Protovibe is a folder you own.</p>
@@ -568,7 +567,7 @@ function HowItWorks() {
                   <div data-pv-block="b00105" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00105 */}
                   {/* pv-block-start:b00106 */}
-                  <div data-pv-block="b00106" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00106" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     2
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
@@ -577,7 +576,7 @@ function HowItWorks() {
                   <div data-pv-block="b00107" className="pt-[14px] min-w-0 md:col-auto col-span-1">
                     {/* pv-editable-zone-start:z00030 */}
                       {/* pv-block-start:b00108 */}
-                      <h3 data-pv-block="b00108" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Run Protovibe via your coding agent.</h3>
+                      <h3 data-pv-block="b00108" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Run Protovibe via your coding agent.</h3>
                       {/* pv-block-end:b00108 */}
                       {/* pv-block-start:b00109 */}
                       <p data-pv-block="b00109" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">Point Copilot, Claude Code, Gemini — whoever — at the folder. They handle install, deps, and first run.</p>
@@ -604,7 +603,7 @@ function HowItWorks() {
                   <div data-pv-block="b00112" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00112 */}
                   {/* pv-block-start:b00113 */}
-                  <div data-pv-block="b00113" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00113" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     3
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
@@ -613,7 +612,7 @@ function HowItWorks() {
                   <div data-pv-block="b00114" className="pt-[14px] min-w-0 md:col-auto col-span-1">
                     {/* pv-editable-zone-start:z00032 */}
                       {/* pv-block-start:b00115 */}
-                      <h3 data-pv-block="b00115" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Design on your computer.</h3>
+                      <h3 data-pv-block="b00115" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Design on your computer.</h3>
                       {/* pv-block-end:b00115 */}
                       {/* pv-block-start:b00116 */}
                       <p data-pv-block="b00116" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">Protovibe opens at localhost. Your agent writes the code, you inspect the pixels. Nothing leaves your machine.</p>
@@ -637,7 +636,7 @@ function HowItWorks() {
               <div data-pv-block="b00118" className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] md:grid-cols-[64px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative items-start">
                 {/* pv-editable-zone-start:z00033 */}
                   {/* pv-block-start:b00119 */}
-                  <div data-pv-block="b00119" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00119" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     4
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
@@ -646,7 +645,7 @@ function HowItWorks() {
                   <div data-pv-block="b00120" className="pt-[14px] min-w-0 md:col-auto col-span-1">
                     {/* pv-editable-zone-start:z00034 */}
                       {/* pv-block-start:b00121 */}
-                      <h3 data-pv-block="b00121" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Publish prototypes with one click.</h3>
+                      <h3 data-pv-block="b00121" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">Publish prototypes with one click.</h3>
                       {/* pv-block-end:b00121 */}
                       {/* pv-block-start:b00122 */}
                       <p data-pv-block="b00122" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">Ship to your own Cloudflare account in a single click. Real URLs, your domain, your infra — no middleman, no seat tax.</p>
@@ -685,11 +684,11 @@ function ProblemSolution() {
           <div data-pv-block="b00125" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00036 */}
               {/* pv-block-start:b00126 */}
-              <div data-pv-block="b00126" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Problem → Solution</div>
+              <div data-pv-block="b00126" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Problem → Solution</div>
               {/* pv-block-end:b00126 */}
               {/* pv-block-start:b00127 */}
-              <h2 data-pv-block="b00127" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Vibe coding broke <em className="italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-strong">design</em>.<br />Protovibe fixes it.
+              <h2 data-pv-block="b00127" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+                Vibe coding broke <em className="italic font-secondary font-bold text-foreground-strong">design</em>.<br />Protovibe fixes it.
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
@@ -718,13 +717,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00132" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00039 */}
                       {/* pv-block-start:b00133 */}
-                      <h3 data-pv-block="b00133" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Your tokens, every time.</h3>
+                      <h3 data-pv-block="b00133" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Your tokens, every time.</h3>
                       {/* pv-block-end:b00133 */}
                       {/* pv-block-start:b00134 */}
                       <div data-pv-block="b00134" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00040 */}
                           {/* pv-block-start:b00135 */}
-                          <div data-pv-block="b00135" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00135" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00135 */}
                           {/* pv-block-start:b00136 */}
                           <p data-pv-block="b00136" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Hardcoded #4F7CFF. Random 13px radii. Every prototype drifts further from your tokens.</p>
@@ -736,7 +735,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00137" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00041 */}
                           {/* pv-block-start:b00138 */}
-                          <div data-pv-block="b00138" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00138" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00138 */}
                           {/* pv-block-start:b00139 */}
                           <p data-pv-block="b00139" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe reads your design system and refuses to emit a single raw hex. Every value resolves to a token. Period.</p>
@@ -764,13 +763,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00142" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00043 */}
                       {/* pv-block-start:b00143 */}
-                      <h3 data-pv-block="b00143" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Pixel-perfect, measured.</h3>
+                      <h3 data-pv-block="b00143" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Pixel-perfect, measured.</h3>
                       {/* pv-block-end:b00143 */}
                       {/* pv-block-start:b00144 */}
                       <div data-pv-block="b00144" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00044 */}
                           {/* pv-block-start:b00145 */}
-                          <div data-pv-block="b00145" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00145" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00145 */}
                           {/* pv-block-start:b00146 */}
                           <p data-pv-block="b00146" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">AI output looks fine at a glance. Squint, and everything is vibes-adjacent — baselines off, spacing inconsistent, alignment approximate.</p>
@@ -782,7 +781,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00147" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00045 */}
                           {/* pv-block-start:b00148 */}
-                          <div data-pv-block="b00148" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00148" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00148 */}
                           {/* pv-block-start:b00149 */}
                           <p data-pv-block="b00149" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">A live spec panel surfaces every offset against your grid. Drift gets flagged before it ships.</p>
@@ -810,13 +809,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00152" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00047 */}
                       {/* pv-block-start:b00153 */}
-                      <h3 data-pv-block="b00153" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Nudge. Don't re-prompt.</h3>
+                      <h3 data-pv-block="b00153" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Nudge. Don't re-prompt.</h3>
                       {/* pv-block-end:b00153 */}
                       {/* pv-block-start:b00154 */}
                       <div data-pv-block="b00154" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00048 */}
                           {/* pv-block-start:b00155 */}
-                          <div data-pv-block="b00155" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00155" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00155 */}
                           {/* pv-block-start:b00156 */}
                           <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">"Move it 8px left." "Make the radius 12." "Actually, 10." Every tweak burns a round trip.</p>
@@ -828,7 +827,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00157" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00049 */}
                           {/* pv-block-start:b00158 */}
-                          <div data-pv-block="b00158" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00158" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00158 */}
                           {/* pv-block-start:b00159 */}
                           <p data-pv-block="b00159" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Nudge with arrow keys. Drag. Tweak props in the inspector. No prompt, no wait — just pixels under your cursor.</p>
@@ -856,13 +855,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00162" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00051 */}
                       {/* pv-block-start:b00163 */}
-                      <h3 data-pv-block="b00163" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">You stay the designer.</h3>
+                      <h3 data-pv-block="b00163" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">You stay the designer.</h3>
                       {/* pv-block-end:b00163 */}
                       {/* pv-block-start:b00164 */}
                       <div data-pv-block="b00164" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00052 */}
                           {/* pv-block-start:b00165 */}
-                          <div data-pv-block="b00165" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00165" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00165 */}
                           {/* pv-block-start:b00166 */}
                           <p data-pv-block="b00166" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">You describe. It decides. You're a reviewer of someone else's taste — and losing the craft muscle in the process.</p>
@@ -874,7 +873,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00167" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00053 */}
                           {/* pv-block-start:b00168 */}
-                          <div data-pv-block="b00168" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00168" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00168 */}
                           {/* pv-block-start:b00169 */}
                           <p data-pv-block="b00169" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe puts you back in the driver's seat. The agent executes; you direct. Every decision is yours to make or override.</p>
@@ -902,13 +901,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00172" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
-                      <h3 data-pv-block="b00173" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Design is the code.</h3>
+                      <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Design is the code.</h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
                       <div data-pv-block="b00174" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00056 */}
                           {/* pv-block-start:b00175 */}
-                          <div data-pv-block="b00175" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00175" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00175 */}
                           {/* pv-block-start:b00176 */}
                           <p data-pv-block="b00176" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Designs look pristine in Figma. Then engineering ships something … close. Pixels, states, and edge cases get lost in translation.</p>
@@ -920,7 +919,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00177" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00057 */}
                           {/* pv-block-start:b00178 */}
-                          <div data-pv-block="b00178" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00178" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00178 */}
                           {/* pv-block-start:b00179 */}
                           <p data-pv-block="b00179" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe designs are already the code. What you see is what gets committed — no handoff, no re-interpretation.</p>
@@ -948,13 +947,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00182" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00059 */}
                       {/* pv-block-start:b00183 */}
-                      <h3 data-pv-block="b00183" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Hi-fi from the first prompt.</h3>
+                      <h3 data-pv-block="b00183" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Hi-fi from the first prompt.</h3>
                       {/* pv-block-end:b00183 */}
                       {/* pv-block-start:b00184 */}
                       <div data-pv-block="b00184" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00060 */}
                           {/* pv-block-start:b00185 */}
-                          <div data-pv-block="b00185" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00185" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00185 */}
                           {/* pv-block-start:b00186 */}
                           <p data-pv-block="b00186" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Wireframes beg too many questions. Stakeholders can't judge a boxy grey mock. Feedback rounds multiply.</p>
@@ -966,7 +965,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00187" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00061 */}
                           {/* pv-block-start:b00188 */}
-                          <div data-pv-block="b00188" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00188" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00188 */}
                           {/* pv-block-start:b00189 */}
                           <p data-pv-block="b00189" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Real components, real content, real interactions — from the first prompt. Show what it'll actually feel like.</p>
@@ -994,13 +993,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00192" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00063 */}
                       {/* pv-block-start:b00193 */}
-                      <h3 data-pv-block="b00193" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Code you can read.</h3>
+                      <h3 data-pv-block="b00193" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Code you can read.</h3>
                       {/* pv-block-end:b00193 */}
                       {/* pv-block-start:b00194 */}
                       <div data-pv-block="b00194" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00064 */}
                           {/* pv-block-start:b00195 */}
-                          <div data-pv-block="b00195" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00195" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00195 */}
                           {/* pv-block-start:b00196 */}
                           <p data-pv-block="b00196" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">AI spits out a tangled 400-line component. Touching it means breaking it. The designer taps out.</p>
@@ -1012,7 +1011,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00197" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00065 */}
                           {/* pv-block-start:b00198 */}
-                          <div data-pv-block="b00198" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00198" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00198 */}
                           {/* pv-block-start:b00199 */}
                           <p data-pv-block="b00199" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Clean, small, named components that map to what's on your canvas. Open a file, change a number, see the pixel move.</p>
@@ -1040,13 +1039,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00202" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00067 */}
                       {/* pv-block-start:b00203 */}
-                      <h3 data-pv-block="b00203" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">A real design surface.</h3>
+                      <h3 data-pv-block="b00203" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">A real design surface.</h3>
                       {/* pv-block-end:b00203 */}
                       {/* pv-block-start:b00204 */}
                       <div data-pv-block="b00204" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00068 */}
                           {/* pv-block-start:b00205 */}
-                          <div data-pv-block="b00205" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00205" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00205 */}
                           {/* pv-block-start:b00206 */}
                           <p data-pv-block="b00206" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Chat is not a design tool. You can't feel spacing through a text box.</p>
@@ -1058,7 +1057,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00207" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00069 */}
                           {/* pv-block-start:b00208 */}
-                          <div data-pv-block="b00208" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00208" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00208 */}
                           {/* pv-block-start:b00209 */}
                           <p data-pv-block="b00209" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Canvas, layers, inspector, component library, align/distribute, responsive frames. Everything a designer expects — wired to code.</p>
@@ -1086,13 +1085,13 @@ function ProblemSolution() {
                   <div data-pv-block="b00212" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00071 */}
                       {/* pv-block-start:b00213 */}
-                      <h3 data-pv-block="b00213" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Light and dark, together.</h3>
+                      <h3 data-pv-block="b00213" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Light and dark, together.</h3>
                       {/* pv-block-end:b00213 */}
                       {/* pv-block-start:b00214 */}
                       <div data-pv-block="b00214" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00072 */}
                           {/* pv-block-start:b00215 */}
-                          <div data-pv-block="b00215" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00215" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00215 */}
                           {/* pv-block-start:b00216 */}
                           <p data-pv-block="b00216" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Contrast dies. Shadows vanish. That one button is suddenly illegible. You ship anyway.</p>
@@ -1104,7 +1103,7 @@ function ProblemSolution() {
                       <div data-pv-block="b00217" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00073 */}
                           {/* pv-block-start:b00218 */}
-                          <div data-pv-block="b00218" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          <div data-pv-block="b00218" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00218 */}
                           {/* pv-block-start:b00219 */}
                           <p data-pv-block="b00219" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Every artboard renders light and dark simultaneously. Token changes sync instantly across both. No more one-eye debugging.</p>
@@ -1139,10 +1138,10 @@ function FAQ() {
           <div data-pv-block="b00221" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00075 */}
               {/* pv-block-start:b00222 */}
-              <div data-pv-block="b00222" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">FAQ</div>
+              <div data-pv-block="b00222" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">FAQ</div>
               {/* pv-block-end:b00222 */}
               {/* pv-block-start:b00223 */}
-              <h2 data-pv-block="b00223" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">Questions, answered straight.</h2>
+              <h2 data-pv-block="b00223" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">Questions, answered straight.</h2>
               {/* pv-block-end:b00223 */}
             {/* pv-editable-zone-end:z00075 */}
           </div>
@@ -1155,7 +1154,7 @@ function FAQ() {
               <details data-pv-block="b00400" className="border-b border-border-secondary group" open>
                 {/* pv-editable-zone-start:z00200 */}
                   {/* pv-block-start:b00401 */}
-                  <summary data-pv-block="b00401" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00401" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00210 */}
                       {/* pv-block-start:b00430 */}
                       <span data-pv-block="b00430">Is it really free?</span>
@@ -1177,7 +1176,7 @@ function FAQ() {
               <details data-pv-block="b00403" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00201 */}
                   {/* pv-block-start:b00404 */}
-                  <summary data-pv-block="b00404" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00404" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00211 */}
                       {/* pv-block-start:b00432 */}
                       <span data-pv-block="b00432">Which AI agents does it work with?</span>
@@ -1199,7 +1198,7 @@ function FAQ() {
               <details data-pv-block="b00406" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00202 */}
                   {/* pv-block-start:b00407 */}
-                  <summary data-pv-block="b00407" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00407" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00212 */}
                       {/* pv-block-start:b00434 */}
                       <span data-pv-block="b00434">How does 'runs on your computer' actually work?</span>
@@ -1221,7 +1220,7 @@ function FAQ() {
               <details data-pv-block="b00409" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00203 */}
                   {/* pv-block-start:b00410 */}
-                  <summary data-pv-block="b00410" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00410" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00213 */}
                       {/* pv-block-start:b00436 */}
                       <span data-pv-block="b00436">How is this different from the other AI design tools?</span>
@@ -1243,7 +1242,7 @@ function FAQ() {
               <details data-pv-block="b00412" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00204 */}
                   {/* pv-block-start:b00413 */}
-                  <summary data-pv-block="b00413" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00413" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00214 */}
                       {/* pv-block-start:b00438 */}
                       <span data-pv-block="b00438">Can I bring my own design system?</span>
@@ -1265,7 +1264,7 @@ function FAQ() {
               <details data-pv-block="b00415" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00205 */}
                   {/* pv-block-start:b00416 */}
-                  <summary data-pv-block="b00416" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00416" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00215 */}
                       {/* pv-block-start:b00440 */}
                       <span data-pv-block="b00440">What do I get out? Screens or code?</span>
@@ -1287,7 +1286,7 @@ function FAQ() {
               <details data-pv-block="b00418" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00206 */}
                   {/* pv-block-start:b00419 */}
-                  <summary data-pv-block="b00419" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                  <summary data-pv-block="b00419" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00216 */}
                       {/* pv-block-start:b00442 */}
                       <span data-pv-block="b00442">Who's this for?</span>
@@ -1349,16 +1348,16 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
               <div data-pv-block="b00235" className="mb-[24px] relative z-[1]">
                 {/* pv-editable-zone-start:z00082 */}
                   {/* pv-block-start:b00236 */}
-                  <div data-pv-block="b00236" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[12px] tracking-[0.18em] uppercase m-0 text-foreground-primary">Install Protovibe</div>
+                  <div data-pv-block="b00236" className="font-bold text-[12px] tracking-[0.18em] uppercase m-0 text-foreground-primary">Install Protovibe</div>
                   {/* pv-block-end:b00236 */}
                   {/* pv-block-start:b00237 */}
-                  <h3 data-pv-block="b00237" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[32px] leading-[1.1] tracking-[-0.03em] text-foreground-strong my-[12px] mb-[10px]">
-                    Pick your <em className="italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-foreground-strong">lane</em>.
+                  <h3 data-pv-block="b00237" className="font-secondary font-bold text-[32px] leading-[1.1] tracking-[-0.03em] text-foreground-strong my-[12px] mb-[10px]">
+                    Pick your <em className="italic font-secondary font-bold text-foreground-strong">lane</em>.
                   </h3>
                   {/* pv-block-end:b00237 */}
                   {/* pv-block-start:b00238 */}
                   <p data-pv-block="b00238" className="m-0 text-[14.5px] text-foreground-secondary">
-                    Two ways in. Same destination: Protovibe running on <code className="font-['JetBrains_Mono',monospace] text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-tertiary text-foreground-strong">localhost</code>.
+                    Two ways in. Same destination: Protovibe running on <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-tertiary text-foreground-strong">localhost</code>.
                   </p>
                   {/* pv-block-end:b00238 */}
                 {/* pv-editable-zone-end:z00082 */}
@@ -1380,7 +1379,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       <div data-pv-block="b00241" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
                         {/* pv-editable-zone-start:z00085 */}
                           {/* pv-block-start:b00242 */}
-                          <span data-pv-block="b00242" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">01</span>
+                          <span data-pv-block="b00242" className="font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">01</span>
                           {/* pv-block-end:b00242 */}
                           {/* pv-block-start:b00243 */}
                           <span data-pv-block="b00243">I know my way around a terminal</span>
@@ -1407,7 +1406,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       <div data-pv-block="b00246" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
                         {/* pv-editable-zone-start:z00087 */}
                           {/* pv-block-start:b00247 */}
-                          <span data-pv-block="b00247" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">02</span>
+                          <span data-pv-block="b00247" className="font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">02</span>
                           {/* pv-block-end:b00247 */}
                           {/* pv-block-start:b00248 */}
                           <span data-pv-block="b00248">I'd rather let my agent handle it</span>
@@ -1432,10 +1431,10 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {tab === "npx" && (
                     <>
                       {/* pv-block-start:b00252 */}
-                      <div data-pv-block="b00252" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Run this in your terminal:</div>
+                      <div data-pv-block="b00252" className="font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Run this in your terminal:</div>
                       {/* pv-block-end:b00252 */}
                       {/* pv-block-start:b00253 */}
-                      <div data-pv-block="b00253" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-['JetBrains_Mono',monospace] text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
+                      <div data-pv-block="b00253" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
                         {/* pv-editable-zone-start:z00089 */}
                           {/* pv-block-start:b00254 */}
                           <span data-pv-block="b00254" className="font-bold shrink-0 text-foreground-primary">$</span>
@@ -1447,7 +1446,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       </div>
                       {/* pv-block-end:b00253 */}
                       {/* pv-block-start:b00256 */}
-                      <div data-pv-block="b00256" className="mt-[12px] flex gap-[10px] flex-wrap font-['JetBrains_Mono',monospace] text-[11.5px] text-foreground-tertiary">
+                      <div data-pv-block="b00256" className="mt-[12px] flex gap-[10px] flex-wrap font-mono text-[11.5px] text-foreground-tertiary">
                         {/* pv-editable-zone-start:z00090 */}
                           {/* pv-block-start:b00257 */}
                           <span data-pv-block="b00257">Requires Node 20+</span>
@@ -1469,10 +1468,10 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {tab === "ai" && (
                     <>
                       {/* pv-block-start:b00261 */}
-                      <div data-pv-block="b00261" className="font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Paste this into your coding agent:</div>
+                      <div data-pv-block="b00261" className="font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Paste this into your coding agent:</div>
                       {/* pv-block-end:b00261 */}
                       {/* pv-block-start:b00262 */}
-                      <div data-pv-block="b00262" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-['JetBrains_Mono',monospace] text-[12.5px] text-foreground-strong leading-[1.55] overflow-auto max-h-[260px]">
+                      <div data-pv-block="b00262" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[12.5px] text-foreground-strong leading-[1.55] overflow-auto max-h-[260px]">
                         {/* pv-editable-zone-start:z00091 */}
                           {/* pv-block-start:b00263 */}
                           <pre data-pv-block="b00263" className="m-0 whitespace-pre-wrap break-words"><code data-pv-block="b00264">{`I want to install and run Protovibe, an open-source design tool, on my computer.
@@ -1493,7 +1492,7 @@ If anything fails, show me the exact error and stop. Do not fix it silently.`}</
                       </div>
                       {/* pv-block-end:b00262 */}
                       {/* pv-block-start:b00265 */}
-                      <div data-pv-block="b00265" className="mt-[12px] flex gap-[10px] flex-wrap font-['JetBrains_Mono',monospace] text-[11.5px] text-foreground-tertiary">
+                      <div data-pv-block="b00265" className="mt-[12px] flex gap-[10px] flex-wrap font-mono text-[11.5px] text-foreground-tertiary">
                         {/* pv-editable-zone-start:z00092 */}
                           {/* pv-block-start:b00266 */}
                           <span data-pv-block="b00266">Works with Claude Code, Copilot, Gemini CLI, Cursor, Aider…</span>
@@ -1551,7 +1550,7 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
           <div data-pv-block="b00272" className="relative z-[2]">
             {/* pv-editable-zone-start:z00096 */}
               {/* pv-block-start:b00273 */}
-              <h2 data-pv-block="b00273" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong max-w-[16ch] mx-auto mb-[40px] text-balance">
+              <h2 data-pv-block="b00273" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong max-w-[16ch] mx-auto mb-[40px] text-balance">
                 Stop describing pixels.<br />
                 <span className="text-foreground-primary">Start shipping them.</span>
               </h2>
@@ -1584,7 +1583,7 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
               <div data-pv-block="b00278" className="mt-[24px] flex justify-center">
                 {/* pv-editable-zone-start:z00099 */}
                   {/* pv-block-start:b00279 */}
-                  <div data-pv-block="b00279" className="inline-flex items-center gap-[8px] font-['JetBrains_Mono',monospace] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
+                  <div data-pv-block="b00279" className="inline-flex items-center gap-[8px] font-mono text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
                     {/* pv-editable-zone-start:z00100 */}
                       {/* pv-block-start:b00280 */}
                       <span data-pv-block="b00280" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
@@ -1606,7 +1605,7 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
           <div data-pv-block="b00282" className="relative z-[3] mt-[140px] px-[40px] py-[32px] pb-[20px] max-w-[1240px] mx-auto grid grid-cols-1 text-center md:text-left md:grid-cols-[auto_1fr_auto] gap-[16px] md:gap-[32px] items-center text-[13px] text-foreground-secondary max-md:py-[40px] max-md:px-[20px] max-md:pb-[24px] before:content-[''] before:absolute before:-left-[50vw] before:-right-[50vw] before:top-0 before:-bottom-[100px] before:bg-gradient-to-b before:from-transparent before:to-background-default before:to-60% before:z-[-1] before:pointer-events-none after:content-[''] after:absolute after:left-0 after:right-0 after:top-0 after:h-[1px] after:bg-border-secondary">
             {/* pv-editable-zone-start:z00101 */}
               {/* pv-block-start:b00283 */}
-              <div data-pv-block="b00283" className="h-[9px] opacity-50 font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[16px] leading-[9px] flex items-center justify-center">PROTOVIBE</div>
+              <div data-pv-block="b00283" className="h-[9px] opacity-50 font-secondary font-bold text-[16px] leading-[9px] flex items-center justify-center">PROTOVIBE</div>
               {/* pv-block-end:b00283 */}
               {/* pv-block-start:b00284 */}
               <div data-pv-block="b00284" className="flex gap-[24px] justify-center text-foreground-secondary">
@@ -1661,7 +1660,7 @@ export default function App() {
   return (
     <>
     {/* pv-block-start:b00291 */}
-    <div data-pv-block="b00291" data-theme="dark" className="bg-background-default text-foreground-default font-[system-ui,-apple-system,'Segoe_UI',Roboto,sans-serif] text-[16px] leading-[1.55] antialiased min-h-screen relative" style={{ textRendering: 'optimizeLegibility' }}>
+    <div data-pv-block="b00291" data-theme="dark" className="bg-background-default text-foreground-default text-[16px] leading-[1.55] antialiased min-h-screen relative" style={{ textRendering: 'optimizeLegibility' }}>
       {/* pv-editable-zone-start:z00103 */}
         {/* pv-block-start:b00292 */}
         <style data-pv-block="b00292">{GLOBAL_STYLES}</style>
@@ -1676,9 +1675,9 @@ export default function App() {
         {/* pv-block-start:b00294 */}
         <nav data-pv-block="b00294" className="sticky top-0 z-50 flex items-center justify-between px-[20px] py-[14px] md:px-[40px] md:py-[18px] bg-gradient-to-b from-[#050509eb] via-[#05050999] to-transparent backdrop-blur-[8px]">
           {/* pv-editable-zone-start:z00104 */}
-            {/* pv-block-start:b00295 */}
-            <div data-pv-block="b00295" className="h-[15px] font-[Syne,ui-sans-serif,system-ui,sans-serif] font-bold text-[20px] leading-[15px] flex items-center text-white">PROTOVIBE</div>
-            {/* pv-block-end:b00295 */}
+            {/* pv-block-start:96mqud */}
+            <Image data-pv-block="96mqud" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-6" />
+            {/* pv-block-end:96mqud */}
             
             {/* pv-block-start:b00296 */}
             <div data-pv-block="b00296" className="hidden md:flex gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[24px]">
@@ -1721,8 +1720,8 @@ export default function App() {
                 <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
                   {/* pv-editable-zone-start:ger2rz */}
                   {/* pv-block-start:b00305 */}
-                  <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] font-[Syne,ui-sans-serif,system-ui,sans-serif] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter font-bold mt-6 mx-auto text-balance">
-                    You design. AI<span> </span>agent prototypes. <span className="text-foreground-primary">Pixel-perfect.</span>
+                  <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter mt-6 mx-auto font-secondary font-extrabold">
+                    You design. AI agent prototypes. Pixel-perfect.
                   </h1>
                   {/* pv-block-end:b00305 */}
                   {/* pv-block-start:b00306 */}
@@ -1748,7 +1747,7 @@ export default function App() {
                       {/* pv-block-end:b00308 */}
                       {/* pv-block-start:b00309 */}
                       <a data-pv-block="b00309" className="appearance-none border-0 inline-flex items-center gap-[8px] text-[15px] font-medium text-foreground-strong px-[20px] py-[13px] rounded-[10px] bg-background-tertiary transition-colors duration-150 hover:bg-background-tertiary-hover justify-center" href="#">
-                        <span className="text-[14px] text-foreground-primary">★</span> Star on GitHub <span className="font-['JetBrains_Mono',monospace] text-[12px] text-foreground-secondary ml-[4px] pl-[10px] border-l border-border-strong">4.1k</span>
+                        <span className="text-[14px] text-foreground-primary">★</span> Star on GitHub <span className="font-mono text-[12px] text-foreground-secondary ml-[4px] pl-[10px] border-l border-border-strong">4.1k</span>
                       </a>
                       {/* pv-block-end:b00309 */}
                     {/* pv-editable-zone-end:z00108 */}
@@ -1765,7 +1764,7 @@ export default function App() {
                 <div data-pv-block="b00310" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] mt-[24px] flex justify-center">
                   {/* pv-editable-zone-start:z00109 */}
                     {/* pv-block-start:b00311 */}
-                    <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] font-['JetBrains_Mono',monospace] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
+                    <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] font-mono text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
                       {/* pv-editable-zone-start:z00110 */}
                         {/* pv-block-start:b00312 */}
                         <span data-pv-block="b00312" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
@@ -1819,15 +1818,15 @@ export default function App() {
             <section data-pv-block="b00321" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
               {/* pv-editable-zone-start:z00113 */}
                 {/* pv-block-start:b00322 */}
-                <span data-pv-block="b00322" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
+                <span data-pv-block="b00322" className="font-secondary font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
                 {/* pv-block-end:b00322 */}
                 
                 {/* pv-block-start:b00323 */}
                 <div data-pv-block="b00323" className="flex flex-col gap-[32px]">
                   {/* pv-editable-zone-start:z00114 */}
                     {/* pv-block-start:b00324 */}
-                    <p data-pv-block="b00324" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                      Protovibe combines the best parts of <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Figma</em> and a pro design system.
+                    <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
+                      Protovibe combines the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro design system.
                     </p>
                     {/* pv-block-end:b00324 */}
                     

@@ -58,8 +58,9 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   inner = inner.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
   // Collapse JSX source formatting whitespace (newlines/tabs from indentation)
-  // before any newline-to-<br> logic runs downstream.
-  inner = inner.replace(/\s+/g, ' ');
+  // before any newline-to-<br> logic runs downstream. [^\S ] matches
+  // whitespace EXCEPT non-breaking space, so pasted nbsp characters survive.
+  inner = inner.replace(/[^\S ]+/g, ' ');
 
   // Convert JSX className to HTML class so the browser applies it in the editor.
   inner = inner.replace(/\bclassName=/g, 'class=');
@@ -69,6 +70,7 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   inner = inner
     .replace(/&#123;/g, '{')
     .replace(/&#125;/g, '}')
+    .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
@@ -97,9 +99,11 @@ export const BlockEditor: React.FC = () => {
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
   const normalizeHtml = (value: string) => {
-    // Convert intentional newlines into <br> before collapsing remaining whitespace.
+    // Convert intentional newlines into <br> before collapsing remaining
+    // whitespace. The character class excludes   so that pasted
+    // non-breaking spaces survive the round-trip to JSX.
     const withBrs = value.replace(/\n/g, '<br>');
-    return withBrs.replace(/\s+/g, ' ').trim();
+    return withBrs.replace(/[\t\r\f\v ]+/g, ' ').trim();
   };
 
   useEffect(() => {

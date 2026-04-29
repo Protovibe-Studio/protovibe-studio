@@ -58,8 +58,9 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   inner = inner.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
   // Collapse JSX source formatting whitespace (newlines/tabs from indentation)
-  // before any newline-to-<br> logic runs downstream.
-  inner = inner.replace(/\s+/g, ' ');
+  // before any newline-to-<br> logic runs downstream. [^\S ] matches
+  // whitespace EXCEPT non-breaking space, so pasted nbsp characters survive.
+  inner = inner.replace(/[^\S ]+/g, ' ');
 
   // Convert JSX className to HTML class so the browser applies it in the editor.
   inner = inner.replace(/\bclassName=/g, 'class=');
@@ -69,6 +70,7 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   inner = inner
     .replace(/&#123;/g, '{')
     .replace(/&#125;/g, '}')
+    .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
@@ -97,9 +99,11 @@ export const BlockEditor: React.FC = () => {
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
   const normalizeHtml = (value: string) => {
-    // Convert intentional newlines into <br> before collapsing remaining whitespace.
+    // Convert intentional newlines into <br> before collapsing remaining
+    // whitespace. The character class excludes   so that pasted
+    // non-breaking spaces survive the round-trip to JSX.
     const withBrs = value.replace(/\n/g, '<br>');
-    return withBrs.replace(/\s+/g, ' ').trim();
+    return withBrs.replace(/[\t\r\f\v ]+/g, ' ').trim();
   };
 
   useEffect(() => {
@@ -320,7 +324,24 @@ export const BlockEditor: React.FC = () => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 editorRef.current?.blur();
+                return;
               }
+              // macOS Opt+Space (and Win Alt+Space) — force a literal nbsp.
+              // Some browsers swallow this combo or insert a normal space, so
+              // we intercept and use insertText which preserves U+00A0.
+              if ((e.altKey || e.metaKey) && (e.key === ' ' || e.code === 'Space')) {
+                e.preventDefault();
+                document.execCommand('insertText', false, ' ');
+              }
+            }}
+            onPaste={(e) => {
+              // Default paste runs the clipboard through the browser's HTML
+              // sanitizer, which collapses nbsp into regular space. Reading
+              // text/plain and inserting it ourselves preserves U+00A0 verbatim.
+              const text = e.clipboardData?.getData('text/plain');
+              if (text === undefined) return;
+              e.preventDefault();
+              document.execCommand('insertText', false, text);
             }}
             style={{
               color: isEmpty ? theme.text_tertiary : theme.accent_default,

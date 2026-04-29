@@ -1,3 +1,7 @@
+/* pv-google-font:font-mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+/* pv-google-font:font-secondary */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap');
 @import "tailwindcss";
 @source "./sketchpads";
 
@@ -70,7 +74,7 @@
  --gradient-background-special-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
- --foreground-default: #c8c8d0;
+ --foreground-default: oklch(100% 0.01104 286.2);
  --foreground-secondary: #7c7c88;
  --foreground-tertiary: #4a4a55;
  --foreground-strong: #f4f4f6;
@@ -163,7 +167,7 @@
  --gradient-background-special-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
- --foreground-default: #c8c8d0;
+ --foreground-default: oklch(100% 0.01104 286.2);
  --foreground-secondary: #7c7c88;
  --foreground-tertiary: #4a4a55;
  --foreground-strong: #f4f4f6;
@@ -576,9 +580,9 @@
 
  /* ── Fonts ──────────────────────────────────────────────────────────────── */
  --font-sans: ui-sans-serif, system-ui, sans-serif;
- --font-secondary: ui-sans-serif, system-ui, sans-serif;
+ --font-secondary: "Syne", sans-serif;
  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
- --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+ --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
  /* ── Spacing ─────────────────────────────────────────────────────────────── */
  --spacing: 0.25rem;
@@ -642,7 +646,7 @@
  --font-weight-medium: 500;
  --font-weight-semibold: 600;
  --font-weight-bold: 700;
- --font-weight-extrabold: 800;
+ --font-weight-extrabold: 740;
  --font-weight-black: 900;
 
  --tracking-tighter: -0.05em;

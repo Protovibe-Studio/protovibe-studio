@@ -103,6 +103,11 @@ export default function Frame3() {
         {/* pv-block-start:n0vxbc */}
         <span data-pv-block="n0vxbc" data-pv-sketchpad-el="n0vxbc" style={{ position: 'absolute', left: 462, top: 49 }}>Lorem ipsum</span>
         {/* pv-block-end:n0vxbc */}
+        {/* pv-block-start:wjjy32 */}
+        <span data-pv-block="wjjy32"  data-pv-sketchpad-el="wjjy32" style={{ position: 'absolute', width: 252, left: 823, top: 293 }}>
+          contentEditable serialization is browser -quirky: Chrome typically outputs<br /> nbsp as , Safari sometimes as the literal character, Firefox as either.<br /> By handling both forms on the inbound path you decouple from whichever browser<br /> produced the saved file last. <br /> - The <br />-first, collapse-second ordering in normalizeHtml matters: if <br /> collapse ran first, a paragraph break (\n\n) would become a single space, and<br /> the subsequent \n→<br /> step would have nothing to convert. Always materialize <br /> structural markers before flattening whitespace.<br /> ───────────────────────────────────────────────── <br /> <br />✻ Churned for 1m 43s <br /> <br />※ recap: Goal: making the BlockEditor's rich-
+        </span>
+        {/* pv-block-end:wjjy32 */}
       {/* pv-editable-zone-end:ia82r5 */}
     </div>
   );
