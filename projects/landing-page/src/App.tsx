@@ -1721,8 +1721,8 @@ export default function App() {
                 <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
                   {/* pv-editable-zone-start:ger2rz */}
                   {/* pv-block-start:b00305 */}
-                  <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] font-[Syne,ui-sans-serif,system-ui,sans-serif] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] text-balance tracking-tighter font-bold mt-6 mx-auto">
-                    You design. AI&nbsp;prototypes. <span className="text-foreground-primary">Pixel-perfect.</span>
+                  <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] font-[Syne,ui-sans-serif,system-ui,sans-serif] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter font-bold mt-6 mx-auto text-balance">
+                    You design. AI<span> </span>agent prototypes. <span className="text-foreground-primary">Pixel-perfect.</span>
                   </h1>
                   {/* pv-block-end:b00305 */}
                   {/* pv-block-start:b00306 */}

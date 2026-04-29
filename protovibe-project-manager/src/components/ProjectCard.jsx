@@ -19,6 +19,7 @@ import {
   Copy,
   Trash2,
   FolderRoot,
+  Download,
 } from 'lucide-react'
 
 const STATUS_LABELS = {
@@ -196,6 +197,16 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
                 setMenuOpen(false)
               }}
               icon={<Code2 size={14} className="shrink-0" />}
+            />
+
+            <MenuItem
+              label="Export as ZIP"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = `/api/projects/${project.id}/export`
+                setMenuOpen(false)
+              }}
+              icon={<Download size={14} className="shrink-0" />}
             />
 
             <MenuItem

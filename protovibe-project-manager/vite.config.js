@@ -6,7 +6,11 @@ import path from 'node:path'
 import { spawn, execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
-const treeKill = createRequire(import.meta.url)('tree-kill')
+const require_ = createRequire(import.meta.url)
+const treeKill = require_('tree-kill')
+const archiver = require_('archiver')
+const unzipper = require_('unzipper')
+const ignoreFactory = require_('ignore')
 
 const ROOT = path.resolve(import.meta.dirname)
 const REPO_ROOT = path.resolve(ROOT, '..')
@@ -1179,6 +1183,189 @@ function scheduleManagerUpdate(_req, res) {
   setTimeout(() => process.exit(0), 500)
 }
 
+// ── Export / Import ──────────────────────────────────────────────────────────
+
+function buildIgnoreFilter(projectPath) {
+  const ig = ignoreFactory()
+  // Always exclude these regardless of .gitignore content.
+  ig.add(['.git', 'node_modules', 'dist'])
+  try {
+    const gi = fs.readFileSync(path.join(projectPath, '.gitignore'), 'utf-8')
+    ig.add(gi)
+  } catch {}
+  return ig
+}
+
+function handleExportProject(_req, res, id) {
+  const projects = readProjects()
+  const project = projects.find((p) => p.id === id)
+  if (!project) return sendJson(res, 404, { error: 'Project not found.' })
+  if (!fs.existsSync(project.path)) {
+    return sendJson(res, 404, { error: 'Project folder not found on disk.' })
+  }
+
+  const folderName = path.basename(project.path)
+  const downloadName = `${readProjectName(project.path)}.zip`
+  const ig = buildIgnoreFilter(project.path)
+
+  res.writeHead(200, {
+    'Content-Type': 'application/zip',
+    'Content-Disposition': `attachment; filename="${downloadName.replace(/"/g, '')}"`,
+    'Access-Control-Allow-Origin': '*',
+  })
+
+  const archive = archiver('zip', { zlib: { level: 9 } })
+  archive.on('error', (err) => {
+    console.error('[protovibe-home] archive error:', err)
+    try { res.end() } catch {}
+  })
+  archive.pipe(res)
+
+  const walk = (absDir, relDir) => {
+    for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
+      const abs = path.join(absDir, entry.name)
+      const rel = relDir ? `${relDir}/${entry.name}` : entry.name
+      // ignore package needs a trailing slash for dir matches.
+      const testPath = entry.isDirectory() ? `${rel}/` : rel
+      if (ig.ignores(testPath)) continue
+      if (entry.isDirectory()) {
+        walk(abs, rel)
+      } else if (entry.isFile()) {
+        archive.file(abs, { name: `${folderName}/${rel}` })
+      }
+    }
+  }
+  walk(project.path, '')
+  archive.finalize()
+}
+
+function readRawBody(req, maxBytes = 500 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    let total = 0
+    req.on('data', (chunk) => {
+      total += chunk.length
+      if (total > maxBytes) {
+        reject(new Error('Upload too large'))
+        req.destroy()
+        return
+      }
+      chunks.push(chunk)
+    })
+    req.on('end', () => resolve(Buffer.concat(chunks)))
+    req.on('error', reject)
+  })
+}
+
+async function handleImportProject(req, res, url) {
+  let buffer
+  try {
+    buffer = await readRawBody(req)
+  } catch (err) {
+    return sendJson(res, 400, { error: err.message || 'Failed to read upload.' })
+  }
+  if (!buffer.length) return sendJson(res, 400, { error: 'Empty upload.' })
+
+  let directory
+  try {
+    directory = await unzipper.Open.buffer(buffer)
+  } catch (err) {
+    return sendJson(res, 400, { error: `Invalid ZIP: ${err.message}` })
+  }
+
+  // Detect a single top-level folder so we can strip its prefix and use it as
+  // the default project name.
+  const tops = new Set()
+  for (const f of directory.files) {
+    const seg = f.path.split('/')[0]
+    if (seg) tops.add(seg)
+  }
+  const singleTop = tops.size === 1 ? [...tops][0] : null
+
+  const requestedName = (url.searchParams.get('name') || singleTop || '').trim()
+  const overwrite = url.searchParams.get('overwrite') === '1'
+
+  if (!NAME_RE.test(requestedName)) {
+    return sendJson(res, 400, { error: 'Invalid project name. Use only letters, numbers, hyphens, and underscores.' })
+  }
+
+  const destPath = safePath(requestedName)
+  if (!destPath) return sendJson(res, 400, { error: 'Invalid name.' })
+
+  ensureProjectsDir()
+
+  const projects = readProjects()
+  const existingEntry = projects.find((p) => p.path === destPath)
+  const folderExists = fs.existsSync(destPath)
+
+  if ((existingEntry || folderExists) && !overwrite) {
+    return sendJson(res, 409, { error: 'A project with that name already exists.', conflictName: requestedName })
+  }
+
+  // Overwrite: stop any running process, then remove the folder.
+  if (existingEntry) {
+    const proc = processes.get(existingEntry.id)
+    if (proc?.proc?.pid) {
+      await new Promise((resolve) => treeKill(proc.proc.pid, 'SIGKILL', resolve))
+      processes.delete(existingEntry.id)
+    }
+  }
+  if (folderExists) {
+    if (process.platform !== 'win32') {
+      try { execFileSync('chmod', ['-R', 'u+rwx', destPath]) } catch {}
+    }
+    try {
+      fs.rmSync(destPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 })
+    } catch (err) {
+      return sendJson(res, 500, { error: `Failed to remove existing folder: ${err.message}` })
+    }
+  }
+
+  fs.mkdirSync(destPath, { recursive: true })
+
+  try {
+    for (const file of directory.files) {
+      // Strip the single top-level folder, if any.
+      let rel = file.path
+      if (singleTop) {
+        if (rel === singleTop || rel === `${singleTop}/`) continue
+        if (rel.startsWith(`${singleTop}/`)) rel = rel.slice(singleTop.length + 1)
+      }
+      if (!rel) continue
+      // Defense: refuse path traversal.
+      const target = path.join(destPath, rel)
+      if (!target.startsWith(destPath + path.sep) && target !== destPath) continue
+      if (file.type === 'Directory') {
+        fs.mkdirSync(target, { recursive: true })
+      } else {
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        const content = await file.buffer()
+        fs.writeFileSync(target, content)
+      }
+    }
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to extract ZIP: ${err.message}` })
+  }
+
+  try {
+    writeProtovibeData(destPath, requestedName, { resetCloudflare: true })
+    try { writePluginMetadata(destPath, readSourcePluginVersion()) } catch {}
+  } catch (err) {
+    return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
+  }
+
+  let entry = existingEntry
+  if (entry) {
+    entry.createdAt = entry.createdAt || new Date().toISOString()
+  } else {
+    entry = { id: generateId(), path: destPath, createdAt: new Date().toISOString() }
+    projects.push(entry)
+  }
+  writeProjects(projects)
+
+  sendJson(res, 201, { ...entry, name: requestedName })
+}
+
 // ── Plugin ────────────────────────────────────────────────────────────────────
 
 function projectManagerPlugin() {
@@ -1206,6 +1393,9 @@ function projectManagerPlugin() {
           if (method === 'GET' && pathname === '/version') {
             return await handleGetVersion(req, res)
           }
+          if (method === 'POST' && pathname === '/projects/import') {
+            return await handleImportProject(req, res, url)
+          }
           if (method === 'POST' && pathname === '/update-app') {
             const which = url.searchParams.get('which') || 'auto'
             return handleUpdateApp(req, res, which)
@@ -1223,6 +1413,7 @@ function projectManagerPlugin() {
             if (method === 'POST' && action === 'update-plugin') return await handleUpdatePlugin(req, res, id)
             if (method === 'POST' && action === 'show-folder') return handleShowFolder(req, res, id)
             if (method === 'POST' && action === 'open-vscode') return handleOpenVSCode(req, res, id)
+            if (method === 'GET' && action === 'export') return handleExportProject(req, res, id)
             if (method === 'GET' && action === 'logs') return handleLogs(req, res, id)
             if (method === 'GET' && action === 'setup') return handleSetup(req, res, id)
           }

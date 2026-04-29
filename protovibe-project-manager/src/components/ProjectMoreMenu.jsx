@@ -19,6 +19,7 @@ import {
   Pencil,
   Copy,
   Trash2,
+  Download,
 } from 'lucide-react'
 
 function MenuItem({ icon, label, onClick, danger, disabled, testId }) {
@@ -138,6 +139,16 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 icon={<Pencil size={14} className="shrink-0" />}
               />
             )}
+
+            <MenuItem
+              label="Export as ZIP"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = `/api/projects/${project.id}/export`
+                setMenuOpen(false)
+              }}
+              icon={<Download size={14} className="shrink-0" />}
+            />
 
             <MenuItem
               label="Duplicate"

@@ -243,11 +243,6 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
-        {/* pv-block-start:fb4616 */}
-        <TextParagraph className="w-30" data-pv-block="fb4616" typography="regular">
-          Paragraph texta<span> </span>test test<br /><br /><span className="text-foreground-warning">assad</span>
-        </TextParagraph>
-        {/* pv-block-end:fb4616 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

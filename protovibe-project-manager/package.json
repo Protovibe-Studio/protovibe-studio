@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "archiver": "^7.0.1",
+    "ignore": "^7.0.5",
     "lucide-react": "^1.8.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.13.2"
+    "react-router-dom": "^7.13.2",
+    "unzipper": "^0.12.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

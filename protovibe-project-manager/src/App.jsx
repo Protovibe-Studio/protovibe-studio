@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, X, FolderRoot } from 'lucide-react'
+import { Plus, Search, X, FolderRoot, Upload } from 'lucide-react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
+import ImportProjectModal from './components/ImportProjectModal.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
 import VersionInfoMenu from './components/VersionInfoMenu.jsx'
@@ -31,6 +32,7 @@ export default function App() {
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [deleteConfirmProject, setDeleteConfirmProject] = useState(null)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
@@ -125,6 +127,15 @@ export default function App() {
       setSetupStage(null)
       setView('list')
     }
+  }
+
+  const handleImported = (project) => {
+    setImportOpen(false)
+    fetchProjects()
+    showToast(`"${project.name}" imported`, 'success')
+    setActiveProjectId(project.id)
+    setSetupStage('installing')
+    setView('setup')
   }
 
   const handleDuplicate = async (id) => {
@@ -237,28 +248,46 @@ export default function App() {
               <p className="text-foreground-default font-medium mb-1">No projects yet</p>
               <p className="text-foreground-tertiary text-sm">Create your first project to get started</p>
             </div>
-            <button
-              data-testid="btn-new-project"
-              onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
-            >
-              <Plus size={14} />
-              Create Project
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                data-testid="btn-new-project"
+                onClick={() => setCreateOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
+              >
+                <Plus size={14} />
+                Create Project
+              </button>
+              <button
+                onClick={() => setImportOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-background-secondary hover:bg-background-tertiary text-foreground-default text-sm font-medium rounded-lg border border-border-default transition-colors cursor-pointer"
+              >
+                <Upload size={14} />
+                Import ZIP
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
-                <button
-                  data-testid="btn-new-project"
-                  onClick={() => setCreateOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
-                >
-                  <Plus size={14} />
-                  New Project
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setImportOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-background-secondary hover:bg-background-tertiary text-foreground-default text-sm font-medium rounded-lg border border-border-default transition-colors cursor-pointer"
+                  >
+                    <Upload size={14} />
+                    Import ZIP
+                  </button>
+                  <button
+                    data-testid="btn-new-project"
+                    onClick={() => setCreateOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    New Project
+                  </button>
+                </div>
               </div>
               <div className="relative w-full">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
@@ -333,6 +362,13 @@ export default function App() {
         <CreateProjectModal
           onClose={() => setCreateOpen(false)}
           onCreate={handleCreateProject}
+        />
+      )}
+
+      {importOpen && (
+        <ImportProjectModal
+          onClose={() => setImportOpen(false)}
+          onImported={handleImported}
         />
       )}
 
