@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bold, Italic, Underline, Link as LinkIcon, RemoveFormatting } from 'lucide-react';
+import { Bold, Italic, Underline, Link as LinkIcon, RemoveFormatting, CodeXml } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { blockAction, takeSnapshot } from '../api/client';
 import { isTextEditableElement, PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
@@ -57,6 +57,10 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   // Strip JSX comments (e.g., {/* pv-editable-zone */}).
   inner = inner.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
+  // Collapse JSX source formatting whitespace (newlines/tabs from indentation)
+  // before any newline-to-<br> logic runs downstream.
+  inner = inner.replace(/\s+/g, ' ');
+
   // Convert JSX className to HTML class so the browser applies it in the editor.
   inner = inner.replace(/\bclassName=/g, 'class=');
 
@@ -92,7 +96,11 @@ export const BlockEditor: React.FC = () => {
 
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
-  const normalizeHtml = (value: string) => value.replace(/[ \t]+/g, ' ').trim();
+  const normalizeHtml = (value: string) => {
+    // Convert intentional newlines into <br> before collapsing remaining whitespace.
+    const withBrs = value.replace(/\n/g, '<br>');
+    return withBrs.replace(/\s+/g, ' ').trim();
+  };
 
   useEffect(() => {
     const handleFocus = () => {
@@ -207,6 +215,32 @@ export const BlockEditor: React.FC = () => {
     sel.addRange(newRange);
   };
 
+  // Wrap the current selection in a plain <span>. Mirrors toggleUnderline's
+  // structure: surroundContents when the range is tidy, fall back to
+  // extract/insert when it crosses element boundaries.
+  const wrapSelectionInSpan = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return;
+
+    const editor = editorRef.current;
+    if (!editor || !editor.contains(range.commonAncestorContainer)) return;
+
+    const span = document.createElement('span');
+    try {
+      range.surroundContents(span);
+    } catch {
+      const extracted = range.extractContents();
+      span.appendChild(extracted);
+      range.insertNode(span);
+    }
+    sel.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
+    sel.addRange(newRange);
+  };
+
   const openLinkPopover = (btn: HTMLButtonElement) => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
@@ -318,6 +352,9 @@ export const BlockEditor: React.FC = () => {
               </ToolbarButton>
               <ToolbarButton title="Underline" disabled={isMutationLocked} onActivate={() => { toggleUnderline(); persistIfChanged(); }}>
                 <Underline size={12} />
+              </ToolbarButton>
+              <ToolbarButton title="Wrap in span" disabled={isMutationLocked} onActivate={() => { wrapSelectionInSpan(); persistIfChanged(); }}>
+                <CodeXml size={12} />
               </ToolbarButton>
               <ToolbarButton title="Link" disabled={isMutationLocked} onActivate={openLinkPopover}>
                 <LinkIcon size={12} />
