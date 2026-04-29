@@ -57,6 +57,10 @@ const jsxInnerToEditorHtml = (codeSnippet: string): string => {
   // Strip JSX comments (e.g., {/* pv-editable-zone */}).
   inner = inner.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
+  // Collapse JSX source formatting whitespace (newlines/tabs from indentation)
+  // before any newline-to-<br> logic runs downstream.
+  inner = inner.replace(/\s+/g, ' ');
+
   // Convert JSX className to HTML class so the browser applies it in the editor.
   inner = inner.replace(/\bclassName=/g, 'class=');
 
@@ -92,7 +96,11 @@ export const BlockEditor: React.FC = () => {
 
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
-  const normalizeHtml = (value: string) => value.replace(/\s+/g, ' ').trim();
+  const normalizeHtml = (value: string) => {
+    // Convert intentional newlines into <br> before collapsing remaining whitespace.
+    const withBrs = value.replace(/\n/g, '<br>');
+    return withBrs.replace(/\s+/g, ' ').trim();
+  };
 
   useEffect(() => {
     const handleFocus = () => {

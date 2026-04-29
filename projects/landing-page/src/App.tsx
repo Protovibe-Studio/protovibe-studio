@@ -1727,7 +1727,11 @@ export default function App() {
                   {/* pv-block-end:b00305 */}
                   {/* pv-block-start:b00306 */}
                   <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default max-w-[52ch] text-pretty mt-6 mx-auto">
-                    Protovibe Studio is an open-source design tool for professional product designers who want to vibe-code, but refuse to ship inconsistent AI slop. It runs on your machine in pure React.js so your own coding agent can implement anything you imagine.
+                    Protovibe Studio is an open-source design tool for professional product designers who want to vibe-code, but refuse to ship inconsistent AI slop. It runs
+                    
+                     on your machine in pure React.js so your own
+                     
+                     coding agent can implement anything you imagine.
                   </p>
                   {/* pv-block-end:b00306 */}
                   {/* pv-block-start:b00307 */}
@@ -1822,13 +1826,13 @@ export default function App() {
                 <div data-pv-block="b00323" className="flex flex-col gap-[32px]">
                   {/* pv-editable-zone-start:z00114 */}
                     {/* pv-block-start:b00324 */}
-                    <p data-pv-block="b00324" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0 text-balance">
-                      Protovibe combines the best parts of <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Figma</em> and <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">vibe-coding</em> — letting me achieve consistent results when working on complex products and design systems.
+                    <p data-pv-block="b00324" className="font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
+                      Protovibe combines the best parts of <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-[Syne,ui-sans-serif,system-ui,sans-serif] font-semibold text-foreground-primary">Figma</em> and a pro design system.
                     </p>
                     {/* pv-block-end:b00324 */}
                     
                     {/* pv-block-start:b00325 */}
-                    <div data-pv-block="b00325" className="flex items-center gap-[14px] pt-[4px]">
+                    <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] hidden">
                       {/* pv-editable-zone-start:z00115 */}
                         {/* pv-block-start:b00326 */}
                         <div data-pv-block="b00326" className="w-[44px] h-[44px] rounded-full bg-background-tertiary-hover text-foreground-default flex items-center justify-center font-semibold text-[14px] shrink-0">HD</div>
@@ -1850,11 +1854,6 @@ export default function App() {
                           {/* pv-editable-zone-end:z00116 */}
                         </div>
                         {/* pv-block-end:b00327 */}
-                        {/* pv-block-start:6mv387 */}
-                        <span className="flex flex-col" data-pv-block="6mv387">
-                          Lorem ipsum 8 asdasd
-                        </span>
-                        {/* pv-block-end:6mv387 */}
                       {/* pv-editable-zone-end:z00115 */}
                     </div>
                     {/* pv-block-end:b00325 */}
@@ -1864,6 +1863,12 @@ export default function App() {
               {/* pv-editable-zone-end:z00113 */}
             </section>
             {/* pv-block-end:b00321 */}
+            {/* pv-block-start:nkmyb8 */}
+            <div className="flex flex-col min-h-4" data-pv-block="nkmyb8">
+              {/* pv-editable-zone-start:wot8l6 */}
+              {/* pv-editable-zone-end:wot8l6 */}
+            </div>
+            {/* pv-block-end:nkmyb8 */}
 
             {/* pv-block-start:b00330 */}
             <ProblemSolution data-pv-block="b00330" />

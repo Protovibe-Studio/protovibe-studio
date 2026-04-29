@@ -582,13 +582,15 @@ async function handleUpdatePlugin(_req, res, id) {
     // 1) Stop the running dev server so it releases handles on the plugin
     //    files we're about to swap. We escalate to SIGTERM → SIGKILL.
     const wasRunning = state.status === 'running' || state.status === 'starting'
-    if (wasRunning) {
-      await stopProjectProcess(id)
-      state.logs.push('--- stopped to update plugin ---')
-    }
+    // Testing: keep dev server running through plugin update.
+    // if (wasRunning) {
+    //   await stopProjectProcess(id)
+    //   state.logs.push('--- stopped to update plugin ---')
+    // }
 
-    state.status = 'updating-plugin'
-    state.port = null
+    // Testing: don't flip status / clear port so UI keeps showing "Running".
+    // state.status = 'updating-plugin'
+    // state.port = null
     state.logs.push('--- updating protovibe plugin ---')
 
     const targetPluginDir = path.join(project.path, PLUGIN_REL_DIR)
@@ -617,7 +619,9 @@ async function handleUpdatePlugin(_req, res, id) {
         shell: true,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
       })
-      state.proc = proc
+      // Testing: don't overwrite state.proc so the running dev server handle
+      // stays intact and Stop keeps working.
+      // state.proc = proc
       const onData = (chunk) => {
         chunk.toString().split('\n').forEach((line) => {
           if (line.trim()) state.logs.push(line)
@@ -646,8 +650,9 @@ async function handleUpdatePlugin(_req, res, id) {
       return sendJson(res, 500, { error: err.message || 'Plugin install/build failed.' })
     }
 
-    state.proc = null
-    state.status = 'stopped'
+    // Testing: preserve proc/status so the running dev server stays controllable.
+    // state.proc = null
+    // state.status = 'stopped'
 
     // 4) Stamp plugin-version + plugin-last-updated in protovibe-data.json.
     let info

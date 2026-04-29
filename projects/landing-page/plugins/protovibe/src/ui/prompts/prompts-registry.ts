@@ -173,7 +173,7 @@ export const PROMPTS: PromptDef[] = [
   Guidelines:
   - Do NOT change markup structure, props, styling, or behavior. This task ONLY inserts the pv comment tags and \`data-pv-block\` attributes.
   - Assign a fresh random 6-character alphanumeric ID to every zone and block you introduce. The ID on the comment tags MUST match the \`data-pv-block\` attribute on the root element.
-  - Be granular: every direct sibling inside a zone that a user might reorder, delete, or edit independently gets its own pv-block — including dividers and small visual separators. Don't collapse a whole section into one block.
+  - Be granular: whatever can be reordered, should be wrapped in a block, even single a hrefs, every direct sibling inside a zone that a user might reorder, delete, or edit independently gets its own pv-block — including dividers and small visual separators. Don't collapse a whole section into one block.
   - **Container blocks need inner zones too.** If a block's root element contains multiple independently-editable children (e.g. a label + an input field, a heading + a paragraph), add a \`pv-editable-zone\` inside the root element and give each child its own \`pv-block\`. Without this inner zone the children cannot be deleted or reordered on the canvas. This rule applies equally to compound components (e.g. \`SelectDropdown\` with \`DropdownItem\` children) — do not treat them as atomic just because they share a semantic purpose; if the children can be reordered or deleted independently, they each need a \`pv-block\` inside an inner zone.
 
     ❌ BAD — label and input collapsed, no inner zone:
@@ -204,6 +204,7 @@ export const PROMPTS: PromptDef[] = [
 
   - Elements rendered conditionally (e.g. \`{cond && <X />}\`) or via short logic like \`{items.map(...)}\` can still be wrapped. Place the pv-block-start / pv-block-end comment tags *outside* the \`{...}\` expression so the whole conditional (including its braces) moves as one unit. See the "Wrap Conditionally-Rendered Elements Around the Logic" rule in AGENTS.md.
   - Preserve any existing pv tags and IDs already present in the selection. Only add new ones where they are missing.
+  - Pay attention to braces - these are normal comment tags, normal JSX comments with SINGLE braces, not template literals — do not accidentally wrap them in double braces
 
   {{agentsRules}}`,
   },

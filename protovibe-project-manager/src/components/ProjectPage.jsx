@@ -146,10 +146,11 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
       setError('Wait for setup to finish before updating the plugin.')
       return
     }
-    if (isRunning) {
-      const ok = window.confirm('Updating the plugin will stop the dev server. Continue?')
-      if (!ok) return
-    }
+    // Testing: keep dev server running through plugin update.
+    // if (isRunning) {
+    //   const ok = window.confirm('Updating the plugin will stop the dev server. Continue?')
+    //   if (!ok) return
+    // }
     setError('')
     setUpdatingPlugin(true)
     try {

@@ -243,6 +243,11 @@ function DashboardPage() {
           {/* pv-editable-zone-end:inside-dkwss2 */}
         </div>
         {/* pv-block-end:dkwss2 */}
+        {/* pv-block-start:fb4616 */}
+        <TextParagraph data-pv-block="fb4616" typography="regular">
+          Paragraph tex t test test<br /><br />assad
+        </TextParagraph>
+        {/* pv-block-end:fb4616 */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );

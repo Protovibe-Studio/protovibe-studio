@@ -92,7 +92,7 @@ export const BlockEditor: React.FC = () => {
 
   const isTextNode = isTextEditableElement(currentBaseTarget, activeData?.code, activeData?.configSchema);
 
-  const normalizeHtml = (value: string) => value.replace(/\s+/g, ' ').trim();
+  const normalizeHtml = (value: string) => value.replace(/[ \t]+/g, ' ').trim();
 
   useEffect(() => {
     const handleFocus = () => {
