@@ -338,14 +338,16 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 18,
-              height: 18,
+              width: 14,
+              height: 14,
               padding: 0,
+              margin: '-2px 0',
               background: 'transparent',
               border: 'none',
               borderRadius: 3,
               color: isActive ? theme.text_default : theme.text_tertiary,
               cursor: 'pointer',
+              lineHeight: 0,
             }}
           >
             <Pencil size={10} strokeWidth={2} />
