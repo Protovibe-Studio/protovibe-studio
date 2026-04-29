@@ -7,6 +7,7 @@ import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosi
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { ColorPicker } from '../ColorPicker';
 import { updateThemeColor } from '../../api/client';
+import { createColorLivePreview } from '../../utils/colorPreview';
 
 export interface AutocompleteOption {
   val: string;
@@ -251,6 +252,13 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     }
   };
 
+  const livePreviewRef = useRef(createColorLivePreview());
+  const applyLivePreview = (tokenName: string, themeMode: ColorMode, oklchValue: string) =>
+    livePreviewRef.current.apply(tokenName, themeMode, oklchValue);
+  const clearLivePreview = () => livePreviewRef.current.clear();
+
+  useEffect(() => clearLivePreview, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const isSemanticToken = (opt: AutocompleteOption) =>
     isColorDropdown && (opt.lightValue !== undefined || opt.darkValue !== undefined);
 
@@ -330,14 +338,16 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 18,
-              height: 18,
+              width: 14,
+              height: 14,
               padding: 0,
+              margin: '-2px 0',
               background: 'transparent',
               border: 'none',
               borderRadius: 3,
               color: isActive ? theme.text_default : theme.text_tertiary,
               cursor: 'pointer',
+              lineHeight: 0,
             }}
           >
             <Pencil size={10} strokeWidth={2} />
@@ -508,6 +518,9 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
           themeMode={editingToken.themeMode}
           initialValue={editingToken.initialValue}
           anchorRect={editingToken.anchorRect}
+          onLivePreview={(oklchValue) => {
+            applyLivePreview(editingToken.tokenName, editingToken.themeMode, oklchValue);
+          }}
           onSave={async (oklchValue) => {
             try {
               await updateThemeColor(editingToken.tokenName, editingToken.themeMode, oklchValue);
@@ -515,10 +528,14 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             } catch (err) {
               console.error('[protovibe] Failed to update color:', err);
             } finally {
+              clearLivePreview();
               setEditingToken(null);
             }
           }}
-          onCancel={() => setEditingToken(null)}
+          onCancel={() => {
+            clearLivePreview();
+            setEditingToken(null);
+          }}
         />
       )}
     </div>

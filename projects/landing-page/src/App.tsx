@@ -64,136 +64,331 @@ function FeatureGrid() {
               {/* pv-block-end:b00004 */}
               {/* pv-block-start:b00005 */}
               <h2 data-pv-block="b00005" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Designed for people who care about the <em className="italic font-secondary font-bold text-foreground-strong">actual</em> pixels.
+                It has everything you need to work fast
               </h2>
               {/* pv-block-end:b00005 */}
             {/* pv-editable-zone-end:z00002 */}
           </div>
           {/* pv-block-end:b00003 */}
-          
+
           {/* pv-block-start:b00006 */}
-          <div data-pv-block="b00006" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+          <div data-pv-block="b00006" className="grid grid-cols-1 md:grid-cols-3 gap-x-[40px] gap-y-[28px] mx-auto justify-items-start max-w-[700px]">
             {/* pv-editable-zone-start:z00003 */}
-              {/* pv-block-start:b00007 */}
-              <div data-pv-block="b00007" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:b00008 */}
-                  <div data-pv-block="b00008" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">01 · agent</div>
-                  {/* pv-block-end:b00008 */}
-                  {/* pv-block-start:b00009 */}
-                  <h3 data-pv-block="b00009" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">An AI that actually respects your design system.</h3>
-                  {/* pv-block-end:b00009 */}
-                  {/* pv-block-start:b00010 */}
-                  <p data-pv-block="b00010" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Protovibe's agent reads your tokens, components, and grid — and refuses to hardcode a single pixel. No rogue hex codes. No off-brand radii. No AI shit.</p>
-                  {/* pv-block-end:b00010 */}
-                  {/* pv-block-start:b00011 */}
-                  <div data-pv-block="b00011" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00011 */}
-                {/* pv-editable-zone-end:z00004 */}
+              {/* pv-block-start:f00101 */}
+              <div data-pv-block="f00101" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="undo" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Undo &amp; redo</span>
               </div>
-              {/* pv-block-end:b00007 */}
+              {/* pv-block-end:f00101 */}
 
-              {/* pv-block-start:b00012 */}
-              <div data-pv-block="b00012" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00005 */}
-                  {/* pv-block-start:b00013 */}
-                  <div data-pv-block="b00013" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">02 · pixels</div>
-                  {/* pv-block-end:b00013 */}
-                  {/* pv-block-start:b00014 */}
-                  <h3 data-pv-block="b00014" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Pixel-perfect, not vibe-adjacent.</h3>
-                  {/* pv-block-end:b00014 */}
-                  {/* pv-block-start:b00015 */}
-                  <p data-pv-block="b00015" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Ship mocks that line up to the baseline, match component specs, and pass a designer's squint test. Because "roughly right" is the enemy.</p>
-                  {/* pv-block-end:b00015 */}
-                  {/* pv-block-start:b00016 */}
-                  <div data-pv-block="b00016" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00016 */}
-                {/* pv-editable-zone-end:z00005 */}
+              {/* pv-block-start:f00102 */}
+              <div data-pv-block="f00102" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="image-plus" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Paste image</span>
               </div>
-              {/* pv-block-end:b00012 */}
+              {/* pv-block-end:f00102 */}
 
-              {/* pv-block-start:b00017 */}
-              <div data-pv-block="b00017" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00006 */}
-                  {/* pv-block-start:b00018 */}
-                  <div data-pv-block="b00018" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">03 · prompt</div>
-                  {/* pv-block-end:b00018 */}
-                  {/* pv-block-start:b00019 */}
-                  <h3 data-pv-block="b00019" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Prompt like a designer. Commit like an engineer.</h3>
-                  {/* pv-block-end:b00019 */}
-                  {/* pv-block-start:b00020 */}
-                  <p data-pv-block="b00020" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Natural language in, real React + Tailwind out. Every change is a diff you can read, review, and roll back — not a black box.</p>
-                  {/* pv-block-end:b00020 */}
-                  {/* pv-block-start:b00021 */}
-                  <div data-pv-block="b00021" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00021 */}
-                {/* pv-editable-zone-end:z00006 */}
+              {/* pv-block-start:f00103 */}
+              <div data-pv-block="f00103" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="select-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Multi-select</span>
               </div>
-              {/* pv-block-end:b00017 */}
+              {/* pv-block-end:f00103 */}
 
-              {/* pv-block-start:b00022 */}
-              <div data-pv-block="b00022" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00007 */}
-                  {/* pv-block-start:b00023 */}
-                  <div data-pv-block="b00023" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">04 · control</div>
-                  {/* pv-block-end:b00023 */}
-                  {/* pv-block-start:b00024 */}
-                  <h3 data-pv-block="b00024" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">You stay in the driver's seat.</h3>
-                  {/* pv-block-end:b00024 */}
-                  {/* pv-block-start:b00025 */}
-                  <p data-pv-block="b00025" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Inspect anything. Tweak props. Override the agent mid-thought. This isn't vibe-coding that runs away from you — it's you, just faster.</p>
-                  {/* pv-block-end:b00025 */}
-                  {/* pv-block-start:b00026 */}
-                  <div data-pv-block="b00026" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00026 */}
-                {/* pv-editable-zone-end:z00007 */}
+              {/* pv-block-start:f00104 */}
+              <div data-pv-block="f00104" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="cube-outline" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Components</span>
               </div>
-              {/* pv-block-end:b00022 */}
+              {/* pv-block-end:f00104 */}
 
-              {/* pv-block-start:b00027 */}
-              <div data-pv-block="b00027" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00008 */}
-                  {/* pv-block-start:b00028 */}
-                  <div data-pv-block="b00028" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">05 · system</div>
-                  {/* pv-block-end:b00028 */}
-                  {/* pv-block-start:b00029 */}
-                  <h3 data-pv-block="b00029" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Brings your whole team up to spec.</h3>
-                  {/* pv-block-end:b00029 */}
-                  {/* pv-block-start:b00030 */}
-                  <p data-pv-block="b00030" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Import your component library once. Every prototype after that is on-brand by default. Consistency isn't a policy — it's the floor.</p>
-                  {/* pv-block-end:b00030 */}
-                  {/* pv-block-start:b00031 */}
-                  <div data-pv-block="b00031" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00031 */}
-                {/* pv-editable-zone-end:z00008 */}
+              {/* pv-block-start:f00105 */}
+              <div data-pv-block="f00105" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="palette" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Color tokens</span>
               </div>
-              {/* pv-block-end:b00027 */}
+              {/* pv-block-end:f00105 */}
 
-              {/* pv-block-start:b00032 */}
-              <div data-pv-block="b00032" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00009 */}
-                  {/* pv-block-start:b00033 */}
-                  <div data-pv-block="b00033" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">06 · open</div>
-                  {/* pv-block-end:b00033 */}
-                  {/* pv-block-start:b00034 */}
-                  <h3 data-pv-block="b00034" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Open source. Yours, forever.</h3>
-                  {/* pv-block-end:b00034 */}
-                  {/* pv-block-start:b00035 */}
-                  <p data-pv-block="b00035" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">MIT-licensed. Runs on your computer, not ours. No telemetry, no accounts, no rug-pull. Fork it, extend it, ship it. Your prototypes never leave your machine unless you push them.</p>
-                  {/* pv-block-end:b00035 */}
-                  {/* pv-block-start:b00036 */}
-                  <div data-pv-block="b00036" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
-                  {/* pv-block-end:b00036 */}
-                {/* pv-editable-zone-end:z00009 */}
+              {/* pv-block-start:f00106 */}
+              <div data-pv-block="f00106" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="format-text" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Typography</span>
               </div>
-              {/* pv-block-end:b00032 */}
+              {/* pv-block-end:f00106 */}
 
+              {/* pv-block-start:f00107 */}
+              <div data-pv-block="f00107" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="layers" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Layers panel</span>
+              </div>
+              {/* pv-block-end:f00107 */}
+
+              {/* pv-block-start:f00108 */}
+              <div data-pv-block="f00108" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="tune" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Inspector</span>
+              </div>
+              {/* pv-block-end:f00108 */}
+
+              {/* pv-block-start:f00109 */}
+              <div data-pv-block="f00109" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="magnet" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Smart snapping</span>
+              </div>
+              {/* pv-block-end:f00109 */}
+
+              {/* pv-block-start:f00110 */}
+              <div data-pv-block="f00110" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="responsive" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Responsive design</span>
+              </div>
+              {/* pv-block-end:f00110 */}
+
+              {/* pv-block-start:f00111 */}
+              <div data-pv-block="f00111" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="cursor-move" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Drag &amp; drop</span>
+              </div>
+              {/* pv-block-end:f00111 */}
+
+              {/* pv-block-start:f00112 */}
+              <div data-pv-block="f00112" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="keyboard" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Keyboard shortcuts</span>
+              </div>
+              {/* pv-block-end:f00112 */}
+
+              {/* pv-block-start:f00113 */}
+              <div data-pv-block="f00113" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="history" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Version history</span>
+              </div>
+              {/* pv-block-end:f00113 */}
+
+              {/* pv-block-start:f00114 */}
+              <div data-pv-block="f00114" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="content-save" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Auto-save</span>
+              </div>
+              {/* pv-block-end:f00114 */}
+
+              {/* pv-block-start:f00115 */}
+              <div data-pv-block="f00115" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="code-tags" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Code export</span>
+              </div>
+              {/* pv-block-end:f00115 */}
+
+              {/* pv-block-start:f00116 */}
+              <div data-pv-block="f00116" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="source-branch" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Git integration</span>
+              </div>
+              {/* pv-block-end:f00116 */}
+
+              {/* pv-block-start:f00117 */}
+              <div data-pv-block="f00117" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="file-document-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Templates</span>
+              </div>
+              {/* pv-block-end:f00117 */}
+
+              {/* pv-block-start:f00118 */}
+              <div data-pv-block="f00118" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="emoticon" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Icon library</span>
+              </div>
+              {/* pv-block-end:f00118 */}
+
+              {/* pv-block-start:f00119 */}
+              <div data-pv-block="f00119" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="format-font" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Custom fonts</span>
+              </div>
+              {/* pv-block-end:f00119 */}
+
+              {/* pv-block-start:f00120 */}
+              <div data-pv-block="f00120" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="weather-night" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Dark mode</span>
+              </div>
+              {/* pv-block-end:f00120 */}
+
+              {/* pv-block-start:f00121 */}
+              <div data-pv-block="f00121" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="eye" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Live preview</span>
+              </div>
+              {/* pv-block-end:f00121 */}
+
+              {/* pv-block-start:f00122 */}
+              <div data-pv-block="f00122" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="view-grid-plus" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Auto layout</span>
+              </div>
+              {/* pv-block-end:f00122 */}
+
+              {/* pv-block-start:f00123 */}
+              <div data-pv-block="f00123" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="account-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Collaboration</span>
+              </div>
+              {/* pv-block-end:f00123 */}
+
+              {/* pv-block-start:f00124 */}
+              <div data-pv-block="f00124" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="content-copy" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Copy &amp; paste</span>
+              </div>
+              {/* pv-block-end:f00124 */}
             {/* pv-editable-zone-end:z00003 */}
           </div>
           {/* pv-block-end:b00006 */}
         {/* pv-editable-zone-end:z00001 */}
       </section>
       {/* pv-block-end:b00002 */}
+
+      {/* pv-block-start:o0ospu */}
+      <section data-pv-block="o0ospu" className="py-[120px] relative" id="features">
+        {/* pv-editable-zone-start:z00001 */}
+          {/* pv-block-start:d0wkgq */}
+          <div data-pv-block="d0wkgq" className="max-w-[780px] mx-auto mb-[64px] text-center">
+            {/* pv-editable-zone-start:z00002 */}
+              {/* pv-block-start:y5wszz */}
+              <div data-pv-block="y5wszz" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Features</div>
+              {/* pv-block-end:y5wszz */}
+              {/* pv-block-start:lx146v */}
+              <h2 data-pv-block="lx146v" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+                Designed for people who care about the <em className="italic font-secondary font-bold text-foreground-strong">actual</em> pixels.
+              </h2>
+              {/* pv-block-end:lx146v */}
+            {/* pv-editable-zone-end:z00002 */}
+          </div>
+          {/* pv-block-end:d0wkgq */}
+          
+          {/* pv-block-start:jei6lm */}
+          <div data-pv-block="jei6lm" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+            {/* pv-editable-zone-start:z00003 */}
+              {/* pv-block-start:wpvsjh */}
+              <div data-pv-block="wpvsjh" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00004 */}
+                  {/* pv-block-start:sshgsn */}
+                  <div data-pv-block="sshgsn" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">01 · agent</div>
+                  {/* pv-block-end:sshgsn */}
+                  {/* pv-block-start:xuu7s0 */}
+                  <h3 data-pv-block="xuu7s0" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">An AI that actually respects your design system.</h3>
+                  {/* pv-block-end:xuu7s0 */}
+                  {/* pv-block-start:csjsof */}
+                  <p data-pv-block="csjsof" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Protovibe's agent reads your tokens, components, and grid — and refuses to hardcode a single pixel. No rogue hex codes. No off-brand radii. No AI shit.</p>
+                  {/* pv-block-end:csjsof */}
+                  {/* pv-block-start:9kszsq */}
+                  <div data-pv-block="9kszsq" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:9kszsq */}
+                {/* pv-editable-zone-end:z00004 */}
+              </div>
+              {/* pv-block-end:wpvsjh */}
+
+              {/* pv-block-start:w4bj7z */}
+              <div data-pv-block="w4bj7z" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00005 */}
+                  {/* pv-block-start:yobuzi */}
+                  <div data-pv-block="yobuzi" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">02 · pixels</div>
+                  {/* pv-block-end:yobuzi */}
+                  {/* pv-block-start:j37x8u */}
+                  <h3 data-pv-block="j37x8u" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Pixel-perfect, not vibe-adjacent.</h3>
+                  {/* pv-block-end:j37x8u */}
+                  {/* pv-block-start:7j2w3k */}
+                  <p data-pv-block="7j2w3k" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Ship mocks that line up to the baseline, match component specs, and pass a designer's squint test. Because "roughly right" is the enemy.</p>
+                  {/* pv-block-end:7j2w3k */}
+                  {/* pv-block-start:de2jn3 */}
+                  <div data-pv-block="de2jn3" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:de2jn3 */}
+                {/* pv-editable-zone-end:z00005 */}
+              </div>
+              {/* pv-block-end:w4bj7z */}
+
+              {/* pv-block-start:evraja */}
+              <div data-pv-block="evraja" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00006 */}
+                  {/* pv-block-start:guiztv */}
+                  <div data-pv-block="guiztv" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">03 · prompt</div>
+                  {/* pv-block-end:guiztv */}
+                  {/* pv-block-start:180dck */}
+                  <h3 data-pv-block="180dck" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Prompt like a designer. Commit like an engineer.</h3>
+                  {/* pv-block-end:180dck */}
+                  {/* pv-block-start:91c2ln */}
+                  <p data-pv-block="91c2ln" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Natural language in, real React + Tailwind out. Every change is a diff you can read, review, and roll back — not a black box.</p>
+                  {/* pv-block-end:91c2ln */}
+                  {/* pv-block-start:43mmgj */}
+                  <div data-pv-block="43mmgj" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:43mmgj */}
+                {/* pv-editable-zone-end:z00006 */}
+              </div>
+              {/* pv-block-end:evraja */}
+
+              {/* pv-block-start:9n56g7 */}
+              <div data-pv-block="9n56g7" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00007 */}
+                  {/* pv-block-start:xg306m */}
+                  <div data-pv-block="xg306m" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">04 · control</div>
+                  {/* pv-block-end:xg306m */}
+                  {/* pv-block-start:8sv7ai */}
+                  <h3 data-pv-block="8sv7ai" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">You stay in the driver's seat.</h3>
+                  {/* pv-block-end:8sv7ai */}
+                  {/* pv-block-start:uqt04x */}
+                  <p data-pv-block="uqt04x" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Inspect anything. Tweak props. Override the agent mid-thought. This isn't vibe-coding that runs away from you — it's you, just faster.</p>
+                  {/* pv-block-end:uqt04x */}
+                  {/* pv-block-start:t5m3br */}
+                  <div data-pv-block="t5m3br" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:t5m3br */}
+                {/* pv-editable-zone-end:z00007 */}
+              </div>
+              {/* pv-block-end:9n56g7 */}
+
+              {/* pv-block-start:iexuct */}
+              <div data-pv-block="iexuct" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00008 */}
+                  {/* pv-block-start:v6otdo */}
+                  <div data-pv-block="v6otdo" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">05 · system</div>
+                  {/* pv-block-end:v6otdo */}
+                  {/* pv-block-start:ifx9uk */}
+                  <h3 data-pv-block="ifx9uk" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Brings your whole team up to spec.</h3>
+                  {/* pv-block-end:ifx9uk */}
+                  {/* pv-block-start:mi6wvo */}
+                  <p data-pv-block="mi6wvo" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">Import your component library once. Every prototype after that is on-brand by default. Consistency isn't a policy — it's the floor.</p>
+                  {/* pv-block-end:mi6wvo */}
+                  {/* pv-block-start:wdbljd */}
+                  <div data-pv-block="wdbljd" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:wdbljd */}
+                {/* pv-editable-zone-end:z00008 */}
+              </div>
+              {/* pv-block-end:iexuct */}
+
+              {/* pv-block-start:8ulo7c */}
+              <div data-pv-block="8ulo7c" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col min-h-[340px] transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+                {/* pv-editable-zone-start:z00009 */}
+                  {/* pv-block-start:qt3zeq */}
+                  <div data-pv-block="qt3zeq" className="font-bold text-[11px] tracking-[0.16em] uppercase mb-[20px] text-foreground-primary">06 · open</div>
+                  {/* pv-block-end:qt3zeq */}
+                  {/* pv-block-start:v7xhr5 */}
+                  <h3 data-pv-block="v7xhr5" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">Open source. Yours, forever.</h3>
+                  {/* pv-block-end:v7xhr5 */}
+                  {/* pv-block-start:wc9kjl */}
+                  <p data-pv-block="wc9kjl" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">MIT-licensed. Runs on your computer, not ours. No telemetry, no accounts, no rug-pull. Fork it, extend it, ship it. Your prototypes never leave your machine unless you push them.</p>
+                  {/* pv-block-end:wc9kjl */}
+                  {/* pv-block-start:3dqvse */}
+                  <div data-pv-block="3dqvse" className="mt-auto h-[130px] bg-background-subtle border border-border-secondary rounded-[8px] flex items-center justify-center text-foreground-tertiary font-mono text-[10px]">Miejsce na grafikę</div>
+                  {/* pv-block-end:3dqvse */}
+                {/* pv-editable-zone-end:z00009 */}
+              </div>
+              {/* pv-block-end:8ulo7c */}
+
+            {/* pv-editable-zone-end:z00003 */}
+          </div>
+          {/* pv-block-end:jei6lm */}
+        {/* pv-editable-zone-end:z00001 */}
+      </section>
+      {/* pv-block-end:o0ospu */}
     </>
   );
 }
@@ -204,18 +399,13 @@ function LogoReact() {
       {/* pv-block-start:b00037 */}
       <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
-          {/* pv-block-start:b00038 */}
-          <svg data-pv-block="b00038" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <circle cx="12" cy="12" r="2" fill="currentColor" />
-            <g fill="none" stroke="currentColor" strokeWidth="1.1">
-              <ellipse cx="12" cy="12" rx="10" ry="4" />
-              <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
-              <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
-            </g>
-          </svg>
-          {/* pv-block-end:b00038 */}
+          {/* pv-block-start:ew0oak */}
+          <Icon data-pv-block="ew0oak" iconSymbol="mdi:react" size="lg" />
+          {/* pv-block-end:ew0oak */}
           {/* pv-block-start:b00039 */}
-          <span data-pv-block="b00039">React</span>
+          <span data-pv-block="b00039">
+            React.js
+          </span>
           {/* pv-block-end:b00039 */}
         {/* pv-editable-zone-end:z00010 */}
       </div>
@@ -227,16 +417,9 @@ function LogoReact() {
       {/* pv-block-start:uxnkm4 */}
       <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
-          {/* pv-block-start:8wvffo */}
-          <svg data-pv-block="8wvffo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <circle cx="12" cy="12" r="2" fill="currentColor" />
-            <g fill="none" stroke="currentColor" strokeWidth="1.1">
-              <ellipse cx="12" cy="12" rx="10" ry="4" />
-              <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
-              <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
-            </g>
-          </svg>
-          {/* pv-block-end:8wvffo */}
+          {/* pv-block-start:a42n3e */}
+          <Icon data-pv-block="a42n3e" iconSymbol="simple-icons:pnpm" size="lg" />
+          {/* pv-block-end:a42n3e */}
           {/* pv-block-start:2wckim */}
           <span data-pv-block="2wckim">
             pnpm
@@ -255,11 +438,9 @@ function LogoTailwind() {
       {/* pv-block-start:b00040 */}
       <div data-pv-block="b00040" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00011 */}
-          {/* pv-block-start:b00041 */}
-          <svg data-pv-block="b00041" viewBox="0 0 32 20" width="28" height="18" aria-hidden="true">
-            <path d="M8 2 Q12 -1 16 4 Q20 9 24 6 Q20 9 16 4 Q12 -1 8 2 Z M2 10 Q6 7 10 12 Q14 17 18 14 Q14 17 10 12 Q6 7 2 10 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          </svg>
-          {/* pv-block-end:b00041 */}
+          {/* pv-block-start:4o13gv */}
+          <Icon data-pv-block="4o13gv" iconSymbol="mdi:tailwind" size="lg" />
+          {/* pv-block-end:4o13gv */}
           {/* pv-block-start:b00042 */}
           <span data-pv-block="b00042">Tailwind</span>
           {/* pv-block-end:b00042 */}
@@ -276,12 +457,9 @@ function LogoVite() {
       {/* pv-block-start:b00043 */}
       <div data-pv-block="b00043" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00012 */}
-          {/* pv-block-start:b00044 */}
-          <svg data-pv-block="b00044" viewBox="0 0 24 24" width="20" height="22" aria-hidden="true">
-            <path d="M2 4 L22 4 L12 22 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-            <path d="M8 8 L16 8 L12 16 Z" fill="currentColor" opacity="0.7" />
-          </svg>
-          {/* pv-block-end:b00044 */}
+          {/* pv-block-start:mnzdh0 */}
+          <Icon data-pv-block="mnzdh0" iconSymbol="tabler:brand-vite" size="lg" />
+          {/* pv-block-end:mnzdh0 */}
           {/* pv-block-start:b00045 */}
           <span data-pv-block="b00045">Vite</span>
           {/* pv-block-end:b00045 */}
@@ -327,8 +505,8 @@ function PoweredBy() {
           {/* pv-block-end:b00048 */}
 
           {/* pv-block-start:b00054 */}
-          <div data-pv-block="b00054" className="text-[13px] leading-[1.5] text-foreground-secondary max-w-[30ch] text-pretty max-md:mx-auto">
-            Protovibe is a Vite plugin that makes the app visually editable by hand
+          <div data-pv-block="b00054" className="text-[13px] leading-[1.5] max-w-[30ch] text-pretty max-md:mx-auto text-foreground-tertiary">
+            Protovibe is a Vite plugin that makes the Tailwind classes visually editable without coding
           </div>
           {/* pv-block-end:b00054 */}
         {/* pv-editable-zone-end:z00013 */}
@@ -688,13 +866,12 @@ function ProblemSolution() {
               {/* pv-block-end:b00126 */}
               {/* pv-block-start:b00127 */}
               <h2 data-pv-block="b00127" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Vibe coding broke <em className="italic font-secondary font-bold text-foreground-strong">design</em>.<br />Protovibe fixes it.
+                Protovibe fixes annoying AI iterations.
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
-              <p data-pv-block="b00128" className="mt-[20px] text-[16px] text-foreground-secondary max-w-[56ch] mx-auto leading-[1.55] text-pretty">
-                Nine things every designer hates about AI-generated UI. Nine answers
-                built into Protovibe from day one.
+              <p data-pv-block="b00128" className="mt-[20px] text-[16px] text-foreground-secondary max-w-[56ch] mx-auto leading-[1.55] text-balance">
+                Look, prompting an AI to make a UI is not designing. AI spits random UI, and you're stuck trying to fix it. Design is a process where you need to move rectangles yourself and iterate. Protovibe Studio <b>brings you back to a driver seat. </b><br /><br /><br />
               </p>
               {/* pv-block-end:b00128 */}
             {/* pv-editable-zone-end:z00036 */}
@@ -705,6 +882,58 @@ function ProblemSolution() {
           <div data-pv-block="b00129" className="flex flex-col gap-[80px] max-w-[1040px] mx-auto">
             {/* pv-editable-zone-start:z00037 */}
               {/* ROW 1 */}
+              {/* pv-block-start:b00160 */}
+              <div data-pv-block="b00160" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
+                {/* pv-editable-zone-start:z00050 */}
+                  {/* pv-block-start:130933 */}
+                  <div data-pv-block="130933" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
+                    Miejsce na grafikę
+                  </div>
+                  {/* pv-block-end:130933 */}
+                  {/* pv-block-start:b00162 */}
+                  <div data-pv-block="b00162" className="flex flex-col gap-[22px]">
+                    {/* pv-editable-zone-start:z00051 */}
+                      {/* pv-block-start:b00163 */}
+                      <h3 data-pv-block="b00163" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        You stay the designer.
+                      </h3>
+                      {/* pv-block-end:b00163 */}
+                      {/* pv-block-start:b00164 */}
+                      <div data-pv-block="b00164" className="flex flex-col gap-[6px]">
+                        {/* pv-editable-zone-start:z00052 */}
+                          {/* pv-block-start:b00165 */}
+                          <div data-pv-block="b00165" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          {/* pv-block-end:b00165 */}
+                          {/* pv-block-start:b00166 */}
+                          <p data-pv-block="b00166" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            We've all tried the "magic" AI website builders. You ask for a sleek dashboard, and it spits out a generic, inconsistent Frankenstein that looks like a different brand.
+                          </p>
+                          {/* pv-block-end:b00166 */}
+                        {/* pv-editable-zone-end:z00052 */}
+                      </div>
+                      {/* pv-block-end:b00164 */}
+                      {/* pv-block-start:b00167 */}
+                      <div data-pv-block="b00167" className="flex flex-col gap-[6px]">
+                        {/* pv-editable-zone-start:z00053 */}
+                          {/* pv-block-start:b00168 */}
+                          <div data-pv-block="b00168" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          {/* pv-block-end:b00168 */}
+                          {/* pv-block-start:b00169 */}
+                          <p data-pv-block="b00169" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            You can still design by hand. Protovibe looks and feels just like your normal design tool. But you’re visually editing a living app. so AI has agent-friendly coding interface to help you.
+                          </p>
+                          {/* pv-block-end:b00169 */}
+                        {/* pv-editable-zone-end:z00053 */}
+                      </div>
+                      {/* pv-block-end:b00167 */}
+                    {/* pv-editable-zone-end:z00051 */}
+                  </div>
+                  {/* pv-block-end:b00162 */}
+                {/* pv-editable-zone-end:z00050 */}
+              </div>
+              {/* pv-block-end:b00160 */}
+
+              {/* ROW 2 */}
               {/* pv-block-start:b00130 */}
               <div data-pv-block="b00130" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00038 */}
@@ -726,7 +955,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00135" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00135 */}
                           {/* pv-block-start:b00136 */}
-                          <p data-pv-block="b00136" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Hardcoded #4F7CFF. Random 13px radii. Every prototype drifts further from your tokens.</p>
+                          <p data-pv-block="b00136" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Hardcoded #4F7CFF. Random border radius. Inconsistent font sizes.
+                          </p>
                           {/* pv-block-end:b00136 */}
                         {/* pv-editable-zone-end:z00040 */}
                       </div>
@@ -738,7 +969,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00138" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00138 */}
                           {/* pv-block-start:b00139 */}
-                          <p data-pv-block="b00139" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe reads your design system and refuses to emit a single raw hex. Every value resolves to a token. Period.</p>
+                          <p data-pv-block="b00139" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Protovibe lets you set up all your design tokens: colors for light and dark mode, fonts, spacing. AI simply has instructions to use these tokens only.
+                          </p>
                           {/* pv-block-end:b00139 */}
                         {/* pv-editable-zone-end:z00041 */}
                       </div>
@@ -750,7 +983,7 @@ function ProblemSolution() {
               </div>
               {/* pv-block-end:b00130 */}
 
-              {/* ROW 2 */}
+              {/* ROW 3 */}
               {/* pv-block-start:b00140 */}
               <div data-pv-block="b00140" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00042 */}
@@ -763,7 +996,9 @@ function ProblemSolution() {
                   <div data-pv-block="b00142" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00043 */}
                       {/* pv-block-start:b00143 */}
-                      <h3 data-pv-block="b00143" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Pixel-perfect, measured.</h3>
+                      <h3 data-pv-block="b00143" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        Push pixels without re-prompting
+                      </h3>
                       {/* pv-block-end:b00143 */}
                       {/* pv-block-start:b00144 */}
                       <div data-pv-block="b00144" className="flex flex-col gap-[6px]">
@@ -772,7 +1007,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00145" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
                           {/* pv-block-end:b00145 */}
                           {/* pv-block-start:b00146 */}
-                          <p data-pv-block="b00146" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">AI output looks fine at a glance. Squint, and everything is vibes-adjacent — baselines off, spacing inconsistent, alignment approximate.</p>
+                          <p data-pv-block="b00146" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            With tools like Figma Make or Cursor, every damn change requires another prompt. You need to prompt "Add 4px margin" and wait. Then wait again. And again.
+                          </p>
                           {/* pv-block-end:b00146 */}
                         {/* pv-editable-zone-end:z00044 */}
                       </div>
@@ -784,7 +1021,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00148" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00148 */}
                           {/* pv-block-start:b00149 */}
-                          <p data-pv-block="b00149" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">A live spec panel surfaces every offset against your grid. Drift gets flagged before it ships.</p>
+                          <p data-pv-block="b00149" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            You can easily fix AI mistakes by hand. Just select an element and change it's padding and instantly see results. Reorder, change icons, colors, everything.
+                          </p>
                           {/* pv-block-end:b00149 */}
                         {/* pv-editable-zone-end:z00045 */}
                       </div>
@@ -796,7 +1035,7 @@ function ProblemSolution() {
               </div>
               {/* pv-block-end:b00140 */}
 
-              {/* ROW 3 */}
+              {/* ROW 4 */}
               {/* pv-block-start:b00150 */}
               <div data-pv-block="b00150" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00046 */}
@@ -809,16 +1048,20 @@ function ProblemSolution() {
                   <div data-pv-block="b00152" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00047 */}
                       {/* pv-block-start:b00153 */}
-                      <h3 data-pv-block="b00153" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Nudge. Don't re-prompt.</h3>
+                      <h3 data-pv-block="b00153" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        Components library that's actually easy to maintain
+                      </h3>
                       {/* pv-block-end:b00153 */}
                       {/* pv-block-start:b00154 */}
                       <div data-pv-block="b00154" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00048 */}
                           {/* pv-block-start:b00155 */}
-                          <div data-pv-block="b00155" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00155" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
                           {/* pv-block-end:b00155 */}
                           {/* pv-block-start:b00156 */}
-                          <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">"Move it 8px left." "Make the radius 12." "Actually, 10." Every tweak burns a round trip.</p>
+                          <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Design Systems in Figma have 50 files with hundreds of variants and properties. Making changes is slow and can break existing design.
+                          </p>
                           {/* pv-block-end:b00156 */}
                         {/* pv-editable-zone-end:z00048 */}
                       </div>
@@ -830,7 +1073,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00158" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00158 */}
                           {/* pv-block-start:b00159 */}
-                          <p data-pv-block="b00159" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Nudge with arrow keys. Drag. Tweak props in the inspector. No prompt, no wait — just pixels under your cursor.</p>
+                          <p data-pv-block="b00159" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Protovibe has a robust built-in library of UI components that you can easily enhance. It automatically generates a component preview matrix to show you all possible variants. See a mistake? Just fix it by hand or ask AI.
+                          </p>
                           {/* pv-block-end:b00159 */}
                         {/* pv-editable-zone-end:z00049 */}
                       </div>
@@ -841,52 +1086,6 @@ function ProblemSolution() {
                 {/* pv-editable-zone-end:z00046 */}
               </div>
               {/* pv-block-end:b00150 */}
-
-              {/* ROW 4 */}
-              {/* pv-block-start:b00160 */}
-              <div data-pv-block="b00160" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
-                {/* pv-editable-zone-start:z00050 */}
-                  {/* pv-block-start:b00161 */}
-                  <div data-pv-block="b00161" className="md:order-last aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
-                  </div>
-                  {/* pv-block-end:b00161 */}
-                  {/* pv-block-start:b00162 */}
-                  <div data-pv-block="b00162" className="flex flex-col gap-[22px]">
-                    {/* pv-editable-zone-start:z00051 */}
-                      {/* pv-block-start:b00163 */}
-                      <h3 data-pv-block="b00163" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">You stay the designer.</h3>
-                      {/* pv-block-end:b00163 */}
-                      {/* pv-block-start:b00164 */}
-                      <div data-pv-block="b00164" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00052 */}
-                          {/* pv-block-start:b00165 */}
-                          <div data-pv-block="b00165" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
-                          {/* pv-block-end:b00165 */}
-                          {/* pv-block-start:b00166 */}
-                          <p data-pv-block="b00166" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">You describe. It decides. You're a reviewer of someone else's taste — and losing the craft muscle in the process.</p>
-                          {/* pv-block-end:b00166 */}
-                        {/* pv-editable-zone-end:z00052 */}
-                      </div>
-                      {/* pv-block-end:b00164 */}
-                      {/* pv-block-start:b00167 */}
-                      <div data-pv-block="b00167" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00053 */}
-                          {/* pv-block-start:b00168 */}
-                          <div data-pv-block="b00168" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
-                          {/* pv-block-end:b00168 */}
-                          {/* pv-block-start:b00169 */}
-                          <p data-pv-block="b00169" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe puts you back in the driver's seat. The agent executes; you direct. Every decision is yours to make or override.</p>
-                          {/* pv-block-end:b00169 */}
-                        {/* pv-editable-zone-end:z00053 */}
-                      </div>
-                      {/* pv-block-end:b00167 */}
-                    {/* pv-editable-zone-end:z00051 */}
-                  </div>
-                  {/* pv-block-end:b00162 */}
-                {/* pv-editable-zone-end:z00050 */}
-              </div>
-              {/* pv-block-end:b00160 */}
 
               {/* ROW 5 */}
               {/* pv-block-start:b00170 */}
@@ -901,13 +1100,15 @@ function ProblemSolution() {
                   <div data-pv-block="b00172" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
-                      <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Design is the code.</h3>
+                      <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        Design is the code. <br />Code is the design.
+                      </h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
                       <div data-pv-block="b00174" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00056 */}
                           {/* pv-block-start:b00175 */}
-                          <div data-pv-block="b00175" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00175" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
                           {/* pv-block-end:b00175 */}
                           {/* pv-block-start:b00176 */}
                           <p data-pv-block="b00176" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Designs look pristine in Figma. Then engineering ships something … close. Pixels, states, and edge cases get lost in translation.</p>
@@ -922,7 +1123,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00178" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00178 */}
                           {/* pv-block-start:b00179 */}
-                          <p data-pv-block="b00179" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Protovibe designs are already the code. What you see is what gets committed — no handoff, no re-interpretation.</p>
+                          <p data-pv-block="b00179" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Your design and code is the same single source of truth with a two-way sync. Developers can just read the code for specs. Wait... you can even build a production app directly in Protovibe if you want.
+                          </p>
                           {/* pv-block-end:b00179 */}
                         {/* pv-editable-zone-end:z00057 */}
                       </div>
@@ -933,6 +1136,57 @@ function ProblemSolution() {
                 {/* pv-editable-zone-end:z00054 */}
               </div>
               {/* pv-block-end:b00170 */}
+
+              {/* pv-block-start:zavi9i */}
+              <div data-pv-block="zavi9i" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
+                {/* pv-editable-zone-start:z00054 */}
+                  {/* pv-block-start:oqs278 */}
+                  <div data-pv-block="oqs278" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
+                    Miejsce na grafikę
+                  </div>
+                  {/* pv-block-end:oqs278 */}
+                  {/* pv-block-start:5astl4 */}
+                  <div data-pv-block="5astl4" className="flex flex-col gap-[22px]">
+                    {/* pv-editable-zone-start:z00055 */}
+                      {/* pv-block-start:yluosm */}
+                      <h3 data-pv-block="yluosm" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        Collaboration? It's just a git repo
+                      </h3>
+                      {/* pv-block-end:yluosm */}
+                      {/* pv-block-start:4u8roo */}
+                      <div data-pv-block="4u8roo" className="flex flex-col gap-[6px]">
+                        {/* pv-editable-zone-start:z00056 */}
+                          {/* pv-block-start:2b5npf */}
+                          <div data-pv-block="2b5npf" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
+                          {/* pv-block-end:2b5npf */}
+                          {/* pv-block-start:2p5jmz */}
+                          <p data-pv-block="2p5jmz" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Every designer in your team maintains a separate design file with independent components. There's no one big prototype that combines everything.
+                          </p>
+                          {/* pv-block-end:2p5jmz */}
+                        {/* pv-editable-zone-end:z00056 */}
+                      </div>
+                      {/* pv-block-end:4u8roo */}
+                      {/* pv-block-start:zp7bf0 */}
+                      <div data-pv-block="zp7bf0" className="flex flex-col gap-[6px]">
+                        {/* pv-editable-zone-start:z00057 */}
+                          {/* pv-block-start:cni3ri */}
+                          <div data-pv-block="cni3ri" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
+                          {/* pv-block-end:cni3ri */}
+                          {/* pv-block-start:19qy7g */}
+                          <p data-pv-block="19qy7g" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Keep your designs in your Github or Gitlab repo. Work on branches, resolve conflicts, review changes - even if you have hundreds of designers in the team. Same as engineers do. Just ask AI to handle git commands for you.
+                          </p>
+                          {/* pv-block-end:19qy7g */}
+                        {/* pv-editable-zone-end:z00057 */}
+                      </div>
+                      {/* pv-block-end:zp7bf0 */}
+                    {/* pv-editable-zone-end:z00055 */}
+                  </div>
+                  {/* pv-block-end:5astl4 */}
+                {/* pv-editable-zone-end:z00054 */}
+              </div>
+              {/* pv-block-end:zavi9i */}
 
               {/* ROW 6 */}
               {/* pv-block-start:b00180 */}
@@ -947,16 +1201,20 @@ function ProblemSolution() {
                   <div data-pv-block="b00182" className="flex flex-col gap-[22px]">
                     {/* pv-editable-zone-start:z00059 */}
                       {/* pv-block-start:b00183 */}
-                      <h3 data-pv-block="b00183" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">Hi-fi from the first prompt.</h3>
+                      <h3 data-pv-block="b00183" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
+                        Explorations on infinite canvas
+                      </h3>
                       {/* pv-block-end:b00183 */}
                       {/* pv-block-start:b00184 */}
                       <div data-pv-block="b00184" className="flex flex-col gap-[6px]">
                         {/* pv-editable-zone-start:z00060 */}
                           {/* pv-block-start:b00185 */}
-                          <div data-pv-block="b00185" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-tertiary">Problem</div>
+                          <div data-pv-block="b00185" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
                           {/* pv-block-end:b00185 */}
                           {/* pv-block-start:b00186 */}
-                          <p data-pv-block="b00186" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Wireframes beg too many questions. Stakeholders can't judge a boxy grey mock. Feedback rounds multiply.</p>
+                          <p data-pv-block="b00186" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Ah, the exploration phase... Before prototyping, you need to sketch ideas. You create mockups in Figma, but these are just static images. You're limited with poor prototyping features.
+                          </p>
                           {/* pv-block-end:b00186 */}
                         {/* pv-editable-zone-end:z00060 */}
                       </div>
@@ -968,7 +1226,9 @@ function ProblemSolution() {
                           <div data-pv-block="b00188" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
                           {/* pv-block-end:b00188 */}
                           {/* pv-block-start:b00189 */}
-                          <p data-pv-block="b00189" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">Real components, real content, real interactions — from the first prompt. Show what it'll actually feel like.</p>
+                          <p data-pv-block="b00189" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
+                            Protovibe lets you design sketches by drag&amp;drop like in Figma, with magnet lines, infinite canvas and components. What makes it unique is that AI you move real code components around. AI understands this better than screenshots.
+                          </p>
                           {/* pv-block-end:b00189 */}
                         {/* pv-editable-zone-end:z00061 */}
                       </div>

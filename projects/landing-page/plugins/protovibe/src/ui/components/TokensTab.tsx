@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/components/TokensTab.tsx
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { type ThemeColor, type ThemeToken, updateThemeColor, updateThemeToken, updateFontFamily } from '../api/client';
@@ -10,6 +10,7 @@ import { GradientPicker } from './GradientPicker';
 import { ShadowEditor } from './ShadowEditor';
 import { RemPxEditor } from './RemPxEditor';
 import { cssColorToHex } from '../utils/colorConversion';
+import { createColorLivePreview } from '../utils/colorPreview';
 import { emitToast } from '../events/toast';
 
 
@@ -202,6 +203,8 @@ export const TokensTab: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [editingShadow, setEditingShadow] = useState<{ tokenName: string; value: string; anchorRect: DOMRect } | null>(null);
   const [editingRem, setEditingRem] = useState<{ tokenName: string; value: string; anchorRect: DOMRect } | null>(null);
+  const livePreviewRef = useRef(createColorLivePreview());
+  useEffect(() => () => livePreviewRef.current.clear(), []);
 
   // ─── Colors Classification ───
   const semanticColors = useMemo(
@@ -297,6 +300,7 @@ export const TokensTab: React.FC = () => {
     } catch (err) {
       console.error('[protovibe] Failed to update color:', err);
     } finally {
+      livePreviewRef.current.clear();
       setSaving(false);
     }
   }, [editing, refreshThemeColors]);
@@ -689,8 +693,14 @@ export const TokensTab: React.FC = () => {
             themeMode={editing.themeMode}
             initialValue={initialValue}
             anchorRect={editing.anchorRect}
+            onLivePreview={(oklchValue) =>
+              livePreviewRef.current.apply(editing.token.val, editing.themeMode, oklchValue)
+            }
             onSave={saving ? () => {} : handleSave}
-            onCancel={() => setEditing(null)}
+            onCancel={() => {
+              livePreviewRef.current.clear();
+              setEditing(null);
+            }}
           />
         );
       })()}

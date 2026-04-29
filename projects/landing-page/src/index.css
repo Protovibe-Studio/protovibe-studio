@@ -76,7 +76,7 @@
  /* Text */
  --foreground-default: oklch(100% 0.01104 286.2);
  --foreground-secondary: oklch(72.1% 0.01812 285.8);
- --foreground-tertiary: #4a4a55;
+ --foreground-tertiary: oklch(57.7% 0.0182 285.6);
  --foreground-strong: #f4f4f6;
  --foreground-disabled: #52525d;
  --foreground-inverse: #070707;
