@@ -33,17 +33,37 @@ interface ComponentEntry {
   filePath: string;
 }
 
-async function discoverComponents(): Promise<ComponentEntry[]> {
-  // Build a name → refs map from the static glob (these get HMR updates).
+async function discoverComponents(forceFresh = false): Promise<ComponentEntry[]> {
+  // Build a name → refs map. By default we use the static glob (HMR-tracked);
+  // when forceFresh is true (refresh button), we dynamic-import every glob path
+  // with a cache-busting query so latest pvConfig — including invalidCombinations
+  // and exampleValue — is read from disk regardless of HMR boundaries.
+  const cacheBust = forceFresh ? `?t=${Date.now()}` : '';
   const globRefs: Record<string, { Component: React.ComponentType<any>; DefaultContent?: React.ComponentType<any>; PreviewWrapper?: React.ComponentType<any>; filePath: string; config: PvConfig }> = {};
-  for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
+
+  const ingestModule = (filePath: string, mod: any) => {
     const pvConfig = mod?.pvConfig as PvConfig | undefined;
-    if (!pvConfig?.name) continue;
+    if (!pvConfig?.name) return;
     const Component = mod[pvConfig.name];
-    if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) continue;
+    if (typeof Component !== 'function' && !(Component && typeof Component === 'object' && '$$typeof' in Component)) return;
     const DefaultContent = typeof mod.PvDefaultContent === 'function' ? mod.PvDefaultContent : undefined;
     const PreviewWrapper = typeof mod.PvPreviewWrapper === 'function' ? mod.PvPreviewWrapper : undefined;
     globRefs[pvConfig.name] = { Component, DefaultContent, PreviewWrapper, filePath, config: pvConfig };
+  };
+
+  if (forceFresh) {
+    await Promise.all(Object.keys(allModules).map(async (filePath) => {
+      try {
+        const mod = await import(/* @vite-ignore */ filePath + cacheBust);
+        ingestModule(filePath, mod);
+      } catch (e) {
+        console.warn(`[Previewer] Failed to refresh ${filePath}:`, e);
+      }
+    }));
+  } else {
+    for (const [filePath, mod] of Object.entries(allModules as Record<string, any>)) {
+      ingestModule(filePath, mod);
+    }
   }
 
   // Ask the server for the authoritative component list (includes newly-added files).
@@ -68,7 +88,7 @@ async function discoverComponents(): Promise<ComponentEntry[]> {
       // New file not yet in the glob: dynamic import (no HMR, but visible immediately).
       const resolvedPath = c.importPath.startsWith('@/') ? c.importPath.replace('@/', '/src/') : c.importPath;
       try {
-        const mod = await import(/* @vite-ignore */ resolvedPath);
+        const mod = await import(/* @vite-ignore */ resolvedPath + cacheBust);
         const pvConfig = mod?.pvConfig as PvConfig | undefined;
         if (!pvConfig?.name) continue;
         const Component = mod[pvConfig.name];
@@ -834,14 +854,15 @@ export function ProtovibePreviewer() {
   const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
   const [refreshFlash, setRefreshFlash] = useState(false);
+  const [pendingOpen, setPendingOpen] = useState<{ normalised: string, currentProps: any } | null>(null);
 
-  const refresh = useCallback(async () => {
-    const entries = await discoverComponents();
+  const refresh = useCallback(async (forceFresh = false) => {
+    const entries = await discoverComponents(forceFresh);
     setDiscovered(entries);
   }, []);
 
   const handleRefreshClick = useCallback(() => {
-    refresh();
+    refresh(true);
     setRefreshFlash(true);
     setTimeout(() => setRefreshFlash(false), 400);
   }, [refresh]);
@@ -895,11 +916,31 @@ export function ProtovibePreviewer() {
       if (match) {
         setSelected(match);
         setTargetProps(currentProps || null);
+      } else {
+        // Component is not yet in the discovered list (likely a brand-new file
+        // whose HMR notification hasn't arrived). Stash the request and trigger
+        // a refresh; the effect below will resolve it once discovery updates.
+        setPendingOpen({ normalised, currentProps: currentProps || null });
+        refresh();
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [discovered]);
+  }, [discovered, refresh]);
+
+  // Resolve a pending PV_OPEN_COMPONENT request once `discovered` includes it.
+  useEffect(() => {
+    if (!pendingOpen) return;
+    const match = discovered.find(entry => {
+      const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
+      return entryPath === pendingOpen.normalised;
+    });
+    if (match) {
+      setSelected(match);
+      setTargetProps(pendingOpen.currentProps);
+      setPendingOpen(null);
+    }
+  }, [discovered, pendingOpen]);
 
   return (
     <>

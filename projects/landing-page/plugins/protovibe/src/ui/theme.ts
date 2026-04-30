@@ -20,7 +20,7 @@ export const theme = {
   accent_low: 'rgba(61, 123, 255, 0.14)',
 
   // Borders
-  border_default: '#363636',   // Standard dividers
+  border_default: '#343434',   // Standard dividers
   border_secondary: '#383838', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
   border_accent: '#0092ff',    // Focused borders

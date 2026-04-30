@@ -1954,80 +1954,52 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
               </h2>
               {/* pv-block-end:b00273 */}
               
-              {/* pv-block-start:b00274 */}
-              <div data-pv-block="b00274" className="inline-flex gap-[12px] flex-wrap justify-center">
-                {/* pv-editable-zone-start:z00097 */}
-                  {/* pv-block-start:b00275 */}
-                  <button data-pv-block="b00275" className="appearance-none border-0 inline-flex items-center gap-[10px] text-[17px] font-semibold text-white px-[28px] py-[16px] rounded-[10px] transition-transform duration-150 hover:-translate-y-[1px] group bg-background-primary shadow-[0_12px_40px_-10px_rgba(61,123,255,0.6)]" onClick={onCTA} data-install>
-                    Install now
-                    <span className="transition-transform duration-200 group-hover:translate-x-[3px]">→</span>
-                  </button>
-                  {/* pv-block-end:b00275 */}
-                  {/* pv-block-start:b00276 */}
-                  <a data-pv-block="b00276" className="appearance-none border-0 inline-flex items-center gap-[8px] text-[17px] font-medium text-foreground-strong px-[28px] py-[16px] rounded-[10px] bg-background-tertiary transition-colors duration-150 hover:bg-background-tertiary-hover" href="#">
-                    {/* pv-editable-zone-start:z00098 */}
-                      {/* pv-block-start:b00277 */}
-                      <span data-pv-block="b00277" className="text-[14px] text-foreground-primary">★</span>
-                      {/* pv-block-end:b00277 */}
-                      Star on GitHub
-                    {/* pv-editable-zone-end:z00098 */}
-                  </a>
-                  {/* pv-block-end:b00276 */}
-                {/* pv-editable-zone-end:z00097 */}
-              </div>
-              {/* pv-block-end:b00274 */}
+              {/* pv-block-start:oc6h0r */}
+              <div data-pv-block="oc6h0r" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center items-stretch min-w-64 flex-row">
+                {/* pv-editable-zone-start:z00108 */}
+                  {/* pv-block-start:qnw0mp */}
+                  <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" label="Install now" variant="solid" color="primary" size="lg" />
+                  {/* pv-block-end:qnw0mp */}
 
-              {/* pv-block-start:b00278 */}
-              <div data-pv-block="b00278" className="mt-[24px] flex justify-center">
-                {/* pv-editable-zone-start:z00099 */}
-                  {/* pv-block-start:b00279 */}
-                  <div data-pv-block="b00279" className="inline-flex items-center gap-[8px] font-mono text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full bg-background-secondary mt-[24px]">
-                    {/* pv-editable-zone-start:z00100 */}
-                      {/* pv-block-start:b00280 */}
-                      <span data-pv-block="b00280" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
-                      {/* pv-block-end:b00280 */}
-                      {/* pv-block-start:b00281 */}
-                      <span data-pv-block="b00281">open source · MIT · runs on your machine</span>
-                      {/* pv-block-end:b00281 */}
-                    {/* pv-editable-zone-end:z00100 */}
-                  </div>
-                  {/* pv-block-end:b00279 */}
-                {/* pv-editable-zone-end:z00099 */}
+                  {/* pv-block-start:s7lvih */}
+                  <Button leftIcon="mdi:github" data-pv-block="s7lvih" label="Star on GitHub" variant="solid" color="neutral" size="lg" />
+                  {/* pv-block-end:s7lvih */}
+                {/* pv-editable-zone-end:z00108 */}
               </div>
-              {/* pv-block-end:b00278 */}
+              {/* pv-block-end:oc6h0r */}
+
+              {/* pv-block-start:9v1h92 */}
+              <div data-pv-block="9v1h92" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] flex justify-center mt-4">
+                {/* pv-editable-zone-start:z00109 */}
+                  {/* pv-block-start:1w0i0u */}
+                  <div data-pv-block="1w0i0u" className="inline-flex items-center gap-[8px] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full font-sans bg-transparent mt-3">
+                    {/* pv-editable-zone-start:z00110 */}
+                      {/* pv-block-start:fcw6t7 */}
+                      <span data-pv-block="fcw6t7" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
+                      {/* pv-block-end:fcw6t7 */}
+                      {/* pv-block-start:l5rgvs */}
+                      <span data-pv-block="l5rgvs">
+                        Open-source • AGPL-3.0 • Runs locally • No sign-up
+                      </span>
+                      {/* pv-block-end:l5rgvs */}
+                    {/* pv-editable-zone-end:z00110 */}
+                  </div>
+                  {/* pv-block-end:1w0i0u */}
+                {/* pv-editable-zone-end:z00109 */}
+              </div>
+              {/* pv-block-end:9v1h92 */}
             {/* pv-editable-zone-end:z00096 */}
           </div>
           {/* pv-block-end:b00272 */}
 
           {/* pv-block-start:b00282 */}
-          <div data-pv-block="b00282" className="relative z-[3] mt-[140px] px-[40px] py-[32px] pb-[20px] max-w-[1240px] mx-auto grid grid-cols-1 text-center md:text-left md:grid-cols-[auto_1fr_auto] gap-[16px] md:gap-[32px] items-center text-[13px] text-foreground-secondary max-md:py-[40px] max-md:px-[20px] max-md:pb-[24px] before:content-[''] before:absolute before:-left-[50vw] before:-right-[50vw] before:top-0 before:-bottom-[100px] before:bg-gradient-to-b before:from-transparent before:to-background-default before:to-60% before:z-[-1] before:pointer-events-none after:content-[''] after:absolute after:left-0 after:right-0 after:top-0 after:h-[1px] after:bg-border-secondary">
+          <div data-pv-block="b00282" className="relative z-[3] mt-[140px] px-[40px] py-[32px] pb-[20px] max-w-[1240px] mx-auto grid-cols-1 text-center md:text-left md:grid-cols-[auto_1fr_auto] gap-[16px] md:gap-[32px] items-center text-[13px] text-foreground-secondary max-md:py-[40px] max-md:px-[20px] max-md:pb-[24px] before:content-[''] before:absolute before:-left-[50vw] before:-right-[50vw] before:top-0 before:-bottom-[100px] before:bg-gradient-to-b before:from-transparent before:to-background-default before:to-60% before:z-[-1] before:pointer-events-none after:content-[''] after:absolute after:left-0 after:right-0 after:top-0 after:h-[1px] after:bg-border-secondary flex flex-col">
             {/* pv-editable-zone-start:z00101 */}
-              {/* pv-block-start:b00283 */}
-              <div data-pv-block="b00283" className="h-[9px] opacity-50 font-secondary font-bold text-[16px] leading-[9px] flex items-center justify-center">PROTOVIBE</div>
-              {/* pv-block-end:b00283 */}
-              {/* pv-block-start:b00284 */}
-              <div data-pv-block="b00284" className="flex gap-[24px] justify-center text-foreground-secondary">
-                {/* pv-editable-zone-start:z00102 */}
-                  {/* pv-block-start:b00285 */}
-                  <a data-pv-block="b00285" className="hover:text-foreground-strong cursor-pointer">Docs</a>
-                  {/* pv-block-end:b00285 */}
-                  {/* pv-block-start:b00286 */}
-                  <a data-pv-block="b00286" className="hover:text-foreground-strong cursor-pointer">Changelog</a>
-                  {/* pv-block-end:b00286 */}
-                  {/* pv-block-start:b00287 */}
-                  <a data-pv-block="b00287" className="hover:text-foreground-strong cursor-pointer">GitHub</a>
-                  {/* pv-block-end:b00287 */}
-                  {/* pv-block-start:b00288 */}
-                  <a data-pv-block="b00288" className="hover:text-foreground-strong cursor-pointer">Discord</a>
-                  {/* pv-block-end:b00288 */}
-                  {/* pv-block-start:b00289 */}
-                  <a data-pv-block="b00289" className="hover:text-foreground-strong cursor-pointer">X</a>
-                  {/* pv-block-end:b00289 */}
-                {/* pv-editable-zone-end:z00102 */}
-              </div>
-              {/* pv-block-end:b00284 */}
+              {/* pv-block-start:m1uo22 */}
+              <Image data-pv-block="m1uo22" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-4 opacity-55" />
+              {/* pv-block-end:m1uo22 */}
               {/* pv-block-start:b00290 */}
-              <div data-pv-block="b00290" className="text-[12px]">© 2026 Protovibe Labs · Made with unreasonable care</div>
+              <div data-pv-block="b00290" className="text-[12px] text-right">© 2026 Protovibe Labs · Made with unreasonable care</div>
               {/* pv-block-end:b00290 */}
             {/* pv-editable-zone-end:z00101 */}
           </div>
