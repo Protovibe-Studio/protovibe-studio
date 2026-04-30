@@ -1570,6 +1570,30 @@ function FAQ() {
               </details>
               {/* pv-block-end:b00400 */}
 
+              {/* pv-block-start:b00418 */}
+              <details data-pv-block="b00418" className="border-b border-border-secondary group">
+                {/* pv-editable-zone-start:z00206 */}
+                  {/* pv-block-start:b00419 */}
+                  <summary data-pv-block="b00419" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
+                    {/* pv-editable-zone-start:z00216 */}
+                      {/* pv-block-start:b00442 */}
+                      <span data-pv-block="b00442">Who's this for?</span>
+                      {/* pv-block-end:b00442 */}
+                      {/* pv-block-start:b00443 */}
+                      <Icon data-pv-block="b00443" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
+                      {/* pv-block-end:b00443 */}
+                    {/* pv-editable-zone-end:z00216 */}
+                  </summary>
+                  {/* pv-block-end:b00419 */}
+                  {/* pv-block-start:b00420 */}
+                  <div data-pv-block="b00420" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                    It's for designers or developers who want to build advanced realistic prototypes but still ensure they feel like your brand and your design system.
+                  </div>
+                  {/* pv-block-end:b00420 */}
+                {/* pv-editable-zone-end:z00206 */}
+              </details>
+              {/* pv-block-end:b00418 */}
+
               {/* pv-block-start:b00403 */}
               <details data-pv-block="b00403" className="border-b border-border-secondary group">
                 {/* pv-editable-zone-start:z00201 */}
@@ -1608,33 +1632,13 @@ function FAQ() {
                   </summary>
                   {/* pv-block-end:b00407 */}
                   {/* pv-block-start:b00408 */}
-                  <div data-pv-block="b00408" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Clone the repo, ask your agent to set it up, and Protovibe starts at localhost. Your code, your prompts, and your prototypes never leave your machine. No cloud, no telemetry, no account.</div>
+                  <div data-pv-block="b00408" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                    Protovibe runs your browser but it's not online. Your computer simulates a server so that you can see a website. It reads and writes files to your own drive. Everything should be set up with one script, so you don't need to manually install Node.js and npm.
+                  </div>
                   {/* pv-block-end:b00408 */}
                 {/* pv-editable-zone-end:z00202 */}
               </details>
               {/* pv-block-end:b00406 */}
-
-              {/* pv-block-start:b00409 */}
-              <details data-pv-block="b00409" className="border-b border-border-secondary group">
-                {/* pv-editable-zone-start:z00203 */}
-                  {/* pv-block-start:b00410 */}
-                  <summary data-pv-block="b00410" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
-                    {/* pv-editable-zone-start:z00213 */}
-                      {/* pv-block-start:b00436 */}
-                      <span data-pv-block="b00436">How is this different from the other AI design tools?</span>
-                      {/* pv-block-end:b00436 */}
-                      {/* pv-block-start:b00437 */}
-                      <Icon data-pv-block="b00437" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
-                      {/* pv-block-end:b00437 */}
-                    {/* pv-editable-zone-end:z00213 */}
-                  </summary>
-                  {/* pv-block-end:b00410 */}
-                  {/* pv-block-start:b00411 */}
-                  <div data-pv-block="b00411" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Most of them generate pretty pictures in a proprietary cloud. Protovibe is a local, open-source tool that turns your existing coding agent into a design partner — and hands you a real React repo, not a screenshot.</div>
-                  {/* pv-block-end:b00411 */}
-                {/* pv-editable-zone-end:z00203 */}
-              </details>
-              {/* pv-block-end:b00409 */}
 
               {/* pv-block-start:b00412 */}
               <details data-pv-block="b00412" className="border-b border-border-secondary group">
@@ -1652,7 +1656,9 @@ function FAQ() {
                   </summary>
                   {/* pv-block-end:b00413 */}
                   {/* pv-block-start:b00414 */}
-                  <div data-pv-block="b00414" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Yes, and you should. Point Protovibe at your tokens file or Tailwind config once, and every prototype after that will snap to your system. Figma libraries and Storybook stories work too.</div>
+                  <div data-pv-block="b00414" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                    Yes, and you should. Point Protovibe at your tokens file or Tailwind config once, and every prototype after that will snap to your system. Spend couple hours on adjusting built-in components to match your design system and you're good to go for all future projects.
+                  </div>
                   {/* pv-block-end:b00414 */}
                 {/* pv-editable-zone-end:z00204 */}
               </details>
@@ -1665,7 +1671,9 @@ function FAQ() {
                   <summary data-pv-block="b00416" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00215 */}
                       {/* pv-block-start:b00440 */}
-                      <span data-pv-block="b00440">What do I get out? Screens or code?</span>
+                      <span data-pv-block="b00440">
+                        Can I export the project?
+                      </span>
                       {/* pv-block-end:b00440 */}
                       {/* pv-block-start:b00441 */}
                       <Icon data-pv-block="b00441" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
@@ -1674,33 +1682,13 @@ function FAQ() {
                   </summary>
                   {/* pv-block-end:b00416 */}
                   {/* pv-block-start:b00417 */}
-                  <div data-pv-block="b00417" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Both. A live local URL to share on your LAN, a PDF of screens, or the raw React + Tailwind + Vite project committed to your own repo. No lock-in — it's just files, all the way down.</div>
+                  <div data-pv-block="b00417" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                    Yes, you can just download a ZIP with your project and reimport it again. After all the whole design is represented as a structure of folders and files.
+                  </div>
                   {/* pv-block-end:b00417 */}
                 {/* pv-editable-zone-end:z00205 */}
               </details>
               {/* pv-block-end:b00415 */}
-
-              {/* pv-block-start:b00418 */}
-              <details data-pv-block="b00418" className="border-b border-border-secondary group">
-                {/* pv-editable-zone-start:z00206 */}
-                  {/* pv-block-start:b00419 */}
-                  <summary data-pv-block="b00419" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
-                    {/* pv-editable-zone-start:z00216 */}
-                      {/* pv-block-start:b00442 */}
-                      <span data-pv-block="b00442">Who's this for?</span>
-                      {/* pv-block-end:b00442 */}
-                      {/* pv-block-start:b00443 */}
-                      <Icon data-pv-block="b00443" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
-                      {/* pv-block-end:b00443 */}
-                    {/* pv-editable-zone-end:z00216 */}
-                  </summary>
-                  {/* pv-block-end:b00419 */}
-                  {/* pv-block-start:b00420 */}
-                  <div data-pv-block="b00420" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Product designers who want to ship in code without becoming engineers. Design engineers tired of tools that pick one or the other. Anyone who thinks "pixel-perfect" is not negotiable.</div>
-                  {/* pv-block-end:b00420 */}
-                {/* pv-editable-zone-end:z00206 */}
-              </details>
-              {/* pv-block-end:b00418 */}
             {/* pv-editable-zone-end:z00076 */}
           </div>
           {/* pv-block-end:b00224 */}
@@ -1949,8 +1937,7 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
             {/* pv-editable-zone-start:z00096 */}
               {/* pv-block-start:b00273 */}
               <h2 data-pv-block="b00273" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong max-w-[16ch] mx-auto mb-[40px] text-balance">
-                Stop describing pixels.<br />
-                <span className="text-foreground-primary">Start shipping them.</span>
+                Stop describing pixels.<br /> <span className="text-foreground-primary">Start shipping them.</span>
               </h2>
               {/* pv-block-end:b00273 */}
               
@@ -1999,7 +1986,9 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
               <Image data-pv-block="m1uo22" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-4 opacity-55" />
               {/* pv-block-end:m1uo22 */}
               {/* pv-block-start:b00290 */}
-              <div data-pv-block="b00290" className="text-[12px] text-right">© 2026 Protovibe Labs · Made with unreasonable care</div>
+              <div data-pv-block="b00290" className="text-[12px] text-right">
+                © 2026 Protovibe Studio · Made with unreasonable care
+              </div>
               {/* pv-block-end:b00290 */}
             {/* pv-editable-zone-end:z00101 */}
           </div>

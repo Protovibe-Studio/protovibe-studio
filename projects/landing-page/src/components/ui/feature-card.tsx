@@ -17,7 +17,7 @@ export function FeatureCard({ icon, heading, description, className, ...props }:
     >
       {icon && <Icon iconSymbol={icon} size="lg" className="mb-5 text-foreground-primary" />}
       <div className="flex flex-col gap-0 mt-auto">
-        <h3 className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+        <h3 className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[90%]">
           {heading}
         </h3>
         <p className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
