@@ -40,6 +40,28 @@ export const ProtovibeApp: React.FC = () => {
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
+  const appScrollPositionsRef = useRef<Array<{ el: Element; top: number; left: number }>>([]);
+
+  const captureAppScrollPositions = useCallback(() => {
+    const doc = appIframeRef.current?.contentDocument;
+    if (!doc) return;
+    const positions: Array<{ el: Element; top: number; left: number }> = [];
+    doc.querySelectorAll('*').forEach((el) => {
+      if (el.scrollTop > 0 || el.scrollLeft > 0) {
+        positions.push({ el, top: el.scrollTop, left: el.scrollLeft });
+      }
+    });
+    appScrollPositionsRef.current = positions;
+  }, []);
+
+  const restoreAppScrollPositions = useCallback(() => {
+    requestAnimationFrame(() => {
+      appScrollPositionsRef.current.forEach(({ el, top, left }) => {
+        el.scrollTop = top;
+        el.scrollLeft = left;
+      });
+    });
+  }, []);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
@@ -72,9 +94,15 @@ export const ProtovibeApp: React.FC = () => {
   // Canonical tab-switch: always clears inspector focus and iframe outlines.
   // Use this everywhere instead of calling setActiveIframeTab directly.
   const handleIframeTabChange = useCallback((tab: IframeTab) => {
+    if (activeIframeTab === 'app' && tab !== 'app') {
+      captureAppScrollPositions();
+    }
     clearFocus();
     setActiveIframeTab(tab);
     syncTabToURL(tab);
+    if (tab === 'app' && activeIframeTab !== 'app') {
+      restoreAppScrollPositions();
+    }
     [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
       ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
     });
@@ -88,7 +116,7 @@ export const ProtovibeApp: React.FC = () => {
         sketchpadIframeRef.current?.contentWindow?.focus();
       });
     }
-  }, [clearFocus, refreshComponents]);
+  }, [clearFocus, refreshComponents, activeIframeTab, captureAppScrollPositions, restoreAppScrollPositions]);
 
   // Ensure ?tab param is always present in the URL on initial load
   useEffect(() => {

@@ -329,12 +329,12 @@ function FeatureGrid() {
           {/* pv-block-start:jei6lm */}
           <div data-pv-block="jei6lm" className="relative">
             {canLeft && (
-              <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-all duration-150 shadow-sm">
+              <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover">
                 <Icon iconSymbol="chevron-left" size="sm" />
               </button>
             )}
             {canRight && (
-              <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-all duration-150 shadow-sm">
+              <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover">
                 <Icon iconSymbol="chevron-right" size="sm" />
               </button>
             )}
@@ -719,10 +719,10 @@ function BYOAgent() {
           {/* pv-block-end:b00056 */}
 
           {/* pv-block-start:b00060 */}
-          <div data-pv-block="b00060" className="grid grid-cols-2 md:grid-cols-3 gap-[16px] max-w-[920px] mx-auto">
+          <div data-pv-block="b00060" className="grid grid-cols-2 md:grid-cols-3 gap-[16px] mx-auto max-w-[800px]">
             {/* pv-editable-zone-start:z00017 */}
               {/* pv-block-start:b00061 */}
-              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:2orjpw */}
                   <Icon className="text-amber-600" data-pv-block="2orjpw" iconSymbol="mingcute:claude-line" size="2xl" />
@@ -749,10 +749,10 @@ function BYOAgent() {
               {/* pv-block-end:b00061 */}
 
               {/* pv-block-start:0qu4t8 */}
-              <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:yd5dll */}
-                  <Icon className="text-sky-400" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="2xl" />
+                  <Icon className="text-foreground-default" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="2xl" />
                   {/* pv-block-end:yd5dll */}
                   {/* pv-block-start:20m7tm */}
                   <div data-pv-block="20m7tm" className="flex flex-col items-center justify-center gap-0">
@@ -774,7 +774,7 @@ function BYOAgent() {
               {/* pv-block-end:0qu4t8 */}
 
               {/* pv-block-start:ig7ao9 */}
-              <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:bpd0ad */}
                   <Icon iconSymbol="solar:cursor-bold" className="text-transparent bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/cursor-1.svg')] aspect-[1/1]" data-pv-block="bpd0ad"  size="2xl" />
@@ -801,10 +801,10 @@ function BYOAgent() {
               {/* pv-block-end:ig7ao9 */}
 
               {/* pv-block-start:ruagve */}
-              <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:ruo32p */}
-                  <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="mingcute:openai-fill" size="2xl" />
+                  <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="meteor-icons:openai" size="2xl" />
                   {/* pv-block-end:ruo32p */}
                   {/* pv-block-start:ugpx1g */}
                   <div data-pv-block="ugpx1g" className="flex flex-col items-center justify-center gap-0">
@@ -828,7 +828,7 @@ function BYOAgent() {
               {/* pv-block-end:ruagve */}
 
               {/* pv-block-start:uezzcq */}
-              <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:knrkaq */}
                   <Icon className="text-transparent bg-[url('/src/images/from-protovibe/gemini-color.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" data-pv-block="knrkaq" iconSymbol="lineicons:gemini" size="2xl" />
@@ -848,7 +848,7 @@ function BYOAgent() {
               {/* pv-block-end:uezzcq */}
 
               {/* pv-block-start:0pe2av */}
-              <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+              <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:este2x */}
                   <Icon className="rounded-full text-foreground-secondary" data-pv-block="este2x" iconSymbol="ri:more-fill" size="2xl" />
