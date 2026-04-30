@@ -3,6 +3,7 @@ import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import { FeatureCard } from '@/components/ui/feature-card'
 
 const GLOBAL_STYLES = `
   @keyframes pulse-custom {
@@ -339,160 +340,27 @@ function FeatureGrid() {
             <div ref={scrollRef} className="flex flex-row gap-[20px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {/* pv-editable-zone-start:z00003 */}
               {/* pv-block-start:wpvsjh */}
-              <div data-pv-block="wpvsjh" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:lzpbo7 */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="lzpbo7" iconSymbol="mdi:form-textbox" size="lg" />
-                  {/* pv-block-end:lzpbo7 */}
-                  {/* pv-block-start:d2frfg */}
-                  <div data-pv-block="d2frfg" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:bbk9ew */}
-                    {/* pv-block-start:xuu7s0 */}
-                    <h3 data-pv-block="xuu7s0" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Realistic text fields
-                    </h3>
-                    {/* pv-block-end:xuu7s0 */}
-                    {/* pv-block-start:csjsof */}
-                    <p data-pv-block="csjsof" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty mt-auto">
-                      Users can enter real data which makes the usability research less biased.
-                    </p>
-                    {/* pv-block-end:csjsof */}
-                    {/* pv-editable-zone-end:bbk9ew */}
-                  </div>
-                  {/* pv-block-end:d2frfg */}
-
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="wpvsjh" icon="mdi:form-textbox" heading="Realistic text fields" description="Users can enter real data which makes the usability research less biased." />
               {/* pv-block-end:wpvsjh */}
 
               {/* pv-block-start:zm2ske */}
-              <div data-pv-block="zm2ske" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:pvsa7b */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="pvsa7b" iconSymbol="mdi:plus-minus-variant" size="lg" />
-                  {/* pv-block-end:pvsa7b */}
-                  {/* pv-block-start:n3k7lp */}
-                  <div data-pv-block="n3k7lp" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:m2q5rt */}
-                    {/* pv-block-start:q4w84p */}
-                    <h3 data-pv-block="q4w84p" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Adding &amp; deleting items
-                    </h3>
-                    {/* pv-block-end:q4w84p */}
-                    {/* pv-block-start:60z4lc */}
-                    <p data-pv-block="60z4lc" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Create real data operations, simulate real database.
-                    </p>
-                    {/* pv-block-end:60z4lc */}
-                    {/* pv-editable-zone-end:m2q5rt */}
-                  </div>
-                  {/* pv-block-end:n3k7lp */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="zm2ske" icon="mdi:plus-minus-variant" heading="Adding &amp; deleting items" description="Create real data operations, simulate real database." />
               {/* pv-block-end:zm2ske */}
 
               {/* pv-block-start:kn9xv1 */}
-              <div data-pv-block="kn9xv1" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:hc3vp7 */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="hc3vp7" iconSymbol="mdi:magnify" size="lg" />
-                  {/* pv-block-end:hc3vp7 */}
-                  {/* pv-block-start:p8j2dx */}
-                  <div data-pv-block="p8j2dx" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:v6w4yz */}
-                    {/* pv-block-start:fet1vo */}
-                    <h3 data-pv-block="fet1vo" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Search
-                    </h3>
-                    {/* pv-block-end:fet1vo */}
-                    {/* pv-block-start:j8mxrr */}
-                    <p data-pv-block="j8mxrr" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Search inputs that actually work and filter data
-                    </p>
-                    {/* pv-block-end:j8mxrr */}
-                    {/* pv-editable-zone-end:v6w4yz */}
-                  </div>
-                  {/* pv-block-end:p8j2dx */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="kn9xv1" icon="mdi:magnify" heading="Search" description="Search inputs that actually work and filter data" />
               {/* pv-block-end:kn9xv1 */}
 
               {/* pv-block-start:z8nzq7 */}
-              <div data-pv-block="z8nzq7" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:cgaezf */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="cgaezf" iconSymbol="mdi:animation-play" size="lg" />
-                  {/* pv-block-end:cgaezf */}
-                  {/* pv-block-start:b5r9hn */}
-                  <div data-pv-block="b5r9hn" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:t3x7vk */}
-                    {/* pv-block-start:d2eumj */}
-                    <h3 data-pv-block="d2eumj" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Animations &amp; microinteractions
-                    </h3>
-                    {/* pv-block-end:d2eumj */}
-                    {/* pv-block-start:gf4mwu */}
-                    <p data-pv-block="gf4mwu" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Unlimited animations with native code and CSS transitions with live preview.
-                    </p>
-                    {/* pv-block-end:gf4mwu */}
-                    {/* pv-editable-zone-end:t3x7vk */}
-                  </div>
-                  {/* pv-block-end:b5r9hn */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="z8nzq7" icon="mdi:animation-play" heading="Animations &amp; microinteractions" description="Unlimited animations with native code and CSS transitions with live preview." />
               {/* pv-block-end:z8nzq7 */}
 
               {/* pv-block-start:uqzy7w */}
-              <div data-pv-block="uqzy7w" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:1hz6zm */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="1hz6zm" iconSymbol="mdi:view-carousel" size="lg" />
-                  {/* pv-block-end:1hz6zm */}
-                  {/* pv-block-start:c4m8sf */}
-                  <div data-pv-block="c4m8sf" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:q1e6pw */}
-                    {/* pv-block-start:a0h68k */}
-                    <h3 data-pv-block="a0h68k" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Carousels and sliders
-                    </h3>
-                    {/* pv-block-end:a0h68k */}
-                    {/* pv-block-start:02mc39 */}
-                    <p data-pv-block="02mc39" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Like this one, with snapping cards
-                    </p>
-                    {/* pv-block-end:02mc39 */}
-                    {/* pv-editable-zone-end:q1e6pw */}
-                  </div>
-                  {/* pv-block-end:c4m8sf */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="uqzy7w" icon="mdi:view-carousel" heading="Carousels and sliders" description="Like this one, with snapping cards" />
               {/* pv-block-end:uqzy7w */}
 
               {/* pv-block-start:lrsy8y */}
-              <div data-pv-block="lrsy8y" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:ev3xhn */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ev3xhn" iconSymbol="mdi:code-braces" size="lg" />
-                  {/* pv-block-end:ev3xhn */}
-                  {/* pv-block-start:a7g3wj */}
-                  <div data-pv-block="a7g3wj" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:s9h2bn */}
-                    {/* pv-block-start:ir0vsm */}
-                    <h3 data-pv-block="ir0vsm" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      If else conditions
-                    </h3>
-                    {/* pv-block-end:ir0vsm */}
-                    {/* pv-block-start:1qcap9 */}
-                    <p data-pv-block="1qcap9" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Show a section of a form if user selects a combination of 2 different values in other fields
-                    </p>
-                    {/* pv-block-end:1qcap9 */}
-                    {/* pv-editable-zone-end:s9h2bn */}
-                  </div>
-                  {/* pv-block-end:a7g3wj */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="lrsy8y" icon="mdi:code-braces" heading="If else conditions" description="Show a section of a form if user selects a combination of 2 different values in other fields" />
               {/* pv-block-end:lrsy8y */}
 
               {/* pv-block-start:ebd65d */}
@@ -1461,7 +1329,7 @@ function ProblemSolution() {
                           {/* pv-block-end:b00155 */}
                           {/* pv-block-start:b00156 */}
                           <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Design Systems in Figma have 50 files with hundreds of variants and properties. Making changes is slow and can break existing design.
+                            Design Systems in Figma have 50 files with hundreds of variants and properties. Making changes is slow and can break existing design. Local components? You need to assign all the props manually.
                           </p>
                           {/* pv-block-end:b00156 */}
                         {/* pv-editable-zone-end:z00048 */}
@@ -1475,7 +1343,7 @@ function ProblemSolution() {
                           {/* pv-block-end:b00158 */}
                           {/* pv-block-start:b00159 */}
                           <p data-pv-block="b00159" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Protovibe has a robust built-in library of UI components that you can easily enhance. It automatically generates a component preview matrix to show you all possible variants. See a mistake? Just fix it by hand or ask AI.
+                            Protovibe has a robust built-in library of UI components that you can easily enhance. It automatically generates a component preview matrix to show you all possible variants. See a mistake? Just fix it by hand or ask AI. Need a new component? Just ask AI to convert your mock to a component.
                           </p>
                           {/* pv-block-end:b00159 */}
                         {/* pv-editable-zone-end:z00049 */}
