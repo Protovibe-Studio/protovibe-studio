@@ -58,7 +58,8 @@ const SpacingAutocomplete: React.FC<{
   inheritedPlaceholder?: string;
   options?: typeof SCALES.spacing;
   testId?: string;
-}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options, testId }) => {
+  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+}> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options, testId, previewBuild }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.spacing;
   const [hovered, setHovered] = useState(false);
@@ -68,6 +69,7 @@ const SpacingAutocomplete: React.FC<{
     value={value === '-' ? '' : value}
     options={resolvedOptions}
     onCommit={onChange}
+    previewBuild={previewBuild}
     placeholder={
       inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder
     }
@@ -160,7 +162,8 @@ const RadiusAutocomplete: React.FC<{
   inheritedValue?: string;
   options?: typeof SCALES.radius;
   testId?: string;
-}> = ({ value, onChange, placeholder, icon, inheritedValue, options, testId }) => {
+  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+}> = ({ value, onChange, placeholder, icon, inheritedValue, options, testId, previewBuild }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.radius;
   return (
@@ -169,6 +172,7 @@ const RadiusAutocomplete: React.FC<{
     value={value === '-' ? '' : value}
     options={resolvedOptions}
     onCommit={onChange}
+    previewBuild={previewBuild}
     placeholder={inheritedValue && !value ? inheritedValue : (placeholder ?? '—')}
     zIndex={999999}
     prefix={icon}
@@ -191,12 +195,14 @@ const BorderColorAutocomplete: React.FC<{
   inheritedValue?: string;
   colorOptions: any[];
   testId?: string;
-}> = ({ value, onChange, icon, inheritedValue, colorOptions, testId }) => (
+  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+}> = ({ value, onChange, icon, inheritedValue, colorOptions, testId, previewBuild }) => (
   <AutocompleteDropdown
     testId={testId}
     value={value === '-' ? '' : value}
     options={colorOptions}
     onCommit={onChange}
+    previewBuild={previewBuild}
     placeholder={inheritedValue && !value ? inheritedValue : '—'}
     zIndex={9999999}
     prefix={icon}
@@ -261,6 +267,69 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [localBorderOpacity, setLocalBorderOpacity] = useState<number | null>(null);
 
   const uniqueClasses = (classes: string[]) => [...new Set(classes.filter(Boolean))];
+
+  // Hover preview builders return inline styles to apply directly to the
+  // selected element. Each option's `desc` already carries the resolved px
+  // value (e.g. `'12px'`), so we just plug it into the corresponding CSS
+  // property. For colors we use `var(--color-<name>)` so light/dark mode
+  // tracks automatically.
+
+  type Side = 'top' | 'right' | 'bottom' | 'left';
+  type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const previewSpacing = (type: 'margin' | 'padding', side: Side) => (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    return { [`${type}${capitalize(side)}`]: opt?.desc || hoveredVal };
+  };
+
+  const previewBorderSide = (side: Side) => (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    // Setting only width without a style leaves nothing visible, so seed
+    // `borderStyle: solid` (matches what Tailwind's `border` utility does).
+    return { [`border${capitalize(side)}Width`]: opt?.desc || hoveredVal, borderStyle: 'solid' };
+  };
+
+  const previewRadius = (corner: 'all' | Corner) => (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    const value = opt?.desc || hoveredVal;
+    const prop = corner === 'all' ? 'borderRadius' : `border${capitalize(corner)}Radius`;
+    return { [prop]: value };
+  };
+
+  const previewBorderColor = (side: 'all' | Side) => (
+    hoveredVal: string,
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    const prop = side === 'all' ? 'borderColor' : `border${capitalize(side)}Color`;
+    return { [prop]: `var(--color-${hoveredVal})`, borderStyle: 'solid' };
+  };
+
+  const previewGap = (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    return { gap: opt?.desc || hoveredVal };
+  };
+
+  const previewBg = (hoveredVal: string): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    if (bgOpacityNum !== 100) {
+      // color-mix preserves the opacity slider's effect during preview.
+      return { backgroundColor: `color-mix(in srgb, var(--color-${hoveredVal}) ${bgOpacityNum}%, transparent)` };
+    }
+    return { backgroundColor: `var(--color-${hoveredVal})` };
+  };
 
   const toBorderWidthClass = (val: string) => {
     const clean = cleanVal(val);
@@ -689,6 +758,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.margin.top)}
           value={cleanVal(v.mt)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 't', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('margin', 'top')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mt)}
         />
@@ -697,6 +767,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.margin.bottom)}
           value={cleanVal(v.mb)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'b', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('margin', 'bottom')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mb)}
         />
@@ -705,6 +776,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.margin.left)}
           value={cleanVal(v.ml)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'l', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('margin', 'left')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.ml)}
         />
@@ -713,6 +785,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.margin.right)}
           value={cleanVal(v.mr)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('m', 'r', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('margin', 'right')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.mr)}
         />
@@ -723,6 +796,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.border.top)}
           value={borderSideVal('borderT')}
           onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('t', val, prevVal, applyToAll)}
+          previewBuild={previewBorderSide('top')}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderT')}
@@ -732,6 +806,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.border.bottom)}
           value={borderSideVal('borderB')}
           onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('b', val, prevVal, applyToAll)}
+          previewBuild={previewBorderSide('bottom')}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderB')}
@@ -741,6 +816,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.border.left)}
           value={borderSideVal('borderL')}
           onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('l', val, prevVal, applyToAll)}
+          previewBuild={previewBorderSide('left')}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderL')}
@@ -750,6 +826,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.border.right)}
           value={borderSideVal('borderR')}
           onChange={(val, prevVal, applyToAll) => handleBorderSideUpdate('r', val, prevVal, applyToAll)}
+          previewBuild={previewBorderSide('right')}
           placeholder="-"
           options={SCALES.borderWidth}
           inheritedPlaceholder={domBorderSideVal('borderR')}
@@ -761,6 +838,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.padding.top)}
           value={cleanVal(v.pt)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 't', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('padding', 'top')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pt)}
         />
@@ -769,6 +847,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centreH(pos.padding.bottom)}
           value={cleanVal(v.pb)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'b', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('padding', 'bottom')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pb)}
         />
@@ -777,6 +856,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.padding.left)}
           value={cleanVal(v.pl)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'l', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('padding', 'left')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pl)}
         />
@@ -785,6 +865,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={centre(pos.padding.right)}
           value={cleanVal(v.pr)}
           onChange={(val, prevVal, applyToAll) => handleSpacingUpdate('p', 'r', val, prevVal, applyToAll)}
+          previewBuild={previewSpacing('padding', 'right')}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.pr)}
         />
@@ -795,6 +876,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           posStyle={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
           value={cleanVal(v.gap)}
           onChange={(val, prevVal) => handleGapUpdate(val, prevVal)}
+          previewBuild={previewGap}
           placeholder="-"
           inheritedPlaceholder={cleanVal(domV?.gap)}
         />
@@ -822,6 +904,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           placeholder={cleanVal(domV?.bg) ? cleanVal(domV?.bg).split('/')[0] : '—'}
           options={prioritizeColors(themeColors as any[], 'background-')}
           onCommit={handleBgColorChange}
+          previewBuild={previewBg}
           zIndex={9999999}
           prefix={
             !bgColor
@@ -911,6 +994,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <BorderColorAutocomplete
           value={cleanVal(v.borderColor)}
           onChange={(val, prevVal) => handleBorderColorUpdate('all', val, prevVal)}
+          previewBuild={previewBorderColor('all')}
           icon={<BorderAllIcon />}
           inheritedValue={cleanVal(domV?.borderColor)}
           colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -958,6 +1042,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorT)}
               onChange={(val, prevVal) => handleBorderColorUpdate('t', val, prevVal)}
+              previewBuild={previewBorderColor('top')}
               icon={<BorderTIcon />}
               inheritedValue={cleanVal(domV?.borderColorT)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -965,6 +1050,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorR)}
               onChange={(val, prevVal) => handleBorderColorUpdate('r', val, prevVal)}
+              previewBuild={previewBorderColor('right')}
               icon={<BorderRIcon />}
               inheritedValue={cleanVal(domV?.borderColorR)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -972,6 +1058,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorB)}
               onChange={(val, prevVal) => handleBorderColorUpdate('b', val, prevVal)}
+              previewBuild={previewBorderColor('bottom')}
               icon={<BorderBIcon />}
               inheritedValue={cleanVal(domV?.borderColorB)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -979,6 +1066,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <BorderColorAutocomplete
               value={cleanVal(v.borderColorL)}
               onChange={(val, prevVal) => handleBorderColorUpdate('l', val, prevVal)}
+              previewBuild={previewBorderColor('left')}
               icon={<BorderLIcon />}
               inheritedValue={cleanVal(domV?.borderColorL)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
@@ -1018,6 +1106,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <RadiusAutocomplete
           value={cleanVal(v.radius)}
           onChange={(val, prevVal) => handleRadiusUpdate('all', val, prevVal)}
+          previewBuild={previewRadius('all')}
           placeholder="—"
           icon={<CornerAllIcon />}
           inheritedValue={cleanVal(domV?.radius)}
@@ -1030,6 +1119,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <RadiusAutocomplete
               value={cornerVal('TL')}
               onChange={(val, prevVal) => handleRadiusUpdate('tl', val, prevVal)}
+              previewBuild={previewRadius('topLeft')}
               placeholder="—"
               icon={<CornerTLIcon />}
               inheritedValue={cleanVal(domV?.radiusTL)}
@@ -1037,6 +1127,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <RadiusAutocomplete
               value={cornerVal('TR')}
               onChange={(val, prevVal) => handleRadiusUpdate('tr', val, prevVal)}
+              previewBuild={previewRadius('topRight')}
               placeholder="—"
               icon={<CornerTRIcon />}
               inheritedValue={cleanVal(domV?.radiusTR)}
@@ -1044,6 +1135,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <RadiusAutocomplete
               value={cornerVal('BL')}
               onChange={(val, prevVal) => handleRadiusUpdate('bl', val, prevVal)}
+              previewBuild={previewRadius('bottomLeft')}
               placeholder="—"
               icon={<CornerBLIcon />}
               inheritedValue={cleanVal(domV?.radiusBL)}
@@ -1051,6 +1143,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             <RadiusAutocomplete
               value={cornerVal('BR')}
               onChange={(val, prevVal) => handleRadiusUpdate('br', val, prevVal)}
+              previewBuild={previewRadius('bottomRight')}
               placeholder="—"
               icon={<CornerBRIcon />}
               inheritedValue={cleanVal(domV?.radiusBR)}

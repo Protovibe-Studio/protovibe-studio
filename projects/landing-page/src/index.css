@@ -91,7 +91,7 @@
  /* Borders */
  --border-default: rgba(255,255,255,0.12);
  --border-secondary: rgba(255,255,255,0.08);
- --border-strong: rgba(255,255,255,0.14);
+ --border-strong: oklch(100% 0 89.9 / 0.2);
  --border-focus: #3d7bff;
  --border-primary: #3d7bff;
  --border-destructive: #ff7073;

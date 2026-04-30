@@ -25,14 +25,14 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     <VisualSection title="Size">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
-          <VisualControl label="Width" prefix="w-" value={cleanVal(v.w)} options={scales.size} originalClass={v.w_original} type="input" inheritedValue={cleanVal(domV?.w)} inputPrefix={<WidthIcon />} />
-          <VisualControl label="Min W" prefix="min-w-" value={cleanVal(v.minW)} options={scales.size} originalClass={v.minW_original} type="input" inheritedValue={cleanVal(domV?.minW)} />
-          <VisualControl label="Max W" prefix="max-w-" value={cleanVal(v.maxW)} options={scales.size} originalClass={v.maxW_original} type="input" inheritedValue={cleanVal(domV?.maxW)} />
+          <VisualControl label="Width" prefix="w-" cssProperty="width" value={cleanVal(v.w)} options={scales.size} originalClass={v.w_original} type="input" inheritedValue={cleanVal(domV?.w)} inputPrefix={<WidthIcon />} />
+          <VisualControl label="Min W" prefix="min-w-" cssProperty="minWidth" value={cleanVal(v.minW)} options={scales.size} originalClass={v.minW_original} type="input" inheritedValue={cleanVal(domV?.minW)} />
+          <VisualControl label="Max W" prefix="max-w-" cssProperty="maxWidth" value={cleanVal(v.maxW)} options={scales.size} originalClass={v.maxW_original} type="input" inheritedValue={cleanVal(domV?.maxW)} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
-          <VisualControl label="Height" prefix="h-" value={cleanVal(v.h)} options={scales.size} originalClass={v.h_original} type="input" inheritedValue={cleanVal(domV?.h)} inputPrefix={<HeightIcon />} />
-          <VisualControl label="Min H" prefix="min-h-" value={cleanVal(v.minH)} options={scales.size} originalClass={v.minH_original} type="input" inheritedValue={cleanVal(domV?.minH)} />
-          <VisualControl label="Max H" prefix="max-h-" value={cleanVal(v.maxH)} options={scales.size} originalClass={v.maxH_original} type="input" inheritedValue={cleanVal(domV?.maxH)} />
+          <VisualControl label="Height" prefix="h-" cssProperty="height" value={cleanVal(v.h)} options={scales.size} originalClass={v.h_original} type="input" inheritedValue={cleanVal(domV?.h)} inputPrefix={<HeightIcon />} />
+          <VisualControl label="Min H" prefix="min-h-" cssProperty="minHeight" value={cleanVal(v.minH)} options={scales.size} originalClass={v.minH_original} type="input" inheritedValue={cleanVal(domV?.minH)} />
+          <VisualControl label="Max H" prefix="max-h-" cssProperty="maxHeight" value={cleanVal(v.maxH)} options={scales.size} originalClass={v.maxH_original} type="input" inheritedValue={cleanVal(domV?.maxH)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

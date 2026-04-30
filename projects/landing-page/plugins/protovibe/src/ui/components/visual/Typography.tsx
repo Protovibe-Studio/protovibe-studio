@@ -17,12 +17,12 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     <VisualSection title="Typography">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Text color" prefix="text-" value={cleanVal(v.textColor)} options={prioritizeColors(themeColors as any[], 'foreground-')} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} inputPrefix={<TypeOutline size={14} />} />
-          <VisualControl label="Font size" prefix="text-" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} inputPrefix={<RulerDimensionLine size={14} style={{ transform: 'rotate(90deg)' }} />} />
+          <VisualControl label="Text color" prefix="text-" cssProperty="color" value={cleanVal(v.textColor)} options={prioritizeColors(themeColors as any[], 'foreground-')} originalClass={v.textColor_original} type="input" inheritedValue={cleanVal(domV?.textColor)} inputPrefix={<TypeOutline size={14} />} />
+          <VisualControl label="Font size" prefix="text-" cssProperty="fontSize" value={cleanVal(v.textSize)} options={scales.textSize} originalClass={v.textSize_original} type="input" inheritedValue={cleanVal(domV?.textSize)} inputPrefix={<RulerDimensionLine size={14} style={{ transform: 'rotate(90deg)' }} />} />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Font family" prefix="font-" value={cleanVal(v.fontFamily)} options={scales.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={cleanVal(domV?.fontFamily)} />
-          <VisualControl label="Weight" prefix="font-" value={cleanVal(v.fontWeight)} strictOptions options={[
+          <VisualControl label="Font family" prefix="font-" cssProperty="fontFamily" value={cleanVal(v.fontFamily)} options={scales.fontFamily} originalClass={v.fontFamily_original} type="input" inheritedValue={cleanVal(domV?.fontFamily)} />
+          <VisualControl label="Weight" prefix="font-" cssProperty="fontWeight" value={cleanVal(v.fontWeight)} strictOptions options={[
             { val: 'thin', desc: '100' },
             { val: 'light', desc: '300' },
             { val: 'normal', desc: '400' },
@@ -35,8 +35,8 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
-          <VisualControl label="Letter spacing" prefix="tracking-" value={cleanVal(v.tracking)} options={scales.tracking} originalClass={v.tracking_original} inheritedValue={cleanVal(domV?.tracking)} />
-          <VisualControl label="Line height" prefix="leading-" value={cleanVal(v.leading)} options={scales.leading} originalClass={v.leading_original} inheritedValue={cleanVal(domV?.leading)} />
+          <VisualControl label="Letter spacing" prefix="tracking-" cssProperty="letterSpacing" value={cleanVal(v.tracking)} options={scales.tracking} originalClass={v.tracking_original} inheritedValue={cleanVal(domV?.tracking)} />
+          <VisualControl label="Line height" prefix="leading-" cssProperty="lineHeight" value={cleanVal(v.leading)} options={scales.leading} originalClass={v.leading_original} inheritedValue={cleanVal(domV?.leading)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

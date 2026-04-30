@@ -83,13 +83,6 @@ function FeatureGrid() {
               </div>
               {/* pv-block-end:f00101 */}
 
-              {/* pv-block-start:f00102 */}
-              <div data-pv-block="f00102" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="image-plus" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Paste image</span>
-              </div>
-              {/* pv-block-end:f00102 */}
-
               {/* pv-block-start:f00103 */}
               <div data-pv-block="f00103" className="flex gap-[14px] items-start">
                 <Icon iconSymbol="select-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
@@ -103,6 +96,13 @@ function FeatureGrid() {
                 <span className="text-foreground-strong font-medium">Components</span>
               </div>
               {/* pv-block-end:f00104 */}
+
+              {/* pv-block-start:f00102 */}
+              <div data-pv-block="f00102" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="image-plus" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">Paste image</span>
+              </div>
+              {/* pv-block-end:f00102 */}
 
               {/* pv-block-start:f00105 */}
               <div data-pv-block="f00105" className="flex gap-[14px] items-start">
@@ -121,16 +121,11 @@ function FeatureGrid() {
               {/* pv-block-start:f00107 */}
               <div data-pv-block="f00107" className="flex gap-[14px] items-start">
                 <Icon iconSymbol="layers" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Layers panel</span>
+                <span className="text-foreground-strong font-medium">
+                  Infinite canvas
+                </span>
               </div>
               {/* pv-block-end:f00107 */}
-
-              {/* pv-block-start:f00108 */}
-              <div data-pv-block="f00108" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="tune" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Inspector</span>
-              </div>
-              {/* pv-block-end:f00108 */}
 
               {/* pv-block-start:f00109 */}
               <div data-pv-block="f00109" className="flex gap-[14px] items-start">
@@ -160,13 +155,6 @@ function FeatureGrid() {
               </div>
               {/* pv-block-end:f00112 */}
 
-              {/* pv-block-start:f00113 */}
-              <div data-pv-block="f00113" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="history" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Version history</span>
-              </div>
-              {/* pv-block-end:f00113 */}
-
               {/* pv-block-start:f00114 */}
               <div data-pv-block="f00114" className="flex gap-[14px] items-start">
                 <Icon iconSymbol="content-save" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
@@ -187,13 +175,6 @@ function FeatureGrid() {
                 <span className="text-foreground-strong font-medium">Git integration</span>
               </div>
               {/* pv-block-end:f00116 */}
-
-              {/* pv-block-start:f00117 */}
-              <div data-pv-block="f00117" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="file-document-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Templates</span>
-              </div>
-              {/* pv-block-end:f00117 */}
 
               {/* pv-block-start:f00118 */}
               <div data-pv-block="f00118" className="flex gap-[14px] items-start">
@@ -230,19 +211,21 @@ function FeatureGrid() {
               </div>
               {/* pv-block-end:f00122 */}
 
-              {/* pv-block-start:f00123 */}
-              <div data-pv-block="f00123" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="account-multiple" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Collaboration</span>
-              </div>
-              {/* pv-block-end:f00123 */}
-
               {/* pv-block-start:f00124 */}
               <div data-pv-block="f00124" className="flex gap-[14px] items-start">
                 <Icon iconSymbol="content-copy" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
                 <span className="text-foreground-strong font-medium">Copy &amp; paste</span>
               </div>
               {/* pv-block-end:f00124 */}
+
+              {/* pv-block-start:o35kal */}
+              <div data-pv-block="o35kal" className="flex gap-[14px] items-start">
+                <Icon iconSymbol="material-symbols:share" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">
+                  One-click publishing
+                </span>
+              </div>
+              {/* pv-block-end:o35kal */}
             {/* pv-editable-zone-end:z00003 */}
           </div>
           {/* pv-block-end:b00006 */}
@@ -528,11 +511,13 @@ function BYOAgent() {
           <div data-pv-block="b00056" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00016 */}
               {/* pv-block-start:b00057 */}
-              <div data-pv-block="b00057" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Bring your own agent</div>
+              <div data-pv-block="b00057" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">
+                AI ASSITANT
+              </div>
               {/* pv-block-end:b00057 */}
               {/* pv-block-start:b00058 */}
               <h2 data-pv-block="b00058" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Your favourite agent. <em className="italic font-secondary font-bold text-foreground-strong">Your</em> way.
+                Bring your own AI agent
               </h2>
               {/* pv-block-end:b00058 */}
               {/* pv-block-start:b00059 */}
@@ -868,7 +853,7 @@ function ProblemSolution() {
               {/* pv-block-end:b00126 */}
               {/* pv-block-start:b00127 */}
               <h2 data-pv-block="b00127" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Protovibe fixes annoying AI iterations.
+                Protovibe fixes what AI tools did wrong
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
@@ -897,7 +882,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00051 */}
                       {/* pv-block-start:b00163 */}
                       <h3 data-pv-block="b00163" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        You stay the designer.
+                        You stay the designer
                       </h3>
                       {/* pv-block-end:b00163 */}
                       {/* pv-block-start:b00164 */}
@@ -949,7 +934,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00067 */}
                       {/* pv-block-start:b00203 */}
                       <h3 data-pv-block="b00203" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        A real design workflow, not a textbox.
+                        Real design tool, not a textbox
                       </h3>
                       {/* pv-block-end:b00203 */}
                       {/* pv-block-start:b00204 */}
@@ -1001,7 +986,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00039 */}
                       {/* pv-block-start:b00133 */}
                       <h3 data-pv-block="b00133" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Your design system, every time.
+                        Coherent design system &amp; tokens
                       </h3>
                       {/* pv-block-end:b00133 */}
                       {/* pv-block-start:b00134 */}
@@ -1053,7 +1038,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00043 */}
                       {/* pv-block-start:b00143 */}
                       <h3 data-pv-block="b00143" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Push pixels without re-prompting
+                        Editing without re-prompting
                       </h3>
                       {/* pv-block-end:b00143 */}
                       {/* pv-block-start:b00144 */}
@@ -1105,7 +1090,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00047 */}
                       {/* pv-block-start:b00153 */}
                       <h3 data-pv-block="b00153" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Components library that's actually easy to maintain
+                        Components library
                       </h3>
                       {/* pv-block-end:b00153 */}
                       {/* pv-block-start:b00154 */}
@@ -1156,7 +1141,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00059 */}
                       {/* pv-block-start:b00183 */}
                       <h3 data-pv-block="b00183" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Explore ideas on infinite canvas
+                        Infinite sketchpad canvas
                       </h3>
                       {/* pv-block-end:b00183 */}
                       {/* pv-block-start:b00184 */}
@@ -1208,7 +1193,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
                       <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Design is the code. <br />Code is the design.
+                        Design is the code<br />
                       </h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
@@ -1262,7 +1247,7 @@ function ProblemSolution() {
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:yluosm */}
                       <h3 data-pv-block="yluosm" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Collaboration? It's just a git repo
+                        Git integration
                       </h3>
                       {/* pv-block-end:yluosm */}
                       {/* pv-block-start:4u8roo */}
@@ -2006,7 +1991,9 @@ export default function App() {
                   {/* pv-editable-zone-start:z00114 */}
                     {/* pv-block-start:b00324 */}
                     <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                      We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary">design system</span>. And make it free.
+                      We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary">
+                        design system
+                      </span>. And make it even better.
                     </p>
                     {/* pv-block-end:b00324 */}
                     
@@ -2014,7 +2001,7 @@ export default function App() {
                     <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex">
                       {/* pv-editable-zone-start:z00115 */}
                         {/* pv-block-start:oys63u */}
-                        <Avatar data-pv-block="oys63u" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+                        <Avatar className="bg-center bg-no-repeat bg-cover border border-border-strong bg-[url('/src/images/from-protovibe/avatar-1.png')] aspect-[157/163]" data-pv-block="oys63u" initials="AB" size="md" bgColor="default"  />
                         {/* pv-block-end:oys63u */}
                         
                         {/* pv-block-start:b00327 */}

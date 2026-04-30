@@ -22,6 +22,7 @@ export const Position: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         <VisualControl
           label="Position"
           prefix=""
+          cssProperty="position"
           value={v.position}
           options={POSITION_OPTIONS}
           originalClass={v.position_original}
@@ -31,14 +32,14 @@ export const Position: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
         {showOffsets && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-            <VisualControl label="Top" prefix="top-" value={cleanVal(v.top)} originalClass={v.top_original} type="input" inheritedValue={cleanVal(domV?.top)} />
-            <VisualControl label="Bottom" prefix="bottom-" value={cleanVal(v.bottom)} originalClass={v.bottom_original} type="input" inheritedValue={cleanVal(domV?.bottom)} />
-            <VisualControl label="Left" prefix="left-" value={cleanVal(v.left)} originalClass={v.left_original} type="input" inheritedValue={cleanVal(domV?.left)} />
-            <VisualControl label="Right" prefix="right-" value={cleanVal(v.right)} originalClass={v.right_original} type="input" inheritedValue={cleanVal(domV?.right)} />
+            <VisualControl label="Top" prefix="top-" cssProperty="top" value={cleanVal(v.top)} originalClass={v.top_original} type="input" inheritedValue={cleanVal(domV?.top)} />
+            <VisualControl label="Bottom" prefix="bottom-" cssProperty="bottom" value={cleanVal(v.bottom)} originalClass={v.bottom_original} type="input" inheritedValue={cleanVal(domV?.bottom)} />
+            <VisualControl label="Left" prefix="left-" cssProperty="left" value={cleanVal(v.left)} originalClass={v.left_original} type="input" inheritedValue={cleanVal(domV?.left)} />
+            <VisualControl label="Right" prefix="right-" cssProperty="right" value={cleanVal(v.right)} originalClass={v.right_original} type="input" inheritedValue={cleanVal(domV?.right)} />
           </div>
         )}
 
-        <VisualControl label="Z-index" prefix="z-" value={cleanVal(v.z)} options={SCALES.zIndex} originalClass={v.z_original} type="input" inheritedValue={cleanVal(domV?.z)} />
+        <VisualControl label="Z-index" prefix="z-" cssProperty="zIndex" value={cleanVal(v.z)} options={SCALES.zIndex} originalClass={v.z_original} type="input" inheritedValue={cleanVal(domV?.z)} />
       </div>
     </VisualSection>
   );

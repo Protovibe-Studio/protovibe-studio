@@ -7,6 +7,32 @@ import { InspectorInput } from '../InspectorInput';
 import { theme } from '../../theme';
 import { AutocompleteDropdown, type AutocompleteOption, type ColorMode } from './AutocompleteDropdown';
 
+// Patterns for picking the right preview value source.
+const CSS_UNIT_OR_KEYWORD = /^(-?[\d.]+(px|rem|em|%|vh|vw|fr)|auto|none|0)$/i;
+const PLAIN_NUMERIC = /^-?[\d.]+$/;
+
+function isColorOption(opt?: AutocompleteOption): boolean {
+  if (!opt) return false;
+  return opt.lightValue !== undefined || opt.darkValue !== undefined || (opt as any).hex !== undefined;
+}
+
+// Resolve a hovered val/option into a CSS value. Heuristic chain:
+//   1. Color option → `var(--color-<val>)` (theme-aware light/dark)
+//   2. opt.desc is a CSS unit/keyword (e.g. '12px', 'auto') → use desc
+//   3. val is plain numeric (zIndex, opacity %) → use val
+//   4. Fallback to `var(--<token>-<val>)` matching Tailwind v4 theme vars
+//      (e.g. `--tracking-tight`, `--font-sans`, `--shadow-md`)
+function resolvePreviewValue(prefix: string, val: string, opt?: AutocompleteOption): string | null {
+  if (!val) return null;
+  if (isColorOption(opt)) return `var(--color-${val})`;
+  if (opt?.desc && CSS_UNIT_OR_KEYWORD.test(opt.desc)) return opt.desc;
+  if (CSS_UNIT_OR_KEYWORD.test(val)) return val;
+  if (PLAIN_NUMERIC.test(val)) return val;
+  const token = prefix.replace(/-$/, '');
+  if (!token) return null;
+  return `var(--${token}-${val})`;
+}
+
 interface Option extends AutocompleteOption {
   hex?: string;
   lightValue?: string;
@@ -25,11 +51,22 @@ interface VisualControlProps {
   strictOptions?: boolean;
   inputPrefix?: React.ReactNode;
   emptyPlaceholder?: string;
+  /** CSS property (or properties) to set as inline style for hover preview.
+   *  When omitted, the field doesn't preview. */
+  cssProperty?: string | string[];
 }
 
-export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, type = 'select', width = '100%', inheritedValue, strictOptions = false, inputPrefix, emptyPlaceholder }) => {
+export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, value, options, originalClass, width = '100%', inheritedValue, strictOptions = false, inputPrefix, emptyPlaceholder, cssProperty }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
   const [rawInputValue, setRawInputValue] = useState(value === '-' ? '' : value);
+
+  const buildPreview = (hoveredVal: string, opt?: AutocompleteOption): Record<string, string> | null => {
+    if (!cssProperty || !hoveredVal || hoveredVal === '-') return null;
+    const cssValue = resolvePreviewValue(prefix, hoveredVal, opt);
+    if (!cssValue) return null;
+    const props = Array.isArray(cssProperty) ? cssProperty : [cssProperty];
+    return Object.fromEntries(props.map(p => [p, cssValue]));
+  };
 
   useEffect(() => {
     setRawInputValue(value === '-' ? '' : value);
@@ -119,6 +156,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
           placeholder={inheritedValue && !(value && value !== '-') ? inheritedValue : emptyPlaceholder}
           options={options}
           onCommit={handleChange}
+          previewBuild={buildPreview}
           zIndex={9999999}
           prefix={inputPrefix}
           strictOptions={strictOptions}
