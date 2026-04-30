@@ -8,6 +8,7 @@ import { useProtovibe } from '../../context/ProtovibeContext';
 import { ColorPicker } from '../ColorPicker';
 import { updateThemeColor } from '../../api/client';
 import { createColorLivePreview } from '../../utils/colorPreview';
+import { createClassLivePreview } from '../../utils/classPreview';
 
 export interface AutocompleteOption {
   val: string;
@@ -41,6 +42,7 @@ interface AutocompleteDropdownProps {
   strictOptions?: boolean;
   testId?: string;
   showApplyToAllHint?: boolean;
+  previewBuild?: (val: string, option?: AutocompleteOption) => Record<string, string> | null;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -65,8 +67,22 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   strictOptions = false,
   testId,
   showApplyToAllHint,
+  previewBuild,
 }) => {
-  const { iframeTheme: colorMode, refreshThemeColors } = useProtovibe();
+  const { iframeTheme: colorMode, refreshThemeColors, selectedTargets } = useProtovibe();
+  const classPreviewRef = useRef(createClassLivePreview());
+
+  const applyClassPreview = (val: string) => {
+    if (!previewBuild) return;
+    const matchedOption = options.find(o => o.val === val);
+    const styles = previewBuild(val, matchedOption);
+    if (!styles || !selectedTargets.length) {
+      classPreviewRef.current.clear();
+      return;
+    }
+    classPreviewRef.current.apply(selectedTargets, styles);
+  };
+  const clearClassPreview = () => classPreviewRef.current.clear();
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -196,9 +212,16 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     pendingBlurValueRef.current = val;
     setLocalValue(val);
     setIsOpen(false);
+    clearClassPreview();
     triggerCommit(val, applyToAll);
     setTimeout(() => (blurTarget ?? inputElRef.current)?.blur(), 0);
   };
+
+  useEffect(() => {
+    if (!isOpen) clearClassPreview();
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => clearClassPreview(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to active index
   useEffect(() => {
@@ -301,8 +324,12 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         onMouseEnter={() => {
           scrollTriggerRef.current = 'mouse';
           setActiveIndex(index);
+          applyClassPreview(opt.val);
         }}
-        onMouseLeave={() => setActiveIndex(-1)}
+        onMouseLeave={() => {
+          setActiveIndex(-1);
+          clearClassPreview();
+        }}
       >
         <div style={{ display: 'flex', flex: 1, minWidth: 0, justifyContent: 'space-between', alignItems: 'center' }}>
           {renderOption ? (
@@ -435,6 +462,8 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             <div
               onMouseDown={(e) => e.preventDefault()}
               onClick={(e) => selectValue('', undefined, e.metaKey || e.ctrlKey)}
+              onMouseEnter={() => applyClassPreview('')}
+              onMouseLeave={() => clearClassPreview()}
               style={{
                 padding: '6px 10px',
                 fontSize: '11px',

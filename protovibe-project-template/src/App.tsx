@@ -244,11 +244,30 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:dkwss2 */}
         {/* pv-block-start:ex3xz0 */}
-        <Card className="bg-background-tertiary-hover" data-pv-block="ex3xz0">
+        <Card className="pt-20 bg-background-default" data-pv-block="ex3xz0">
           {/* pv-editable-zone-start:xqhvyt */}
+            {/* pv-block-start:n7n58d */}
+            <span data-pv-block="n7n58d">Lorem ipsum</span>
+            {/* pv-block-end:n7n58d */}
           {/* pv-editable-zone-end:xqhvyt */}
         </Card>
         {/* pv-block-end:ex3xz0 */}
+
+        {/* pv-block-start:0ohoji */}
+        <Card className="bg-background-tertiary-hover mt-8" data-pv-block="0ohoji">
+          {/* pv-editable-zone-start:xqhvyt */}
+            {/* pv-block-start:jtca4v */}
+            <span data-pv-block="jtca4v">Lorem ipsum</span>
+            {/* pv-block-end:jtca4v */}
+          {/* pv-editable-zone-end:xqhvyt */}
+        </Card>
+        {/* pv-block-end:0ohoji */}
+        {/* pv-block-start:bu5asv */}
+        <div className="flex flex-col min-h-4" data-pv-block="bu5asv">
+          {/* pv-editable-zone-start:uzmjqy */}
+          {/* pv-editable-zone-end:uzmjqy */}
+        </div>
+        {/* pv-block-end:bu5asv */}
       {/* pv-editable-zone-end:d8z9a1 */}
     </div>
   );
