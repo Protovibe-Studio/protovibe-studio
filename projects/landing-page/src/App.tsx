@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image'
 import { Button } from '@/components/ui/button'
@@ -52,7 +52,42 @@ function ProtovibeMockup() {
   );
 }
 
+const CARD_STEP = 260; // card width (240) + gap (20)
+
 function FeatureGrid() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 1);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    return () => el.removeEventListener('scroll', checkScroll);
+  }, []);
+
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let target: number;
+    if (dir === 'right') {
+      // left edge of the first card cropped on the right
+      target = Math.floor((el.scrollLeft + el.clientWidth) / CARD_STEP) * CARD_STEP;
+    } else {
+      // symmetric: go back one viewport snapped to card boundary
+      target = Math.max(0, Math.ceil((el.scrollLeft - el.clientWidth) / CARD_STEP) * CARD_STEP);
+    }
+    el.scrollTo({ left: target, behavior: 'smooth' });
+  };
+
   return (
     <>
       {/* pv-block-start:b00002 */}
@@ -290,188 +325,359 @@ function FeatureGrid() {
           {/* pv-block-end:d0wkgq */}
           
           {/* pv-block-start:jei6lm */}
-          <div data-pv-block="jei6lm" className="grid grid-cols-1 md:grid-cols-2 gap-[20px] lg:grid lg:grid-cols-5">
+          <div data-pv-block="jei6lm" className="relative">
+            {canLeft && (
+              <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-all duration-150 shadow-sm">
+                <Icon iconSymbol="chevron-left" size="sm" />
+              </button>
+            )}
+            {canRight && (
+              <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-all duration-150 shadow-sm">
+                <Icon iconSymbol="chevron-right" size="sm" />
+              </button>
+            )}
+            <div ref={scrollRef} className="flex flex-row gap-[20px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {/* pv-editable-zone-start:z00003 */}
               {/* pv-block-start:wpvsjh */}
-              <div data-pv-block="wpvsjh" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="wpvsjh" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:lzpbo7 */}
-                  <Icon className="mb-5" data-pv-block="lzpbo7" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="lzpbo7" iconSymbol="mdi:form-textbox" size="lg" />
                   {/* pv-block-end:lzpbo7 */}
-                  {/* pv-block-start:xuu7s0 */}
-                  <h3 data-pv-block="xuu7s0" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Realistic text fields
-                  </h3>
-                  {/* pv-block-end:xuu7s0 */}
-                  {/* pv-block-start:csjsof */}
-                  <p data-pv-block="csjsof" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    During usability tests users can enter real data which makes the reserach less biased.
-                  </p>
-                  {/* pv-block-end:csjsof */}
+                  {/* pv-block-start:d2frfg */}
+                  <div data-pv-block="d2frfg" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:bbk9ew */}
+                    {/* pv-block-start:xuu7s0 */}
+                    <h3 data-pv-block="xuu7s0" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Realistic text fields
+                    </h3>
+                    {/* pv-block-end:xuu7s0 */}
+                    {/* pv-block-start:csjsof */}
+                    <p data-pv-block="csjsof" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty mt-auto">
+                      Users can enter real data which makes the usability research less biased.
+                    </p>
+                    {/* pv-block-end:csjsof */}
+                    {/* pv-editable-zone-end:bbk9ew */}
+                  </div>
+                  {/* pv-block-end:d2frfg */}
+
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:wpvsjh */}
 
               {/* pv-block-start:zm2ske */}
-              <div data-pv-block="zm2ske" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="zm2ske" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:pvsa7b */}
-                  <Icon className="mb-5" data-pv-block="pvsa7b" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="pvsa7b" iconSymbol="mdi:plus-minus-variant" size="lg" />
                   {/* pv-block-end:pvsa7b */}
-                  {/* pv-block-start:q4w84p */}
-                  <h3 data-pv-block="q4w84p" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Adding &amp; deleting items
-                  </h3>
-                  {/* pv-block-end:q4w84p */}
-                  {/* pv-block-start:60z4lc */}
-                  <p data-pv-block="60z4lc" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Create real data operations, simulate real database.
-                  </p>
-                  {/* pv-block-end:60z4lc */}
+                  {/* pv-block-start:n3k7lp */}
+                  <div data-pv-block="n3k7lp" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:m2q5rt */}
+                    {/* pv-block-start:q4w84p */}
+                    <h3 data-pv-block="q4w84p" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Adding &amp; deleting items
+                    </h3>
+                    {/* pv-block-end:q4w84p */}
+                    {/* pv-block-start:60z4lc */}
+                    <p data-pv-block="60z4lc" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Create real data operations, simulate real database.
+                    </p>
+                    {/* pv-block-end:60z4lc */}
+                    {/* pv-editable-zone-end:m2q5rt */}
+                  </div>
+                  {/* pv-block-end:n3k7lp */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:zm2ske */}
 
+              {/* pv-block-start:kn9xv1 */}
+              <div data-pv-block="kn9xv1" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
+                {/* pv-editable-zone-start:z00004 */}
+                  {/* pv-block-start:hc3vp7 */}
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="hc3vp7" iconSymbol="mdi:magnify" size="lg" />
+                  {/* pv-block-end:hc3vp7 */}
+                  {/* pv-block-start:p8j2dx */}
+                  <div data-pv-block="p8j2dx" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:v6w4yz */}
+                    {/* pv-block-start:fet1vo */}
+                    <h3 data-pv-block="fet1vo" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Search
+                    </h3>
+                    {/* pv-block-end:fet1vo */}
+                    {/* pv-block-start:j8mxrr */}
+                    <p data-pv-block="j8mxrr" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Search inputs that actually work and filter data
+                    </p>
+                    {/* pv-block-end:j8mxrr */}
+                    {/* pv-editable-zone-end:v6w4yz */}
+                  </div>
+                  {/* pv-block-end:p8j2dx */}
+                {/* pv-editable-zone-end:z00004 */}
+              </div>
+              {/* pv-block-end:kn9xv1 */}
+
               {/* pv-block-start:z8nzq7 */}
-              <div data-pv-block="z8nzq7" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="z8nzq7" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:cgaezf */}
-                  <Icon className="mb-5" data-pv-block="cgaezf" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="cgaezf" iconSymbol="mdi:animation-play" size="lg" />
                   {/* pv-block-end:cgaezf */}
-                  {/* pv-block-start:d2eumj */}
-                  <h3 data-pv-block="d2eumj" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Animations &amp; microinteractions
-                  </h3>
-                  {/* pv-block-end:d2eumj */}
-                  {/* pv-block-start:gf4mwu */}
-                  <p data-pv-block="gf4mwu" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Unlimited animations with native code and CSS transitions with live preview.
-                  </p>
-                  {/* pv-block-end:gf4mwu */}
+                  {/* pv-block-start:b5r9hn */}
+                  <div data-pv-block="b5r9hn" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:t3x7vk */}
+                    {/* pv-block-start:d2eumj */}
+                    <h3 data-pv-block="d2eumj" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Animations &amp; microinteractions
+                    </h3>
+                    {/* pv-block-end:d2eumj */}
+                    {/* pv-block-start:gf4mwu */}
+                    <p data-pv-block="gf4mwu" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Unlimited animations with native code and CSS transitions with live preview.
+                    </p>
+                    {/* pv-block-end:gf4mwu */}
+                    {/* pv-editable-zone-end:t3x7vk */}
+                  </div>
+                  {/* pv-block-end:b5r9hn */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:z8nzq7 */}
 
+              {/* pv-block-start:uqzy7w */}
+              <div data-pv-block="uqzy7w" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
+                {/* pv-editable-zone-start:z00004 */}
+                  {/* pv-block-start:1hz6zm */}
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="1hz6zm" iconSymbol="mdi:view-carousel" size="lg" />
+                  {/* pv-block-end:1hz6zm */}
+                  {/* pv-block-start:c4m8sf */}
+                  <div data-pv-block="c4m8sf" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:q1e6pw */}
+                    {/* pv-block-start:a0h68k */}
+                    <h3 data-pv-block="a0h68k" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Carousels and sliders
+                    </h3>
+                    {/* pv-block-end:a0h68k */}
+                    {/* pv-block-start:02mc39 */}
+                    <p data-pv-block="02mc39" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Like this one, with snapping cards
+                    </p>
+                    {/* pv-block-end:02mc39 */}
+                    {/* pv-editable-zone-end:q1e6pw */}
+                  </div>
+                  {/* pv-block-end:c4m8sf */}
+                {/* pv-editable-zone-end:z00004 */}
+              </div>
+              {/* pv-block-end:uqzy7w */}
+
               {/* pv-block-start:lrsy8y */}
-              <div data-pv-block="lrsy8y" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="lrsy8y" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:ev3xhn */}
-                  <Icon className="mb-5" data-pv-block="ev3xhn" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ev3xhn" iconSymbol="mdi:code-braces" size="lg" />
                   {/* pv-block-end:ev3xhn */}
-                  {/* pv-block-start:ir0vsm */}
-                  <h3 data-pv-block="ir0vsm" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    If else conditions
-                  </h3>
-                  {/* pv-block-end:ir0vsm */}
-                  {/* pv-block-start:1qcap9 */}
-                  <p data-pv-block="1qcap9" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Show a section of a form if user selects a combination of 2 different values in other fields
-                  </p>
-                  {/* pv-block-end:1qcap9 */}
+                  {/* pv-block-start:a7g3wj */}
+                  <div data-pv-block="a7g3wj" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:s9h2bn */}
+                    {/* pv-block-start:ir0vsm */}
+                    <h3 data-pv-block="ir0vsm" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      If else conditions
+                    </h3>
+                    {/* pv-block-end:ir0vsm */}
+                    {/* pv-block-start:1qcap9 */}
+                    <p data-pv-block="1qcap9" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Show a section of a form if user selects a combination of 2 different values in other fields
+                    </p>
+                    {/* pv-block-end:1qcap9 */}
+                    {/* pv-editable-zone-end:s9h2bn */}
+                  </div>
+                  {/* pv-block-end:a7g3wj */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:lrsy8y */}
 
               {/* pv-block-start:ebd65d */}
-              <div data-pv-block="ebd65d" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="ebd65d" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:54zvu8 */}
-                  <Icon className="mb-5" data-pv-block="54zvu8" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="54zvu8" iconSymbol="mdi:pin-outline" size="lg" />
                   {/* pv-block-end:54zvu8 */}
-                  {/* pv-block-start:txt6ze */}
-                  <h3 data-pv-block="txt6ze" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Sticky headers
-                  </h3>
-                  {/* pv-block-end:txt6ze */}
-                  {/* pv-block-start:qisdp8 */}
-                  <p data-pv-block="qisdp8" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Complex inner scrolls with sticky headers
-                  </p>
-                  {/* pv-block-end:qisdp8 */}
+                  {/* pv-block-start:f6k4cv */}
+                  <div data-pv-block="f6k4cv" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:u8n1ql */}
+                    {/* pv-block-start:txt6ze */}
+                    <h3 data-pv-block="txt6ze" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Sticky headers
+                    </h3>
+                    {/* pv-block-end:txt6ze */}
+                    {/* pv-block-start:qisdp8 */}
+                    <p data-pv-block="qisdp8" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Complex inner scrolls with sticky headers
+                    </p>
+                    {/* pv-block-end:qisdp8 */}
+                    {/* pv-editable-zone-end:u8n1ql */}
+                  </div>
+                  {/* pv-block-end:f6k4cv */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:ebd65d */}
 
               {/* pv-block-start:w9xvbr */}
-              <div data-pv-block="w9xvbr" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="w9xvbr" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:f9cnb1 */}
-                  <Icon className="mb-5" data-pv-block="f9cnb1" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="f9cnb1" iconSymbol="mdi:source-branch" size="lg" />
                   {/* pv-block-end:f9cnb1 */}
-                  {/* pv-block-start:5bbczi */}
-                  <h3 data-pv-block="5bbczi" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Branching wizards
-                  </h3>
-                  {/* pv-block-end:5bbczi */}
-                  {/* pv-block-start:dca525 */}
-                  <p data-pv-block="dca525" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Multi-step flows with steps depending on previous user input
-                  </p>
-                  {/* pv-block-end:dca525 */}
+                  {/* pv-block-start:d2p7xm */}
+                  <div data-pv-block="d2p7xm" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:r5y3tz */}
+                    {/* pv-block-start:5bbczi */}
+                    <h3 data-pv-block="5bbczi" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Branching wizards
+                    </h3>
+                    {/* pv-block-end:5bbczi */}
+                    {/* pv-block-start:dca525 */}
+                    <p data-pv-block="dca525" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Multi-step flows with steps depending on previous user input
+                    </p>
+                    {/* pv-block-end:dca525 */}
+                    {/* pv-editable-zone-end:r5y3tz */}
+                  </div>
+                  {/* pv-block-end:d2p7xm */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:w9xvbr */}
 
               {/* pv-block-start:pg9rpm */}
-              <div data-pv-block="pg9rpm" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="pg9rpm" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:3f6b9e */}
-                  <Icon className="mb-5" data-pv-block="3f6b9e" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="3f6b9e" iconSymbol="mdi:tooltip-edit" size="lg" />
                   {/* pv-block-end:3f6b9e */}
-                  {/* pv-block-start:7shgpq */}
-                  <h3 data-pv-block="7shgpq" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Hover popovers &amp; tooltips
-                  </h3>
-                  {/* pv-block-end:7shgpq */}
-                  {/* pv-block-start:cqb60m */}
-                  <p data-pv-block="cqb60m" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Craft perfect delays for opening and closing hover interactions
-                  </p>
-                  {/* pv-block-end:cqb60m */}
+                  {/* pv-block-start:e9t5bq */}
+                  <div data-pv-block="e9t5bq" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:g4v8cj */}
+                    {/* pv-block-start:7shgpq */}
+                    <h3 data-pv-block="7shgpq" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Hover popovers &amp; tooltips
+                    </h3>
+                    {/* pv-block-end:7shgpq */}
+                    {/* pv-block-start:cqb60m */}
+                    <p data-pv-block="cqb60m" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Craft perfect delays for opening and closing hover interactions
+                    </p>
+                    {/* pv-block-end:cqb60m */}
+                    {/* pv-editable-zone-end:g4v8cj */}
+                  </div>
+                  {/* pv-block-end:e9t5bq */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:pg9rpm */}
 
               {/* pv-block-start:h4lqx8 */}
-              <div data-pv-block="h4lqx8" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="h4lqx8" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:77ftuc */}
-                  <Icon className="mb-5" data-pv-block="77ftuc" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="77ftuc" iconSymbol="mdi:link-variant" size="lg" />
                   {/* pv-block-end:77ftuc */}
-                  {/* pv-block-start:awrrbw */}
-                  <h3 data-pv-block="awrrbw" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    Interconnected variables
-                  </h3>
-                  {/* pv-block-end:awrrbw */}
-                  {/* pv-block-start:3hx3c8 */}
-                  <p data-pv-block="3hx3c8" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Show stakeholders demos with real data connections for complex SaaS products
-                  </p>
-                  {/* pv-block-end:3hx3c8 */}
+                  {/* pv-block-start:h3s6kr */}
+                  <div data-pv-block="h3s6kr" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:j7f2mn */}
+                    {/* pv-block-start:awrrbw */}
+                    <h3 data-pv-block="awrrbw" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Interconnected variables
+                    </h3>
+                    {/* pv-block-end:awrrbw */}
+                    {/* pv-block-start:3hx3c8 */}
+                    <p data-pv-block="3hx3c8" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Show stakeholders demos with real data connections for complex SaaS products
+                    </p>
+                    {/* pv-block-end:3hx3c8 */}
+                    {/* pv-editable-zone-end:j7f2mn */}
+                  </div>
+                  {/* pv-block-end:h3s6kr */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:h4lqx8 */}
 
               {/* pv-block-start:o77jgs */}
-              <div data-pv-block="o77jgs" className="bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="o77jgs" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
                 {/* pv-editable-zone-start:z00004 */}
                   {/* pv-block-start:ijyem2 */}
-                  <Icon className="mb-5" data-pv-block="ijyem2" iconSymbol="star" size="md" />
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ijyem2" iconSymbol="mdi:gesture-tap" size="lg" />
                   {/* pv-block-end:ijyem2 */}
-                  {/* pv-block-start:aw4bne */}
-                  <h3 data-pv-block="aw4bne" className="font-secondary font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance">
-                    All button states
-                  </h3>
-                  {/* pv-block-end:aw4bne */}
-                  {/* pv-block-start:nr51nu */}
-                  <p data-pv-block="nr51nu" className="text-[14.5px] text-foreground-secondary m-[0_0_24px] leading-[1.55] text-pretty">
-                    Design every hover, pressed, disabled, focused state
-                  </p>
-                  {/* pv-block-end:nr51nu */}
+                  {/* pv-block-start:k1w9px */}
+                  <div data-pv-block="k1w9px" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:l5b4ry */}
+                    {/* pv-block-start:aw4bne */}
+                    <h3 data-pv-block="aw4bne" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      All button states
+                    </h3>
+                    {/* pv-block-end:aw4bne */}
+                    {/* pv-block-start:nr51nu */}
+                    <p data-pv-block="nr51nu" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Design every hover, pressed, disabled, focused state
+                    </p>
+                    {/* pv-block-end:nr51nu */}
+                    {/* pv-editable-zone-end:l5b4ry */}
+                  </div>
+                  {/* pv-block-end:k1w9px */}
                 {/* pv-editable-zone-end:z00004 */}
               </div>
               {/* pv-block-end:o77jgs */}
+
+              {/* pv-block-start:g2d9jw */}
+              <div data-pv-block="g2d9jw" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
+                {/* pv-editable-zone-start:z00004 */}
+                  {/* pv-block-start:hjxtde */}
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="hjxtde" iconSymbol="mdi:menu-open" size="lg" />
+                  {/* pv-block-end:hjxtde */}
+                  {/* pv-block-start:x2n8qt */}
+                  <div data-pv-block="x2n8qt" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:w7k3mv */}
+                    {/* pv-block-start:1mn5q3 */}
+                    <h3 data-pv-block="1mn5q3" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Nested context menus
+                    </h3>
+                    {/* pv-block-end:1mn5q3 */}
+                    {/* pv-block-start:mqcqku */}
+                    <p data-pv-block="mqcqku" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Crafting real click and hover flow
+                    </p>
+                    {/* pv-block-end:mqcqku */}
+                    {/* pv-editable-zone-end:w7k3mv */}
+                  </div>
+                  {/* pv-block-end:x2n8qt */}
+                {/* pv-editable-zone-end:z00004 */}
+              </div>
+              {/* pv-block-end:g2d9jw */}
+
+              {/* pv-block-start:73i55d */}
+              <div data-pv-block="73i55d" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
+                {/* pv-editable-zone-start:z00004 */}
+                  {/* pv-block-start:ccsgnn */}
+                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ccsgnn" iconSymbol="mdi:file-tree" size="lg" />
+                  {/* pv-block-end:ccsgnn */}
+                  {/* pv-block-start:z4r7pw */}
+                  <div data-pv-block="z4r7pw" className="flex flex-col gap-0 mt-auto">
+                    {/* pv-editable-zone-start:y9s2bk */}
+                    {/* pv-block-start:j1xd7r */}
+                    <h3 data-pv-block="j1xd7r" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
+                      Folder trees
+                    </h3>
+                    {/* pv-block-end:j1xd7r */}
+                    {/* pv-block-start:q1483d */}
+                    <p data-pv-block="q1483d" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
+                      Expandable and collapsible navigations and folder trees
+                    </p>
+                    {/* pv-block-end:q1483d */}
+                    {/* pv-editable-zone-end:y9s2bk */}
+                  </div>
+                  {/* pv-block-end:z4r7pw */}
+                {/* pv-editable-zone-end:z00004 */}
+              </div>
+              {/* pv-block-end:73i55d */}
             {/* pv-editable-zone-end:z00003 */}
+            </div>
           </div>
           {/* pv-block-end:jei6lm */}
         {/* pv-editable-zone-end:z00001 */}
@@ -1488,7 +1694,9 @@ function FAQ() {
                   </summary>
                   {/* pv-block-end:b00401 */}
                   {/* pv-block-start:b00402 */}
-                  <div data-pv-block="b00402" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">Yes. Protovibe is open source (MIT) and runs entirely on your machine. There's no SaaS backend, no seat tax, no hidden usage cap. You pay whoever you already pay for your coding agent — that's it.</div>
+                  <div data-pv-block="b00402" className="px-[4px] pb-[24px] text-[15.5px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                    Yes. Protovibe is open source licence AGPL v3.0 which means that you can use it for free. You just can't create commercial software using its code. It runs entirely on your machine. There's no SaaS backend, no seat tax, no hidden usage cap.
+                  </div>
                   {/* pv-block-end:b00402 */}
                 {/* pv-editable-zone-end:z00200 */}
               </details>
