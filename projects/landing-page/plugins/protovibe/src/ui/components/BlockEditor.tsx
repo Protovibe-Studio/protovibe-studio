@@ -145,7 +145,13 @@ export const BlockEditor: React.FC = () => {
     setIsEmpty(!el.textContent?.trim());
   }, [currentBaseTarget, activeData?.code, isTextNode, isLoading]);
 
-  const closestBlockId = currentBaseTarget?.closest('[data-pv-block]')?.getAttribute('data-pv-block');
+  // Only treat this as a block-level edit when the selected element itself is
+  // a pv-block. Walking up via .closest() would mis-target an inner child
+  // (e.g., a nested <span> with no data-pv-block) at its parent block, causing
+  // the parent's entire content to be replaced. For non-block children we
+  // fall through to location-based editing using activeData.startLine/nameEnd,
+  // which already point at the actual selected JSX node.
+  const closestBlockId = currentBaseTarget?.getAttribute('data-pv-block') || undefined;
 
   const persistIfChanged = useCallback(async () => {
     const el = editorRef.current;
