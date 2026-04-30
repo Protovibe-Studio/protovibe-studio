@@ -1,10 +1,10 @@
 // plugins/protovibe/src/ui/theme.ts
 export const theme = {
   // Backgrounds
-  bg_default: '#131313',       // Main panels & sidebar
+  bg_default: '#191919',       // Main panels & sidebar
   bg_secondary: '#282828',     // Inputs, dropdowns, hover states
   bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
-  bg_strong: '#0a0a0a',        // Headers, deep backgrounds
+  bg_strong: '#131313',        // Headers, deep backgrounds
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
   // Text
