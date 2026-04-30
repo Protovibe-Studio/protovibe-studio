@@ -1651,77 +1651,87 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         fileContent = cleanupZonesAtAnchors(fileContent, deleteAnchors);
       }
       else if (action === 'move-up' || action === 'move-down') {
-        // 1. Find all block start and end tags
-        const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-block-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;
+        // 1. Find all block AND editable-zone start/end tags so siblings respect zone scope.
+        const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-(block|editable-zone)-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;
         let match;
-        const tags = [];
+        type Tag = { kind: 'block' | 'editable-zone'; type: 'start' | 'end'; id: string; index: number; length: number };
+        const tags: Tag[] = [];
         while ((match = allTagsRegex.exec(fileContent)) !== null) {
-          tags.push({ type: match[2], id: match[3], index: match.index, length: match[0].length });
+          tags.push({ kind: match[2] as 'block' | 'editable-zone', type: match[3] as 'start' | 'end', id: match[4], index: match.index, length: match[0].length });
         }
 
-        // 2. Build a hierarchy (tree) of blocks based on tag sequences
-        const rootBlocks: any[] = [];
-        const stack: any[] = [];
+        // 2. Build a hierarchy that includes both blocks and zones. A block's siblings
+        //    are only the other blocks that share its immediate enclosing zone.
+        type Node = { kind: 'block' | 'editable-zone' | 'root'; id: string; startTag: Tag | null; endTag: Tag | null; children: Node[] };
+        const root: Node = { kind: 'root', id: '__root__', startTag: null, endTag: null, children: [] };
+        const stack: Node[] = [root];
 
         for (const tag of tags) {
           if (tag.type === 'start') {
-            const block = { id: tag.id, startTag: tag, endTag: null, children: [] };
-            if (stack.length > 0) {
-              stack[stack.length - 1].children.push(block);
-            } else {
-              rootBlocks.push(block);
-            }
-            stack.push(block);
-          } else if (tag.type === 'end') {
-            if (stack.length > 0 && stack[stack.length - 1].id === tag.id) {
-              const block = stack.pop();
-              block.endTag = tag;
+            const node: Node = { kind: tag.kind, id: tag.id, startTag: tag, endTag: null, children: [] };
+            stack[stack.length - 1].children.push(node);
+            stack.push(node);
+          } else {
+            // Pop until we find the matching open node (tolerate minor nesting glitches).
+            for (let i = stack.length - 1; i >= 1; i--) {
+              if (stack[i].kind === tag.kind && stack[i].id === tag.id) {
+                stack[i].endTag = tag;
+                stack.length = i;
+                break;
+              }
             }
           }
         }
 
-        // 3. Find the target block and its siblings (the array it belongs to)
-        let targetArray: any[] | null = null;
+        // 3. Find the target block and the zone it lives in. Only swap with a sibling
+        //    block that shares the same direct enclosing zone.
+        let targetParent: Node | null = null;
+        let targetSiblings: Node[] = [];
         let targetIndex = -1;
 
-        function findBlock(blocks: any[]) {
-          for (let i = 0; i < blocks.length; i++) {
-            if (blocks[i].id === blockId) {
-              targetArray = blocks;
+        function findBlock(node: Node): boolean {
+          const blockChildren = node.children.filter(c => c.kind === 'block');
+          for (let i = 0; i < blockChildren.length; i++) {
+            if (blockChildren[i].id === blockId) {
+              targetParent = node;
+              targetSiblings = blockChildren;
               targetIndex = i;
               return true;
             }
-            if (findBlock(blocks[i].children)) return true;
+          }
+          for (const child of node.children) {
+            if (findBlock(child)) return true;
           }
           return false;
         }
 
-        findBlock(rootBlocks);
+        findBlock(root);
 
-        // 4. Swap the block with its sibling
-        if (targetArray && targetIndex !== -1) {
+        // 4. Swap the block with its sibling — but only if the parent is an editable
+        //    zone. Blocks at the file root (outside any zone) are not reorderable.
+        if (targetParent && targetParent.kind === 'editable-zone' && targetIndex !== -1) {
           if (action === 'move-up' && targetIndex > 0) {
-            const prev = targetArray[targetIndex - 1];
-            const curr = targetArray[targetIndex];
-            
-            if (prev.endTag && curr.endTag) {
+            const prev = targetSiblings[targetIndex - 1];
+            const curr = targetSiblings[targetIndex];
+
+            if (prev.startTag && prev.endTag && curr.startTag && curr.endTag) {
               const prevStart = prev.startTag.index;
               const prevEnd = prev.endTag.index + prev.endTag.length;
               const currStart = curr.startTag.index;
               const currEnd = curr.endTag.index + curr.endTag.length;
-              
+
               const prevStr = fileContent.substring(prevStart, prevEnd);
               const currStr = fileContent.substring(currStart, currEnd);
               const between = fileContent.substring(prevEnd, currStart);
 
               fileContent = fileContent.substring(0, prevStart) + currStr + between + prevStr + fileContent.substring(currEnd);
             }
-          } 
-          else if (action === 'move-down' && targetIndex < targetArray.length - 1) {
-            const curr = targetArray[targetIndex];
-            const next = targetArray[targetIndex + 1];
-            
-            if (curr.endTag && next.endTag) {
+          }
+          else if (action === 'move-down' && targetIndex < targetSiblings.length - 1) {
+            const curr = targetSiblings[targetIndex];
+            const next = targetSiblings[targetIndex + 1];
+
+            if (curr.startTag && curr.endTag && next.startTag && next.endTag) {
               const currStart = curr.startTag.index;
               const currEnd = curr.endTag.index + curr.endTag.length;
               const nextStart = next.startTag.index;
@@ -1735,7 +1745,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           }
         }
-      } 
+      }
       else if (action === 'edit-text') {
         const ast = babel.parseSync(fileContent, {
           filename: absolutePath,

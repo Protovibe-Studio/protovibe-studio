@@ -56,60 +56,26 @@ function ProtovibeMockup() {
 
 const CARD_STEP = 260; // card width (240) + gap (20)
 
-function FeatureGrid() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(true);
-
-  const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanLeft(el.scrollLeft > 1);
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    checkScroll();
-    el.addEventListener('scroll', checkScroll, { passive: true });
-    return () => el.removeEventListener('scroll', checkScroll);
-  }, []);
-
-  const scroll = (dir: 'left' | 'right') => {
-    const el = scrollRef.current;
-    if (!el) return;
-    let target: number;
-    if (dir === 'right') {
-      // left edge of the first card cropped on the right
-      target = Math.floor((el.scrollLeft + el.clientWidth) / CARD_STEP) * CARD_STEP;
-    } else {
-      // symmetric: go back one viewport snapped to card boundary
-      target = Math.max(0, Math.ceil((el.scrollLeft - el.clientWidth) / CARD_STEP) * CARD_STEP);
-    }
-    el.scrollTo({ left: target, behavior: 'smooth' });
-  };
-
+function FeaturesList() {
   return (
     <>
       {/* pv-block-start:b00002 */}
       <section data-pv-block="b00002" className="py-[120px] relative" id="features">
         {/* pv-editable-zone-start:z00001 */}
-          {/* pv-block-start:b00003 */}
-          <div data-pv-block="b00003" className="max-w-[780px] mx-auto mb-[64px] text-center">
+          {/* pv-block-start:r35ceo */}
+          <div data-pv-block="r35ceo" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00002 */}
-              {/* pv-block-start:b00004 */}
-              <div data-pv-block="b00004" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Features</div>
-              {/* pv-block-end:b00004 */}
-              {/* pv-block-start:b00005 */}
-              <h2 data-pv-block="b00005" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
+              {/* pv-block-start:ugssgg */}
+              <div data-pv-block="ugssgg" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Features</div>
+              {/* pv-block-end:ugssgg */}
+              {/* pv-block-start:wecohl */}
+              <h2 data-pv-block="wecohl" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
                 It has everything you need to get shit done
               </h2>
-              {/* pv-block-end:b00005 */}
+              {/* pv-block-end:wecohl */}
             {/* pv-editable-zone-end:z00002 */}
           </div>
-          {/* pv-block-end:b00003 */}
-
+          {/* pv-block-end:r35ceo */}
           {/* pv-block-start:b00006 */}
           <div data-pv-block="b00006" className="grid grid-cols-1 md:grid-cols-3 gap-x-[40px] gap-y-[28px] mx-auto justify-items-start max-w-[700px]">
             {/* pv-editable-zone-start:z00003 */}
@@ -300,6 +266,47 @@ function FeatureGrid() {
         {/* pv-editable-zone-end:z00001 */}
       </section>
       {/* pv-block-end:b00002 */}
+    </>
+  );
+}
+
+function FeatureGrid() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 1);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    return () => el.removeEventListener('scroll', checkScroll);
+  }, []);
+
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let target: number;
+    if (dir === 'right') {
+      // left edge of the first card cropped on the right
+      target = Math.floor((el.scrollLeft + el.clientWidth) / CARD_STEP) * CARD_STEP;
+    } else {
+      // symmetric: go back one viewport snapped to card boundary
+      target = Math.max(0, Math.ceil((el.scrollLeft - el.clientWidth) / CARD_STEP) * CARD_STEP);
+    }
+    el.scrollTo({ left: target, behavior: 'smooth' });
+  };
+
+  return (
+    <>
+      {/* pv-editable-zone-start:zfg001 */}
 
       {/* pv-block-start:o0ospu */}
       <section data-pv-block="o0ospu" className="py-[120px] relative" id="features">
@@ -552,6 +559,7 @@ function FeatureGrid() {
         {/* pv-editable-zone-end:z00001 */}
       </section>
       {/* pv-block-end:o0ospu */}
+      {/* pv-editable-zone-end:zfg001 */}
     </>
   );
 }
@@ -559,6 +567,7 @@ function FeatureGrid() {
 function LogoReact() {
   return (
     <>
+      {/* pv-editable-zone-start:zlr001 */}
       {/* pv-block-start:b00037 */}
       <div data-pv-block="b00037" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
         {/* pv-editable-zone-start:z00010 */}
@@ -591,6 +600,7 @@ function LogoReact() {
         {/* pv-editable-zone-end:z00010 */}
       </div>
       {/* pv-block-end:uxnkm4 */}
+      {/* pv-editable-zone-end:zlr001 */}
     </>
   );
 }
@@ -1924,7 +1934,7 @@ If anything fails, show me the exact error and stop. Do not fix it silently.`}</
   );
 }
 
-function FooterCTA({ onCTA }: { onCTA: () => void }) {
+function FooterCTA() {
   return (
     <>
       {/* pv-block-start:b00271 */}
@@ -1964,7 +1974,7 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
                       {/* pv-block-end:fcw6t7 */}
                       {/* pv-block-start:l5rgvs */}
                       <span data-pv-block="l5rgvs">
-                        Open-source • AGPL-3.0 • Runs locally • No sign-up
+                        Open-source • AGPL-3.0 • Runs locally
                       </span>
                       {/* pv-block-end:l5rgvs */}
                     {/* pv-editable-zone-end:z00110 */}
@@ -1994,6 +2004,156 @@ function FooterCTA({ onCTA }: { onCTA: () => void }) {
         {/* pv-editable-zone-end:z00095 */}
       </section>
       {/* pv-block-end:b00271 */}
+    </>
+  );
+}
+
+function Hero() {
+  return (
+    <>
+      {/* pv-block-start:b00304 */}
+      <section data-pv-block="b00304" className="relative pt-[60px] pb-[80px] text-center">
+        {/* pv-editable-zone-start:z00107 */}
+          {/* pv-block-start:t4dgb7 */}
+          <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
+            {/* pv-editable-zone-start:ger2rz */}
+            {/* pv-block-start:b00305 */}
+            <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter mt-6 mx-auto font-secondary font-extrabold">
+              Design by hand.<br />Prototype with AI.<br /><span className="text-foreground-primary">
+                Pixel-perfect.
+              </span>
+            </h1>
+            {/* pv-block-end:b00305 */}
+            {/* pv-block-start:b00306 */}
+            <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
+              Protovibe Studio is the open-source tool for UX/UI design in the AI era. Built for product designers who vibe-code but refuse to hand-off inconsistent slop. It runs locally in pure React, giving your coding agents the perfect foundation to build anything.
+            </p>
+            {/* pv-block-end:b00306 */}
+            {/* pv-block-start:b00307 */}
+            <div data-pv-block="b00307" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center flex-col items-stretch min-w-64">
+              {/* pv-editable-zone-start:z00108 */}
+                {/* pv-block-start:jkwl83 */}
+                <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" label="Install now" variant="solid" color="primary" size="lg" />
+                {/* pv-block-end:jkwl83 */}
+
+                {/* pv-block-start:jppuwr */}
+                <Button leftIcon="carbon:demo" data-pv-block="jppuwr" label="Demo in Codesandbox" variant="solid" color="neutral" size="lg" />
+                {/* pv-block-end:jppuwr */}
+
+                {/* pv-block-start:twnfpe */}
+                <Button leftIcon="mdi:github" data-pv-block="twnfpe" label="Star on GitHub" variant="ghost" color="neutral" size="lg" />
+                {/* pv-block-end:twnfpe */}
+              {/* pv-editable-zone-end:z00108 */}
+            </div>
+            {/* pv-block-end:b00307 */}
+            {/* pv-editable-zone-end:ger2rz */}
+          </div>
+          {/* pv-block-end:t4dgb7 */}
+
+          {/* pv-block-start:b00310 */}
+          <div data-pv-block="b00310" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] flex justify-center mt-4">
+            {/* pv-editable-zone-start:z00109 */}
+              {/* pv-block-start:b00311 */}
+              <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full font-sans bg-transparent mt-3">
+                {/* pv-editable-zone-start:z00110 */}
+                  {/* pv-block-start:b00312 */}
+                  <span data-pv-block="b00312" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
+                  {/* pv-block-end:b00312 */}
+                  {/* pv-block-start:b00313 */}
+                  <span data-pv-block="b00313">
+                    Open-source • AGPL-3.0 • Runs locally
+                  </span>
+                  {/* pv-block-end:b00313 */}
+                {/* pv-editable-zone-end:z00110 */}
+              </div>
+              {/* pv-block-end:b00311 */}
+            {/* pv-editable-zone-end:z00109 */}
+          </div>
+          {/* pv-block-end:b00310 */}
+
+          {/* pv-block-start:b00314 */}
+          <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto max-w-[1140px] flex-1">
+            {/* pv-editable-zone-start:z00111 */}
+              {/* pv-block-start:b00315 */}
+              <div data-pv-block="b00315" className="absolute left-[-30%] right-[-30%] top-[-75%] bottom-[5%] z-0 blur-[130px] opacity-[0.78] pointer-events-none animate-[glow-breathe_10s_ease-in-out_infinite]" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 18%, #000 50%, #000 100%)' }}>
+                {/* pv-editable-zone-start:z00112 */}
+                  {/* pv-block-start:b00316 */}
+                  <div data-pv-block="b00316" className="absolute left-[5%] top-[18%] w-[55%] h-[78%] rounded-full opacity-95" style={{ background: 'radial-gradient(circle, oklch(0.58 0.19 265), transparent 70%)' }} />
+                  {/* pv-block-end:b00316 */}
+                  {/* pv-block-start:b00317 */}
+                  <div data-pv-block="b00317" className="absolute right-[5%] top-[14%] w-[55%] h-[82%] rounded-full opacity-90" style={{ background: 'radial-gradient(circle, oklch(0.54 0.16 305), oklch(0.48 0.13 285) 50%, transparent 75%)' }} />
+                  {/* pv-block-end:b00317 */}
+                  {/* pv-block-start:b00318 */}
+                  <div data-pv-block="b00318" className="absolute left-[30%] top-[8%] w-[40%] h-[60%] rounded-full opacity-65" style={{ background: 'radial-gradient(circle, oklch(0.58 0.13 335), transparent 70%)' }} />
+                  {/* pv-block-end:b00318 */}
+                {/* pv-editable-zone-end:z00112 */}
+              </div>
+              {/* pv-block-end:b00315 */}
+
+              {/* pv-block-start:b00319 */}
+              <ProtovibeMockup data-pv-block="b00319" />
+              {/* pv-block-end:b00319 */}
+            {/* pv-editable-zone-end:z00111 */}
+          </div>
+          {/* pv-block-end:b00314 */}
+        {/* pv-editable-zone-end:z00107 */}
+      </section>
+      {/* pv-block-end:b00304 */}
+    </>
+  );
+}
+
+function Testimonial() {
+  return (
+    <>
+      {/* pv-block-start:b00321 */}
+      <section data-pv-block="b00321" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
+        {/* pv-editable-zone-start:z00113 */}
+          {/* pv-block-start:b00322 */}
+          <span data-pv-block="b00322" className="font-secondary font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
+          {/* pv-block-end:b00322 */}
+
+          {/* pv-block-start:b00323 */}
+          <div data-pv-block="b00323" className="flex flex-col gap-[32px]">
+            {/* pv-editable-zone-start:z00114 */}
+              {/* pv-block-start:b00324 */}
+              <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
+                We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. And we've made it free.
+              </p>
+              {/* pv-block-end:b00324 */}
+
+              {/* pv-block-start:b00325 */}
+              <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex">
+                {/* pv-editable-zone-start:z00115 */}
+                  {/* pv-block-start:oys63u */}
+                  <Avatar className="bg-center bg-no-repeat bg-cover border bg-[url('/src/images/from-protovibe/screenshot-2026-04-30-at-103956.png')] aspect-[247/233]" data-pv-block="oys63u" initials="AB" size="xl" bgColor="default"  />
+                  {/* pv-block-end:oys63u */}
+
+                  {/* pv-block-start:b00327 */}
+                  <div data-pv-block="b00327" className="flex flex-col gap-[2px]">
+                    {/* pv-editable-zone-start:z00116 */}
+                      {/* pv-block-start:b00328 */}
+                      <div data-pv-block="b00328" className="text-foreground-strong font-semibold text-[15px]">
+                        Protovibe Team
+                      </div>
+                      {/* pv-block-end:b00328 */}
+                      {/* pv-block-start:b00329 */}
+                      <div data-pv-block="b00329" className="text-foreground-secondary text-[13px]">
+                        protovibe.studio@gmail.com
+                      </div>
+                      {/* pv-block-end:b00329 */}
+                    {/* pv-editable-zone-end:z00116 */}
+                  </div>
+                  {/* pv-block-end:b00327 */}
+                {/* pv-editable-zone-end:z00115 */}
+              </div>
+              {/* pv-block-end:b00325 */}
+            {/* pv-editable-zone-end:z00114 */}
+          </div>
+          {/* pv-block-end:b00323 */}
+        {/* pv-editable-zone-end:z00113 */}
+      </section>
+      {/* pv-block-end:b00321 */}
     </>
   );
 }
@@ -2070,97 +2230,10 @@ export default function App() {
         <div data-pv-block="b00303" className="relative z-[2] max-w-[1240px] mx-auto px-[20px] md:px-[40px]">
           {/* pv-editable-zone-start:z00106 */}
             {/* Hero */}
-            {/* pv-block-start:b00304 */}
-            <section data-pv-block="b00304" className="relative pt-[60px] pb-[80px] text-center">
-              {/* pv-editable-zone-start:z00107 */}
-                {/* pv-block-start:t4dgb7 */}
-                <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
-                  {/* pv-editable-zone-start:ger2rz */}
-                  {/* pv-block-start:b00305 */}
-                  <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter mt-6 mx-auto font-secondary font-extrabold">
-                    Design by hand.<br />Prototype with AI.<br /><span className="text-foreground-primary">
-                      Pixel-perfect.
-                    </span>
-                  </h1>
-                  {/* pv-block-end:b00305 */}
-                  {/* pv-block-start:b00306 */}
-                  <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
-                    Protovibe Studio is the open-source tool for UX/UI design in the AI era. Built for product designers who vibe-code but refuse to hand-off inconsistent slop. It runs locally in pure React, giving your coding agents the perfect foundation to build anything.
-                  </p>
-                  {/* pv-block-end:b00306 */}
-                  {/* pv-block-start:b00307 */}
-                  <div data-pv-block="b00307" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center flex-col items-stretch min-w-64">
-                    {/* pv-editable-zone-start:z00108 */}
-                      {/* pv-block-start:jkwl83 */}
-                      <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" label="Install now" variant="solid" color="primary" size="lg" />
-                      {/* pv-block-end:jkwl83 */}
+            {/* pv-block-start:hr0001 */}
+            <Hero data-pv-block="hr0001" />
+            {/* pv-block-end:hr0001 */}
 
-                      {/* pv-block-start:jppuwr */}
-                      <Button leftIcon="carbon:demo" data-pv-block="jppuwr" label="Demo in Codesandbox" variant="solid" color="neutral" size="lg" />
-                      {/* pv-block-end:jppuwr */}
-
-                      {/* pv-block-start:twnfpe */}
-                      <Button leftIcon="mdi:github" data-pv-block="twnfpe" label="Star on GitHub" variant="ghost" color="neutral" size="lg" />
-                      {/* pv-block-end:twnfpe */}
-                    {/* pv-editable-zone-end:z00108 */}
-                  </div>
-                  {/* pv-block-end:b00307 */}
-                  {/* pv-editable-zone-end:ger2rz */}
-                </div>
-                {/* pv-block-end:t4dgb7 */}
-
-                
-                
-                
-                {/* pv-block-start:b00310 */}
-                <div data-pv-block="b00310" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] flex justify-center mt-4">
-                  {/* pv-editable-zone-start:z00109 */}
-                    {/* pv-block-start:b00311 */}
-                    <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full font-sans bg-transparent mt-3">
-                      {/* pv-editable-zone-start:z00110 */}
-                        {/* pv-block-start:b00312 */}
-                        <span data-pv-block="b00312" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
-                        {/* pv-block-end:b00312 */}
-                        {/* pv-block-start:b00313 */}
-                        <span data-pv-block="b00313">
-                          Open-source • AGPL-3.0 • Runs locally • No sign-up
-                        </span>
-                        {/* pv-block-end:b00313 */}
-                      {/* pv-editable-zone-end:z00110 */}
-                    </div>
-                    {/* pv-block-end:b00311 */}
-                  {/* pv-editable-zone-end:z00109 */}
-                </div>
-                {/* pv-block-end:b00310 */}
-
-                {/* pv-block-start:b00314 */}
-                <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto max-w-[1140px] px-[20px] flex-1">
-                  {/* pv-editable-zone-start:z00111 */}
-                    {/* pv-block-start:b00315 */}
-                    <div data-pv-block="b00315" className="absolute left-[-30%] right-[-30%] top-[-75%] bottom-[5%] z-0 blur-[130px] opacity-[0.78] pointer-events-none animate-[glow-breathe_10s_ease-in-out_infinite]" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 18%, #000 50%, #000 100%)' }}>
-                      {/* pv-editable-zone-start:z00112 */}
-                        {/* pv-block-start:b00316 */}
-                        <div data-pv-block="b00316" className="absolute left-[5%] top-[18%] w-[55%] h-[78%] rounded-full opacity-95" style={{ background: 'radial-gradient(circle, oklch(0.58 0.19 265), transparent 70%)' }} />
-                        {/* pv-block-end:b00316 */}
-                        {/* pv-block-start:b00317 */}
-                        <div data-pv-block="b00317" className="absolute right-[5%] top-[14%] w-[55%] h-[82%] rounded-full opacity-90" style={{ background: 'radial-gradient(circle, oklch(0.54 0.16 305), oklch(0.48 0.13 285) 50%, transparent 75%)' }} />
-                        {/* pv-block-end:b00317 */}
-                        {/* pv-block-start:b00318 */}
-                        <div data-pv-block="b00318" className="absolute left-[30%] top-[8%] w-[40%] h-[60%] rounded-full opacity-65" style={{ background: 'radial-gradient(circle, oklch(0.58 0.13 335), transparent 70%)' }} />
-                        {/* pv-block-end:b00318 */}
-                      {/* pv-editable-zone-end:z00112 */}
-                    </div>
-                    {/* pv-block-end:b00315 */}
-                    
-                    {/* pv-block-start:b00319 */}
-                    <ProtovibeMockup data-pv-block="b00319" />
-                    {/* pv-block-end:b00319 */}
-                  {/* pv-editable-zone-end:z00111 */}
-                </div>
-                {/* pv-block-end:b00314 */}
-              {/* pv-editable-zone-end:z00107 */}
-            </section>
-            {/* pv-block-end:b00304 */}
 
             {/* Powered by */}
             {/* pv-block-start:b00320 */}
@@ -2168,54 +2241,10 @@ export default function App() {
             {/* pv-block-end:b00320 */}
 
             {/* Testimonial */}
-            {/* pv-block-start:b00321 */}
-            <section data-pv-block="b00321" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
-              {/* pv-editable-zone-start:z00113 */}
-                {/* pv-block-start:b00322 */}
-                <span data-pv-block="b00322" className="font-secondary font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
-                {/* pv-block-end:b00322 */}
-                
-                {/* pv-block-start:b00323 */}
-                <div data-pv-block="b00323" className="flex flex-col gap-[32px]">
-                  {/* pv-editable-zone-start:z00114 */}
-                    {/* pv-block-start:b00324 */}
-                    <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                      We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. And we've made it free.
-                    </p>
-                    {/* pv-block-end:b00324 */}
-                    
-                    {/* pv-block-start:b00325 */}
-                    <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex">
-                      {/* pv-editable-zone-start:z00115 */}
-                        {/* pv-block-start:oys63u */}
-                        <Avatar className="bg-center bg-no-repeat bg-cover border bg-[url('/src/images/from-protovibe/screenshot-2026-04-30-at-103956.png')] aspect-[247/233]" data-pv-block="oys63u" initials="AB" size="xl" bgColor="default"  />
-                        {/* pv-block-end:oys63u */}
-                        
-                        {/* pv-block-start:b00327 */}
-                        <div data-pv-block="b00327" className="flex flex-col gap-[2px]">
-                          {/* pv-editable-zone-start:z00116 */}
-                            {/* pv-block-start:b00328 */}
-                            <div data-pv-block="b00328" className="text-foreground-strong font-semibold text-[15px]">
-                              Protovibe Team
-                            </div>
-                            {/* pv-block-end:b00328 */}
-                            {/* pv-block-start:b00329 */}
-                            <div data-pv-block="b00329" className="text-foreground-secondary text-[13px]">
-                              protovibe.studio@gmail.com
-                            </div>
-                            {/* pv-block-end:b00329 */}
-                          {/* pv-editable-zone-end:z00116 */}
-                        </div>
-                        {/* pv-block-end:b00327 */}
-                      {/* pv-editable-zone-end:z00115 */}
-                    </div>
-                    {/* pv-block-end:b00325 */}
-                  {/* pv-editable-zone-end:z00114 */}
-                </div>
-                {/* pv-block-end:b00323 */}
-              {/* pv-editable-zone-end:z00113 */}
-            </section>
-            {/* pv-block-end:b00321 */}
+            {/* pv-block-start:tm0001 */}
+            <Testimonial data-pv-block="tm0001" />
+            {/* pv-block-end:tm0001 */}
+
             {/* pv-block-start:nkmyb8 */}
             <div className="flex flex-col min-h-4" data-pv-block="nkmyb8">
               {/* pv-editable-zone-start:wot8l6 */}
@@ -2234,35 +2263,26 @@ export default function App() {
             {/* pv-block-start:b00332 */}
             <HowItWorks data-pv-block="b00332" />
             {/* pv-block-end:b00332 */}
-            
+
+            {/* pv-block-start:fl0001 */}
+            <FeaturesList data-pv-block="fl0001" />
+            {/* pv-block-end:fl0001 */}
+
             {/* pv-block-start:b00333 */}
             <FeatureGrid data-pv-block="b00333" />
             {/* pv-block-end:b00333 */}
 
-            {/* Finale Wrapper */}
-            {/* pv-block-start:b00334 */}
-            <section data-pv-block="b00334" className="relative pt-[80px]">
-              {/* pv-editable-zone-start:z00117 */}
-                {/* pv-block-start:b00335 */}
-                <div data-pv-block="b00335" className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-[1500px] pointer-events-none blur-[140px] opacity-[0.45] z-0" style={{ background: 'radial-gradient(ellipse 45% 35% at 25% 75%, oklch(0.58 0.19 265), transparent 70%), radial-gradient(ellipse 45% 35% at 75% 75%, oklch(0.54 0.16 305), transparent 70%), radial-gradient(ellipse 55% 30% at 50% 60%, oklch(0.52 0.13 290), transparent 70%), radial-gradient(ellipse 70% 25% at 50% 95%, oklch(0.50 0.12 280), transparent 75%)' }} />
-                {/* pv-block-end:b00335 */}
-                
-                {/* pv-block-start:b00336 */}
-                <div data-pv-block="b00336" className="relative z-[2]">
-                  {/* pv-editable-zone-start:z00118 */}
-                    {/* pv-block-start:b00337 */}
-                    <FAQ data-pv-block="b00337" />
-                    {/* pv-block-end:b00337 */}
-                  {/* pv-editable-zone-end:z00118 */}
-                </div>
-                {/* pv-block-end:b00336 */}
-                
-                {/* pv-block-start:b00338 */}
-                <FooterCTA data-pv-block="b00338" onCTA={() => setInstallOpen(true)} />
-                {/* pv-block-end:b00338 */}
-              {/* pv-editable-zone-end:z00117 */}
-            </section>
-            {/* pv-block-end:b00334 */}
+            {/* pv-block-start:b00335 */}
+            <div data-pv-block="b00335" aria-hidden="true" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1500px] h-[1500px] pointer-events-none blur-[140px] opacity-[0.45] -z-10" style={{ background: 'radial-gradient(ellipse 45% 35% at 25% 75%, oklch(0.58 0.19 265), transparent 70%), radial-gradient(ellipse 45% 35% at 75% 75%, oklch(0.54 0.16 305), transparent 70%), radial-gradient(ellipse 55% 30% at 50% 60%, oklch(0.52 0.13 290), transparent 70%), radial-gradient(ellipse 70% 25% at 50% 95%, oklch(0.50 0.12 280), transparent 75%)' }} />
+            {/* pv-block-end:b00335 */}
+
+            {/* pv-block-start:b00337 */}
+            <FAQ data-pv-block="b00337" />
+            {/* pv-block-end:b00337 */}
+
+            {/* pv-block-start:b00338 */}
+            <FooterCTA data-pv-block="b00338" />
+            {/* pv-block-end:b00338 */}
           {/* pv-editable-zone-end:z00106 */}
         </div>
         {/* pv-block-end:b00303 */}
