@@ -900,7 +900,7 @@ function HowItWorks() {
               {/* pv-block-end:b00094 */}
               {/* pv-block-start:b00095 */}
               <h2 data-pv-block="b00095" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Easy to set up. Easy to deliver.
+                From design system to sharing
               </h2>
               {/* pv-block-end:b00095 */}
             {/* pv-editable-zone-end:z00025 */}
@@ -1945,7 +1945,9 @@ function FooterCTA() {
             {/* pv-editable-zone-start:z00096 */}
               {/* pv-block-start:b00273 */}
               <h2 data-pv-block="b00273" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong max-w-[16ch] mx-auto mb-[40px] text-balance">
-                Stop describing pixels.<br /> <span className="text-foreground-primary">Start shipping them.</span>
+                Stop describing pixels.<br /> <span className="text-foreground-primary">
+                  Start protovibing.
+                </span>
               </h2>
               {/* pv-block-end:b00273 */}
               
@@ -2234,7 +2236,6 @@ export default function App() {
             <Hero data-pv-block="hr0001" />
             {/* pv-block-end:hr0001 */}
 
-
             {/* Powered by */}
             {/* pv-block-start:b00320 */}
             <PoweredBy data-pv-block="b00320" />
@@ -2245,13 +2246,6 @@ export default function App() {
             <Testimonial data-pv-block="tm0001" />
             {/* pv-block-end:tm0001 */}
 
-            {/* pv-block-start:nkmyb8 */}
-            <div className="flex flex-col min-h-4" data-pv-block="nkmyb8">
-              {/* pv-editable-zone-start:wot8l6 */}
-              {/* pv-editable-zone-end:wot8l6 */}
-            </div>
-            {/* pv-block-end:nkmyb8 */}
-
             {/* pv-block-start:b00330 */}
             <ProblemSolution data-pv-block="b00330" />
             {/* pv-block-end:b00330 */}
@@ -2259,14 +2253,14 @@ export default function App() {
             {/* pv-block-start:b00331 */}
             <BYOAgent data-pv-block="b00331" />
             {/* pv-block-end:b00331 */}
-            
-            {/* pv-block-start:b00332 */}
-            <HowItWorks data-pv-block="b00332" />
-            {/* pv-block-end:b00332 */}
 
             {/* pv-block-start:fl0001 */}
             <FeaturesList data-pv-block="fl0001" />
             {/* pv-block-end:fl0001 */}
+            
+            {/* pv-block-start:b00332 */}
+            <HowItWorks data-pv-block="b00332" />
+            {/* pv-block-end:b00332 */}
 
             {/* pv-block-start:b00333 */}
             <FeatureGrid data-pv-block="b00333" />
