@@ -332,7 +332,8 @@ export const PROMPTS: PromptDef[] = [
     • differing sets of discrete values (color, size, layout) → \`select\` props with the observed values as options
   - Everything that is identical across variants becomes hard-coded structure inside the component.
   - Expose only \`string\` / \`boolean\` / \`select\` props via \`pvConfig.props\`. Never expose functions, children, or asChild.
-  - Add \`invalidCombinations\` filters for any prop combinations that would obviously break visually.
+  - Add \`invalidCombinations\` filters for any prop combinations that would obviously break visually. 
+  - Don't add default values to text props in prop definition - text values are allowed to be empty in code, but you can specify invalidCombinations if a specific text label is required or not 
   
   Decomposition — when to create more than one component:
   - If the selection is non-atomic (parent + repeated or swappable children the user will want to reorder, delete, or edit independently — e.g. a tab strip with triggers and panels, a dropdown with items, a sidebar with nav links), split it into multiple components in separate files, each with its own \`pvConfig\`, EXACTLY the way \`tabs.tsx\` / \`select.tsx\` are structured in this project. Parent owns layout and context; children own their own editable content.

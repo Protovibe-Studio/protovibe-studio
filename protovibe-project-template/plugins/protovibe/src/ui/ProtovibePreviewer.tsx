@@ -834,6 +834,7 @@ export function ProtovibePreviewer() {
   const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
   const [refreshFlash, setRefreshFlash] = useState(false);
+  const [pendingOpen, setPendingOpen] = useState<{ normalised: string, currentProps: any } | null>(null);
 
   const refresh = useCallback(async () => {
     const entries = await discoverComponents();
@@ -895,11 +896,31 @@ export function ProtovibePreviewer() {
       if (match) {
         setSelected(match);
         setTargetProps(currentProps || null);
+      } else {
+        // Component is not yet in the discovered list (likely a brand-new file
+        // whose HMR notification hasn't arrived). Stash the request and trigger
+        // a refresh; the effect below will resolve it once discovery updates.
+        setPendingOpen({ normalised, currentProps: currentProps || null });
+        refresh();
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [discovered]);
+  }, [discovered, refresh]);
+
+  // Resolve a pending PV_OPEN_COMPONENT request once `discovered` includes it.
+  useEffect(() => {
+    if (!pendingOpen) return;
+    const match = discovered.find(entry => {
+      const entryPath = entry.filePath.replace(/\\/g, '/').replace(/^\//, '').replace(/\.[^/.]+$/, '');
+      return entryPath === pendingOpen.normalised;
+    });
+    if (match) {
+      setSelected(match);
+      setTargetProps(pendingOpen.currentProps);
+      setPendingOpen(null);
+    }
+  }, [discovered, pendingOpen]);
 
   return (
     <>
