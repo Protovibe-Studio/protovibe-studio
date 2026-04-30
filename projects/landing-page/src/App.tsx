@@ -56,11 +56,9 @@ function ProtovibeMockup() {
 
 const CARD_STEP = 260; // card width (240) + gap (20)
 
-function FeaturesList() {
+function FeaturesList(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00002 */}
-      <section data-pv-block="b00002" className="py-[120px] relative" id="features">
+      <section {...props} data-pv-component-id="FeaturesList" className="py-[120px] relative" id="features">
         {/* pv-editable-zone-start:z00001 */}
           {/* pv-block-start:r35ceo */}
           <div data-pv-block="r35ceo" className="max-w-[780px] mx-auto mb-[64px] text-center">
@@ -265,12 +263,10 @@ function FeaturesList() {
           {/* pv-block-end:b00006 */}
         {/* pv-editable-zone-end:z00001 */}
       </section>
-      {/* pv-block-end:b00002 */}
-    </>
   );
 }
 
-function FeatureGrid() {
+function FeatureGrid(props: any) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
@@ -305,11 +301,7 @@ function FeatureGrid() {
   };
 
   return (
-    <>
-      {/* pv-editable-zone-start:zfg001 */}
-
-      {/* pv-block-start:o0ospu */}
-      <section data-pv-block="o0ospu" className="py-[120px] relative" id="features">
+      <section {...props} data-pv-component-id="FeatureGrid" className="py-[120px] relative" id="features">
         {/* pv-editable-zone-start:z00001 */}
           {/* pv-block-start:d0wkgq */}
           <div data-pv-block="d0wkgq" className="max-w-[780px] mx-auto mb-[64px] text-center">
@@ -558,9 +550,6 @@ function FeatureGrid() {
           {/* pv-block-end:jei6lm */}
         {/* pv-editable-zone-end:z00001 */}
       </section>
-      {/* pv-block-end:o0ospu */}
-      {/* pv-editable-zone-end:zfg001 */}
-    </>
   );
 }
 
@@ -643,11 +632,9 @@ function LogoVite() {
   );
 }
 
-function PoweredBy() {
+function PoweredBy(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00046 */}
-      <section data-pv-block="b00046" className="py-[56px] border-y border-border-secondary grid grid-cols-1 md:grid-cols-[minmax(120px,0.7fr)_auto_minmax(140px,0.9fr)] items-center gap-[24px] md:gap-[32px] text-center md:text-left max-md:py-[64px]">
+      <section {...props} data-pv-component-id="PoweredBy" className="py-[56px] border-y border-border-secondary grid grid-cols-1 md:grid-cols-[minmax(120px,0.7fr)_auto_minmax(140px,0.9fr)] items-center gap-[24px] md:gap-[32px] text-center md:text-left max-md:py-[64px]">
         {/* pv-editable-zone-start:z00013 */}
           {/* pv-block-start:b00047 */}
           <div data-pv-block="b00047" className="font-bold text-[11px] tracking-[0.18em] uppercase text-foreground-tertiary md:text-right">
@@ -684,16 +671,12 @@ function PoweredBy() {
           {/* pv-block-end:b00054 */}
         {/* pv-editable-zone-end:z00013 */}
       </section>
-      {/* pv-block-end:b00046 */}
-    </>
   );
 }
 
-function BYOAgent() {
+function BYOAgent(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00055 */}
-      <section data-pv-block="b00055" className="py-[100px]" id="agents">
+      <section {...props} data-pv-component-id="BYOAgent" className="py-[100px]" id="agents">
         {/* pv-editable-zone-start:z00015 */}
           {/* pv-block-start:b00056 */}
           <div data-pv-block="b00056" className="max-w-[780px] text-center mb-8 mx-auto">
@@ -881,16 +864,12 @@ function BYOAgent() {
           {/* pv-block-end:b00060 */}
         {/* pv-editable-zone-end:z00015 */}
       </section>
-      {/* pv-block-end:b00055 */}
-    </>
   );
 }
 
-function HowItWorks() {
+function HowItWorks(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00092 */}
-      <section data-pv-block="b00092" className="py-[120px] relative" id="how">
+      <section {...props} data-pv-component-id="HowItWorks" className="py-[120px] relative" id="how">
         {/* pv-editable-zone-start:z00024 */}
           {/* pv-block-start:b00093 */}
           <div data-pv-block="b00093" className="max-w-[780px] mx-auto mb-[64px] text-center">
@@ -1070,16 +1049,12 @@ function HowItWorks() {
           {/* pv-block-end:b00096 */}
         {/* pv-editable-zone-end:z00024 */}
       </section>
-      {/* pv-block-end:b00092 */}
-    </>
   );
 }
 
-function ProblemSolution() {
+function ProblemSolution(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00124 */}
-      <section data-pv-block="b00124" className="py-[100px]" id="problems">
+      <section {...props} data-pv-component-id="ProblemSolution" className="py-[100px]" id="problems">
         {/* pv-editable-zone-start:z00035 */}
           {/* pv-block-start:b00125 */}
           <div data-pv-block="b00125" className="max-w-[780px] mx-auto mb-[64px] text-center">
@@ -1527,16 +1502,12 @@ function ProblemSolution() {
           {/* pv-block-end:b00129 */}
         {/* pv-editable-zone-end:z00035 */}
       </section>
-      {/* pv-block-end:b00124 */}
-    </>
   );
 }
 
-function FAQ() {
+function FAQ(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00220 */}
-      <section data-pv-block="b00220" className="py-[120px] relative" id="faq">
+      <section {...props} data-pv-component-id="FAQ" className="py-[120px] relative" id="faq">
         {/* pv-editable-zone-start:z00074 */}
           {/* pv-block-start:b00221 */}
           <div data-pv-block="b00221" className="max-w-[780px] mx-auto mb-[64px] text-center">
@@ -1702,8 +1673,6 @@ function FAQ() {
           {/* pv-block-end:b00224 */}
         {/* pv-editable-zone-end:z00074 */}
       </section>
-      {/* pv-block-end:b00220 */}
-    </>
   );
 }
 
@@ -1934,11 +1903,9 @@ If anything fails, show me the exact error and stop. Do not fix it silently.`}</
   );
 }
 
-function FooterCTA() {
+function FooterCTA(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00271 */}
-      <section data-pv-block="b00271" className="relative pt-[140px] text-center z-[2]">
+      <section {...props} data-pv-component-id="FooterCTA" className="relative pt-[140px] text-center z-[2]">
         {/* pv-editable-zone-start:z00095 */}
           {/* pv-block-start:b00272 */}
           <div data-pv-block="b00272" className="relative z-[2]">
@@ -2005,16 +1972,12 @@ function FooterCTA() {
           {/* pv-block-end:b00282 */}
         {/* pv-editable-zone-end:z00095 */}
       </section>
-      {/* pv-block-end:b00271 */}
-    </>
   );
 }
 
-function Hero() {
+function Hero(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00304 */}
-      <section data-pv-block="b00304" className="relative pt-[60px] pb-[80px] text-center">
+      <section {...props} data-pv-component-id="Hero" className="relative pt-[60px] pb-[80px] text-center">
         {/* pv-editable-zone-start:z00107 */}
           {/* pv-block-start:t4dgb7 */}
           <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
@@ -2100,16 +2063,12 @@ function Hero() {
           {/* pv-block-end:b00314 */}
         {/* pv-editable-zone-end:z00107 */}
       </section>
-      {/* pv-block-end:b00304 */}
-    </>
   );
 }
 
-function Testimonial() {
+function Testimonial(props: any) {
   return (
-    <>
-      {/* pv-block-start:b00321 */}
-      <section data-pv-block="b00321" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
+      <section {...props} data-pv-component-id="Testimonial" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
         {/* pv-editable-zone-start:z00113 */}
           {/* pv-block-start:b00322 */}
           <span data-pv-block="b00322" className="font-secondary font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
@@ -2155,8 +2114,6 @@ function Testimonial() {
           {/* pv-block-end:b00323 */}
         {/* pv-editable-zone-end:z00113 */}
       </section>
-      {/* pv-block-end:b00321 */}
-    </>
   );
 }
 
