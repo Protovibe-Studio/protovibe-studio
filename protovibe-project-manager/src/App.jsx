@@ -334,7 +334,7 @@ export default function App() {
       <header className="border-b border-border-default bg-background-elevated sticky top-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <Logo className="w-auto text-foreground-default" style={{ height: '24px' }} />
+            <Logo className="w-auto text-foreground-default" style={{ height: '20px' }} />
           </button>
           <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
         </div>

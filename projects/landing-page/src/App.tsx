@@ -1991,9 +1991,7 @@ export default function App() {
                   {/* pv-editable-zone-start:z00114 */}
                     {/* pv-block-start:b00324 */}
                     <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                      We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary">
-                        design system
-                      </span>. And make it even better.
+                      We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. And we've made it free.
                     </p>
                     {/* pv-block-end:b00324 */}
                     
@@ -2001,7 +1999,7 @@ export default function App() {
                     <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex">
                       {/* pv-editable-zone-start:z00115 */}
                         {/* pv-block-start:oys63u */}
-                        <Avatar className="bg-center bg-no-repeat bg-cover border border-border-strong bg-[url('/src/images/from-protovibe/avatar-1.png')] aspect-[157/163]" data-pv-block="oys63u" initials="AB" size="md" bgColor="default"  />
+                        <Avatar className="bg-center bg-no-repeat bg-cover border bg-[url('/src/images/from-protovibe/screenshot-2026-04-30-at-103956.png')] aspect-[247/233]" data-pv-block="oys63u" initials="AB" size="xl" bgColor="default"  />
                         {/* pv-block-end:oys63u */}
                         
                         {/* pv-block-start:b00327 */}
