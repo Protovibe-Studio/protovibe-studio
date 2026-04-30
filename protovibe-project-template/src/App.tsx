@@ -247,8 +247,12 @@ function DashboardPage() {
         <Card className="pt-20 bg-background-default" data-pv-block="ex3xz0">
           {/* pv-editable-zone-start:xqhvyt */}
             {/* pv-block-start:n7n58d */}
-            <span data-pv-block="n7n58d">Lorem ipsum</span>
+            <span className="font-normal" data-pv-block="n7n58d">Lorem ipsum</span>
             {/* pv-block-end:n7n58d */}
+
+            {/* pv-block-start:k3et9v */}
+            <span className="font-bold" data-pv-block="k3et9v">Lorem ipsum</span>
+            {/* pv-block-end:k3et9v */}
           {/* pv-editable-zone-end:xqhvyt */}
         </Card>
         {/* pv-block-end:ex3xz0 */}

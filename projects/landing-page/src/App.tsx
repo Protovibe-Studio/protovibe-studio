@@ -4,6 +4,7 @@ import { Image } from '@/components/ui/image'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { FeatureCard } from '@/components/ui/feature-card'
+import { TextParagraph } from '@/components/ui/text-paragraph'
 
 const GLOBAL_STYLES = `
   @keyframes pulse-custom {
@@ -706,8 +707,8 @@ function BYOAgent() {
                 <Icon data-pv-block="n7n6uh" iconSymbol="material-symbols:check" size="md" />
                 {/* pv-block-end:n7n6uh */}
                 {/* pv-block-start:p6dims */}
-                <span data-pv-block="p6dims">
-                  All coding agents are supported by design
+                <span className="font-medium" data-pv-block="p6dims">
+                  All coding agents are supported
                 </span>
                 {/* pv-block-end:p6dims */}
                 {/* pv-editable-zone-end:ac9lof */}
@@ -721,153 +722,150 @@ function BYOAgent() {
           <div data-pv-block="b00060" className="grid grid-cols-2 md:grid-cols-3 gap-[16px] max-w-[920px] mx-auto">
             {/* pv-editable-zone-start:z00017 */}
               {/* pv-block-start:b00061 */}
-              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:2orjpw */}
-                  <Icon className="text-foreground-primary" data-pv-block="2orjpw" iconSymbol="ri:copilot-fill" size="2xl" />
+                  <Icon className="text-amber-600" data-pv-block="2orjpw" iconSymbol="mingcute:claude-line" size="2xl" />
                   {/* pv-block-end:2orjpw */}
-                  {/* pv-block-start:b00063 */}
-                  <div data-pv-block="b00063" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">GitHub Copilot</div>
-                  {/* pv-block-end:b00063 */}
-                  {/* pv-block-start:b00064 */}
-                  <div data-pv-block="b00064" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli + ide</div>
-                  {/* pv-block-end:b00064 */}
+                  {/* pv-block-start:57is7f */}
+                  <div data-pv-block="57is7f" className="flex flex-col items-center gap-0">
+                    {/* pv-editable-zone-start:07q2gn */}
+                    {/* pv-block-start:b00063 */}
+                    <div data-pv-block="b00063" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                      Claude
+                    </div>
+                    {/* pv-block-end:b00063 */}
+                    {/* pv-block-start:0n7roe */}
+                    <TextParagraph data-pv-block="0n7roe" typography="secondary">
+                      Cowork Or Claude Code
+                    </TextParagraph>
+                    {/* pv-block-end:0n7roe */}
+                    {/* pv-editable-zone-end:07q2gn */}
+                  </div>
+                  {/* pv-block-end:57is7f */}
+
                 {/* pv-editable-zone-end:z00018 */}
               </div>
               {/* pv-block-end:b00061 */}
 
-              {/* pv-block-start:xaztjt */}
-              <div data-pv-block="xaztjt" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
+              {/* pv-block-start:0qu4t8 */}
+              <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
                 {/* pv-editable-zone-start:z00018 */}
-                  {/* pv-block-start:c8q28e */}
-                  <Icon data-pv-block="c8q28e" iconSymbol="ri:copilot-fill" size="2xl" />
-                  {/* pv-block-end:c8q28e */}
-                  {/* pv-block-start:qaajf9 */}
-                  <div data-pv-block="qaajf9" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">GitHub Copilot</div>
-                  {/* pv-block-end:qaajf9 */}
-                  {/* pv-block-start:67dg29 */}
-                  <div data-pv-block="67dg29" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli + ide</div>
-                  {/* pv-block-end:67dg29 */}
-                  {/* pv-block-start:2o2p4z */}
-                  <div data-pv-block="2o2p4z" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:2o2p4z */}
+                  {/* pv-block-start:yd5dll */}
+                  <Icon className="text-sky-400" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="2xl" />
+                  {/* pv-block-end:yd5dll */}
+                  {/* pv-block-start:20m7tm */}
+                  <div data-pv-block="20m7tm" className="flex flex-col items-center justify-center gap-0">
+                    {/* pv-editable-zone-start:uz37di */}
+                    {/* pv-block-start:vc14wv */}
+                    <div data-pv-block="vc14wv" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">GitHub Copilot</div>
+                    {/* pv-block-end:vc14wv */}
+                    {/* pv-block-start:2pbhg5 */}
+                    <TextParagraph data-pv-block="2pbhg5" typography="secondary">
+                      Visual Studio Code
+                    </TextParagraph>
+                    {/* pv-block-end:2pbhg5 */}
+                    {/* pv-editable-zone-end:uz37di */}
+                  </div>
+                  {/* pv-block-end:20m7tm */}
+
                 {/* pv-editable-zone-end:z00018 */}
               </div>
-              {/* pv-block-end:xaztjt */}
+              {/* pv-block-end:0qu4t8 */}
 
-              {/* pv-block-start:b00066 */}
-              <div data-pv-block="b00066" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00019 */}
-                  {/* pv-block-start:b00067 */}
-                  <div data-pv-block="b00067" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">∗</div>
-                  {/* pv-block-end:b00067 */}
-                  {/* pv-block-start:b00068 */}
-                  <div data-pv-block="b00068" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Claude Code</div>
-                  {/* pv-block-end:b00068 */}
-                  {/* pv-block-start:b00069 */}
-                  <div data-pv-block="b00069" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
-                  {/* pv-block-end:b00069 */}
-                  {/* pv-block-start:b00070 */}
-                  <div data-pv-block="b00070" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:b00070 */}
-                {/* pv-editable-zone-end:z00019 */}
-              </div>
-              {/* pv-block-end:b00066 */}
+              {/* pv-block-start:ig7ao9 */}
+              <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+                {/* pv-editable-zone-start:z00018 */}
+                  {/* pv-block-start:bpd0ad */}
+                  <Icon iconSymbol="solar:cursor-bold" className="text-transparent bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/cursor-1.svg')] aspect-[1/1]" data-pv-block="bpd0ad"  size="2xl" />
+                  {/* pv-block-end:bpd0ad */}
+                  {/* pv-block-start:55xctv */}
+                  <div data-pv-block="55xctv" className="flex flex-col gap-0 items-center">
+                    {/* pv-editable-zone-start:xogfzd */}
+                    {/* pv-block-start:shldrd */}
+                    <div data-pv-block="shldrd" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                      Cursor
+                    </div>
+                    {/* pv-block-end:shldrd */}
+                    {/* pv-block-start:ebzjfh */}
+                    <TextParagraph data-pv-block="ebzjfh" typography="secondary">
+                      IDE
+                    </TextParagraph>
+                    {/* pv-block-end:ebzjfh */}
+                    {/* pv-editable-zone-end:xogfzd */}
+                  </div>
+                  {/* pv-block-end:55xctv */}
 
-              {/* pv-block-start:sdb6c0 */}
-              <div data-pv-block="sdb6c0" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00019 */}
-                  {/* pv-block-start:e8ade1 */}
-                  <div data-pv-block="e8ade1" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">∗</div>
-                  {/* pv-block-end:e8ade1 */}
-                  {/* pv-block-start:tdc18d */}
-                  <div data-pv-block="tdc18d" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Claude Code</div>
-                  {/* pv-block-end:tdc18d */}
-                  {/* pv-block-start:znkywl */}
-                  <div data-pv-block="znkywl" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
-                  {/* pv-block-end:znkywl */}
-                  {/* pv-block-start:nr1yd0 */}
-                  <div data-pv-block="nr1yd0" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:nr1yd0 */}
-                {/* pv-editable-zone-end:z00019 */}
+                {/* pv-editable-zone-end:z00018 */}
               </div>
-              {/* pv-block-end:sdb6c0 */}
+              {/* pv-block-end:ig7ao9 */}
 
-              {/* pv-block-start:b00071 */}
-              <div data-pv-block="b00071" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00020 */}
-                  {/* pv-block-start:b00072 */}
-                  <div data-pv-block="b00072" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◇</div>
-                  {/* pv-block-end:b00072 */}
-                  {/* pv-block-start:b00073 */}
-                  <div data-pv-block="b00073" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Gemini CLI</div>
-                  {/* pv-block-end:b00073 */}
-                  {/* pv-block-start:b00074 */}
-                  <div data-pv-block="b00074" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
-                  {/* pv-block-end:b00074 */}
-                  {/* pv-block-start:b00075 */}
-                  <div data-pv-block="b00075" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:b00075 */}
-                {/* pv-editable-zone-end:z00020 */}
-              </div>
-              {/* pv-block-end:b00071 */}
+              {/* pv-block-start:ruagve */}
+              <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+                {/* pv-editable-zone-start:z00018 */}
+                  {/* pv-block-start:ruo32p */}
+                  <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="mingcute:openai-fill" size="2xl" />
+                  {/* pv-block-end:ruo32p */}
+                  {/* pv-block-start:ugpx1g */}
+                  <div data-pv-block="ugpx1g" className="flex flex-col items-center justify-center gap-0">
+                    {/* pv-editable-zone-start:yvlalk */}
+                    {/* pv-block-start:78kliu */}
+                    <div data-pv-block="78kliu" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                      OpenAI Codex
+                    </div>
+                    {/* pv-block-end:78kliu */}
+                    {/* pv-block-start:z1cmyn */}
+                    <TextParagraph data-pv-block="z1cmyn" typography="secondary">
+                      Terminal
+                    </TextParagraph>
+                    {/* pv-block-end:z1cmyn */}
+                    {/* pv-editable-zone-end:yvlalk */}
+                  </div>
+                  {/* pv-block-end:ugpx1g */}
 
-              {/* pv-block-start:b00076 */}
-              <div data-pv-block="b00076" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00021 */}
-                  {/* pv-block-start:b00077 */}
-                  <div data-pv-block="b00077" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">▸</div>
-                  {/* pv-block-end:b00077 */}
-                  {/* pv-block-start:b00078 */}
-                  <div data-pv-block="b00078" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Cursor</div>
-                  {/* pv-block-end:b00078 */}
-                  {/* pv-block-start:b00079 */}
-                  <div data-pv-block="b00079" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">ide</div>
-                  {/* pv-block-end:b00079 */}
-                  {/* pv-block-start:b00080 */}
-                  <div data-pv-block="b00080" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:b00080 */}
-                {/* pv-editable-zone-end:z00021 */}
+                {/* pv-editable-zone-end:z00018 */}
               </div>
-              {/* pv-block-end:b00076 */}
+              {/* pv-block-end:ruagve */}
 
-              {/* pv-block-start:b00081 */}
-              <div data-pv-block="b00081" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00022 */}
-                  {/* pv-block-start:b00082 */}
-                  <div data-pv-block="b00082" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◦</div>
-                  {/* pv-block-end:b00082 */}
-                  {/* pv-block-start:b00083 */}
-                  <div data-pv-block="b00083" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Aider</div>
-                  {/* pv-block-end:b00083 */}
-                  {/* pv-block-start:b00084 */}
-                  <div data-pv-block="b00084" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">terminal</div>
-                  {/* pv-block-end:b00084 */}
-                  {/* pv-block-start:b00085 */}
-                  <div data-pv-block="b00085" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:b00085 */}
-                {/* pv-editable-zone-end:z00022 */}
+              {/* pv-block-start:uezzcq */}
+              <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+                {/* pv-editable-zone-start:z00018 */}
+                  {/* pv-block-start:knrkaq */}
+                  <Icon className="text-transparent bg-[url('/src/images/from-protovibe/gemini-color.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" data-pv-block="knrkaq" iconSymbol="lineicons:gemini" size="2xl" />
+                  {/* pv-block-end:knrkaq */}
+                  {/* pv-block-start:0t2ir5 */}
+                  <div data-pv-block="0t2ir5" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                    Gemini
+                  </div>
+                  {/* pv-block-end:0t2ir5 */}
+                  {/* pv-block-start:83746s */}
+                  <TextParagraph data-pv-block="83746s" typography="secondary">
+                    Google Antigravilty
+                  </TextParagraph>
+                  {/* pv-block-end:83746s */}
+                {/* pv-editable-zone-end:z00018 */}
               </div>
-              {/* pv-block-end:b00081 */}
+              {/* pv-block-end:uezzcq */}
 
-              {/* pv-block-start:b00086 */}
-              <div data-pv-block="b00086" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col items-start gap-[6px] transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px]">
-                {/* pv-editable-zone-start:z00023 */}
-                  {/* pv-block-start:b00087 */}
-                  <div data-pv-block="b00087" className="text-[28px] leading-none mb-[14px] font-secondary font-bold text-foreground-primary">◼</div>
-                  {/* pv-block-end:b00087 */}
-                  {/* pv-block-start:b00088 */}
-                  <div data-pv-block="b00088" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em]">Codex</div>
-                  {/* pv-block-end:b00088 */}
-                  {/* pv-block-start:b00089 */}
-                  <div data-pv-block="b00089" className="font-bold text-[10.5px] text-foreground-tertiary tracking-[0.16em] uppercase">cli</div>
-                  {/* pv-block-end:b00089 */}
-                  {/* pv-block-start:b00090 */}
-                  <div data-pv-block="b00090" className="font-semibold text-[11px] tracking-[0.04em] mt-[10px] text-foreground-primary">✓ supported</div>
-                  {/* pv-block-end:b00090 */}
-                {/* pv-editable-zone-end:z00023 */}
+              {/* pv-block-start:0pe2av */}
+              <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] px-[22px] pt-[26px] pb-[22px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center">
+                {/* pv-editable-zone-start:z00018 */}
+                  {/* pv-block-start:este2x */}
+                  <Icon className="rounded-full text-foreground-secondary" data-pv-block="este2x" iconSymbol="ri:more-fill" size="2xl" />
+                  {/* pv-block-end:este2x */}
+                  {/* pv-block-start:t1n8kr */}
+                  <div data-pv-block="t1n8kr" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                    All other
+                  </div>
+                  {/* pv-block-end:t1n8kr */}
+                  {/* pv-block-start:un5y85 */}
+                  <TextParagraph data-pv-block="un5y85" typography="secondary">
+                    Visual Studio Code
+                  </TextParagraph>
+                  {/* pv-block-end:un5y85 */}
+                {/* pv-editable-zone-end:z00018 */}
               </div>
-              {/* pv-block-end:b00086 */}
+              {/* pv-block-end:0pe2av */}
             {/* pv-editable-zone-end:z00017 */}
           </div>
           {/* pv-block-end:b00060 */}
@@ -2102,7 +2100,7 @@ export default function App() {
                       {/* pv-block-end:jppuwr */}
 
                       {/* pv-block-start:twnfpe */}
-                      <Button leftIcon="mdi:github" data-pv-block="twnfpe" label="Star on GitHub" variant="solid" color="neutral" size="lg" />
+                      <Button leftIcon="mdi:github" data-pv-block="twnfpe" label="Star on GitHub" variant="ghost" color="neutral" size="lg" />
                       {/* pv-block-end:twnfpe */}
                     {/* pv-editable-zone-end:z00108 */}
                   </div>
