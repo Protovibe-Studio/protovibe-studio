@@ -168,7 +168,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
 
-  Before writing any code, read AGENTS.md end-to-end — especially the "Creating New Views and Elements" section covering pv-editable-zone / pv-block IDs, block granularity, and the rule for wrapping conditionally-rendered elements.
+  Before writing any code, read AGENTS.md end-to-end — especially the "Creating New Views and Elements" section covering pv-editable-zone / pv-block IDs, block granularity, and the rule for wrapping conditionally-rendered elements and exposing props on components.
 
   Guidelines:
   - Do NOT change markup structure, props, styling, or behavior. This task ONLY inserts the pv comment tags and \`data-pv-block\` attributes.

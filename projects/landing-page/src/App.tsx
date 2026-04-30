@@ -75,7 +75,7 @@ function FeaturesList(props: any) {
           </div>
           {/* pv-block-end:r35ceo */}
           {/* pv-block-start:b00006 */}
-          <div data-pv-block="b00006" className="grid grid-cols-1 md:grid-cols-3 gap-x-[40px] gap-y-[28px] mx-auto justify-items-start max-w-[700px]">
+          <div data-pv-block="b00006" className="grid grid-cols-1 md:grid-cols-3 gap-x-[20px] gap-y-[12px] md:gap-x-[40px] md:gap-y-[28px] mx-auto justify-items-start max-w-[700px]">
             {/* pv-editable-zone-start:z00003 */}
               {/* pv-block-start:f00101 */}
               <div data-pv-block="f00101" className="flex gap-[14px] items-start">
@@ -328,14 +328,20 @@ function FeatureGrid(props: any) {
           {/* pv-block-start:jei6lm */}
           <div data-pv-block="jei6lm" className="relative">
             {canLeft && (
-              <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover">
+              <button onClick={() => scroll('left')} className="absolute top-1/2 -translate-y-1/2 left-2 md:left-0 md:-translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover border-0">
                 <Icon iconSymbol="chevron-left" size="sm" />
               </button>
             )}
             {canRight && (
-              <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover">
+              <button onClick={() => scroll('right')} className="absolute top-1/2 -translate-y-1/2 right-2 md:right-0 md:translate-x-1/2 z-10 w-9 h-9 rounded-full bg-background-primary border-border-default flex items-center justify-center hover:text-foreground-default transition-all duration-150 shadow-sm hover:bg-background-primary-hover border-0">
                 <Icon iconSymbol="chevron-right" size="sm" />
               </button>
+            )}
+            {canLeft && (
+              <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 bottom-0 w-[80px] z-[5] bg-gradient-to-r from-background-default to-transparent" />
+            )}
+            {canRight && (
+              <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 bottom-0 w-[80px] z-[5] bg-gradient-to-l from-background-default to-transparent" />
             )}
             <div ref={scrollRef} className="flex flex-row gap-[20px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {/* pv-editable-zone-start:z00003 */}
@@ -571,9 +577,6 @@ function LogoReact() {
         {/* pv-editable-zone-end:z00010 */}
       </div>
       {/* pv-block-end:b00037 */}
-      {/* pv-block-start:eum4ww */}
-      <span data-pv-block="eum4ww" className="w-[4px] h-[4px] rounded-full bg-foreground-tertiary opacity-50 inline-block text-[0px]" aria-hidden="true"></span>
-      {/* pv-block-end:eum4ww */}
 
       {/* pv-block-start:uxnkm4 */}
       <div data-pv-block="uxnkm4" className="inline-flex items-center gap-[10px] font-bold text-[22px] tracking-[-0.02em] text-foreground-strong opacity-92 transition-opacity duration-150 hover:opacity-100">
@@ -634,7 +637,7 @@ function LogoVite() {
 
 function PoweredBy(props: any) {
   return (
-      <section {...props} data-pv-component-id="PoweredBy" className="py-[56px] border-y border-border-secondary grid grid-cols-1 md:grid-cols-[minmax(120px,0.7fr)_auto_minmax(140px,0.9fr)] items-center gap-[24px] md:gap-[32px] text-center md:text-left max-md:py-[64px]">
+      <section {...props} data-pv-component-id="PoweredBy" className="py-[56px] border-y border-border-secondary grid-cols-[auto_1fr] md:grid-cols-[minmax(120px,0.7fr)_auto_minmax(140px,0.9fr)] items-center gap-x-[16px] gap-y-[16px] md:gap-[32px] text-left md:text-left max-md:py-[64px] flex flex-col md:flex md:flex-row md:items-center md:justify-center">
         {/* pv-editable-zone-start:z00013 */}
           {/* pv-block-start:b00047 */}
           <div data-pv-block="b00047" className="font-bold text-[11px] tracking-[0.18em] uppercase text-foreground-tertiary md:text-right">
@@ -643,20 +646,14 @@ function PoweredBy(props: any) {
           {/* pv-block-end:b00047 */}
           
           {/* pv-block-start:b00048 */}
-          <div data-pv-block="b00048" className="flex items-center justify-center gap-[20px] flex-nowrap text-foreground-default">
+          <div data-pv-block="b00048" className="items-center justify-start md:justify-center flex-nowrap text-foreground-default grid justify-items-center grid-cols-2 md:grid md:grid-cols-4 gap-8">
             {/* pv-editable-zone-start:z00014 */}
               {/* pv-block-start:b00049 */}
               <LogoReact data-pv-block="b00049" />
               {/* pv-block-end:b00049 */}
-              {/* pv-block-start:b00050 */}
-              <span data-pv-block="b00050" className="w-[4px] h-[4px] rounded-full bg-foreground-tertiary opacity-50 inline-block text-[0px]" aria-hidden="true"></span>
-              {/* pv-block-end:b00050 */}
               {/* pv-block-start:b00051 */}
               <LogoTailwind data-pv-block="b00051" />
               {/* pv-block-end:b00051 */}
-              {/* pv-block-start:b00052 */}
-              <span data-pv-block="b00052" className="w-[4px] h-[4px] rounded-full bg-foreground-tertiary opacity-50 inline-block text-[0px]" aria-hidden="true"></span>
-              {/* pv-block-end:b00052 */}
               {/* pv-block-start:b00053 */}
               <LogoVite data-pv-block="b00053" />
               {/* pv-block-end:b00053 */}
@@ -665,7 +662,7 @@ function PoweredBy(props: any) {
           {/* pv-block-end:b00048 */}
 
           {/* pv-block-start:b00054 */}
-          <div data-pv-block="b00054" className="text-[13px] leading-[1.5] max-w-[30ch] text-pretty max-md:mx-auto text-foreground-tertiary">
+          <div data-pv-block="b00054" className="text-[13px] leading-[1.5] max-w-[30ch] text-pretty max-md:mx-auto text-foreground-tertiary col-span-2 md:col-span-1 max-md:text-center">
             Protovibe is a Vite plugin that makes the Tailwind classes visually editable without coding
           </div>
           {/* pv-block-end:b00054 */}
@@ -715,7 +712,7 @@ function BYOAgent(props: any) {
           <div data-pv-block="b00060" className="grid grid-cols-2 md:grid-cols-3 gap-[16px] mx-auto max-w-[800px]">
             {/* pv-editable-zone-start:z00017 */}
               {/* pv-block-start:b00061 */}
-              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 justify-center aspect-3/2">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:2orjpw */}
                   <Icon className="text-amber-600" data-pv-block="2orjpw" iconSymbol="mingcute:claude-line" size="2xl" />
@@ -724,12 +721,12 @@ function BYOAgent(props: any) {
                   <div data-pv-block="57is7f" className="flex flex-col items-center gap-0">
                     {/* pv-editable-zone-start:07q2gn */}
                     {/* pv-block-start:b00063 */}
-                    <div data-pv-block="b00063" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                    <div data-pv-block="b00063" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
                       Claude
                     </div>
                     {/* pv-block-end:b00063 */}
                     {/* pv-block-start:0n7roe */}
-                    <TextParagraph data-pv-block="0n7roe" typography="secondary">
+                    <TextParagraph className="text-center" data-pv-block="0n7roe" typography="secondary">
                       Cowork Or Claude Code
                     </TextParagraph>
                     {/* pv-block-end:0n7roe */}
@@ -742,7 +739,7 @@ function BYOAgent(props: any) {
               {/* pv-block-end:b00061 */}
 
               {/* pv-block-start:0qu4t8 */}
-              <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:yd5dll */}
                   <Icon className="text-foreground-default" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="2xl" />
@@ -751,10 +748,10 @@ function BYOAgent(props: any) {
                   <div data-pv-block="20m7tm" className="flex flex-col items-center justify-center gap-0">
                     {/* pv-editable-zone-start:uz37di */}
                     {/* pv-block-start:vc14wv */}
-                    <div data-pv-block="vc14wv" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">GitHub Copilot</div>
+                    <div data-pv-block="vc14wv" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">GitHub Copilot</div>
                     {/* pv-block-end:vc14wv */}
                     {/* pv-block-start:2pbhg5 */}
-                    <TextParagraph data-pv-block="2pbhg5" typography="secondary">
+                    <TextParagraph className="text-center" data-pv-block="2pbhg5" typography="secondary">
                       Visual Studio Code
                     </TextParagraph>
                     {/* pv-block-end:2pbhg5 */}
@@ -767,7 +764,7 @@ function BYOAgent(props: any) {
               {/* pv-block-end:0qu4t8 */}
 
               {/* pv-block-start:ig7ao9 */}
-              <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:bpd0ad */}
                   <Icon iconSymbol="solar:cursor-bold" className="text-transparent bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/cursor-1.svg')] aspect-[1/1]" data-pv-block="bpd0ad"  size="2xl" />
@@ -776,7 +773,7 @@ function BYOAgent(props: any) {
                   <div data-pv-block="55xctv" className="flex flex-col gap-0 items-center">
                     {/* pv-editable-zone-start:xogfzd */}
                     {/* pv-block-start:shldrd */}
-                    <div data-pv-block="shldrd" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                    <div data-pv-block="shldrd" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
                       Cursor
                     </div>
                     {/* pv-block-end:shldrd */}
@@ -794,7 +791,7 @@ function BYOAgent(props: any) {
               {/* pv-block-end:ig7ao9 */}
 
               {/* pv-block-start:ruagve */}
-              <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:ruo32p */}
                   <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="meteor-icons:openai" size="2xl" />
@@ -803,7 +800,7 @@ function BYOAgent(props: any) {
                   <div data-pv-block="ugpx1g" className="flex flex-col items-center justify-center gap-0">
                     {/* pv-editable-zone-start:yvlalk */}
                     {/* pv-block-start:78kliu */}
-                    <div data-pv-block="78kliu" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                    <div data-pv-block="78kliu" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
                       OpenAI Codex
                     </div>
                     {/* pv-block-end:78kliu */}
@@ -821,18 +818,18 @@ function BYOAgent(props: any) {
               {/* pv-block-end:ruagve */}
 
               {/* pv-block-start:uezzcq */}
-              <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:knrkaq */}
                   <Icon className="text-transparent bg-[url('/src/images/from-protovibe/gemini-color.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" data-pv-block="knrkaq" iconSymbol="lineicons:gemini" size="2xl" />
                   {/* pv-block-end:knrkaq */}
                   {/* pv-block-start:0t2ir5 */}
-                  <div data-pv-block="0t2ir5" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                  <div data-pv-block="0t2ir5" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
                     Gemini
                   </div>
                   {/* pv-block-end:0t2ir5 */}
                   {/* pv-block-start:83746s */}
-                  <TextParagraph data-pv-block="83746s" typography="secondary">
+                  <TextParagraph className="text-center" data-pv-block="83746s" typography="secondary">
                     Google Antigravilty
                   </TextParagraph>
                   {/* pv-block-end:83746s */}
@@ -841,18 +838,18 @@ function BYOAgent(props: any) {
               {/* pv-block-end:uezzcq */}
 
               {/* pv-block-start:0pe2av */}
-              <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 justify-start items-center p-7">
+              <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:este2x */}
                   <Icon className="rounded-full text-foreground-secondary" data-pv-block="este2x" iconSymbol="ri:more-fill" size="2xl" />
                   {/* pv-block-end:este2x */}
                   {/* pv-block-start:t1n8kr */}
-                  <div data-pv-block="t1n8kr" className="font-secondary font-bold text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end">
+                  <div data-pv-block="t1n8kr" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
                     All other
                   </div>
                   {/* pv-block-end:t1n8kr */}
                   {/* pv-block-start:un5y85 */}
-                  <TextParagraph data-pv-block="un5y85" typography="secondary">
+                  <TextParagraph className="text-center" data-pv-block="un5y85" typography="secondary">
                     Visual Studio Code
                   </TextParagraph>
                   {/* pv-block-end:un5y85 */}
@@ -879,7 +876,7 @@ function HowItWorks(props: any) {
               {/* pv-block-end:b00094 */}
               {/* pv-block-start:b00095 */}
               <h2 data-pv-block="b00095" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                From design system to sharing
+                From design system to user testing
               </h2>
               {/* pv-block-end:b00095 */}
             {/* pv-editable-zone-end:z00025 */}
@@ -1057,7 +1054,7 @@ function ProblemSolution(props: any) {
       <section {...props} data-pv-component-id="ProblemSolution" className="py-[100px]" id="problems">
         {/* pv-editable-zone-start:z00035 */}
           {/* pv-block-start:b00125 */}
-          <div data-pv-block="b00125" className="max-w-[780px] mx-auto mb-[64px] text-center">
+          <div data-pv-block="b00125" className="max-w-2/3 mb-64px mx-auto text-center">
             {/* pv-editable-zone-start:z00036 */}
               {/* pv-block-start:b00126 */}
               <div data-pv-block="b00126" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">Problem → Solution</div>
@@ -1068,7 +1065,7 @@ function ProblemSolution(props: any) {
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
-              <p data-pv-block="b00128" className="mt-[20px] text-[16px] text-foreground-secondary max-w-[56ch] mx-auto leading-[1.55] text-balance">
+              <p data-pv-block="b00128" className="text-[16px] text-foreground-secondary leading-[1.55] text-balance mt-8 pb-8">
                 Look, prompting an AI to make a UI is not designing. AI spits random UI, and you're stuck trying to fix it. Design is a process where you need to move rectangles yourself and iterate. Protovibe Studio brings you back to a driver seat. <br /><br /><br />
               </p>
               {/* pv-block-end:b00128 */}
@@ -1312,7 +1309,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00155 */}
                           {/* pv-block-start:b00156 */}
                           <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Design Systems in Figma have 50 files with hundreds of variants and properties. Making changes is slow and can break existing design. Local components? You need to assign all the props manually.
+                            Design Systems in Figma have hundreds of files with scattered variants. Making changes is slow and complicated. Local components? You need to assign all the props manually.
                           </p>
                           {/* pv-block-end:b00156 */}
                         {/* pv-editable-zone-end:z00048 */}
@@ -1445,56 +1442,6 @@ function ProblemSolution(props: any) {
               {/* ROW 7 */}
 
               {/* ROW 8 */}
-              {/* pv-block-start:zavi9i */}
-              <div data-pv-block="zavi9i" className="grid grid-cols-1 gap-[28px] md:gap-[56px] items-center md:grid-cols-[1fr_minmax(280px,380px)]">
-                {/* pv-editable-zone-start:z00054 */}
-                  {/* pv-block-start:oqs278 */}
-                  <div data-pv-block="oqs278" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold md:order-last">
-                    Miejsce na grafikę
-                  </div>
-                  {/* pv-block-end:oqs278 */}
-                  {/* pv-block-start:5astl4 */}
-                  <div data-pv-block="5astl4" className="flex flex-col gap-[22px]">
-                    {/* pv-editable-zone-start:z00055 */}
-                      {/* pv-block-start:yluosm */}
-                      <h3 data-pv-block="yluosm" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Git integration
-                      </h3>
-                      {/* pv-block-end:yluosm */}
-                      {/* pv-block-start:4u8roo */}
-                      <div data-pv-block="4u8roo" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00056 */}
-                          {/* pv-block-start:2b5npf */}
-                          <div data-pv-block="2b5npf" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
-                          {/* pv-block-end:2b5npf */}
-                          {/* pv-block-start:2p5jmz */}
-                          <p data-pv-block="2p5jmz" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Every designer in your team maintains a separate design file with independent components. There's no one big prototype that combines everything.
-                          </p>
-                          {/* pv-block-end:2p5jmz */}
-                        {/* pv-editable-zone-end:z00056 */}
-                      </div>
-                      {/* pv-block-end:4u8roo */}
-                      {/* pv-block-start:zp7bf0 */}
-                      <div data-pv-block="zp7bf0" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00057 */}
-                          {/* pv-block-start:cni3ri */}
-                          <div data-pv-block="cni3ri" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
-                          {/* pv-block-end:cni3ri */}
-                          {/* pv-block-start:19qy7g */}
-                          <p data-pv-block="19qy7g" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Keep your designs in your Github or Gitlab repo. Work on branches, resolve conflicts, review changes - even if you have hundreds of designers in the team. Same as engineers do. Just ask AI to handle git commands for you.
-                          </p>
-                          {/* pv-block-end:19qy7g */}
-                        {/* pv-editable-zone-end:z00057 */}
-                      </div>
-                      {/* pv-block-end:zp7bf0 */}
-                    {/* pv-editable-zone-end:z00055 */}
-                  </div>
-                  {/* pv-block-end:5astl4 */}
-                {/* pv-editable-zone-end:z00054 */}
-              </div>
-              {/* pv-block-end:zavi9i */}
 
               {/* ROW 9 */}
             {/* pv-editable-zone-end:z00037 */}
@@ -1919,7 +1866,7 @@ function FooterCTA(props: any) {
               {/* pv-block-end:b00273 */}
               
               {/* pv-block-start:oc6h0r */}
-              <div data-pv-block="oc6h0r" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center items-stretch min-w-64 flex-row">
+              <div data-pv-block="oc6h0r" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center items-stretch min-w-64 flex-row max-md:flex-col max-md:flex-nowrap max-md:w-full max-md:max-w-[320px] max-md:mx-auto">
                 {/* pv-editable-zone-start:z00108 */}
                   {/* pv-block-start:qnw0mp */}
                   <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" label="Install now" variant="solid" color="primary" size="lg" />
@@ -1963,7 +1910,7 @@ function FooterCTA(props: any) {
               <Image data-pv-block="m1uo22" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-4 opacity-55" />
               {/* pv-block-end:m1uo22 */}
               {/* pv-block-start:b00290 */}
-              <div data-pv-block="b00290" className="text-[12px] text-right">
+              <div data-pv-block="b00290" className="text-[12px] text-center text-balance md:text-right">
                 © 2026 Protovibe Studio · Made with unreasonable care
               </div>
               {/* pv-block-end:b00290 */}
@@ -1980,18 +1927,16 @@ function Hero(props: any) {
       <section {...props} data-pv-component-id="Hero" className="relative pt-[60px] pb-[80px] text-center">
         {/* pv-editable-zone-start:z00107 */}
           {/* pv-block-start:t4dgb7 */}
-          <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center">
+          <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center pt-16">
             {/* pv-editable-zone-start:ger2rz */}
             {/* pv-block-start:b00305 */}
-            <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] text-[clamp(44px,6.6vw,84px)] leading-[0.98] max-w-[14ch] tracking-tighter mt-6 mx-auto font-secondary font-extrabold">
-              Design by hand.<br />Prototype with AI.<br /><span className="text-foreground-primary">
-                Pixel-perfect.
-              </span>
+            <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] leading-[0.98] max-w-[14ch] tracking-tighter font-secondary font-extrabold mx-auto text-[clamp(44px,9vw,72px)]">
+              Design by hand.<br />Prototype with AI.<br /><span className="text-foreground-primary"> Stay pixel-perfect. </span>
             </h1>
             {/* pv-block-end:b00305 */}
             {/* pv-block-start:b00306 */}
             <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
-              Protovibe Studio is the open-source tool for UX/UI design in the AI era. Built for product designers who vibe-code but refuse to hand-off inconsistent slop. It runs locally in pure React, giving your coding agents the perfect foundation to build anything.
+              Protovibe Studio is the open-source tool for UX/UI designers who love the power of vibe-coding but refuse to hand off hallucinated slop. It runs locally in pure React, so you and your coding agent are finally on the same page.
             </p>
             {/* pv-block-end:b00306 */}
             {/* pv-block-start:b00307 */}
@@ -2068,7 +2013,7 @@ function Hero(props: any) {
 
 function Testimonial(props: any) {
   return (
-      <section {...props} data-pv-component-id="Testimonial" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto py-[64px] px-0 sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start">
+      <section {...props} data-pv-component-id="Testimonial" className="pv-reveal opacity-0 translate-y-4 transition-all duration-700 ease-out max-w-[880px] mx-auto sm:py-[96px] sm:px-[20px] grid grid-cols-1 sm:grid-cols-[56px_1fr] gap-[16px] sm:gap-x-[28px] sm:gap-y-[32px] items-start py-64px pl-8 pr-0">
         {/* pv-editable-zone-start:z00113 */}
           {/* pv-block-start:b00322 */}
           <span data-pv-block="b00322" className="font-secondary font-extrabold text-[64px] sm:text-[88px] leading-none opacity-85 pointer-events-none select-none sm:-mt-[14px] self-start text-foreground-primary" aria-hidden="true">"</span>
@@ -2152,7 +2097,7 @@ export default function App() {
         <nav data-pv-block="b00294" className="sticky top-0 z-50 flex items-center justify-between px-[20px] py-[14px] md:px-[40px] md:py-[18px] bg-gradient-to-b from-[#050509eb] via-[#05050999] to-transparent backdrop-blur-[8px]">
           {/* pv-editable-zone-start:z00104 */}
             {/* pv-block-start:96mqud */}
-            <Image data-pv-block="96mqud" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-6" />
+            <Image data-pv-block="96mqud" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-5" />
             {/* pv-block-end:96mqud */}
             
             {/* pv-block-start:b00296 */}
@@ -2195,7 +2140,7 @@ export default function App() {
 
             {/* Powered by */}
             {/* pv-block-start:b00320 */}
-            <PoweredBy data-pv-block="b00320" />
+            <PoweredBy className="" data-pv-block="b00320" />
             {/* pv-block-end:b00320 */}
 
             {/* Testimonial */}

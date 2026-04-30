@@ -453,17 +453,17 @@ export const Modifiers: React.FC = () => {
 
             {/* Screen */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Screen</span>
+              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Screen width above</span>
               <SegmentedControl
                 label=""
                 value={activeModifiers.breakpoint || 'none'}
                 onChange={handleBreakpoint}
                 segments={[
                   { label: 'All', val: 'none' },
-                  { label: 'Sm',  val: 'sm'   },
-                  { label: 'Md',  val: 'md'   },
-                  { label: 'Lg',  val: 'lg'   },
-                  { label: 'XL',  val: 'xl'   },
+                  { label: '640',  val: 'sm'   },
+                  { label: '768',  val: 'md'   },
+                  { label: '1024',  val: 'lg'   },
+                  { label: '1536',  val: 'xl'   },
                 ]}
               />
             </div>
