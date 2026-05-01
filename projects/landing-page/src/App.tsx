@@ -2028,7 +2028,7 @@ function FooterCTA(props: any) {
               <div data-pv-block="oc6h0r" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center items-stretch min-w-64 flex-row max-md:flex-col max-md:flex-nowrap max-md:w-full max-md:max-w-[320px] max-md:mx-auto">
                 {/* pv-editable-zone-start:z00108 */}
                   {/* pv-block-start:qnw0mp */}
-                  <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" label="Install now" variant="solid" color="primary" size="lg" />
+                  <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" data-install label="Install now" variant="solid" color="primary" size="lg" />
                   {/* pv-block-end:qnw0mp */}
 
                   {/* pv-block-start:s7lvih */}
@@ -2102,7 +2102,7 @@ function Hero(props: any) {
             <div data-pv-block="b00307" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center flex-col items-stretch min-w-64">
               {/* pv-editable-zone-start:z00108 */}
                 {/* pv-block-start:jkwl83 */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" label="Install now" variant="solid" color="primary" size="lg" />
+                <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" data-install label="Install now" variant="solid" color="primary" size="lg" />
                 {/* pv-block-end:jkwl83 */}
 
                 {/* pv-block-start:jppuwr */}
