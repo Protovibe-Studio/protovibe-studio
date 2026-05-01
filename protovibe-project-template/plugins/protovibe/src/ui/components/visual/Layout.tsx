@@ -715,11 +715,11 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             transition: 'border-color 0.15s',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '28px', height: '28px', flexShrink: 0, filter: hasAnySourceOverride ? 'none' : 'saturate(0)' }}>
               {renderTriggerIcon()}
             </div>
-            <span style={{ fontSize: '12px', fontWeight: 500, color: triggerLabelColor }}>
+            <span style={{ fontSize: '11px', fontWeight: 500, color: triggerLabelColor }}>
               {triggerLabelText}
             </span>
           </div>
