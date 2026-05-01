@@ -303,14 +303,14 @@ function FeatureGrid(props: any) {
   };
 
   return (
-      <section {...props} data-pv-component-id="FeatureGrid" className="py-[120px] relative" id="features">
+      <section {...props} data-pv-component-id="FeatureGrid" className="py-[120px] relative" id="prototyping">
         {/* pv-editable-zone-start:z00001 */}
           {/* pv-block-start:d0wkgq */}
           <div data-pv-block="d0wkgq" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00002 */}
               {/* pv-block-start:y5wszz */}
               <div data-pv-block="y5wszz" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">
-                Use cases
+                Prototyping Use cases
               </div>
               {/* pv-block-end:y5wszz */}
               {/* pv-block-start:lx146v */}
@@ -874,7 +874,9 @@ function HowItWorks(props: any) {
           <div data-pv-block="b00093" className="max-w-[780px] mx-auto mb-[64px] text-center">
             {/* pv-editable-zone-start:z00025 */}
               {/* pv-block-start:b00094 */}
-              <div data-pv-block="b00094" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">How it works</div>
+              <div data-pv-block="b00094" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">
+                Prototyping
+              </div>
               {/* pv-block-end:b00094 */}
               {/* pv-block-start:b00095 */}
               <h2 data-pv-block="b00095" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
@@ -2385,20 +2387,23 @@ export default function App() {
             {/* pv-block-start:b00296 */}
             <div data-pv-block="b00296" className="hidden md:flex gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[24px]">
               {/* pv-editable-zone-start:z00105 */}
-                {/* pv-block-start:b00297 */}
-                <a data-pv-block="b00297" href="#agents" className="hover:text-foreground-strong">Agents</a>
-                {/* pv-block-end:b00297 */}
-                {/* pv-block-start:b00298 */}
-                <a data-pv-block="b00298" href="#how" className="hover:text-foreground-strong">How it works</a>
-                {/* pv-block-end:b00298 */}
+                {/* pv-block-start:b00296a */}
+                <a data-pv-block="b00296a" href="#problems" className="hover:text-foreground-strong">Why</a>
+                {/* pv-block-end:b00296a */}
                 {/* pv-block-start:b00299 */}
                 <a data-pv-block="b00299" href="#features" className="hover:text-foreground-strong">Features</a>
                 {/* pv-block-end:b00299 */}
+                {/* pv-block-start:b00297 */}
+                <a data-pv-block="b00297" href="#agents" className="hover:text-foreground-strong">AI Agents</a>
+                {/* pv-block-end:b00297 */}
+                {/* pv-block-start:b00298 */}
+                <a data-pv-block="b00298" href="#prototyping" className="hover:text-foreground-strong">Prototyping</a>
+                {/* pv-block-end:b00298 */}
                 {/* pv-block-start:b00300 */}
                 <a data-pv-block="b00300" href="#faq" className="hover:text-foreground-strong">FAQ</a>
                 {/* pv-block-end:b00300 */}
                 {/* pv-block-start:b00301 */}
-                <a data-pv-block="b00301" href="#" className="hover:text-foreground-strong">GitHub</a>
+                <a data-pv-block="b00301" href="https://github.com/Protovibe-Studio/protovibe-studio" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">GitHub</a>
                 {/* pv-block-end:b00301 */}
               {/* pv-editable-zone-end:z00105 */}
             </div>
@@ -2433,22 +2438,22 @@ export default function App() {
             {/* pv-block-start:b00330 */}
             <ProblemSolution data-pv-block="b00330" />
             {/* pv-block-end:b00330 */}
-            
-            {/* pv-block-start:b00331 */}
-            <BYOAgent data-pv-block="b00331" />
-            {/* pv-block-end:b00331 */}
 
             {/* pv-block-start:fl0001 */}
             <FeaturesList data-pv-block="fl0001" />
             {/* pv-block-end:fl0001 */}
-            
-            {/* pv-block-start:b00332 */}
-            <HowItWorks data-pv-block="b00332" />
-            {/* pv-block-end:b00332 */}
+
+            {/* pv-block-start:b00331 */}
+            <BYOAgent data-pv-block="b00331" />
+            {/* pv-block-end:b00331 */}
 
             {/* pv-block-start:b00333 */}
             <FeatureGrid data-pv-block="b00333" />
             {/* pv-block-end:b00333 */}
+
+            {/* pv-block-start:b00332 */}
+            <HowItWorks data-pv-block="b00332" />
+            {/* pv-block-end:b00332 */}
 
             {/* pv-block-start:b00335 */}
             <div data-pv-block="b00335" aria-hidden="true" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1500px] h-[1500px] pointer-events-none blur-[140px] opacity-[0.45] -z-10" style={{ background: 'radial-gradient(ellipse 45% 35% at 25% 75%, oklch(0.58 0.19 265), transparent 70%), radial-gradient(ellipse 45% 35% at 75% 75%, oklch(0.54 0.16 305), transparent 70%), radial-gradient(ellipse 55% 30% at 50% 60%, oklch(0.52 0.13 290), transparent 70%), radial-gradient(ellipse 70% 25% at 50% 95%, oklch(0.50 0.12 280), transparent 75%)' }} />
