@@ -12,6 +12,12 @@ export default function Frame14() {
         {/* pv-block-start:ekbi6l */}
         <Avatar data-pv-block="ekbi6l" data-pv-sketchpad-el="ekbi6l" style={{ position: 'absolute', left: 202, top: 181 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
         {/* pv-block-end:ekbi6l */}
+        {/* pv-block-start:h59ro2 */}
+        <div data-pv-block="h59ro2" data-pv-sketchpad-el="h59ro2" style={{ position: 'absolute', width: 536, left: 841, top: 181 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
+        {/* pv-block-end:h59ro2 */}
+        {/* pv-block-start:mahc6j */}
+        <div data-pv-block="mahc6j" data-pv-sketchpad-el="mahc6j" style={{ position: 'absolute', left: 157, top: 530, width: 536 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
+        {/* pv-block-end:mahc6j */}
       {/* pv-editable-zone-end:0au3jg */}
     </div>
   );
