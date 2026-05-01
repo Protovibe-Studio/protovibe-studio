@@ -11,7 +11,7 @@
 //   {{endLine}}     — ending line of the current selection
 //   {{blockId}}     — nearest `data-pv-block` id to the current selection
 //   {{code}}        — source code of the currently selected block
-//   {{agentsRules}} — standard reminder to follow AGENTS.md rules
+//   {{agentsRules}} — standard reminder to follow plugins/protovibe/PROTOVIBE_AGENTS.md rules
 //
 // When a reference is missing (e.g. no selection), the placeholder is
 // replaced with a readable fallback like "(no file selected)".
@@ -66,7 +66,7 @@ export interface PromptDef {
 }
 
 const AGENTS_RULES_SUFFIX =
-  'Follow all architectural rules from AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
+  'Follow all architectural rules from plugins/protovibe/PROTOVIBE_AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
 
 export const PROMPTS: PromptDef[] = [
   {
@@ -84,7 +84,7 @@ export const PROMPTS: PromptDef[] = [
   Create a new view or feature in this Protovibe application.
   
   Before writing any code:
-  1. Read AGENTS.md and \`src/App.tsx\` to understand how views are mounted and how the app is structured.
+  1. Read plugins/protovibe/PROTOVIBE_AGENTS.md and \`src/App.tsx\` to understand how views are mounted and how the app is structured.
   2. This app uses querystring-based routing (e.g. \`?view=xxx\`). Add the new route by following the existing pattern exactly — do NOT introduce react-router or any other routing library. Consider using queryStrings for dialogs also (separate key for each dialog like employeeDialog=true (so that visible dialog layer gets it's own key set to true, but don't set the key to false for non visible dialogs, just remove the key from URL).
   3. Browse \`src/components/ui/\` and reuse existing components wherever possible. Only write custom HTML/Tailwind when no existing component fits the need.
   4. Use mock data held in React state (e.g. \`useState\` with a seeded default). The data should persist while navigating within the app but reset on full page refresh — do not write to localStorage, files, or any backend.
@@ -112,7 +112,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules. Reuse components from \`@/components/ui/\` whenever possible.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md to understand the zone/block ID conventions and component rules. Reuse components from \`@/components/ui/\` whenever possible.
   
   {{agentsRules}}`,
   },
@@ -137,7 +137,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md — especially the zone/block ID conventions, component reuse rules, and static Tailwind class strings.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the zone/block ID conventions, component reuse rules, and static Tailwind class strings.
   
   Guidelines:
   - Keep changes scoped to the selected element and its children. Do not restructure surrounding layout unless the user explicitly asks.
@@ -168,7 +168,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
 
-  Before writing any code, read AGENTS.md end-to-end — especially the "Creating New Views and Elements" section covering pv-editable-zone / pv-block IDs, block granularity, and the rule for wrapping conditionally-rendered elements and exposing props on components.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md end-to-end — especially the "Creating New Views and Elements" section covering pv-editable-zone / pv-block IDs, block granularity, and the rule for wrapping conditionally-rendered elements and exposing props on components.
 
   Guidelines:
   - Do NOT change markup structure, props, styling, or behavior. This task ONLY inserts the pv comment tags and \`data-pv-block\` attributes.
@@ -202,7 +202,7 @@ export const PROMPTS: PromptDef[] = [
     {/* pv-block-end:a1b2c3 */}
     \`\`\`
 
-  - Elements rendered conditionally (e.g. \`{cond && <X />}\`) or via short logic like \`{items.map(...)}\` can still be wrapped. Place the pv-block-start / pv-block-end comment tags *outside* the \`{...}\` expression so the whole conditional (including its braces) moves as one unit. See the "Wrap Conditionally-Rendered Elements Around the Logic" rule in AGENTS.md.
+  - Elements rendered conditionally (e.g. \`{cond && <X />}\`) or via short logic like \`{items.map(...)}\` can still be wrapped. Place the pv-block-start / pv-block-end comment tags *outside* the \`{...}\` expression so the whole conditional (including its braces) moves as one unit. See the "Wrap Conditionally-Rendered Elements Around the Logic" rule in plugins/protovibe/PROTOVIBE_AGENTS.md.
   - Preserve any existing pv tags and IDs already present in the selection. Only add new ones where they are missing.
   - Pay attention to braces - these are normal comment tags, normal JSX comments with SINGLE braces, not template literals — do not accidentally wrap them in double braces
 
@@ -231,13 +231,13 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md to understand the zone/block ID conventions and component rules.
   
   Conversion rules:
   - Preserve the intent of the sketch's styling, visual hierarchy, and element ordering.
   - The sketchpad uses absolute positioning for layout. Convert every \`position: absolute\` / top/left/width/height placement into normal document flow using Flexbox, Grid, padding, margin, and gap. Infer reasonable spacing values from the visual gaps in the sketch.
   - Replace sketch-only primitives like "rectangle" with the proper components from \`@/components/ui/\` where equivalents exist.
-  - Rebuild the pv-block / pv-editable-zone structure with granular blocks per the AGENTS.md conventions so the result is editable in the normal app canvas.
+  - Rebuild the pv-block / pv-editable-zone structure with granular blocks per the plugins/protovibe/PROTOVIBE_AGENTS.md conventions so the result is editable in the normal app canvas.
   - Keep text content identical to the sketch unless the user asks otherwise.
   - Add any interactions or dynamic behavior needed to make this a real, working part of the app — but do not add extra features beyond what the user asked for.
   
@@ -264,7 +264,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md to understand the zone/block ID conventions and component rules.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md to understand the zone/block ID conventions and component rules.
   
   Rules for the sketchpad version:
   - Strip out ALL special logic: event handlers, hooks, state, conditional rendering, data mapping, API calls. The result should be a static visual mock.
@@ -290,7 +290,7 @@ export const PROMPTS: PromptDef[] = [
   Create a new reusable UI component in \`src/components/ui/\`.
   
   Before writing any code:
-  1. Read the "Components Editing" section of AGENTS.md end-to-end — the new file MUST conform to every rule there (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, etc.).
+  1. Read the "Components Editing" section of plugins/protovibe/PROTOVIBE_AGENTS.md end-to-end — the new file MUST conform to every rule there (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, etc.).
   2. READ several existing files in \`src/components/ui/\` before writing anything — at minimum open button.tsx, card.tsx, and textblock.tsx, plus one compound component like tabs.tsx or select.tsx. Match their conventions for prop naming, typing, file layout, variant handling, and \`pvConfig\` shape. Do not guess structure from memory.
   3. If the component is non-atomic (it has internal parts users will want to reorder, swap, or style independently — like tabs with a list + triggers + panels, or a select with trigger + items), decompose it into multiple smaller components in separate files, each with its own \`pvConfig\`. Follow exactly how \`tabs.tsx\` / \`select.tsx\` split parent and child components and share state via React Context.
   4. Expose only string / boolean / select prop types via \`pvConfig.props\`. Never expose functions, children, or asChild.
@@ -322,7 +322,7 @@ export const PROMPTS: PromptDef[] = [
   \`\`\`
   
   Before writing any code:
-  1. Read the "Components Editing" section of AGENTS.md end-to-end — every new file MUST conform (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, semantic tokens, ...props on root).
+  1. Read the "Components Editing" section of plugins/protovibe/PROTOVIBE_AGENTS.md end-to-end — every new file MUST conform (pvConfig, data-pv-component-id, PvDefaultContent, static Tailwind strings, safe prop types, semantic tokens, ...props on root).
   2. READ several existing files in \`src/components/ui/\` before writing anything — at minimum button.tsx, card.tsx, textblock.tsx, and one compound component like tabs.tsx or select.tsx. Match their prop naming, typing, file layout, variant handling, and \`pvConfig\` shape. Do not guess structure from memory.
   
   How to infer the component API:
@@ -367,10 +367,10 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md end-to-end. Then figure out which component in \`src/components/ui/\` renders this element (follow the import in \`{{file}}\` if needed, or match by the \`data-pv-component-id\` attribute). Then apply the requested change to that component's source file.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md end-to-end. Then figure out which component in \`src/components/ui/\` renders this element (follow the import in \`{{file}}\` if needed, or match by the \`data-pv-component-id\` attribute). Then apply the requested change to that component's source file.
   
   Requirements:
-  - Respect every rule in AGENTS.md — especially: one pvConfig per file, explicit data-pv-component-id, safe prop types, static Tailwind class strings, semantic color tokens, and \`...props\` spread on the root element.
+  - Respect every rule in plugins/protovibe/PROTOVIBE_AGENTS.md — especially: one pvConfig per file, explicit data-pv-component-id, safe prop types, static Tailwind class strings, semantic color tokens, and \`...props\` spread on the root element.
   - If the change introduces a new variant/prop, add it to \`pvConfig.props\` and add any needed \`invalidCombinations\` filters.
   - Keep existing usages working — do not rename or remove props unless the user asked for it.
   - If needed update the consumer files
@@ -398,12 +398,12 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md — especially the styling rules for static Tailwind strings and semantic color tokens.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the styling rules for static Tailwind strings and semantic color tokens.
   
   Hard constraints:
   - Use ONLY Tailwind utility classes. No inline \`style={{}}\`, no CSS modules.
   - Use ONLY semantic color tokens defined in \`src/index.css\` (e.g. \`bg-background-secondary\`, \`text-foreground-default\`, \`border-border-default\`). NEVER use default Tailwind palette colors (\`bg-blue-500\`) or hex values.
-  - Keep all className strings fully static so the AST parser can read them — no template literals, no ternaries inside className, no cva. Express variants via \`data-*\` attributes and \`data-[...]\` modifiers as shown in AGENTS.md.
+  - Keep all className strings fully static so the AST parser can read them — no template literals, no ternaries inside className, no cva. Express variants via \`data-*\` attributes and \`data-[...]\` modifiers as shown in plugins/protovibe/PROTOVIBE_AGENTS.md.
   
   {{agentsRules}}`,
   },
@@ -461,13 +461,13 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
   
-  Before writing any code, read AGENTS.md — especially the interaction rules for Floating UI, portals, and compound components.
+  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the interaction rules for Floating UI, portals, and compound components.
   
   Guidelines:
   - Do NOT expand scope. If the user asks for "open a dialog on click", just wire the click → dialog — do not add extra buttons, extra content, or refactor the surrounding layout.
   - Before implementing, look up how this interaction pattern is already done in the codebase for common cases: tooltips, dropdowns, dialogs, popovers, forms, toasts. Read at least one example file (e.g. \`src/components/ui/dialog.tsx\`, \`dropdown.tsx\`, \`tooltip.tsx\` — whichever is relevant) and follow that convention. Do not invent a new pattern.
   - Prefer existing components from \`@/components/ui/\` over raw HTML elements.
-  - Floating UI (dropdowns, tooltips, popovers) must use \`createPortal\` + fixed positioning so it escapes any overflow-hidden inspectors — see AGENTS.md.
+  - Floating UI (dropdowns, tooltips, popovers) must use \`createPortal\` + fixed positioning so it escapes any overflow-hidden inspectors — see plugins/protovibe/PROTOVIBE_AGENTS.md.
   
   {{agentsRules}}`,
   },

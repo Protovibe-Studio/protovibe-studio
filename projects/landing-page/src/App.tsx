@@ -202,8 +202,10 @@ function FeaturesList(props: any) {
 
               {/* pv-block-start:f00121 */}
               <div data-pv-block="f00121" className="flex gap-[14px] items-start">
-                <Icon iconSymbol="eye" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
-                <span className="text-foreground-strong font-medium">Live preview</span>
+                <Icon iconSymbol="mdi:file-image" size="md" className="text-foreground-primary shrink-0 mt-[2px]" />
+                <span className="text-foreground-strong font-medium">
+                  Compress images
+                </span>
               </div>
               {/* pv-block-end:f00121 */}
 
