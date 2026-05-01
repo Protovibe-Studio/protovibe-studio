@@ -6,10 +6,7 @@ export interface RectangleProps extends React.HTMLAttributes<HTMLDivElement> {}
 export function Rectangle({ className, children, ...props }: RectangleProps) {
   return (
     <div
-      className={cn(
-        "bg-background-default border border-border-default rounded-lg relative min-h-[40px] min-w-[40px]",
-        className,
-      )}
+      className={cn("bg-background-default border border-border-default rounded-lg relative min-w-[4px] min-h-[4px]", className)}
       {...props}
       data-pv-component-id="Rectangle"
       data-layout-mode="absolute"

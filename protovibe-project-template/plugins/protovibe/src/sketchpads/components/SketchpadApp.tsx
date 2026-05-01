@@ -11,7 +11,7 @@ import { parseDefaultProps } from '../utils';
 import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
-import { Frame, Square, Plus, Menu, Type } from 'lucide-react';
+import { Frame, Square, Plus, Menu, Type, Minus } from 'lucide-react';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -78,6 +78,10 @@ async function fetchServerComponents(): Promise<ComponentEntry[]> {
 }
 
 const INITIAL_TRANSFORM: CanvasTransform = { zoom: 0.7, panX: 200, panY: 100 };
+
+const VerticalLineIcon = (props: React.ComponentProps<typeof Minus>) => (
+  <Minus {...props} style={{ ...props.style, transform: 'rotate(90deg)' }} />
+);
 
 function centeredTransformForFrames(frames: SketchpadFrame[], viewportWidth: number, viewportHeight: number): CanvasTransform {
   if (frames.length === 0) return INITIAL_TRANSFORM;
@@ -151,6 +155,8 @@ export function SketchpadApp() {
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const [pendingAction, setPendingAction] = useState<
     | { type: 'add-rectangle'; comp: ComponentEntry }
+    | { type: 'add-horizontal-line'; comp: ComponentEntry }
+    | { type: 'add-vertical-line'; comp: ComponentEntry }
     | { type: 'add-text' }
     | null
   >(null);
@@ -892,6 +898,20 @@ export function SketchpadApp() {
     setPendingAction({ type: 'add-rectangle', comp: rectComp });
   }, [activeSketchpadId, components]);
 
+  const handleAddHorizontalLineCentered = useCallback(async () => {
+    if (!activeSketchpadId) return;
+    const comp = components.find((c) => c.name === 'HorizontalLine');
+    if (!comp) return;
+    setPendingAction({ type: 'add-horizontal-line', comp });
+  }, [activeSketchpadId, components]);
+
+  const handleAddVerticalLineCentered = useCallback(async () => {
+    if (!activeSketchpadId) return;
+    const comp = components.find((c) => c.name === 'VerticalLine');
+    if (!comp) return;
+    setPendingAction({ type: 'add-vertical-line', comp });
+  }, [activeSketchpadId, components]);
+
   const handleAddText = useCallback(
     async (frameId: string, x: number, y: number) => {
       if (!activeSketchpadId) return;
@@ -1443,7 +1463,11 @@ export function SketchpadApp() {
               if (targetFrame) {
                 const relX = canvasX - targetFrame.canvasX;
                 const relY = canvasY - targetFrame.canvasY;
-                if (pendingAction.type === 'add-rectangle') {
+                if (
+                  pendingAction.type === 'add-rectangle' ||
+                  pendingAction.type === 'add-horizontal-line' ||
+                  pendingAction.type === 'add-vertical-line'
+                ) {
                   handleAddComponent(pendingAction.comp, targetFrame.id, relX, relY);
                 } else if (pendingAction.type === 'add-text') {
                   handleAddText(targetFrame.id, relX, relY);
@@ -1476,6 +1500,10 @@ export function SketchpadApp() {
             <span>
               {pendingAction.type === 'add-text'
                 ? 'Click inside a frame to place the text'
+                : pendingAction.type === 'add-horizontal-line'
+                ? 'Click inside a frame to place the horizontal line'
+                : pendingAction.type === 'add-vertical-line'
+                ? 'Click inside a frame to place the vertical line'
                 : 'Click inside a frame to place the rectangle'}
             </span>
             <button
@@ -1524,6 +1552,8 @@ export function SketchpadApp() {
             {[
               { label: 'Frame', icon: Frame, action: handleAddFrameCentered },
               { label: 'Rectangle', icon: Square, action: handleAddRectangleCentered },
+              { label: 'Horizontal line', icon: Minus, action: handleAddHorizontalLineCentered },
+              { label: 'Vertical line', icon: VerticalLineIcon, action: handleAddVerticalLineCentered },
               { label: 'Text', icon: Type, action: handleAddTextCentered },
               { label: 'Component', icon: Plus, action: () => setShowComponentPalette(true) },
             ].map((item) => (
