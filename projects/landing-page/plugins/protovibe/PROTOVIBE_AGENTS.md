@@ -9,7 +9,7 @@ Protovibe is an AST-based visual builder that reads and writes React code direct
 When building out application pages (e.g., `Dashboard.tsx`, `App.tsx`), Protovibe requires specific AST structures to track, move, and edit elements safely on the canvas.
 
 ### Rule: Always check component definitions from component/ui folder before using them
-Never guess the components structure! Always read the files from @src/components/ui before creating a new view.
+Never guess the components structure! Always read the files from [src/components/ui/](../../src/components/ui/) before creating a new view.
 
 ### Rule: Always add granular Protovibe comment block tags
 * **❌ BAD: No pv blocks
