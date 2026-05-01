@@ -1651,10 +1651,10 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
   return (
     <>
       {/* pv-block-start:b00231 */}
-      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-start justify-center p-[24px] pt-[64px] animate-[fade-in_0.2s_ease] overflow-y-auto overflow-scroll" onClick={onClose}>
+      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-start justify-center p-[12px] pt-[32px] sm:p-[24px] sm:pt-[64px] animate-[fade-in_0.2s_ease] overflow-y-auto overflow-scroll" onClick={onClose}>
         {/* pv-editable-zone-start:z00080 */}
           {/* pv-block-start:b00232 */}
-          <div data-pv-block="b00232" className="relative w-full rounded-[16px] p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl overflow-hidden max-w-[640px]" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+          <div data-pv-block="b00232" className="relative w-full rounded-[16px] p-[20px] sm:p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl overflow-hidden max-w-[640px]" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             {/* pv-editable-zone-start:z00081 */}
               {/* pv-block-start:b00233 */}
               <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-10" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
@@ -1742,8 +1742,17 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {tab === "auto" && (
                     <>
                       {/* pv-block-start:b00252 */}
-                      <div data-pv-block="b00252" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
-                        Step 1: Run this in your terminal:
+                      <div data-pv-block="b00252" className="font-semibold text-[12.5px] mb-[10px] flex items-center gap-[8px] text-foreground-default">
+                        {/* pv-editable-zone-start:zstp01 */}
+                          {/* pv-block-start:nbas01 */}
+                          <span data-pv-block="nbas01" className="inline-flex items-center justify-center rounded-full font-bold leading-none shrink-0 bg-background-tertiary text-foreground-secondary text-xs p-2 h-6">
+                            Step 1
+                          </span>
+                          {/* pv-block-end:nbas01 */}
+                          {/* pv-block-start:stxt01 */}
+                          <span data-pv-block="stxt01">Run this in your terminal:</span>
+                          {/* pv-block-end:stxt01 */}
+                        {/* pv-editable-zone-end:zstp01 */}
                       </div>
                       {/* pv-block-end:b00252 */}
                       {/* pv-block-start:b00253 */}
@@ -1790,8 +1799,17 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       </button>
                       {/* pv-block-end:cpybtn */}
                       {/* pv-block-start:wfo39x */}
-                      <div data-pv-block="wfo39x" className="font-semibold text-[12.5px] text-foreground-secondary mt-6 mb-2">
-                        Step 2: Drag Protovibe.app into Applications folder
+                      <div data-pv-block="wfo39x" className="font-semibold text-[12.5px] mt-6 mb-2 flex items-center gap-[8px] text-foreground-default">
+                        {/* pv-editable-zone-start:zstp02 */}
+                          {/* pv-block-start:kqfogw */}
+                          <span data-pv-block="kqfogw" className="inline-flex items-center justify-center rounded-full font-bold leading-none shrink-0 bg-background-tertiary text-foreground-secondary text-xs p-2 h-6">
+                            Step 2
+                          </span>
+                          {/* pv-block-end:kqfogw */}
+                          {/* pv-block-start:stxt02 */}
+                          <span data-pv-block="stxt02">Drag Protovibe.app into Applications folder</span>
+                          {/* pv-block-end:stxt02 */}
+                        {/* pv-editable-zone-end:zstp02 */}
                       </div>
                       {/* pv-block-end:wfo39x */}
                       {/* pv-block-start:sgaea1 */}
@@ -1806,7 +1824,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {tab === "manual" && (
                     <>
                       {/* pv-block-start:man01 */}
-                      <div data-pv-block="man01" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 1 — Clone the repo</div>
+                      <div data-pv-block="man01" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
+                        Clone the repo
+                      </div>
                       {/* pv-block-end:man01 */}
                       {/* pv-block-start:man02 */}
                       <div data-pv-block="man02" className="bg-background-sunken border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
@@ -1822,7 +1842,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       {/* pv-block-end:man02 */}
 
                       {/* pv-block-start:man05 */}
-                      <div data-pv-block="man05" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 2 — Run the install script</div>
+                      <div data-pv-block="man05" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
+                        Run the install script
+                      </div>
                       {/* pv-block-end:man05 */}
                       {/* pv-block-start:man06 */}
                       <div data-pv-block="man06" className="bg-background-sunken border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
@@ -1838,7 +1860,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       {/* pv-block-end:man06 */}
 
                       {/* pv-block-start:man09 */}
-                      <div data-pv-block="man09" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 3 — Drag Protovibe.app into Applications</div>
+                      <div data-pv-block="man09" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
+                        Drag Protovibe.app into Applications
+                      </div>
                       {/* pv-block-end:man09 */}
                       {/* pv-block-start:man10 */}
                       <div data-pv-block="man10" className="text-[14px] text-foreground-default leading-[1.55]">
@@ -2266,7 +2290,7 @@ export default function App() {
 
         {/* Layout Shell */}
         {/* pv-block-start:b00303 */}
-        <div data-pv-block="b00303" className="relative z-[2] max-w-[1240px] mx-auto px-[20px] md:px-[40px]">
+        <div data-pv-block="b00303" className="relative z-[2] mx-auto px-[20px] md:px-[40px] max-w-[1340px]">
           {/* pv-editable-zone-start:z00106 */}
             {/* Hero */}
             {/* pv-block-start:hr0001 */}
