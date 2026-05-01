@@ -46,8 +46,8 @@ function ProtovibeMockup() {
   return (
     <>
       {/* pv-block-start:b00001 */}
-      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-053328.png')] bg-contain bg-center bg-no-repeat aspect-[691/436]" role="img" aria-label="Protovibe app preview">
-        Miejsce na grafikę
+      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-contain bg-center bg-no-repeat rounded-lg opacity-90 border-border-default border-0 bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070801.png')] aspect-[664/401]" role="img" aria-label="Protovibe app preview">
+        <br />
       </div>
       {/* pv-block-end:b00001 */}
     </>
@@ -1642,13 +1642,13 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
   return (
     <>
       {/* pv-block-start:b00231 */}
-      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay backdrop-blur-[8px] flex items-center justify-center p-[24px] animate-[fade-in_0.2s_ease]" onClick={onClose}>
+      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-center justify-center p-[24px] animate-[fade-in_0.2s_ease]" onClick={onClose}>
         {/* pv-editable-zone-start:z00080 */}
           {/* pv-block-start:b00232 */}
-          <div data-pv-block="b00232" className="relative w-full max-w-[620px] bg-background-secondary border border-border-strong rounded-[16px] p-[36px_36px_32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,.6)] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] max-h-[calc(100vh-48px)] overflow-y-auto" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+          <div data-pv-block="b00232" className="relative w-full max-w-[620px] rounded-[16px] p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] max-h-[calc(100vh-48px)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             {/* pv-editable-zone-start:z00081 */}
               {/* pv-block-start:b00233 */}
-              <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] opacity-[0.35] z-0 rounded-[16px]" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
+              <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-40" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
               {/* pv-block-end:b00233 */}
               {/* pv-block-start:b00234 */}
               <button data-pv-block="b00234" className="absolute top-[14px] right-[14px] appearance-none border-0 bg-transparent text-foreground-secondary w-[32px] h-[32px] rounded-[8px] text-[14px] transition-colors duration-150 z-[2] hover:bg-background-tertiary hover:text-foreground-strong" onClick={onClose} aria-label="Close">✕</button>
@@ -1982,7 +1982,7 @@ function Hero(props: any) {
           {/* pv-block-end:b00310 */}
 
           {/* pv-block-start:b00314 */}
-          <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto flex-1">
+          <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto flex-1 rounded-lg border-border-default border">
             {/* pv-editable-zone-start:z00111 */}
               {/* pv-block-start:b00315 */}
               <div data-pv-block="b00315" className="absolute left-[-30%] right-[-30%] top-[-75%] bottom-[5%] z-0 blur-[130px] opacity-[0.78] pointer-events-none animate-[glow-breathe_10s_ease-in-out_infinite]" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 18%, #000 50%, #000 100%)' }}>
@@ -2029,7 +2029,7 @@ function Testimonial(props: any) {
               {/* pv-block-end:b00324 */}
 
               {/* pv-block-start:b00325 */}
-              <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex">
+              <div data-pv-block="b00325" className="items-center gap-[14px] pt-[4px] flex -ml-[8px]">
                 {/* pv-editable-zone-start:z00115 */}
                   {/* pv-block-start:oys63u */}
                   <Avatar className="bg-center bg-no-repeat bg-cover border bg-[url('/src/images/from-protovibe/screenshot-2026-04-30-at-103956.png')] aspect-[247/233]" data-pv-block="oys63u" initials="AB" size="xl" bgColor="default"  />

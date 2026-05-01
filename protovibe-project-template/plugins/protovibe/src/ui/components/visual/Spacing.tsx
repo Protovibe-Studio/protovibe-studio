@@ -749,7 +749,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   return (
     <VisualSection title="Essentials" defaultOpen>
       {/* ── Box model SVG with overlay inputs ── */}
-      <div style={{ position: 'relative', width: '240px', aspectRatio: '1', margin: '12px auto' }}>
+      <div style={{ position: 'relative', width: '240px', aspectRatio: '1', margin: '0 auto' }}>
         <SpacingBoxSVG style={{ width: '100%', height: '100%', display: 'block' }} />
 
         {/* Margin – top / bottom / left / right */}

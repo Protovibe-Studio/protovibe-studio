@@ -36,23 +36,23 @@
  --background-transparent-pressed: oklch(0% 0 0 / 12%);
 
  /* Solid accent fills */
- --background-primary: oklch(42.77% 0.21541 292.5);
- --background-primary-hover: oklch(50.1% 0.21541 292.5);
- --background-primary-pressed: oklch(29.8% 0.21541 292.5);
+ --background-primary: oklch(42.77% 0.21541 263.7);
+ --background-primary-hover: oklch(50.1% 0.21541 263.7);
+ --background-primary-pressed: oklch(29.8% 0.21541 263.7);
  --background-destructive: oklch(54.13% 0.22069 27.1);
  --background-destructive-hover: oklch(50% 0.22 25);
  --background-destructive-pressed: oklch(45% 0.22 25);
  --background-success: oklch(62.74% 0.16087 153.2);
  --background-warning: oklch(67% 0.18 80);
  --background-info: oklch(58% 0.18 220);
- --background-primary-soft: oklch(51.7% 0.1315 296.1);
+ --background-primary-soft: oklch(51.7% 0.1315 263.7);
  --background-accent: oklch(58.35% 0.22472 358.3);
  --background-accent-soft: oklch(55.75% 0.16195 352.9);
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
- --background-primary-subtle: oklch(92% 0.02975 305.1);
- --background-primary-subtle-hover: oklch(89% 0.07 296.6);
- --background-primary-subtle-pressed: oklch(84% 0.09 296.6);
+ --background-primary-subtle: oklch(92% 0.02975 263.7);
+ --background-primary-subtle-hover: oklch(89% 0.07 263.7);
+ --background-primary-subtle-pressed: oklch(84% 0.09 263.7);
  --background-destructive-subtle: oklch(92.87% 0.02889 9.7);
  --background-destructive-subtle-hover: oklch(93% 0.05 25);
  --background-destructive-subtle-pressed: oklch(89% 0.08 25);
@@ -76,8 +76,8 @@
  --foreground-disabled: oklch(76.1% 0.01747 301.1);
  --foreground-inverse: oklch(100% 0 89.9); /* text on dark/strong bg */
  --foreground-on-primary: oklch(100% 0 89.9); /* text inside filled primary */
- --foreground-primary: oklch(42.77% 0.21541 292.5); /* primary-tinted text & links */
- --foreground-primary-link: oklch(49% 0.21541 292.5); /* links — same hue, slightly lighter */
+ --foreground-primary: oklch(42.77% 0.21541 263.7); /* primary-tinted text & links */
+ --foreground-primary-link: oklch(49% 0.21541 263.7); /* links — same hue, slightly lighter */
  --foreground-destructive: oklch(52% 0.22 25);
  --foreground-success: oklch(54.08% 0.13855 153.2);
  --foreground-warning: oklch(56.88% 0.14711 51.6);
@@ -89,7 +89,7 @@
  --border-secondary: oklch(93.73% 0.01528 302.5); /* subtle divider */
  --border-strong: oklch(80.54% 0.0188 314.7); /* active tab, prominent */
  --border-focus: oklch(55% 0.22 260); /* focus ring */
- --border-primary: oklch(42.77% 0.21541 292.5);
+ --border-primary: oklch(42.77% 0.21541 263.7);
  --border-destructive: oklch(60% 0.22 25);
  --border-success: oklch(62.74% 0.16087 153.2);
  --border-warning: oklch(75% 0.18 80);
@@ -130,23 +130,23 @@
  --background-transparent-pressed: oklch(0% 0.07 317.3 / 0.12);
 
  /* Solid accent fills */
- --background-primary: #af80f4;
- --background-primary-hover: #bf99f6;
- --background-primary-pressed: #cfb3f8;
+ --background-primary: oklch(69.43% 0.1693 263.7);
+ --background-primary-hover: oklch(75.28% 0.13556 263.7);
+ --background-primary-pressed: oklch(81.46% 0.09965 263.7);
  --background-destructive: #ff7073;
  --background-destructive-hover: #ff8d8f;
  --background-destructive-pressed: #ffa9ab;
  --background-success: #23bd7d;
  --background-warning: #ed913b;
  --background-info: #5a9dfc;
- --background-primary-soft: #724ea7;
+ --background-primary-soft: oklch(50.5% 0.13904 263.7);
  --background-accent: #fd62b0;
  --background-accent-soft: #bc94ea;
 
  /* Tinted semantic backgrounds */
- --background-primary-subtle: oklch(33.5% 0.06379 301);
- --background-primary-subtle-hover: #3d2c56;
- --background-primary-subtle-pressed: #543680;
+ --background-primary-subtle: oklch(33.5% 0.06379 263.7);
+ --background-primary-subtle-hover: oklch(33.33% 0.07415 263.7);
+ --background-primary-subtle-pressed: oklch(40.59% 0.12097 263.7);
  --background-destructive-subtle: #4f1618;
  --background-destructive-subtle-hover: #7b2d2f;
  --background-destructive-subtle-pressed: #a74345;
@@ -169,9 +169,9 @@
  --foreground-strong: #ffffff;
  --foreground-disabled: #57585c;
  --foreground-inverse: #1b1c1e;
- --foreground-on-primary: #000000;
- --foreground-primary: #af80f4;
- --foreground-primary-link: #bc8ef5;
+ --foreground-on-primary: oklch(100% 0 0);
+ --foreground-primary: oklch(69.43% 0.1693 263.7);
+ --foreground-primary-link: oklch(73.06% 0.15131 263.7);
  --foreground-destructive: #ff7073;
  --foreground-success: #23bd7d;
  --foreground-warning: #ed913b;
@@ -183,7 +183,7 @@
  --border-secondary: #36353b;
  --border-strong: #504f54;
  --border-focus: #af80f4;
- --border-primary: #af80f4;
+ --border-primary: oklch(69.43% 0.1693 263.7);
  --border-destructive: #ff7073;
  --border-success: #23bd7d;
  --border-warning: #ed913b;
