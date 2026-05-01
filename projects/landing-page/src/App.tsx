@@ -832,7 +832,7 @@ function BYOAgent(props: any) {
                   {/* pv-block-end:0t2ir5 */}
                   {/* pv-block-start:83746s */}
                   <TextParagraph className="text-center" data-pv-block="83746s" typography="secondary">
-                    Google Antigravilty
+                    CLI • Antigravilty
                   </TextParagraph>
                   {/* pv-block-end:83746s */}
                 {/* pv-editable-zone-end:z00018 */}
@@ -1626,7 +1626,14 @@ function FAQ(props: any) {
 }
 
 function InstallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [tab, setTab] = useState("npx");
+  const [tab, setTab] = useState("auto");
+  const [copied, setCopied] = useState(false);
+  const installCommand = "curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/init-installation-via-curl.sh | bash";
+  const onCopy = () => {
+    navigator.clipboard.writeText(installCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -1644,10 +1651,10 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
   return (
     <>
       {/* pv-block-start:b00231 */}
-      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-center justify-center p-[24px] animate-[fade-in_0.2s_ease]" onClick={onClose}>
+      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-start justify-center p-[24px] pt-[64px] animate-[fade-in_0.2s_ease] overflow-y-auto overflow-scroll" onClick={onClose}>
         {/* pv-editable-zone-start:z00080 */}
           {/* pv-block-start:b00232 */}
-          <div data-pv-block="b00232" className="relative w-full max-w-[620px] rounded-[16px] p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] max-h-[calc(100vh-48px)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+          <div data-pv-block="b00232" className="relative w-full rounded-[16px] p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl overflow-hidden max-w-[640px]" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             {/* pv-editable-zone-start:z00081 */}
               {/* pv-block-start:b00233 */}
               <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-10" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
@@ -1657,21 +1664,13 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
               {/* pv-block-end:b00234 */}
 
               {/* pv-block-start:b00235 */}
-              <div data-pv-block="b00235" className="mb-[24px] relative z-[1]">
+              <div data-pv-block="b00235" className="relative z-[1] mb-2">
                 {/* pv-editable-zone-start:z00082 */}
-                  {/* pv-block-start:b00236 */}
-                  <div data-pv-block="b00236" className="font-bold text-[12px] tracking-[0.18em] uppercase m-0 text-foreground-primary">Install Protovibe</div>
-                  {/* pv-block-end:b00236 */}
                   {/* pv-block-start:b00237 */}
-                  <h3 data-pv-block="b00237" className="font-secondary font-bold text-[32px] leading-[1.1] tracking-[-0.03em] text-foreground-strong my-[12px] mb-[10px]">
-                    Pick your <em className="italic font-secondary font-bold text-foreground-strong">lane</em>.
+                  <h3 data-pv-block="b00237" className="font-secondary font-bold text-[32px] leading-[1.1] tracking-[-0.03em] text-foreground-strong mt-12px mb-6">
+                    Install Protovibe
                   </h3>
                   {/* pv-block-end:b00237 */}
-                  {/* pv-block-start:b00238 */}
-                  <p data-pv-block="b00238" className="m-0 text-[14.5px] text-foreground-secondary">
-                    Two ways in. Same destination: Protovibe running on <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-tertiary text-foreground-strong">localhost</code>.
-                  </p>
-                  {/* pv-block-end:b00238 */}
                 {/* pv-editable-zone-end:z00082 */}
               </div>
               {/* pv-block-end:b00235 */}
@@ -1683,9 +1682,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   <button
                     data-pv-block="b00240"
                     role="tab"
-                    aria-selected={tab === "npx"}
-                    className={`appearance-none text-left border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "npx" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"} bg-background-secondary`}
-                    onClick={() => setTab("npx")}>
+                    aria-selected={tab === "auto"}
+                    className={`appearance-none text-left rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "auto" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"} bg-background-tertiary border-2`}
+                    onClick={() => setTab("auto")}>
                     {/* pv-editable-zone-start:z00084 */}
                       {/* pv-block-start:b00241 */}
                       <div data-pv-block="b00241" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
@@ -1699,7 +1698,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       </div>
                       {/* pv-block-end:b00241 */}
                       {/* pv-block-start:b00244 */}
-                      <div data-pv-block="b00244" className="text-[12.5px] text-foreground-secondary leading-[1.5]">One command. <b className="text-foreground-strong font-semibold">npx</b>. Done in 30 seconds.</div>
+                      <div data-pv-block="b00244" className="text-[12.5px] text-foreground-secondary leading-[1.5]">
+                        One terminal command.
+                      </div>
                       {/* pv-block-end:b00244 */}
                     {/* pv-editable-zone-end:z00084 */}
                   </button>
@@ -1709,9 +1710,9 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   <button
                     data-pv-block="b00245"
                     role="tab"
-                    aria-selected={tab === "ai"}
-                    className={`appearance-none text-left border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "ai" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"} bg-background-secondary`}
-                    onClick={() => setTab("ai")}>
+                    aria-selected={tab === "manual"}
+                    className={`appearance-none text-left rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "manual" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:text-foreground-default"} bg-background-tertiary hover:border-border-strong border-2`}
+                    onClick={() => setTab("manual")}>
                     {/* pv-editable-zone-start:z00086 */}
                       {/* pv-block-start:b00246 */}
                       <div data-pv-block="b00246" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
@@ -1725,7 +1726,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       </div>
                       {/* pv-block-end:b00246 */}
                       {/* pv-block-start:b00249 */}
-                      <div data-pv-block="b00249" className="text-[12.5px] text-foreground-secondary leading-[1.5]">Paste a prompt. Claude, Copilot, Gemini — any of them — sets it up for you.</div>
+                      <div data-pv-block="b00249" className="text-[12.5px] text-foreground-secondary leading-[1.5]">For devs comfortable with git and npm.</div>
                       {/* pv-block-end:b00249 */}
                     {/* pv-editable-zone-end:z00086 */}
                   </button>
@@ -1738,105 +1739,239 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
               <div data-pv-block="b00250" className="relative z-[1]">
                 {/* pv-editable-zone-start:z00088 */}
                   {/* pv-block-start:b00251 */}
-                  {tab === "npx" && (
+                  {tab === "auto" && (
                     <>
                       {/* pv-block-start:b00252 */}
-                      <div data-pv-block="b00252" className="font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Run this in your terminal:</div>
+                      <div data-pv-block="b00252" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
+                        Step 1: Run this in your terminal:
+                      </div>
                       {/* pv-block-end:b00252 */}
                       {/* pv-block-start:b00253 */}
-                      <div data-pv-block="b00253" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
+                      <div data-pv-block="b00253" className="bg-background-sunken border-border-secondary rounded-[10px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px] p-3">
                         {/* pv-editable-zone-start:z00089 */}
-                          {/* pv-block-start:b00254 */}
-                          <span data-pv-block="b00254" className="font-bold shrink-0 text-foreground-primary">$</span>
-                          {/* pv-block-end:b00254 */}
+                          {/* pv-block-start:9ioxu8 */}
+                          <Icon data-pv-block="9ioxu8" iconSymbol="mdi:dollar" size="sm" className="shrink-0 text-foreground-primary mt-[1px]" />
+                          {/* pv-block-end:9ioxu8 */}
                           {/* pv-block-start:b00255 */}
-                          <code data-pv-block="b00255">npx protovibe@latest init</code>
+                          <code data-pv-block="b00255">{installCommand}</code>
                           {/* pv-block-end:b00255 */}
                         {/* pv-editable-zone-end:z00089 */}
                       </div>
                       {/* pv-block-end:b00253 */}
-                      {/* pv-block-start:b00256 */}
-                      <div data-pv-block="b00256" className="mt-[12px] flex gap-[10px] flex-wrap font-mono text-[11.5px] text-foreground-tertiary">
-                        {/* pv-editable-zone-start:z00090 */}
-                          {/* pv-block-start:b00257 */}
-                          <span data-pv-block="b00257">Requires Node 20+</span>
-                          {/* pv-block-end:b00257 */}
-                          {/* pv-block-start:b00258 */}
-                          <span data-pv-block="b00258" className="text-border-strong">·</span>
-                          {/* pv-block-end:b00258 */}
-                          {/* pv-block-start:b00259 */}
-                          <span data-pv-block="b00259">macOS · Linux · Windows (WSL)</span>
-                          {/* pv-block-end:b00259 */}
-                        {/* pv-editable-zone-end:z00090 */}
+
+                      {/* pv-block-start:auto12 */}
+                      <div data-pv-block="auto12" className="flex gap-[10px] items-start p-[12px_14px] rounded-[10px] border-0 border-border-default bg-background-secondary mt-2">
+                        {/* pv-editable-zone-start:zauto5 */}
+                          {/* pv-block-start:autoic */}
+                          <Icon data-pv-block="autoic" iconSymbol="mdi:lightbulb-on-outline" size="sm" className="shrink-0 text-foreground-primary mt-[1px]" />
+                          {/* pv-block-end:autoic */}
+                          {/* pv-block-start:autotx */}
+                          <span data-pv-block="autotx" className="text-[13px] text-foreground-secondary leading-[1.55]">
+                            Don't want to use a terminal yourself? Paste the command into your coding agent (Claude Code, Cursor, Copilot, Gemini CLI) and ask it to run the script. It'll do exactly the same thing.
+                          </span>
+                          {/* pv-block-end:autotx */}
+                        {/* pv-editable-zone-end:zauto5 */}
                       </div>
-                      {/* pv-block-end:b00256 */}
+                      {/* pv-block-end:auto12 */}
+
+                      {/* pv-block-start:cpybtn */}
+                      <button
+                        data-pv-block="cpybtn"
+                        onClick={onCopy}
+                        className="mt-[12px] appearance-none border-0 bg-background-primary text-white font-inherit font-semibold text-[14px] p-[10px_18px] rounded-[9px] inline-flex items-center gap-[8px] cursor-pointer transition-transform duration-150 hover:-translate-y-[1px] shadow-[0_8px_28px_-10px_rgba(61,123,255,0.6)]">
+                        {/* pv-editable-zone-start:zcpy01 */}
+                          {/* pv-block-start:cpyico */}
+                          <Icon data-pv-block="cpyico" iconSymbol={copied ? "mdi:check" : "mdi:content-copy"} size="sm" />
+                          {/* pv-block-end:cpyico */}
+                          {/* pv-block-start:cpylbl */}
+                          <span data-pv-block="cpylbl">{copied ? "Copied!" : "Copy command"}</span>
+                          {/* pv-block-end:cpylbl */}
+                        {/* pv-editable-zone-end:zcpy01 */}
+                      </button>
+                      {/* pv-block-end:cpybtn */}
+                      {/* pv-block-start:wfo39x */}
+                      <div data-pv-block="wfo39x" className="font-semibold text-[12.5px] text-foreground-secondary mt-6 mb-2">
+                        Step 2: Drag Protovibe.app into Applications folder
+                      </div>
+                      {/* pv-block-end:wfo39x */}
+                      {/* pv-block-start:sgaea1 */}
+                      <div data-pv-block="sgaea1" className="w-full bg-[url('/src/images/from-protovibe/image.png')] bg-contain bg-center bg-no-repeat aspect-[410/151] rounded mt-0" />
+                      {/* pv-block-end:sgaea1 */}
+
                     </>
                   )}
                   {/* pv-block-end:b00251 */}
 
                   {/* pv-block-start:b00260 */}
-                  {tab === "ai" && (
+                  {tab === "manual" && (
                     <>
-                      {/* pv-block-start:b00261 */}
-                      <div data-pv-block="b00261" className="font-bold text-[11px] text-foreground-tertiary tracking-[0.16em] uppercase mb-[10px]">Paste this into your coding agent:</div>
-                      {/* pv-block-end:b00261 */}
-                      {/* pv-block-start:b00262 */}
-                      <div data-pv-block="b00262" className="bg-background-sunken border border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[12.5px] text-foreground-strong leading-[1.55] overflow-auto max-h-[260px]">
-                        {/* pv-editable-zone-start:z00091 */}
-                          {/* pv-block-start:b00263 */}
-                          <pre data-pv-block="b00263" className="m-0 whitespace-pre-wrap break-words"><code data-pv-block="b00264">{`I want to install and run Protovibe, an open-source design tool, on my computer.
-
-Please do the following, asking me before any destructive step:
-
-1. Check that I have Node.js 20+ installed; if not, tell me how to install it for my OS.
-2. Create a folder called \`protovibe\` in my current directory.
-3. Clone https://github.com/protovibe/protovibe.git into that folder.
-4. Install dependencies with my package manager (prefer pnpm, fall back to npm).
-5. Copy \`.env.example\` to \`.env\` and leave the defaults.
-6. Start the dev server with \`pnpm dev\` (or \`npm run dev\`).
-7. When it's running, print the local URL (http://localhost:5173) and stop — don't open the browser.
-
-If anything fails, show me the exact error and stop. Do not fix it silently.`}</code></pre>
-                          {/* pv-block-end:b00263 */}
-                        {/* pv-editable-zone-end:z00091 */}
+                      {/* pv-block-start:man01 */}
+                      <div data-pv-block="man01" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 1 — Clone the repo</div>
+                      {/* pv-block-end:man01 */}
+                      {/* pv-block-start:man02 */}
+                      <div data-pv-block="man02" className="bg-background-sunken border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
+                        {/* pv-editable-zone-start:zman1 */}
+                          {/* pv-block-start:man03 */}
+                          <span data-pv-block="man03" className="font-bold shrink-0 text-foreground-primary">$</span>
+                          {/* pv-block-end:man03 */}
+                          {/* pv-block-start:man04 */}
+                          <code data-pv-block="man04">{`git clone https://github.com/Protovibe-Studio/protovibe.git && cd protovibe`}</code>
+                          {/* pv-block-end:man04 */}
+                        {/* pv-editable-zone-end:zman1 */}
                       </div>
-                      {/* pv-block-end:b00262 */}
-                      {/* pv-block-start:b00265 */}
-                      <div data-pv-block="b00265" className="mt-[12px] flex gap-[10px] flex-wrap font-mono text-[11.5px] text-foreground-tertiary">
-                        {/* pv-editable-zone-start:z00092 */}
-                          {/* pv-block-start:b00266 */}
-                          <span data-pv-block="b00266">Works with Claude Code, Copilot, Gemini CLI, Cursor, Aider…</span>
-                          {/* pv-block-end:b00266 */}
-                        {/* pv-editable-zone-end:z00092 */}
+                      {/* pv-block-end:man02 */}
+
+                      {/* pv-block-start:man05 */}
+                      <div data-pv-block="man05" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 2 — Run the install script</div>
+                      {/* pv-block-end:man05 */}
+                      {/* pv-block-start:man06 */}
+                      <div data-pv-block="man06" className="bg-background-sunken border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
+                        {/* pv-editable-zone-start:zman2 */}
+                          {/* pv-block-start:man07 */}
+                          <span data-pv-block="man07" className="font-bold shrink-0 text-foreground-primary">$</span>
+                          {/* pv-block-end:man07 */}
+                          {/* pv-block-start:man08 */}
+                          <code data-pv-block="man08">bash install.sh</code>
+                          {/* pv-block-end:man08 */}
+                        {/* pv-editable-zone-end:zman2 */}
                       </div>
-                      {/* pv-block-end:b00265 */}
+                      {/* pv-block-end:man06 */}
+
+                      {/* pv-block-start:man09 */}
+                      <div data-pv-block="man09" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">Step 3 — Drag Protovibe.app into Applications</div>
+                      {/* pv-block-end:man09 */}
+                      {/* pv-block-start:man10 */}
+                      <div data-pv-block="man10" className="text-[14px] text-foreground-default leading-[1.55]">
+                        The script opens a window with the <b className="font-semibold text-foreground-strong">Protovibe.app</b> icon. Drag it into your <b className="font-semibold text-foreground-strong">Applications</b> folder and you're set.
+                      </div>
+                      {/* pv-block-end:man10 */}
+
+                      {/* pv-block-start:man11 */}
+                      <div data-pv-block="man11" className="mt-[16px] text-[13px] text-foreground-secondary leading-[1.55] p-[12px_14px] rounded-[10px] border-border-secondary bg-background-secondary">
+                        Prefer not to use the Protovibe.app file? You don't have to. You can just run <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-sunken text-foreground-strong">pnpm&nbsp;isntall&nbsp;&&&nbsp;pnp&nbsp;dev</code> and run it manually.
+                      </div>
+                      {/* pv-block-end:man11 */}
                     </>
                   )}
                   {/* pv-block-end:b00260 */}
 
-                  {/* pv-block-start:b00267 */}
-                  <div data-pv-block="b00267" className="mt-[20px] flex gap-[10px] items-center flex-wrap">
-                    {/* pv-editable-zone-start:z00093 */}
-                      {/* pv-block-start:b00268 */}
-                      <button
-                        data-pv-block="b00268"
-                        className="appearance-none border-0 p-[12px_20px] rounded-[9px] text-white font-inherit font-semibold text-[14px] transition-transform duration-150 hover:-translate-y-[1px] bg-background-primary shadow-[0_8px_28px_-10px_rgba(61,123,255,0.6)]">
-                        Copy
-                      </button>
-                      {/* pv-block-end:b00268 */}
-                      {/* pv-block-start:b00269 */}
-                      <a data-pv-block="b00269" className="p-[12px_18px] rounded-[9px] border border-border-strong text-foreground-strong font-medium text-[14px] inline-flex items-center gap-[8px] transition-colors duration-150 hover:bg-background-tertiary" href="#">
-                        {/* pv-editable-zone-start:z00094 */}
-                          {/* pv-block-start:b00270 */}
-                          <span data-pv-block="b00270" className="text-[14px] text-foreground-primary">★</span>
-                          {/* pv-block-end:b00270 */}
-                          Star on GitHub
-                        {/* pv-editable-zone-end:z00094 */}
-                      </a>
-                      {/* pv-block-end:b00269 */}
-                    {/* pv-editable-zone-end:z00093 */}
+                  {/* pv-block-start:faq01 */}
+                  <div data-pv-block="faq01" className="mt-[28px] pt-[12px] border-border-secondary flex flex-col border-t-0">
+                    {/* pv-editable-zone-start:zfaq1 */}
+                      {/* pv-block-start:faqs0 */}
+                      <details data-pv-block="faqs0" className="border-b border-border-secondary group">
+                        {/* pv-editable-zone-start:zfaqs0 */}
+                          {/* pv-block-start:faqs0a */}
+                          <summary data-pv-block="faqs0a" className="list-none cursor-pointer py-[14px] px-[4px] flex items-center justify-between gap-[16px] font-secondary font-semibold text-[14px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white [&::-webkit-details-marker]:hidden">
+                            {/* pv-editable-zone-start:zfaqs0a */}
+                              {/* pv-block-start:faqs0t */}
+                              <span data-pv-block="faqs0t">
+                                What is installed, step by step?
+                              </span>
+                              {/* pv-block-end:faqs0t */}
+                              {/* pv-block-start:faqs0i */}
+                              <Icon data-pv-block="faqs0i" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
+                              {/* pv-block-end:faqs0i */}
+                            {/* pv-editable-zone-end:zfaqs0a */}
+                          </summary>
+                          {/* pv-block-end:faqs0a */}
+
+                          {/* pv-block-start:faqs0b */}
+                          <ol data-pv-block="faqs0b" className="list-none p-0 px-[4px] pb-[20px] m-0 flex flex-col gap-[10px]">
+                            {/* pv-editable-zone-start:zfaqs0b */}
+                              {/* pv-block-start:auto03 */}
+                              <li data-pv-block="auto03" className="flex gap-[12px] items-start text-[14px] leading-[1.55] text-foreground-default">
+                                {/* pv-editable-zone-start:zauto2 */}
+                                  {/* pv-block-start:auto04 */}
+                                  <span data-pv-block="auto04" className="shrink-0 w-[22px] h-[22px] rounded-full bg-background-tertiary text-foreground-strong text-[12px] font-semibold inline-flex items-center justify-center mt-[1px]">1</span>
+                                  {/* pv-block-end:auto04 */}
+                                  {/* pv-block-start:auto05 */}
+                                  <span data-pv-block="auto05">Checks if you have Node.js. If not, it installs it for you — no manual setup.</span>
+                                  {/* pv-block-end:auto05 */}
+                                {/* pv-editable-zone-end:zauto2 */}
+                              </li>
+                              {/* pv-block-end:auto03 */}
+
+                              {/* pv-block-start:auto06 */}
+                              <li data-pv-block="auto06" className="flex gap-[12px] items-start text-[14px] leading-[1.55] text-foreground-default">
+                                {/* pv-editable-zone-start:zauto3 */}
+                                  {/* pv-block-start:auto07 */}
+                                  <span data-pv-block="auto07" className="shrink-0 w-[22px] h-[22px] rounded-full bg-background-tertiary text-foreground-strong text-[12px] font-semibold inline-flex items-center justify-center mt-[1px]">2</span>
+                                  {/* pv-block-end:auto07 */}
+                                  {/* pv-block-start:auto08 */}
+                                  <span data-pv-block="auto08">Downloads Protovibe and gets it ready to run on your computer.</span>
+                                  {/* pv-block-end:auto08 */}
+                                {/* pv-editable-zone-end:zauto3 */}
+                              </li>
+                              {/* pv-block-end:auto06 */}
+
+                              {/* pv-block-start:auto09 */}
+                              <li data-pv-block="auto09" className="flex gap-[12px] items-start text-[14px] leading-[1.55] text-foreground-default">
+                                {/* pv-editable-zone-start:zauto4 */}
+                                  {/* pv-block-start:auto10 */}
+                                  <span data-pv-block="auto10" className="shrink-0 w-[22px] h-[22px] rounded-full bg-background-tertiary text-foreground-strong text-[12px] font-semibold inline-flex items-center justify-center mt-[1px]">3</span>
+                                  {/* pv-block-end:auto10 */}
+                                  {/* pv-block-start:auto11 */}
+                                  <span data-pv-block="auto11">Opens a familiar window where you drag <b className="font-semibold text-foreground-strong">Protovibe.app</b> into your <b className="font-semibold text-foreground-strong">Applications</b> folder. Done — launch it like any other app.</span>
+                                  {/* pv-block-end:auto11 */}
+                                {/* pv-editable-zone-end:zauto4 */}
+                              </li>
+                              {/* pv-block-end:auto09 */}
+                            {/* pv-editable-zone-end:zfaqs0b */}
+                          </ol>
+                          {/* pv-block-end:faqs0b */}
+                        {/* pv-editable-zone-end:zfaqs0 */}
+                      </details>
+                      {/* pv-block-end:faqs0 */}
+
+                      {/* pv-block-start:faq03 */}
+                      <details data-pv-block="faq03" className="border-b border-border-secondary group">
+                        {/* pv-editable-zone-start:zfaq2 */}
+                          {/* pv-block-start:faq04 */}
+                          <summary data-pv-block="faq04" className="list-none cursor-pointer py-[14px] px-[4px] flex items-center justify-between gap-[16px] font-secondary font-semibold text-[14px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white [&::-webkit-details-marker]:hidden">
+                            {/* pv-editable-zone-start:zfaq2b */}
+                              {/* pv-block-start:faq04a */}
+                              <span data-pv-block="faq04a">Why install through the terminal?</span>
+                              {/* pv-block-end:faq04a */}
+                              {/* pv-block-start:faq04b */}
+                              <Icon data-pv-block="faq04b" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
+                              {/* pv-block-end:faq04b */}
+                            {/* pv-editable-zone-end:zfaq2b */}
+                          </summary>
+                          {/* pv-block-end:faq04 */}
+                          {/* pv-block-start:faq05 */}
+                          <div data-pv-block="faq05" className="px-[4px] pb-[20px] text-[14px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">We're working on a one-click installer, but for now the terminal is the most reliable way to set up the development dependencies Protovibe runs on (Node, pnpm, the project itself). It's one paste — and the script does the rest.</div>
+                          {/* pv-block-end:faq05 */}
+                        {/* pv-editable-zone-end:zfaq2 */}
+                      </details>
+                      {/* pv-block-end:faq03 */}
+
+                      {/* pv-block-start:faq06 */}
+                      <details data-pv-block="faq06" className="border-b border-border-secondary group">
+                        {/* pv-editable-zone-start:zfaq3 */}
+                          {/* pv-block-start:faq07 */}
+                          <summary data-pv-block="faq07" className="list-none cursor-pointer py-[14px] px-[4px] flex items-center justify-between gap-[16px] font-secondary font-semibold text-[14px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white [&::-webkit-details-marker]:hidden">
+                            {/* pv-editable-zone-start:zfaq3b */}
+                              {/* pv-block-start:faq07a */}
+                              <span data-pv-block="faq07a">What exactly does this script do?</span>
+                              {/* pv-block-end:faq07a */}
+                              {/* pv-block-start:faq07b */}
+                              <Icon data-pv-block="faq07b" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
+                              {/* pv-block-end:faq07b */}
+                            {/* pv-editable-zone-end:zfaq3b */}
+                          </summary>
+                          {/* pv-block-end:faq07 */}
+                          {/* pv-block-start:faq08 */}
+                          <div data-pv-block="faq08" className="px-[4px] pb-[20px] text-[14px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
+                            Everything is open and readable. The main install logic lives in <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/install.sh" target="_blank" rel="noreferrer">install.sh</a>, and the curl one-liner just downloads and runs it via <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/init-installation-via-curl.sh" target="_blank" rel="noreferrer">init-installation-via-curl.sh</a>. If you'd like a second opinion, paste either file into your coding agent and ask it to walk you through what each line does.
+                          </div>
+                          {/* pv-block-end:faq08 */}
+                        {/* pv-editable-zone-end:zfaq3 */}
+                      </details>
+                      {/* pv-block-end:faq06 */}
+                    {/* pv-editable-zone-end:zfaq1 */}
                   </div>
-                  {/* pv-block-end:b00267 */}
+                  {/* pv-block-end:faq01 */}
                 {/* pv-editable-zone-end:z00088 */}
               </div>
               {/* pv-block-end:b00250 */}
