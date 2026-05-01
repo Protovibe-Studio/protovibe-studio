@@ -882,7 +882,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
 
       {/* ── BG Color ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -892,8 +892,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onMouseEnter={() => setBgHovered(true)}
           onMouseLeave={() => setBgHovered(false)}
         >
-          <span style={{ fontSize: '9px', color: bgHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>BG Color</span>
-          <span style={{ color: bgHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: bgHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Background Color</span>
+          <span style={{ color: bgHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {bgExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>
         </button>
@@ -938,7 +938,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         {bgExpanded && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opacity</span>
+              <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Opacity</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: theme.bg_tertiary, borderRadius: '3px', padding: bgOpacityNum !== 100 ? '2px 2px 2px 6px' : '2px 6px' }}>
                 <span style={{ fontSize: '9px', fontFamily: 'monospace', color: bgOpacityNum !== 100 ? theme.accent_default : theme.border_strong, minWidth: '24px', textAlign: 'center' }}>
                   {localBgOpacity ?? bgOpacityNum}%
@@ -985,8 +985,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onMouseLeave={() => setBorderColorHovered(false)}
           title={borderColorExpanded ? 'Collapse border colors' : 'Expand border colors'}
         >
-          <span style={{ fontSize: '9px', color: borderColorHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>Border color</span>
-          <span style={{ color: borderColorHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: borderColorHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Border color</span>
+          <span style={{ color: borderColorHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {borderColorExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>
         </button>
@@ -1004,7 +1004,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         {borderColorExpanded && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opacity</span>
+              <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Opacity</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: theme.bg_tertiary, borderRadius: '3px', padding: borderOpacityNum !== 100 ? '2px 2px 2px 6px' : '2px 6px' }}>
                 <span style={{ fontSize: '9px', fontFamily: 'monospace', color: borderOpacityNum !== 100 ? theme.accent_default : theme.border_strong, minWidth: '24px', textAlign: 'center' }}>
                   {localBorderOpacity ?? borderOpacityNum}%
@@ -1096,8 +1096,8 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onMouseLeave={() => setRadiusHovered(false)}
           title={radiusExpanded ? 'Collapse corners' : 'Expand corners'}
         >
-          <span style={{ fontSize: '9px', color: radiusHovered ? theme.text_secondary : theme.text_tertiary, textTransform: 'uppercase', transition: 'color 0.15s' }}>Border radius</span>
-          <span style={{ color: radiusHovered ? theme.text_secondary : theme.text_tertiary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: radiusHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Border radius</span>
+          <span style={{ color: radiusHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {radiusExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>
         </button>

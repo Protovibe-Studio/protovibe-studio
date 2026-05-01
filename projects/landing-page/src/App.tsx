@@ -46,7 +46,7 @@ function ProtovibeMockup() {
   return (
     <>
       {/* pv-block-start:b00001 */}
-      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-contain bg-center bg-no-repeat rounded-lg opacity-90 border-border-default border-0 bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070801.png')] aspect-[664/401]" role="img" aria-label="Protovibe app preview">
+      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-contain bg-center bg-no-repeat rounded-lg opacity-90 border-border-default border-0 bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-191643.png')] aspect-[664/401]" role="img" aria-label="Protovibe app preview">
         <br />
       </div>
       {/* pv-block-end:b00001 */}
@@ -890,19 +890,19 @@ function HowItWorks(props: any) {
             {/* pv-editable-zone-start:z00026 */}
               {/* Step 1 */}
               {/* pv-block-start:b00097 */}
-              <div data-pv-block="b00097" className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] md:grid-cols-[64px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
+              <div data-pv-block="b00097" className="grid grid-cols-[44px_1fr] md:grid-cols-[44px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
                 {/* pv-editable-zone-start:z00027 */}
                   {/* pv-block-start:b00098 */}
-                  <div data-pv-block="b00098" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
+                  <div data-pv-block="b00098" className="absolute left-[21px] top-[44px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00098 */}
                   {/* pv-block-start:b00099 */}
-                  <div data-pv-block="b00099" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00099" className="w-[44px] h-[44px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     1
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
                   {/* pv-block-end:b00099 */}
                   {/* pv-block-start:b00100 */}
-                  <div data-pv-block="b00100" className="pt-[14px] min-w-0 md:col-auto col-span-1">
+                  <div data-pv-block="b00100" className="min-w-0 md:col-auto col-span-1 pt-2.5">
                     {/* pv-editable-zone-start:z00028 */}
                       {/* pv-block-start:b00101 */}
                       <h3 data-pv-block="b00101" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">
@@ -918,7 +918,7 @@ function HowItWorks(props: any) {
                   </div>
                   {/* pv-block-end:b00100 */}
                   {/* pv-block-start:b00103 */}
-                  <div data-pv-block="b00103" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[78px] md:ml-0 md:max-w-[540px]">
+                  <div data-pv-block="b00103" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
                     <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
                       Miejsce na grafikę
                     </div>
@@ -930,23 +930,23 @@ function HowItWorks(props: any) {
 
               {/* Step 2 */}
               {/* pv-block-start:b00104 */}
-              <div data-pv-block="b00104" className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] md:grid-cols-[64px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
+              <div data-pv-block="b00104" className="grid grid-cols-[44px_1fr] md:grid-cols-[44px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
                 {/* pv-editable-zone-start:z00029 */}
                   {/* pv-block-start:b00105 */}
-                  <div data-pv-block="b00105" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
+                  <div data-pv-block="b00105" className="absolute left-[21px] top-[44px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00105 */}
                   {/* pv-block-start:b00106 */}
-                  <div data-pv-block="b00106" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00106" className="w-[44px] h-[44px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     2
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
                   {/* pv-block-end:b00106 */}
                   {/* pv-block-start:b00107 */}
-                  <div data-pv-block="b00107" className="pt-[14px] min-w-0 md:col-auto col-span-1">
+                  <div data-pv-block="b00107" className="min-w-0 md:col-auto col-span-1 pt-2.5">
                     {/* pv-editable-zone-start:z00030 */}
                       {/* pv-block-start:b00108 */}
                       <h3 data-pv-block="b00108" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">
-                        Set up your colors and design system
+                        Set up your colors and tokens
                       </h3>
                       {/* pv-block-end:b00108 */}
                       {/* pv-block-start:b00109 */}
@@ -958,7 +958,7 @@ function HowItWorks(props: any) {
                   </div>
                   {/* pv-block-end:b00107 */}
                   {/* pv-block-start:b00110 */}
-                  <div data-pv-block="b00110" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[78px] md:ml-0 md:max-w-[540px]">
+                  <div data-pv-block="b00110" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
                     <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
                       Miejsce na grafikę
                     </div>
@@ -970,35 +970,35 @@ function HowItWorks(props: any) {
 
               {/* Step 3 */}
               {/* pv-block-start:b00111 */}
-              <div data-pv-block="b00111" className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] md:grid-cols-[64px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
+              <div data-pv-block="b00111" className="grid grid-cols-[44px_1fr] md:grid-cols-[44px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative pb-[40px] sm:pb-[48px] md:pb-[56px] items-start">
                 {/* pv-editable-zone-start:z00031 */}
                   {/* pv-block-start:b00112 */}
-                  <div data-pv-block="b00112" className="absolute left-[21px] sm:left-[27px] md:left-[31px] top-[44px] sm:top-[56px] md:top-[64px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
+                  <div data-pv-block="b00112" className="absolute left-[21px] top-[44px] bottom-0 w-[1px] bg-gradient-to-b from-[rgba(255,255,255,.18)] via-[rgba(255,255,255,.18)] to-transparent" />
                   {/* pv-block-end:b00112 */}
                   {/* pv-block-start:b00113 */}
-                  <div data-pv-block="b00113" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00113" className="w-[44px] h-[44px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     3
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
                   {/* pv-block-end:b00113 */}
                   {/* pv-block-start:b00114 */}
-                  <div data-pv-block="b00114" className="pt-[14px] min-w-0 md:col-auto col-span-1">
+                  <div data-pv-block="b00114" className="min-w-0 md:col-auto col-span-1 pt-2.5">
                     {/* pv-editable-zone-start:z00032 */}
                       {/* pv-block-start:b00115 */}
                       <h3 data-pv-block="b00115" className="font-secondary font-bold text-[20px] md:text-[24px] leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_10px]">
-                        Design and have fun
+                        Adjust components library
                       </h3>
                       {/* pv-block-end:b00115 */}
                       {/* pv-block-start:b00116 */}
                       <p data-pv-block="b00116" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">
-                        Protovibe opens at localhost and works offline. It's a normal development environment, but you just don't need to code.
+                        Easily adjust all variants of components to fit your design system. It might take a few hours to get right, but it's worth the effort.
                       </p>
                       {/* pv-block-end:b00116 */}
                     {/* pv-editable-zone-end:z00032 */}
                   </div>
                   {/* pv-block-end:b00114 */}
                   {/* pv-block-start:b00117 */}
-                  <div data-pv-block="b00117" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[78px] md:ml-0 md:max-w-[540px]">
+                  <div data-pv-block="b00117" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
                     <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
                       Miejsce na grafikę
                     </div>
@@ -1010,10 +1010,10 @@ function HowItWorks(props: any) {
 
               {/* Step 4 */}
               {/* pv-block-start:b00118 */}
-              <div data-pv-block="b00118" className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] md:grid-cols-[64px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative items-start">
+              <div data-pv-block="b00118" className="grid grid-cols-[44px_1fr] md:grid-cols-[44px_minmax(220px,1fr)_minmax(360px,1.25fr)] gap-x-[18px] sm:gap-x-[22px] md:gap-x-[32px] gap-y-[16px] relative items-start">
                 {/* pv-editable-zone-start:z00033 */}
                   {/* pv-block-start:b00119 */}
-                  <div data-pv-block="b00119" className="w-[44px] h-[44px] sm:w-[56px] sm:h-[56px] md:w-[64px] md:h-[64px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] sm:text-[22px] md:text-[26px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
+                  <div data-pv-block="b00119" className="w-[44px] h-[44px] rounded-full bg-background-secondary border border-border-default flex items-center justify-center font-secondary font-bold text-[18px] tracking-[-0.02em] text-foreground-strong relative z-[1] shrink-0">
                     4
                     <div className="absolute inset-[-1px] rounded-full border border-border-primary opacity-55 pointer-events-none" />
                   </div>
@@ -1033,7 +1033,7 @@ function HowItWorks(props: any) {
                   </div>
                   {/* pv-block-end:b00120 */}
                   {/* pv-block-start:b00123 */}
-                  <div data-pv-block="b00123" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[78px] md:ml-0 md:max-w-[540px]">
+                  <div data-pv-block="b00123" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
                     <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
                       Miejsce na grafikę
                     </div>
@@ -1063,7 +1063,7 @@ function ProblemSolution(props: any) {
               {/* pv-block-end:b00126 */}
               {/* pv-block-start:b00127 */}
               <h2 data-pv-block="b00127" className="font-secondary font-bold text-[clamp(32px,4.2vw,54px)] leading-[1.04] tracking-[-0.03em] text-foreground-strong m-0 text-balance">
-                Protovibe fixes what AI tools did wrong
+                Protovibe fixes what AI web builders did wrong
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
@@ -1403,7 +1403,7 @@ function ProblemSolution(props: any) {
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
                       <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Design is the code<br />
+                        Design is now promptable<br />
                       </h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
@@ -1414,7 +1414,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00175 */}
                           {/* pv-block-start:b00176 */}
                           <p data-pv-block="b00176" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Designs look pristine in Figma. Then engineering ships something… close. Pixels, states, and edge cases get lost in translation.
+                            Designs look pristine in Figma. But pixels, states, and edge cases get lost in translation.
                           </p>
                           {/* pv-block-end:b00176 */}
                         {/* pv-editable-zone-end:z00056 */}
@@ -1428,7 +1428,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00178 */}
                           {/* pv-block-start:b00179 */}
                           <p data-pv-block="b00179" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Your design and code is the same single source of truth with a <b className="text-foreground-default font-normal"> two‑way sync</b>. Developers can just read the code for specs. Wait... you can even build a production app directly in Protovibe if you want.
+                            Your design and code is the same single source of truth with a <b className="text-foreground-default font-normal"> two‑way sync</b>. We've prepared useful prompts library for you so, for different situations.
                           </p>
                           {/* pv-block-end:b00179 */}
                         {/* pv-editable-zone-end:z00057 */}
@@ -2306,7 +2306,7 @@ function Testimonial(props: any) {
             {/* pv-editable-zone-start:z00114 */}
               {/* pv-block-start:b00324 */}
               <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                We've made Protovibe to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. And we've made it free.
+                We've tried to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. Hope you guys will like it! Oh, and don't forget to send us your feedback.
               </p>
               {/* pv-block-end:b00324 */}
 

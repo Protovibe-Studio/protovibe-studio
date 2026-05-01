@@ -261,7 +261,7 @@ function InteractivePreview({ lightPos, onLightChange, shadowCSS }: PreviewProps
         position: 'absolute',
         bottom: 8,
         fontSize: 10,
-        fontFamily: 'sans-serif',
+        fontFamily: theme.font_ui,
         fontWeight: 500,
         color: '#999',
         background: 'rgba(255,255,255,0.7)',
@@ -301,7 +301,7 @@ function SliderControl({ label, value, min, max, step = 1, onChange }: SliderCon
         alignItems: 'center',
         fontSize: 12,
       }}>
-        <label style={{ fontFamily: 'sans-serif', fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
+        <label style={{ fontFamily: theme.font_ui, fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
           {label}
         </label>
         <span style={{ fontFamily: 'monospace', fontSize: 11, color: theme.text_tertiary }}>
@@ -440,7 +440,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
           --{tokenName}
         </div>
         <div style={{
-          fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary, marginTop: 2,
+          fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, marginTop: 2,
         }}>
           {inset ? 'Inset shadow' : 'Shadow'} · {layersCount} layer{layersCount !== 1 ? 's' : ''}
         </div>
@@ -489,7 +489,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             justifyContent: 'space-between',
             fontSize: 12,
           }}>
-            <span style={{ fontFamily: 'sans-serif', fontWeight: 500, color: theme.text_secondary }}>
+            <span style={{ fontFamily: theme.font_ui, fontWeight: 500, color: theme.text_secondary }}>
               Color
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -547,7 +547,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
           borderTop: `1px solid ${theme.border_secondary}`,
         }}>
           <div style={{
-            fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500,
+            fontFamily: theme.font_ui, fontSize: 11, fontWeight: 500,
             color: theme.text_tertiary, marginBottom: 6,
           }}>
             Custom CSS
@@ -590,7 +590,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             padding: '6px 16px', background: 'transparent',
             border: `1px solid ${theme.border_default}`, borderRadius: 6,
             cursor: 'pointer', color: theme.text_secondary,
-            fontFamily: 'sans-serif', fontSize: 12,
+            fontFamily: theme.font_ui, fontSize: 12,
           }}
         >
           Cancel
@@ -603,7 +603,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             border: 'none', borderRadius: 6,
             cursor: 'pointer',
             color: '#fff',
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             transition: 'background 0.15s',
           }}
         >

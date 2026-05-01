@@ -40,7 +40,7 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Align</span>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Align</span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <SegmentedControl
@@ -73,7 +73,7 @@ export const Typography: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Decor</span>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Decor</span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <SegmentedControl

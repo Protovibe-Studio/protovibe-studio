@@ -19,7 +19,7 @@ export const VisualSection: React.FC<VisualSectionProps> = ({ title, children, h
           justifyContent: 'space-between',
           padding: '12px 20px',
           color: theme.text_default,
-          fontSize: '10px',
+          fontSize: '11px',
           fontWeight: '600',
           }}
       >

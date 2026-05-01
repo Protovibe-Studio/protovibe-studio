@@ -64,7 +64,7 @@ export const InspectorSlider: React.FC<InspectorSliderProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>
           {label}
         </span>
         <div style={{

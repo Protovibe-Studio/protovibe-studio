@@ -48,7 +48,7 @@ function DeployHistory({ history, open, onToggle }: { history: string[]; open: b
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           background: 'none', border: 'none', cursor: 'pointer',
-          color: theme.text_tertiary, fontSize: '11px', fontFamily: 'sans-serif', padding: '0',
+          color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui, padding: '0',
         }}
       >
         Previous versions ({history.length})
@@ -212,7 +212,7 @@ export function PublishButton() {
     width: '100%', height: '36px', borderRadius: '8px',
     border: `1px solid ${theme.border_default}`, cursor: 'pointer',
     backgroundColor: theme.bg_secondary, color: theme.text_default,
-    fontSize: '13px', fontWeight: 500, fontFamily: 'sans-serif',
+    fontSize: '13px', fontWeight: 500, fontFamily: theme.font_ui,
     transition: 'background-color 0.15s ease',
   };
   const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_tertiary; };
@@ -221,7 +221,7 @@ export function PublishButton() {
     width: '100%', boxSizing: 'border-box', height: '32px', padding: '0 10px',
     borderRadius: '6px', border: `1px solid ${theme.border_default}`,
     backgroundColor: theme.bg_secondary, color: theme.text_default,
-    fontSize: '12px', fontFamily: 'sans-serif', outline: 'none',
+    fontSize: '12px', fontFamily: theme.font_ui, outline: 'none',
   };
 
   const sectionHeader = (label: string, icon?: React.ReactNode) => (
@@ -464,7 +464,7 @@ export function PublishButton() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '3px',
                     background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-                    color: theme.text_tertiary, fontSize: '11px', fontFamily: 'sans-serif',
+                    color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui,
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; }}
@@ -543,7 +543,7 @@ export function PublishButton() {
             padding: '20px',
             boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
             zIndex: 9999,
-            fontFamily: 'sans-serif',
+            fontFamily: theme.font_ui,
           }}
         >
           {renderBody()}

@@ -113,7 +113,7 @@ function SliderWithInput({
           <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: theme.accent_default }}>
             {label}
           </span>
-          <span style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary }}>
+          <span style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary }}>
             {description}
           </span>
         </div>
@@ -179,7 +179,7 @@ interface ConversionInputProps {
 function ConversionInput({ label, placeholder, value, error, onChange, onFocus, onBlur }: ConversionInputProps) {
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ fontFamily: 'sans-serif', fontSize: 10, fontWeight: 600, color: theme.text_tertiary, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>
+      <div style={{ fontFamily: theme.font_ui, fontSize: 10, fontWeight: 600, color: theme.text_tertiary, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>
         {label}
       </div>
       <input
@@ -402,7 +402,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
           <div style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             --{tokenName}
           </div>
-          <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary, marginTop: 2 }}>
+          <div style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, marginTop: 2 }}>
             {modeLabel} theme
           </div>
         </div>
@@ -501,7 +501,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
           onFocus={() => setHexFocused(true)}
           onBlur={() => { setHexFocused(false); setHexError(false); setHexRaw(currentHex); }}
         />
-        <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary, marginTop: -2, marginBottom: 4, lineHeight: 1.4 }}>
+        <div style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, marginTop: -2, marginBottom: 4, lineHeight: 1.4 }}>
           Tip: paste any CSS color (hsl, named, color(…), etc.) into any field — it'll convert.
         </div>
       </div>
@@ -513,7 +513,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
         display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center',
       }}>
         {!canSave && (
-          <span style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.destructive_default, marginRight: 'auto' }}>
+          <span style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.destructive_default, marginRight: 'auto' }}>
             Fix invalid values to save
           </span>
         )}
@@ -523,7 +523,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
             padding: '6px 16px', background: 'transparent',
             border: `1px solid ${theme.border_default}`, borderRadius: 6,
             cursor: 'pointer', color: theme.text_secondary,
-            fontFamily: 'sans-serif', fontSize: 12,
+            fontFamily: theme.font_ui, fontSize: 12,
           }}
         >
           Cancel
@@ -537,7 +537,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
             border: 'none', borderRadius: 6,
             cursor: canSave ? 'pointer' : 'not-allowed',
             color: canSave ? '#fff' : theme.text_tertiary,
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             transition: 'background 0.15s, color 0.15s',
           }}
         >

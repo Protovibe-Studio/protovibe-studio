@@ -105,7 +105,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width }}>
-      {label && <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', width: '50px', flexShrink: 0 }}>{label}</span>}
+      {label && <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary, width: '50px', flexShrink: 0 }}>{label}</span>}
       <div style={groupStyle}>
         {segments.map((seg, idx) => {
           const isActive = Array.isArray(value) ? value.includes(seg.val) : value === seg.val;

@@ -111,7 +111,7 @@ export function LinkPopover({ initialUrl, anchorRect, onSave, onRemove, onCancel
             padding: '6px 12px', background: 'transparent',
             border: `1px solid ${theme.border_default}`, borderRadius: 6,
             cursor: 'pointer', color: theme.text_secondary,
-            fontFamily: 'sans-serif', fontSize: 12,
+            fontFamily: theme.font_ui, fontSize: 12,
           }}
         >
           Remove
@@ -124,7 +124,7 @@ export function LinkPopover({ initialUrl, anchorRect, onSave, onRemove, onCancel
               padding: '6px 12px', background: 'transparent',
               border: `1px solid ${theme.border_default}`, borderRadius: 6,
               cursor: 'pointer', color: theme.text_secondary,
-              fontFamily: 'sans-serif', fontSize: 12,
+              fontFamily: theme.font_ui, fontSize: 12,
             }}
           >
             Cancel
@@ -137,7 +137,7 @@ export function LinkPopover({ initialUrl, anchorRect, onSave, onRemove, onCancel
               background: theme.accent_default,
               border: 'none', borderRadius: 6,
               cursor: 'pointer', color: '#fff',
-              fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+              fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             }}
           >
             Save

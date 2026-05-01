@@ -208,7 +208,7 @@ export const FloatingToolbar: React.FC = () => {
     border: 'none',
     color: 'rgba(255,255,255,0.82)',
     fontSize: '12px',
-    fontFamily: 'sans-serif',
+    fontFamily: theme.font_ui,
     fontWeight: 500,
     cursor: locked ? 'progress' : 'pointer',
     opacity: locked ? 0.45 : 1,

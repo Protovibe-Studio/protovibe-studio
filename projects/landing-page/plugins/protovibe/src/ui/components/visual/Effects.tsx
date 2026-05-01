@@ -42,7 +42,7 @@ export const Effects: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         {/* ── Opacity slider ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opacity</span>
+            <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Opacity</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: theme.bg_tertiary, borderRadius: '3px', padding: opacityNum !== 100 ? '2px 2px 2px 6px' : '2px 6px' }}>
               <span style={{ fontSize: '9px', fontFamily: 'monospace', color: opacityNum !== 100 ? theme.accent_default : theme.border_strong, minWidth: '24px', textAlign: 'center' }}>
                 {localOpacity ?? opacityNum}%
