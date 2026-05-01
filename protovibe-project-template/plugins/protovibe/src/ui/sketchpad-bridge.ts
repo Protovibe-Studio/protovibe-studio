@@ -401,6 +401,7 @@ function collectSnapContext(frameEl: HTMLElement, exclude: HTMLElement[]): SnapC
   const all = Array.from(frameEl.querySelectorAll<HTMLElement>('[data-pv-sketchpad-el], [data-pv-block]'));
   const isExcluded = (el: HTMLElement) => exclude.some(x => x === el || x.contains(el) || el.contains(x));
   const targets: SnapRect[] = [];
+  targets.push(makeSnapRect(0, 0, fr.width / zoom, fr.height / zoom));
   for (const el of all) {
     if (isExcluded(el)) continue;
     const r = el.getBoundingClientRect();

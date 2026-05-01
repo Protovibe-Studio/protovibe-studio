@@ -1137,7 +1137,7 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00200" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00066 */}
                   {/* pv-block-start:b00201 */}
-                  <div data-pv-block="b00201" className="md:order-last aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
+                  <div data-pv-block="b00201" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-[url('/src/images/from-protovibe/add-items.png')] bg-contain bg-center bg-no-repeat aspect-[640/643]">
                     Miejsce na grafikę
                   </div>
                   {/* pv-block-end:b00201 */}
