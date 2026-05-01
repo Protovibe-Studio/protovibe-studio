@@ -1627,17 +1627,24 @@ function FAQ(props: any) {
 
 function InstallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState("auto");
+  const [platform, setPlatform] = useState<"mac" | "windows" | null>(null);
   const [copied, setCopied] = useState(false);
-  const installCommand = "curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/init-installation-via-curl.sh | bash";
+  const installCommand = "curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.sh | bash";
+  const windowsZipUrl = "https://github.com/Protovibe-Studio/protovibe-studio/archive/refs/heads/main.zip";
   const onCopy = () => {
     navigator.clipboard.writeText(installCommand);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
+  const handleClose = () => {
+    setPlatform(null);
+    setTab("auto");
+    onClose();
+  };
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
@@ -1651,7 +1658,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
   return (
     <>
       {/* pv-block-start:b00231 */}
-      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-start justify-center p-[12px] pt-[32px] sm:p-[24px] sm:pt-[64px] animate-[fade-in_0.2s_ease] overflow-y-auto overflow-scroll" onClick={onClose}>
+      <div data-pv-block="b00231" className="fixed inset-0 z-[100] bg-background-overlay flex items-start justify-center p-[12px] pt-[32px] sm:p-[24px] sm:pt-[64px] animate-[fade-in_0.2s_ease] overflow-y-auto overflow-scroll" onClick={handleClose}>
         {/* pv-editable-zone-start:z00080 */}
           {/* pv-block-start:b00232 */}
           <div data-pv-block="b00232" className="relative w-full rounded-[16px] p-[20px] sm:p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl overflow-hidden max-w-[640px]" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
@@ -1660,7 +1667,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
               <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-10" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
               {/* pv-block-end:b00233 */}
               {/* pv-block-start:b00234 */}
-              <button data-pv-block="b00234" className="absolute top-[14px] right-[14px] appearance-none border-0 bg-transparent text-foreground-secondary w-[32px] h-[32px] rounded-[8px] text-[14px] transition-colors duration-150 z-[2] hover:bg-background-tertiary hover:text-foreground-strong" onClick={onClose} aria-label="Close">✕</button>
+              <button data-pv-block="b00234" className="absolute top-[14px] right-[14px] appearance-none border-0 bg-transparent text-foreground-secondary w-[32px] h-[32px] rounded-[8px] text-[14px] transition-colors duration-150 z-[2] hover:bg-background-tertiary hover:text-foreground-strong" onClick={handleClose} aria-label="Close">✕</button>
               {/* pv-block-end:b00234 */}
 
               {/* pv-block-start:b00235 */}
@@ -1671,11 +1678,64 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                     Install Protovibe
                   </h3>
                   {/* pv-block-end:b00237 */}
+                  {/* pv-block-start:plsub1 */}
+                  {platform && (
+                    <button data-pv-block="plsub1" onClick={() => setPlatform(null)} className="appearance-none border-0 bg-transparent p-0 text-[13px] text-foreground-secondary hover:text-foreground-default cursor-pointer inline-flex items-center gap-[6px] -mt-2 mb-2">
+                      <Icon iconSymbol="mdi:arrow-left" size="sm" />
+                      <span>Change platform</span>
+                    </button>
+                  )}
+                  {/* pv-block-end:plsub1 */}
                 {/* pv-editable-zone-end:z00082 */}
               </div>
               {/* pv-block-end:b00235 */}
 
+              {/* pv-block-start:plpick */}
+              {!platform && (
+                <div data-pv-block="plpick" className="relative z-[1]">
+                  {/* pv-editable-zone-start:zplpck */}
+                    {/* pv-block-start:plpfx0 */}
+                    <div data-pv-block="plpfx0" className="text-[14px] text-foreground-secondary leading-[1.55] mb-[16px]">
+                      Choose your platform to see the right install steps.
+                    </div>
+                    {/* pv-block-end:plpfx0 */}
+                    {/* pv-block-start:plpgrd */}
+                    <div data-pv-block="plpgrd" className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                      {/* pv-editable-zone-start:zplgrd */}
+                        {/* pv-block-start:plpmac */}
+                        <button data-pv-block="plpmac" onClick={() => setPlatform("mac")} className="appearance-none text-left rounded-[10px] p-[20px] font-inherit cursor-pointer transition-colors duration-150 bg-background-tertiary border-2 border-border-secondary hover:bg-background-secondary hover:border-border-primary flex items-center gap-[14px]">
+                          {/* pv-editable-zone-start:zplmac */}
+                            {/* pv-block-start:plpmci */}
+                            <Icon data-pv-block="plpmci" iconSymbol="mdi:apple" size="lg" className="text-foreground-strong" />
+                            {/* pv-block-end:plpmci */}
+                            {/* pv-block-start:plpmcl */}
+                            <span data-pv-block="plpmcl" className="font-semibold text-[15px] text-foreground-strong">Mac</span>
+                            {/* pv-block-end:plpmcl */}
+                          {/* pv-editable-zone-end:zplmac */}
+                        </button>
+                        {/* pv-block-end:plpmac */}
+                        {/* pv-block-start:plpwin */}
+                        <button data-pv-block="plpwin" onClick={() => setPlatform("windows")} className="appearance-none text-left rounded-[10px] p-[20px] font-inherit cursor-pointer transition-colors duration-150 bg-background-tertiary border-2 border-border-secondary hover:bg-background-secondary hover:border-border-primary flex items-center gap-[14px]">
+                          {/* pv-editable-zone-start:zplwin */}
+                            {/* pv-block-start:plpwni */}
+                            <Icon data-pv-block="plpwni" iconSymbol="mdi:microsoft-windows" size="lg" className="text-foreground-strong" />
+                            {/* pv-block-end:plpwni */}
+                            {/* pv-block-start:plpwnl */}
+                            <span data-pv-block="plpwnl" className="font-semibold text-[15px] text-foreground-strong">Windows</span>
+                            {/* pv-block-end:plpwnl */}
+                          {/* pv-editable-zone-end:zplwin */}
+                        </button>
+                        {/* pv-block-end:plpwin */}
+                      {/* pv-editable-zone-end:zplgrd */}
+                    </div>
+                    {/* pv-block-end:plpgrd */}
+                  {/* pv-editable-zone-end:zplpck */}
+                </div>
+              )}
+              {/* pv-block-end:plpick */}
+
               {/* pv-block-start:b00239 */}
+              {platform && (
               <div data-pv-block="b00239" className="grid grid-cols-1 sm:grid-cols-2 gap-[10px] mb-[20px] relative z-[1]" role="tablist">
                 {/* pv-editable-zone-start:z00083 */}
                   {/* pv-block-start:b00240 */}
@@ -1699,7 +1759,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                       {/* pv-block-end:b00241 */}
                       {/* pv-block-start:b00244 */}
                       <div data-pv-block="b00244" className="text-[12.5px] text-foreground-secondary leading-[1.5]">
-                        One terminal command.
+                        {platform === "windows" ? "Download ZIP, run install.bat." : "One terminal command."}
                       </div>
                       {/* pv-block-end:b00244 */}
                     {/* pv-editable-zone-end:z00084 */}
@@ -1733,13 +1793,15 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {/* pv-block-end:b00245 */}
                 {/* pv-editable-zone-end:z00083 */}
               </div>
+              )}
               {/* pv-block-end:b00239 */}
 
               {/* pv-block-start:b00250 */}
+              {platform && (
               <div data-pv-block="b00250" className="relative z-[1]">
                 {/* pv-editable-zone-start:z00088 */}
                   {/* pv-block-start:b00251 */}
-                  {tab === "auto" && (
+                  {tab === "auto" && platform === "mac" && (
                     <>
                       {/* pv-block-start:b00252 */}
                       <div data-pv-block="b00252" className="font-semibold text-[12.5px] mb-[10px] flex items-center gap-[8px] text-foreground-default">
@@ -1820,6 +1882,69 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   )}
                   {/* pv-block-end:b00251 */}
 
+                  {/* pv-block-start:winauto */}
+                  {tab === "auto" && platform === "windows" && (
+                    <>
+                      {/* pv-block-start:wins01 */}
+                      <div data-pv-block="wins01" className="font-semibold text-[12.5px] mb-[10px] flex items-center gap-[8px] text-foreground-default">
+                        {/* pv-editable-zone-start:zwins1 */}
+                          {/* pv-block-start:winsb1 */}
+                          <span data-pv-block="winsb1" className="inline-flex items-center justify-center rounded-full font-bold leading-none shrink-0 bg-background-tertiary text-foreground-secondary text-xs p-2 h-6">
+                            Step 1
+                          </span>
+                          {/* pv-block-end:winsb1 */}
+                          {/* pv-block-start:winst1 */}
+                          <span data-pv-block="winst1">Download the project as a ZIP and unzip it</span>
+                          {/* pv-block-end:winst1 */}
+                        {/* pv-editable-zone-end:zwins1 */}
+                      </div>
+                      {/* pv-block-end:wins01 */}
+                      {/* pv-block-start:winzip */}
+                      <a data-pv-block="winzip" href={windowsZipUrl} className="appearance-none border-0 bg-background-primary text-white font-inherit no-underline font-semibold text-[14px] p-[10px_18px] rounded-[9px] inline-flex items-center gap-[8px] cursor-pointer transition-transform duration-150 hover:-translate-y-[1px] shadow-[0_8px_28px_-10px_rgba(61,123,255,0.6)]">
+                        {/* pv-editable-zone-start:zwzip */}
+                          {/* pv-block-start:winzii */}
+                          <Icon data-pv-block="winzii" iconSymbol="mdi:download" size="sm" />
+                          {/* pv-block-end:winzii */}
+                          {/* pv-block-start:winzil */}
+                          <span data-pv-block="winzil">Download ZIP</span>
+                          {/* pv-block-end:winzil */}
+                        {/* pv-editable-zone-end:zwzip */}
+                      </a>
+                      {/* pv-block-end:winzip */}
+
+                      {/* pv-block-start:wins02 */}
+                      <div data-pv-block="wins02" className="font-semibold text-[12.5px] mt-6 mb-2 flex items-center gap-[8px] text-foreground-default">
+                        {/* pv-editable-zone-start:zwins2 */}
+                          {/* pv-block-start:winsb2 */}
+                          <span data-pv-block="winsb2" className="inline-flex items-center justify-center rounded-full font-bold leading-none shrink-0 bg-background-tertiary text-foreground-secondary text-xs p-2 h-6">
+                            Step 2
+                          </span>
+                          {/* pv-block-end:winsb2 */}
+                          {/* pv-block-start:winst2 */}
+                          <span data-pv-block="winst2">Double-click <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-sunken text-foreground-strong">install.bat</code> inside the unzipped folder</span>
+                          {/* pv-block-end:winst2 */}
+                        {/* pv-editable-zone-end:zwins2 */}
+                      </div>
+                      {/* pv-block-end:wins02 */}
+
+                      {/* pv-block-start:winhint */}
+                      <div data-pv-block="winhint" className="flex gap-[10px] items-start p-[12px_14px] rounded-[10px] border-0 border-border-default bg-background-secondary mt-2">
+                        {/* pv-editable-zone-start:zwhint */}
+                          {/* pv-block-start:winhic */}
+                          <Icon data-pv-block="winhic" iconSymbol="mdi:lightbulb-on-outline" size="sm" className="shrink-0 text-foreground-primary mt-[1px]" />
+                          {/* pv-block-end:winhic */}
+                          {/* pv-block-start:winhtx */}
+                          <span data-pv-block="winhtx" className="text-[13px] text-foreground-secondary leading-[1.55]">
+                            The script installs Node.js and the Protovibe dependencies for you, then drops a Protovibe shortcut on your desktop. If Windows SmartScreen warns about the file, click <b className="font-semibold text-foreground-strong">More info → Run anyway</b>.
+                          </span>
+                          {/* pv-block-end:winhtx */}
+                        {/* pv-editable-zone-end:zwhint */}
+                      </div>
+                      {/* pv-block-end:winhint */}
+                    </>
+                  )}
+                  {/* pv-block-end:winauto */}
+
                   {/* pv-block-start:b00260 */}
                   {tab === "manual" && (
                     <>
@@ -1835,7 +1960,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                           <span data-pv-block="man03" className="font-bold shrink-0 text-foreground-primary">$</span>
                           {/* pv-block-end:man03 */}
                           {/* pv-block-start:man04 */}
-                          <code data-pv-block="man04">{`git clone https://github.com/Protovibe-Studio/protovibe.git && cd protovibe`}</code>
+                          <code data-pv-block="man04">{`git clone https://github.com/Protovibe-Studio/protovibe-studio.git && cd protovibe-studio`}</code>
                           {/* pv-block-end:man04 */}
                         {/* pv-editable-zone-end:zman1 */}
                       </div>
@@ -1843,7 +1968,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
 
                       {/* pv-block-start:man05 */}
                       <div data-pv-block="man05" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
-                        Run the install script
+                        Install dependencies and start Protovibe
                       </div>
                       {/* pv-block-end:man05 */}
                       {/* pv-block-start:man06 */}
@@ -1853,26 +1978,15 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                           <span data-pv-block="man07" className="font-bold shrink-0 text-foreground-primary">$</span>
                           {/* pv-block-end:man07 */}
                           {/* pv-block-start:man08 */}
-                          <code data-pv-block="man08">bash install.sh</code>
+                          <code data-pv-block="man08">pnpm install && pnpm dev</code>
                           {/* pv-block-end:man08 */}
                         {/* pv-editable-zone-end:zman2 */}
                       </div>
                       {/* pv-block-end:man06 */}
 
-                      {/* pv-block-start:man09 */}
-                      <div data-pv-block="man09" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
-                        Drag Protovibe.app into Applications
-                      </div>
-                      {/* pv-block-end:man09 */}
-                      {/* pv-block-start:man10 */}
-                      <div data-pv-block="man10" className="text-[14px] text-foreground-default leading-[1.55]">
-                        The script opens a window with the <b className="font-semibold text-foreground-strong">Protovibe.app</b> icon. Drag it into your <b className="font-semibold text-foreground-strong">Applications</b> folder and you're set.
-                      </div>
-                      {/* pv-block-end:man10 */}
-
                       {/* pv-block-start:man11 */}
                       <div data-pv-block="man11" className="mt-[16px] text-[13px] text-foreground-secondary leading-[1.55] p-[12px_14px] rounded-[10px] border-border-secondary bg-background-secondary">
-                        Prefer not to use the Protovibe.app file? You don't have to. You can just run <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-sunken text-foreground-strong">pnpm&nbsp;isntall&nbsp;&&&nbsp;pnp&nbsp;dev</code> and run it manually.
+                        With the manual setup you'll need to run <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-sunken text-foreground-strong">pnpm&nbsp;dev</code> every time you want to launch Protovibe. If you'd rather get a desktop launcher, you can still run <code className="font-mono text-[12.5px] px-[6px] py-[1px] rounded-[4px] bg-background-sunken text-foreground-strong">{platform === "windows" ? "install.bat" : "bash install.sh"}</code> from the project folder.
                       </div>
                       {/* pv-block-end:man11 */}
                     </>
@@ -1936,7 +2050,11 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                                   <span data-pv-block="auto10" className="shrink-0 w-[22px] h-[22px] rounded-full bg-background-tertiary text-foreground-strong text-[12px] font-semibold inline-flex items-center justify-center mt-[1px]">3</span>
                                   {/* pv-block-end:auto10 */}
                                   {/* pv-block-start:auto11 */}
-                                  <span data-pv-block="auto11">Opens a familiar window where you drag <b className="font-semibold text-foreground-strong">Protovibe.app</b> into your <b className="font-semibold text-foreground-strong">Applications</b> folder. Done — launch it like any other app.</span>
+                                  {platform === "windows" ? (
+                                    <span data-pv-block="auto11">Creates a <b className="font-semibold text-foreground-strong">Protovibe</b> shortcut on your desktop. Done — double-click it like any other app.</span>
+                                  ) : (
+                                    <span data-pv-block="auto11">Opens a familiar window where you drag <b className="font-semibold text-foreground-strong">Protovibe.app</b> into your <b className="font-semibold text-foreground-strong">Applications</b> folder. Done — launch it like any other app.</span>
+                                  )}
                                   {/* pv-block-end:auto11 */}
                                 {/* pv-editable-zone-end:zauto4 */}
                               </li>
@@ -1955,7 +2073,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                           <summary data-pv-block="faq04" className="list-none cursor-pointer py-[14px] px-[4px] flex items-center justify-between gap-[16px] font-secondary font-semibold text-[14px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white [&::-webkit-details-marker]:hidden">
                             {/* pv-editable-zone-start:zfaq2b */}
                               {/* pv-block-start:faq04a */}
-                              <span data-pv-block="faq04a">Why install through the terminal?</span>
+                              <span data-pv-block="faq04a">{platform === "windows" ? "Why install via a ZIP and a .bat file?" : "Why install through the terminal?"}</span>
                               {/* pv-block-end:faq04a */}
                               {/* pv-block-start:faq04b */}
                               <Icon data-pv-block="faq04b" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
@@ -1964,7 +2082,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                           </summary>
                           {/* pv-block-end:faq04 */}
                           {/* pv-block-start:faq05 */}
-                          <div data-pv-block="faq05" className="px-[4px] pb-[20px] text-[14px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">We're working on a one-click installer, but for now the terminal is the most reliable way to set up the development dependencies Protovibe runs on (Node, pnpm, the project itself). It's one paste — and the script does the rest.</div>
+                          <div data-pv-block="faq05" className="px-[4px] pb-[20px] text-[14px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">{platform === "windows" ? "We're working on a one-click installer, but for now the ZIP + install.bat combo is the most reliable way to set up the development dependencies Protovibe runs on (Node, pnpm, the project itself). Two clicks and the script does the rest." : "We're working on a one-click installer, but for now the terminal is the most reliable way to set up the development dependencies Protovibe runs on (Node, pnpm, the project itself). It's one paste — and the script does the rest."}</div>
                           {/* pv-block-end:faq05 */}
                         {/* pv-editable-zone-end:zfaq2 */}
                       </details>
@@ -1987,7 +2105,11 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                           {/* pv-block-end:faq07 */}
                           {/* pv-block-start:faq08 */}
                           <div data-pv-block="faq08" className="px-[4px] pb-[20px] text-[14px] text-foreground-secondary leading-[1.6] max-w-[64ch] text-pretty">
-                            Everything is open and readable. The main install logic lives in <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/install.sh" target="_blank" rel="noreferrer">install.sh</a>, and the curl one-liner just downloads and runs it via <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/init-installation-via-curl.sh" target="_blank" rel="noreferrer">init-installation-via-curl.sh</a>. If you'd like a second opinion, paste either file into your coding agent and ask it to walk you through what each line does.
+                            {platform === "windows" ? (
+                              <>Everything is open and readable. The install logic lives in <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/install.bat" target="_blank" rel="noreferrer">install.bat</a> at the root of the project. If you'd like a second opinion, paste the file into your coding agent and ask it to walk you through what each line does.</>
+                            ) : (
+                              <>Everything is open and readable. The main install logic lives in <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/install.sh" target="_blank" rel="noreferrer">install.sh</a>, and the curl one-liner just downloads and runs it via <a className="text-foreground-primary underline hover:no-underline" href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/init-installation-via-curl.sh" target="_blank" rel="noreferrer">init-installation-via-curl.sh</a>. If you'd like a second opinion, paste either file into your coding agent and ask it to walk you through what each line does.</>
+                            )}
                           </div>
                           {/* pv-block-end:faq08 */}
                         {/* pv-editable-zone-end:zfaq3 */}
@@ -1998,6 +2120,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                   {/* pv-block-end:faq01 */}
                 {/* pv-editable-zone-end:z00088 */}
               </div>
+              )}
               {/* pv-block-end:b00250 */}
             {/* pv-editable-zone-end:z00081 */}
           </div>

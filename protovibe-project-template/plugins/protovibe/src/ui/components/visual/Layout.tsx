@@ -706,7 +706,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '8px',
+            padding: '4px',
             borderRadius: '6px',
             border: `1px solid ${triggerBorderColor}`,
             background: theme.bg_secondary,
@@ -715,7 +715,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
             transition: 'border-color 0.15s',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div style={{ width: '28px', height: '28px', flexShrink: 0, filter: hasAnySourceOverride ? 'none' : 'saturate(0)' }}>
               {renderTriggerIcon()}
             </div>

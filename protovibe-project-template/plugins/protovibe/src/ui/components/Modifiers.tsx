@@ -238,8 +238,8 @@ export const Modifiers: React.FC = () => {
   const hasAny = chips.length > 0;
 
   return (
-    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 20px' }}>
-      <div style={{ color: theme.text_default, fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>
+    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 20px 16px' }}>
+      <div style={{ color: theme.text_default, fontSize: '10px', lineHeight: '20px', fontWeight: '600', marginBottom: '8px' }}>
         Which state to style?
       </div>
 
