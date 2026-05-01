@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card'
 
 export default function Frame12() {
   return (
-    <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div className="" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:8vfkil */}
         {/* pv-block-start:qhp4te */}
         <Input data-pv-block="qhp4te" data-pv-sketchpad-el="qhp4te" style={{ position: 'absolute', width: 332, left: 169, top: 236 }} placeholder="" />
@@ -64,7 +64,7 @@ export default function Frame12() {
         <Rectangle data-pv-block="ots7xh" data-pv-sketchpad-el="ots7xh" style={{ position: 'absolute', height: 893, width: 768, left: 670, top: 2 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
           {/* pv-editable-zone-start:c1hraq */}
             {/* pv-block-start:m0wqnp */}
-            <div data-pv-block="m0wqnp" data-pv-sketchpad-el="m0wqnp" style={{ position: 'absolute', width: 1692, left: -221, top: -77 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]" />
+            <div data-pv-block="m0wqnp" data-pv-sketchpad-el="m0wqnp" style={{ position: 'absolute', width: 1692, left: -176, top: -88 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]" />
             {/* pv-block-end:m0wqnp */}
           {/* pv-editable-zone-end:c1hraq */}
         </Rectangle>
@@ -91,6 +91,15 @@ export default function Frame12() {
           {/* pv-editable-zone-end:o6jpcb */}
         </HorizontalLine>
         {/* pv-block-end:zfri22 */}
+        {/* pv-block-start:l2rae2 */}
+        <div data-pv-block="l2rae2" data-pv-sketchpad-el="l2rae2" style={{ position: 'absolute', left: 1550, top: -95 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612] opacity-23">
+          {/* pv-editable-zone-start:r5i3w2 */}
+            {/* pv-block-start:bvykzd */}
+            <Button data-pv-block="bvykzd"  label="Sign in" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:bvykzd */}
+          {/* pv-editable-zone-end:r5i3w2 */}
+        </div>
+        {/* pv-block-end:l2rae2 */}
       {/* pv-editable-zone-end:8vfkil */}
     </div>
   );

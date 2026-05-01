@@ -1648,7 +1648,7 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
           <div data-pv-block="b00232" className="relative w-full max-w-[620px] rounded-[16px] p-[36px_36px_32px] animate-[modal-in_0.25s_cubic-bezier(.2,.8,.3,1)] max-h-[calc(100vh-48px)] overflow-y-auto bg-background-elevated border-0 border-border-default shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             {/* pv-editable-zone-start:z00081 */}
               {/* pv-block-start:b00233 */}
-              <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-40" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
+              <div data-pv-block="b00233" className="absolute top-[-40%] left-[-10%] right-[-10%] h-[60%] pointer-events-none blur-[80px] z-0 rounded-[16px] opacity-10" style={{ background: 'radial-gradient(circle at 30% 50%, #3d7bff, transparent 60%), radial-gradient(circle at 70% 50%, oklch(0.70 0.26 320), transparent 60%)' }} />
               {/* pv-block-end:b00233 */}
               {/* pv-block-start:b00234 */}
               <button data-pv-block="b00234" className="absolute top-[14px] right-[14px] appearance-none border-0 bg-transparent text-foreground-secondary w-[32px] h-[32px] rounded-[8px] text-[14px] transition-colors duration-150 z-[2] hover:bg-background-tertiary hover:text-foreground-strong" onClick={onClose} aria-label="Close">✕</button>
@@ -1682,17 +1682,16 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                     data-pv-block="b00240"
                     role="tab"
                     aria-selected={tab === "npx"}
-                    className={`appearance-none text-left bg-background-subtle border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "npx" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"}`}
+                    className={`appearance-none text-left border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "npx" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"} bg-background-secondary`}
                     onClick={() => setTab("npx")}>
                     {/* pv-editable-zone-start:z00084 */}
                       {/* pv-block-start:b00241 */}
                       <div data-pv-block="b00241" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
                         {/* pv-editable-zone-start:z00085 */}
-                          {/* pv-block-start:b00242 */}
-                          <span data-pv-block="b00242" className="font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">01</span>
-                          {/* pv-block-end:b00242 */}
                           {/* pv-block-start:b00243 */}
-                          <span data-pv-block="b00243">I know my way around a terminal</span>
+                          <span data-pv-block="b00243">
+                            Automatic installation
+                          </span>
                           {/* pv-block-end:b00243 */}
                         {/* pv-editable-zone-end:z00085 */}
                       </div>
@@ -1709,17 +1708,16 @@ function InstallModal({ open, onClose }: { open: boolean; onClose: () => void })
                     data-pv-block="b00245"
                     role="tab"
                     aria-selected={tab === "ai"}
-                    className={`appearance-none text-left bg-background-subtle border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "ai" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"}`}
+                    className={`appearance-none text-left border rounded-[10px] p-[14px_16px] font-inherit cursor-pointer transition-colors duration-150 ${tab === "ai" ? "bg-background-secondary text-white border-border-primary" : "border-border-secondary text-foreground-secondary hover:bg-background-secondary hover:text-foreground-default"} bg-background-secondary`}
                     onClick={() => setTab("ai")}>
                     {/* pv-editable-zone-start:z00086 */}
                       {/* pv-block-start:b00246 */}
                       <div data-pv-block="b00246" className="flex items-center gap-[10px] font-semibold text-[14px] mb-[4px]">
                         {/* pv-editable-zone-start:z00087 */}
-                          {/* pv-block-start:b00247 */}
-                          <span data-pv-block="b00247" className="font-bold text-[10.5px] tracking-[0.16em] text-foreground-primary">02</span>
-                          {/* pv-block-end:b00247 */}
                           {/* pv-block-start:b00248 */}
-                          <span data-pv-block="b00248">I'd rather let my agent handle it</span>
+                          <span data-pv-block="b00248">
+                            Manual installation
+                          </span>
                           {/* pv-block-end:b00248 */}
                         {/* pv-editable-zone-end:z00087 */}
                       </div>

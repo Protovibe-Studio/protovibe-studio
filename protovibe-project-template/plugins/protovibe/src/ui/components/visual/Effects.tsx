@@ -14,7 +14,12 @@ export const Effects: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const [localOpacity, setLocalOpacity] = useState<number | null>(null);
 
   const opacityRaw = cleanVal(v.opacity);
-  const opacityNum = localOpacity ?? (opacityRaw ? parseInt(opacityRaw, 10) : 100);
+  const parseOpacity = (raw: string): number => {
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) return 100;
+    return raw.includes('.') && n <= 1 ? Math.round(n * 100) : Math.round(n);
+  };
+  const opacityNum = localOpacity ?? (opacityRaw ? parseOpacity(opacityRaw) : 100);
 
   const handleOpacityCommit = async (opacity: number) => {
     if (!activeData?.file) return;

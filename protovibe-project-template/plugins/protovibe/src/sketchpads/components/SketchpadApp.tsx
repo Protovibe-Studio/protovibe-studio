@@ -113,6 +113,10 @@ type SketchpadDropDetail = {
   y: number;
   isDuplicate?: boolean;
   activeSourceId?: string | null;
+  // Per-block source-frame-relative positions used as a fallback when the
+  // drop target has no editable zone — instead of snapping back, we apply
+  // these as a position-only update on the source frame.
+  fallbackPositions?: Array<{ blockId: string; x: number; y: number }>;
 };
 
 export function SketchpadApp() {
@@ -1192,9 +1196,22 @@ export function SketchpadApp() {
         y,
         isDuplicate,
         activeSourceId,
+        fallbackPositions,
       } = data;
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockIds?.length) return;
+
+      // When the drop target turns out to be invalid (no source locator or no
+      // editable zone), we keep the elements in their source frame and just
+      // update their absolute position so the user's drag isn't discarded.
+      const applyFallbackPositions = async () => {
+        if (!fallbackPositions?.length) return;
+        await Promise.all(
+          fallbackPositions.map((p) =>
+            api.updateElementPosition(sketchpadId, sourceFrameId, p.blockId, p.x, p.y),
+          ),
+        );
+      };
 
       const sourceFile = `src/sketchpads/${sketchpadId}/${sourceFrameId}.tsx`;
       const fallbackTargetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
@@ -1213,9 +1230,7 @@ export function SketchpadApp() {
 
             if (!isFrameTarget) {
               if (!targetLocatorId) {
-                window.dispatchEvent(new CustomEvent('pv-toast', {
-                  detail: { message: 'Cannot drop here - no source locator found', variant: 'error' },
-                }));
+                await applyFallbackPositions();
                 return;
               }
               try {
@@ -1225,18 +1240,14 @@ export function SketchpadApp() {
                 currentTargetEndLine = sourceInfo.endLine;
                 const zonesData = await fetchZones(sourceInfo.file, sourceInfo.startLine, sourceInfo.startCol, sourceInfo.endLine);
                 if (!zonesData?.zones?.length) {
-                  window.dispatchEvent(new CustomEvent('pv-toast', {
-                    detail: { message: 'Cannot drop here - no editable zone', variant: 'error' },
-                  }));
+                  await applyFallbackPositions();
                   return;
                 }
                 currentTargetZoneId = zonesData.zones[0].id;
                 currentTargetIsPristine = zonesData.zones[0].isPristine;
               } catch (err) {
                 console.error('[Sketchpad] Failed to resolve nested drop target:', err);
-                window.dispatchEvent(new CustomEvent('pv-toast', {
-                  detail: { message: 'Cannot resolve drop target', variant: 'error' },
-                }));
+                await applyFallbackPositions();
                 return;
               }
             }

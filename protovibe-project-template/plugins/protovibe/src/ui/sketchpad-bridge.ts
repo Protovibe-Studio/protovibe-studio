@@ -1183,13 +1183,25 @@ function handlePointerUp(e: PointerEvent) {
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
 
+        // Source-frame-relative positions, used by the parent shell as a
+        // fallback if zone resolution fails — keeps elements in place rather
+        // than snapping them back to their pre-drag origin.
+        const fallbackPositions = dragState.targets
+          .map(t => {
+            if (t.isFlow) return null;
+            const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
+            if (!blockId) return null;
+            return { blockId, x: t.origLeft + dx, y: t.origTop + dy };
+          })
+          .filter((p): p is { blockId: string; x: number; y: number } => p !== null);
+
         window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
           detail: {
             sketchpadId,
             sourceFrameId,
             targetFrameId,
             draggedBlockId: draggedBlockIds[0],
-            draggedBlockIds, 
+            draggedBlockIds,
             targetLocatorId,
             targetBlockId,
             isFrameTarget,
@@ -1198,6 +1210,7 @@ function handlePointerUp(e: PointerEvent) {
             targetLayoutMode: layoutMode,
             isDuplicate: e.altKey,
             activeSourceId: currentActiveSourceId,
+            fallbackPositions,
           },
         }));
 
