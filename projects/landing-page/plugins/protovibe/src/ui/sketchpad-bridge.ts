@@ -336,12 +336,16 @@ function collectPvLocs(el: HTMLElement): { name: string; value: string }[] {
 /** Check if pointer is near any resizable edge/corner and return which one. */
 function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): ResizeEdge | null {
   const rect = el.getBoundingClientRect();
-  const resizeBoth = el.getAttribute('data-pv-resizable') === 'both';
+  const resizeMode = el.getAttribute('data-pv-resizable');
+  const resizeBoth = resizeMode === 'both';
+  const allowH = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
+  const allowV = resizeBoth || resizeMode === 'vertical';
+  const allowLeft = resizeBoth || resizeMode === 'horizontal';
 
-  const nearRight = clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
-  const nearLeft = resizeBoth && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
-  const nearTop = resizeBoth && clientY >= rect.top - RESIZE_EDGE_PX && clientY <= rect.top + RESIZE_EDGE_PX;
-  const nearBottom = resizeBoth && clientY >= rect.bottom - RESIZE_EDGE_PX && clientY <= rect.bottom + RESIZE_EDGE_PX;
+  const nearRight = allowH && clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
+  const nearLeft = allowLeft && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
+  const nearTop = allowV && clientY >= rect.top - RESIZE_EDGE_PX && clientY <= rect.top + RESIZE_EDGE_PX;
+  const nearBottom = allowV && clientY >= rect.bottom - RESIZE_EDGE_PX && clientY <= rect.bottom + RESIZE_EDGE_PX;
 
   const withinX = clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
   const withinY = clientY >= rect.top - RESIZE_EDGE_PX && clientY <= rect.bottom + RESIZE_EDGE_PX;
@@ -1179,13 +1183,25 @@ function handlePointerUp(e: PointerEvent) {
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
 
+        // Source-frame-relative positions, used by the parent shell as a
+        // fallback if zone resolution fails — keeps elements in place rather
+        // than snapping them back to their pre-drag origin.
+        const fallbackPositions = dragState.targets
+          .map(t => {
+            if (t.isFlow) return null;
+            const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
+            if (!blockId) return null;
+            return { blockId, x: t.origLeft + dx, y: t.origTop + dy };
+          })
+          .filter((p): p is { blockId: string; x: number; y: number } => p !== null);
+
         window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-element', {
           detail: {
             sketchpadId,
             sourceFrameId,
             targetFrameId,
             draggedBlockId: draggedBlockIds[0],
-            draggedBlockIds, 
+            draggedBlockIds,
             targetLocatorId,
             targetBlockId,
             isFrameTarget,
@@ -1194,6 +1210,7 @@ function handlePointerUp(e: PointerEvent) {
             targetLayoutMode: layoutMode,
             isDuplicate: e.altKey,
             activeSourceId: currentActiveSourceId,
+            fallbackPositions,
           },
         }));
 

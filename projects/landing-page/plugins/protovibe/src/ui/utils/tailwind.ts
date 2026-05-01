@@ -166,6 +166,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
   const selfAligns = ['self-auto', 'self-start', 'self-center', 'self-end', 'self-stretch'];
   const wraps = ['flex-wrap', 'flex-nowrap', 'flex-wrap-reverse'];
   const positions = ['static', 'relative', 'absolute', 'fixed', 'sticky'];
+  const overflows = ['overflow-auto', 'overflow-hidden', 'overflow-visible', 'overflow-scroll', 'overflow-clip'];
 
   const flexes = ['flex-1', 'flex-auto', 'flex-initial', 'flex-none'];
   const grows = ['grow', 'grow-0'];
@@ -211,6 +212,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     else if (/^-?bottom-/.test(cls)) { v.bottom = cls.replace(/^-?bottom-/, cls.startsWith('-') ? '-' : ''); orig.bottom_original = originalClass; }
     else if (/^-?left-/.test(cls)) { v.left = cls.replace(/^-?left-/, cls.startsWith('-') ? '-' : ''); orig.left_original = originalClass; }
     else if (/^-?z-/.test(cls)) { v.z = cls.replace(/^-?z-/, cls.startsWith('-') ? '-' : ''); orig.z_original = originalClass; }
+    else if (overflows.includes(cls)) { v.overflow = cls; orig.overflow_original = originalClass; }
     else if (displays.includes(cls)) { v.display = cls; orig.display_original = originalClass; }
     else if (flexes.includes(cls)) { v.flex = cls; orig.flex_original = originalClass; }
     else if (grows.includes(cls)) { v.flexGrow = cls; orig.flexGrow_original = originalClass; }

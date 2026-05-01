@@ -26,6 +26,7 @@ function resolvePreviewValue(prefix: string, val: string, opt?: AutocompleteOpti
   if (!val) return null;
   if (isColorOption(opt)) return `var(--color-${val})`;
   if (opt?.desc && CSS_UNIT_OR_KEYWORD.test(opt.desc)) return opt.desc;
+  if (opt?.desc && PLAIN_NUMERIC.test(opt.desc)) return opt.desc;
   if (CSS_UNIT_OR_KEYWORD.test(val)) return val;
   if (PLAIN_NUMERIC.test(val)) return val;
   const token = prefix.replace(/-$/, '');

@@ -54,7 +54,7 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     flex: 1,
     minWidth: 0,
     width: '100%',
-    background: theme.bg_secondary,
+    backgroundColor: theme.bg_secondary,
     color: theme.text_default,
     padding: '4px 8px',
     borderRadius: '4px',

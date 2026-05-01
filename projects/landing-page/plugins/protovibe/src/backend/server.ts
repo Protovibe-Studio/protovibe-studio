@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
+import sharp from 'sharp';
 import { Connect } from 'vite';
 import * as babel from '@babel/core';
 // Import babel plugins as modules so they resolve from the plugin's own
@@ -2087,10 +2088,31 @@ export const handleGetThemeTokens: Connect.NextHandleFunction = (req, res) => {
   }
 };
 
+async function compressImage(input: Buffer, ext: string): Promise<Buffer> {
+  try {
+    const pipeline = sharp(input, { failOn: 'none' }).rotate();
+    if (ext === '.png') {
+      return await pipeline.png({ compressionLevel: 9, palette: true, quality: 80, effort: 7 }).toBuffer();
+    }
+    if (ext === '.jpg' || ext === '.jpeg') {
+      return await pipeline.jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+    }
+    if (ext === '.webp') {
+      return await pipeline.webp({ quality: 80 }).toBuffer();
+    }
+    if (ext === '.avif') {
+      return await pipeline.avif({ quality: 60 }).toBuffer();
+    }
+    return input;
+  } catch {
+    return input;
+  }
+}
+
 export const handleUploadImage: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
-  req.on('end', () => {
+  req.on('end', async () => {
     try {
       const { filename, base64Data } = JSON.parse(body);
       if (!filename || !base64Data) {
@@ -2123,7 +2145,11 @@ export const handleUploadImage: Connect.NextHandleFunction = (req, res) => {
 
       // Strip base64 header (supports SVG and all image types)
       const raw = base64Data.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
-      const buffer = Buffer.from(raw, 'base64');
+      const inputBuffer = Buffer.from(raw, 'base64');
+
+      // Compress before hashing so dedup matches what's actually written to disk.
+      // SVGs are skipped (sharp would rasterize them).
+      const buffer = ext === '.svg' ? inputBuffer : await compressImage(inputBuffer, ext);
       const uploadHash = crypto.createHash('sha256').update(buffer).digest('hex');
 
       // Check if a file with the same content hash already exists

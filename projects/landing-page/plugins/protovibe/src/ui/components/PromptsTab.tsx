@@ -316,7 +316,7 @@ export const PromptsTab: React.FC = () => {
     let text = renderPrompt(selectedPrompt, ctx, userInput);
     if (includeRules) {
       try {
-        const res = await fetch('/__read-project-file?file=AGENTS.md');
+        const res = await fetch('/__read-project-file?file=plugins/protovibe/PROTOVIBE_AGENTS.md');
         const data = await res.json();
         if (data.ok && data.content) {
           text += `\n\nHere's the full file with Protovibe rules you need to follow:\n${data.content}`;
@@ -544,7 +544,7 @@ export const PromptsTab: React.FC = () => {
                 {selectedPrompt.references.map(r => (
                   <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
                 ))}
-                <RefChip label="rules" value="AGENTS.md" />
+                <RefChip label="rules" value="PROTOVIBE_AGENTS.md" />
               </div>
             </div>
           )}

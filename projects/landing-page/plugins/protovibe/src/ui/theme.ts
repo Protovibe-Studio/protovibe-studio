@@ -1,14 +1,14 @@
 // plugins/protovibe/src/ui/theme.ts
 export const theme = {
   // Backgrounds
-  bg_default: '#191919',       // Main panels & sidebar
+  bg_default: '#212121',       // Main panels & sidebar
   bg_secondary: '#282828',     // Inputs, dropdowns, hover states
   bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
-  bg_strong: '#131313',        // Headers, deep backgrounds
+  bg_strong: '#1a1a1a',        // Headers, deep backgrounds
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
   // Text
-  text_default: '#FFFFFF',     // Active/Primary text
+  text_default: '#f1f1f1',     // Active/Primary text
   text_secondary: '#B3B3B3',   // Standard text, labels
   text_tertiary: '#7c7c7c',    // Muted text, placeholders
   text_low: '#6d6d6d',         // Lowest text

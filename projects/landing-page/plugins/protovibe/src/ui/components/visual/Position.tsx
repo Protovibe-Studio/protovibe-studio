@@ -12,6 +12,14 @@ const POSITION_OPTIONS = [
   { val: 'sticky', desc: 'sticky' },
 ];
 
+const OVERFLOW_OPTIONS = [
+  { val: 'overflow-visible', desc: 'visible' },
+  { val: 'overflow-hidden', desc: 'hidden' },
+  { val: 'overflow-scroll', desc: 'scroll' },
+  { val: 'overflow-auto', desc: 'auto' },
+  { val: 'overflow-clip', desc: 'clip' },
+];
+
 export const Position: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const activePos = v.position || domV?.position;
   const showOffsets = activePos === 'relative' || activePos === 'absolute' || activePos === 'fixed';
@@ -39,7 +47,19 @@ export const Position: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           </div>
         )}
 
-        <VisualControl label="Z-index" prefix="z-" cssProperty="zIndex" value={cleanVal(v.z)} options={SCALES.zIndex} originalClass={v.z_original} type="input" inheritedValue={cleanVal(domV?.z)} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          <VisualControl label="Z-index" prefix="z-" cssProperty="zIndex" value={cleanVal(v.z)} options={SCALES.zIndex} originalClass={v.z_original} type="input" inheritedValue={cleanVal(domV?.z)} />
+          <VisualControl
+            label="Overflow"
+            prefix=""
+            cssProperty="overflow"
+            value={v.overflow}
+            options={OVERFLOW_OPTIONS}
+            originalClass={v.overflow_original}
+            type="select"
+            inheritedValue={domV?.overflow}
+          />
+        </div>
       </div>
     </VisualSection>
   );
