@@ -57,11 +57,11 @@ export default function Frame12() {
         <Icon data-pv-block="poz5eh" data-pv-sketchpad-el="poz5eh" style={{ position: 'absolute', width: 20, left: 33, top: 29 }} iconSymbol="fluent-emoji-high-contrast:see-no-evil-monkey" size="lg" />
         {/* pv-block-end:poz5eh */}
         {/* pv-block-start:ny6dao */}
-        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 882, width: 768, left: 670, top: 13 }} className="w-[200px] h-[200px] overflow-hidden border-0">
+        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 893, width: 768, left: 670, top: 2 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none">
           {/* pv-editable-zone-start:69fbo3 */}
-            {/* pv-block-start:z4wydn */}
-            <div data-pv-block="z4wydn" data-pv-sketchpad-el="z4wydn" style={{ position: 'absolute', left: 70, top: 133, width: 1296 }} className="w-full bg-[url('/src/images/from-protovibe/chatgpt-image-apr-30-2026-101051-pm-1.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" />
-            {/* pv-block-end:z4wydn */}
+            {/* pv-block-start:km1api */}
+            <div data-pv-block="km1api" data-pv-sketchpad-el="km1api" style={{ position: 'absolute', width: 860, left: 184, top: 149 }} className="w-full bg-[url('/src/images/from-protovibe/image-2.png')] bg-contain bg-center bg-no-repeat aspect-[565/537]" />
+            {/* pv-block-end:km1api */}
           {/* pv-editable-zone-end:69fbo3 */}
         </Rectangle>
         {/* pv-block-end:ny6dao */}
@@ -72,7 +72,7 @@ export default function Frame12() {
         </VerticalLine>
         {/* pv-block-end:e4gqhr */}
         {/* pv-block-start:lic3hc */}
-        <TextParagraph data-pv-block="lic3hc" data-pv-sketchpad-el="lic3hc" style={{ position: 'absolute', left: 170, top: 583 }} typography="regular">
+        <TextParagraph className="flex flex-row gap-1" data-pv-block="lic3hc" data-pv-sketchpad-el="lic3hc" style={{ position: 'absolute', left: 170, top: 583 }} typography="regular">
           Don't have account? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Sign up</a>
         </TextParagraph>
         {/* pv-block-end:lic3hc */}
@@ -87,6 +87,9 @@ export default function Frame12() {
           {/* pv-editable-zone-end:wwkua1 */}
         </HorizontalLine>
         {/* pv-block-end:gk2qgn */}
+        {/* pv-block-start:lq7vos */}
+        <div data-pv-block="lq7vos" data-pv-sketchpad-el="lq7vos" style={{ position: 'absolute', left: -1426, top: -258, width: 1296 }} className="w-full bg-[url('/src/images/from-protovibe/chatgpt-image-apr-30-2026-101051-pm-1.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" />
+        {/* pv-block-end:lq7vos */}
       {/* pv-editable-zone-end:3ubuxh */}
     </div>
   );

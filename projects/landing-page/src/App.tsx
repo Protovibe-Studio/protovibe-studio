@@ -46,7 +46,7 @@ function ProtovibeMockup() {
   return (
     <>
       {/* pv-block-start:b00001 */}
-      <div data-pv-block="b00001" className="relative z-10 w-full aspect-video bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm" role="img" aria-label="Protovibe app preview">
+      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-053328.png')] bg-contain bg-center bg-no-repeat aspect-[691/436]" role="img" aria-label="Protovibe app preview">
         Miejsce na grafikę
       </div>
       {/* pv-block-end:b00001 */}
@@ -1982,7 +1982,7 @@ function Hero(props: any) {
           {/* pv-block-end:b00310 */}
 
           {/* pv-block-start:b00314 */}
-          <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto max-w-[1140px] flex-1">
+          <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto flex-1">
             {/* pv-editable-zone-start:z00111 */}
               {/* pv-block-start:b00315 */}
               <div data-pv-block="b00315" className="absolute left-[-30%] right-[-30%] top-[-75%] bottom-[5%] z-0 blur-[130px] opacity-[0.78] pointer-events-none animate-[glow-breathe_10s_ease-in-out_infinite]" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 18%, #000 50%, #000 100%)' }}>
