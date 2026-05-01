@@ -19,7 +19,8 @@
       "Bash(awk -F: '$1 >= 2380 && $1 <= 2420')",
       "Bash(ls *)",
       "WebSearch",
-      "Bash(pnpm build *)"
+      "Bash(pnpm build *)",
+      "Bash(python3)"
     ]
   },
   "outputStyle": "Explanatory"

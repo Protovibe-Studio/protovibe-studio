@@ -121,8 +121,8 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
   const sectionLabel = (label: string) => (
     <div style={{
       padding: '5px 12px 3px',
-      fontFamily: 'sans-serif', fontSize: '9px', fontWeight: 700,
-      color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.08em',
+      fontFamily: theme.font_ui, fontSize: '11px', lineHeight: '11px', fontWeight: 700,
+      color: theme.text_tertiary, letterSpacing: '0.08em',
       background: theme.bg_strong,
       borderBottom: `1px solid ${theme.border_secondary}`,
     }}>
@@ -167,7 +167,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
       </span>
       {badge && (
         <span style={{
-          fontFamily: 'sans-serif', fontSize: '9px',
+          fontFamily: theme.font_ui, fontSize: '9px',
           color: theme.text_tertiary, flexShrink: 0,
           textTransform: 'capitalize',
         }}>
@@ -202,7 +202,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
         }}>
           {displayLabel}
         </span>
-        <span style={{ color: theme.text_tertiary, fontSize: '9px', flexShrink: 0, fontFamily: 'sans-serif' }}>
+        <span style={{ color: theme.text_tertiary, fontSize: '9px', flexShrink: 0, fontFamily: theme.font_ui }}>
           {activeGoogleFont ? 'Google' : 'System'}
         </span>
         <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
@@ -238,7 +238,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
               placeholder="Search fonts…"
               style={{
                 width: '100%', boxSizing: 'border-box',
-                fontFamily: 'sans-serif', fontSize: '11px',
+                fontFamily: theme.font_ui, fontSize: '11px',
                 background: theme.bg_default, color: theme.text_default,
                 border: `1px solid ${theme.border_default}`, borderRadius: 4,
                 padding: '4px 8px', outline: 'none',
@@ -251,7 +251,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
             {!hasResults && (
               <div style={{
                 padding: '24px 12px', textAlign: 'center',
-                fontFamily: 'sans-serif', fontSize: '12px', color: theme.text_tertiary,
+                fontFamily: theme.font_ui, fontSize: '12px', color: theme.text_tertiary,
               }}>
                 No fonts found
               </div>
@@ -266,7 +266,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
                   return fontRow({
                     key: sf.value,
                     label: sf.label,
-                    fontFamily: 'sans-serif',
+                    fontFamily: theme.font_ui,
                     isActive,
                     onClick: () => handleSelectSystemFont(sf.value),
                   });
@@ -306,10 +306,10 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
                       width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                       background: 'transparent', border: `1.5px solid ${theme.border_default}`,
                     }} />
-                    <span style={{ fontFamily: 'sans-serif', fontSize: '12px', color: theme.text_tertiary, flex: 1 }}>
+                    <span style={{ fontFamily: theme.font_ui, fontSize: '12px', color: theme.text_tertiary, flex: 1 }}>
                       Custom Google Font…
                     </span>
-                    <span style={{ fontFamily: 'sans-serif', fontSize: '9px', color: theme.text_low }}>
+                    <span style={{ fontFamily: theme.font_ui, fontSize: '9px', color: theme.text_low }}>
                       Google
                     </span>
                   </button>
@@ -325,17 +325,17 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
                       width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                       background: 'transparent', border: `1.5px solid ${theme.border_default}`,
                     }} />
-                    <span style={{ fontFamily: 'sans-serif', fontSize: '12px', color: theme.text_tertiary, flex: 1 }}>
+                    <span style={{ fontFamily: theme.font_ui, fontSize: '12px', color: theme.text_tertiary, flex: 1 }}>
                       Custom CSS value…
                     </span>
-                    <span style={{ fontFamily: 'sans-serif', fontSize: '9px', color: theme.text_low }}>
+                    <span style={{ fontFamily: theme.font_ui, fontSize: '9px', color: theme.text_low }}>
                       Raw
                     </span>
                   </button>
                 </>
               ) : (
                 <div style={{ padding: '7px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  <span style={{ fontFamily: 'sans-serif', fontSize: '10px', color: theme.text_tertiary }}>
+                  <span style={{ fontFamily: theme.font_ui, fontSize: '10px', color: theme.text_tertiary }}>
                     {customMode === 'google' ? 'Google Font name' : 'CSS font-family value'}
                   </span>
                   <div style={{ display: 'flex', gap: 6 }}>
@@ -360,7 +360,7 @@ export const FontFamilyPicker: React.FC<FontFamilyPickerProps> = ({ tokenName, v
                       style={{
                         padding: '3px 8px', background: theme.accent_default, color: '#fff',
                         border: 'none', borderRadius: 4, cursor: 'pointer',
-                        fontFamily: 'sans-serif', fontSize: '11px',
+                        fontFamily: theme.font_ui, fontSize: '11px',
                       }}
                     >
                       Apply

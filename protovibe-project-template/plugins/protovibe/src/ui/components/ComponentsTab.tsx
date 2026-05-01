@@ -39,7 +39,7 @@ export const ComponentsTab: React.FC = () => {
             marginBottom: '10px',
           }}
         >
-          <span style={{ fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
+          <span style={{ fontFamily: theme.font_ui, fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
             Components
           </span>
           <button
@@ -51,7 +51,7 @@ export const ComponentsTab: React.FC = () => {
               color: theme.text_tertiary,
               cursor: 'pointer',
               fontSize: '12px',
-              fontFamily: 'sans-serif',
+              fontFamily: theme.font_ui,
               padding: '2px 6px',
               borderRadius: '4px',
             }}
@@ -71,7 +71,7 @@ export const ComponentsTab: React.FC = () => {
             border: `1px solid ${theme.border_default}`,
             borderRadius: '6px',
             color: theme.text_default,
-            fontFamily: 'sans-serif',
+            fontFamily: theme.font_ui,
             fontSize: '12px',
             padding: '6px 10px',
             outline: 'none',
@@ -97,7 +97,7 @@ export const ComponentsTab: React.FC = () => {
               gridColumn: '1 / -1',
               textAlign: 'center',
               color: theme.text_tertiary,
-              fontFamily: 'sans-serif',
+              fontFamily: theme.font_ui,
               fontSize: '13px',
               paddingTop: '40px',
             }}
@@ -160,7 +160,7 @@ const ComponentCard: React.FC<{ comp: any }> = ({ comp }) => {
       <div>
         <div
           style={{
-            fontFamily: 'sans-serif',
+            fontFamily: theme.font_ui,
             fontSize: '12px',
             fontWeight: 600,
             color: theme.text_default,
@@ -174,7 +174,7 @@ const ComponentCard: React.FC<{ comp: any }> = ({ comp }) => {
         {description && (
           <div
             style={{
-              fontFamily: 'sans-serif',
+              fontFamily: theme.font_ui,
               fontSize: '11px',
               color: theme.text_tertiary,
               overflow: 'hidden',

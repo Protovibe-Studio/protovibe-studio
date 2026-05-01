@@ -96,7 +96,7 @@ function TokenCell({ color, name, bg, onEdit }: TokenCellProps) {
       </div>
       {/* Token name */}
       <div style={{
-        fontFamily: 'sans-serif', fontSize: 10, fontWeight: 600,
+        fontFamily: theme.font_ui, fontSize: 10, fontWeight: 600,
         color: textPrimary,
         textAlign: 'center', lineHeight: 1.1, wordBreak: 'break-word', maxWidth: '100%',
         marginTop: 4,
@@ -319,19 +319,19 @@ export const TokensTab: React.FC = () => {
               >
                 <ArrowLeft size={16} />
               </button>
-              <span style={{ fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
+              <span style={{ fontFamily: theme.font_ui, fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
                 {activeCategoryObj?.label}
               </span>
             </div>
           ) : (
-            <span style={{ fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
+            <span style={{ fontFamily: theme.font_ui, fontSize: '14px', fontWeight: 600, color: theme.text_default }}>
               Design Tokens
             </span>
           )}
           <button
             onClick={() => { refreshComponents(); refreshThemeColors(); refreshThemeTokens(); emitToast({ message: 'Tokens refreshed', variant: 'success' }); }}
             title="Refresh"
-            style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', fontSize: '12px', fontFamily: 'sans-serif', padding: '2px 6px', borderRadius: '4px' }}
+            style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', fontSize: '12px', fontFamily: theme.font_ui, padding: '2px 6px', borderRadius: '4px' }}
           >
             ↻ Refresh
           </button>
@@ -346,7 +346,7 @@ export const TokensTab: React.FC = () => {
             width: '100%', boxSizing: 'border-box',
             background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
             borderRadius: '6px', color: theme.text_default,
-            fontFamily: 'sans-serif', fontSize: '12px', padding: '6px 10px', outline: 'none',
+            fontFamily: theme.font_ui, fontSize: '12px', padding: '6px 10px', outline: 'none',
           }}
         />
       </div>
@@ -358,7 +358,7 @@ export const TokensTab: React.FC = () => {
         {!selectedCategory ? (
           <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '16px' }}>
             {visibleSections.length === 0 && (
-              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
+              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: theme.font_ui, fontSize: '13px', paddingTop: '40px' }}>
                 No categories found.
               </div>
             )}
@@ -366,7 +366,7 @@ export const TokensTab: React.FC = () => {
               <div key={section.title} style={{ marginBottom: '8px' }}>
                 <div style={{
                   padding: '16px 20px 8px',
-                  fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
+                  fontFamily: theme.font_ui, fontSize: '11px', fontWeight: 700,
                   color: theme.text_tertiary, textTransform: 'uppercase',
                   letterSpacing: '0.08em'
                 }}>
@@ -380,7 +380,7 @@ export const TokensTab: React.FC = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       width: '100%', padding: '12px 20px', background: 'transparent', border: 'none',
                       borderBottom: `1px solid ${theme.border_default}`, cursor: 'pointer',
-                      color: theme.text_default, fontFamily: 'sans-serif', fontSize: '13px',
+                      color: theme.text_default, fontFamily: theme.font_ui, fontSize: '13px',
                       transition: 'background 0.15s'
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = theme.bg_secondary}
@@ -400,7 +400,7 @@ export const TokensTab: React.FC = () => {
               <div style={{ display: 'flex', flexShrink: 0, position: 'sticky', top: 0, zIndex: 1 }}>
                 <div style={{
                   flex: 1, background: '#ffffff', textAlign: 'center', padding: '7px 0',
-                  fontFamily: 'sans-serif', fontSize: '10px', fontWeight: 700,
+                  fontFamily: theme.font_ui, fontSize: '10px', fontWeight: 700,
                   color: '#000000', letterSpacing: '0.1em', textTransform: 'uppercase',
                   borderBottom: '1px solid #e5e5e5',
                 }}>
@@ -408,7 +408,7 @@ export const TokensTab: React.FC = () => {
                 </div>
                 <div style={{
                   flex: 1, background: '#111111', textAlign: 'center', padding: '7px 0',
-                  fontFamily: 'sans-serif', fontSize: '10px', fontWeight: 700,
+                  fontFamily: theme.font_ui, fontSize: '10px', fontWeight: 700,
                   color: '#ffffff', letterSpacing: '0.1em', textTransform: 'uppercase',
                   borderBottom: '1px solid #222',
                 }}>
@@ -417,7 +417,7 @@ export const TokensTab: React.FC = () => {
               </div>
 
               {filteredSemantic.length === 0 && (
-                <div style={{ textAlign: 'center', color: '#999', fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
+                <div style={{ textAlign: 'center', color: '#999', fontFamily: theme.font_ui, fontSize: '13px', paddingTop: '40px' }}>
                   No tokens found.
                 </div>
               )}
@@ -428,7 +428,7 @@ export const TokensTab: React.FC = () => {
                   <div style={{ display: 'flex' }}>
                     <div style={{
                       flex: 1, background: '#f4f4f5', padding: '6px 16px',
-                      fontFamily: 'sans-serif', fontSize: '10px', fontWeight: 700,
+                      fontFamily: theme.font_ui, fontSize: '10px', fontWeight: 700,
                       color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em',
                       borderBottom: '1px solid #e5e5e5', overflow: 'hidden',
                     }}>
@@ -436,7 +436,7 @@ export const TokensTab: React.FC = () => {
                     </div>
                     <div style={{
                       flex: 1, background: '#111111', padding: '6px 16px',
-                      fontFamily: 'sans-serif', fontSize: '10px', fontWeight: 700,
+                      fontFamily: theme.font_ui, fontSize: '10px', fontWeight: 700,
                       color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em',
                       borderBottom: '1px solid #222', overflow: 'hidden',
                     }}>
@@ -476,14 +476,14 @@ export const TokensTab: React.FC = () => {
           /* Palette Colors View */
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
             {filteredPalette.length === 0 && (
-              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
+              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: theme.font_ui, fontSize: '13px', paddingTop: '40px' }}>
                 No tokens found.
               </div>
             )}
             {Object.entries(paletteGroups).map(([group, tokens]) => (
               <div key={group} style={{ marginBottom: '20px' }}>
                 <div style={{
-                  fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
+                  fontFamily: theme.font_ui, fontSize: '11px', fontWeight: 700,
                   color: theme.text_tertiary, textTransform: 'uppercase',
                   letterSpacing: '0.08em', marginBottom: '8px',
                 }}>
@@ -509,7 +509,7 @@ export const TokensTab: React.FC = () => {
                           background: isRenderable ? color : 'repeating-linear-gradient(45deg, #333 0px, #333 4px, #2a2a2a 4px, #2a2a2a 8px)',
                         }} />
                         <div style={{
-                          fontFamily: 'sans-serif', fontSize: '10px',
+                          fontFamily: theme.font_ui, fontSize: '10px',
                           color: theme.text_secondary,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
@@ -527,7 +527,7 @@ export const TokensTab: React.FC = () => {
           /* Other Base Tokens View */
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
             {activeOtherTokens.length === 0 && (
-              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: '13px', paddingTop: '40px' }}>
+              <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: theme.font_ui, fontSize: '13px', paddingTop: '40px' }}>
                 No tokens found.
               </div>
             )}
@@ -540,7 +540,7 @@ export const TokensTab: React.FC = () => {
             ).map(([category, tokens]) => (
               <div key={category} style={{ marginBottom: '20px' }}>
                 <div style={{
-                  fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 700,
+                  fontFamily: theme.font_ui, fontSize: '11px', fontWeight: 700,
                   color: theme.text_tertiary, textTransform: 'uppercase',
                   letterSpacing: '0.08em', marginBottom: '6px',
                 }}>
@@ -555,7 +555,7 @@ export const TokensTab: React.FC = () => {
                     borderRadius: '6px',
                   }}>
                     <span style={{ fontSize: '13px', flexShrink: 0, marginTop: '1px' }}>💡</span>
-                    <span style={{ fontFamily: 'sans-serif', fontSize: '11px', color: theme.text_secondary, lineHeight: 1.5 }}>
+                    <span style={{ fontFamily: theme.font_ui, fontSize: '11px', color: theme.text_secondary, lineHeight: 1.5 }}>
                       Use Tailwind's <code style={{ fontFamily: 'monospace', fontSize: '10px', background: theme.bg_strong, padding: '1px 4px', borderRadius: '3px' }}>drop-shadow-*</code> utility for complex shapes like transparent PNGs or SVGs. Unlike box-shadow, it follows the element's actual alpha outline.
                     </span>
                   </div>

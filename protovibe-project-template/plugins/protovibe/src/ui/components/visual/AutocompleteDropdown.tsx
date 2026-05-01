@@ -451,7 +451,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                fontFamily: 'sans-serif',
+                fontFamily: theme.font_ui,
               }}
             >
               ⚠ Invalid value — will be discarded
@@ -489,7 +489,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
                 borderBottom: `1px solid ${theme.border_secondary}`,
                 display: 'flex',
                 alignItems: 'center',
-                fontFamily: 'sans-serif',
+                fontFamily: theme.font_ui,
               }}
             >
               Hold Cmd to apply to all sides
@@ -519,12 +519,11 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
                     <div
                       style={{
                         padding: '4px 10px 2px',
-                        fontSize: '9px',
-                        fontFamily: 'sans-serif',
+                        fontSize: '12px',
+                        lineHeight: '12px',
+                        fontFamily: theme.font_ui,
                         color: theme.text_tertiary,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                        background: theme.bg_secondary,
+                                                background: theme.bg_secondary,
                         borderTop: i > 0 ? `1px solid ${theme.border_default}` : 'none',
                         borderBottom: `1px solid ${theme.border_secondary}`,
                       }}

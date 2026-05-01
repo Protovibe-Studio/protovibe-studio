@@ -72,7 +72,7 @@ function StepCircle({ n, state }: { n: number; state: 'active' | 'done' | 'pendi
         background: isDone ? theme.text_default : isActive ? theme.bg_tertiary : 'transparent',
         border: `1px solid ${isActive || isDone ? theme.text_default : theme.border_default}`,
         color: isDone ? theme.bg_strong : theme.text_default,
-        fontSize: 11, fontFamily: 'sans-serif', fontWeight: 600,
+        fontSize: 11, fontFamily: theme.font_ui, fontWeight: 600,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
         opacity: state === 'pending' ? 0.5 : 1,
@@ -88,7 +88,7 @@ function SectionHeading({ n, state, children }: { n: number; state: 'active' | '
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <StepCircle n={n} state={state} />
       <span style={{
-        fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+        fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
         color: state === 'pending' ? theme.text_tertiary : theme.text_default,
       }}>
         {children}
@@ -182,7 +182,7 @@ function SplitButton({
             border: 'none',
             borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
             cursor: primary.disabled ? 'not-allowed' : 'pointer',
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             transition: 'background 0.15s ease',
           }}
         >
@@ -230,7 +230,7 @@ function SplitButton({
                 width: '100%', padding: '8px 10px',
                 background: 'transparent', border: 'none',
                 color: theme.text_default,
-                fontFamily: 'sans-serif', fontSize: 12,
+                fontFamily: theme.font_ui, fontSize: 12,
                 textAlign: 'left', cursor: a.disabled ? 'not-allowed' : 'pointer',
                 borderRadius: 4,
                 opacity: a.disabled ? 0.5 : 1,
@@ -365,7 +365,7 @@ export const PromptsTab: React.FC = () => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
         <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontFamily: 'sans-serif', fontSize: 14, fontWeight: 600, color: theme.text_default }}>
+            <span style={{ fontFamily: theme.font_ui, fontSize: 14, fontWeight: 600, color: theme.text_default }}>
               Prompts
             </span>
           </div>
@@ -378,20 +378,20 @@ export const PromptsTab: React.FC = () => {
               width: '100%', boxSizing: 'border-box',
               background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
               borderRadius: 6, color: theme.text_default,
-              fontFamily: 'sans-serif', fontSize: 12, padding: '6px 10px', outline: 'none',
+              fontFamily: theme.font_ui, fontSize: 12, padding: '6px 10px', outline: 'none',
             }}
           />
         </div>
         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 16 }}>
           <div style={{
             padding: '12px 20px 8px',
-            fontFamily: 'sans-serif', fontSize: 11, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 11, fontWeight: 600,
             color: theme.text_tertiary,
           }}>
             Coding-agent prompts
           </div>
           {visible.length === 0 && (
-            <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: 13, paddingTop: 40 }}>
+            <div style={{ textAlign: 'center', color: theme.text_tertiary, fontFamily: theme.font_ui, fontSize: 13, paddingTop: 40 }}>
               No prompts match "{search}".
             </div>
           )}
@@ -420,9 +420,9 @@ export const PromptsTab: React.FC = () => {
                 {React.createElement(p.icon, { size: 15, strokeWidth: 1.8 })}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'sans-serif', fontSize: 13, fontWeight: 600 }}>{p.title}</div>
+                <div style={{ fontFamily: theme.font_ui, fontSize: 13, fontWeight: 600 }}>{p.title}</div>
                 <div style={{
-                  fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary,
+                  fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary,
                   marginTop: 2,
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
@@ -467,7 +467,7 @@ export const PromptsTab: React.FC = () => {
           >
             <ArrowLeft size={16} />
           </button>
-          <span style={{ fontFamily: 'sans-serif', fontSize: 14, fontWeight: 600, color: theme.text_default }}>
+          <span style={{ fontFamily: theme.font_ui, fontSize: 14, fontWeight: 600, color: theme.text_default }}>
             {selectedPrompt.title}
           </span>
         </div>
@@ -480,7 +480,7 @@ export const PromptsTab: React.FC = () => {
           <SectionHeading n={1} state={step === 1 ? 'active' : 'done'}>
             Write a prompt
           </SectionHeading>
-          <label style={{ fontFamily: 'sans-serif', fontSize: 12, fontWeight: 500, color: theme.text_secondary }}>
+          <label style={{ fontFamily: theme.font_ui, fontSize: 12, fontWeight: 500, color: theme.text_secondary }}>
             {selectedPrompt.inputLabel}
           </label>
           <textarea
@@ -492,7 +492,7 @@ export const PromptsTab: React.FC = () => {
               width: '100%', boxSizing: 'border-box',
               background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
               borderRadius: 6, color: theme.text_default,
-              fontFamily: 'sans-serif', fontSize: 12,
+              fontFamily: theme.font_ui, fontSize: 12,
               padding: '8px 10px', outline: 'none', resize: 'vertical',
               lineHeight: 1.4,
             }}
@@ -504,7 +504,7 @@ export const PromptsTab: React.FC = () => {
               onChange={e => handleIncludeRulesChange(e.target.checked)}
               style={{ accentColor: theme.text_default, cursor: 'pointer', width: 13, height: 13 }}
             />
-            <span style={{ fontFamily: 'sans-serif', fontSize: 12, color: theme.text_secondary }}>
+            <span style={{ fontFamily: theme.font_ui, fontSize: 12, color: theme.text_secondary }}>
               Include full Protovibe rules
             </span>
           </label>
@@ -527,17 +527,17 @@ export const PromptsTab: React.FC = () => {
                 <MousePointer2 size={13} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600, color: theme.text_default }}>
+                <div style={{ fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600, color: theme.text_default }}>
                   Select an element on the canvas
                 </div>
-                <div style={{ fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary, marginTop: 2, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary, marginTop: 2, lineHeight: 1.4 }}>
                   This prompt needs a selection to attach the file, source code, and block id.
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500, color: theme.text_tertiary }}>
+              <div style={{ fontFamily: theme.font_ui, fontSize: 11, fontWeight: 500, color: theme.text_tertiary }}>
                 Will be attached to the prompt
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -565,7 +565,7 @@ export const PromptsTab: React.FC = () => {
               color: userInput.trim() ? theme.bg_strong : theme.text_tertiary,
               border: 'none', borderRadius: 6,
               cursor: userInput.trim() ? 'pointer' : 'not-allowed',
-              fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+              fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             }}
           >
             {step >= 3 ? <Check size={14} /> : <Copy size={14} />}
@@ -606,7 +606,7 @@ function ToastOverlay({ message }: { message: string }) {
       position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
       background: theme.text_default, color: theme.bg_strong,
       padding: '8px 14px', borderRadius: 6,
-      fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+      fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
       boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
       zIndex: 10001,
       display: 'flex', alignItems: 'center', gap: 6,

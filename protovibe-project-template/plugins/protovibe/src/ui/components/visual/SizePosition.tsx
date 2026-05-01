@@ -169,7 +169,7 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Flex child size</span>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Flex child size</span>
           <SegmentedControl
             label=""
             value={v.flex || (v.flexGrow === 'grow' ? 'grow' : v.flexShrink === 'shrink' ? 'shrink' : '')}
@@ -186,7 +186,7 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Flex child align</span>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Flex child align</span>
           <SegmentedControl
             label=""
             value={v.selfAlign}

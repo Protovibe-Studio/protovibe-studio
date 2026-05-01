@@ -227,7 +227,7 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:g6h7j8 */}
         {/* pv-block-start:lib3xn */}
-        <TextHeading data-pv-block="lib3xn" typography="heading-md">
+        <TextHeading  data-pv-block="lib3xn" typography="heading-md">
           Heading
         </TextHeading>
         {/* pv-block-end:lib3xn */}

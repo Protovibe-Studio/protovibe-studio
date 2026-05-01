@@ -150,7 +150,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
   };
   return (
     <div data-testid={`control-${label.toLowerCase().replace(/\s+/g, '-')}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', width, position: 'relative' }}>
-      <label style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>{label}</label>
+      <label style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>{label}</label>
       {options && options.length > 0 ? (
         <AutocompleteDropdown
           value={value === '-' ? '' : value}

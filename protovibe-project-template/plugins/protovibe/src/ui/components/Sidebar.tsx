@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     color: theme.text_default,
     padding: '0',
     boxSizing: 'border-box',
-    fontFamily: 'sans-serif',
+    fontFamily: theme.font_ui,
     fontSize: '13px',
     overflowY: isOpen ? 'auto' : 'hidden',
     overscrollBehavior: 'contain',

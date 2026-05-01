@@ -436,7 +436,7 @@ export const Modifiers: React.FC = () => {
           >
             {/* Interaction */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Interaction</span>
+              <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Interaction</span>
               <SegmentedControl
                 label=""
                 value={activeModifiers.interaction.length === 0 ? 'none' : activeModifiers.interaction}
@@ -453,7 +453,7 @@ export const Modifiers: React.FC = () => {
 
             {/* Screen */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Screen width above</span>
+              <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Screen width above</span>
               <SegmentedControl
                 label=""
                 value={activeModifiers.breakpoint || 'none'}
@@ -470,7 +470,7 @@ export const Modifiers: React.FC = () => {
 
             {/* Child Position */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Child Position</span>
+              <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Child Position</span>
               <SegmentedControl
                 label=""
                 value={activeModifiers.pseudoClasses?.find(p => ['first', 'last', 'odd', 'even'].includes(p)) || 'none'}
@@ -500,7 +500,7 @@ export const Modifiers: React.FC = () => {
               }));
               return (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{key}</span>
+                  <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>{key}</span>
                   <SegmentedControl
                     label=""
                     value={activeVal}

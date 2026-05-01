@@ -269,7 +269,7 @@ interface OptionGroupProps {
 
 const OptionGroup: React.FC<OptionGroupProps> = ({ label, options, activeValue, inheritedValue, onSelect, renderIcon, cols = 3 }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+    <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>{label}</span>
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '4px' }}>
       {options.map(opt => {
         const isSource = activeValue === opt.value;
@@ -539,7 +539,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         />
         {!isCol && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Wrap</span>
+            <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Wrap</span>
             <button
               onClick={() => handleSetClass(v.wrap_original, isWrapSource ? '' : 'flex-wrap')}
               style={{
@@ -790,7 +790,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
                 || (!v.display && (baseInherited === 'block' || baseInherited === 'flex' || baseInherited === 'grid'));
               return (
                 <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid || canShowInline) ? '0' : '12px' }}>
-                  <span style={{ display: 'block', fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Display</span>
+                  <span style={{ display: 'block', fontSize: '11px', lineHeight: '11px', color: theme.text_secondary, marginBottom: '6px' }}>Display</span>
                   <SegmentedControl
                     label=""
                     value={baseDisplay}

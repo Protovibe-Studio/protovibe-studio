@@ -63,7 +63,7 @@ function TabButton({
         border: 'none',
         cursor: 'pointer',
         fontSize: '12px',
-        fontFamily: 'sans-serif',
+        fontFamily: theme.font_ui,
         fontWeight: isActive ? 600 : 400,
         backgroundColor: isActive ? theme.bg_tertiary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
         color: isActive ? theme.text_default : theme.text_tertiary,
@@ -160,7 +160,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             borderRadius: '8px',
             cursor: 'pointer',
             backgroundColor: projectMenuOpen ? theme.bg_tertiary : logoHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-            fontFamily: 'sans-serif',
+            fontFamily: theme.font_ui,
             fontSize: '13px',
             fontWeight: 700,
             color: theme.text_default,
@@ -198,7 +198,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           >
             <div
               style={{
-                fontFamily: 'sans-serif',
+                fontFamily: theme.font_ui,
                 fontSize: '10px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
@@ -211,7 +211,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             </div>
             <div
               style={{
-                fontFamily: 'sans-serif',
+                fontFamily: theme.font_ui,
                 fontSize: '13px',
                 fontWeight: 600,
                 color: theme.text_default,
@@ -226,7 +226,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             {pluginVersion && (
               <div
                 style={{
-                  fontFamily: 'sans-serif',
+                  fontFamily: theme.font_ui,
                   fontSize: '11px',
                   color: theme.text_tertiary,
                   marginTop: '6px',

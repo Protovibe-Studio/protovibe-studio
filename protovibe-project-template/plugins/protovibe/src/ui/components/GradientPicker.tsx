@@ -174,7 +174,7 @@ function SliderControl({ label, value, min, max, step = 1, suffix = '', onChange
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <label style={{ fontFamily: 'sans-serif', fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
+        <label style={{ fontFamily: theme.font_ui, fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
           {label}
         </label>
         <span style={{ fontFamily: 'monospace', fontSize: 11, color: theme.text_tertiary }}>
@@ -224,7 +224,7 @@ function Segmented<T extends string>({ options, value, onChange }: SegmentedProp
               background: active ? theme.bg_tertiary : 'transparent',
               color: active ? theme.text_default : theme.text_tertiary,
               border: 'none', borderRadius: 4, cursor: 'pointer',
-              fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500,
+              fontFamily: theme.font_ui, fontSize: 11, fontWeight: 500,
               transition: 'background 0.15s, color 0.15s',
             }}
           >
@@ -391,7 +391,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
         }}>
           --{tokenName}
         </div>
-        <div style={{ fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary, marginTop: 2 }}>
+        <div style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, marginTop: 2 }}>
           {modeLabel} theme · {type} gradient · {stops.length} stops
         </div>
       </div>
@@ -439,7 +439,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             paddingBottom: 6, borderBottom: `1px solid ${theme.border_secondary}`,
           }}>
-            <span style={{ fontFamily: 'sans-serif', fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
+            <span style={{ fontFamily: theme.font_ui, fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
               Color stops
             </span>
             <button
@@ -448,7 +448,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
                 padding: '3px 8px', background: theme.bg_secondary,
                 border: `1px solid ${theme.border_default}`, borderRadius: 4,
                 cursor: 'pointer', color: theme.text_secondary,
-                fontFamily: 'sans-serif', fontSize: 11,
+                fontFamily: theme.font_ui, fontSize: 11,
               }}
             >
               + Add
@@ -469,7 +469,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
 
         {/* Smoothing */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontFamily: 'sans-serif', fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
+          <span style={{ fontFamily: theme.font_ui, fontWeight: 500, color: theme.text_secondary, fontSize: 12 }}>
             Smoothing curve
           </span>
           <Segmented<Smoothing>
@@ -486,7 +486,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
 
         {/* Custom CSS */}
         <div style={{ paddingTop: 6, borderTop: `1px solid ${theme.border_secondary}` }}>
-          <div style={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 500, color: theme.text_tertiary, marginBottom: 6 }}>
+          <div style={{ fontFamily: theme.font_ui, fontSize: 11, fontWeight: 500, color: theme.text_tertiary, marginBottom: 6 }}>
             Custom CSS
           </div>
           <textarea
@@ -520,7 +520,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
             padding: '6px 16px', background: 'transparent',
             border: `1px solid ${theme.border_default}`, borderRadius: 6,
             cursor: 'pointer', color: theme.text_secondary,
-            fontFamily: 'sans-serif', fontSize: 12,
+            fontFamily: theme.font_ui, fontSize: 12,
           }}
         >
           Cancel
@@ -531,7 +531,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
             padding: '6px 16px', background: theme.accent_default,
             border: 'none', borderRadius: 6,
             cursor: 'pointer', color: '#fff',
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
           }}
         >
           Save
@@ -563,7 +563,7 @@ function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
       background: theme.bg_default, border: `1px solid ${theme.border_default}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary, minWidth: 36 }}>
+        <span style={{ fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary, minWidth: 36 }}>
           Stop {index + 1}
         </span>
         <div style={{
@@ -603,7 +603,7 @@ function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
               width: 22, height: 22, padding: 0, flexShrink: 0,
               background: 'transparent', border: `1px solid ${theme.border_default}`,
               borderRadius: 4, cursor: 'pointer',
-              color: theme.text_tertiary, fontFamily: 'sans-serif', fontSize: 12, lineHeight: 1,
+              color: theme.text_tertiary, fontFamily: theme.font_ui, fontSize: 12, lineHeight: 1,
             }}
           >
             ×

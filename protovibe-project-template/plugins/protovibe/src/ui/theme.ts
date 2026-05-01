@@ -1,5 +1,8 @@
 // plugins/protovibe/src/ui/theme.ts
 export const theme = {
+  // Typography
+  font_ui: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+
   // Backgrounds
   bg_default: '#212121',       // Main panels & sidebar
   bg_secondary: '#282828',     // Inputs, dropdowns, hover states

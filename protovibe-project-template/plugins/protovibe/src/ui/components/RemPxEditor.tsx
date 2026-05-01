@@ -149,7 +149,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
             {rem % 1 === 0 ? rem : rem.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')}
           </span>
           <span style={{
-            fontFamily: 'sans-serif', fontSize: 13, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 13, fontWeight: 600,
             color: theme.text_tertiary,
           }}>
             {unit}
@@ -186,7 +186,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
             border: `1px solid ${theme.border_default}`,
           }}>
             <span style={{
-              fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary,
+              fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary,
             }}>
               =
             </span>
@@ -197,7 +197,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
               {px}px
             </span>
             <span style={{
-              fontFamily: 'sans-serif', fontSize: 10, color: theme.text_tertiary,
+              fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary,
             }}>
               ({DEFAULT_ROOT_FONT}px base)
             </span>
@@ -265,7 +265,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
           overflow: 'hidden',
         }}>
           <label style={{
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 500,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 500,
             color: theme.text_secondary, flexShrink: 0,
           }}>
             Value
@@ -300,7 +300,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
               }}
             />
             <span style={{
-              fontFamily: 'sans-serif', fontSize: 11, color: theme.text_tertiary,
+              fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary,
               flexShrink: 0, paddingRight: 8,
             }}>
               {unit}
@@ -322,7 +322,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
             padding: '6px 16px', background: 'transparent',
             border: `1px solid ${theme.border_default}`, borderRadius: 6,
             cursor: 'pointer', color: theme.text_secondary,
-            fontFamily: 'sans-serif', fontSize: 12,
+            fontFamily: theme.font_ui, fontSize: 12,
           }}
         >
           Cancel
@@ -335,7 +335,7 @@ export function RemPxEditor({ tokenName, initialValue, anchorRect, onSave, onCan
             border: 'none', borderRadius: 6,
             cursor: 'pointer',
             color: '#fff',
-            fontFamily: 'sans-serif', fontSize: 12, fontWeight: 600,
+            fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             transition: 'background 0.15s',
           }}
         >

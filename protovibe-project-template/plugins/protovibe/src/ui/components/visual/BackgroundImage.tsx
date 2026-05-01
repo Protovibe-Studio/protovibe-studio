@@ -414,7 +414,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
           {sizeMode === 'custom' && (
             <div style={{ display: 'flex', gap: '6px' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Width</label>
+                <label style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Width</label>
                 <AutocompleteDropdown
                   value={customW}
                   placeholder="auto"
@@ -424,7 +424,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
                 />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '9px', color: theme.text_tertiary, textTransform: 'uppercase' }}>Height</label>
+                <label style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Height</label>
                 <AutocompleteDropdown
                   value={customH}
                   placeholder="auto"
