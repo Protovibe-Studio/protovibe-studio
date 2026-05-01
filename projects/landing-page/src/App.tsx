@@ -2308,7 +2308,7 @@ function Testimonial(props: any) {
             {/* pv-editable-zone-start:z00114 */}
               {/* pv-block-start:b00324 */}
               <p data-pv-block="b00324" className="font-secondary font-semibold text-[clamp(22px,2.4vw,32px)] leading-[1.35] tracking-[-0.02em] text-foreground-strong m-0">
-                We've tried to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. Hope you guys will like it! Oh, and don't forget to send us your feedback.
+                We've tried to combine the best parts of <em className="not-italic font-secondary font-semibold text-foreground-primary">Webflow</em>, <em className="not-italic font-secondary font-semibold text-foreground-primary">Figma</em> and a pro <span className="text-foreground-primary"> design system</span>. Hope you guys like it! Oh, and don't forget to send us your feedback.
               </p>
               {/* pv-block-end:b00324 */}
 

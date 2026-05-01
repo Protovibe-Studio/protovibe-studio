@@ -40,10 +40,6 @@ export default function Frame2() {
             <Button data-pv-block="cwetnv"  label="Button" variant="solid" color="primary" size="md" />
             {/* pv-block-end:cwetnv */}
 
-            {/* pv-block-start:0onna7 */}
-            <Button data-pv-block="0onna7"  label="Button" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:0onna7 */}
-            
             {/* pv-block-start:md2k3c */}
             <Badge data-pv-block="md2k3c"  label="Badge" color="primary" />
             {/* pv-block-end:md2k3c */}
@@ -88,7 +84,7 @@ export default function Frame2() {
         {/* pv-block-end:2n40cz */}
         
         {/* pv-block-start:fyu1og */}
-        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 220, top: 446 }}>
+        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 76, top: 411 }}>
           {/* pv-editable-zone-start:d3pro3 */}
             {/* pv-block-start:4xupvu */}
             <RadioGroup data-pv-block="4xupvu"  orientation="vertical" value="opt1" >
@@ -124,6 +120,9 @@ export default function Frame2() {
           {/* pv-editable-zone-end:d3pro3 */}
         </Card>
         {/* pv-block-end:fyu1og */}
+        {/* pv-block-start:kepcn8 */}
+        <Button data-pv-block="kepcn8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="kepcn8" style={{ position: 'absolute', left: 412, top: 419 }}/>
+        {/* pv-block-end:kepcn8 */}
       {/* pv-editable-zone-end:bibqg8 */}
     </div>
   );
