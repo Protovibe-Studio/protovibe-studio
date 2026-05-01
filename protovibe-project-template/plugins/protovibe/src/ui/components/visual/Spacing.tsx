@@ -882,7 +882,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
         />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
 
       {/* ── BG Color ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -892,7 +892,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onMouseEnter={() => setBgHovered(true)}
           onMouseLeave={() => setBgHovered(false)}
         >
-          <span style={{ fontSize: '11px', lineHeight: '11px', color: bgHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>BG Color</span>
+          <span style={{ fontSize: '11px', lineHeight: '11px', color: bgHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Background Color</span>
           <span style={{ color: bgHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
             {bgExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           </span>

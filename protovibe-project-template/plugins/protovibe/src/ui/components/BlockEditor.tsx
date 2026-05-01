@@ -306,7 +306,7 @@ export const BlockEditor: React.FC = () => {
 
   return (
     <div style={{ paddingBottom: '16px', borderTop: `1px solid ${theme.border_default}` }}>
-      <div style={{ padding: '12px 20px 8px', fontSize: '10px', fontWeight: '600', color: theme.text_default }}>
+      <div style={{ padding: '12px 20px 8px', fontSize: '11px', fontWeight: '600', color: theme.text_default }}>
         <span>Text Content</span>
       </div>
       <div style={{ padding: '0 20px' }}>

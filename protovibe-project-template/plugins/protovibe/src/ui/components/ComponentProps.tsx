@@ -118,7 +118,7 @@ export const ComponentProps: React.FC = () => {
 
   return (
     <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '0 0 16px 0' }}>
-      <div style={{ padding: '12px 20px', fontSize: '10px', fontWeight: '600', color: theme.text_default, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '12px 20px', fontSize: '11px', fontWeight: '600', color: theme.text_default, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Component properties</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {showAdvancedProps && <button onClick={() => setShowAddForm(!showAddForm)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0, fontSize: '16px', lineHeight: 1 }} title="Add Prop">+</button>}
