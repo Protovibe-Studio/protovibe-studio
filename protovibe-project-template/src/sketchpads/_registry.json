@@ -98,16 +98,16 @@
           "name": "Frame 12",
           "width": 1440,
           "height": 900,
-          "canvasX": 4227,
-          "canvasY": -542
+          "canvasX": 4112,
+          "canvasY": -2283
         },
         {
           "id": "frame-bwqcbx",
           "name": "Frame 12 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 6168,
-          "canvasY": -546
+          "canvasX": 5831,
+          "canvasY": -3575
         },
         {
           "id": "frame-ink5wh",
@@ -116,12 +116,36 @@
           "height": 900,
           "canvasX": 4117,
           "canvasY": -3556
+        },
+        {
+          "id": "frame-fv30wp",
+          "name": "Frame 14 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 7585,
+          "canvasY": -3541
+        },
+        {
+          "id": "frame-615maf",
+          "name": "Frame 12 Copy 2",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 7580,
+          "canvasY": -2268
+        },
+        {
+          "id": "frame-sh3qc3",
+          "name": "Frame 12 Copy 3",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 9299,
+          "canvasY": -3560
         }
       ],
       "viewState": {
-        "zoom": 0.6933874416453827,
-        "panX": -2725.056466831651,
-        "panY": 2582.74174842079
+        "zoom": 0.6492173215861511,
+        "panX": -4848.152550622765,
+        "panY": 2423.5019511175283
       }
     },
     {

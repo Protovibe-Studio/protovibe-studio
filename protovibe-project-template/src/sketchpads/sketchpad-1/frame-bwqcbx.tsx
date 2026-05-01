@@ -15,34 +15,34 @@ export default function Frame12() {
     <div className="" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:8vfkil */}
         {/* pv-block-start:qhp4te */}
-        <Input data-pv-block="qhp4te" data-pv-sketchpad-el="qhp4te" style={{ position: 'absolute', width: 332, left: 169, top: 236 }} placeholder="" />
+        <Input data-pv-block="qhp4te" data-pv-sketchpad-el="qhp4te" style={{ position: 'absolute', width: 332, left: 552, top: 217 }} placeholder="" />
         {/* pv-block-end:qhp4te */}
         {/* pv-block-start:ooafdr */}
-        <SuperLabel data-pv-block="ooafdr" data-pv-sketchpad-el="ooafdr" style={{ position: 'absolute', left: 169, top: 208 }} primaryText="Email or username" />
+        <SuperLabel data-pv-block="ooafdr" data-pv-sketchpad-el="ooafdr" style={{ position: 'absolute', left: 552, top: 189 }} primaryText="Email or username" />
         {/* pv-block-end:ooafdr */}
         {/* pv-block-start:bk95au */}
-        <TextHeading data-pv-block="bk95au" data-pv-sketchpad-el="bk95au" style={{ position: 'absolute', left: 169, top: 139 }} typography="heading-md">
+        <TextHeading data-pv-block="bk95au" data-pv-sketchpad-el="bk95au" style={{ position: 'absolute', left: 552, top: 120 }} typography="heading-md">
           Login to EvilCorp
         </TextHeading>
         {/* pv-block-end:bk95au */}
         {/* pv-block-start:lzz9j9 */}
-        <SuperLabel data-pv-block="lzz9j9" data-pv-sketchpad-el="lzz9j9" style={{ position: 'absolute', left: 169, top: 295 }} primaryText="Password" />
+        <SuperLabel data-pv-block="lzz9j9" data-pv-sketchpad-el="lzz9j9" style={{ position: 'absolute', left: 552, top: 276 }} primaryText="Password" />
         {/* pv-block-end:lzz9j9 */}
         
         {/* pv-block-start:s65at9 */}
-        <Input data-pv-block="s65at9" data-pv-sketchpad-el="s65at9" style={{ position: 'absolute', left: 169, top: 323, width: 332 }} placeholder="" />
+        <Input data-pv-block="s65at9" data-pv-sketchpad-el="s65at9" style={{ position: 'absolute', left: 552, top: 304, width: 332 }} placeholder="" />
         {/* pv-block-end:s65at9 */}
         {/* pv-block-start:75meur */}
-        <SuperLabel data-pv-block="75meur" data-pv-sketchpad-el="75meur" style={{ position: 'absolute', left: 309, top: 428 }} primaryText="— OR —" />
+        <SuperLabel data-pv-block="75meur" data-pv-sketchpad-el="75meur" style={{ position: 'absolute', left: 692, top: 409 }} primaryText="— OR —" />
         {/* pv-block-end:75meur */}
         {/* pv-block-start:t6d9e8 */}
-        <Button data-pv-block="t6d9e8" data-pv-sketchpad-el="t6d9e8" style={{ position: 'absolute', width: 332, left: 169, top: 372 }} label="Sign in" variant="solid" color="primary" size="md" />
+        <Button data-pv-block="t6d9e8" data-pv-sketchpad-el="t6d9e8" style={{ position: 'absolute', width: 332, left: 552, top: 353 }} label="Sign in" variant="solid" color="primary" size="md" />
         {/* pv-block-end:t6d9e8 */}
         {/* pv-block-start:v9ztbr */}
-        <Button leftIcon="ion:logo-google" data-pv-block="v9ztbr" data-pv-sketchpad-el="v9ztbr" style={{ position: 'absolute', left: 170, top: 468, width: 332 }} label="Continue with Google" variant="solid" color="neutral" size="md" />
+        <Button leftIcon="ion:logo-google" data-pv-block="v9ztbr" data-pv-sketchpad-el="v9ztbr" style={{ position: 'absolute', left: 553, top: 449, width: 332 }} label="Continue with Google" variant="solid" color="neutral" size="md" />
         {/* pv-block-end:v9ztbr */}
         {/* pv-block-start:xbkafn */}
-        <Button leftIcon="radix-icons:github-logo" data-pv-block="xbkafn" data-pv-sketchpad-el="xbkafn" style={{ position: 'absolute', left: 170, top: 520, width: 332 }} label="Continue with GitHub" variant="solid" color="neutral" size="md" />
+        <Button leftIcon="radix-icons:github-logo" data-pv-block="xbkafn" data-pv-sketchpad-el="xbkafn" style={{ position: 'absolute', left: 553, top: 501, width: 332 }} label="Continue with GitHub" variant="solid" color="neutral" size="md" />
         {/* pv-block-end:xbkafn */}
         {/* pv-block-start:2tsp8a */}
         <TextHeading data-pv-block="2tsp8a" data-pv-sketchpad-el="2tsp8a" style={{ position: 'absolute', width: 82, left: 67, top: 30 }} typography="heading-md">
@@ -58,17 +58,8 @@ export default function Frame12() {
         <Icon data-pv-block="i21h8u" data-pv-sketchpad-el="i21h8u" style={{ position: 'absolute', width: 20, left: 33, top: 29 }} iconSymbol="fluent-emoji-high-contrast:see-no-evil-monkey" size="lg" />
         {/* pv-block-end:i21h8u */}
         {/* pv-block-start:hlr4el */}
-        <div data-pv-block="hlr4el" data-pv-sketchpad-el="hlr4el" style={{ position: 'absolute', left: 365, top: -54 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
+        <div data-pv-block="hlr4el" data-pv-sketchpad-el="hlr4el" style={{ position: 'absolute', width: 1123, left: 692, top: 276 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
         {/* pv-block-end:hlr4el */}
-        {/* pv-block-start:ots7xh */}
-        <Rectangle data-pv-block="ots7xh" data-pv-sketchpad-el="ots7xh" style={{ position: 'absolute', height: 893, width: 768, left: 670, top: 2 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
-          {/* pv-editable-zone-start:c1hraq */}
-            {/* pv-block-start:m0wqnp */}
-            <div data-pv-block="m0wqnp" data-pv-sketchpad-el="m0wqnp" style={{ position: 'absolute', width: 1692, left: -176, top: -88 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]" />
-            {/* pv-block-end:m0wqnp */}
-          {/* pv-editable-zone-end:c1hraq */}
-        </Rectangle>
-        {/* pv-block-end:ots7xh */}
         {/* pv-block-start:shxsat */}
         <VerticalLine data-pv-block="shxsat" data-pv-sketchpad-el="shxsat" style={{ position: 'absolute', height: 20, left: 154, top: 32 }} className="w-[4px] h-[200px]">
           {/* pv-editable-zone-start:t4qpi6 */}
@@ -76,23 +67,23 @@ export default function Frame12() {
         </VerticalLine>
         {/* pv-block-end:shxsat */}
         {/* pv-block-start:3xmvw6 */}
-        <TextParagraph className="flex flex-row gap-1 items-center bg-transparent justify-center rounded-none" data-pv-block="3xmvw6" data-pv-sketchpad-el="3xmvw6" style={{ position: 'absolute', width: 328, left: 173, top: 582 }} typography="regular">
+        <TextParagraph className="flex flex-row gap-1 items-center bg-transparent justify-center rounded-none" data-pv-block="3xmvw6" data-pv-sketchpad-el="3xmvw6" style={{ position: 'absolute', width: 328, left: 556, top: 563 }} typography="regular">
           Don't have account? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Sign up</a>
         </TextParagraph>
         {/* pv-block-end:3xmvw6 */}
         {/* pv-block-start:s92may */}
-        <TextParagraph className="text-tiny text-foreground-tertiary" data-pv-block="s92may" data-pv-sketchpad-el="s92may" style={{ position: 'absolute', width: 331, left: 173, top: 733 }} typography="small">
+        <TextParagraph className="text-tiny text-foreground-tertiary" data-pv-block="s92may" data-pv-sketchpad-el="s92may" style={{ position: 'absolute', width: 331, left: 556, top: 714 }} typography="small">
           By logging in you accept EvilCorop terms of services.
         </TextParagraph>
         {/* pv-block-end:s92may */}
         {/* pv-block-start:zfri22 */}
-        <HorizontalLine data-pv-block="zfri22" data-pv-sketchpad-el="zfri22" style={{ position: 'absolute', width: 321, left: 173, top: 710 }} className="w-[200px] h-[4px]">
+        <HorizontalLine data-pv-block="zfri22" data-pv-sketchpad-el="zfri22" style={{ position: 'absolute', width: 321, left: 556, top: 691 }} className="w-[200px] h-[4px]">
           {/* pv-editable-zone-start:o6jpcb */}
           {/* pv-editable-zone-end:o6jpcb */}
         </HorizontalLine>
         {/* pv-block-end:zfri22 */}
         {/* pv-block-start:l2rae2 */}
-        <div data-pv-block="l2rae2" data-pv-sketchpad-el="l2rae2" style={{ position: 'absolute', left: 1550, top: -95 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612] opacity-23">
+        <div data-pv-block="l2rae2" data-pv-sketchpad-el="l2rae2" style={{ position: 'absolute', left: -105, top: 1209 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
           {/* pv-editable-zone-start:r5i3w2 */}
             {/* pv-block-start:bvykzd */}
             <Button data-pv-block="bvykzd"  label="Sign in" variant="solid" color="primary" size="md" />

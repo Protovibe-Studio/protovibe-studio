@@ -62,15 +62,11 @@ export default function Frame12() {
         <div data-pv-block="mu0unz" data-pv-sketchpad-el="mu0unz" style={{ position: 'absolute', left: 365, top: -54 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
         {/* pv-block-end:mu0unz */}
         {/* pv-block-start:ny6dao */}
-        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 893, width: 768, left: 670, top: 2 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
+        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 893, width: 768, left: 671, top: -18 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
           {/* pv-editable-zone-start:69fbo3 */}
             {/* pv-block-start:km1api */}
             <div data-pv-block="km1api" data-pv-sketchpad-el="km1api" style={{ position: 'absolute', width: 1065, left: 117, top: 162 }} className="w-full bg-[url('/src/images/from-protovibe/image-2.png')] bg-contain bg-center bg-no-repeat aspect-[565/537]" />
             {/* pv-block-end:km1api */}
-
-            {/* pv-block-start:2ohg6c */}
-            <div data-pv-block="2ohg6c" data-pv-sketchpad-el="2ohg6c" style={{ position: 'absolute', width: 1065, left: 241, top: 304 }} className="w-full bg-[url('/src/images/from-protovibe/image-2.png')] bg-contain bg-center bg-no-repeat aspect-[565/537]" />
-            {/* pv-block-end:2ohg6c */}
           {/* pv-editable-zone-end:69fbo3 */}
         </Rectangle>
         {/* pv-block-end:ny6dao */}

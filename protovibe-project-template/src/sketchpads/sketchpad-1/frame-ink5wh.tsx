@@ -10,20 +10,14 @@ export default function Frame14() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:0au3jg */}
-        {/* pv-block-start:lxe9m9 */}
-        <Image data-pv-block="lxe9m9" data-pv-sketchpad-el="lxe9m9" style={{ position: 'absolute', width: 558, left: -1, top: 44 }} className="bg-[url('/src/images/from-protovibe/image-placeholder.svg')] bg-cover bg-center bg-no-repeat aspect-video w-full" />
-        {/* pv-block-end:lxe9m9 */}
         {/* pv-block-start:ekbi6l */}
         <Avatar data-pv-block="ekbi6l" data-pv-sketchpad-el="ekbi6l" style={{ position: 'absolute', left: 202, top: 181 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
         {/* pv-block-end:ekbi6l */}
-        {/* pv-block-start:h59ro2 */}
-        <div data-pv-block="h59ro2" data-pv-sketchpad-el="h59ro2" style={{ position: 'absolute', width: 536, left: 222, top: 59 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
-        {/* pv-block-end:h59ro2 */}
         {/* pv-block-start:mahc6j */}
-        <div data-pv-block="mahc6j" data-pv-sketchpad-el="mahc6j" style={{ position: 'absolute', left: 157, top: 530, width: 536 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
+        <div data-pv-block="mahc6j" data-pv-sketchpad-el="mahc6j" style={{ position: 'absolute', left: 123, top: 490, width: 536 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
         {/* pv-block-end:mahc6j */}
         {/* pv-block-start:qfy4vw */}
-        <Rectangle data-pv-block="qfy4vw" data-pv-sketchpad-el="qfy4vw" style={{ position: 'absolute', width: 237, height: 249, left: 1050, top: 181 }} className="w-[200px] h-[200px] bg-background-secondary">
+        <Rectangle data-pv-block="qfy4vw" data-pv-sketchpad-el="qfy4vw" style={{ position: 'absolute', width: 237, height: 249, left: 1026, top: 149 }} className="w-[200px] h-[200px] bg-background-secondary">
           {/* pv-editable-zone-start:5asoka */}
             {/* pv-block-start:p9ctut */}
             <Avatar data-pv-block="p9ctut" data-pv-sketchpad-el="p9ctut" style={{ position: 'absolute', left: 21, top: 12 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
@@ -32,7 +26,7 @@ export default function Frame14() {
             <span className="font-bold" data-pv-block="ifc82d" data-pv-sketchpad-el="ifc82d" style={{ position: 'absolute', left: 22, top: 61 }}>Lorem ipsum</span>
             {/* pv-block-end:ifc82d */}
             {/* pv-block-start:go4ghx */}
-            <Button data-pv-block="go4ghx" data-pv-sketchpad-el="go4ghx" style={{ position: 'absolute', left: 18, top: 190 }} label="Button" variant="solid" color="primary" size="md" />
+            <Button data-pv-block="go4ghx" data-pv-sketchpad-el="go4ghx" style={{ position: 'absolute', left: 22, top: 190 }} label="Button" variant="solid" color="primary" size="md" />
             {/* pv-block-end:go4ghx */}
             {/* pv-block-start:29unkw */}
             <Checkbox data-pv-block="29unkw" data-pv-sketchpad-el="29unkw" style={{ position: 'absolute', left: 22, top: 149 }} primaryText="Check this out" />
@@ -41,7 +35,7 @@ export default function Frame14() {
             <Badge data-pv-block="2i08d5" data-pv-sketchpad-el="2i08d5" style={{ position: 'absolute', left: 130, top: 20 }} label="Badge" color="primary" />
             {/* pv-block-end:2i08d5 */}
             {/* pv-block-start:p5j28c */}
-            <span className="font-normal text-base" data-pv-block="p5j28c" data-pv-sketchpad-el="p5j28c" style={{ position: 'absolute', width: 166, left: 21, top: 92 }}>
+            <span className="font-normal text-base" data-pv-block="p5j28c" data-pv-sketchpad-el="p5j28c" style={{ position: 'absolute', width: 166, left: 22, top: 91 }}>
               Secondary text that can take multiple lines
             </span>
             {/* pv-block-end:p5j28c */}

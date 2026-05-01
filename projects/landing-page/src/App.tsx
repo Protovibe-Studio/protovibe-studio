@@ -717,7 +717,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="b00061" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 justify-center aspect-3/2">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:2orjpw */}
-                  <Icon className="text-amber-600" data-pv-block="2orjpw" iconSymbol="mingcute:claude-line" size="2xl" />
+                  <Icon className="text-amber-600" data-pv-block="2orjpw" iconSymbol="mingcute:claude-line" size="xl" />
                   {/* pv-block-end:2orjpw */}
                   {/* pv-block-start:57is7f */}
                   <div data-pv-block="57is7f" className="flex flex-col items-center gap-0">
@@ -744,7 +744,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="0qu4t8" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:yd5dll */}
-                  <Icon className="text-foreground-default" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="2xl" />
+                  <Icon className="text-foreground-default" data-pv-block="yd5dll" iconSymbol="ri:copilot-fill" size="xl" />
                   {/* pv-block-end:yd5dll */}
                   {/* pv-block-start:20m7tm */}
                   <div data-pv-block="20m7tm" className="flex flex-col items-center justify-center gap-0">
@@ -769,7 +769,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="ig7ao9" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:bpd0ad */}
-                  <Icon iconSymbol="solar:cursor-bold" className="text-transparent bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/cursor-1.svg')] aspect-[1/1]" data-pv-block="bpd0ad"  size="2xl" />
+                  <Icon iconSymbol="solar:cursor-bold" className="text-transparent bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/cursor-1.svg')] aspect-[1/1]" data-pv-block="bpd0ad"  size="xl" />
                   {/* pv-block-end:bpd0ad */}
                   {/* pv-block-start:55xctv */}
                   <div data-pv-block="55xctv" className="flex flex-col gap-0 items-center">
@@ -796,7 +796,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="ruagve" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:ruo32p */}
-                  <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="meteor-icons:openai" size="2xl" />
+                  <Icon className="text-foreground-default" data-pv-block="ruo32p" iconSymbol="meteor-icons:openai" size="xl" />
                   {/* pv-block-end:ruo32p */}
                   {/* pv-block-start:ugpx1g */}
                   <div data-pv-block="ugpx1g" className="flex flex-col items-center justify-center gap-0">
@@ -823,7 +823,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="uezzcq" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:knrkaq */}
-                  <Icon className="text-transparent bg-[url('/src/images/from-protovibe/gemini-color.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" data-pv-block="knrkaq" iconSymbol="lineicons:gemini" size="2xl" />
+                  <Icon className="text-transparent bg-[url('/src/images/from-protovibe/gemini-color.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]" data-pv-block="knrkaq" iconSymbol="lineicons:gemini" size="xl" />
                   {/* pv-block-end:knrkaq */}
                   {/* pv-block-start:0t2ir5 */}
                   <div data-pv-block="0t2ir5" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
@@ -843,7 +843,7 @@ function BYOAgent(props: any) {
               <div data-pv-block="0pe2av" className="bg-background-secondary rounded-[12px] flex flex-col transition-all duration-150 hover:bg-background-tertiary hover:-translate-y-[2px] gap-2 items-center p-7 aspect-3/2 justify-center">
                 {/* pv-editable-zone-start:z00018 */}
                   {/* pv-block-start:este2x */}
-                  <Icon className="rounded-full text-foreground-secondary" data-pv-block="este2x" iconSymbol="ri:more-fill" size="2xl" />
+                  <Icon className="rounded-full text-foreground-secondary" data-pv-block="este2x" iconSymbol="ri:more-fill" size="xl" />
                   {/* pv-block-end:este2x */}
                   {/* pv-block-start:t1n8kr */}
                   <div data-pv-block="t1n8kr" className="font-secondary font-bold text-[15px] md:text-[18px] text-foreground-strong tracking-[-0.01em] grow flex flex-col justify-end text-center">
@@ -921,8 +921,8 @@ function HowItWorks(props: any) {
                   {/* pv-block-end:b00100 */}
                   {/* pv-block-start:b00103 */}
                   <div data-pv-block="b00103" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
-                    <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
-                      Miejsce na grafikę
+                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-center bg-no-repeat bg-cover bg-[url('/src/images/from-protovibe/install.png')] aspect-[16/9]">
+                      <br />
                     </div>
                   </div>
                   {/* pv-block-end:b00103 */}
@@ -961,8 +961,8 @@ function HowItWorks(props: any) {
                   {/* pv-block-end:b00107 */}
                   {/* pv-block-start:b00110 */}
                   <div data-pv-block="b00110" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
-                    <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
-                      Miejsce na grafikę
+                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-no-repeat bg-cover bg-top bg-[url('/src/images/from-protovibe/picker-1.png')] aspect-[16/9]">
+                      <br />
                     </div>
                   </div>
                   {/* pv-block-end:b00110 */}
@@ -1001,7 +1001,7 @@ function HowItWorks(props: any) {
                   {/* pv-block-end:b00114 */}
                   {/* pv-block-start:b00117 */}
                   <div data-pv-block="b00117" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
-                    <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
+                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-[url('/src/images/from-protovibe/variants.png')] bg-contain bg-center bg-no-repeat aspect-[16/9]">
                       Miejsce na grafikę
                     </div>
                   </div>
@@ -1036,7 +1036,7 @@ function HowItWorks(props: any) {
                   {/* pv-block-end:b00120 */}
                   {/* pv-block-start:b00123 */}
                   <div data-pv-block="b00123" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
-                    <div className="w-full aspect-[21/9] bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold">
+                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-[url('/src/images/from-protovibe/publish.png')] bg-contain bg-center bg-no-repeat aspect-[16/9]">
                       Miejsce na grafikę
                     </div>
                   </div>
@@ -1085,8 +1085,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00160" className="grid grid-cols-1 gap-[28px] md:gap-[56px] items-center md:grid-cols-[minmax(280px,380px)_1fr]">
                 {/* pv-editable-zone-start:z00050 */}
                   {/* pv-block-start:130933 */}
-                  <div data-pv-block="130933" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="130933" className="bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/add-items-1.png')] aspect-[640/643]">
+                    <br />
                   </div>
                   {/* pv-block-end:130933 */}
                   {/* pv-block-start:b00162 */}
@@ -1137,8 +1137,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00200" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00066 */}
                   {/* pv-block-start:b00201 */}
-                  <div data-pv-block="b00201" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-[url('/src/images/from-protovibe/add-items.png')] bg-contain bg-center bg-no-repeat aspect-[640/643]">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00201" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/properties.png')] aspect-[640/643]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00201 */}
                   {/* pv-block-start:b00202 */}
@@ -1189,8 +1189,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00130" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00038 */}
                   {/* pv-block-start:b00131 */}
-                  <div data-pv-block="b00131" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00131" className="bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-[url('/src/images/from-protovibe/tokens.png')] bg-contain bg-center bg-no-repeat aspect-[640/643]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00131 */}
                   {/* pv-block-start:b00132 */}
@@ -1241,8 +1241,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00140" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00042 */}
                   {/* pv-block-start:b00141 */}
-                  <div data-pv-block="b00141" className="md:order-last aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00141" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/padding-1.png')] aspect-[1/1]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00141 */}
                   {/* pv-block-start:b00142 */}
@@ -1293,8 +1293,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00150" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00046 */}
                   {/* pv-block-start:b00151 */}
-                  <div data-pv-block="b00151" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00151" className="bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-[url('/src/images/from-protovibe/components.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00151 */}
                   {/* pv-block-start:b00152 */}
@@ -1344,8 +1344,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00180" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00058 */}
                   {/* pv-block-start:b00181 */}
-                  <div data-pv-block="b00181" className="md:order-last aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00181" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-[url('/src/images/from-protovibe/infinite.png')] bg-contain bg-center bg-no-repeat aspect-[1/1]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00181 */}
                   {/* pv-block-start:b00182 */}
@@ -1364,7 +1364,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00185 */}
                           {/* pv-block-start:b00186 */}
                           <p data-pv-block="b00186" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Ah, the exploration phase... Before prototyping, you need to sketch ideas. You create mockups in Figma, then send screenshots to AI Studio. And you get an app that looks completely different.
+                            Ah, the exploration phase... Before prototyping, you need to sketch some messy ideas. AI web builders ask you to skip this step and rely on text prompts.
                           </p>
                           {/* pv-block-end:b00186 */}
                         {/* pv-editable-zone-end:z00060 */}
@@ -1396,8 +1396,8 @@ function ProblemSolution(props: any) {
               <div data-pv-block="b00170" className="grid grid-cols-1 md:grid-cols-[minmax(280px,380px)_1fr] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00054 */}
                   {/* pv-block-start:b00171 */}
-                  <div data-pv-block="b00171" className="aspect-square bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold">
-                    Miejsce na grafikę
+                  <div data-pv-block="b00171" className="bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/promptable-1.png')] aspect-[1/1]">
+                    <br />
                   </div>
                   {/* pv-block-end:b00171 */}
                   {/* pv-block-start:b00172 */}
