@@ -950,7 +950,7 @@ export function ProtovibePreviewer() {
         position: 'fixed',
         inset: 0,
         zIndex: 999999,
-        backgroundColor: theme.bg_strong,
+        backgroundColor: theme.bg_sunken,
         color: theme.text_default,
         fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         display: 'flex',
