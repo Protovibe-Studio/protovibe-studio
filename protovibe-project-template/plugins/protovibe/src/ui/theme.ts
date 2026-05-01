@@ -7,7 +7,8 @@ export const theme = {
   bg_default: '#212121',       // Main panels & sidebar
   bg_secondary: '#282828',     // Inputs, dropdowns, hover states
   bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
-  bg_strong: '#1a1a1a',        // Headers, deep backgrounds
+  bg_strong: '#1c1c1c',        // Headers, deep backgrounds
+  bg_sunken: '#131313',        // Deepest backgrounds for containers that need to be darker than bg_strong
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
   // Text

@@ -1036,8 +1036,8 @@ function HowItWorks(props: any) {
                   {/* pv-block-end:b00120 */}
                   {/* pv-block-start:b00123 */}
                   <div data-pv-block="b00123" className="flex flex-col gap-[12px] min-w-0 pt-0 md:pt-[6px] col-span-2 md:col-span-1 sm:ml-[66px] md:ml-0 md:max-w-[540px]">
-                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-[url('/src/images/from-protovibe/publish.png')] bg-contain bg-center bg-no-repeat aspect-[16/9]">
-                      Miejsce na grafikę
+                    <div className="w-full bg-background-secondary border border-border-secondary rounded-[14px] flex items-center justify-center text-foreground-tertiary text-[12px] font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/publish-1.png')] aspect-[16/9]">
+                      <br />
                     </div>
                   </div>
                   {/* pv-block-end:b00123 */}

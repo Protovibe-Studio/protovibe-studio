@@ -17,7 +17,7 @@ export default function Frame14() {
         <div data-pv-block="24hqfc" data-pv-sketchpad-el="24hqfc" style={{ position: 'absolute', left: 123, top: 490, width: 536 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
         {/* pv-block-end:24hqfc */}
         {/* pv-block-start:ncyl8a */}
-        <Rectangle data-pv-block="ncyl8a" data-pv-sketchpad-el="ncyl8a" style={{ position: 'absolute', width: 237, height: 249, left: 1026, top: 149 }} className="w-[200px] h-[200px] bg-background-secondary">
+        <Rectangle data-pv-block="ncyl8a" data-pv-sketchpad-el="ncyl8a" style={{ position: 'absolute', width: 237, height: 249, left: 895, top: 112 }} className="w-[200px] h-[200px] bg-background-secondary">
           {/* pv-editable-zone-start:ex6zsf */}
             {/* pv-block-start:qvgssg */}
             <Avatar data-pv-block="qvgssg" data-pv-sketchpad-el="qvgssg" style={{ position: 'absolute', left: 21, top: 12 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
@@ -42,6 +42,32 @@ export default function Frame14() {
           {/* pv-editable-zone-end:ex6zsf */}
         </Rectangle>
         {/* pv-block-end:ncyl8a */}
+        {/* pv-block-start:023d7s */}
+        <Rectangle data-pv-block="023d7s" data-pv-sketchpad-el="023d7s" style={{ position: 'absolute', left: 581, top: 112, width: 237, height: 249 }} className="w-[200px] h-[200px] bg-background-secondary">
+          {/* pv-editable-zone-start:ex6zsf */}
+            {/* pv-block-start:9744bk */}
+            <Avatar data-pv-block="9744bk" data-pv-sketchpad-el="9744bk" style={{ position: 'absolute', left: 21, top: 12 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+            {/* pv-block-end:9744bk */}
+            {/* pv-block-start:8c8qkh */}
+            <span className="font-bold" data-pv-block="8c8qkh" data-pv-sketchpad-el="8c8qkh" style={{ position: 'absolute', left: 22, top: 61 }}>Lorem ipsum</span>
+            {/* pv-block-end:8c8qkh */}
+            {/* pv-block-start:6xjwu5 */}
+            <Button data-pv-block="6xjwu5" data-pv-sketchpad-el="6xjwu5" style={{ position: 'absolute', left: 22, top: 190 }} label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:6xjwu5 */}
+            {/* pv-block-start:fi6jse */}
+            <Checkbox data-pv-block="fi6jse" data-pv-sketchpad-el="fi6jse" style={{ position: 'absolute', left: 22, top: 149 }} primaryText="Check this out" />
+            {/* pv-block-end:fi6jse */}
+            {/* pv-block-start:26xsul */}
+            <Badge data-pv-block="26xsul" data-pv-sketchpad-el="26xsul" style={{ position: 'absolute', left: 130, top: 20 }} label="Badge" color="primary" />
+            {/* pv-block-end:26xsul */}
+            {/* pv-block-start:8mvs3j */}
+            <span className="font-normal text-base" data-pv-block="8mvs3j" data-pv-sketchpad-el="8mvs3j" style={{ position: 'absolute', width: 166, left: 22, top: 91 }}>
+              Secondary text that can take multiple lines
+            </span>
+            {/* pv-block-end:8mvs3j */}
+          {/* pv-editable-zone-end:ex6zsf */}
+        </Rectangle>
+        {/* pv-block-end:023d7s */}
       {/* pv-editable-zone-end:evl0zh */}
     </div>
   );

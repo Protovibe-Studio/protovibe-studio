@@ -4,7 +4,7 @@
 
 import { useEffect, RefObject } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { PV_FOCUS_TEXT_CONTENT_EVENT } from '../utils/elementType';
+import { PV_FOCUS_TEXT_CONTENT_EVENT, isTypingInput } from '../utils/elementType';
 
 interface PvLoc {
   name: string;
@@ -130,4 +130,38 @@ export function useIframeBridge(...iframeRefs: RefObject<HTMLIFrameElement | nul
       );
     });
   }, [activeSourceId, ...iframeRefs]);
+
+  // Global Space key tracking
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        if (isTypingInput(document.activeElement as HTMLElement | null)) return;
+        iframeRefs.forEach(ref => {
+          ref.current?.contentWindow?.postMessage({ type: 'PV_SPACE_MODE', active: true }, '*');
+        });
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        iframeRefs.forEach(ref => {
+          ref.current?.contentWindow?.postMessage({ type: 'PV_SPACE_MODE', active: false }, '*');
+        });
+      }
+    };
+    const handleBlur = () => {
+      iframeRefs.forEach(ref => {
+        ref.current?.contentWindow?.postMessage({ type: 'PV_SPACE_MODE', active: false }, '*');
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [...iframeRefs]);
 }
