@@ -1047,19 +1047,45 @@ export default function DocsPage() {
                   Protovibe edits real source code, so the occasional weird state is expected — a half-applied change, a component that won't render, a canvas that's gone blank. Here's the order to try things in.
                 </p>
                 {/* pv-block-end:ptrb03 */}
-                {/* pv-block-start:htrb04 */}
-                <h3 data-pv-block="htrb04" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">When the app crashes</h3>
-                {/* pv-block-end:htrb04 */}
-                {/* pv-block-start:ptrb05 */}
-                <p data-pv-block="ptrb05" className="text-foreground-secondary leading-[1.7]">
-                  Hit <Shortcut keys={['cmd', 'Z']} />. Because Protovibe writes directly to your files, undo also rolls back the source — so the move that broke the app is reversed and the canvas comes back to life. Keep undoing until you're back to a known-good state.
-                </p>
-                {/* pv-block-end:ptrb05 */}
-                {/* pv-block-start:ptrb06 */}
-                <p data-pv-block="ptrb06" className="text-foreground-secondary leading-[1.7]">
-                  If undo doesn't help, ask your coding agent. Two prompts that work well: "the app just crashed after I did X — please diagnose and fix," or "I was trying to do X but the editor wouldn't let me — please do it in code." The agent has full access to the source and can usually fix in seconds what the visual editor can't.
-                </p>
-                {/* pv-block-end:ptrb06 */}
+                {/* pv-block-start:sgo8z1 */}
+                <div data-pv-block="sgo8z1" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:axav9w */}
+                  {/* pv-block-start:htrb04 */}
+                  <h3 data-pv-block="htrb04" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">
+                    When you undo but it does nothing
+                  </h3>
+                  {/* pv-block-end:htrb04 */}
+                  {/* pv-block-start:ptrb06 */}
+                  <p data-pv-block="ptrb06" className="text-foreground-secondary leading-[1.7]">
+                    Protovibe works on React app Hot Module Reloading. Sometimes this does not work - the file is undone, but you won't see changes. Then just <b>refresh Protovibe app</b> and everything should be back to normal.
+                  </p>
+                  {/* pv-block-end:ptrb06 */}
+                  {/* pv-editable-zone-end:axav9w */}
+                </div>
+                {/* pv-block-end:sgo8z1 */}
+
+                {/* pv-block-start:p0xod5 */}
+                <div data-pv-block="p0xod5" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:axav9w */}
+                  {/* pv-block-start:egfa8n */}
+                  <h3 data-pv-block="egfa8n" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">
+                    When the app crashes
+                  </h3>
+                  {/* pv-block-end:egfa8n */}
+                  {/* pv-block-start:zz88wk */}
+                  <p data-pv-block="zz88wk" className="text-foreground-secondary leading-[1.7]">
+                    Hit <Shortcut keys={['cmd', 'Z']} />. Because Protovibe writes directly to your files, undo also rolls back the source — so the move that broke the app is reversed and the canvas comes back to life. Keep undoing until you're back to a known-good state.
+                  </p>
+                  {/* pv-block-end:zz88wk */}
+                  {/* pv-block-start:8cgzc1 */}
+                  <p data-pv-block="8cgzc1" className="text-foreground-secondary leading-[1.7]">
+                    If undo doesn't help, ask your coding agent. Two prompts that work well: "the app just crashed after I did X — please diagnose and fix," or "I was trying to do X but the editor wouldn't let me — please do it in code." The agent has full access to the source and can usually fix in seconds what the visual editor can't.
+                  </p>
+                  {/* pv-block-end:8cgzc1 */}
+                  {/* pv-editable-zone-end:axav9w */}
+                </div>
+                {/* pv-block-end:p0xod5 */}
+
                 {/* pv-block-start:htrb07 */}
                 <h3 data-pv-block="htrb07" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Reporting bugs</h3>
                 {/* pv-block-end:htrb07 */}
