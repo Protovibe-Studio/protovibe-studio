@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { usePath } from '@/pathContext';
 import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image'
 import { Button } from '@/components/ui/button'
@@ -1628,7 +1629,7 @@ function FAQ(props: any) {
   );
 }
 
-function InstallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function InstallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState("auto");
   const [platform, setPlatform] = useState<"mac" | "windows" | null>(null);
   const [copied, setCopied] = useState(false);
@@ -2351,6 +2352,7 @@ function Testimonial(props: any) {
 
 export default function App() {
   const [installOpen, setInstallOpen] = useState(false);
+  const path = usePath();
   useReveal();
 
   useEffect(() => {
@@ -2392,7 +2394,7 @@ export default function App() {
                 <a data-pv-block="b00301" href="https://github.com/Protovibe-Studio/protovibe-studio" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">GitHub</a>
                 {/* pv-block-end:b00301 */}
                 {/* pv-block-start:b00300 */}
-                <a data-pv-block="b00300" href="https://github.com/Protovibe-Studio/protovibe-studio#readme" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">Docs</a>
+                <a data-pv-block="b00300" href="/docs" data-active={path.startsWith('/docs')} className="hover:text-foreground-strong data-[active=true]:text-foreground-strong data-[active=true]:font-semibold">Docs</a>
                 {/* pv-block-end:b00300 */}
               {/* pv-editable-zone-end:z00105 */}
             </div>
