@@ -1553,7 +1553,9 @@ function FAQ(props: any) {
                   <summary data-pv-block="b00407" className="list-none cursor-pointer py-[24px] px-[4px] flex items-center justify-between gap-[20px] font-secondary font-bold text-[19px] text-foreground-strong tracking-[-0.01em] transition-colors duration-150 hover:text-white">
                     {/* pv-editable-zone-start:z00212 */}
                       {/* pv-block-start:b00434 */}
-                      <span data-pv-block="b00434">How does 'runs on your computer' actually work?</span>
+                      <span data-pv-block="b00434">
+                        How does 'runs locally' actually work?
+                      </span>
                       {/* pv-block-end:b00434 */}
                       {/* pv-block-start:b00435 */}
                       <Icon data-pv-block="b00435" iconSymbol="chevron-down" size="md" className="text-foreground-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
@@ -2153,7 +2155,7 @@ function FooterCTA(props: any) {
               <div data-pv-block="oc6h0r" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center items-stretch min-w-64 flex-row max-md:flex-col max-md:flex-nowrap max-md:w-full max-md:max-w-[320px] max-md:mx-auto">
                 {/* pv-editable-zone-start:z00108 */}
                   {/* pv-block-start:qnw0mp */}
-                  <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" data-install label="Install now" variant="solid" color="primary" size="lg" />
+                  <Button rightIcon="mdi:arrow-right" data-pv-block="qnw0mp" data-install label="Download" variant="solid" color="primary" size="lg" />
                   {/* pv-block-end:qnw0mp */}
 
                   {/* pv-block-start:s7lvih */}
@@ -2227,7 +2229,7 @@ function Hero(props: any) {
             <div data-pv-block="b00307" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center flex-col items-stretch min-w-64">
               {/* pv-editable-zone-start:z00108 */}
                 {/* pv-block-start:jkwl83 */}
-                <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" data-install label="Install now" variant="solid" color="primary" size="lg" />
+                <Button rightIcon="mdi:arrow-right" data-pv-block="jkwl83" data-install label="Download" variant="solid" color="primary" size="lg" />
                 {/* pv-block-end:jkwl83 */}
 
                 {/* pv-block-start:jppuwr */}
@@ -2381,36 +2383,26 @@ export default function App() {
         <nav data-pv-block="b00294" className="sticky top-0 z-50 flex items-center justify-between px-[20px] py-[14px] md:px-[40px] md:py-[18px] bg-gradient-to-b from-[#050509eb] via-[#05050999] to-transparent backdrop-blur-[8px]">
           {/* pv-editable-zone-start:z00104 */}
             {/* pv-block-start:96mqud */}
-            <Image data-pv-block="96mqud" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-5" />
+            <Image data-pv-block="96mqud" className="bg-cover bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/protovibe-studio-logo.png')] aspect-[101/12] h-3.5 sm:h-5" />
             {/* pv-block-end:96mqud */}
             
             {/* pv-block-start:b00296 */}
-            <div data-pv-block="b00296" className="hidden md:flex gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[24px]">
+            <div data-pv-block="b00296" className="flex gap-[18px] md:gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[16px] md:mr-[24px]">
               {/* pv-editable-zone-start:z00105 */}
-                {/* pv-block-start:b00296a */}
-                <a data-pv-block="b00296a" href="#problems" className="hover:text-foreground-strong">Why</a>
-                {/* pv-block-end:b00296a */}
-                {/* pv-block-start:b00299 */}
-                <a data-pv-block="b00299" href="#features" className="hover:text-foreground-strong">Features</a>
-                {/* pv-block-end:b00299 */}
-                {/* pv-block-start:b00297 */}
-                <a data-pv-block="b00297" href="#agents" className="hover:text-foreground-strong">AI Agents</a>
-                {/* pv-block-end:b00297 */}
-                {/* pv-block-start:b00298 */}
-                <a data-pv-block="b00298" href="#prototyping" className="hover:text-foreground-strong">Prototyping</a>
-                {/* pv-block-end:b00298 */}
-                {/* pv-block-start:b00300 */}
-                <a data-pv-block="b00300" href="#faq" className="hover:text-foreground-strong">FAQ</a>
-                {/* pv-block-end:b00300 */}
                 {/* pv-block-start:b00301 */}
                 <a data-pv-block="b00301" href="https://github.com/Protovibe-Studio/protovibe-studio" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">GitHub</a>
                 {/* pv-block-end:b00301 */}
+                {/* pv-block-start:b00300 */}
+                <a data-pv-block="b00300" href="https://github.com/Protovibe-Studio/protovibe-studio#readme" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">Docs</a>
+                {/* pv-block-end:b00300 */}
               {/* pv-editable-zone-end:z00105 */}
             </div>
             {/* pv-block-end:b00296 */}
-            
+
             {/* pv-block-start:b00302 */}
-            <a data-pv-block="b00302" className="appearance-none border-0 bg-[#f4f4f6] text-[#000] text-[13px] font-semibold px-[14px] py-[8px] rounded-[8px] transition-all duration-150 hover:-translate-y-[1px] hover:bg-white cursor-pointer" data-install>Install now</a>
+            <a data-pv-block="b00302" className="appearance-none border-0 bg-[#f4f4f6] text-[#000] text-[13px] font-semibold px-[14px] py-[8px] rounded-[8px] transition-all duration-150 hover:-translate-y-[1px] hover:bg-white cursor-pointer" data-install>
+              Download
+            </a>
             {/* pv-block-end:b00302 */}
           {/* pv-editable-zone-end:z00104 */}
         </nav>
