@@ -10,7 +10,7 @@
     "concat:no-ui": "node scripts/concat.js no-ui",
     "postinstall": "pnpm --dir plugins/protovibe install && node -e \"require('fs').rmSync('plugins/protovibe/dist',{recursive:true,force:true})\" && pnpm --dir plugins/protovibe run build",
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist/server && node scripts/prerender.mjs",
     "preview": "vite preview",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "lint": "tsc --noEmit"

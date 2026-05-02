@@ -39,6 +39,7 @@ type StoreContextType = {
 const StoreContext = createContext<StoreContextType | null>(null);
 
 const getQueryParamsFromURL = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
   const params = new URLSearchParams(window.location.search);
   const obj: Record<string, string> = {};
   params.forEach((value, key) => {
