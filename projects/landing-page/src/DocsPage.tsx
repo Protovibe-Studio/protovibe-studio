@@ -19,7 +19,9 @@ const SECTIONS: Section[] = [
   { id: 'styling-elements', title: 'Styling individual elements' },
   { id: 'responsive', title: 'Responsive design' },
   { id: 'prompts', title: 'Prompts and context' },
+  { id: 'ai-agents', title: 'Working with AI agents' },
   { id: 'publishing', title: 'Publishing to Cloudflare' },
+  { id: 'collaboration', title: 'Collaboration' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'technical', title: 'Under the hood' },
   { id: 'license', title: 'License' },
@@ -876,6 +878,77 @@ export default function DocsPage() {
             </section>
             {/* pv-block-end:sapr01 */}
 
+            {/* Working with AI agents */}
+            {/* pv-block-start:said01 */}
+            <section data-pv-block="said01" id="ai-agents" className="flex flex-col gap-[16px] scroll-mt-[80px]">
+              {/* pv-editable-zone-start:zaid01 */}
+                {/* pv-block-start:haid02 */}
+                <h2 data-pv-block="haid02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Working with AI agents</h2>
+                {/* pv-block-end:haid02 */}
+                {/* pv-block-start:paid03 */}
+                <p data-pv-block="paid03" className="text-foreground-secondary leading-[1.7]">
+                  Protovibe works nicely next to AI coding tools. You stay in the canvas designing, and an agent can pick up the same project folder to make code changes you don't want to do by hand.
+                </p>
+                {/* pv-block-end:paid03 */}
+                {/* pv-block-start:dllipy */}
+                <div data-pv-block="dllipy" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:k956o1 */}
+                  {/* pv-block-start:q8zc7z */}
+                  <h3 data-pv-block="q8zc7z" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">
+                    General advice
+                  </h3>
+                  {/* pv-block-end:q8zc7z */}
+                  {/* pv-block-start:caid06 */}
+                  <Callout data-pv-block="caid06" variant="info" title="Don't edit while the agent is writing">
+                    Try not to move or restyle things in the canvas while the agent is mid-task. Both Protovibe and the agent save to the same files, and saving on top of each other can scramble what the agent is writing. Wait until it finishes, then take over.
+                  </Callout>
+                  {/* pv-block-end:caid06 */}
+                  {/* pv-block-start:paid07 */}
+                  <p data-pv-block="paid07" className="text-foreground-secondary leading-[1.7]">
+                    A few small habits that make agents much more useful:
+                  </p>
+                  {/* pv-block-end:paid07 */}
+                  {/* pv-block-start:uaid08 */}
+                  <ul data-pv-block="uaid08" className="flex flex-col gap-[8px] text-foreground-secondary leading-[1.7] list-disc pl-[24px] m-0">
+                    {/* pv-editable-zone-start:zaid08 */}
+                      {/* pv-block-start:laid09 */}
+                      <li data-pv-block="laid09">Use the <strong className="text-foreground-strong">Prompts</strong> panel to copy what you've selected — the agent does much better when it knows exactly which thing on the screen you mean.</li>
+                      {/* pv-block-end:laid09 */}
+                      {/* pv-block-start:laid10 */}
+                      <li data-pv-block="laid10">Tick <strong className="text-foreground-strong">"Include Protovibe instructions"</strong> if the agent will be writing new layout code, so the canvas can still open it afterwards.</li>
+                      {/* pv-block-end:laid10 */}
+                      {/* pv-block-start:laid11 */}
+                      <li data-pv-block="laid11">Let the agent finish before you start clicking around. If you really need to step in, stop it first.</li>
+                      {/* pv-block-end:laid11 */}
+                      {/* pv-block-start:laid12 */}
+                      <li data-pv-block="laid12">If something looks wrong, just press <Shortcut keys={['cmd', 'Z']} />. Undo rolls back both your changes and the agent's, so you can always get back to a working state.</li>
+                      {/* pv-block-end:laid12 */}
+                    {/* pv-editable-zone-end:zaid08 */}
+                  </ul>
+                  {/* pv-block-end:uaid08 */}
+                  {/* pv-editable-zone-end:k956o1 */}
+                </div>
+                {/* pv-block-end:dllipy */}
+
+                {/* pv-block-start:m32r8w */}
+                <div data-pv-block="m32r8w" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:bsxn12 */}
+                  {/* pv-block-start:haid04 */}
+                  <h3 data-pv-block="haid04" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Claude Cowork</h3>
+                  {/* pv-block-end:haid04 */}
+                  {/* pv-block-start:paid05 */}
+                  <p data-pv-block="paid05" className="text-foreground-secondary leading-[1.7]">
+                    Yes, you can run <strong className="text-foreground-strong">Claude Cowork</strong> at the same time as Protovibe. Open it on the same project folder and it will see your changes as you make them. It's handy when you want to ask for a tweak in plain English instead of hunting for the right control.
+                  </p>
+                  {/* pv-block-end:paid05 */}
+                  {/* pv-editable-zone-end:bsxn12 */}
+                </div>
+                {/* pv-block-end:m32r8w */}
+
+              {/* pv-editable-zone-end:zaid01 */}
+            </section>
+            {/* pv-block-end:said01 */}
+
             {/* Publishing */}
             {/* pv-block-start:sbpb01 */}
             <section data-pv-block="sbpb01" id="publishing" className="flex flex-col gap-[16px] scroll-mt-[80px]">
@@ -901,6 +974,66 @@ export default function DocsPage() {
               {/* pv-editable-zone-end:zbpb01 */}
             </section>
             {/* pv-block-end:sbpb01 */}
+
+            {/* Collaboration */}
+            {/* pv-block-start:scol01 */}
+            <section data-pv-block="scol01" id="collaboration" className="flex flex-col gap-[16px] scroll-mt-[80px]">
+              {/* pv-editable-zone-start:zcol01 */}
+                {/* pv-block-start:hcol02 */}
+                <h2 data-pv-block="hcol02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Collaboration</h2>
+                {/* pv-block-end:hcol02 */}
+                {/* pv-block-start:pcol03 */}
+                <p data-pv-block="pcol03" className="text-foreground-secondary leading-[1.7]">
+                  Protovibe is a place to design — not where your team's real production app lives. Think of what you build here as a very precise, working reference: a React project with real layout, spacing, components, and tokens that someone else can read and use.
+                </p>
+                {/* pv-block-end:pcol03 */}
+                {/* pv-block-start:pcol03b */}
+                <p data-pv-block="pcol03b" className="text-foreground-secondary leading-[1.7]">
+                  And because it's a normal folder of files, you can share it the same way developers already share code — with <strong className="text-foreground-strong">Git</strong> (GitHub, GitLab, etc.) or even just by zipping up the folder and sending it over.
+                </p>
+                {/* pv-block-end:pcol03b */}
+                {/* pv-block-start:pcol04 */}
+                <p data-pv-block="pcol04" className="text-foreground-secondary leading-[1.7]">
+                  Why this is useful:
+                </p>
+                {/* pv-block-end:pcol04 */}
+                {/* pv-block-start:ucol05 */}
+                <ul data-pv-block="ucol05" className="flex flex-col gap-[8px] text-foreground-secondary leading-[1.7] list-disc pl-[24px] m-0">
+                  {/* pv-editable-zone-start:zcol05 */}
+                    {/* pv-block-start:lcol06 */}
+                    <li data-pv-block="lcol06"><strong className="text-foreground-strong">A spec that actually runs.</strong> Instead of writing a long doc or annotating a Figma frame, you hand over working code. There's no "did I describe this padding correctly?" — it's right there.</li>
+                    {/* pv-block-end:lcol06 */}
+                    {/* pv-block-start:lcol07 */}
+                    <li data-pv-block="lcol07"><strong className="text-foreground-strong">A perfect input for AI agents.</strong> A developer's AI agent can read your Protovibe code directly. That's far more precise than any written spec — the agent sees the exact components, classes, and structure you intended.</li>
+                    {/* pv-block-end:lcol07 */}
+                    {/* pv-block-start:lcol08 */}
+                    <li data-pv-block="lcol08"><strong className="text-foreground-strong">Real history.</strong> If you use Git, every change is saved as a step you can go back to or compare against — handy when you want to show what changed between two designs.</li>
+                    {/* pv-block-end:lcol08 */}
+                    {/* pv-block-start:lcol09 */}
+                    <li data-pv-block="lcol09"><strong className="text-foreground-strong">No lock-in.</strong> Your project is your project. Protovibe doesn't keep your work hostage — the folder is yours to keep, share, or throw away.</li>
+                    {/* pv-block-end:lcol09 */}
+                  {/* pv-editable-zone-end:zcol05 */}
+                </ul>
+                {/* pv-block-end:ucol05 */}
+                {/* pv-block-start:hcol10 */}
+                <h3 data-pv-block="hcol10" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Use case: handing a design to a developer</h3>
+                {/* pv-block-end:hcol10 */}
+                {/* pv-block-start:pcol11 */}
+                <p data-pv-block="pcol11" className="text-foreground-secondary leading-[1.7]">
+                  You design a screen in Protovibe and share the folder with a developer. They don't have to copy your work into their real codebase by hand — they point their AI agent at your Protovibe project and say "build this in our app, matching the layout and spacing." The agent has the actual code in front of it, so the result is much closer to what you drew than a written brief would ever get.
+                </p>
+                {/* pv-block-end:pcol11 */}
+                {/* pv-block-start:hcol12 */}
+                <h3 data-pv-block="hcol12" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Use case: marketing and designer working together</h3>
+                {/* pv-block-end:hcol12 */}
+                {/* pv-block-start:pcol13 */}
+                <p data-pv-block="pcol13" className="text-foreground-secondary leading-[1.7]">
+                  Someone in marketing sketches a landing page in Protovibe and shares the folder. A designer opens the same project and polishes it by hand — nudging paddings, fixing border radius, swapping a font weight, tweaking colours. The result is a clean, hand-tuned reference that a developer (or their AI agent) can then turn into the real page.
+                </p>
+                {/* pv-block-end:pcol13 */}
+              {/* pv-editable-zone-end:zcol01 */}
+            </section>
+            {/* pv-block-end:scol01 */}
 
             {/* Troubleshooting */}
             {/* pv-block-start:strb01 */}
