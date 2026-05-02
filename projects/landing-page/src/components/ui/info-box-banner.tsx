@@ -36,7 +36,7 @@ export function InfoBoxBanner({
     <div
       data-color={color}
       data-actions-layout={actionsLayout}
-      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start p-3 gap-2 border border-border-strong/15", className)}
+      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start gap-2 border border-border-strong/15 p-4", className)}
       {...props}
       data-pv-component-id="InfoBoxBanner"
     >
@@ -48,12 +48,12 @@ export function InfoBoxBanner({
       {/* Middle: heading + secondary text + optional zone + (bottom) action buttons */}
       <div className="min-w-0 flex-1 pr-3">
         {heading && (
-          <p className="text-sm font-semibold data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-default pt-1" data-color={color}>
+          <p className="font-semibold data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=neutral]:text-foreground-default data-[color=info]:text-foreground-default text-lg" data-color={color}>
             {heading}
           </p>
         )}
         {secondaryText && (
-          <p className="text-sm py-1 text-foreground-default">
+          <p className="py-1 text-foreground-default text-base">
             {secondaryText}
           </p>
         )}
