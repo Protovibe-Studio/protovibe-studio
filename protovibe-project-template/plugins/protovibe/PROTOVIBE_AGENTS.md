@@ -733,6 +733,22 @@ Never add custom Tailwind classes for text styling. Instead, use the `TextBlock`
   <TextBlock typography="all-caps">Section Title</TextBlock>
   ```
 
+### Rule: Avoid Rarely-Used Inline HTML Tags
+
+Don't reach for tags like `<code>`, `<kbd>`, `<samp>`, `<var>`, `<mark>`, `<abbr>`, `<cite>`, `<q>`, `<sub>`, `<sup>`, `<small>`. Use a plain `<span>` with Tailwind classes instead — it gives the visual builder a single, predictable styling target and keeps inline text editable without surprising semantic markup.
+
+* **❌ BAD: Semantic inline tags for visual styling**
+
+  ```tsx
+  Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to open <code>search</code>.
+  ```
+
+* **✅ GOOD: Plain spans with Tailwind**
+
+  ```tsx
+  Press <span className="font-mono bg-background-tertiary px-1 rounded">Ctrl</span> + <span className="font-mono bg-background-tertiary px-1 rounded">K</span> to open <span className="font-mono">search</span>.
+  ```
+
 ### Rule: Use Tailwind Background Images Instead of `<img>` Tags
 
 When adding static images (PNG, JPG, SVG) as visual elements in application pages, use a `<div>` with Tailwind's `bg-[url(...)]` arbitrary value instead of an `<img>` tag. This allows the visual builder's Background Image inspector to manage the image — including replacing, repositioning, and removing it — without manual code edits. Images uploaded through Protovibe are stored in `src/images/from-protovibe/`.

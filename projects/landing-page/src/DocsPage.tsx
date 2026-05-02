@@ -238,6 +238,9 @@ export default function DocsPage() {
                       {/* pv-block-start:tpzaaa */}
                       <li data-pv-block="tpzaaa"><Shortcut keys={['shift', 'Click']} /> — multi-select elements to delete multiple or wrap.</li>
                       {/* pv-block-end:tpzaaa */}
+                      {/* pv-block-start:u7i818 */}
+                      <li data-pv-block="u7i818"><Shortcut keys={['[']} /> <Shortcut keys={[']']} /> — move the selected element up or down among its siblings.</li>
+                      {/* pv-block-end:u7i818 */}
                       {/* pv-editable-zone-end:mb5b6m */}
                     </div>
                     {/* pv-block-end:x4g68p */}
@@ -298,6 +301,16 @@ export default function DocsPage() {
                   Protovibe ships with most of the tokens you'll need out of the box — backgrounds, foregrounds, borders, primary/destructive/warning roles, and a few hover/active variants. For most projects you'll just retune the values, not add new ones.
                 </p>
                 {/* pv-block-end:p3ds5a */}
+                {/* pv-block-start:h3lm01 */}
+                <h3 data-pv-block="h3lm01" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Light and dark mode</h3>
+                {/* pv-block-end:h3lm01 */}
+                {/* pv-block-start:p3lm02 */}
+                <p data-pv-block="p3lm02" className="text-foreground-secondary leading-[1.7]">
+                  Every token has a light and dark value, so you design the app in both modes at the same time. Flip between them any time using the mode toggle in the <strong className="text-foreground-strong">
+                    bottom left
+                  </strong> — it switches both the app preview and the components grid.
+                </p>
+                {/* pv-block-end:p3lm02 */}
                 {/* pv-block-start:h3ds5b */}
                 <h3 data-pv-block="h3ds5b" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">How to add new colors?</h3>
                 {/* pv-block-end:h3ds5b */}

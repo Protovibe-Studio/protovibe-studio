@@ -115,10 +115,10 @@
  --background-secondary: rgba(255,255,255,0.035); /* cards, panels */
  --background-secondary-hover: rgba(255,255,255,0.06);
  --background-secondary-pressed: rgba(255,255,255,0.08);
- --background-tertiary: rgba(255,255,255,0.06); /* code blocks, elevated */
+ --background-tertiary: oklch(100% 0.044 331.6 / 0.09); /* code blocks, elevated */
  --background-tertiary-hover: rgba(255,255,255,0.10);
  --background-tertiary-pressed: rgba(255,255,255,0.14);
- --background-elevated: rgba(255,255,255,0.06); /* floating surfaces */
+ --background-elevated: oklch(21.4% 0.016 271.6); /* floating surfaces */
  --background-elevated-hover: rgba(255,255,255,0.10);
  --background-elevated-pressed: rgba(255,255,255,0.14);
  --background-sunken: #0d0d0d; /* recessed wells — darker than default in dark mode */
@@ -127,7 +127,7 @@
  --background-strong: #c8c8d0;
  --background-strong-hover: #d4d4da;
  --background-strong-pressed: #b8b8c0;
- --background-overlay: rgba(3,3,7,0.75);
+ --background-overlay: oklch(10.5% 0.037 283.5 / 0.75);
  --background-disabled: rgba(255,255,255,0.04);
  --background-transparent: transparent;
  --background-transparent-hover: rgba(255,255,255,0.06); /* alpha tint for elements with no base background */
@@ -168,8 +168,8 @@
 
  /* Text */
  --foreground-default: oklch(100% 0.01104 286.2);
- --foreground-secondary: oklch(68.1% 0.01812 285.8);
- --foreground-tertiary: #4a4a55;
+ --foreground-secondary: oklch(72.1% 0.01812 285.8);
+ --foreground-tertiary: oklch(57.7% 0.0182 285.6);
  --foreground-strong: #f4f4f6;
  --foreground-disabled: #52525d;
  --foreground-inverse: #070707;
@@ -184,7 +184,7 @@
  /* Borders */
  --border-default: rgba(255,255,255,0.12);
  --border-secondary: rgba(255,255,255,0.08);
- --border-strong: rgba(255,255,255,0.14);
+ --border-strong: oklch(100% 0 89.9 / 0.2);
  --border-focus: #3d7bff;
  --border-primary: #3d7bff;
  --border-destructive: #ff7073;

@@ -1,6 +1,6 @@
 export const PV_FOCUS_TEXT_CONTENT_EVENT = 'pv-focus-text-content';
 
-export const INLINE_RICH_TEXT_TAGS = ['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br'];
+export const INLINE_RICH_TEXT_TAGS = ['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br', 'code', 'kbd', 'samp', 'var', 'mark', 'small', 'sub', 'sup', 'abbr', 'cite', 'q', 'time', 'del', 'ins', 's'];
 
 const ALLOWED_TAG_REGEX = new RegExp(
   `^<\\/?(?:${INLINE_RICH_TEXT_TAGS.join('|')})(?:\\s[^<>]*?)?\\/?>$`,
