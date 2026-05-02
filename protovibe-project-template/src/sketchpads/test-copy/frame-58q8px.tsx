@@ -159,10 +159,10 @@ export default function Frame4() {
         <Button leftIcon="material-symbols:arrow-back"  data-pv-block="5ba37x" data-pv-sketchpad-el="5ba37x" style={{ position: 'absolute', left: 376, top: 78 }} label="Back to projects" variant="ghost" color="neutral" size="md" />
         {/* pv-block-end:5ba37x */}
         {/* pv-block-start:itzmu2 */}
-        <Card className="mt-3 pt-16 pl-24" data-pv-block="itzmu2" data-pv-sketchpad-el="itzmu2" style={{ position: 'absolute', left: 1110, top: 156 }}>
+        <Card className="mt-3 pt-16 pl-24" data-pv-block="itzmu2" data-pv-sketchpad-el="itzmu2" style={{ position: 'absolute', left: 1170, top: 379 }}>
           {/* pv-editable-zone-start:risdd7 */}
             {/* pv-block-start:jmzh1m */}
-            <Button className="mt-16" data-pv-block="jmzh1m"  label="Button" variant="solid" color="primary" size="md" />
+            <Button className="mt-16" data-pv-block="jmzh1m"  label="Button" variant="solid" color="danger" size="md" />
             {/* pv-block-end:jmzh1m */}
           {/* pv-editable-zone-end:risdd7 */}
         </Card>
