@@ -121,7 +121,7 @@ export default function DocsPage() {
 
       <div className="relative z-[2] mx-auto px-[20px] md:px-[40px] max-w-[1340px] grid grid-cols-1 md:grid-cols-[240px_1fr] gap-[40px] md:gap-[60px] py-[40px] md:py-[60px]">
         <aside className="md:sticky md:top-[80px] self-start">
-          <div className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-tertiary">
+          <div className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-tertiary pl-2">
             Docs
           </div>
           <nav className="flex flex-col gap-[6px]">
