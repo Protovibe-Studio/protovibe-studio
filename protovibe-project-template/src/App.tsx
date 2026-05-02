@@ -61,6 +61,8 @@ import { DropdownButton } from '@/components/ui/dropdown-button'
 import { skillsToImport, SkillPreview, SkillLevel } from '@/lib/mock-data';
 import { useThemeManager } from '@/theme-management/useThemeManager';
 import { ToastBox } from '@/components/ui/toast-box'
+import { DateInput } from '@/components/ui/date-input'
+import { DatePickerPopover } from '@/components/ui/date-picker-popover'
 
 // --- MOCK DATA ---
 
@@ -256,6 +258,9 @@ function DashboardPage() {
           {/* pv-editable-zone-end:xqhvyt */}
         </Card>
         {/* pv-block-end:ex3xz0 */}
+        {/* pv-block-start:462s7c */}
+        <DateInput data-pv-block="462s7c" placeholder="MM/DD/YYYY" pickerOpen="Auto (Default)" />
+        {/* pv-block-end:462s7c */}
 
         {/* pv-block-start:0ohoji */}
         <Card className="bg-background-tertiary-hover mt-8" data-pv-block="0ohoji">
