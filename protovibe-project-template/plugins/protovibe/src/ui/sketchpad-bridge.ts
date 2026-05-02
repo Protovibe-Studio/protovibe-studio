@@ -551,6 +551,7 @@ let selectionOverlays: Map<HTMLElement, HTMLDivElement> = new Map();
 let hoverOverlay: HTMLDivElement | null = null;
 let parentPreviewOverlay: HTMLDivElement | null = null;
 let resizeAffordance: HTMLDivElement | null = null;
+let eastResizeAffordance: HTMLDivElement | null = null;
 let trackedElementObserver: ResizeObserver | null = null;
 let trackedElements: Set<HTMLElement> = new Set();
 let overlaySyncRafId: number | null = null;
@@ -632,14 +633,20 @@ function syncOverlays() {
     hoverOverlay.style.display = 'none';
   }
 
-  // SE-corner resize affordance: only when exactly one sketchpad-el is selected and
-  // it has data-pv-resizable="both" (the only mode where getResizeEdge returns 'se').
+  // Resize affordances: only when exactly one sketchpad-el is selected.
+  //   - SE 8x8 square for data-pv-resizable="both" (the only mode where getResizeEdge returns 'se').
+  //   - E thin vertical pill for the width-only modes (data-pv-resizable="horizontal" or
+  //     missing), where right-edge horizontal resize is allowed but the SE corner is not.
   const single = selectedEls.length === 1 ? selectedEls[0] : null;
-  const showAffordance = !!single
-    && single.isConnected
-    && single.hasAttribute('data-pv-sketchpad-el')
-    && single.getAttribute('data-pv-resizable') === 'both';
-  if (showAffordance) {
+  const isSingleSketchpadEl = !!single && single.isConnected && single.hasAttribute('data-pv-sketchpad-el');
+  const resizeMode = isSingleSketchpadEl ? single!.getAttribute('data-pv-resizable') : null;
+  const showSeAffordance = isSingleSketchpadEl && resizeMode === 'both';
+  // East handle covers the "width only" cases. Excludes 'both' (SE handle conveys it)
+  // and 'vertical' (no horizontal resize allowed).
+  const showEastAffordance = isSingleSketchpadEl
+    && (resizeMode === 'horizontal' || resizeMode === null);
+
+  if (showSeAffordance) {
     if (!resizeAffordance) {
       resizeAffordance = document.createElement('div');
       resizeAffordance.setAttribute('data-pv-resize-affordance', '');
@@ -654,6 +661,26 @@ function syncOverlays() {
     resizeAffordance.style.display = 'block';
   } else if (resizeAffordance) {
     resizeAffordance.style.display = 'none';
+  }
+
+  if (showEastAffordance) {
+    if (!eastResizeAffordance) {
+      eastResizeAffordance = document.createElement('div');
+      eastResizeAffordance.setAttribute('data-pv-resize-affordance', 'e');
+      // Thin vertical pill — the shape signals "drag horizontally to change width" and
+      // distinguishes it from the SE corner square's two-axis affordance.
+      eastResizeAffordance.style.cssText = 'position:absolute;width:4px;height:18px;background:#18a0fb;border:1px solid #fff;box-sizing:border-box;border-radius:2px;pointer-events:none;';
+      layer.appendChild(eastResizeAffordance);
+    }
+    const rect = single!.getBoundingClientRect();
+    // Center the 4×18 pill on the right edge of the selection rectangle. left = right - 1
+    // (half of 4px width minus the 1px inset from the selection straddle), top = vertical
+    // midpoint - 9 (half the pill height).
+    eastResizeAffordance.style.left = `${rect.right - 1}px`;
+    eastResizeAffordance.style.top = `${rect.top + rect.height / 2 - 9}px`;
+    eastResizeAffordance.style.display = 'block';
+  } else if (eastResizeAffordance) {
+    eastResizeAffordance.style.display = 'none';
   }
 
   syncTrackedElements();
