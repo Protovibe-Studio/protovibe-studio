@@ -24,7 +24,7 @@ export default function Frame1() {
     <div className="bg-background-overlay" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:2n7pqy */}
       {/* pv-block-start:sdaeec */}
-      <DialogWindow size="xl" data-pv-block="sdaeec" data-pv-sketchpad-el="sdaeec"  style={{ position: 'absolute', left: 300, top: 146 }}>
+      <DialogWindow size="xl" data-pv-block="sdaeec" data-pv-sketchpad-el="sdaeec"  style={{ position: 'absolute', left: 271, top: 130 }}>
         {/* pv-editable-zone-start:tw6q5w */}
           {/* pv-block-start:9la13c */}
           <div className="flex min-h-4 border-border-default flex-row items-center gap-4 justify-start border-b p-5" data-pv-block="9la13c">

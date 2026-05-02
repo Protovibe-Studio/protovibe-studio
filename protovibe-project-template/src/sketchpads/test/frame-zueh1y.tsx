@@ -28,6 +28,20 @@ export default function Frame4() {
             {/* pv-block-start:wrk2v5 */}
             <Button leftIcon="ri:more-fill" iconOnly data-pv-block="wrk2v5" data-pv-sketchpad-el="wrk2v5" style={{ position: 'absolute', left: 642, top: 18 }} label="Button" variant="ghost" color="primary" size="md" />
             {/* pv-block-end:wrk2v5 */}
+            {/* pv-block-start:5ciyhi */}
+            <Rectangle data-pv-block="5ciyhi" data-pv-sketchpad-el="5ciyhi" style={{ position: 'absolute', left: 37, top: 147, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
+              {/* pv-editable-zone-start:pvjfwm */}
+                {/* pv-block-start:53o58g */}
+                <TextParagraph className="text-foreground-secondary" data-pv-block="53o58g" data-pv-sketchpad-el="53o58g" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
+                  Open Protovibe Editor
+                </TextParagraph>
+                {/* pv-block-end:53o58g */}
+                {/* pv-block-start:pzk0bq */}
+                <Icon data-pv-block="pzk0bq" data-pv-sketchpad-el="pzk0bq" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="majesticons:open" size="lg" />
+                {/* pv-block-end:pzk0bq */}
+              {/* pv-editable-zone-end:pvjfwm */}
+            </Rectangle>
+            {/* pv-block-end:5ciyhi */}
             {/* pv-block-start:smfeki */}
             <Rectangle data-pv-block="smfeki" data-pv-sketchpad-el="smfeki" style={{ position: 'absolute', left: 27, top: 102, height: 69, width: 635 }} className="w-[200px] h-[200px] bg-background-primary-subtle border-0">
               {/* pv-editable-zone-start:pvjfwm */}
@@ -50,20 +64,6 @@ export default function Frame4() {
             {/* pv-block-start:zy5r5x */}
             <Button rightIcon="mdi:chevron-down" data-pv-block="zy5r5x" data-pv-sketchpad-el="zy5r5x" style={{ position: 'absolute', left: 33, top: 542 }} label="Show logs" variant="ghost" color="neutral" size="md" />
             {/* pv-block-end:zy5r5x */}
-            {/* pv-block-start:5ciyhi */}
-            <Rectangle data-pv-block="5ciyhi" data-pv-sketchpad-el="5ciyhi" style={{ position: 'absolute', left: 27, top: 186, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
-              {/* pv-editable-zone-start:pvjfwm */}
-                {/* pv-block-start:53o58g */}
-                <TextParagraph className="text-foreground-secondary" data-pv-block="53o58g" data-pv-sketchpad-el="53o58g" style={{ position: 'absolute', left: 62, top: 23 }} typography="regular">
-                  Open Protovibe Editor
-                </TextParagraph>
-                {/* pv-block-end:53o58g */}
-                {/* pv-block-start:pzk0bq */}
-                <Icon data-pv-block="pzk0bq" data-pv-sketchpad-el="pzk0bq" style={{ position: 'absolute', left: 22, top: 21 }} iconSymbol="majesticons:open" size="lg" />
-                {/* pv-block-end:pzk0bq */}
-              {/* pv-editable-zone-end:pvjfwm */}
-            </Rectangle>
-            {/* pv-block-end:5ciyhi */}
             {/* pv-block-start:gbbomq */}
             <Rectangle data-pv-block="gbbomq" data-pv-sketchpad-el="gbbomq" style={{ position: 'absolute', left: 29, top: 268, height: 69, width: 641 }} className="w-[200px] h-[200px] border-0 bg-background-secondary">
               {/* pv-editable-zone-start:pvjfwm */}
