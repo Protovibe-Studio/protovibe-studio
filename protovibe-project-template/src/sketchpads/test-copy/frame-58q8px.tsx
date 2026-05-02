@@ -11,7 +11,7 @@ export default function Frame4() {
     <div className="bg-background-sunken" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:2qgryk */}
         {/* pv-block-start:trph48 */}
-        <Rectangle data-pv-block="trph48" data-pv-sketchpad-el="trph48" style={{ position: 'absolute', height: 683, width: 720, left: 320, top: 155 }} className="w-[200px] h-[200px] overflow-hidden border-0 bg-background-tertiary">
+        <Rectangle data-pv-block="trph48" data-pv-sketchpad-el="trph48" style={{ position: 'absolute', height: 683, width: 720, left: 376, top: 155 }} className="w-[200px] h-[200px] overflow-hidden border-0 bg-background-tertiary">
           {/* pv-editable-zone-start:tcajes */}
             {/* pv-block-start:ngm7rv */}
             <TextHeading data-pv-block="ngm7rv" data-pv-sketchpad-el="ngm7rv" style={{ position: 'absolute', left: 27, top: 24 }} typography="heading-md">
@@ -158,15 +158,6 @@ export default function Frame4() {
         {/* pv-block-start:5ba37x */}
         <Button leftIcon="material-symbols:arrow-back"  data-pv-block="5ba37x" data-pv-sketchpad-el="5ba37x" style={{ position: 'absolute', left: 376, top: 78 }} label="Back to projects" variant="ghost" color="neutral" size="md" />
         {/* pv-block-end:5ba37x */}
-        {/* pv-block-start:itzmu2 */}
-        <Card className="mt-3 pt-16 pl-24" data-pv-block="itzmu2" data-pv-sketchpad-el="itzmu2" style={{ position: 'absolute', left: 1170, top: 379 }}>
-          {/* pv-editable-zone-start:risdd7 */}
-            {/* pv-block-start:jmzh1m */}
-            <Button className="mt-16" data-pv-block="jmzh1m"  label="Button" variant="solid" color="danger" size="md" />
-            {/* pv-block-end:jmzh1m */}
-          {/* pv-editable-zone-end:risdd7 */}
-        </Card>
-        {/* pv-block-end:itzmu2 */}
       {/* pv-editable-zone-end:2qgryk */}
     </div>
   );

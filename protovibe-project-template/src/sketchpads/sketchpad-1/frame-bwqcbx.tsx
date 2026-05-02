@@ -82,15 +82,6 @@ export default function Frame12() {
           {/* pv-editable-zone-end:o6jpcb */}
         </HorizontalLine>
         {/* pv-block-end:zfri22 */}
-        {/* pv-block-start:l2rae2 */}
-        <div data-pv-block="l2rae2" data-pv-sketchpad-el="l2rae2" style={{ position: 'absolute', left: -105, top: 1209 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
-          {/* pv-editable-zone-start:r5i3w2 */}
-            {/* pv-block-start:bvykzd */}
-            <Button data-pv-block="bvykzd"  label="Sign in" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:bvykzd */}
-          {/* pv-editable-zone-end:r5i3w2 */}
-        </div>
-        {/* pv-block-end:l2rae2 */}
       {/* pv-editable-zone-end:8vfkil */}
     </div>
   );

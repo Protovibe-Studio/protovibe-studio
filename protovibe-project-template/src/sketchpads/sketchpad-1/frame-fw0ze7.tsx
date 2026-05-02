@@ -62,11 +62,17 @@ export default function Frame12() {
         <div data-pv-block="mu0unz" data-pv-sketchpad-el="mu0unz" style={{ position: 'absolute', left: 365, top: -54 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
         {/* pv-block-end:mu0unz */}
         {/* pv-block-start:ny6dao */}
-        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 893, width: 768, left: 671, top: -18 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
+        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 900, width: 768, left: 671, top: -1 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
           {/* pv-editable-zone-start:69fbo3 */}
-            {/* pv-block-start:km1api */}
-            <div data-pv-block="km1api" data-pv-sketchpad-el="km1api" style={{ position: 'absolute', width: 1065, left: 117, top: 162 }} className="w-full bg-[url('/src/images/from-protovibe/image-2.png')] bg-contain bg-center bg-no-repeat aspect-[565/537]" />
-            {/* pv-block-end:km1api */}
+            {/* pv-block-start:9cbtll */}
+            <div data-pv-block="9cbtll" data-pv-sketchpad-el="9cbtll" style={{ position: 'absolute', width: 1541, left: -177, top: 0 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
+              {/* pv-editable-zone-start:r5i3w2 */}
+                {/* pv-block-start:q7xn2s */}
+                <Button data-pv-block="q7xn2s"  label="Sign in" variant="solid" color="primary" size="md" />
+                {/* pv-block-end:q7xn2s */}
+              {/* pv-editable-zone-end:r5i3w2 */}
+            </div>
+            {/* pv-block-end:9cbtll */}
           {/* pv-editable-zone-end:69fbo3 */}
         </Rectangle>
         {/* pv-block-end:ny6dao */}

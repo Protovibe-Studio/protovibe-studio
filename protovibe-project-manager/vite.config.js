@@ -416,18 +416,22 @@ async function handleDeleteProject(_req, res, id) {
         retryDelay: 300    // Wait 300ms between attempts
       })
     } catch (err) {
-      // 3. Smart Debugging: If it STILL fails, let's see exactly what the OS refused to let go of
       let stuckFiles = []
       try {
         stuckFiles = fs.readdirSync(project.path)
       } catch (readErr) {
         stuckFiles = ['(Could not read remaining contents)']
       }
-      
-      console.error(`[protovibe-home] ENOTEMPTY on delete. Stuck items:`, stuckFiles)
-      
-      return sendJson(res, 500, { 
-        error: `Deletion blocked by OS. Stuck items: ${stuckFiles.join(', ')}. Try again in a moment.` 
+
+      const advice =
+        process.platform === 'win32'
+          ? 'Close VS Code, File Explorer, and any terminal open in this folder, then try again.'
+          : 'Close VS Code, Finder windows, and any terminal open in this folder, then try again.'
+
+      console.error(`[protovibe-home] Delete failed. Stuck items:`, stuckFiles)
+
+      return sendJson(res, 500, {
+        error: `Couldn't fully delete the project. ${advice} (Stuck items: ${stuckFiles.join(', ')})`,
       })
     }
   }

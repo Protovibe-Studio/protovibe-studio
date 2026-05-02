@@ -104,12 +104,6 @@ export default function Frame4() {
         {/* pv-block-start:8t0skv */}
         <Button leftIcon="material-symbols:arrow-back"  data-pv-block="8t0skv" data-pv-sketchpad-el="8t0skv" style={{ position: 'absolute', left: 376, top: 86 }} label="Back to projects" variant="ghost" color="neutral" size="md" />
         {/* pv-block-end:8t0skv */}
-        {/* pv-block-start:53wpmu */}
-        <Card className="aspect-[3/2]" data-pv-block="53wpmu" data-pv-sketchpad-el="53wpmu" style={{ position: 'absolute', width: 230, left: 68, top: 142 }}>
-          {/* pv-editable-zone-start:i68vt8 */}
-          {/* pv-editable-zone-end:i68vt8 */}
-        </Card>
-        {/* pv-block-end:53wpmu */}
       {/* pv-editable-zone-end:5i8fr3 */}
     </div>
   );
