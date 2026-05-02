@@ -342,7 +342,7 @@ function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): Resiz
   const resizeBoth = resizeMode === 'both';
   const allowH = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
   const allowV = resizeBoth || resizeMode === 'vertical';
-  const allowLeft = resizeBoth || resizeMode === 'horizontal';
+  const allowLeft = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
 
   const nearRight = allowH && clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
   const nearLeft = allowLeft && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
@@ -552,6 +552,7 @@ let hoverOverlay: HTMLDivElement | null = null;
 let parentPreviewOverlay: HTMLDivElement | null = null;
 let resizeAffordance: HTMLDivElement | null = null;
 let eastResizeAffordance: HTMLDivElement | null = null;
+let westResizeAffordance: HTMLDivElement | null = null;
 let trackedElementObserver: ResizeObserver | null = null;
 let trackedElements: Set<HTMLElement> = new Set();
 let overlaySyncRafId: number | null = null;
@@ -681,6 +682,21 @@ function syncOverlays() {
     eastResizeAffordance.style.display = 'block';
   } else if (eastResizeAffordance) {
     eastResizeAffordance.style.display = 'none';
+  }
+
+  if (showEastAffordance) {
+    if (!westResizeAffordance) {
+      westResizeAffordance = document.createElement('div');
+      westResizeAffordance.setAttribute('data-pv-resize-affordance', 'w');
+      westResizeAffordance.style.cssText = 'position:absolute;width:4px;height:18px;background:#18a0fb;border:1px solid #fff;box-sizing:border-box;border-radius:2px;pointer-events:none;';
+      layer.appendChild(westResizeAffordance);
+    }
+    const rect = single!.getBoundingClientRect();
+    westResizeAffordance.style.left = `${rect.left - 3}px`;
+    westResizeAffordance.style.top = `${rect.top + rect.height / 2 - 9}px`;
+    westResizeAffordance.style.display = 'block';
+  } else if (westResizeAffordance) {
+    westResizeAffordance.style.display = 'none';
   }
 
   syncTrackedElements();
