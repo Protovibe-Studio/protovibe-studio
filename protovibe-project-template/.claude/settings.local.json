@@ -22,7 +22,8 @@
       "Bash(pnpm build *)",
       "Bash(python3)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(awk *)"
     ]
   },
   "outputStyle": "Explanatory"

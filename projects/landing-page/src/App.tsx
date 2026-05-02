@@ -1081,63 +1081,13 @@ function ProblemSolution(props: any) {
           <div data-pv-block="b00129" className="flex flex-col gap-[80px] max-w-[1040px] mx-auto">
             {/* pv-editable-zone-start:z00037 */}
               {/* ROW 1 */}
-              {/* pv-block-start:b00160 */}
-              <div data-pv-block="b00160" className="grid grid-cols-1 gap-[28px] md:gap-[56px] items-center md:grid-cols-[minmax(280px,380px)_1fr]">
-                {/* pv-editable-zone-start:z00050 */}
-                  {/* pv-block-start:130933 */}
-                  <div data-pv-block="130933" className="bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/add-items-1.png')] aspect-[640/643]">
-                    <br />
-                  </div>
-                  {/* pv-block-end:130933 */}
-                  {/* pv-block-start:b00162 */}
-                  <div data-pv-block="b00162" className="flex flex-col gap-[22px]">
-                    {/* pv-editable-zone-start:z00051 */}
-                      {/* pv-block-start:b00163 */}
-                      <h3 data-pv-block="b00163" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        You stay the designer
-                      </h3>
-                      {/* pv-block-end:b00163 */}
-                      {/* pv-block-start:b00164 */}
-                      <div data-pv-block="b00164" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00052 */}
-                          {/* pv-block-start:b00165 */}
-                          <div data-pv-block="b00165" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-default">Problem</div>
-                          {/* pv-block-end:b00165 */}
-                          {/* pv-block-start:b00166 */}
-                          <p data-pv-block="b00166" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            We've all tried the "magic" AI website builders. You ask for a sleek dashboard, and it spits out a generic, inconsistent Frankenstein that looks like a different brand.
-                          </p>
-                          {/* pv-block-end:b00166 */}
-                        {/* pv-editable-zone-end:z00052 */}
-                      </div>
-                      {/* pv-block-end:b00164 */}
-                      {/* pv-block-start:b00167 */}
-                      <div data-pv-block="b00167" className="flex flex-col gap-[6px]">
-                        {/* pv-editable-zone-start:z00053 */}
-                          {/* pv-block-start:b00168 */}
-                          <div data-pv-block="b00168" className="text-[11px] font-bold tracking-[0.18em] uppercase text-foreground-primary">Solution</div>
-                          {/* pv-block-end:b00168 */}
-                          {/* pv-block-start:b00169 */}
-                          <p data-pv-block="b00169" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            You can still design by hand. Protovibe looks and feels just like your normal design tool. But you’re visually editing a living app. so AI has agent-friendly coding interface to help you.
-                          </p>
-                          {/* pv-block-end:b00169 */}
-                        {/* pv-editable-zone-end:z00053 */}
-                      </div>
-                      {/* pv-block-end:b00167 */}
-                    {/* pv-editable-zone-end:z00051 */}
-                  </div>
-                  {/* pv-block-end:b00162 */}
-                {/* pv-editable-zone-end:z00050 */}
-              </div>
-              {/* pv-block-end:b00160 */}
 
               {/* ROW 2 */}
               {/* pv-block-start:b00200 */}
               <div data-pv-block="b00200" className="grid grid-cols-1 md:grid-cols-[1fr_minmax(280px,380px)] gap-[28px] md:gap-[56px] items-center">
                 {/* pv-editable-zone-start:z00066 */}
                   {/* pv-block-start:b00201 */}
-                  <div data-pv-block="b00201" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/properties.png')] aspect-[640/643]">
+                  <div data-pv-block="b00201" className="md:order-last bg-background-secondary border border-border-strong rounded-[14px] overflow-hidden shadow-[0_20px_40px_-20px_rgba(0,0,0,.6)] relative flex items-center justify-center text-foreground-tertiary text-sm font-semibold bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/add-items-2.png')] aspect-[640/643]">
                     <br />
                   </div>
                   {/* pv-block-end:b00201 */}
