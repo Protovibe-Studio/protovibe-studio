@@ -120,8 +120,8 @@ export default function DocsPage() {
 
       <div className="relative z-[2] mx-auto px-[20px] md:px-[40px] max-w-[1340px] grid grid-cols-1 md:grid-cols-[240px_1fr] gap-[40px] md:gap-[60px] py-[40px] md:py-[60px]">
         <aside className="md:sticky md:top-[80px] self-start">
-          <div className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary">
-            Documentation
+          <div className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-tertiary">
+            Docs
           </div>
           <nav className="flex flex-col gap-[6px]">
             {SECTIONS.map((s) => (
@@ -143,9 +143,6 @@ export default function DocsPage() {
             {/* pv-block-start:hd0301 */}
             <header data-pv-block="hd0301" className="flex flex-col gap-[12px]">
               {/* pv-editable-zone-start:zhdr01 */}
-                {/* pv-block-start:dv0401 */}
-                <div data-pv-block="dv0401" className="font-bold text-[12px] tracking-[0.18em] uppercase text-foreground-primary">Docs</div>
-                {/* pv-block-end:dv0401 */}
                 {/* pv-block-start:hd0501 */}
                 <h1 data-pv-block="hd0501" className="font-secondary font-bold text-[clamp(32px,4vw,48px)] leading-[1.05] tracking-[-0.02em] text-foreground-strong m-0">
                   Protovibe Studio documentation
@@ -434,7 +431,9 @@ export default function DocsPage() {
             <section data-pv-block="s5tv01" id="traversing" className="flex flex-col gap-[16px] scroll-mt-[80px]">
               {/* pv-editable-zone-start:z5tv01 */}
                 {/* pv-block-start:h5tv02 */}
-                <h2 data-pv-block="h5tv02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Traversing the tree</h2>
+                <h2 data-pv-block="h5tv02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">
+                  Traversing the tree instead of layers
+                </h2>
                 {/* pv-block-end:h5tv02 */}
                 {/* pv-block-start:p5tv03 */}
                 <p data-pv-block="p5tv03" className="text-foreground-secondary leading-[1.7]">

@@ -74,6 +74,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
   const scales = useScales();
   const [uploading, setUploading] = useState(false);
   const [hoveredDot, setHoveredDot] = useState<string | null>(null);
+  const [thumbHovered, setThumbHovered] = useState(false);
   const [imgNaturalSize, setImgNaturalSize] = useState<{ w: number; h: number } | null>(null);
   const [imgError, setImgError] = useState(false);
 
@@ -372,12 +373,18 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
       {hasImage && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* Thumbnail / Missing asset fallback */}
-          <div style={{
-            width: '100%', height: '80px', borderRadius: '6px', overflow: 'hidden',
-            border: `1px solid ${imgError ? theme.destructive_default : theme.border_default}`,
-            background: imgError ? theme.destructive_low : theme.bg_secondary,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div
+            onMouseEnter={() => setThumbHovered(true)}
+            onMouseLeave={() => setThumbHovered(false)}
+            onClick={!imgError && !uploading ? () => replaceInputRef.current?.click() : undefined}
+            style={{
+              position: 'relative',
+              width: '100%', height: '80px', borderRadius: '6px', overflow: 'hidden',
+              border: `1px solid ${imgError ? theme.destructive_default : theme.border_default}`,
+              background: imgError ? theme.destructive_low : theme.bg_secondary,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: !imgError && !uploading ? 'pointer' : 'default',
+            }}>
             {imgError ? (
               <span style={{ fontSize: '11px', fontWeight: 600, color: theme.destructive_default }}>
                 Missing Asset
@@ -394,6 +401,19 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
                 onError={() => setImgError(true)}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
               />
+            )}
+            {!imgError && thumbHovered && (
+              <div
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: 'rgba(0, 0, 0, 0.55)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: '11px', fontWeight: 600,
+                  pointerEvents: 'none',
+                }}
+              >
+                Upload new image
+              </div>
             )}
           </div>
 
