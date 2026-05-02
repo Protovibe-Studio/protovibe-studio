@@ -163,7 +163,7 @@ function DashboardPage() {
                     <Icon data-pv-block="reh2tx" iconSymbol="Users" size="sm" />
                     {/* pv-block-end:reh2tx */}
                     {/* pv-block-start:yn22da */}
-                    <TextParagraph typography="secondary" data-pv-block="yn22da" className="">
+                    <TextParagraph data-tooltip-dir="bottom" data-tooltip-text="Test" typography="secondary" data-pv-block="yn22da" className="">
                       eNPS score
                     </TextParagraph>
                     {/* pv-block-end:yn22da */}
