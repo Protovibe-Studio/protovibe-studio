@@ -2459,7 +2459,16 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     );
     const hashedMatch = output.match(/https?:\/\/[^\s]+\.pages\.dev[^\s]*/);
     const hashedUrl = hashedMatch ? hashedMatch[0].replace(/[.,;)]+$/, '') : undefined;
-    const canonicalUrl = `https://${projectName}.pages.dev`;
+    // Cloudflare may assign a suffix when the requested project name is taken
+    // (e.g. `my-app-x7k`). Derive the actual project subdomain from the deploy
+    // URL (`https://<hash>.<actualProject>.pages.dev`) instead of trusting the
+    // requested name.
+    let canonicalUrl = `https://${projectName}.pages.dev`;
+    if (hashedUrl) {
+      const host = new URL(hashedUrl).hostname; // <hash>.<project>.pages.dev
+      const actualProject = host.replace(/\.pages\.dev$/, '').split('.').slice(1).join('.');
+      if (actualProject) canonicalUrl = `https://${actualProject}.pages.dev`;
+    }
 
     const meta = readPublishMeta();
     meta['cloudflare-pages-url'] = canonicalUrl;
