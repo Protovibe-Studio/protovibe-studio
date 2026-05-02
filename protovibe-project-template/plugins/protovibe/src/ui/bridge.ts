@@ -126,8 +126,19 @@ const selectionOverlays: Map<HTMLElement, HTMLDivElement> = new Map();
 let hoverOverlay: HTMLDivElement | null = null;
 let parentPreviewOverlay: HTMLDivElement | null = null;
 let trackedElementObserver: ResizeObserver | null = null;
+let trackedMutationObserver: MutationObserver | null = null;
 const trackedElements: Set<HTMLElement> = new Set();
 let overlaySyncRafId: number | null = null;
+
+// Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
+// both fire many times per frame; this collapses them into one syncOverlays() call.
+function scheduleSync() {
+  if (overlaySyncRafId !== null) return;
+  overlaySyncRafId = requestAnimationFrame(() => {
+    overlaySyncRafId = null;
+    syncOverlays();
+  });
+}
 
 function ensureOverlayLayer(): HTMLDivElement {
   if (overlayLayer && overlayLayer.isConnected) return overlayLayer;
@@ -262,18 +273,25 @@ function syncOverlays() {
 
 function syncTrackedElements() {
   if (!trackedElementObserver) {
-    trackedElementObserver = new ResizeObserver(() => {
-      if (overlaySyncRafId !== null) return;
-      overlaySyncRafId = requestAnimationFrame(() => {
-        overlaySyncRafId = null;
-        syncOverlays();
-      });
-    });
+    trackedElementObserver = new ResizeObserver(scheduleSync);
+  }
+  // The inspector's quick class-preview (e.g. hover over a padding/margin value) toggles
+  // classes on the inspected element. With box-sizing:border-box, padding changes don't
+  // alter the outer rect — so ResizeObserver never fires. Margin changes only shift
+  // position, also invisible to ResizeObserver. We need attribute mutations too.
+  if (!trackedMutationObserver) {
+    trackedMutationObserver = new MutationObserver(scheduleSync);
   }
   const wanted = new Set<HTMLElement>();
   for (const el of selectedEls) wanted.add(el);
   if (selectedParentEl) wanted.add(selectedParentEl);
   if (hoveredEl) wanted.add(hoveredEl);
+  // Also observe the parent of each tracked element: a margin/gap change on a sibling
+  // (or layout class on the parent) shifts the tracked element without mutating it.
+  const parents = new Set<HTMLElement>();
+  for (const el of wanted) {
+    if (el.parentElement) parents.add(el.parentElement);
+  }
 
   for (const el of trackedElements) {
     if (!wanted.has(el)) {
@@ -286,6 +304,21 @@ function syncTrackedElements() {
       trackedElementObserver.observe(el);
       trackedElements.add(el);
     }
+  }
+
+  // Re-subscribe attribute observation each call. MutationObserver has no `unobserve`,
+  // so we disconnect-and-reattach; the set of tracked elements is small (≤ a handful).
+  trackedMutationObserver.disconnect();
+  for (const el of wanted) {
+    trackedMutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+  }
+  for (const p of parents) {
+    trackedMutationObserver.observe(p, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+      subtree: false,
+      childList: true,
+    });
   }
 }
 
