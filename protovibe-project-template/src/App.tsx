@@ -63,6 +63,7 @@ import { useThemeManager } from '@/theme-management/useThemeManager';
 import { ToastBox } from '@/components/ui/toast-box'
 import { DateInput } from '@/components/ui/date-input'
 import { DatePickerPopover } from '@/components/ui/date-picker-popover'
+import { Slider } from '@/components/ui/slider'
 
 // --- MOCK DATA ---
 
@@ -246,11 +247,14 @@ function DashboardPage() {
         </div>
         {/* pv-block-end:dkwss2 */}
         {/* pv-block-start:ex3xz0 */}
-        <Card className="pt-20 bg-background-default" data-pv-block="ex3xz0">
+        <Card className="pt-20 bg-background-default overflow-scroll h-px" data-pv-block="ex3xz0">
           {/* pv-editable-zone-start:xqhvyt */}
             {/* pv-block-start:n7n58d */}
             <span className="font-normal" data-pv-block="n7n58d">Lorem ipsum</span>
             {/* pv-block-end:n7n58d */}
+            {/* pv-block-start:zjqdot */}
+            <Button data-pv-block="zjqdot" label="Button" variant="solid" color="primary" size="md" />
+            {/* pv-block-end:zjqdot */}
 
             {/* pv-block-start:k3et9v */}
             <span className="font-bold" data-pv-block="k3et9v">Lorem ipsum</span>
@@ -258,9 +262,21 @@ function DashboardPage() {
           {/* pv-editable-zone-end:xqhvyt */}
         </Card>
         {/* pv-block-end:ex3xz0 */}
+        {/* pv-block-start:h6opv6 */}
+        <Card className="pt-11" data-pv-block="h6opv6">
+          {/* pv-editable-zone-start:eza554 */}
+            {/* pv-block-start:s3tl43 */}
+            <span className="font-bold" data-pv-block="s3tl43">Lorem ipsum</span>
+            {/* pv-block-end:s3tl43 */}
+          {/* pv-editable-zone-end:eza554 */}
+        </Card>
+        {/* pv-block-end:h6opv6 */}
         {/* pv-block-start:462s7c */}
         <DateInput data-pv-block="462s7c" placeholder="MM/DD/YYYY" pickerOpen="Auto (Default)" />
         {/* pv-block-end:462s7c */}
+        {/* pv-block-start:a1120r */}
+        <Slider data-pv-block="a1120r" value="40" min="0" max="100" step="1" valueField="editable" />
+        {/* pv-block-end:a1120r */}
 
         {/* pv-block-start:0ohoji */}
         <Card className="bg-background-tertiary-hover mt-8" data-pv-block="0ohoji">

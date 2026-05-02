@@ -20,7 +20,9 @@
       "Bash(ls *)",
       "WebSearch",
       "Bash(pnpm build *)",
-      "Bash(python3)"
+      "Bash(python3)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   },
   "outputStyle": "Explanatory"

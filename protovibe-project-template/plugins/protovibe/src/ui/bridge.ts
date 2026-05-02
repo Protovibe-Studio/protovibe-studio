@@ -17,11 +17,8 @@ import { isTypingInput } from './utils/elementType';
 })();
 
 const SELECTION_OUTLINE = '2px solid #18a0fb';
-const SELECTION_OFFSET = '-1px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
-const HOVER_OFFSET = '-1px';
 
 let isLocked = false;
 let isInspectorActive = false;
@@ -118,68 +115,193 @@ function findInspectableParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-// ─── Outline Manager ──────────────────────────────────────────────────────────
+// ─── Overlay layer (selection / hover / parent-preview rectangles) ────────────
+// Selection visuals are rendered as positioned overlay rectangles in a dedicated
+// fixed-position layer on document.body, instead of mutating each element's inline
+// `outline` style. This avoids stash/restore fragility and escapes ancestor
+// `overflow: hidden` clipping.
 
-function updateOutlines(
-  oldHover: HTMLElement | null,
-  oldSels: HTMLElement[],
-  oldParent: HTMLElement | null,
+let overlayLayer: HTMLDivElement | null = null;
+const selectionOverlays: Map<HTMLElement, HTMLDivElement> = new Map();
+let hoverOverlay: HTMLDivElement | null = null;
+let parentPreviewOverlay: HTMLDivElement | null = null;
+let trackedElementObserver: ResizeObserver | null = null;
+const trackedElements: Set<HTMLElement> = new Set();
+let overlaySyncRafId: number | null = null;
+
+function ensureOverlayLayer(): HTMLDivElement {
+  if (overlayLayer && overlayLayer.isConnected) return overlayLayer;
+  const d = document.createElement('div');
+  d.setAttribute('data-pv-overlay-layer', '');
+  d.setAttribute('data-pv-ui', 'true');
+  // position:fixed (not absolute) so overlay boxes never contribute to body's scrollable
+  // overflow rectangle — hovering a wide / tall element won't spawn page scrollbars.
+  //
+  // Tradeoff: child boxes use viewport-relative coords (rect.left/top from
+  // getBoundingClientRect), so during native page scrolling there is a small JS-induced
+  // "chase" lag — the scroll listener has to fire and re-sync. Tried position:absolute
+  // with overflow:clip+overflow-clip-margin, but a large clip-margin re-enlarges the
+  // layer's scrollable-overflow region (descendants stop being clipped away), which
+  // brings the scrollbar artifact back. CSS scroll-driven animations would solve it
+  // but lack stable Firefox support.
+  d.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483647;';
+  document.body.appendChild(d);
+  overlayLayer = d;
+  return d;
+}
+
+function makeOverlayBox(): HTMLDivElement {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:absolute;box-sizing:border-box;pointer-events:none;';
+  return d;
+}
+
+// Returns the ancestor an overlay rectangle should be clipped to, or null for "don't
+// clip." Deliberately narrow: only containers explicitly marked `data-pv-overlay-clip`
+// opt in (currently the Components-tab variant-grid scroll container). Clipping by any
+// generic overflow ancestor would reinstate exactly the `overflow:hidden` border-
+// clipping problem we moved to overlays to escape.
+function nearestClippingAncestor(el: HTMLElement): HTMLElement | null {
+  return el.closest('[data-pv-overlay-clip]') as HTMLElement | null;
+}
+
+// `inset=N` places the overlay's outer rect N px inside the element rect on every side.
+// Negative values grow outward. With box-sizing:border-box and a Wpx border, inset=-W/2
+// makes the border straddle the element edge (drawn flush, not inside it).
+//
+// Coordinates are viewport-relative (rect.left/top) because the overlay layer is
+// position:fixed — see ensureOverlayLayer above for why we picked fixed over absolute.
+function applyBoxStyle(
+  box: HTMLDivElement,
+  el: HTMLElement,
+  inset: number,
+  border: string,
 ) {
-  const elementsToUpdate = new Set(
-    [oldHover, oldParent, hoveredEl, selectedParentEl, ...oldSels, ...selectedEls].filter(
-      (el): el is HTMLElement => el !== null
-    )
-  );
-  
-  elementsToUpdate.forEach(el => {
-    const elAny = el as any;
-    
-    // 1. Restore the true original state first before recalculating
-    if (elAny._pv_orig_outline !== undefined) {
-      el.style.outline = elAny._pv_orig_outline;
-      el.style.outlineOffset = elAny._pv_orig_offset;
-    } else {
-      // First time tracking this element, save its true original state
-      elAny._pv_orig_outline = el.style.outline;
-      elAny._pv_orig_offset = el.style.outlineOffset;
-    }
+  const rect = el.getBoundingClientRect();
+  const left = rect.left + inset;
+  const top = rect.top + inset;
+  const width = Math.max(0, rect.width - inset * 2);
+  const height = Math.max(0, rect.height - inset * 2);
+  box.style.left = `${left}px`;
+  box.style.top = `${top}px`;
+  box.style.width = `${width}px`;
+  box.style.height = `${height}px`;
+  box.style.border = border;
 
-    // 2. Apply new outlines (Selection wins over Hover)
-    if (selectedEls.includes(el)) {
-      el.style.outline = SELECTION_OUTLINE;
-      el.style.outlineOffset = SELECTION_OFFSET;
-    } else if (el === selectedParentEl) {
-      el.style.outline = PARENT_PREVIEW_OUTLINE;
-      el.style.outlineOffset = PARENT_PREVIEW_OFFSET;
-    } else if (el === hoveredEl) {
-      el.style.outline = HOVER_OUTLINE;
-      el.style.outlineOffset = HOVER_OFFSET;
-    } else {
-      // Element is neither hovered nor selected anymore. Clean up.
-      delete elAny._pv_orig_outline;
-      delete elAny._pv_orig_offset;
+  // Clip to the nearest scrolling/overflow ancestor so borders don't escape it
+  // (e.g. Components-tab preview cells inside a scroll container with a sticky header).
+  const clipper = nearestClippingAncestor(el);
+  if (clipper) {
+    const c = clipper.getBoundingClientRect();
+    const boxBottom = top + height;
+    const boxRight = left + width;
+    const clipTop = Math.max(0, c.top - top);
+    const clipLeft = Math.max(0, c.left - left);
+    const clipBottom = Math.max(0, boxBottom - c.bottom);
+    const clipRight = Math.max(0, boxRight - c.right);
+    box.style.clipPath =
+      clipTop || clipRight || clipBottom || clipLeft
+        ? `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`
+        : '';
+  } else {
+    box.style.clipPath = '';
+  }
+}
+
+function syncOverlays() {
+  const layer = ensureOverlayLayer();
+
+  // Selection rectangles
+  for (const [el, box] of selectionOverlays) {
+    if (!selectedEls.includes(el) || !el.isConnected) {
+      box.remove();
+      selectionOverlays.delete(el);
     }
-  });
+  }
+  for (const el of selectedEls) {
+    if (!el.isConnected) continue;
+    let box = selectionOverlays.get(el);
+    if (!box) {
+      box = makeOverlayBox();
+      layer.appendChild(box);
+      selectionOverlays.set(el, box);
+    }
+    applyBoxStyle(box, el, -1, SELECTION_OUTLINE);
+  }
+
+  // Parent preview (1px dashed sitting just outside the element)
+  if (selectedParentEl && selectedParentEl.isConnected) {
+    if (!parentPreviewOverlay) {
+      parentPreviewOverlay = makeOverlayBox();
+      layer.appendChild(parentPreviewOverlay);
+    }
+    applyBoxStyle(parentPreviewOverlay, selectedParentEl, -2, PARENT_PREVIEW_OUTLINE);
+    parentPreviewOverlay.style.display = 'block';
+  } else if (parentPreviewOverlay) {
+    parentPreviewOverlay.style.display = 'none';
+  }
+
+  // Hover (suppress when target is already selected or is the parent preview)
+  const showHover = hoveredEl
+    && hoveredEl.isConnected
+    && !selectedEls.includes(hoveredEl)
+    && hoveredEl !== selectedParentEl;
+  if (showHover) {
+    if (!hoverOverlay) {
+      hoverOverlay = makeOverlayBox();
+      layer.appendChild(hoverOverlay);
+    }
+    applyBoxStyle(hoverOverlay, hoveredEl!, -1, HOVER_OUTLINE);
+    hoverOverlay.style.display = 'block';
+  } else if (hoverOverlay) {
+    hoverOverlay.style.display = 'none';
+  }
+
+  syncTrackedElements();
+}
+
+function syncTrackedElements() {
+  if (!trackedElementObserver) {
+    trackedElementObserver = new ResizeObserver(() => {
+      if (overlaySyncRafId !== null) return;
+      overlaySyncRafId = requestAnimationFrame(() => {
+        overlaySyncRafId = null;
+        syncOverlays();
+      });
+    });
+  }
+  const wanted = new Set<HTMLElement>();
+  for (const el of selectedEls) wanted.add(el);
+  if (selectedParentEl) wanted.add(selectedParentEl);
+  if (hoveredEl) wanted.add(hoveredEl);
+
+  for (const el of trackedElements) {
+    if (!wanted.has(el)) {
+      trackedElementObserver.unobserve(el);
+      trackedElements.delete(el);
+    }
+  }
+  for (const el of wanted) {
+    if (!trackedElements.has(el)) {
+      trackedElementObserver.observe(el);
+      trackedElements.add(el);
+    }
+  }
 }
 
 function setHoverOutline(el: HTMLElement) {
   if (hoveredEl === el) return;
-  const oldHover = hoveredEl;
   hoveredEl = el;
-  updateOutlines(oldHover, selectedEls, selectedParentEl);
+  syncOverlays();
 }
 
 function clearHoverOutline() {
   if (!hoveredEl) return;
-  const oldHover = hoveredEl;
   hoveredEl = null;
-  updateOutlines(oldHover, selectedEls, selectedParentEl);
+  syncOverlays();
 }
 
 function applySelectionOutline(el: HTMLElement, multi = false) {
-  const oldSels = [...selectedEls];
-  const oldParent = selectedParentEl;
-
   if (multi) {
     if (selectedEls.includes(el)) {
       selectedEls = selectedEls.filter(e => e !== el);
@@ -191,16 +313,14 @@ function applySelectionOutline(el: HTMLElement, multi = false) {
   }
 
   selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
-  updateOutlines(hoveredEl, oldSels, oldParent);
+  syncOverlays();
 }
 
 function clearSelectionOutline() {
   if (selectedEls.length === 0) return;
-  const oldSels = [...selectedEls];
-  const oldParent = selectedParentEl;
   selectedEls = [];
   selectedParentEl = null;
-  updateOutlines(hoveredEl, oldSels, oldParent);
+  syncOverlays();
 }
 
 // ─── Event handlers ───────────────────────────────────────────────────────────
@@ -351,15 +471,13 @@ function handleParentMessage(e: MessageEvent) {
         clearSelectionOutline();
         break;
       }
-      const oldSels = [...selectedEls];
-      const oldParent = selectedParentEl;
       selectedEls = [];
       runtimeIds.forEach((id: string) => {
         const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
         if (el) selectedEls.push(el);
       });
       selectedParentEl = selectedEls.length === 1 ? findInspectableParent(selectedEls[0]) : null;
-      updateOutlines(hoveredEl, oldSels, oldParent);
+      syncOverlays();
       break;
     }
     case 'PV_CLEAR_SELECTION':
@@ -401,6 +519,10 @@ function init() {
   document.addEventListener('dblclick', handleDoubleClick, true);
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('message', handleParentMessage);
+  // Overlay rectangles use viewport-relative coords (getBoundingClientRect on a
+  // fixed-position layer). Reposition them on any scroll in the iframe — capture
+  // covers nested scroll containers as well as the root document.
+  window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
 
   // Check initial state in case the error is already there
   if (document.querySelector('vite-error-overlay')) {

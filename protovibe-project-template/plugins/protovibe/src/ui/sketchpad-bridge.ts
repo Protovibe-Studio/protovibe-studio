@@ -599,7 +599,9 @@ function syncOverlays() {
       layer.appendChild(box);
       selectionOverlays.set(el, box);
     }
-    applyBoxStyle(box, el.getBoundingClientRect(), 1, SELECTION_OUTLINE);
+    // inset=-1 with a 2px border = border straddles the element edge (-1..+1 px),
+    // so the rectangle sits on the border rather than 1px inside it.
+    applyBoxStyle(box, el.getBoundingClientRect(), -1, SELECTION_OUTLINE);
   }
 
   // Parent preview
@@ -624,7 +626,7 @@ function syncOverlays() {
       hoverOverlay = makeOverlayBox();
       layer.appendChild(hoverOverlay);
     }
-    applyBoxStyle(hoverOverlay, hoveredEl!.getBoundingClientRect(), 1, HOVER_OUTLINE);
+    applyBoxStyle(hoverOverlay, hoveredEl!.getBoundingClientRect(), -1, HOVER_OUTLINE);
     hoverOverlay.style.display = 'block';
   } else if (hoverOverlay) {
     hoverOverlay.style.display = 'none';
@@ -645,8 +647,10 @@ function syncOverlays() {
       layer.appendChild(resizeAffordance);
     }
     const rect = single!.getBoundingClientRect();
-    resizeAffordance.style.left = `${rect.right - 4}px`;
-    resizeAffordance.style.top = `${rect.bottom - 4}px`;
+    // Center the 8px square on the corner of the selection rectangle (which now sits 1px
+    // outside the element edge — see applyBoxStyle inset=-1 for selection overlays).
+    resizeAffordance.style.left = `${rect.right - 3}px`;
+    resizeAffordance.style.top = `${rect.bottom - 3}px`;
     resizeAffordance.style.display = 'block';
   } else if (resizeAffordance) {
     resizeAffordance.style.display = 'none';
@@ -655,20 +659,39 @@ function syncOverlays() {
   syncTrackedElements();
 }
 
+// Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
+// both fire many times per frame; this collapses them into one syncOverlays() call.
+function scheduleSync() {
+  if (overlaySyncRafId !== null) return;
+  overlaySyncRafId = requestAnimationFrame(() => {
+    overlaySyncRafId = null;
+    syncOverlays();
+  });
+}
+
+let trackedMutationObserver: MutationObserver | null = null;
+
 function syncTrackedElements() {
   if (!trackedElementObserver) {
-    trackedElementObserver = new ResizeObserver(() => {
-      if (overlaySyncRafId !== null) return;
-      overlaySyncRafId = requestAnimationFrame(() => {
-        overlaySyncRafId = null;
-        syncOverlays();
-      });
-    });
+    trackedElementObserver = new ResizeObserver(scheduleSync);
+  }
+  // The inspector's quick class-preview (e.g. hover over a padding/margin value) toggles
+  // classes on the inspected element. With box-sizing:border-box, padding changes don't
+  // alter the outer rect — so ResizeObserver never fires. Margin changes only shift
+  // position, also invisible to ResizeObserver. We need attribute mutations too.
+  if (!trackedMutationObserver) {
+    trackedMutationObserver = new MutationObserver(scheduleSync);
   }
   const wanted = new Set<HTMLElement>();
   for (const el of selectedEls) wanted.add(el);
   if (selectedParentEl) wanted.add(selectedParentEl);
   if (hoveredEl) wanted.add(hoveredEl);
+  // Also observe the parent of each tracked element: a margin/gap change on a sibling
+  // (or layout class on the parent) shifts the tracked element without mutating it.
+  const parents = new Set<HTMLElement>();
+  for (const el of wanted) {
+    if (el.parentElement) parents.add(el.parentElement);
+  }
 
   for (const el of trackedElements) {
     if (!wanted.has(el)) {
@@ -681,6 +704,21 @@ function syncTrackedElements() {
       trackedElementObserver.observe(el);
       trackedElements.add(el);
     }
+  }
+
+  // Re-subscribe attribute observation each call. MutationObserver has no `unobserve`,
+  // so we disconnect-and-reattach; the set of tracked elements is small (≤ a handful).
+  trackedMutationObserver.disconnect();
+  for (const el of wanted) {
+    trackedMutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+  }
+  for (const p of parents) {
+    trackedMutationObserver.observe(p, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+      subtree: false,
+      childList: true,
+    });
   }
 }
 
@@ -1608,6 +1646,10 @@ function init() {
   window.addEventListener('message', handleParentMessage);
   // Selection overlays live in fixed-position iframe coords; reposition on any internal scroll.
   window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
+  // InfiniteCanvas applies zoom/pan as a CSS transform on its inner wrapper. That doesn't
+  // fire scroll or ResizeObserver, so the canvas dispatches this event each frame it
+  // updates the transform — keeps overlay rectangles glued to elements during zoom/pan.
+  window.addEventListener('pv-canvas-transform', () => syncOverlays());
 
   // Allow SketchpadApp to programmatically select one or more elements by blockId(s)
   window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId?: string; blockIds?: string[] }>) => {
