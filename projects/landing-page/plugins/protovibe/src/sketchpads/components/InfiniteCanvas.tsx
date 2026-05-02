@@ -139,6 +139,14 @@ export function InfiniteCanvas({
 
   // Space key for pan mode
   useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_SPACE_MODE') {
+        setSpaceHeld(e.data.active);
+        if (!e.data.active) setIsPanning(false);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     const down = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
         if (isTypingInput(document.activeElement as HTMLElement | null)) return;
@@ -155,6 +163,7 @@ export function InfiniteCanvas({
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => {
+      window.removeEventListener('message', handleMessage);
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
     };
@@ -164,6 +173,7 @@ export function InfiniteCanvas({
     (e: React.PointerEvent) => {
       if (e.button === 1 || (e.button === 0 && spaceHeld)) {
         e.preventDefault();
+        e.stopPropagation();
         setIsPanning(true);
         panStartRef.current = {
           x: e.clientX,
@@ -180,6 +190,7 @@ export function InfiniteCanvas({
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!isPanning) return;
+      e.stopPropagation();
       const dx = e.clientX - panStartRef.current.x;
       const dy = e.clientY - panStartRef.current.y;
 
@@ -197,6 +208,7 @@ export function InfiniteCanvas({
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
       if (isPanning) {
+        e.stopPropagation();
         setIsPanning(false);
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         onTransformChange(currentTransform.current);
@@ -209,9 +221,9 @@ export function InfiniteCanvas({
     <div
       ref={containerRef}
       data-sketchpad-canvas=""
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      onPointerDownCapture={handlePointerDown}
+      onPointerMoveCapture={handlePointerMove}
+      onPointerUpCapture={handlePointerUp}
       onContextMenu={onCanvasContextMenu}
       style={{
         width: '100%',

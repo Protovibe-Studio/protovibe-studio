@@ -7,12 +7,13 @@ export const theme = {
   bg_default: '#212121',       // Main panels & sidebar
   bg_secondary: '#282828',     // Inputs, dropdowns, hover states
   bg_tertiary: '#3b3b3b',      // Active Segmented / Lighter elements
-  bg_strong: '#1a1a1a',        // Headers, deep backgrounds
+  bg_strong: '#1b1b1b',        // Headers, deep backgrounds
+  bg_sunken: '#191919',        // Deepest backgrounds for containers that need to be darker than bg_strong
   bg_low: 'rgba(255, 255, 255, 0.05)',
 
   // Text
-  text_default: '#f1f1f1',     // Active/Primary text
-  text_secondary: '#B3B3B3',   // Standard text, labels
+  text_default: '#eaeaea',     // Active/Primary text
+  text_secondary: '#b0b0b0',   // Standard text, labels
   text_tertiary: '#7c7c7c',    // Muted text, placeholders
   text_low: '#6d6d6d',         // Lowest text
 
@@ -23,7 +24,7 @@ export const theme = {
   accent_low: 'rgba(61, 123, 255, 0.14)',
 
   // Borders
-  border_default: '#343434',   // Standard dividers
+  border_default: '#333',   // Standard dividers
   border_secondary: '#383838', // Subtle dividers
   border_tertiary: '#222222',  // Blended dividers
   border_accent: '#0092ff',    // Focused borders

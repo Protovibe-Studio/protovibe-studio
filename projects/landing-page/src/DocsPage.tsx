@@ -22,6 +22,7 @@ const SECTIONS: Section[] = [
   { id: 'publishing', title: 'Publishing to Cloudflare' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'technical', title: 'Under the hood' },
+  { id: 'license', title: 'License' },
 ];
 
 function useActiveSection(ids: string[]) {
@@ -985,6 +986,36 @@ export default function DocsPage() {
               {/* pv-editable-zone-end:zctc01 */}
             </section>
             {/* pv-block-end:sctc01 */}
+
+            {/* License */}
+            {/* pv-block-start:slic01 */}
+            <section data-pv-block="slic01" id="license" className="flex flex-col gap-[16px] scroll-mt-[80px]">
+              {/* pv-editable-zone-start:zlic01 */}
+                {/* pv-block-start:hlic02 */}
+                <h2 data-pv-block="hlic02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">
+                  Open-source License
+                </h2>
+                {/* pv-block-end:hlic02 */}
+                {/* pv-block-start:plic03 */}
+                <p data-pv-block="plic03" className="text-foreground-secondary leading-[1.7]">
+                  Protovibe is free to use for building and exporting your own projects — personal, commercial, client work, all of it. The code you create is yours.
+                </p>
+                {/* pv-block-end:plic03 */}
+                {/* pv-block-start:plic04 */}
+                <p data-pv-block="plic04" className="text-foreground-secondary leading-[1.7]">
+                  The one thing you can't do is embed the Protovibe editor itself inside a commercial web-builder product. If that's what you're after, get in touch about a commercial license at <a href="mailto:protovibe.studio@gmail.com" className="text-foreground-primary underline">protovibe.studio@gmail.com</a>.
+                </p>
+                {/* pv-block-end:plic04 */}
+                {/* pv-block-start:plic05 */}
+                <p data-pv-block="plic05" className="text-foreground-secondary leading-[1.7]">
+                  <a href="https://github.com/protovibe/protovibe/blob/main/LICENSE" className="text-foreground-primary underline">
+                    <a href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Read the full license on GitHub →</a>
+                  </a>
+                </p>
+                {/* pv-block-end:plic05 */}
+              {/* pv-editable-zone-end:zlic01 */}
+            </section>
+            {/* pv-block-end:slic01 */}
 
           {/* pv-editable-zone-end:zn02k4 */}
         </article>

@@ -362,7 +362,7 @@ export const PromptsTab: React.FC = () => {
   // ─── List view ───────────────────────────────────────────────────────
   if (!selectedPrompt) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}>
         <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontFamily: theme.font_ui, fontSize: 14, fontWeight: 600, color: theme.text_default }}>
@@ -457,7 +457,7 @@ export const PromptsTab: React.FC = () => {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_default }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}>
       <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button

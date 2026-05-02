@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
@@ -35,6 +35,7 @@ export const FloatingToolbar: React.FC = () => {
   const canAdd = !!(activeData?.file && zones.length > 0);
   const canBlockAction = !!(closestBlockId && isBlockInCurrentFile);
   const isMultiSelect = selectedTargets && selectedTargets.length > 1;
+  const isSketchpadAbsolute = !!closestBlock?.hasAttribute('data-pv-sketchpad-el');
 
   const selectedBlockIds = (selectedTargets || [])
     .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
@@ -494,26 +495,26 @@ export const FloatingToolbar: React.FC = () => {
                   {divider}
                   <button
                     disabled={locked}
-                    onClick={() => handleBlockAction('move-up')}
+                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up')}
                     onMouseEnter={() => setHoveredBtn('up')}
                     onMouseLeave={() => setHoveredBtn(null)}
                     style={mkBtnStyle('up')}
-                    title="Move up"
+                    title={isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
                   >
-                    <ChevronUp size={13} strokeWidth={2.5} />
-                    Move up
+                    {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
+                    {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
                   </button>
                   {divider}
                   <button
                     disabled={locked}
-                    onClick={() => handleBlockAction('move-down')}
+                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down')}
                     onMouseEnter={() => setHoveredBtn('down')}
                     onMouseLeave={() => setHoveredBtn(null)}
                     style={mkBtnStyle('down')}
-                    title="Move down"
+                    title={isSketchpadAbsolute ? 'Send backward' : 'Move down'}
                   >
-                    <ChevronDown size={13} strokeWidth={2.5} />
-                    Move down
+                    {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
+                    {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
                   </button>
                   {divider}
                   <button

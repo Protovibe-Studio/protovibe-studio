@@ -110,6 +110,11 @@ let nudgeState: {
 let currentDropTarget: HTMLElement | null = null;
 let ghostEls: HTMLElement[] = [];
 let currentActiveSourceId: string | null = null;
+let spaceHeld = false;
+
+window.addEventListener('blur', () => {
+  spaceHeld = false;
+});
 
 let lastClickTime = 0;
 let lastClickX = 0;
@@ -401,6 +406,7 @@ function collectSnapContext(frameEl: HTMLElement, exclude: HTMLElement[]): SnapC
   const all = Array.from(frameEl.querySelectorAll<HTMLElement>('[data-pv-sketchpad-el], [data-pv-block]'));
   const isExcluded = (el: HTMLElement) => exclude.some(x => x === el || x.contains(el) || el.contains(x));
   const targets: SnapRect[] = [];
+  targets.push(makeSnapRect(0, 0, fr.width / zoom, fr.height / zoom));
   for (const el of all) {
     if (isExcluded(el)) continue;
     const r = el.getBoundingClientRect();
@@ -813,6 +819,7 @@ function handlePointerDown(e: PointerEvent) {
   window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
 
   if (e.button !== 0) return;
+  if (spaceHeld) return;
 
   const targetNode = e.target as HTMLElement | null;
   if (targetNode && targetNode.closest('[data-sketchpad-frame-overlay]')) {
@@ -978,6 +985,12 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handlePointerMove(e: PointerEvent) {
+  if (spaceHeld) {
+    clearHover();
+    clearForcedCursor();
+    return;
+  }
+
   if ((resizeState && e.pointerId === resizeState.pointerId) ||
       (dragState && e.pointerId === dragState.pointerId)) {
     e.preventDefault();
@@ -1301,6 +1314,10 @@ function handleKeyDown(e: KeyboardEvent) {
   // Ignore when typing in inputs (but allow shortcuts for non-text inputs like checkboxes, radios, sliders)
   if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
+  if (e.code === 'Space') {
+    spaceHeld = true;
+  }
+
   if (e.key === 'Escape' && selectedEls.length > 0) {
     e.preventDefault();
     e.stopPropagation();
@@ -1337,6 +1354,9 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 function handleKeyUp(e: KeyboardEvent) {
+  if (e.code === 'Space') {
+    spaceHeld = false;
+  }
   if (e.key === 'Alt') {
     updateGhost(false);
   }
@@ -1462,6 +1482,9 @@ function handleParentMessage(e: MessageEvent) {
   if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
   if (e.data.type === 'PV_SET_ACTIVE_SOURCE_ID') {
     currentActiveSourceId = e.data.activeSourceId;
+  }
+  if (e.data.type === 'PV_SPACE_MODE') {
+    spaceHeld = e.data.active;
   }
 }
 

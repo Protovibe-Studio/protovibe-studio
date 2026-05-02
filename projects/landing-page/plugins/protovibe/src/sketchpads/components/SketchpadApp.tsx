@@ -137,11 +137,19 @@ export function SketchpadApp() {
   const [marqueePreview, setMarqueePreview] = useState<Array<{ left: number; top: number; width: number; height: number }>>([]);
   const spaceHeldRef = useRef(false);
   useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_SPACE_MODE') {
+        spaceHeldRef.current = e.data.active;
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     const down = (e: KeyboardEvent) => { if (e.code === 'Space') spaceHeldRef.current = true; };
     const up = (e: KeyboardEvent) => { if (e.code === 'Space') spaceHeldRef.current = false; };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => {
+      window.removeEventListener('message', handleMessage);
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
     };
