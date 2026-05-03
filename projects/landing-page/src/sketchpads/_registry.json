@@ -119,7 +119,7 @@
           "width": 1440,
           "height": 900,
           "canvasX": 8977,
-          "canvasY": 1685
+          "canvasY": 1686
         },
         {
           "id": "frame-jcveqt",
@@ -128,12 +128,20 @@
           "height": 900,
           "canvasX": 6563,
           "canvasY": 2706
+        },
+        {
+          "id": "frame-mzc4ji",
+          "name": "Frame 2 Copy",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 10648,
+          "canvasY": 1690
         }
       ],
       "viewState": {
-        "zoom": 0.6702135842724017,
-        "panX": -5675.150449558664,
-        "panY": -880.1397023671375
+        "zoom": 0.7351697834208124,
+        "panX": -6451.985202360555,
+        "panY": -1196.622636628842
       }
     }
   ],

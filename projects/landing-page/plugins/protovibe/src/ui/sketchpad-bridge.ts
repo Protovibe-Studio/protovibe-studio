@@ -18,11 +18,8 @@ import { isTypingInput } from './utils/elementType';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SELECTION_OUTLINE = '2px solid #18a0fb';
-const SELECTION_OFFSET = '-1px';
 const PARENT_PREVIEW_OUTLINE = '1px dashed rgba(24, 160, 251, 0.7)';
-const PARENT_PREVIEW_OFFSET = '1px';
 const HOVER_OUTLINE = '1px solid rgba(24, 160, 251, 0.6)';
-const HOVER_OFFSET = '-1px';
 const DROP_TARGET_OUTLINE = '2px solid #1ABC9C';
 const DROP_TARGET_OFFSET = '-1px';
 const DRAG_THRESHOLD = 3;
@@ -345,7 +342,7 @@ function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): Resiz
   const resizeBoth = resizeMode === 'both';
   const allowH = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
   const allowV = resizeBoth || resizeMode === 'vertical';
-  const allowLeft = resizeBoth || resizeMode === 'horizontal';
+  const allowLeft = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
 
   const nearRight = allowH && clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
   const nearLeft = allowLeft && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
@@ -543,71 +540,248 @@ const RESIZE_CURSOR_MAP: Record<ResizeEdge, string> = {
   nw: 'nwse-resize', se: 'nwse-resize',
 };
 
-// ─── Outline helpers ──────────────────────────────────────────────────────────
+// ─── Overlay layer (selection / hover / parent-preview rectangles + resize affordance) ───
+// All selection visuals are rendered as positioned overlay rectangles in a dedicated layer
+// inside the iframe, instead of mutating each element's inline `outline` style. This avoids
+// stash/restore fragility, escapes ancestor `overflow: hidden` clipping, and gives us a place
+// to draw the SE-corner resize affordance on top of the selection rectangle.
 
-function updateOutlines(
-  oldHover: HTMLElement | null,
-  oldSelections: HTMLElement[],
-  oldParent: HTMLElement | null,
-) {
-  const elementsToUpdate = new Set(
-    [oldHover, oldParent, hoveredEl, selectedParentEl, ...oldSelections, ...selectedEls].filter(
-      (el): el is HTMLElement => el !== null
-    )
-  );
+let overlayLayer: HTMLDivElement | null = null;
+let selectionOverlays: Map<HTMLElement, HTMLDivElement> = new Map();
+let hoverOverlay: HTMLDivElement | null = null;
+let parentPreviewOverlay: HTMLDivElement | null = null;
+let resizeAffordance: HTMLDivElement | null = null;
+let eastResizeAffordance: HTMLDivElement | null = null;
+let westResizeAffordance: HTMLDivElement | null = null;
+let trackedElementObserver: ResizeObserver | null = null;
+let trackedElements: Set<HTMLElement> = new Set();
+let overlaySyncRafId: number | null = null;
 
-  elementsToUpdate.forEach((el) => {
-    const elAny = el as any;
+function ensureOverlayLayer(): HTMLDivElement {
+  if (overlayLayer && overlayLayer.isConnected) return overlayLayer;
+  const d = document.createElement('div');
+  d.setAttribute('data-pv-overlay-layer', '');
+  d.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483647;';
+  document.body.appendChild(d);
+  overlayLayer = d;
+  return d;
+}
 
-    if (elAny._pvOrigOutline === undefined) {
-      elAny._pvOrigOutline = el.style.outline;
-      elAny._pvOrigOffset = el.style.outlineOffset;
-    } else {
-      el.style.outline = elAny._pvOrigOutline;
-      el.style.outlineOffset = elAny._pvOrigOffset;
+function makeOverlayBox(): HTMLDivElement {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:absolute;box-sizing:border-box;pointer-events:none;';
+  return d;
+}
+
+// `inset` matches `outline-offset` semantics inverted: positive = shrink inward (like
+// outline-offset:-1px), negative = grow outward (like outline-offset:+1px).
+function applyBoxStyle(box: HTMLDivElement, rect: DOMRect, inset: number, border: string) {
+  box.style.left = `${rect.left + inset}px`;
+  box.style.top = `${rect.top + inset}px`;
+  box.style.width = `${Math.max(0, rect.width - inset * 2)}px`;
+  box.style.height = `${Math.max(0, rect.height - inset * 2)}px`;
+  box.style.border = border;
+}
+
+function syncOverlays() {
+  const layer = ensureOverlayLayer();
+
+  // Selection rectangles
+  for (const [el, box] of selectionOverlays) {
+    if (!selectedEls.includes(el) || !el.isConnected) {
+      box.remove();
+      selectionOverlays.delete(el);
     }
-
-    if (selectedEls.includes(el)) {
-      el.style.outline = SELECTION_OUTLINE;
-      el.style.outlineOffset = SELECTION_OFFSET;
-    } else if (el === selectedParentEl) {
-      el.style.outline = PARENT_PREVIEW_OUTLINE;
-      el.style.outlineOffset = PARENT_PREVIEW_OFFSET;
-    } else if (el === hoveredEl) {
-      el.style.outline = HOVER_OUTLINE;
-      el.style.outlineOffset = HOVER_OFFSET;
-    } else {
-      delete elAny._pvOrigOutline;
-      delete elAny._pvOrigOffset;
+  }
+  for (const el of selectedEls) {
+    if (!el.isConnected) continue;
+    let box = selectionOverlays.get(el);
+    if (!box) {
+      box = makeOverlayBox();
+      layer.appendChild(box);
+      selectionOverlays.set(el, box);
     }
+    // inset=-1 with a 2px border = border straddles the element edge (-1..+1 px),
+    // so the rectangle sits on the border rather than 1px inside it.
+    applyBoxStyle(box, el.getBoundingClientRect(), -1, SELECTION_OUTLINE);
+  }
+
+  // Parent preview
+  if (selectedParentEl && selectedParentEl.isConnected) {
+    if (!parentPreviewOverlay) {
+      parentPreviewOverlay = makeOverlayBox();
+      layer.appendChild(parentPreviewOverlay);
+    }
+    applyBoxStyle(parentPreviewOverlay, selectedParentEl.getBoundingClientRect(), -1, PARENT_PREVIEW_OUTLINE);
+    parentPreviewOverlay.style.display = 'block';
+  } else if (parentPreviewOverlay) {
+    parentPreviewOverlay.style.display = 'none';
+  }
+
+  // Hover (suppress when the hover target is already selected or is the parent)
+  const showHover = hoveredEl
+    && hoveredEl.isConnected
+    && !selectedEls.includes(hoveredEl)
+    && hoveredEl !== selectedParentEl;
+  if (showHover) {
+    if (!hoverOverlay) {
+      hoverOverlay = makeOverlayBox();
+      layer.appendChild(hoverOverlay);
+    }
+    applyBoxStyle(hoverOverlay, hoveredEl!.getBoundingClientRect(), -1, HOVER_OUTLINE);
+    hoverOverlay.style.display = 'block';
+  } else if (hoverOverlay) {
+    hoverOverlay.style.display = 'none';
+  }
+
+  // Resize affordances: only when exactly one sketchpad-el is selected.
+  //   - SE 8x8 square for data-pv-resizable="both" (the only mode where getResizeEdge returns 'se').
+  //   - E thin vertical pill for the width-only modes (data-pv-resizable="horizontal" or
+  //     missing), where right-edge horizontal resize is allowed but the SE corner is not.
+  const single = selectedEls.length === 1 ? selectedEls[0] : null;
+  const isSingleSketchpadEl = !!single && single.isConnected && single.hasAttribute('data-pv-sketchpad-el');
+  const resizeMode = isSingleSketchpadEl ? single!.getAttribute('data-pv-resizable') : null;
+  const showSeAffordance = isSingleSketchpadEl && resizeMode === 'both';
+  // East handle covers the "width only" cases. Excludes 'both' (SE handle conveys it)
+  // and 'vertical' (no horizontal resize allowed).
+  const showEastAffordance = isSingleSketchpadEl
+    && (resizeMode === 'horizontal' || resizeMode === null);
+
+  if (showSeAffordance) {
+    if (!resizeAffordance) {
+      resizeAffordance = document.createElement('div');
+      resizeAffordance.setAttribute('data-pv-resize-affordance', '');
+      resizeAffordance.style.cssText = 'position:absolute;width:8px;height:8px;background:#18a0fb;border:1px solid #fff;box-sizing:border-box;border-radius:1px;pointer-events:none;';
+      layer.appendChild(resizeAffordance);
+    }
+    const rect = single!.getBoundingClientRect();
+    // Center the 8px square on the corner of the selection rectangle (which now sits 1px
+    // outside the element edge — see applyBoxStyle inset=-1 for selection overlays).
+    resizeAffordance.style.left = `${rect.right - 3}px`;
+    resizeAffordance.style.top = `${rect.bottom - 3}px`;
+    resizeAffordance.style.display = 'block';
+  } else if (resizeAffordance) {
+    resizeAffordance.style.display = 'none';
+  }
+
+  if (showEastAffordance) {
+    if (!eastResizeAffordance) {
+      eastResizeAffordance = document.createElement('div');
+      eastResizeAffordance.setAttribute('data-pv-resize-affordance', 'e');
+      // Thin vertical pill — the shape signals "drag horizontally to change width" and
+      // distinguishes it from the SE corner square's two-axis affordance.
+      eastResizeAffordance.style.cssText = 'position:absolute;width:4px;height:18px;background:#18a0fb;border:1px solid #fff;box-sizing:border-box;border-radius:2px;pointer-events:none;';
+      layer.appendChild(eastResizeAffordance);
+    }
+    const rect = single!.getBoundingClientRect();
+    // Center the 4×18 pill on the right edge of the selection rectangle. left = right - 1
+    // (half of 4px width minus the 1px inset from the selection straddle), top = vertical
+    // midpoint - 9 (half the pill height).
+    eastResizeAffordance.style.left = `${rect.right - 1}px`;
+    eastResizeAffordance.style.top = `${rect.top + rect.height / 2 - 9}px`;
+    eastResizeAffordance.style.display = 'block';
+  } else if (eastResizeAffordance) {
+    eastResizeAffordance.style.display = 'none';
+  }
+
+  if (showEastAffordance) {
+    if (!westResizeAffordance) {
+      westResizeAffordance = document.createElement('div');
+      westResizeAffordance.setAttribute('data-pv-resize-affordance', 'w');
+      westResizeAffordance.style.cssText = 'position:absolute;width:4px;height:18px;background:#18a0fb;border:1px solid #fff;box-sizing:border-box;border-radius:2px;pointer-events:none;';
+      layer.appendChild(westResizeAffordance);
+    }
+    const rect = single!.getBoundingClientRect();
+    westResizeAffordance.style.left = `${rect.left - 3}px`;
+    westResizeAffordance.style.top = `${rect.top + rect.height / 2 - 9}px`;
+    westResizeAffordance.style.display = 'block';
+  } else if (westResizeAffordance) {
+    westResizeAffordance.style.display = 'none';
+  }
+
+  syncTrackedElements();
+}
+
+// Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
+// both fire many times per frame; this collapses them into one syncOverlays() call.
+function scheduleSync() {
+  if (overlaySyncRafId !== null) return;
+  overlaySyncRafId = requestAnimationFrame(() => {
+    overlaySyncRafId = null;
+    syncOverlays();
   });
+}
+
+let trackedMutationObserver: MutationObserver | null = null;
+
+function syncTrackedElements() {
+  if (!trackedElementObserver) {
+    trackedElementObserver = new ResizeObserver(scheduleSync);
+  }
+  // The inspector's quick class-preview (e.g. hover over a padding/margin value) toggles
+  // classes on the inspected element. With box-sizing:border-box, padding changes don't
+  // alter the outer rect — so ResizeObserver never fires. Margin changes only shift
+  // position, also invisible to ResizeObserver. We need attribute mutations too.
+  if (!trackedMutationObserver) {
+    trackedMutationObserver = new MutationObserver(scheduleSync);
+  }
+  const wanted = new Set<HTMLElement>();
+  for (const el of selectedEls) wanted.add(el);
+  if (selectedParentEl) wanted.add(selectedParentEl);
+  if (hoveredEl) wanted.add(hoveredEl);
+  // Also observe the parent of each tracked element: a margin/gap change on a sibling
+  // (or layout class on the parent) shifts the tracked element without mutating it.
+  const parents = new Set<HTMLElement>();
+  for (const el of wanted) {
+    if (el.parentElement) parents.add(el.parentElement);
+  }
+
+  for (const el of trackedElements) {
+    if (!wanted.has(el)) {
+      trackedElementObserver.unobserve(el);
+      trackedElements.delete(el);
+    }
+  }
+  for (const el of wanted) {
+    if (!trackedElements.has(el)) {
+      trackedElementObserver.observe(el);
+      trackedElements.add(el);
+    }
+  }
+
+  // Re-subscribe attribute observation each call. MutationObserver has no `unobserve`,
+  // so we disconnect-and-reattach; the set of tracked elements is small (≤ a handful).
+  trackedMutationObserver.disconnect();
+  for (const el of wanted) {
+    trackedMutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+  }
+  for (const p of parents) {
+    trackedMutationObserver.observe(p, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+      subtree: false,
+      childList: true,
+    });
+  }
+}
+
+function updateOutlines() {
+  syncOverlays();
 }
 
 function setHover(el: HTMLElement) {
   if (hoveredEl === el) return;
-  const oldHover = hoveredEl;
   hoveredEl = el;
-  updateOutlines(oldHover, selectedEls, selectedParentEl);
+  updateOutlines();
 }
 
 function clearHover() {
   if (!hoveredEl) return;
-  const oldHover = hoveredEl;
   hoveredEl = null;
-  updateOutlines(oldHover, selectedEls, selectedParentEl);
-}
-
-function setSelectedParent(el: HTMLElement | null) {
-  if (selectedParentEl === el) return;
-  const oldParent = selectedParentEl;
-  selectedParentEl = el;
-  updateOutlines(hoveredEl, selectedEls, oldParent);
+  updateOutlines();
 }
 
 function setSelection(el: HTMLElement, isMulti = false) {
-  const oldSelections = [...selectedEls];
-  const oldParent = selectedParentEl;
-
   if (isMulti) {
     if (selectedEls.includes(el)) {
       selectedEls = selectedEls.filter(e => e !== el);
@@ -626,16 +800,14 @@ function setSelection(el: HTMLElement, isMulti = false) {
   } else if (selectedEls.length === 1) {
     selectedParentEl = findInspectableParent(selectedEls[0]);
   }
-  updateOutlines(hoveredEl, oldSelections, oldParent);
+  updateOutlines();
 }
 
 function clearSelection() {
   if (selectedEls.length === 0) return;
-  const oldSelections = [...selectedEls];
-  const oldParent = selectedParentEl;
   selectedEls = [];
   selectedParentEl = null;
-  updateOutlines(hoveredEl, oldSelections, oldParent);
+  updateOutlines();
 }
 
 // ─── Cursor override ──────────────────────────────────────────────────────────
@@ -765,6 +937,7 @@ function applyPointerMoveUpdate() {
       resizeState.target.style.height = `${Math.round(resizeState.origHeight - delta)}px`;
       resizeState.target.style.top = `${Math.round(resizeState.origTop + delta)}px`;
     }
+    syncOverlays();
     return;
   }
 
@@ -780,7 +953,8 @@ function applyPointerMoveUpdate() {
       setForcedCursor('grabbing');
       dragState.targets.forEach(t => {
         t.el.style.transition = 'none';
-        t.el.style.zIndex = '2147483647';
+        // One below max so the overlay layer (selection rect + resize handle) stays on top.
+        t.el.style.zIndex = '2147483640';
       });
     }
 
@@ -812,6 +986,7 @@ function applyPointerMoveUpdate() {
     const dragEls = dragState.targets.map(t => t.el);
     const dropContainer = findDropContainerAtPoint(latestClientX, latestClientY, dragEls);
     setCurrentDropTarget(dropContainer);
+    syncOverlays();
   }
 }
 
@@ -1102,6 +1277,7 @@ function handlePointerUp(e: PointerEvent) {
       }
     }
     resizeState = null;
+    syncOverlays();
     return;
   }
 
@@ -1297,6 +1473,7 @@ function handlePointerUp(e: PointerEvent) {
     ghostEls.forEach(g => g.remove());
     ghostEls = [];
   }
+  syncOverlays();
 }
 
 function handleClick(e: MouseEvent) {
@@ -1420,6 +1597,7 @@ function handleParentMessage(e: MessageEvent) {
       const existingTransform = t.origTransform && t.origTransform !== 'none' ? t.origTransform + ' ' : '';
       t.el.style.transform = `${existingTransform}translate(${nudgeState!.dx}px, ${nudgeState!.dy}px)`;
     });
+    syncOverlays();
     return;
   }
 
@@ -1450,6 +1628,7 @@ function handleParentMessage(e: MessageEvent) {
         }
       });
       nudgeState = null;
+      syncOverlays();
     }
     return;
   }
@@ -1464,8 +1643,6 @@ function handleParentMessage(e: MessageEvent) {
       clearSelection();
       return;
     }
-    const oldSelections = [...selectedEls];
-    const oldParent = selectedParentEl;
     selectedEls = [];
     runtimeIds.forEach((id: string) => {
       const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
@@ -1477,7 +1654,7 @@ function handleParentMessage(e: MessageEvent) {
     } else if (selectedEls.length === 1) {
       selectedParentEl = findInspectableParent(selectedEls[0]);
     }
-    updateOutlines(hoveredEl, oldSelections, oldParent);
+    updateOutlines();
   }
   if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
   if (e.data.type === 'PV_SET_ACTIVE_SOURCE_ID') {
@@ -1510,6 +1687,12 @@ function init() {
   window.addEventListener('keydown', handleKeyDown, true);
   window.addEventListener('keyup', handleKeyUp, true);
   window.addEventListener('message', handleParentMessage);
+  // Selection overlays live in fixed-position iframe coords; reposition on any internal scroll.
+  window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
+  // InfiniteCanvas applies zoom/pan as a CSS transform on its inner wrapper. That doesn't
+  // fire scroll or ResizeObserver, so the canvas dispatches this event each frame it
+  // updates the transform — keeps overlay rectangles glued to elements during zoom/pan.
+  window.addEventListener('pv-canvas-transform', () => syncOverlays());
 
   // Allow SketchpadApp to programmatically select one or more elements by blockId(s)
   window.addEventListener('pv-select-block', ((e: CustomEvent<{ blockId?: string; blockIds?: string[] }>) => {

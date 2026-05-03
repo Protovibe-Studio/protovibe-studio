@@ -77,10 +77,10 @@ export const TooltipEditor: React.FC = () => {
             value={dirProp?.value || 'top'}
             onChange={(val) => handleUpdate('data-tooltip-dir', val, !dirProp, dirProp?.loc)}
             segments={[
-              { icon: <ArrowUp size={12} />, val: 'top', title: 'Top' },
-              { icon: <ArrowDown size={12} />, val: 'bottom', title: 'Bottom' },
-              { icon: <ArrowLeft size={12} />, val: 'left', title: 'Left' },
-              { icon: <ArrowRight size={12} />, val: 'right', title: 'Right' },
+              { icon: <ArrowUp size={12} />, label: 'Above', val: 'top', title: 'Above' },
+              { icon: <ArrowDown size={12} />, label: 'Below', val: 'bottom', title: 'Below' },
+              { icon: <ArrowLeft size={12} />, label: 'Left', val: 'left', title: 'Left' },
+              { icon: <ArrowRight size={12} />, label: 'Right', val: 'right', title: 'Right' },
             ]}
           />
         )}

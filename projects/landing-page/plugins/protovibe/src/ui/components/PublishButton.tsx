@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share2, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb } from 'lucide-react';
+import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb } from 'lucide-react';
 import { theme } from '../theme';
 import {
   fetchCloudflarePublishMetadata,
@@ -526,7 +526,7 @@ export function PublishButton() {
       >
         {isPolling
           ? <Loader2 size={15} strokeWidth={1.8} style={spinStyle} />
-          : <Share2 size={15} strokeWidth={1.8} />}
+          : <Share size={15} strokeWidth={1.8} />}
       </button>
 
       {open && btnRect && (

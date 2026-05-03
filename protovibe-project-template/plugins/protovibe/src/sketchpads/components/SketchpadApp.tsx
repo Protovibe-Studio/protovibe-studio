@@ -970,6 +970,16 @@ export function SketchpadApp() {
     setSketchpads(reg.sketchpads);
   }, [activeSketchpadId, activeSketchpad, loadFrameModule]);
 
+  // One-shot flag: set when the user clicks a frame's title bar so we both keep the
+  // frame selected AND focus the frame root in the inspector. The bridge → parent
+  // shell → us round-trip would otherwise echo PV_SET_SELECTION and clear frame focus.
+  const suppressFrameClearOnceRef = useRef(false);
+  useEffect(() => {
+    const onSelectFrameRoot = () => { suppressFrameClearOnceRef.current = true; };
+    window.addEventListener('pv-select-frame-root', onSelectFrameRoot);
+    return () => window.removeEventListener('pv-select-frame-root', onSelectFrameRoot);
+  }, []);
+
   // Listen for undo/redo completion and element selection events from the parent shell
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
@@ -977,7 +987,11 @@ export function SketchpadApp() {
         reloadRegistry();
       }
       if (e.data?.type === 'PV_SET_SELECTION' && e.data.runtimeIds && e.data.runtimeIds.length > 0) {
-        setSelectedFrameIds([]);
+        if (suppressFrameClearOnceRef.current) {
+          suppressFrameClearOnceRef.current = false;
+        } else {
+          setSelectedFrameIds([]);
+        }
       }
       if (e.data?.type === 'PV_SKETCHPAD_ZOOM') {
         const code: string = e.data.code;

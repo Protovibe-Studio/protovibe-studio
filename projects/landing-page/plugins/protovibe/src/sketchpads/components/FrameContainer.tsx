@@ -105,6 +105,17 @@ export function FrameContainer({
         onSelect(frameId, false);
       }
 
+      // Also select the root pv-block so paste/insert shortcuts have an anchor —
+      // mirrors what clicking the frame background does via the builder bridge.
+      // One-way: selecting a child block does not select the frame.
+      if (!additive) {
+        const rootNode = contentRef.current?.querySelector('[data-pv-block]');
+        const blockId = rootNode?.getAttribute('data-pv-block');
+        if (blockId) {
+          window.dispatchEvent(new CustomEvent('pv-select-block', { detail: { blockId } }));
+        }
+      }
+
       isDuplicateDragRef.current = e.altKey;
       setIsAltDragging(e.altKey);
       setIsDragging(true);

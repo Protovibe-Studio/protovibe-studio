@@ -767,6 +767,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
 
       {/* Variant grid */}
       <div
+        data-pv-overlay-clip="true"
         style={{
           flex: 1,
           overflowY: 'auto',

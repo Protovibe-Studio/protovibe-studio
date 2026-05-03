@@ -70,6 +70,10 @@ export function InfiniteCanvas({
     innerRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     innerRef.current.setAttribute('data-sketchpad-zoom', String(zoom));
     innerRef.current.style.setProperty('--frame-label-scale', String(1 / zoom));
+    // Notify the selection-overlay layer (rendered fixed on document.body, outside this
+    // transformed wrapper) that element rects have moved. CSS transform changes don't fire
+    // scroll/ResizeObserver, so without this the overlays would lag during zoom/pan.
+    window.dispatchEvent(new Event('pv-canvas-transform'));
   }, []);
 
   useEffect(() => {

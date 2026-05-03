@@ -105,6 +105,14 @@ export function FrameContainer({
         onSelect(frameId, false);
       }
 
+      // Also focus the frame's root content div in the inspector so paste/insert
+      // shortcuts have an anchor — mirrors what clicking the bare frame background
+      // does via the builder bridge. One-way: selecting a child block does not
+      // select the frame.
+      if (!additive) {
+        window.dispatchEvent(new CustomEvent('pv-select-frame-root', { detail: { frameId } }));
+      }
+
       isDuplicateDragRef.current = e.altKey;
       setIsAltDragging(e.altKey);
       setIsDragging(true);

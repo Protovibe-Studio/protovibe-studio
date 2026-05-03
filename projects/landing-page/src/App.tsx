@@ -1069,7 +1069,7 @@ function ProblemSolution(props: any) {
               </h2>
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
-              <p data-pv-block="b00128" className="text-[16px] text-foreground-secondary leading-[1.55] text-balance mt-8 pb-8">
+              <p data-pv-block="b00128" className="text-[16px] text-foreground-secondary leading-[1.55] text-balance pb-8 max-w-[70ch] mt-8 mx-auto">
                 Look, prompting an AI to make a UI is not designing. AI spits random UI, and you're stuck trying to fix it. Design is a process where you need to move rectangles yourself and iterate. Protovibe Studio brings you back to a driver seat. <br /><br /><br />
               </p>
               {/* pv-block-end:b00128 */}
@@ -1355,7 +1355,7 @@ function ProblemSolution(props: any) {
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
                       <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Design is now promptable<br />
+                        Prompt templates<br />
                       </h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
@@ -2163,16 +2163,21 @@ function Hero(props: any) {
       <section {...props} data-pv-component-id="Hero" className="relative pt-[60px] pb-[80px] text-center">
         {/* pv-editable-zone-start:z00107 */}
           {/* pv-block-start:t4dgb7 */}
-          <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center pt-16">
+          <div data-pv-block="t4dgb7" className="flex flex-col gap-2 items-center pt-5">
             {/* pv-editable-zone-start:ger2rz */}
+            {/* pv-block-start:pjtruu */}
+            <div data-pv-block="pjtruu" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary" >
+              Open-source tool
+            </div>
+            {/* pv-block-end:pjtruu */}
             {/* pv-block-start:b00305 */}
-            <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] leading-[0.98] max-w-[14ch] tracking-tighter font-secondary font-extrabold mx-auto text-[clamp(44px,9vw,72px)]">
-              Design by hand.<br />Prototype with AI.<br /><span className="text-foreground-primary"> Stay pixel-perfect. </span>
+            <h1 data-pv-block="b00305" className="animate-[hero-rise_700ms_ease-out_both] leading-[0.98] tracking-tighter font-secondary font-extrabold mx-auto text-[clamp(44px,9vw,72px)] max-w-[16ch]">
+              Design pixel-perfect prototypes with AI
             </h1>
             {/* pv-block-end:b00305 */}
             {/* pv-block-start:b00306 */}
             <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
-              Protovibe Studio is the open-source tool for UX/UI designers who love the power of vibe-coding but refuse to hand off hallucinated slop. It runs locally in pure React, so you and your coding agent are finally on the same page.
+              Protovibe Studio is a free tool for UX/UI designers who love the power of vibe-coding but still want to design like a human. It runs in pure React, so you and your coding agent are finally on the same page.
             </p>
             {/* pv-block-end:b00306 */}
             {/* pv-block-start:b00307 */}
@@ -2183,7 +2188,7 @@ function Hero(props: any) {
                 {/* pv-block-end:jkwl83 */}
 
                 {/* pv-block-start:jppuwr */}
-                <Button leftIcon="carbon:demo" data-pv-block="jppuwr" label="Demo in Codesandbox" variant="solid" color="neutral" size="lg" />
+                <Button leftIcon="carbon:demo" data-pv-block="jppuwr" label="Demo in Stackblitz" variant="solid" color="neutral" size="lg" />
                 {/* pv-block-end:jppuwr */}
 
                 {/* pv-block-start:twnfpe */}
@@ -2195,27 +2200,6 @@ function Hero(props: any) {
             {/* pv-editable-zone-end:ger2rz */}
           </div>
           {/* pv-block-end:t4dgb7 */}
-
-          {/* pv-block-start:b00310 */}
-          <div data-pv-block="b00310" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:240ms] flex justify-center mt-4">
-            {/* pv-editable-zone-start:z00109 */}
-              {/* pv-block-start:b00311 */}
-              <div data-pv-block="b00311" className="inline-flex items-center gap-[8px] text-[12px] text-foreground-secondary px-[14px] py-[7px] rounded-full font-sans bg-transparent mt-3">
-                {/* pv-editable-zone-start:z00110 */}
-                  {/* pv-block-start:b00312 */}
-                  <span data-pv-block="b00312" className="w-[6px] h-[6px] rounded-full animate-[pulse-custom_2.4s_ease-in-out_infinite] bg-background-primary shadow-[0_0_12px_rgba(61,123,255,1)]" />
-                  {/* pv-block-end:b00312 */}
-                  {/* pv-block-start:b00313 */}
-                  <span data-pv-block="b00313">
-                    Open-source • AGPL-3.0 • Runs locally
-                  </span>
-                  {/* pv-block-end:b00313 */}
-                {/* pv-editable-zone-end:z00110 */}
-              </div>
-              {/* pv-block-end:b00311 */}
-            {/* pv-editable-zone-end:z00109 */}
-          </div>
-          {/* pv-block-end:b00310 */}
 
           {/* pv-block-start:b00314 */}
           <div data-pv-block="b00314" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:320ms] relative mt-[72px] mx-auto flex-1 rounded-lg border-border-default border">

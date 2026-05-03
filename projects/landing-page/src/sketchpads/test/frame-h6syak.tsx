@@ -10,119 +10,44 @@ export default function Frame2() {
   return (
     <div data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:bibqg8 */}
-        {/* pv-block-start:8c8sfy */}
-        <Card data-pv-block="8c8sfy" data-pv-sketchpad-el="8c8sfy" style={{ position: 'absolute', width: 614, left: 651, top: 54 }}>
-          {/* pv-editable-zone-start:dupkaw */}
-            {/* pv-block-start:ou8li2 */}
-            <Card data-pv-block="ou8li2" >
-              {/* pv-editable-zone-start:d3pro3 */}
-                {/* pv-block-start:uge8hh */}
-                <Badge data-pv-block="uge8hh"  label="Badge" color="primary" />
-                {/* pv-block-end:uge8hh */}
-                {/* pv-block-start:vtg48d */}
-                <Button data-pv-block="vtg48d"  label="Button" variant="solid" color="primary" size="md" />
-                {/* pv-block-end:vtg48d */}
-                
-                {/* pv-block-start:uhw5im */}
-                <Badge data-pv-block="uhw5im"  label="Badge" color="primary" />
-                {/* pv-block-end:uhw5im */}
-              {/* pv-editable-zone-end:d3pro3 */}
-            </Card>
-            {/* pv-block-end:ou8li2 */}
-            {/* pv-block-start:jn33ge */}
-            <Card data-pv-block="jn33ge" >
-              {/* pv-editable-zone-start:d3pro3 */}
-              {/* pv-editable-zone-end:d3pro3 */}
-            </Card>
-            {/* pv-block-end:jn33ge */}
-
-            {/* pv-block-start:cwetnv */}
-            <Button data-pv-block="cwetnv"  label="Button" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:cwetnv */}
-
-            {/* pv-block-start:md2k3c */}
-            <Badge data-pv-block="md2k3c"  label="Badge" color="primary" />
-            {/* pv-block-end:md2k3c */}
-            {/* pv-block-start:lsl7qw */}
-            <Badge data-pv-block="lsl7qw"  label="Badge" color="primary" />
-            {/* pv-block-end:lsl7qw */}
-            
-            {/* pv-block-start:efe60s */}
-            <Button data-pv-block="efe60s"  label="Button" variant="solid" color="primary" size="md" />
-            {/* pv-block-end:efe60s */}
-          {/* pv-editable-zone-end:dupkaw */}
-        </Card>
-        {/* pv-block-end:8c8sfy */}
+        {/* pv-block-start:qvh9pj */}
+        <div data-pv-block="qvh9pj" className="flex flex-col gap-2 items-center pt-16 text-center" data-pv-sketchpad-el="qvh9pj" style={{ position: 'absolute', left: 292, top: 108 }}>
+          {/* pv-editable-zone-start:ger2rz */}
+            {/* pv-block-start:8f7ytz */}
+            <div data-pv-block="8f7ytz" className="font-bold text-[12px] tracking-[0.18em] uppercase mb-[16px] text-foreground-primary" >
+              Open-source tool
+            </div>
+            {/* pv-block-end:8f7ytz */}
+          {/* pv-block-start:64gjbm */}
+          <h1 data-pv-block="64gjbm" className="animate-[hero-rise_700ms_ease-out_both] leading-[0.98] max-w-[14ch] tracking-tighter font-secondary font-extrabold mx-auto text-[clamp(44px,9vw,72px)]">
+            Design pixel-perfect prototypes with AI
+          </h1>
+          {/* pv-block-end:64gjbm */}
+          {/* pv-block-start:fv9i0e */}
+          <p data-pv-block="fv9i0e" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
+            Protovibe Studio is a free tool for UX/UI designers who love the power of vibe-coding but refuse to hand off hallucinated slop. It runs in pure React, so you and your coding agent are finally on the same page.
+          </p>
+          {/* pv-block-end:fv9i0e */}
+          {/* pv-block-start:zo29a4 */}
+          <div data-pv-block="zo29a4" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:160ms] flex gap-[12px] mt-[36px] flex-wrap justify-center flex-col items-stretch min-w-64">
+            {/* pv-editable-zone-start:z00108 */}
+              {/* pv-block-start:jc7whk */}
+              <Button rightIcon="mdi:arrow-right" data-pv-block="jc7whk" data-install label="Download" variant="solid" color="primary" size="lg" />
+              {/* pv-block-end:jc7whk */}
         
-        {/* pv-block-start:h7lval */}
-        <RadioGroup data-pv-block="h7lval"  orientation="vertical" value="opt1" data-pv-sketchpad-el="h7lval" style={{ position: 'absolute', left: 899, top: 651 }}>
-          {/* pv-editable-zone-start:jf0hi0 */}
-            {/* pv-block-start:8guw9i */}
-            <RadioItem data-pv-block="8guw9i" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-            {/* pv-block-end:8guw9i */}
-            {/* pv-block-start:6gt0bw */}
-            <RadioItem data-pv-block="6gt0bw" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-            {/* pv-block-end:6gt0bw */}
-            {/* pv-block-start:gtplgq */}
-            <RadioItem data-pv-block="gtplgq" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-            {/* pv-block-end:gtplgq */}
-          {/* pv-editable-zone-end:jf0hi0 */}
-        </RadioGroup>
-        {/* pv-block-end:h7lval */}
-        {/* pv-block-start:2n40cz */}
-        <Rectangle data-pv-block="2n40cz" data-pv-sketchpad-el="2n40cz" style={{ position: 'absolute', width: 542, left: 76, top: 60 }} className="w-[200px] h-[200px]">
-          {/* pv-editable-zone-start:o6rx04 */}
-            {/* pv-block-start:tibi0q */}
-            <Button data-pv-block="tibi0q"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="tibi0q" style={{ position: 'absolute', left: 58, top: 21 }}/>
-            {/* pv-block-end:tibi0q */}
-            
-            {/* pv-block-start:jfgfe8 */}
-            <Button data-pv-block="jfgfe8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="jfgfe8" style={{ position: 'absolute', left: 59, top: 72 }}/>
-            {/* pv-block-end:jfgfe8 */}
-          {/* pv-editable-zone-end:o6rx04 */}
-        </Rectangle>
-        {/* pv-block-end:2n40cz */}
+              {/* pv-block-start:5m2ug7 */}
+              <Button leftIcon="carbon:demo" data-pv-block="5m2ug7" label="Demo in Codesandbox" variant="solid" color="neutral" size="lg" />
+              {/* pv-block-end:5m2ug7 */}
         
-        {/* pv-block-start:fyu1og */}
-        <Card data-pv-block="fyu1og"  data-pv-sketchpad-el="fyu1og" style={{ position: 'absolute', left: 76, top: 411 }}>
-          {/* pv-editable-zone-start:d3pro3 */}
-            {/* pv-block-start:4xupvu */}
-            <RadioGroup data-pv-block="4xupvu"  orientation="vertical" value="opt1" >
-              {/* pv-editable-zone-start:jf0hi0 */}
-                {/* pv-block-start:m5nnip */}
-                <RadioItem data-pv-block="m5nnip" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                {/* pv-block-end:m5nnip */}
-                {/* pv-block-start:nm1ccd */}
-                <RadioItem data-pv-block="nm1ccd" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                {/* pv-block-end:nm1ccd */}
-                {/* pv-block-start:8oj7n8 */}
-                <RadioItem data-pv-block="8oj7n8" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                {/* pv-block-end:8oj7n8 */}
-              {/* pv-editable-zone-end:jf0hi0 */}
-            </RadioGroup>
-            {/* pv-block-end:4xupvu */}
-            
-            {/* pv-block-start:fo2t4c */}
-            <RadioGroup data-pv-block="fo2t4c"  orientation="vertical" value="opt1" >
-              {/* pv-editable-zone-start:jf0hi0 */}
-                {/* pv-block-start:4w5n6i */}
-                <RadioItem data-pv-block="4w5n6i" value="opt1" primaryText="Option One" secondaryText="Description for option one" />
-                {/* pv-block-end:4w5n6i */}
-                {/* pv-block-start:s5hpyd */}
-                <RadioItem data-pv-block="s5hpyd" value="opt2" primaryText="Option Two" secondaryText="Description for option two" />
-                {/* pv-block-end:s5hpyd */}
-                {/* pv-block-start:j0oupt */}
-                <RadioItem data-pv-block="j0oupt" value="opt3" primaryText="Option Three" secondaryText="Third option" />
-                {/* pv-block-end:j0oupt */}
-              {/* pv-editable-zone-end:jf0hi0 */}
-            </RadioGroup>
-            {/* pv-block-end:fo2t4c */}
-          {/* pv-editable-zone-end:d3pro3 */}
-        </Card>
-        {/* pv-block-end:fyu1og */}
-        {/* pv-block-start:kepcn8 */}
-        <Button data-pv-block="kepcn8"  label="Button" variant="solid" color="primary" size="md"  data-pv-sketchpad-el="kepcn8" style={{ position: 'absolute', left: 412, top: 419 }}/>
-        {/* pv-block-end:kepcn8 */}
+              {/* pv-block-start:uowhk3 */}
+              <Button leftIcon="mdi:github" data-pv-block="uowhk3" label="Star on GitHub" variant="ghost" color="neutral" size="lg" />
+              {/* pv-block-end:uowhk3 */}
+            {/* pv-editable-zone-end:z00108 */}
+          </div>
+          {/* pv-block-end:zo29a4 */}
+          {/* pv-editable-zone-end:ger2rz */}
+        </div>
+        {/* pv-block-end:qvh9pj */}
       {/* pv-editable-zone-end:bibqg8 */}
     </div>
   );

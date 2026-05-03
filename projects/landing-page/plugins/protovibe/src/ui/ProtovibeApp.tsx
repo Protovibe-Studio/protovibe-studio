@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -14,6 +14,7 @@ import { useProtovibe } from './context/ProtovibeContext';
 import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
+import { emitToast } from './events/toast';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -216,6 +217,9 @@ export const ProtovibeApp: React.FC = () => {
         Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
           iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
         });
+        emitToast({ message: 'Undone', variant: 'info', durationMs: 800 });
+      } else {
+        emitToast({ message: 'Nothing to undo', variant: 'error', durationMs: 800 });
       }
     });
   }, [runLockedMutation]);
@@ -510,7 +514,7 @@ export const ProtovibeApp: React.FC = () => {
             <button
               ref={moreButtonRef}
               onClick={() => setMoreMenuOpen(v => !v)}
-              title="More actions"
+              title="Help"
               style={{
                 width: 26,
                 height: 24,
@@ -525,7 +529,7 @@ export const ProtovibeApp: React.FC = () => {
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              <MoreHorizontal size={16} />
+              <HelpCircle size={16} />
             </button>
           </div>
           {moreMenuOpen && createPortal(
@@ -566,6 +570,38 @@ export const ProtovibeApp: React.FC = () => {
                 <RotateCw size={16} />
                 Restart dev server
               </button>
+              {([
+                { href: 'https://protovibe-studio.github.io/docs', label: 'Docs', Icon: BookOpen },
+                { href: 'https://protovibe-studio.github.io/docs#shortcuts', label: 'Keyboard shortcuts', Icon: Keyboard },
+                { href: 'https://github.com/Protovibe-Studio/protovibe-studio/issues', label: 'Report a bug', Icon: Bug },
+              ] as const).map(({ href, label, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMoreMenuOpen(false)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    color: theme.text_default,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    textDecoration: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = theme.bg_tertiary)}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Icon size={16} />
+                  {label}
+                </a>
+              ))}
             </div>,
             document.body,
           )}

@@ -95,7 +95,8 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         await runLockedMutation(async () => {
           let res;
-          if (e.shiftKey) {
+          const isRedo = e.shiftKey;
+          if (isRedo) {
             res = await redo();
           } else {
             res = await undo();
@@ -108,6 +109,9 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
+            emitToast({ message: isRedo ? 'Redone' : 'Undone', variant: 'info', durationMs: 800 });
+          } else {
+            emitToast({ message: isRedo ? 'Nothing to redo' : 'Nothing to undo', variant: 'error', durationMs: 800 });
           }
           await focusRestoredElement(res?.activeId);
         });
@@ -126,6 +130,9 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
+            emitToast({ message: 'Redone', variant: 'info', durationMs: 800 });
+          } else {
+            emitToast({ message: 'Nothing to redo', variant: 'error', durationMs: 800 });
           }
           await focusRestoredElement(res?.activeId);
         });

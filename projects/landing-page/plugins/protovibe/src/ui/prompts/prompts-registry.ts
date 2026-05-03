@@ -149,8 +149,8 @@ export const PROMPTS: PromptDef[] = [
   },
   {
     id: 'enrich-with-blocks',
-    title: 'Enrich with editable blocks',
-    description: 'Wrap the selected markup with pv-editable-zone and pv-block tags so it becomes editable on the canvas.',
+    title: 'Make editable in Protovibe',
+    description: 'Lets you convert some code to blocks that you can move or add elements inside.',
     icon: Braces,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'treat each list item as its own block',

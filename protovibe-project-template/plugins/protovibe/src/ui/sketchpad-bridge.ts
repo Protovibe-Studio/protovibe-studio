@@ -1711,6 +1711,22 @@ function init() {
     notifyInspector(els[els.length - 1], true); // skipSnapshot = true
   }) as EventListener);
 
+  // Select a frame's root content div (the wrapper that has data-pv-loc-* but no
+  // data-pv-block). Used when a frame is selected via its title bar so the inspector
+  // shows the root, not the first child block.
+  window.addEventListener('pv-select-frame-root', ((e: CustomEvent<{ frameId?: string }>) => {
+    const frameId = e.detail.frameId;
+    if (!frameId) return;
+    const frameEl = document.querySelector(`[data-sketchpad-frame="${frameId}"]`) as HTMLElement | null;
+    if (!frameEl) return;
+    const root = findFrameRoot(frameEl);
+    if (!root) return;
+    clearHover();
+    clearSelection();
+    setSelection(root, false);
+    notifyInspector(root, true);
+  }) as EventListener);
+
   // Allow SketchpadApp to programmatically clear element selection (e.g. when frames are marquee-selected)
   window.addEventListener('pv-clear-selection', () => {
     clearHover();
