@@ -151,6 +151,11 @@ export function FrameContainer({
       for (const sib of groupDragRef.current) {
         sib.el.style.transform = `translate(${dx}px, ${dy}px)`;
       }
+      // The sketchpad-bridge overlay layer is position:fixed in document coords and
+      // only re-syncs on canvas transform / scroll / direct ResizeObserver hits. A frame
+      // translate change is invisible to all of those, so any active selection overlay
+      // would lag behind. Reuse the canvas-transform channel to trigger a re-sync.
+      window.dispatchEvent(new Event('pv-canvas-transform'));
       // Track alt key state mid-drag (mirrors sketchpad-bridge pattern)
       const altHeld = e.altKey;
       isDuplicateDragRef.current = altHeld;

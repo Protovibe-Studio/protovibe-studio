@@ -2177,7 +2177,7 @@ function Hero(props: any) {
             {/* pv-block-end:b00305 */}
             {/* pv-block-start:b00306 */}
             <p data-pv-block="b00306" className="animate-[hero-rise_700ms_ease-out_both] [animation-delay:80ms] text-[clamp(16px,1.3vw,19px)] text-foreground-default mt-6 mx-auto text-balance max-w-[75ch]">
-              Protovibe Studio is a free tool for UX/UI designers who love the power of vibe-coding but still want to design like a human. It runs in pure React, so you and your coding agent are finally on the same page.
+              Protovibe Studio is a free tool for UX/UI designers who love the power of vibe-coding but still want to design like a human. It's a visual editor for React code, so you and your coding agent are finally on the same page.
             </p>
             {/* pv-block-end:b00306 */}
             {/* pv-block-start:b00307 */}
