@@ -1000,6 +1000,17 @@ function handlePointerDown(e: PointerEvent) {
   if (targetNode && targetNode.closest('[data-sketchpad-frame-overlay]')) {
     return;
   }
+  // Frame chrome (title bar / resize handle) lives inside data-sketchpad-frame-root
+  // but outside the content area (data-sketchpad-frame). Let FrameContainer's React
+  // handlers own those clicks — otherwise the bridge would clear the inspector
+  // selection here before our title-bar pv-select-frame-root guard can run.
+  if (
+    targetNode &&
+    targetNode.closest('[data-sketchpad-frame-root]') &&
+    !targetNode.closest('[data-sketchpad-frame]')
+  ) {
+    return;
+  }
 
   const now = Date.now();
   const dist = Math.hypot(e.clientX - lastClickX, e.clientY - lastClickY);
@@ -1717,14 +1728,19 @@ function init() {
   window.addEventListener('pv-select-frame-root', ((e: CustomEvent<{ frameId?: string }>) => {
     const frameId = e.detail.frameId;
     if (!frameId) return;
+    // Don't override an existing inspector selection — the user may have already
+    // drilled into a child block, and the title click should leave that alone.
+    if (selectedEls.length > 0) return;
     const frameEl = document.querySelector(`[data-sketchpad-frame="${frameId}"]`) as HTMLElement | null;
     if (!frameEl) return;
     const root = findFrameRoot(frameEl);
     if (!root) return;
     clearHover();
-    clearSelection();
     setSelection(root, false);
     notifyInspector(root, true);
+    // Tell SketchpadApp we actually selected — used to one-shot suppress the
+    // PV_SET_SELECTION echo that would otherwise clear frame focus.
+    window.dispatchEvent(new CustomEvent('pv-frame-root-selected', { detail: { frameId } }));
   }) as EventListener);
 
   // Allow SketchpadApp to programmatically clear element selection (e.g. when frames are marquee-selected)

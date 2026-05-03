@@ -11,6 +11,7 @@ export function SiteNav() {
       </a>
 
       <div className="flex gap-[18px] md:gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[16px] md:mr-[24px]">
+        <a href="/#problems" className="hidden md:inline hover:text-foreground-strong">Features</a>
         <a href="https://github.com/Protovibe-Studio/protovibe-studio" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">GitHub</a>
         <a href="/docs" data-active={isDocs} className="hover:text-foreground-strong data-[active=true]:text-foreground-strong data-[active=true]:font-semibold">Docs</a>
       </div>

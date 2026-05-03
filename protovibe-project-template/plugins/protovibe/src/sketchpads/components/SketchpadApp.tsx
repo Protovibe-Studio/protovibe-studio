@@ -975,9 +975,9 @@ export function SketchpadApp() {
   // shell → us round-trip would otherwise echo PV_SET_SELECTION and clear frame focus.
   const suppressFrameClearOnceRef = useRef(false);
   useEffect(() => {
-    const onSelectFrameRoot = () => { suppressFrameClearOnceRef.current = true; };
-    window.addEventListener('pv-select-frame-root', onSelectFrameRoot);
-    return () => window.removeEventListener('pv-select-frame-root', onSelectFrameRoot);
+    const onFrameRootSelected = () => { suppressFrameClearOnceRef.current = true; };
+    window.addEventListener('pv-frame-root-selected', onFrameRootSelected);
+    return () => window.removeEventListener('pv-frame-root-selected', onFrameRootSelected);
   }, []);
 
   // Listen for undo/redo completion and element selection events from the parent shell

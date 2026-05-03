@@ -378,36 +378,6 @@ export const PROMPTS: PromptDef[] = [
   {{agentsRules}}`,
   },
   {
-    id: 'restyle-element',
-    title: 'Restyle element',
-    description: 'Adjust the visual design of the selected element using only Tailwind utilities and semantic tokens.',
-    icon: Palette,
-    inputLabel: 'Restyle this element to…',
-    inputPlaceholder: 'feel more compact with a softer secondary background',
-    references: ['file', 'blockId', 'code'],
-    template: `Desired style: 
-  {{input}}
-  
-  Restyle the selected element. This task is STYLING ONLY — do not change markup structure, props, or behavior beyond what is needed to apply the new classes.
-  
-  Target element: data-pv-block="{{blockId}}"
-  File: \`{{file}}\`
-  
-  Current source:
-  \`\`\`tsx
-  {{code}}
-  \`\`\`
-  
-  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the styling rules for static Tailwind strings and semantic color tokens.
-  
-  Hard constraints:
-  - Use ONLY Tailwind utility classes. No inline \`style={{}}\`, no CSS modules.
-  - Use ONLY semantic color tokens defined in \`src/index.css\` (e.g. \`bg-background-secondary\`, \`text-foreground-default\`, \`border-border-default\`). NEVER use default Tailwind palette colors (\`bg-blue-500\`) or hex values.
-  - Keep all className strings fully static so the AST parser can read them — no template literals, no ternaries inside className, no cva. Express variants via \`data-*\` attributes and \`data-[...]\` modifiers as shown in plugins/protovibe/PROTOVIBE_AGENTS.md.
-  
-  {{agentsRules}}`,
-  },
-  {
     id: 'edit-tokens',
     title: 'Edit tokens',
     description: 'Modify the design token values in index.css — colors, borders, backgrounds — for light and/or dark theme.',
@@ -439,38 +409,7 @@ export const PROMPTS: PromptDef[] = [
   - When changing a base color (e.g. \`--background-primary\`), update its \`-hover\`, \`-pressed\`, \`-subtle\`, \`-subtle-hover\`, and \`-subtle-pressed\` variants proportionally: hover = base lightness +5–8%, pressed = base lightness −10–15%, subtle = very high lightness low chroma version of the hue.
   - If the user provides a specific color value without mentioning which theme it targets, assume it is for **light mode**. Derive a matching dark-mode equivalent automatically (typically: invert the lightness curve — light-mode light backgrounds become dark-mode dark backgrounds, and vice versa — while preserving chroma and hue). Then **inform the user** at the start of your response that you assumed light mode for the provided value and auto-generated the dark-mode counterpart, and show both values so they can adjust if needed.
   - If the user explicitly mentions only one theme, apply changes only to that theme and leave the other untouched.`,
-  },
-  {
-    id: 'add-interaction',
-    title: 'Add interaction',
-    description: 'Add a small, specific piece of interactivity to the selected element.',
-    icon: MousePointerClick,
-    inputLabel: 'Add this interaction:',
-    inputPlaceholder: 'clicking the Actions button opens a dropdown with Edit and Delete',
-    references: ['file', 'blockId', 'lineRange', 'code'],
-    template: `Interaction to add: 
-  {{input}}
-  
-  Add a small, specific interaction to the selected element. Scope is tight: only implement what is asked, nothing more.
-  
-  Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
-  File: \`{{file}}\`
-  
-  Current source:
-  \`\`\`tsx
-  {{code}}
-  \`\`\`
-  
-  Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the interaction rules for Floating UI, portals, and compound components.
-  
-  Guidelines:
-  - Do NOT expand scope. If the user asks for "open a dialog on click", just wire the click → dialog — do not add extra buttons, extra content, or refactor the surrounding layout.
-  - Before implementing, look up how this interaction pattern is already done in the codebase for common cases: tooltips, dropdowns, dialogs, popovers, forms, toasts. Read at least one example file (e.g. \`src/components/ui/dialog.tsx\`, \`dropdown.tsx\`, \`tooltip.tsx\` — whichever is relevant) and follow that convention. Do not invent a new pattern.
-  - Prefer existing components from \`@/components/ui/\` over raw HTML elements.
-  - Floating UI (dropdowns, tooltips, popovers) must use \`createPortal\` + fixed positioning so it escapes any overflow-hidden inspectors — see plugins/protovibe/PROTOVIBE_AGENTS.md.
-  
-  {{agentsRules}}`,
-  },
+  }
 ];
 
 export interface PromptRenderContext {

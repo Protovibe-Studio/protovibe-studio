@@ -2324,6 +2324,9 @@ export default function App() {
             {/* pv-block-start:b00296 */}
             <div data-pv-block="b00296" className="flex gap-[18px] md:gap-[28px] text-[14px] text-foreground-secondary ml-auto mr-[16px] md:mr-[24px]">
               {/* pv-editable-zone-start:z00105 */}
+                {/* pv-block-start:f3a9k2 */}
+                <a data-pv-block="f3a9k2" href="/#problems" className="hidden md:inline hover:text-foreground-strong">Features</a>
+                {/* pv-block-end:f3a9k2 */}
                 {/* pv-block-start:b00301 */}
                 <a data-pv-block="b00301" href="https://github.com/Protovibe-Studio/protovibe-studio" target="_blank" rel="noreferrer" className="hover:text-foreground-strong">GitHub</a>
                 {/* pv-block-end:b00301 */}

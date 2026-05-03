@@ -11,10 +11,10 @@ export default function Frame14() {
     <div className="bg-background-tertiary-hover" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:0au3jg */}
         {/* pv-block-start:ekbi6l */}
-        <Avatar data-pv-block="ekbi6l" data-pv-sketchpad-el="ekbi6l" style={{ position: 'absolute', left: 679, top: 155 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+        <Avatar data-pv-block="ekbi6l" data-pv-sketchpad-el="ekbi6l" style={{ position: 'absolute', left: 681, top: 159 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
         {/* pv-block-end:ekbi6l */}
         {/* pv-block-start:qfy4vw */}
-        <Rectangle data-pv-block="qfy4vw" data-pv-sketchpad-el="qfy4vw" style={{ position: 'absolute', width: 237, height: 249, left: 953, top: 155 }} className="w-[200px] h-[200px] bg-background-secondary">
+        <Rectangle data-pv-block="qfy4vw" data-pv-sketchpad-el="qfy4vw" style={{ position: 'absolute', width: 467, height: 554, left: 850, top: 179 }} className="w-[200px] h-[200px] bg-background-secondary">
           {/* pv-editable-zone-start:5asoka */}
             {/* pv-block-start:p9ctut */}
             <Avatar data-pv-block="p9ctut" data-pv-sketchpad-el="p9ctut" style={{ position: 'absolute', left: 21, top: 12 }} initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
@@ -23,7 +23,7 @@ export default function Frame14() {
             <span className="font-bold" data-pv-block="ifc82d" data-pv-sketchpad-el="ifc82d" style={{ position: 'absolute', left: 22, top: 61 }}>Lorem ipsum</span>
             {/* pv-block-end:ifc82d */}
             {/* pv-block-start:go4ghx */}
-            <Button data-pv-block="go4ghx" data-pv-sketchpad-el="go4ghx" style={{ position: 'absolute', left: 22, top: 190 }} label="Button" variant="solid" color="primary" size="md" />
+            <Button data-pv-block="go4ghx" data-pv-sketchpad-el="go4ghx" style={{ position: 'absolute', left: 28, top: 194 }} label="Button" variant="solid" color="primary" size="md" />
             {/* pv-block-end:go4ghx */}
             {/* pv-block-start:29unkw */}
             <Checkbox data-pv-block="29unkw" data-pv-sketchpad-el="29unkw" style={{ position: 'absolute', left: 22, top: 149 }} primaryText="Check this out" />
@@ -31,16 +31,22 @@ export default function Frame14() {
             {/* pv-block-start:2i08d5 */}
             <Badge data-pv-block="2i08d5" data-pv-sketchpad-el="2i08d5" style={{ position: 'absolute', left: 130, top: 20 }} label="Badge" color="primary" />
             {/* pv-block-end:2i08d5 */}
-            {/* pv-block-start:p5j28c */}
-            <span className="font-normal text-base" data-pv-block="p5j28c" data-pv-sketchpad-el="p5j28c" style={{ position: 'absolute', width: 166, left: 22, top: 91 }}>
-              Secondary text that can take multiple lines
-            </span>
-            {/* pv-block-end:p5j28c */}
+            {/* pv-block-start:88nk0o */}
+            <Rectangle data-pv-block="88nk0o" data-pv-sketchpad-el="88nk0o" style={{ position: 'absolute', left: 30, top: 277 }} className="w-[200px] h-[200px]">
+              {/* pv-editable-zone-start:wa8yaz */}
+                {/* pv-block-start:fnih6u */}
+                <span className="font-normal text-base" data-pv-block="fnih6u" data-pv-sketchpad-el="fnih6u" style={{ position: 'absolute', left: 34, top: 31, width: 166 }}>
+                  Secondary text that can take multiple lines
+                </span>
+                {/* pv-block-end:fnih6u */}
+              {/* pv-editable-zone-end:wa8yaz */}
+            </Rectangle>
+            {/* pv-block-end:88nk0o */}
           {/* pv-editable-zone-end:5asoka */}
         </Rectangle>
         {/* pv-block-end:qfy4vw */}
         {/* pv-block-start:89w596 */}
-        <div data-pv-block="89w596" data-pv-sketchpad-el="89w596" style={{ position: 'absolute', left: 100, top: 100, width: 410 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
+        <div data-pv-block="89w596" data-pv-sketchpad-el="89w596" style={{ position: 'absolute', left: 167, top: 209, width: 410 }} className="w-full bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-070444.png')] aspect-[664/401]" />
         {/* pv-block-end:89w596 */}
       {/* pv-editable-zone-end:0au3jg */}
     </div>

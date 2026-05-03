@@ -353,7 +353,22 @@ export function FrameContainer({
       onSelect(null);
 
       if (contentRef.current) {
-        const rootNode = contentRef.current.querySelector('[data-pv-block]');
+        // Hit-test the actual element under the click. The overlay sits on top of
+        // the content with z-index 100, so we ask the browser for the stack at the
+        // click point and pick the topmost element that is (a) inside this frame's
+        // content and (b) has a data-pv-block. Falls back to the first block if the
+        // click happened over empty space.
+        const stack = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
+        let hit: HTMLElement | null = null;
+        for (const el of stack) {
+          if (!contentRef.current.contains(el)) continue;
+          const block = el.closest('[data-pv-block]') as HTMLElement | null;
+          if (block && contentRef.current.contains(block)) {
+            hit = block;
+            break;
+          }
+        }
+        const rootNode = hit ?? contentRef.current.querySelector('[data-pv-block]');
         if (rootNode) {
           const blockId = rootNode.getAttribute('data-pv-block');
           if (blockId) {
