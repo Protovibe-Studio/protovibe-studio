@@ -11,9 +11,9 @@ export type RouteMeta = {
 
 export const ROUTES: Record<string, RouteMeta> = {
   '/': {
-    title: 'Protovibe — Visual builder for React apps',
+    title: 'Protovibe — Design pixel-perfect prototypes with AI',
     description:
-      'Protovibe is an AST-based visual builder that reads and writes React code directly. Design on a canvas, ship real code.',
+      'Protovibe is a free, open-source visual builder for product designers. Design pixel-perfect apps in React. Prototype with AI coding agents.',
     canonical: 'https://protovibe.studio/',
   },
   '/docs': {
