@@ -373,185 +373,31 @@ function FeatureGrid(props: any) {
               {/* pv-block-end:lrsy8y */}
 
               {/* pv-block-start:ebd65d */}
-              <div data-pv-block="ebd65d" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:54zvu8 */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="54zvu8" iconSymbol="mdi:pin-outline" size="lg" />
-                  {/* pv-block-end:54zvu8 */}
-                  {/* pv-block-start:f6k4cv */}
-                  <div data-pv-block="f6k4cv" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:u8n1ql */}
-                    {/* pv-block-start:txt6ze */}
-                    <h3 data-pv-block="txt6ze" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Sticky headers
-                    </h3>
-                    {/* pv-block-end:txt6ze */}
-                    {/* pv-block-start:qisdp8 */}
-                    <p data-pv-block="qisdp8" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Complex inner scrolls with sticky headers
-                    </p>
-                    {/* pv-block-end:qisdp8 */}
-                    {/* pv-editable-zone-end:u8n1ql */}
-                  </div>
-                  {/* pv-block-end:f6k4cv */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="ebd65d" icon="mdi:pin-outline" heading="Sticky headers" description="Complex inner scrolls with sticky headers" />
               {/* pv-block-end:ebd65d */}
 
               {/* pv-block-start:w9xvbr */}
-              <div data-pv-block="w9xvbr" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:f9cnb1 */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="f9cnb1" iconSymbol="mdi:source-branch" size="lg" />
-                  {/* pv-block-end:f9cnb1 */}
-                  {/* pv-block-start:d2p7xm */}
-                  <div data-pv-block="d2p7xm" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:r5y3tz */}
-                    {/* pv-block-start:5bbczi */}
-                    <h3 data-pv-block="5bbczi" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Branching wizards
-                    </h3>
-                    {/* pv-block-end:5bbczi */}
-                    {/* pv-block-start:dca525 */}
-                    <p data-pv-block="dca525" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Multi-step flows with steps depending on previous user input
-                    </p>
-                    {/* pv-block-end:dca525 */}
-                    {/* pv-editable-zone-end:r5y3tz */}
-                  </div>
-                  {/* pv-block-end:d2p7xm */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="w9xvbr" icon="mdi:source-branch" heading="Branching wizards" description="Multi-step flows with steps depending on previous user input" />
               {/* pv-block-end:w9xvbr */}
 
               {/* pv-block-start:pg9rpm */}
-              <div data-pv-block="pg9rpm" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:3f6b9e */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="3f6b9e" iconSymbol="mdi:tooltip-edit" size="lg" />
-                  {/* pv-block-end:3f6b9e */}
-                  {/* pv-block-start:e9t5bq */}
-                  <div data-pv-block="e9t5bq" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:g4v8cj */}
-                    {/* pv-block-start:7shgpq */}
-                    <h3 data-pv-block="7shgpq" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Hover popovers &amp; tooltips
-                    </h3>
-                    {/* pv-block-end:7shgpq */}
-                    {/* pv-block-start:cqb60m */}
-                    <p data-pv-block="cqb60m" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Craft perfect delays for opening and closing hover interactions
-                    </p>
-                    {/* pv-block-end:cqb60m */}
-                    {/* pv-editable-zone-end:g4v8cj */}
-                  </div>
-                  {/* pv-block-end:e9t5bq */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="pg9rpm" icon="mdi:tooltip-edit" heading="Hover popovers &amp; tooltips" description="Craft perfect delays for opening and closing hover interactions" />
               {/* pv-block-end:pg9rpm */}
 
               {/* pv-block-start:h4lqx8 */}
-              <div data-pv-block="h4lqx8" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:77ftuc */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="77ftuc" iconSymbol="mdi:link-variant" size="lg" />
-                  {/* pv-block-end:77ftuc */}
-                  {/* pv-block-start:h3s6kr */}
-                  <div data-pv-block="h3s6kr" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:j7f2mn */}
-                    {/* pv-block-start:awrrbw */}
-                    <h3 data-pv-block="awrrbw" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Interconnected variables
-                    </h3>
-                    {/* pv-block-end:awrrbw */}
-                    {/* pv-block-start:3hx3c8 */}
-                    <p data-pv-block="3hx3c8" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Show stakeholders demos with real data connections for complex SaaS products
-                    </p>
-                    {/* pv-block-end:3hx3c8 */}
-                    {/* pv-editable-zone-end:j7f2mn */}
-                  </div>
-                  {/* pv-block-end:h3s6kr */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="h4lqx8" icon="mdi:link-variant" heading="Interconnected variables" description="Show stakeholders demos with real data connections for complex SaaS products" />
               {/* pv-block-end:h4lqx8 */}
 
               {/* pv-block-start:o77jgs */}
-              <div data-pv-block="o77jgs" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:ijyem2 */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ijyem2" iconSymbol="mdi:gesture-tap" size="lg" />
-                  {/* pv-block-end:ijyem2 */}
-                  {/* pv-block-start:k1w9px */}
-                  <div data-pv-block="k1w9px" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:l5b4ry */}
-                    {/* pv-block-start:aw4bne */}
-                    <h3 data-pv-block="aw4bne" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      All button states
-                    </h3>
-                    {/* pv-block-end:aw4bne */}
-                    {/* pv-block-start:nr51nu */}
-                    <p data-pv-block="nr51nu" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Design every hover, pressed, disabled, focused state
-                    </p>
-                    {/* pv-block-end:nr51nu */}
-                    {/* pv-editable-zone-end:l5b4ry */}
-                  </div>
-                  {/* pv-block-end:k1w9px */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="o77jgs" icon="mdi:gesture-tap" heading="All button states" description="Design every hover, pressed, disabled, focused state" />
               {/* pv-block-end:o77jgs */}
 
               {/* pv-block-start:g2d9jw */}
-              <div data-pv-block="g2d9jw" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:hjxtde */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="hjxtde" iconSymbol="mdi:menu-open" size="lg" />
-                  {/* pv-block-end:hjxtde */}
-                  {/* pv-block-start:x2n8qt */}
-                  <div data-pv-block="x2n8qt" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:w7k3mv */}
-                    {/* pv-block-start:1mn5q3 */}
-                    <h3 data-pv-block="1mn5q3" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Nested context menus
-                    </h3>
-                    {/* pv-block-end:1mn5q3 */}
-                    {/* pv-block-start:mqcqku */}
-                    <p data-pv-block="mqcqku" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Crafting real click and hover flow
-                    </p>
-                    {/* pv-block-end:mqcqku */}
-                    {/* pv-editable-zone-end:w7k3mv */}
-                  </div>
-                  {/* pv-block-end:x2n8qt */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="g2d9jw" icon="mdi:menu-open" heading="Nested context menus" description="Crafting real click and hover flow" />
               {/* pv-block-end:g2d9jw */}
 
               {/* pv-block-start:73i55d */}
-              <div data-pv-block="73i55d" className="shrink-0 bg-background-secondary rounded-[14px] px-[28px] py-[32px] flex flex-col transition-all duration-200 hover:bg-background-tertiary hover:-translate-y-[2px] h-[300px] w-[240px]">
-                {/* pv-editable-zone-start:z00004 */}
-                  {/* pv-block-start:ccsgnn */}
-                  <Icon className="mb-5 text-foreground-primary" data-pv-block="ccsgnn" iconSymbol="mdi:file-tree" size="lg" />
-                  {/* pv-block-end:ccsgnn */}
-                  {/* pv-block-start:z4r7pw */}
-                  <div data-pv-block="z4r7pw" className="flex flex-col gap-0 mt-auto">
-                    {/* pv-editable-zone-start:y9s2bk */}
-                    {/* pv-block-start:j1xd7r */}
-                    <h3 data-pv-block="j1xd7r" className="font-secondary font-bold leading-[1.15] tracking-[-0.02em] text-foreground-strong m-[0_0_12px] text-balance text-xl max-w-[70%]">
-                      Folder trees
-                    </h3>
-                    {/* pv-block-end:j1xd7r */}
-                    {/* pv-block-start:q1483d */}
-                    <p data-pv-block="q1483d" className="text-[14.5px] text-foreground-secondary leading-[1.55] text-pretty">
-                      Expandable and collapsible navigations and folder trees
-                    </p>
-                    {/* pv-block-end:q1483d */}
-                    {/* pv-editable-zone-end:y9s2bk */}
-                  </div>
-                  {/* pv-block-end:z4r7pw */}
-                {/* pv-editable-zone-end:z00004 */}
-              </div>
+              <FeatureCard data-pv-block="73i55d" icon="mdi:file-tree" heading="Folder trees" description="Expandable and collapsible navigations and folder trees" />
               {/* pv-block-end:73i55d */}
             {/* pv-editable-zone-end:z00003 */}
             </div>
@@ -1028,7 +874,7 @@ function HowItWorks(props: any) {
                       {/* pv-block-end:b00121 */}
                       {/* pv-block-start:b00122 */}
                       <p data-pv-block="b00122" className="text-[15px] text-foreground-secondary m-0 leading-[1.55] text-pretty">
-                        Ship to your own Cloudflare account in a single click. Real URLs, your domain. You can choose any hosting if you want.
+                        Create prototype URL on your own Cloudflare account in a single click. No need to manually deploy.
                       </p>
                       {/* pv-block-end:b00122 */}
                     {/* pv-editable-zone-end:z00034 */}
@@ -1070,7 +916,7 @@ function ProblemSolution(props: any) {
               {/* pv-block-end:b00127 */}
               {/* pv-block-start:b00128 */}
               <p data-pv-block="b00128" className="text-[16px] text-foreground-secondary leading-[1.55] text-balance pb-8 max-w-[70ch] mt-8 mx-auto">
-                Look, prompting an AI to make a UI is not designing. AI spits random UI, and you're stuck trying to fix it. Design is a process where you need to move rectangles yourself and iterate. Protovibe Studio brings you back to a driver seat. <br /><br /><br />
+                Look, prompting an AI to hallucinate a UI design is not designing. Design is a process where you move rectangles yourself and iterate. Protovibe Studio brings you back to a driver seat. <br /><br /><br />
               </p>
               {/* pv-block-end:b00128 */}
             {/* pv-editable-zone-end:z00036 */}
@@ -1121,7 +967,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00208 */}
                           {/* pv-block-start:b00209 */}
                           <p data-pv-block="b00209" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Protovibe has everything a designer expects — wired to code. Proper undo, design sidebar, keyboard shortcuts, color sliders, autocomplete fields, drag&amp;drop. It's all there.
+                            Protovibe has everything a designer expects — wired to code. Proper undo, design sidebar, keyboard shortcuts, color sliders, autocomplete fields, drag&amp;drop
                           </p>
                           {/* pv-block-end:b00209 */}
                         {/* pv-editable-zone-end:z00069 */}
@@ -1263,7 +1109,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00155 */}
                           {/* pv-block-start:b00156 */}
                           <p data-pv-block="b00156" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Design Systems in Figma have hundreds of files with scattered variants. Making changes is slow and complicated. Local components? You need to assign all the props manually.
+                            Maintaining a design system in Figma is painful and complex. You need to plan the props manually and test hundreds of variants.
                           </p>
                           {/* pv-block-end:b00156 */}
                         {/* pv-editable-zone-end:z00048 */}
@@ -1277,7 +1123,7 @@ function ProblemSolution(props: any) {
                           {/* pv-block-end:b00158 */}
                           {/* pv-block-start:b00159 */}
                           <p data-pv-block="b00159" className="text-[14.5px] text-foreground-secondary m-0 leading-[1.55] max-w-[52ch] text-pretty">
-                            Protovibe has a robust built-in library of UI components that you can easily enhance. It automatically generates a component preview matrix to show you all possible variants. See a mistake? Just fix it by hand or ask AI. Need a new component? Just ask AI to convert your mock to a component.
+                            Protovibe has a robust built-in library of UI components that you can easily enhance. It automatically generates a component preview matrix to show you all possible variants. See a mistake? Just fix it by hand or ask AI. Need a new component? Just ask AI to convert your sketchpad to a component.
                           </p>
                           {/* pv-block-end:b00159 */}
                         {/* pv-editable-zone-end:z00049 */}
@@ -1355,7 +1201,7 @@ function ProblemSolution(props: any) {
                     {/* pv-editable-zone-start:z00055 */}
                       {/* pv-block-start:b00173 */}
                       <h3 data-pv-block="b00173" className="font-secondary font-bold text-[30px] leading-[1.1] tracking-[-0.025em] text-foreground-strong m-[0_0_4px] text-balance">
-                        Prompt templates<br />
+                        Design represented as code<br />
                       </h3>
                       {/* pv-block-end:b00173 */}
                       {/* pv-block-start:b00174 */}
