@@ -22,6 +22,7 @@ const SECTIONS: Section[] = [
   { id: 'prompts', title: 'Prompts and context' },
   { id: 'publishing', title: 'Publishing to Cloudflare' },
   { id: 'collaboration', title: 'Collaboration' },
+  { id: 'updating', title: 'Updating to new version' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'technical', title: 'Under the hood' },
   { id: 'license', title: 'License' },
@@ -1219,6 +1220,40 @@ export default function DocsPage() {
             </section>
             {/* pv-block-end:scol01 */}
 
+            {/* Updating to new version */}
+            {/* pv-block-start:supd01 */}
+            <section data-pv-block="supd01" id="updating" className="flex flex-col gap-[16px] scroll-mt-[80px]">
+              {/* pv-editable-zone-start:zupd01 */}
+                {/* pv-block-start:hupd02 */}
+                <h2 data-pv-block="hupd02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Updating to new version</h2>
+                {/* pv-block-end:hupd02 */}
+                {/* pv-block-start:pupd03 */}
+                <p data-pv-block="pupd03" className="text-foreground-secondary leading-[1.7]">
+                  When a new version of Protovibe is available on GitHub, you will see a prompt in the project manager. From there you can choose whether to update the Protovibe shell across your projects or skip it for now.
+                </p>
+                {/* pv-block-end:pupd03 */}
+                {/* pv-block-start:hqcngc */}
+                <div data-pv-block="hqcngc" className="flex flex-col gap-2 items-center">
+                  {/* pv-editable-zone-start:lvfrgq */}
+                  {/* pv-block-start:v43rqs */}
+                  <div data-pv-block="v43rqs" className="bg-[url('/src/images/from-protovibe/screenshot-2026-05-03-at-072412.png')] bg-contain bg-center bg-no-repeat aspect-[351/343] w-70" />
+                  {/* pv-block-end:v43rqs */}
+                  {/* pv-editable-zone-end:lvfrgq */}
+                </div>
+                {/* pv-block-end:hqcngc */}
+
+                {/* pv-block-start:pupd04 */}
+                <p data-pv-block="pupd04" className="text-foreground-secondary leading-[1.7]">
+                  If you prefer not to update all projects at once, you can click <strong className="text-foreground-strong">Update plugin</strong> individually per project to pull the latest source from the <span className="font-mono text-sm bg-background-tertiary px-1 rounded">protovibe-project-template</span> folder. In most cases the easiest path is to tick <strong className="text-foreground-strong">Update Protovibe shell in all projects</strong> — it keeps everything in sync in one step. And if anything looks off, git undo has you covered.
+                </p>
+                {/* pv-block-end:pupd04 */}
+                {/* pv-block-start:co5ex1 */}
+                <div data-pv-block="co5ex1" className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-05-03-at-072727.png')] bg-contain bg-center bg-no-repeat aspect-[720/161]" />
+                {/* pv-block-end:co5ex1 */}
+              {/* pv-editable-zone-end:zupd01 */}
+            </section>
+            {/* pv-block-end:supd01 */}
+
             {/* Troubleshooting */}
             {/* pv-block-start:strb01 */}
             <section data-pv-block="strb01" id="troubleshooting" className="flex flex-col gap-[16px] scroll-mt-[80px]">
@@ -1295,7 +1330,7 @@ export default function DocsPage() {
                     <li data-pv-block="ltrb10">Email us at <a href="mailto:protovibe.studio@gmail.com" className="text-foreground-primary underline">protovibe.studio@gmail.com</a>.</li>
                     {/* pv-block-end:ltrb10 */}
                     {/* pv-block-start:ltrb11 */}
-                    <li data-pv-block="ltrb11">Or open an issue on <a href="https://github.com/protovibe/protovibe/issues" className="text-foreground-primary underline">GitHub</a>.</li>
+                    <li data-pv-block="ltrb11">Or open an issue on <a href="https://github.com/Protovibe-Studio/protovibe-studio/issues" className="text-foreground-primary underline">GitHub</a>.</li>
                     {/* pv-block-end:ltrb11 */}
                   {/* pv-editable-zone-end:ztrb09 */}
                 </ul>
@@ -1334,9 +1369,12 @@ export default function DocsPage() {
                   <strong className="text-foreground-strong"><InlineCode>pvConfig</InlineCode> exports.</strong> Each reusable component has a small config object describing its props, default content, and how it should appear in the components matrix. This is what powers the inspector and the matrix preview.
                 </p>
                 {/* pv-block-end:pctc05 */}
+                {/* pv-block-start:cqkp00 */}
+                <div data-pv-block="cqkp00" className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-05-03-at-072956.png')] bg-contain bg-center bg-no-repeat aspect-[1107/724]" />
+                {/* pv-block-end:cqkp00 */}
                 {/* pv-block-start:pctc06 */}
                 <p data-pv-block="pctc06" className="text-foreground-secondary leading-[1.7]">
-                  The full ruleset for both lives in <InlineCode>PROTOVIBE_AGENTS.md</InlineCode> on GitHub. If you ever ask a coding agent to scaffold or refactor a component, point it at that file — it's the canonical reference. <a href="https://github.com/protovibe/protovibe/blob/main/projects/landing-page/plugins/protovibe/PROTOVIBE_AGENTS.md" className="text-foreground-primary underline">Read PROTOVIBE_AGENTS.md →</a>
+                  The full ruleset for both lives in <InlineCode>PROTOVIBE_AGENTS.md</InlineCode> on GitHub. If you ever ask a coding agent to scaffold or refactor a component, point it at that file — it's the canonical reference. <a href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/projects/landing-page/plugins/protovibe/PROTOVIBE_AGENTS.md" className="text-foreground-primary underline">Read PROTOVIBE_AGENTS.md →</a>
                 </p>
                 {/* pv-block-end:pctc06 */}
               {/* pv-editable-zone-end:zctc01 */}
@@ -1364,9 +1402,7 @@ export default function DocsPage() {
                 {/* pv-block-end:plic04 */}
                 {/* pv-block-start:plic05 */}
                 <p data-pv-block="plic05" className="text-foreground-secondary leading-[1.7]">
-                  <a href="https://github.com/protovibe/protovibe/blob/main/LICENSE" className="text-foreground-primary underline">
-                    <a href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Read the full license on GitHub →</a>
-                  </a>
+                  <a href="https://github.com/Protovibe-Studio/protovibe-studio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="text-foreground-primary underline">Read the full license on GitHub →</a>
                 </p>
                 {/* pv-block-end:plic05 */}
               {/* pv-editable-zone-end:zlic01 */}
