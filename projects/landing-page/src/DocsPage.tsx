@@ -11,6 +11,7 @@ const SECTIONS: Section[] = [
   { id: 'new-project', title: 'Creating a new project' },
   { id: 'shortcuts', title: 'Keyboard shortcuts' },
   { id: 'design-system', title: 'Adjusting the design system' },
+  { id: 'ai-agents', title: 'Working with AI agents' },
   { id: 'app-tab', title: 'Working in the App tab' },
   { id: 'traversing', title: 'Traversing the tree' },
   { id: 'styling-components', title: 'Styling components' },
@@ -19,7 +20,6 @@ const SECTIONS: Section[] = [
   { id: 'styling-elements', title: 'Styling individual elements' },
   { id: 'responsive', title: 'Responsive design' },
   { id: 'prompts', title: 'Prompts and context' },
-  { id: 'ai-agents', title: 'Working with AI agents' },
   { id: 'publishing', title: 'Publishing to Cloudflare' },
   { id: 'collaboration', title: 'Collaboration' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
@@ -476,6 +476,78 @@ export default function DocsPage() {
               {/* pv-editable-zone-end:z3ds01 */}
             </section>
             {/* pv-block-end:s3ds01 */}
+
+            {/* Working with AI agents */}
+            {/* pv-block-start:said01 */}
+            <section data-pv-block="said01" id="ai-agents" className="flex flex-col gap-[16px] scroll-mt-[80px]">
+              {/* pv-editable-zone-start:zaid01 */}
+                {/* pv-block-start:haid02 */}
+                <h2 data-pv-block="haid02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Working with AI agents</h2>
+                {/* pv-block-end:haid02 */}
+                {/* pv-block-start:paid03 */}
+                <p data-pv-block="paid03" className="text-foreground-secondary leading-[1.7]">
+                  Protovibe works nicely next to AI coding tools. You stay in the canvas designing, and an agent can pick up the same project folder to make code changes you don't want to do by hand.
+                </p>
+                {/* pv-block-end:paid03 */}
+                {/* pv-block-start:dllipy */}
+                <div data-pv-block="dllipy" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:k956o1 */}
+                  {/* pv-block-start:q8zc7z */}
+                  <h3 data-pv-block="q8zc7z" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">
+                    General advice
+                  </h3>
+                  {/* pv-block-end:q8zc7z */}
+                  {/* pv-block-start:b6grh3 */}
+                  <InfoBoxBanner data-pv-block="b6grh3" icon="Info" heading="Don't edit while the agent is writing" secondaryText="Try not to move or restyle things in the canvas while the agent is mid-task. Both Protovibe and the agent save to the same files, and saving on top of each other can scramble what the agent is writing. Wait until it finishes, then take over." color="warning" showCloseButton={false}>
+                    {/* pv-editable-zone-start:junk4q */}
+                    {/* pv-editable-zone-end:junk4q */}
+                  </InfoBoxBanner>
+                  {/* pv-block-end:b6grh3 */}
+                  {/* pv-block-start:paid07 */}
+                  <p data-pv-block="paid07" className="text-foreground-secondary leading-[1.7]">
+                    A few small habits that make agents much more useful:
+                  </p>
+                  {/* pv-block-end:paid07 */}
+                  {/* pv-block-start:uaid08 */}
+                  <ul data-pv-block="uaid08" className="flex flex-col gap-[8px] text-foreground-secondary leading-[1.7] list-disc pl-[24px] m-0">
+                    {/* pv-editable-zone-start:zaid08 */}
+                      {/* pv-block-start:laid09 */}
+                      <li data-pv-block="laid09">Use the <strong className="text-foreground-strong">Prompts</strong> panel to copy what you've selected — the agent does much better when it knows exactly which thing on the screen you mean.</li>
+                      {/* pv-block-end:laid09 */}
+                      {/* pv-block-start:laid10 */}
+                      <li data-pv-block="laid10">Tick <strong className="text-foreground-strong">"Include Protovibe instructions"</strong> if the agent will be writing new layout code, so the canvas can still open it afterwards.</li>
+                      {/* pv-block-end:laid10 */}
+                      {/* pv-block-start:laid11 */}
+                      <li data-pv-block="laid11">Let the agent finish before you start clicking around. If you really need to step in, stop it first.</li>
+                      {/* pv-block-end:laid11 */}
+                      {/* pv-block-start:laid12 */}
+                      <li data-pv-block="laid12">If something looks wrong, just press <Shortcut keys={['cmd', 'Z']} />. Undo rolls back both your changes and the agent's, so you can always get back to a working state.</li>
+                      {/* pv-block-end:laid12 */}
+                    {/* pv-editable-zone-end:zaid08 */}
+                  </ul>
+                  {/* pv-block-end:uaid08 */}
+                  {/* pv-editable-zone-end:k956o1 */}
+                </div>
+                {/* pv-block-end:dllipy */}
+
+                {/* pv-block-start:m32r8w */}
+                <div data-pv-block="m32r8w" className="flex flex-col gap-4">
+                  {/* pv-editable-zone-start:bsxn12 */}
+                  {/* pv-block-start:haid04 */}
+                  <h3 data-pv-block="haid04" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Claude Cowork</h3>
+                  {/* pv-block-end:haid04 */}
+                  {/* pv-block-start:paid05 */}
+                  <p data-pv-block="paid05" className="text-foreground-secondary leading-[1.7]">
+                    Yes, you can run <strong className="text-foreground-strong">Claude Cowork</strong> at the same time as Protovibe. Open it on the same project folder and it will see your changes as you make them. It's handy when you want to ask for a tweak in plain English instead of hunting for the right control.
+                  </p>
+                  {/* pv-block-end:paid05 */}
+                  {/* pv-editable-zone-end:bsxn12 */}
+                </div>
+                {/* pv-block-end:m32r8w */}
+
+              {/* pv-editable-zone-end:zaid01 */}
+            </section>
+            {/* pv-block-end:said01 */}
 
             {/* Working in the App tab */}
             {/* pv-block-start:s4at01 */}
@@ -1047,78 +1119,6 @@ export default function DocsPage() {
               {/* pv-editable-zone-end:zapr01 */}
             </section>
             {/* pv-block-end:sapr01 */}
-
-            {/* Working with AI agents */}
-            {/* pv-block-start:said01 */}
-            <section data-pv-block="said01" id="ai-agents" className="flex flex-col gap-[16px] scroll-mt-[80px]">
-              {/* pv-editable-zone-start:zaid01 */}
-                {/* pv-block-start:haid02 */}
-                <h2 data-pv-block="haid02" className="font-secondary font-bold text-[28px] leading-[1.15] tracking-[-0.01em] text-foreground-strong m-0">Working with AI agents</h2>
-                {/* pv-block-end:haid02 */}
-                {/* pv-block-start:paid03 */}
-                <p data-pv-block="paid03" className="text-foreground-secondary leading-[1.7]">
-                  Protovibe works nicely next to AI coding tools. You stay in the canvas designing, and an agent can pick up the same project folder to make code changes you don't want to do by hand.
-                </p>
-                {/* pv-block-end:paid03 */}
-                {/* pv-block-start:dllipy */}
-                <div data-pv-block="dllipy" className="flex flex-col gap-4">
-                  {/* pv-editable-zone-start:k956o1 */}
-                  {/* pv-block-start:q8zc7z */}
-                  <h3 data-pv-block="q8zc7z" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">
-                    General advice
-                  </h3>
-                  {/* pv-block-end:q8zc7z */}
-                  {/* pv-block-start:b6grh3 */}
-                  <InfoBoxBanner data-pv-block="b6grh3" icon="Info" heading="Don't edit while the agent is writing" secondaryText="Try not to move or restyle things in the canvas while the agent is mid-task. Both Protovibe and the agent save to the same files, and saving on top of each other can scramble what the agent is writing. Wait until it finishes, then take over." color="warning" showCloseButton={false}>
-                    {/* pv-editable-zone-start:junk4q */}
-                    {/* pv-editable-zone-end:junk4q */}
-                  </InfoBoxBanner>
-                  {/* pv-block-end:b6grh3 */}
-                  {/* pv-block-start:paid07 */}
-                  <p data-pv-block="paid07" className="text-foreground-secondary leading-[1.7]">
-                    A few small habits that make agents much more useful:
-                  </p>
-                  {/* pv-block-end:paid07 */}
-                  {/* pv-block-start:uaid08 */}
-                  <ul data-pv-block="uaid08" className="flex flex-col gap-[8px] text-foreground-secondary leading-[1.7] list-disc pl-[24px] m-0">
-                    {/* pv-editable-zone-start:zaid08 */}
-                      {/* pv-block-start:laid09 */}
-                      <li data-pv-block="laid09">Use the <strong className="text-foreground-strong">Prompts</strong> panel to copy what you've selected — the agent does much better when it knows exactly which thing on the screen you mean.</li>
-                      {/* pv-block-end:laid09 */}
-                      {/* pv-block-start:laid10 */}
-                      <li data-pv-block="laid10">Tick <strong className="text-foreground-strong">"Include Protovibe instructions"</strong> if the agent will be writing new layout code, so the canvas can still open it afterwards.</li>
-                      {/* pv-block-end:laid10 */}
-                      {/* pv-block-start:laid11 */}
-                      <li data-pv-block="laid11">Let the agent finish before you start clicking around. If you really need to step in, stop it first.</li>
-                      {/* pv-block-end:laid11 */}
-                      {/* pv-block-start:laid12 */}
-                      <li data-pv-block="laid12">If something looks wrong, just press <Shortcut keys={['cmd', 'Z']} />. Undo rolls back both your changes and the agent's, so you can always get back to a working state.</li>
-                      {/* pv-block-end:laid12 */}
-                    {/* pv-editable-zone-end:zaid08 */}
-                  </ul>
-                  {/* pv-block-end:uaid08 */}
-                  {/* pv-editable-zone-end:k956o1 */}
-                </div>
-                {/* pv-block-end:dllipy */}
-
-                {/* pv-block-start:m32r8w */}
-                <div data-pv-block="m32r8w" className="flex flex-col gap-4">
-                  {/* pv-editable-zone-start:bsxn12 */}
-                  {/* pv-block-start:haid04 */}
-                  <h3 data-pv-block="haid04" className="font-secondary font-bold text-[20px] leading-[1.2] text-foreground-strong m-0 mt-[24px]">Claude Cowork</h3>
-                  {/* pv-block-end:haid04 */}
-                  {/* pv-block-start:paid05 */}
-                  <p data-pv-block="paid05" className="text-foreground-secondary leading-[1.7]">
-                    Yes, you can run <strong className="text-foreground-strong">Claude Cowork</strong> at the same time as Protovibe. Open it on the same project folder and it will see your changes as you make them. It's handy when you want to ask for a tweak in plain English instead of hunting for the right control.
-                  </p>
-                  {/* pv-block-end:paid05 */}
-                  {/* pv-editable-zone-end:bsxn12 */}
-                </div>
-                {/* pv-block-end:m32r8w */}
-
-              {/* pv-editable-zone-end:zaid01 */}
-            </section>
-            {/* pv-block-end:said01 */}
 
             {/* Publishing */}
             {/* pv-block-start:sbpb01 */}
