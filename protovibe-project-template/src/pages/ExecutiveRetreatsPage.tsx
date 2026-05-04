@@ -46,7 +46,7 @@ export function ExecutiveRetreatsPage() {
         {/* pv-block-end:erhead1 */}
 
         {/* pv-block-start:erinfo1 */}
-        <InfoBoxBanner data-pv-block="erinfo1" color="info" heading="Q4 Retreat Season is Open" secondaryText="Volcano lairs offer premium privacy and excellent acoustics for monologuing. Book early — the secret island fills up fast." icon="mdi:beach" primaryActionLabel="View Availability" actionsLayout="right" />
+        <InfoBoxBanner secondaryActionLabel="View Availability" data-pv-block="erinfo1" color="info" heading="Q4 Retreat Season is Open" secondaryText="Volcano lairs offer premium privacy and excellent acoustics for monologuing. Book early — the secret island fills up fast." icon="mdi:beach"  actionsLayout="right" />
         {/* pv-block-end:erinfo1 */}
 
         {/* pv-block-start:ertable1 */}

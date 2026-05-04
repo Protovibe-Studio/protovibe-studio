@@ -22,6 +22,19 @@ import { SelectDropdown } from '@/components/ui/select-dropdown';
 import { DropdownItem } from '@/components/ui/dropdown-item';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DateInput } from '@/components/ui/date-input';
+
+function recruitedToIso(v: string): string {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
+  if (!m) return '';
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function isoToRecruited(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return '';
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
 
 function NewMinionDrawer({ onClose }: { onClose: () => void }) {
   const { addMinion, showToast } = useStore();
@@ -150,30 +163,41 @@ function NewMinionDrawer({ onClose }: { onClose: () => void }) {
   );
 }
 
+type MinionField = 'name' | 'division' | 'specialty' | 'status' | 'background' | 'recruited';
+
 function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () => void }) {
   const { updateMinion, showToast } = useStore();
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingField, setEditingField] = useState<MinionField | null>(null);
   const [name, setName] = useState(minion.name);
   const [division, setDivision] = useState(minion.division);
   const [specialty, setSpecialty] = useState(minion.specialty);
   const [background, setBackground] = useState(minion.background);
   const [status, setStatus] = useState<Minion['status']>(minion.status);
+  const [recruited, setRecruited] = useState(minion.recruited);
 
-  const startEdit = () => {
+  const startEdit = (field: MinionField) => {
     setName(minion.name);
     setDivision(minion.division);
     setSpecialty(minion.specialty);
     setBackground(minion.background);
     setStatus(minion.status);
-    setIsEditing(true);
+    setRecruited(minion.recruited);
+    setEditingField(field);
   };
 
-  const cancelEdit = () => setIsEditing(false);
+  const cancelEdit = () => setEditingField(null);
 
-  const save = () => {
-    updateMinion(minion.id, { name: name.trim(), division, specialty, background, status });
-    showToast({ variant: 'success', heading: 'Minion updated', secondaryText: `${name.trim()}'s file has been updated.` });
-    setIsEditing(false);
+  const saveField = (field: MinionField) => {
+    const patch: Partial<Minion> =
+      field === 'name' ? { name: name.trim() } :
+      field === 'division' ? { division } :
+      field === 'specialty' ? { specialty } :
+      field === 'status' ? { status } :
+      field === 'recruited' ? { recruited } :
+      { background };
+    updateMinion(minion.id, patch);
+    showToast({ variant: 'success', heading: 'Minion updated', secondaryText: `${minion.name}'s file has been updated.` });
+    setEditingField(null);
   };
 
   return (
@@ -185,99 +209,134 @@ function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () 
               <Icon iconSymbol="mdi:account-hard-hat" size="md" className="text-foreground-secondary" />
             </div>
             <div className="flex flex-col">
-              <TextHeading typography="heading-md">{isEditing ? 'Edit Minion' : minion.name}</TextHeading>
-              {!isEditing && (
-                <TextParagraph typography="secondary" className="text-sm">{minion.division}</TextParagraph>
-              )}
+              <TextHeading typography="heading-md">{minion.name}</TextHeading>
+              <TextParagraph typography="secondary" className="text-sm">{minion.division}</TextParagraph>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {!isEditing && (
-              <Button variant="outline" color="neutral" size="sm" leftIcon="edit" label="Edit" onClick={startEdit} />
-            )}
-            <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
-          </div>
+          <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
         </div>
 
         <div className="flex flex-col gap-5 px-6 py-5">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-0">
             <TextParagraph typography="semibold-primary" className="text-sm">Name</TextParagraph>
-            {isEditing ? (
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            {editingField === 'name' ? (
+              <div className="flex items-center gap-2">
+                <Input value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
+                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('name')} disabled={!name.trim()} />
+                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+              </div>
             ) : (
-              <TextParagraph typography="regular">{minion.name}</TextParagraph>
+              <div className="flex items-center justify-between gap-2">
+                <TextParagraph typography="regular">{minion.name}</TextParagraph>
+                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('name')} />
+              </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-0">
             <TextParagraph typography="semibold-primary" className="text-sm">Division</TextParagraph>
-            {isEditing ? (
-              <SelectDropdown value={division} onSelectionChange={setDivision} placeholder="Select division...">
-                <DropdownItem value="Field Operations" label="Field Operations" />
-                <DropdownItem value="Laser Division" label="Laser Division" />
-                <DropdownItem value="Espionage" label="Espionage" />
-                <DropdownItem value="Doomsday R&D" label="Doomsday R&D" />
-                <DropdownItem value="Lair Maintenance" label="Lair Maintenance" />
-              </SelectDropdown>
+            {editingField === 'division' ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SelectDropdown value={division} onSelectionChange={setDivision} placeholder="Select division...">
+                    <DropdownItem value="Field Operations" label="Field Operations" />
+                    <DropdownItem value="Laser Division" label="Laser Division" />
+                    <DropdownItem value="Espionage" label="Espionage" />
+                    <DropdownItem value="Doomsday R&D" label="Doomsday R&D" />
+                    <DropdownItem value="Lair Maintenance" label="Lair Maintenance" />
+                  </SelectDropdown>
+                </div>
+                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('division')} />
+                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+              </div>
             ) : (
-              <TextParagraph typography="regular">{minion.division}</TextParagraph>
+              <div className="flex items-center justify-between gap-2">
+                <TextParagraph typography="regular">{minion.division}</TextParagraph>
+                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('division')} />
+              </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-0">
             <TextParagraph typography="semibold-primary" className="text-sm">Specialty</TextParagraph>
-            {isEditing ? (
-              <Input value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
+            {editingField === 'specialty' ? (
+              <div className="flex items-center gap-2">
+                <Input value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="flex-1" />
+                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('specialty')} />
+                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+              </div>
             ) : (
-              <TextParagraph typography="regular">{minion.specialty}</TextParagraph>
+              <div className="flex items-center justify-between gap-2">
+                <TextParagraph typography="regular">{minion.specialty}</TextParagraph>
+                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('specialty')} />
+              </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5 items-start">
+          <div className="flex flex-col gap-0">
             <TextParagraph typography="semibold-primary" className="text-sm">Status</TextParagraph>
-            {isEditing ? (
-              <SelectDropdown value={status} onSelectionChange={(v) => setStatus(v as Minion['status'])} placeholder="Select status...">
-                <DropdownItem value="Active" label="Active" />
-                <DropdownItem value="On Mission" label="On Mission" />
-                <DropdownItem value="Recovering" label="Recovering" />
-              </SelectDropdown>
+            {editingField === 'status' ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SelectDropdown value={status} onSelectionChange={(v) => setStatus(v as Minion['status'])} placeholder="Select status...">
+                    <DropdownItem value="Active" label="Active" />
+                    <DropdownItem value="On Mission" label="On Mission" />
+                    <DropdownItem value="Recovering" label="Recovering" />
+                  </SelectDropdown>
+                </div>
+                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('status')} />
+                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+              </div>
             ) : (
-              <Badge className="" label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
+              <div className="flex items-center justify-between gap-2">
+                <Badge label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
+                <Button variant="ghost" color="neutral" size="md" iconOnly leftIcon="edit" onClick={() => startEdit('status')} />
+              </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-0">
             <TextParagraph typography="semibold-primary" className="text-sm">Background</TextParagraph>
-            {isEditing ? (
-              <Textarea value={background} onChange={(e) => setBackground(e.target.value)} rows={4} />
+            {editingField === 'background' ? (
+              <div className="flex items-start gap-2">
+                <Textarea value={background} onChange={(e) => setBackground(e.target.value)} rows={4} className="flex-1" />
+                <div className="flex gap-2 flex-row">
+                  <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('background')} />
+                  <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                </div>
+              </div>
             ) : (
-              <TextParagraph typography="regular" className="whitespace-pre-wrap">{minion.background || '—'}</TextParagraph>
+              <div className="flex items-start justify-between gap-2">
+                <TextParagraph typography="regular" className="whitespace-pre-wrap">{minion.background || '—'}</TextParagraph>
+                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('background')} />
+              </div>
             )}
           </div>
 
-          {!isEditing && (
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border-default">
-              <div className="flex flex-col gap-1">
-                <TextParagraph typography="secondary" className="text-xs uppercase tracking-wide">Assignments</TextParagraph>
-                <TextParagraph typography="regular">{minion.assignments}</TextParagraph>
+          <div className="flex flex-col gap-0">
+            <TextParagraph typography="semibold-primary" className="text-sm">Recruited</TextParagraph>
+            {editingField === 'recruited' ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <DateInput
+                    value={recruitedToIso(recruited)}
+                    onValueChange={(iso) => setRecruited(iso ? isoToRecruited(iso) : '')}
+                  />
+                </div>
+                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('recruited')} disabled={!recruited} />
+                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
               </div>
-              <div className="flex flex-col gap-1">
-                <TextParagraph typography="secondary" className="text-xs uppercase tracking-wide">Recruited</TextParagraph>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
                 <TextParagraph typography="regular">{minion.recruited}</TextParagraph>
+                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('recruited')} />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-default bg-background-subtle">
-          {isEditing ? (
-            <>
-              <Button variant="ghost" color="neutral" label="Cancel" onClick={cancelEdit} />
-              <Button variant="solid" color="primary" label="Save changes" onClick={save} disabled={!name.trim()} />
-            </>
-          ) : (
-            <Button variant="solid" color="primary" label="Close" onClick={onClose} />
-          )}
+          <Button variant="solid" color="primary" label="Close" onClick={onClose} />
         </div>
       </div>
     </DialogWindow>

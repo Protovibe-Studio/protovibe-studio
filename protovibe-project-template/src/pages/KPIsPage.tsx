@@ -25,7 +25,6 @@ export function KPIsPage() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:kp1z2q3 */}
-
         {/* pv-block-start:kphead1 */}
         <div data-pv-block="kphead1" className="flex justify-between items-center">
           {/* pv-editable-zone-start:kpe1f2 */}
@@ -38,10 +37,6 @@ export function KPIsPage() {
           {/* pv-editable-zone-end:kpe1f2 */}
         </div>
         {/* pv-block-end:kphead1 */}
-
-        {/* pv-block-start:kpinfo1 */}
-        <InfoBoxBanner data-pv-block="kpinfo1" color="destructive" heading="Minion Morale is critically low!" secondaryText="Current morale index stands at 34/100. Recommend immediate implementation of Mandatory Fun Protocol™ and pizza Fridays." icon="alert-triangle" primaryActionLabel="Deploy Fun Protocol" actionsLayout="right" />
-        {/* pv-block-end:kpinfo1 */}
 
         {/* pv-block-start:kpgrid1 */}
         <div data-pv-block="kpgrid1" className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -120,49 +115,84 @@ export function KPIsPage() {
               {/* pv-editable-zone-end:kpce3 */}
             </Card>
             {/* pv-block-end:kpc3 */}
+
+            {/* pv-block-start:kpc3 */}
+            <Card data-pv-block="kpc3">
+              {/* pv-editable-zone-start:kpce3 */}
+                {/* pv-block-start:px7fj6 */}
+                <TextHeading data-pv-block="px7fj6" typography="heading-xxl" className="mb-2">34</TextHeading>
+                {/* pv-block-end:px7fj6 */}
+                {/* pv-block-start:kplabel3 */}
+                <div data-pv-block="kplabel3" className="flex items-center gap-2 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:kple3 */}
+                    {/* pv-block-start:v95g4x */}
+                    <Icon data-pv-block="v95g4x" iconSymbol="mdi:emoticon-sad-outline" size="sm" />
+                    {/* pv-block-end:v95g4x */}
+                    {/* pv-block-start:k1310d */}
+                    <TextParagraph data-pv-block="k1310d" typography="secondary">Minion Morale Index</TextParagraph>
+                    {/* pv-block-end:k1310d */}
+                  {/* pv-editable-zone-end:kple3 */}
+                </div>
+                {/* pv-block-end:kplabel3 */}
+                {/* pv-block-start:kpbadge3 */}
+                <Badge data-pv-block="kpbadge3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:kpbadge3 */}
+              {/* pv-editable-zone-end:kpce3 */}
+            </Card>
+            {/* pv-block-end:kpc3 */}
+
+            {/* pv-block-start:kpc3 */}
+            <Card data-pv-block="kpc3">
+              {/* pv-editable-zone-start:kpce3 */}
+                {/* pv-block-start:iivl9o */}
+                <TextHeading data-pv-block="iivl9o" typography="heading-xxl" className="mb-2">34</TextHeading>
+                {/* pv-block-end:iivl9o */}
+                {/* pv-block-start:kplabel3 */}
+                <div data-pv-block="kplabel3" className="flex items-center gap-2 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:kple3 */}
+                    {/* pv-block-start:16h1dg */}
+                    <Icon data-pv-block="16h1dg" iconSymbol="mdi:emoticon-sad-outline" size="sm" />
+                    {/* pv-block-end:16h1dg */}
+                    {/* pv-block-start:rf5ke7 */}
+                    <TextParagraph data-pv-block="rf5ke7" typography="secondary">Minion Morale Index</TextParagraph>
+                    {/* pv-block-end:rf5ke7 */}
+                  {/* pv-editable-zone-end:kple3 */}
+                </div>
+                {/* pv-block-end:kplabel3 */}
+                {/* pv-block-start:kpbadge3 */}
+                <Badge data-pv-block="kpbadge3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:kpbadge3 */}
+              {/* pv-editable-zone-end:kpce3 */}
+            </Card>
+            {/* pv-block-end:kpc3 */}
+
+            {/* pv-block-start:kpc3 */}
+            <Card data-pv-block="kpc3">
+              {/* pv-editable-zone-start:kpce3 */}
+                {/* pv-block-start:lr1ycs */}
+                <TextHeading data-pv-block="lr1ycs" typography="heading-xxl" className="mb-2">34</TextHeading>
+                {/* pv-block-end:lr1ycs */}
+                {/* pv-block-start:kplabel3 */}
+                <div data-pv-block="kplabel3" className="flex items-center gap-2 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:kple3 */}
+                    {/* pv-block-start:052jif */}
+                    <Icon data-pv-block="052jif" iconSymbol="mdi:emoticon-sad-outline" size="sm" />
+                    {/* pv-block-end:052jif */}
+                    {/* pv-block-start:bjzh7q */}
+                    <TextParagraph data-pv-block="bjzh7q" typography="secondary">Minion Morale Index</TextParagraph>
+                    {/* pv-block-end:bjzh7q */}
+                  {/* pv-editable-zone-end:kple3 */}
+                </div>
+                {/* pv-block-end:kplabel3 */}
+                {/* pv-block-start:kpbadge3 */}
+                <Badge data-pv-block="kpbadge3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:kpbadge3 */}
+              {/* pv-editable-zone-end:kpce3 */}
+            </Card>
+            {/* pv-block-end:kpc3 */}
           {/* pv-editable-zone-end:kpgz1 */}
         </div>
         {/* pv-block-end:kpgrid1 */}
-
-        {/* pv-block-start:kptable1 */}
-        <Table data-pv-block="kptable1">
-          <TableRowHeading>
-            {/* pv-editable-zone-start:kpth1 */}
-              {/* pv-block-start:kpth2 */}
-              <TableCellHeading data-pv-block="kpth2" label="Metric" />
-              {/* pv-block-end:kpth2 */}
-              {/* pv-block-start:kpth3 */}
-              <TableCellHeading data-pv-block="kpth3" label="Target" />
-              {/* pv-block-end:kpth3 */}
-              {/* pv-block-start:kpth4 */}
-              <TableCellHeading data-pv-block="kpth4" label="Current" />
-              {/* pv-block-end:kpth4 */}
-              {/* pv-block-start:kpth5 */}
-              <TableCellHeading data-pv-block="kpth5" label="Status" />
-              {/* pv-block-end:kpth5 */}
-            {/* pv-editable-zone-end:kpth1 */}
-          </TableRowHeading>
-          <TableBody>
-            {mockKpis.map(kpi => (
-              <TableRowContent key={kpi.id} className="hover:bg-background-subtle">
-                <TableCellContent>
-                  <TextParagraph typography="regular">{kpi.metric}</TextParagraph>
-                </TableCellContent>
-                <TableCellContent>
-                  <TextParagraph typography="regular">{kpi.target}</TextParagraph>
-                </TableCellContent>
-                <TableCellContent>
-                  <TextParagraph typography="regular">{kpi.current}</TextParagraph>
-                </TableCellContent>
-                <TableCellContent>
-                  <Badge label={kpi.status} color={kpi.status === 'On Track' ? 'success' : kpi.status === 'At Risk' ? 'warning' : kpi.status === 'Critical' ? 'destructive' : 'neutral'} />
-                </TableCellContent>
-              </TableRowContent>
-            ))}
-          </TableBody>
-        </Table>
-        {/* pv-block-end:kptable1 */}
-
       {/* pv-editable-zone-end:kp1z2q3 */}
     </div>
   );
