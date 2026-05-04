@@ -47,7 +47,7 @@ function ProtovibeMockup() {
   return (
     <>
       {/* pv-block-start:b00001 */}
-      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-contain bg-center bg-no-repeat rounded-lg opacity-90 border-border-default border-0 bg-[url('/src/images/from-protovibe/screenshot-2026-05-01-at-191643.png')] aspect-[664/401]" role="img" aria-label="Protovibe app preview">
+      <div data-pv-block="b00001" className="relative z-10 w-full bg-background-secondary overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,.05),0_40px_80px_-30px_rgba(0,0,0,.7),0_20px_40px_-15px_rgba(0,0,0,.6)] flex items-center justify-center text-foreground-tertiary font-semibold text-sm bg-contain bg-no-repeat rounded-lg opacity-90 border-border-default border-0 bg-top bg-[url('/src/images/from-protovibe/screenshot-2026-05-04-at-083527.png')] aspect-[437/246]" role="img" aria-label="Protovibe app preview">
         <br />
       </div>
       {/* pv-block-end:b00001 */}
@@ -1586,7 +1586,7 @@ export function InstallModal({ open, onClose }: { open: boolean; onClose: () => 
                       </div>
                       {/* pv-block-end:b00246 */}
                       {/* pv-block-start:b00249 */}
-                      <div data-pv-block="b00249" className="text-[12.5px] text-foreground-secondary leading-[1.5]">For devs comfortable with git and npm.</div>
+                      <div data-pv-block="b00249" className="text-[12.5px] text-foreground-secondary leading-[1.5]">For devs comfortable with npm.</div>
                       {/* pv-block-end:b00249 */}
                     {/* pv-editable-zone-end:z00086 */}
                   </button>
@@ -1750,25 +1750,25 @@ export function InstallModal({ open, onClose }: { open: boolean; onClose: () => 
                     <>
                       {/* pv-block-start:man01 */}
                       <div data-pv-block="man01" className="font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
-                        Clone the repo
+                        Download and unzip the project
                       </div>
                       {/* pv-block-end:man01 */}
                       {/* pv-block-start:man02 */}
-                      <div data-pv-block="man02" className="bg-background-sunken border-border-secondary rounded-[10px] p-[14px_16px] font-mono text-[13px] text-foreground-strong leading-[1.55] overflow-auto flex items-center gap-[10px]">
+                      <a data-pv-block="man02" href={windowsZipUrl} className="appearance-none border-0 bg-background-primary text-white font-inherit no-underline font-semibold text-[14px] p-[10px_18px] rounded-[9px] inline-flex items-center gap-[8px] cursor-pointer transition-transform duration-150 hover:-translate-y-[1px] shadow-[0_8px_28px_-10px_rgba(61,123,255,0.6)]">
                         {/* pv-editable-zone-start:zman1 */}
                           {/* pv-block-start:man03 */}
-                          <span data-pv-block="man03" className="font-bold shrink-0 text-foreground-primary">$</span>
+                          <Icon data-pv-block="man03" iconSymbol="mdi:download" size="sm" />
                           {/* pv-block-end:man03 */}
                           {/* pv-block-start:man04 */}
-                          <code data-pv-block="man04">{`git clone https://github.com/Protovibe-Studio/protovibe-studio.git && cd protovibe-studio`}</code>
+                          <span data-pv-block="man04">Download ZIP</span>
                           {/* pv-block-end:man04 */}
                         {/* pv-editable-zone-end:zman1 */}
-                      </div>
+                      </a>
                       {/* pv-block-end:man02 */}
 
                       {/* pv-block-start:man05 */}
                       <div data-pv-block="man05" className="mt-[16px] font-semibold text-[12.5px] text-foreground-secondary mb-[10px]">
-                        Install dependencies and start Protovibe
+                        Open the unzipped folder in terminal and start Protovibe
                       </div>
                       {/* pv-block-end:man05 */}
                       {/* pv-block-start:man06 */}
