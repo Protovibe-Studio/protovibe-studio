@@ -500,7 +500,7 @@ export function DashboardPage() {
 
 
         {/* pv-block-start:820zdm */}
-        <InfoBoxBanner showCloseButton={false} data-pv-block="820zdm" icon="tabler:bulb" heading="Delete this playground once you've read it!" secondaryText="Just multi-select sections with shift and then delete" color="primary" >
+        <InfoBoxBanner showCloseButton={false} data-pv-block="820zdm" icon="tabler:bulb" heading="Delete this playground once you've read it!" secondaryText="Just multi-select sections while holding shift and press delete" color="primary" >
           {/* pv-editable-zone-start:ololmi */}
           {/* pv-editable-zone-end:ololmi */}
         </InfoBoxBanner>
