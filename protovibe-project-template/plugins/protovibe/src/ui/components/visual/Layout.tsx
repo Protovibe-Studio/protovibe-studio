@@ -88,8 +88,8 @@ const FlexIcon: React.FC<FlexIconProps> = ({ prop, value, direction, alignItems,
     display: 'flex',
     width: '100%',
     height: '100%',
-    padding: '2px',
-    gap: '2px',
+    padding: '1px',
+    gap: '1px',
     backgroundColor: ICON_BG,
     borderStyle: 'solid',
     borderWidth: '1px',
@@ -117,7 +117,7 @@ const FlexIcon: React.FC<FlexIconProps> = ({ prop, value, direction, alignItems,
   const itemCount = prop === 'wrap' ? 3 : 2;
 
   const getItemStyle = (i: number): React.CSSProperties => {
-    const dims = [[11, 7], [9, 5], [12, 12]][i];
+    const dims = [[10, 7], [8, 5], [12, 12]][i];
     const s: React.CSSProperties = {
       backgroundColor: i === 0 ? ITEM_1 : i === 1 ? ITEM_2 : 'transparent',
       borderRadius: '1px',

@@ -39,7 +39,7 @@ export function DashboardPage() {
         <div data-pv-block="25v9uy" className="flex flex-col gap-0.5">
           {/* pv-editable-zone-start:u936e8 */}
           {/* pv-block-start:0xc3jb */}
-          <div data-pv-block="0xc3jb" className="flex flex-col gap-0.5 border-border-default rounded">
+          <div data-pv-block="0xc3jb" className="gap-0.5 border-border-default rounded">
             {/* pv-editable-zone-start:5am4ku */}
             {/* pv-block-start:87mqvj */}
             <TextHeading data-pv-block="87mqvj" typography="heading-md">
