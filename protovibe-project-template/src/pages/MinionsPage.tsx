@@ -339,20 +339,15 @@ export function MinionsPage() {
         ) : (
           <div data-pv-block="skht8u" className="flex flex-col gap-4 pt-3">
             {/* pv-editable-zone-start:tb1q2w */}
-              {/* pv-block-start:tb3e4r */}
-              <div data-pv-block="tb3e4r" className="flex items-center justify-between gap-4 w-full px-5">
-                <Input prefixIcon="search" placeholder="Search minion" className="max-w-2xl" />
-                <div className="flex items-center gap-3 shrink-0">
-                  <TextParagraph typography="secondary" className="text-sm">
-                    1 - {state.minions.length} of {state.minions.length} minions
-                  </TextParagraph>
-                  <div className="inline-flex items-center">
-                    <Button variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-left" className="rounded-r-none" />
-                    <Button variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-right" className="rounded-l-none -ml-px" />
-                  </div>
-                </div>
+              {/* pv-block-start:0zvrdl */}
+              <div data-pv-block="0zvrdl" className="flex items-center justify-between gap-4 w-full px-5">
+                {/* pv-editable-zone-start:zn1abc */}
+                  {/* pv-block-start:xnbg1g */}
+                  <Input data-pv-block="xnbg1g" prefixIcon="search" placeholder="Search minion" className="" />
+                  {/* pv-block-end:xnbg1g */}
+                {/* pv-editable-zone-end:zn1abc */}
               </div>
-              {/* pv-block-end:tb3e4r */}
+              {/* pv-block-end:0zvrdl */}
 
               {/* pv-block-start:07vjpp */}
               <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-5">
@@ -382,34 +377,104 @@ export function MinionsPage() {
                     {/* pv-editable-zone-end:th7u8i */}
                   </TableRowHeading>
                   <TableBody>
+                    {/* pv-block-start:rw1m2n */}
                     {state.minions.map(minion => (
-                      <TableRowContent key={minion.id} onClick={() => setSelectedMinionId(minion.id)} className="even:bg-background-default hover:!bg-background-tertiary transition-colors cursor-pointer">
-                        <TableCellContent>
-                          <TextParagraph typography="regular">{minion.name}</TextParagraph>
-                        </TableCellContent>
-                        <TableCellContent>
-                          <TextParagraph typography="regular">{minion.division}</TextParagraph>
-                        </TableCellContent>
-                        <TableCellContent>
-                          <TextParagraph typography="regular">{minion.assignments.toString()}</TextParagraph>
-                        </TableCellContent>
-                        <TableCellContent>
-                          <TextParagraph typography="regular">{minion.recruited}</TextParagraph>
-                        </TableCellContent>
-                        <TableCellContent>
-                          <Badge label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
-                        </TableCellContent>
-                        <TableCellContent className="text-right">
-                          <Button iconOnly variant="ghost" color="neutral" size="sm" leftIcon="MoreHorizontal" />
-                        </TableCellContent>
+                      <TableRowContent data-pv-block="rw1m2n" key={minion.id} onClick={() => setSelectedMinionId(minion.id)} className="even:bg-background-default hover:!bg-background-tertiary transition-colors cursor-pointer">
+                        {/* pv-editable-zone-start:zr3o4p */}
+                          {/* pv-block-start:cl5q6r */}
+                          <TableCellContent data-pv-block="cl5q6r">
+                            {/* pv-editable-zone-start:zc7s8t */}
+                              {/* pv-block-start:tp9u0v */}
+                              <TextParagraph data-pv-block="tp9u0v" typography="regular">{minion.name}</TextParagraph>
+                              {/* pv-block-end:tp9u0v */}
+                            {/* pv-editable-zone-end:zc7s8t */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl5q6r */}
+                          {/* pv-block-start:cl1w2x */}
+                          <TableCellContent data-pv-block="cl1w2x">
+                            {/* pv-editable-zone-start:zc3y4z */}
+                              {/* pv-block-start:tp5a6b */}
+                              <TextParagraph data-pv-block="tp5a6b" typography="regular">{minion.division}</TextParagraph>
+                              {/* pv-block-end:tp5a6b */}
+                            {/* pv-editable-zone-end:zc3y4z */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl1w2x */}
+                          {/* pv-block-start:cl7c8d */}
+                          <TableCellContent data-pv-block="cl7c8d">
+                            {/* pv-editable-zone-start:zc9e0f */}
+                              {/* pv-block-start:tp1g2h */}
+                              <TextParagraph data-pv-block="tp1g2h" typography="regular">{minion.assignments.toString()}</TextParagraph>
+                              {/* pv-block-end:tp1g2h */}
+                            {/* pv-editable-zone-end:zc9e0f */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl7c8d */}
+                          {/* pv-block-start:cl3i4j */}
+                          <TableCellContent data-pv-block="cl3i4j">
+                            {/* pv-editable-zone-start:zc5k6l */}
+                              {/* pv-block-start:tp7m8n */}
+                              <TextParagraph data-pv-block="tp7m8n" typography="regular">{minion.recruited}</TextParagraph>
+                              {/* pv-block-end:tp7m8n */}
+                            {/* pv-editable-zone-end:zc5k6l */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl3i4j */}
+                          {/* pv-block-start:cl9o0p */}
+                          <TableCellContent data-pv-block="cl9o0p">
+                            {/* pv-editable-zone-start:zc1q2r */}
+                              {/* pv-block-start:bd3s4t */}
+                              <Badge data-pv-block="bd3s4t" label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
+                              {/* pv-block-end:bd3s4t */}
+                            {/* pv-editable-zone-end:zc1q2r */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl9o0p */}
+                          {/* pv-block-start:cl5u6v */}
+                          <TableCellContent data-pv-block="cl5u6v" className="text-right">
+                            {/* pv-editable-zone-start:zc7w8x */}
+                              {/* pv-block-start:bn9y0z */}
+                              <Button data-pv-block="bn9y0z" iconOnly variant="ghost" color="neutral" size="sm" leftIcon="MoreHorizontal" />
+                              {/* pv-block-end:bn9y0z */}
+                            {/* pv-editable-zone-end:zc7w8x */}
+                          </TableCellContent>
+                          {/* pv-block-end:cl5u6v */}
+                        {/* pv-editable-zone-end:zr3o4p */}
                       </TableRowContent>
                     ))}
+                    {/* pv-block-end:rw1m2n */}
                   </TableBody>
                 </Table>
                 {/* pv-block-end:tb5t6y */}
                 {/* pv-editable-zone-end:dg0paq */}
               </div>
               {/* pv-block-end:07vjpp */}
+
+              {/* pv-block-start:tb3e4r */}
+              <div data-pv-block="tb3e4r" className="flex items-center gap-4 w-full px-5 justify-end">
+                {/* pv-editable-zone-start:zn1abc */}
+                  {/* pv-block-start:bk3ghi */}
+                  <div data-pv-block="bk3ghi" className="flex items-center gap-3 shrink-0">
+                    {/* pv-editable-zone-start:zn4jkl */}
+                      {/* pv-block-start:bk5mno */}
+                      <TextParagraph data-pv-block="bk5mno" typography="secondary" className="text-sm">
+                        1 - {state.minions.length} of {state.minions.length} minions
+                      </TextParagraph>
+                      {/* pv-block-end:bk5mno */}
+                      {/* pv-block-start:bk6pqr */}
+                      <div data-pv-block="bk6pqr" className="inline-flex items-center">
+                        {/* pv-editable-zone-start:zn7stu */}
+                          {/* pv-block-start:bk8vwx */}
+                          <Button data-pv-block="bk8vwx" variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-left" className="rounded-r-none" />
+                          {/* pv-block-end:bk8vwx */}
+                          {/* pv-block-start:bk9yz0 */}
+                          <Button data-pv-block="bk9yz0" variant="outline" color="neutral" size="md" iconOnly leftIcon="chevron-right" className="rounded-l-none -ml-px" />
+                          {/* pv-block-end:bk9yz0 */}
+                        {/* pv-editable-zone-end:zn7stu */}
+                      </div>
+                      {/* pv-block-end:bk6pqr */}
+                    {/* pv-editable-zone-end:zn4jkl */}
+                  </div>
+                  {/* pv-block-end:bk3ghi */}
+                {/* pv-editable-zone-end:zn1abc */}
+              </div>
+              {/* pv-block-end:tb3e4r */}
             {/* pv-editable-zone-end:tb1q2w */}
           </div>
         )}

@@ -124,14 +124,30 @@ export default function App() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto rounded-tl-lg bg-background-default border-t border-l border-border-default">
-          <div className="mx-auto">
-            {currentPath === '/dashboard' && <DashboardPage />}
-            {currentPath === '/minions' && <MinionsPage />}
-            {currentPath === '/schemes' && <SchemesPage />}
-            {currentPath === '/kpis' && <KPIsPage />}
-            {currentPath === '/retreats' && <ExecutiveRetreatsPage />}
-            {currentPath === '/surveillance' && <SurveillancePage />}
+          {/* pv-block-start:m1x4ar */}
+          <div data-pv-block="m1x4ar" className="mx-auto">
+            {/* pv-editable-zone-start:p2g7vc */}
+              {/* pv-block-start:dsh9k1 */}
+              {currentPath === '/dashboard' && <DashboardPage data-pv-block="dsh9k1" />}
+              {/* pv-block-end:dsh9k1 */}
+              {/* pv-block-start:mn4t2q */}
+              {currentPath === '/minions' && <MinionsPage data-pv-block="mn4t2q" />}
+              {/* pv-block-end:mn4t2q */}
+              {/* pv-block-start:sc6b8w */}
+              {currentPath === '/schemes' && <SchemesPage data-pv-block="sc6b8w" />}
+              {/* pv-block-end:sc6b8w */}
+              {/* pv-block-start:kp3r5y */}
+              {currentPath === '/kpis' && <KPIsPage data-pv-block="kp3r5y" />}
+              {/* pv-block-end:kp3r5y */}
+              {/* pv-block-start:rt7n9e */}
+              {currentPath === '/retreats' && <ExecutiveRetreatsPage data-pv-block="rt7n9e" />}
+              {/* pv-block-end:rt7n9e */}
+              {/* pv-block-start:sv2j4u */}
+              {currentPath === '/surveillance' && <SurveillancePage data-pv-block="sv2j4u" />}
+              {/* pv-block-end:sv2j4u */}
+            {/* pv-editable-zone-end:p2g7vc */}
           </div>
+          {/* pv-block-end:m1x4ar */}
         </main>
       </div>
     </div>
