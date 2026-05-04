@@ -43,6 +43,7 @@ interface AutocompleteDropdownProps {
   testId?: string;
   showApplyToAllHint?: boolean;
   previewBuild?: (val: string, option?: AutocompleteOption) => Record<string, string> | null;
+  displayLabel?: (val: string, option?: AutocompleteOption) => string;
 }
 
 export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
@@ -68,6 +69,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   testId,
   showApplyToAllHint,
   previewBuild,
+  displayLabel,
 }) => {
   const { iframeTheme: colorMode, refreshThemeColors, selectedTargets } = useProtovibe();
   const classPreviewRef = useRef(createClassLivePreview());
@@ -388,7 +390,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     <div data-testid={testId} style={{ position: 'relative', ...containerStyle }}>
       <InspectorInput
         type="text"
-        value={localValue}
+        value={!isOpen && displayLabel ? displayLabel(localValue, options.find(o => o.val === localValue)) : localValue}
         onChange={(e) => {
           scrollTriggerRef.current = 'typing';
           setLocalValue(e.target.value);

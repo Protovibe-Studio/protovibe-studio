@@ -19,14 +19,14 @@ export function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8 max-w-[1200px] mx-auto">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:oryele */}
-        <div data-pv-block="oryele" className="flex items-center justify-between mb-2">
+        <div data-pv-block="oryele" className="flex items-center justify-between mt-8 mb-2">
         {/* pv-editable-zone-start:sk5e6f */}
         {/* pv-block-start:5hdsgr */}
         <div data-pv-block="5hdsgr" className="flex flex-col gap-0">
         {/* pv-editable-zone-start:sk9i0j */}
         {/* pv-block-start:vqs3bs */}
         <TextHeading data-pv-block="vqs3bs" typography="heading-xxl">
-          Welcome to Protovibe project template!
+          Welcome to Protovibe example project!
         </TextHeading>
         {/* pv-block-end:vqs3bs */}
         {/* pv-editable-zone-end:sk9i0j */}
@@ -39,7 +39,7 @@ export function DashboardPage() {
         <div data-pv-block="25v9uy" className="flex flex-col gap-0.5">
           {/* pv-editable-zone-start:u936e8 */}
           {/* pv-block-start:0xc3jb */}
-          <div data-pv-block="0xc3jb" className="flex flex-col gap-0.5">
+          <div data-pv-block="0xc3jb" className="flex flex-col gap-0.5 border-border-default rounded">
             {/* pv-editable-zone-start:5am4ku */}
             {/* pv-block-start:87mqvj */}
             <TextHeading data-pv-block="87mqvj" typography="heading-md">
@@ -47,8 +47,8 @@ export function DashboardPage() {
             </TextHeading>
             {/* pv-block-end:87mqvj */}
             {/* pv-block-start:q1985x */}
-            <TextParagraph data-pv-block="q1985x" typography="secondary">
-              Below we've listed less obvious things to know about Protovibe in a form of a training playground.
+            <TextParagraph className="max-w-[70ch]" data-pv-block="q1985x" typography="secondary">
+              This project is an example prototype for you to start with. Below we've listed less obvious things to know about Protovibe in a form of a training playground.
             </TextParagraph>
             {/* pv-block-end:q1985x */}
             {/* pv-editable-zone-end:5am4ku */}

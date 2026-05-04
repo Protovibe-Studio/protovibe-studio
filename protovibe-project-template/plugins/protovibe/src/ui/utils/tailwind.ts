@@ -280,10 +280,16 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
         const raw = cls === 'border' ? 'DEFAULT' : cls.replace('border-', '');
         v.borderWidth = isBorderArbLength ? stripTypedPrefix(raw) : raw;
         orig.borderWidth_original = originalClass;
-      } else if (/^border-[trbl]$/.test(cls) || /^border-[trbl]-(0|2|4|8)$/.test(cls)) {
+      } else if (
+        /^border-[trbl]$/.test(cls) ||
+        /^border-[trbl]-(0|2|4|8)$/.test(cls) ||
+        (/^border-[trbl]-\[/.test(cls) && isArbitraryLength(cls.slice(9)))
+      ) {
         const parts = cls.split('-');
         const side = parts[1];
-        const val = parts.length === 3 ? parts[2] : 'DEFAULT';
+        const rawVal = parts.length === 3 ? parts[2] : 'DEFAULT';
+        const isArb = rawVal.startsWith('[');
+        const val = isArb ? stripTypedPrefix(rawVal) : rawVal;
         const key = side === 't' ? 'borderT' : side === 'r' ? 'borderR' : side === 'b' ? 'borderB' : 'borderL';
         v[key] = val;
         orig[`${key}_original`] = originalClass;

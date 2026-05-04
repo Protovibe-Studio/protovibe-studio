@@ -64,6 +64,14 @@ const SpacingAutocomplete: React.FC<{
   const resolvedOptions = options ?? scales.spacing;
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const displaySpacingVal = (val: string) => {
+    if (val === 'DEFAULT') return 'default';
+    if (val === 'px') {
+      const opt = resolvedOptions.find(o => o.val === 'px');
+      return opt?.desc ?? val;
+    }
+    return val;
+  };
   return (
   <AutocompleteDropdown
     value={value === '-' ? '' : value}
@@ -71,7 +79,9 @@ const SpacingAutocomplete: React.FC<{
     onCommit={onChange}
     previewBuild={previewBuild}
     placeholder={
-      inheritedPlaceholder && !(value && value !== '-') ? inheritedPlaceholder : placeholder
+      inheritedPlaceholder && !(value && value !== '-')
+        ? displaySpacingVal(inheritedPlaceholder)
+        : placeholder
     }
     zIndex={999999}
     testId={testId}
@@ -101,12 +111,30 @@ const SpacingAutocomplete: React.FC<{
     }}
     dropdownStyle={{ minWidth: '100px', maxHeight: '200px' }}
     showApplyToAllHint={true}
-    renderOption={(opt) => (
-      <>
-        <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
-        <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
-      </>
-    )}
+    displayLabel={(val, opt) => {
+      if (val === 'DEFAULT') return 'default';
+      if (val === 'px' && opt?.desc) return opt.desc;
+      return val;
+    }}
+    renderOption={(opt) => {
+      if (opt.val === 'DEFAULT') {
+        return (
+          <>
+            <span style={{ fontWeight: 'bold' }}>default</span>
+            <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
+          </>
+        );
+      }
+      const collapseToDesc = opt.val === 'px' && !!opt.desc;
+      return (
+        <>
+          <span style={{ fontWeight: 'bold' }}>{collapseToDesc ? opt.desc : opt.val}</span>
+          {!collapseToDesc && (
+            <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
+          )}
+        </>
+      );
+    }}
     onInputFocus={() => setFocused(true)}
     onInputBlur={() => { setFocused(false); setHovered(false); }}
     onInputMouseEnter={() => setHovered(true)}
@@ -173,12 +201,13 @@ const RadiusAutocomplete: React.FC<{
     options={resolvedOptions}
     onCommit={onChange}
     previewBuild={previewBuild}
-    placeholder={inheritedValue && !value ? inheritedValue : (placeholder ?? '—')}
+    placeholder={inheritedValue && !value ? (inheritedValue === 'DEFAULT' ? 'default' : inheritedValue) : (placeholder ?? '—')}
     zIndex={999999}
     prefix={icon}
+    displayLabel={(val) => val === 'DEFAULT' ? 'default' : val}
     renderOption={(opt) => (
       <>
-        <span style={{ fontWeight: 'bold' }}>{opt.val}</span>
+        <span style={{ fontWeight: 'bold' }}>{opt.val === 'DEFAULT' ? 'default' : opt.val}</span>
         <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
       </>
     )}
