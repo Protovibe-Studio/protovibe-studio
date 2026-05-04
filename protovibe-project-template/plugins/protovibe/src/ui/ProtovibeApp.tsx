@@ -7,6 +7,7 @@ import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { PromptsTab } from './components/PromptsTab';
 import { Sidebar } from './components/Sidebar';
+import { FloatingToolbar } from './components/FloatingToolbar';
 import { ToastViewport } from './components/ToastViewport';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -631,6 +632,7 @@ export const ProtovibeApp: React.FC = () => {
           </div>
         )}
 
+        <FloatingToolbar />
         <ToastViewport />
       </div>
     </div>

@@ -12,7 +12,6 @@ import { TooltipEditor } from './TooltipEditor';
 import { theme } from '../theme';
 import { INSPECTOR_TRANSITION_EASING, INSPECTOR_TRANSITION_MS, INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { Paintbrush } from 'lucide-react';
-import { FloatingToolbar } from './FloatingToolbar';
 
 type SidebarProps = {
   isOpen: boolean;
@@ -62,7 +61,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             </span>
           </div>
         </div>
-        <FloatingToolbar />
       </>
     );
   }
@@ -104,7 +102,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           />
         )}
       </div>
-      <FloatingToolbar />
     </>
   );
 };

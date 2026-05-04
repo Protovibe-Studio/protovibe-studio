@@ -134,7 +134,7 @@ export const PROMPTS: PromptDef[] = [
     template: `What to change: 
   {{input}}
   
-  Edit the selected element in place.
+  Edit the selected element.
   
   Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
   File: \`{{file}}\`
@@ -147,10 +147,8 @@ export const PROMPTS: PromptDef[] = [
   Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the zone/block ID conventions, component reuse rules, and static Tailwind class strings.
   
   Guidelines:
-  - Keep changes scoped to the selected element and its children. Do not restructure surrounding layout unless the user explicitly asks.
   - Reuse existing components from \`@/components/ui/\` wherever possible.
-  - Preserve the existing pv-editable-zone / pv-block structure and IDs. Only add new IDs when inserting new blocks.
-  - Do not change props or behaviour that are not mentioned in the user's request.
+  - Everything should be editable in Protovibe - add supergranular pv-block and pv-editable-zone tags if needed
   
   {{agentsRules}}`,
   },

@@ -54,7 +54,7 @@ When writing blocks anywhere outside a component's `PvDefaultContent` definition
 
 ### Rule: Block Granularity
 
-Every direct sibling inside a zone gets its own `pv-block` pair. Do not make one large block. If a section contains elements that have no logic and is a simple tree, break it down. Dividers made with custom divs should also be a separate block so that user can delete them. Whatever element can be freely reordered in its parent should be a separate pv-block, even single a hrefs in a nav.
+Every direct sibling inside a zone gets its own `pv-block` pair. Do not make one large block - break it down. Every node should be a pv-block. Dividers made with custom divs should also be a separate block so that user can delete them. Whatever element can be freely reordered in its parent should be a separate pv-block, even single a hrefs in a nav. Even elements in "map" functions if they do not read any local variable.
 
 **This applies inside container blocks too.** Whenever a block's root element contains multiple independently-editable children (e.g. a label + an input field), add a `pv-editable-zone` inside that root element and give each child its own `pv-block`. Without this inner zone the children cannot be deleted or reordered on the canvas. **This rule applies equally to compound components** (e.g. `SelectDropdown` containing `DropdownItem` children) — do not treat them as a single atomic unit just because they share a semantic purpose; if the children are independently reorderable or deletable, they each need their own `pv-block` inside an inner zone.
 
