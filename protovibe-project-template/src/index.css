@@ -36,7 +36,7 @@
  --background-overlay: oklch(12% 0.01 260 / 40%); /* dialog backdrop */
  --background-disabled: oklch(93% 0.005 260);
  --background-transparent: transparent;
- --background-transparent-hover: oklch(0% 0.13 292 / 0.04); /* alpha tint for elements with no base background */
+ --background-transparent-hover: oklch(0% 0.13 290.7 / 0.03); /* alpha tint for elements with no base background */
  --background-transparent-pressed: oklch(2.7% 0.179 300.4 / 0.09);
 
  /* Solid accent fills */
@@ -74,7 +74,7 @@
 
  /* Text */
  --foreground-default: oklch(14.1% 0.01048 291.1); /* body */
- --foreground-secondary: oklch(47% 0.01 301.9); /* muted labels */
+ --foreground-secondary: oklch(49% 0.01 301.9); /* muted labels */
  --foreground-tertiary: oklch(58.45% 0.016 286.5); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
  --foreground-disabled: oklch(76.1% 0.006 280.6);

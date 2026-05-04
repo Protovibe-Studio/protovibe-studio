@@ -139,11 +139,6 @@ export const PROMPTS: PromptDef[] = [
   Target element: data-pv-block="{{blockId}}" (lines {{startLine}}–{{endLine}})
   File: \`{{file}}\`
   
-  Current source:
-  \`\`\`tsx
-  {{code}}
-  \`\`\`
-  
   Before writing any code, read plugins/protovibe/PROTOVIBE_AGENTS.md — especially the zone/block ID conventions, component reuse rules, and static Tailwind class strings.
   
   Guidelines:

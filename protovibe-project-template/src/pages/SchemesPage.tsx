@@ -21,7 +21,7 @@ const mockSchemes = [
 
 export function SchemesPage() {
   return (
-    <div className="flex flex-col animate-in fade-in duration-300 p-7 gap-5">
+    <div className="flex flex-col animate-in fade-in duration-300 gap-5 p-8">
       {/* pv-editable-zone-start:sc1z2x3 */}
 
         {/* pv-block-start:schead1 */}
@@ -43,9 +43,20 @@ export function SchemesPage() {
           {/* pv-editable-zone-end:sk9i0j */}
           </div>
           {/* pv-block-end:aqkzc8 */}
-          {/* pv-block-start:scbtn1 */}
-          <Button data-pv-block="scbtn1" label="New Scheme" variant="solid" color="primary" leftIcon="plus" />
-          {/* pv-block-end:scbtn1 */}
+          {/* pv-block-start:ppm1d0 */}
+          <div data-pv-block="ppm1d0" className="flex flex-row items-center gap-3">
+            {/* pv-editable-zone-start:1m4yj6 */}
+            {/* pv-block-start:scbtn1 */}
+            <Button data-pv-block="scbtn1" label="Import from a file" variant="outline" color="primary" leftIcon="material-symbols:upload" />
+            {/* pv-block-end:scbtn1 */}
+            {/* pv-block-start:m99ljf */}
+            <Button data-pv-block="m99ljf" label="New Scheme" variant="solid" color="primary" leftIcon="plus" />
+            {/* pv-block-end:m99ljf */}
+            {/* pv-editable-zone-end:1m4yj6 */}
+          </div>
+          {/* pv-block-end:ppm1d0 */}
+
+
           {/* pv-editable-zone-end:schn3m1 */}
         </div>
         {/* pv-block-end:schead1 */}

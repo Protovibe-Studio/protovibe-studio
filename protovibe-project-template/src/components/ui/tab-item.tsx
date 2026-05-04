@@ -35,13 +35,13 @@ export function TabItem({
       data-state={isActive ? 'active' : 'inactive'}
       data-disabled={disabled}
       disabled={disabled}
-      className={cn("relative text-foreground-secondary hover:text-foreground-default cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors h-12 data-[state=active]:text-foreground-default font-semibold text-base py-2 px-0", className)}
+      className={cn("relative text-foreground-secondary hover:text-foreground-default cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-background-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors h-12 data-[state=active]:text-foreground-default font-semibold text-base py-1 px-0", className)}
       onClick={handleClick}
       {...props}
       data-pv-component-id="TabItem"
     >
       {label}
-      <div className="absolute left-0 right-0 rounded-t-sm bg-transparent data-[state=active]:bg-background-primary h-1 bottom-[-1px]" data-state={isActive ? 'active' : 'inactive'} />
+      <div className="absolute left-0 right-0 bg-transparent data-[state=active]:bg-background-primary bottom-[-1px] h-[3px]" data-state={isActive ? 'active' : 'inactive'} />
     </button>
   );
 }

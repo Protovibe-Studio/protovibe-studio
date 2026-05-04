@@ -24,6 +24,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DateInput } from '@/components/ui/date-input';
 import { Avatar } from '@/components/ui/avatar'
+import { Tabs } from '@/components/ui/tabs'
+import { TabItem } from '@/components/ui/tab-item'
+import { DialogCloseTrigger } from '@/components/ui/dialog-close-trigger'
 
 function recruitedToIso(v: string): string {
   const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
@@ -208,7 +211,7 @@ function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () 
         <div data-pv-block="m1n2o3" className="flex flex-col">
           {/* pv-editable-zone-start:zsh3ll */}
             {/* pv-block-start:h4d5r6 */}
-            <div data-pv-block="h4d5r6" className="flex items-start justify-between gap-4 px-6 py-5 border-b border-border-default">
+            <div data-pv-block="h4d5r6" className="flex items-start justify-between gap-4 border-b border-border-default flex-col pt-5 pb-0 px-6">
               {/* pv-editable-zone-start:zhdri1 */}
                 {/* pv-block-start:g7r8p9 */}
                 <div data-pv-block="g7r8p9" className="flex items-center gap-3">
@@ -231,9 +234,30 @@ function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () 
                   {/* pv-editable-zone-end:zhdri2 */}
                 </div>
                 {/* pv-block-end:g7r8p9 */}
-                {/* pv-block-start:c4l5s6 */}
-                <Button data-pv-block="c4l5s6" variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
-                {/* pv-block-end:c4l5s6 */}
+                {/* pv-block-start:9wqmco */}
+                <Tabs data-pv-block="9wqmco" value="tab1">
+                  {/* pv-editable-zone-start:czqnt4 */}
+                    {/* pv-block-start:wunlfl */}
+                    <TabItem data-pv-block="wunlfl" label="Tab 1" value="tab1" />
+                    {/* pv-block-end:wunlfl */}
+                    {/* pv-block-start:nffsa9 */}
+                    <TabItem data-pv-block="nffsa9" label="Tab 2" value="tab2" />
+                    {/* pv-block-end:nffsa9 */}
+                    {/* pv-block-start:ilyb8x */}
+                    <TabItem data-pv-block="ilyb8x" label="Tab 3" value="tab3" />
+                    {/* pv-block-end:ilyb8x */}
+                  {/* pv-editable-zone-end:czqnt4 */}
+                </Tabs>
+                {/* pv-block-end:9wqmco */}
+                {/* pv-block-start:dp56oc */}
+                <DialogCloseTrigger className="absolute top-1 right-1" data-pv-block="dp56oc">
+                  {/* pv-editable-zone-start:r0vvl0 */}
+                    {/* pv-block-start:tpktaf */}
+                    <Button data-pv-block="tpktaf" variant="ghost" color="neutral" size="sm" iconOnly={true} leftIcon="material-symbols:close" />
+                    {/* pv-block-end:tpktaf */}
+                  {/* pv-editable-zone-end:r0vvl0 */}
+                </DialogCloseTrigger>
+                {/* pv-block-end:dp56oc */}
               {/* pv-editable-zone-end:zhdri1 */}
             </div>
             {/* pv-block-end:h4d5r6 */}
@@ -420,15 +444,17 @@ export function MinionsPage() {
   const { state } = useStore();
   const [drawerFlow, setDrawerFlow] = useState<'add-minion' | null>(null);
   const [selectedMinionId, setSelectedMinionId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const selectedMinion = state.minions.find(m => m.id === selectedMinionId) || null;
+  const filteredMinions = state.minions.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="flex flex-col">
       {/* pv-editable-zone-start:sk1a2b */}
 
         {/* pv-block-start:lbcm1t */}
-        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 border-border-default p-7">
+        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 border-border-default p-8">
           {/* pv-editable-zone-start:uz9d2r */}
           {/* pv-block-start:sk3c4d */}
           <div data-pv-block="sk3c4d" className="flex items-center justify-between">
@@ -474,17 +500,31 @@ export function MinionsPage() {
           <div data-pv-block="skht8u" className="flex flex-col gap-4">
             {/* pv-editable-zone-start:tb1q2w */}
               {/* pv-block-start:0zvrdl */}
-              <div data-pv-block="0zvrdl" className="flex items-center justify-between gap-4 w-full px-7">
+              <div data-pv-block="0zvrdl" className="flex items-center justify-between gap-4 w-full px-8">
                 {/* pv-editable-zone-start:zn1abc */}
                   {/* pv-block-start:xnbg1g */}
-                  <Input data-pv-block="xnbg1g" prefixIcon="search" placeholder="Search minion" className="" />
+                  <Input data-pv-block="xnbg1g" prefixIcon="search" placeholder="Search minion" value={search} onChange={(e) => setSearch(e.target.value)} className="" />
                   {/* pv-block-end:xnbg1g */}
                 {/* pv-editable-zone-end:zn1abc */}
               </div>
               {/* pv-block-end:0zvrdl */}
 
+              {/* pv-block-start:emp7y1 */}
+              {filteredMinions.length === 0 && (
+                <EmptyState
+                  data-pv-block="emp7y1"
+                  iconSize="xl"
+                  className="min-h-92"
+                  icon="mdi:magnify"
+                  bigHeading="No results"
+                  secondaryText="No minions match your search."
+                />
+              )}
+              {/* pv-block-end:emp7y1 */}
+
               {/* pv-block-start:07vjpp */}
-              <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-7">
+              {filteredMinions.length > 0 && (
+              <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-8">
                 {/* pv-editable-zone-start:dg0paq */}
                 {/* pv-block-start:tb5t6y */}
                 <Table data-pv-block="tb5t6y" className="">
@@ -512,7 +552,7 @@ export function MinionsPage() {
                   </TableRowHeading>
                   <TableBody>
                     {/* pv-block-start:rw1m2n */}
-                    {state.minions.map(minion => (
+                    {filteredMinions.map(minion => (
                       <TableRowContent data-pv-block="rw1m2n" key={minion.id} onClick={() => setSelectedMinionId(minion.id)} className="transition-colors cursor-pointer">
                         {/* pv-editable-zone-start:zr3o4p */}
                           {/* pv-block-start:cl5q6r */}
@@ -578,9 +618,11 @@ export function MinionsPage() {
                 {/* pv-block-end:tb5t6y */}
                 {/* pv-editable-zone-end:dg0paq */}
               </div>
+              )}
               {/* pv-block-end:07vjpp */}
 
               {/* pv-block-start:tb3e4r */}
+              {filteredMinions.length > 0 && (
               <div data-pv-block="tb3e4r" className="flex items-center gap-4 w-full justify-end px-7">
                 {/* pv-editable-zone-start:zn1abc */}
                   {/* pv-block-start:bk3ghi */}
@@ -588,7 +630,7 @@ export function MinionsPage() {
                     {/* pv-editable-zone-start:zn4jkl */}
                       {/* pv-block-start:bk5mno */}
                       <TextParagraph data-pv-block="bk5mno" typography="secondary" className="text-sm">
-                        1 - {state.minions.length} of {state.minions.length} minions
+                        1 - {filteredMinions.length} of {filteredMinions.length} minions
                       </TextParagraph>
                       {/* pv-block-end:bk5mno */}
                       {/* pv-block-start:bk6pqr */}
@@ -608,6 +650,7 @@ export function MinionsPage() {
                   {/* pv-block-end:bk3ghi */}
                 {/* pv-editable-zone-end:zn1abc */}
               </div>
+              )}
               {/* pv-block-end:tb3e4r */}
             {/* pv-editable-zone-end:tb1q2w */}
           </div>

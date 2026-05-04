@@ -136,7 +136,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:gmjmuy */}
                   {/* pv-block-start:yin99m */}
                   <TextHeading data-pv-block="yin99m" typography="heading-sm">
-                    Navigating selection using keyboard
+                    Navigate selection using keyboard
                   </TextHeading>
                   {/* pv-block-end:yin99m */}
                   {/* pv-block-start:c7npsa */}
@@ -190,7 +190,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:njwxcg */}
                   {/* pv-block-start:vu0xmj */}
                   <TextHeading data-pv-block="vu0xmj" typography="heading-sm">
-                    Adding elements manually
+                    Add elements manually
                   </TextHeading>
                   {/* pv-block-end:vu0xmj */}
                   {/* pv-block-start:0zr6kw */}
@@ -257,7 +257,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:o3ztet */}
                   {/* pv-block-start:hxnr3e */}
                   <TextHeading data-pv-block="hxnr3e" typography="heading-sm">
-                    Change design system tokens
+                    Edit design system tokens
                   </TextHeading>
                   {/* pv-block-end:hxnr3e */}
                   {/* pv-block-start:qh174e */}
@@ -294,7 +294,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:yv61fy */}
                   {/* pv-block-start:e6jbuk */}
                   <TextHeading data-pv-block="e6jbuk" typography="heading-sm">
-                    Changing texts and variants
+                    Change texts and variants
                   </TextHeading>
                   {/* pv-block-end:e6jbuk */}
                   {/* pv-block-start:ilrduc */}
@@ -340,7 +340,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:snrj2i */}
                   {/* pv-block-start:5yvk8g */}
                   <TextHeading data-pv-block="5yvk8g" typography="heading-sm">
-                    Components tab
+                    Explore Components
                   </TextHeading>
                   {/* pv-block-end:5yvk8g */}
                   {/* pv-block-start:dpyqm3 */}
@@ -376,7 +376,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:mczxyw */}
                   {/* pv-block-start:pajc48 */}
                   <TextHeading data-pv-block="pajc48" typography="heading-sm">
-                    Adjusting components style
+                    Adjust components style
                   </TextHeading>
                   {/* pv-block-end:pajc48 */}
                   {/* pv-block-start:9zziqs */}
@@ -423,7 +423,7 @@ export function DashboardPage() {
                   {/* pv-editable-zone-start:q5zrj7 */}
                   {/* pv-block-start:vug02k */}
                   <TextHeading data-pv-block="vug02k" typography="heading-sm">
-                    Adjusting one variant only
+                    Adjust one variant only
                   </TextHeading>
                   {/* pv-block-end:vug02k */}
                   {/* pv-block-start:1bnop2 */}

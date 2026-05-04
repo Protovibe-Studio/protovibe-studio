@@ -64,7 +64,7 @@ export function SurveillancePage() {
         </div>
         {/* pv-block-end:rqqb6kle */}
         {/* pv-block-start:svgrid1 */}
-        <div data-pv-block="svgrid1" className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div data-pv-block="svgrid1" className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* pv-editable-zone-start:svgz1 */}
             {/* pv-block-start:o9nf3x */}
             <Card data-pv-block="o9nf3x" className="flex flex-col gap-3 items-stretch">

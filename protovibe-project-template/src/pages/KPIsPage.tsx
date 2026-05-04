@@ -23,7 +23,7 @@ const mockKpis = [
 
 export function KPIsPage() {
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-7">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:kp1z2q3 */}
         {/* pv-block-start:kphead1 */}
         <div data-pv-block="kphead1" className="flex justify-between items-center">
