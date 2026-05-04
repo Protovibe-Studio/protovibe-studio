@@ -63,7 +63,7 @@ Every direct sibling inside a zone gets its own `pv-block` pair. Do not make one
   ```jsx
   {/* pv-block-start:a1b2c3 */}
   <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
-    <TextParagraph typography="semibold-primary">Skill name</TextParagraph>
+    <TextParagraph typography="semibold-primary">Hello world</TextParagraph>
     <Input defaultValue="Python" />
   </div>
   {/* pv-block-end:a1b2c3 */}
@@ -76,7 +76,7 @@ Every direct sibling inside a zone gets its own `pv-block` pair. Do not make one
   <div data-pv-block="a1b2c3" className="flex flex-col gap-2">
     {/* pv-editable-zone-start:z9x8y7 */}
       {/* pv-block-start:f2a8k1 */}
-      <TextParagraph data-pv-block="f2a8k1" typography="semibold-primary">Skill name</TextParagraph>
+      <TextParagraph data-pv-block="f2a8k1" typography="semibold-primary">Hello world</TextParagraph>
       {/* pv-block-end:f2a8k1 */}
       {/* pv-block-start:j7c3p9 */}
       <Input data-pv-block="j7c3p9" defaultValue="Python" />
