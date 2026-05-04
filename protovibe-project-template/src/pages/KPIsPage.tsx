@@ -215,7 +215,7 @@ export function KPIsPage() {
         {/* pv-block-end:chrt001 */}
 
         {/* pv-block-start:kpgrid1 */}
-        <div data-pv-block="kpgrid1" className="grid gap-4 grid-cols-3">
+        <div data-pv-block="kpgrid1" className="grid grid-cols-3 gap-7">
           {/* pv-editable-zone-start:kpgz1 */}
             {/* pv-block-start:kpc1 */}
             <Card data-pv-block="kpc1">
