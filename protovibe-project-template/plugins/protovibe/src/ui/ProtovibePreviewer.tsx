@@ -626,30 +626,21 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
     visibleCombos.forEach((combo: Record<string, any>, i: number) => {
       let score = 0;
 
-      for (const [key, schema] of Object.entries(config.props || {})) {
+      for (const key of Object.keys(config.props || {})) {
         const tVal = targetProps[key];
         const cVal = combo[key];
-
-        // Normalize to strings for comparison
         const normTarget = (tVal === undefined || tVal === null) ? '' : String(tVal);
         const normCombo = (cVal === undefined || cVal === null) ? '' : String(cVal);
 
-        if (schema.type === 'string') {
-          // For strings, we just care about presence vs absence
-          const tHasText = normTarget !== '';
-          const cHasText = normCombo !== '';
-          if (tHasText === cHasText) {
-            score += 1;
-          }
-        } else {
-          // For selects and booleans, exact match gets 2 points
-          if (normTarget === normCombo) {
-            score += 2;
-          }
-          // Partial match: Target is unset, but combo explicitly sets it to 'default'
-          else if (normTarget === '' && normCombo === 'default') {
-            score += 1;
-          }
+        // Exact match wins, then presence match (both have *some* value), then
+        // both-empty match. This handles icon pickers and free-text props where
+        // the combo space can't represent every concrete value.
+        if (normTarget === normCombo) {
+          score += 2;
+        } else if (normTarget !== '' && normCombo !== '') {
+          score += 1;
+        } else if (normTarget === '' && normCombo === '') {
+          score += 1;
         }
       }
 
@@ -679,7 +670,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
         : false;
 
       if (targetEl && hasLocator) {
-        targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        targetEl.scrollIntoView({ block: 'center', behavior: 'auto' });
         targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
         return;
       }
@@ -690,7 +681,7 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
       }
       // Last-resort: dispatch on whatever we have so the user still sees a focus.
       if (targetEl) {
-        targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        targetEl.scrollIntoView({ block: 'center', behavior: 'auto' });
         targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
       }
     };
