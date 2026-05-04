@@ -7,7 +7,7 @@
       "frames": [
         {
           "id": "frame-fw0ze7",
-          "name": "Frame 12",
+          "name": "Frame 2",
           "width": 1440,
           "height": 900,
           "canvasX": 5279,
@@ -15,7 +15,7 @@
         },
         {
           "id": "frame-q7uevh",
-          "name": "Frame 12 Copy",
+          "name": "Frame 1",
           "width": 1440,
           "height": 900,
           "canvasX": 3647,
@@ -23,9 +23,9 @@
         }
       ],
       "viewState": {
-        "zoom": 0.6144522216650278,
-        "panX": -2129.888325469658,
-        "panY": 1459.124644795835
+        "zoom": 0.7119853589129665,
+        "panX": -2417.309590824671,
+        "panY": 1631.166153934501
       }
     }
   ],

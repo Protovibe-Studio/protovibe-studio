@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import type { CanvasTransform } from '../types';
 import { isTypingInput } from '../../ui/utils/elementType';
 
-const MIN_ZOOM = 0.1;
+const MIN_ZOOM = 0.05;
 const MAX_ZOOM = 3;
 
 const CANVAS_BG_COLOR = 'oklch(0.32 0 0)';

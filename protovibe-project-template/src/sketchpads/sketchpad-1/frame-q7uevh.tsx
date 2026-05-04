@@ -17,7 +17,7 @@ export default function Frame12() {
       {/* pv-editable-zone-start:mjhqpl */}
         {/* pv-block-start:ba0hce */}
         <span className="text-4xl font-bold" data-pv-block="ba0hce" data-pv-sketchpad-el="ba0hce" style={{ position: 'absolute', left: 292, top: 185 }}>
-          Welcome to Sketchpads!
+          Welcome to Sketchpad!
         </span>
         {/* pv-block-end:ba0hce */}
         {/* pv-block-start:ey6z9r */}
@@ -37,21 +37,21 @@ export default function Frame12() {
         <Icon className="text-foreground-primary" data-pv-block="0az2kb" data-pv-sketchpad-el="0az2kb" style={{ position: 'absolute', width: 38, left: 292, top: 265 }} iconSymbol="tabler:bulb-filled" size="2xl" />
         {/* pv-block-end:0az2kb */}
         {/* pv-block-start:wlxhsv */}
-        <Icon className="text-foreground-primary" data-pv-block="wlxhsv" data-pv-sketchpad-el="wlxhsv" style={{ position: 'absolute', left: 291, top: 461 }} iconSymbol="material-symbols:keyboard" size="2xl" />
+        <Icon className="text-foreground-primary" data-pv-block="wlxhsv" data-pv-sketchpad-el="wlxhsv" style={{ position: 'absolute', left: 291, top: 470 }} iconSymbol="material-symbols:keyboard" size="2xl" />
         {/* pv-block-end:wlxhsv */}
         
         {/* pv-block-start:h9r5ux */}
-        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="h9r5ux"  data-pv-sketchpad-el="h9r5ux" style={{ position: 'absolute', left: 358, top: 472, width: 728 }}>
-          Alt+Drag to duplicate. Hold space to pan.
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="h9r5ux"  data-pv-sketchpad-el="h9r5ux" style={{ position: 'absolute', left: 355, top: 470, width: 728 }}>
+          Alt+Drag to duplicate. Hold space to pan. Shift+A to wrap elements in autolayout.
         </span>
         {/* pv-block-end:h9r5ux */}
         {/* pv-block-start:wz3ziy */}
-        <Icon className="text-foreground-primary" data-pv-block="wz3ziy" data-pv-sketchpad-el="wz3ziy" style={{ position: 'absolute', left: 293, top: 568 }} iconSymbol="tabler:layout-filled" size="2xl" />
+        <Icon className="text-foreground-primary" data-pv-block="wz3ziy" data-pv-sketchpad-el="wz3ziy" style={{ position: 'absolute', left: 291, top: 568 }} iconSymbol="mingcute:sparkles-fill" size="2xl" />
         {/* pv-block-end:wz3ziy */}
         
         {/* pv-block-start:cub24k */}
-        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="cub24k"  data-pv-sketchpad-el="cub24k" style={{ position: 'absolute', left: 358, top: 568, width: 728 }}>
-          Shift+A to wrap elements in autolayout and style them with paddings and margins
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="cub24k"  data-pv-sketchpad-el="cub24k" style={{ position: 'absolute', left: 355, top: 568, width: 728 }}>
+          Use the Prompts tab to convert sketchpad to a real Prototype in the App tab
         </span>
         {/* pv-block-end:cub24k */}
       {/* pv-editable-zone-end:mjhqpl */}
