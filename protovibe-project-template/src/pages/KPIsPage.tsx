@@ -52,7 +52,7 @@ export function KPIsPage() {
         {/* pv-block-end:kphead1 */}
 
         {/* pv-block-start:kpgrid1 */}
-        <div data-pv-block="kpgrid1" className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div data-pv-block="kpgrid1" className="grid gap-4 grid-cols-4">
           {/* pv-editable-zone-start:kpgz1 */}
             {/* pv-block-start:kpc1 */}
             <Card data-pv-block="kpc1">
@@ -125,6 +125,56 @@ export function KPIsPage() {
                 {/* pv-block-start:kpbadge3 */}
                 <Badge data-pv-block="kpbadge3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
                 {/* pv-block-end:kpbadge3 */}
+              {/* pv-editable-zone-end:kpce3 */}
+            </Card>
+            {/* pv-block-end:kpc3 */}
+
+            {/* pv-block-start:kpc3 */}
+            <Card data-pv-block="kpc3">
+              {/* pv-editable-zone-start:kpce3 */}
+                {/* pv-block-start:mfwysv */}
+                <TextHeading data-pv-block="mfwysv" typography="heading-xxl" className="mb-2">34</TextHeading>
+                {/* pv-block-end:mfwysv */}
+                {/* pv-block-start:6vfh8wl3 */}
+                <div data-pv-block="6vfh8wl3" className="flex items-center gap-2 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:kple3 */}
+                    {/* pv-block-start:s758jl */}
+                    <Icon data-pv-block="s758jl" iconSymbol="mdi:emoticon-sad-outline" size="sm" />
+                    {/* pv-block-end:s758jl */}
+                    {/* pv-block-start:53alez */}
+                    <TextParagraph data-pv-block="53alez" typography="secondary">Minion Morale Index</TextParagraph>
+                    {/* pv-block-end:53alez */}
+                  {/* pv-editable-zone-end:kple3 */}
+                </div>
+                {/* pv-block-end:6vfh8wl3 */}
+                {/* pv-block-start:3i9ei7e3 */}
+                <Badge data-pv-block="3i9ei7e3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:3i9ei7e3 */}
+              {/* pv-editable-zone-end:kpce3 */}
+            </Card>
+            {/* pv-block-end:kpc3 */}
+
+            {/* pv-block-start:kpc3 */}
+            <Card data-pv-block="kpc3">
+              {/* pv-editable-zone-start:kpce3 */}
+                {/* pv-block-start:6w7rju */}
+                <TextHeading data-pv-block="6w7rju" typography="heading-xxl" className="mb-2">34</TextHeading>
+                {/* pv-block-end:6w7rju */}
+                {/* pv-block-start:2r9pmul3 */}
+                <div data-pv-block="2r9pmul3" className="flex items-center gap-2 mb-2 text-foreground-secondary">
+                  {/* pv-editable-zone-start:kple3 */}
+                    {/* pv-block-start:v33en5 */}
+                    <Icon data-pv-block="v33en5" iconSymbol="mdi:emoticon-sad-outline" size="sm" />
+                    {/* pv-block-end:v33en5 */}
+                    {/* pv-block-start:f4st97 */}
+                    <TextParagraph data-pv-block="f4st97" typography="secondary">Minion Morale Index</TextParagraph>
+                    {/* pv-block-end:f4st97 */}
+                  {/* pv-editable-zone-end:kple3 */}
+                </div>
+                {/* pv-block-end:2r9pmul3 */}
+                {/* pv-block-start:ep43fle3 */}
+                <Badge data-pv-block="ep43fle3" label="Critical — target: 80" color="destructive" prefixIcon="material-symbols:trending-down" />
+                {/* pv-block-end:ep43fle3 */}
               {/* pv-editable-zone-end:kpce3 */}
             </Card>
             {/* pv-block-end:kpc3 */}
