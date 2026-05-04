@@ -61,60 +61,6 @@ export function DashboardPage() {
         {/* pv-block-start:pf1hzs */}
         <div data-pv-block="pf1hzs" className="flex-col grid gap-7 grid-cols-3 mb-7">
           {/* pv-editable-zone-start:ewz19j */}
-          {/* pv-block-start:58e4sq */}
-          <Card className="gap-4 items-stretch" data-pv-block="58e4sq">
-            {/* pv-editable-zone-start:lzk3wr */}
-              {/* pv-block-start:aev719 */}
-              <div data-pv-block="aev719" className="flex gap-3 flex-col grow">
-                {/* pv-editable-zone-start:btl59t */}
-                {/* pv-block-start:k78o7c */}
-                <Icon className="text-foreground-primary" data-pv-block="k78o7c" iconSymbol="material-symbols:keyboard-outline" size="lg" />
-                {/* pv-block-end:k78o7c */}
-                {/* pv-block-start:8m03j8 */}
-                <div data-pv-block="8m03j8" className="flex flex-col gap-2">
-                  {/* pv-editable-zone-start:gmjmuy */}
-                  {/* pv-block-start:yin99m */}
-                  <TextHeading data-pv-block="yin99m" typography="heading-sm">
-                    Navigating selection using WASD
-                  </TextHeading>
-                  {/* pv-block-end:yin99m */}
-                  {/* pv-block-start:c7npsa */}
-                  <TextParagraph data-pv-block="c7npsa" typography="small">
-                    When working with web you often need to traverse - select parent element, select a sibling. You can do it with keyboard shortcuts using WASD keys, like playing a video game.
-                  </TextParagraph>
-                  {/* pv-block-end:c7npsa */}
-                  {/* pv-block-start:quhudk */}
-                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="quhudk" typography="regular">
-                    Try selecting the avatar below, the click "W" to select avatars container.
-                  </TextParagraph>
-                  {/* pv-block-end:quhudk */}
-                  {/* pv-editable-zone-end:gmjmuy */}
-                </div>
-                {/* pv-block-end:8m03j8 */}
-                {/* pv-editable-zone-end:btl59t */}
-              </div>
-              {/* pv-block-end:aev719 */}
-          
-              {/* pv-block-start:xdjkc1 */}
-              <Container className="flex-row gap-2" data-pv-block="xdjkc1">
-                {/* pv-editable-zone-start:zqe8bz */}
-                  {/* pv-block-start:0gfvam */}
-                  <Avatar data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
-                  {/* pv-block-end:0gfvam */}
-          
-                  {/* pv-block-start:w9x0m7 */}
-                  <Avatar data-pv-block="w9x0m7" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?456456" />
-                  {/* pv-block-end:w9x0m7 */}
-          
-                  {/* pv-block-start:6cky30 */}
-                  <Avatar data-pv-block="6cky30" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?4564" />
-                  {/* pv-block-end:6cky30 */}
-                {/* pv-editable-zone-end:zqe8bz */}
-              </Container>
-              {/* pv-block-end:xdjkc1 */}
-            {/* pv-editable-zone-end:lzk3wr */}
-          </Card>
-          {/* pv-block-end:58e4sq */}
           {/* pv-block-start:lf7bog */}
           <Card className="gap-4 items-stretch" data-pv-block="lf7bog">
             {/* pv-editable-zone-start:fl9kxd */}
@@ -176,6 +122,60 @@ export function DashboardPage() {
             {/* pv-editable-zone-end:fl9kxd */}
           </Card>
           {/* pv-block-end:lf7bog */}
+          {/* pv-block-start:58e4sq */}
+          <Card className="gap-4 items-stretch" data-pv-block="58e4sq">
+            {/* pv-editable-zone-start:lzk3wr */}
+              {/* pv-block-start:aev719 */}
+              <div data-pv-block="aev719" className="flex gap-3 flex-col grow">
+                {/* pv-editable-zone-start:btl59t */}
+                {/* pv-block-start:k78o7c */}
+                <Icon className="text-foreground-primary" data-pv-block="k78o7c" iconSymbol="material-symbols:keyboard-outline" size="lg" />
+                {/* pv-block-end:k78o7c */}
+                {/* pv-block-start:8m03j8 */}
+                <div data-pv-block="8m03j8" className="flex flex-col gap-2">
+                  {/* pv-editable-zone-start:gmjmuy */}
+                  {/* pv-block-start:yin99m */}
+                  <TextHeading data-pv-block="yin99m" typography="heading-sm">
+                    Navigating selection using keyboard
+                  </TextHeading>
+                  {/* pv-block-end:yin99m */}
+                  {/* pv-block-start:c7npsa */}
+                  <TextParagraph data-pv-block="c7npsa" typography="small">
+                    When working with web you often need to traverse - select parent element, select a sibling. You can do it with keyboard shortcuts using <b>WASD</b> keys, like playing a video game.
+                  </TextParagraph>
+                  {/* pv-block-end:c7npsa */}
+                  {/* pv-block-start:quhudk */}
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="quhudk" typography="regular">
+                    Try selecting the avatar below, the click "W" to select avatars container.
+                  </TextParagraph>
+                  {/* pv-block-end:quhudk */}
+                  {/* pv-editable-zone-end:gmjmuy */}
+                </div>
+                {/* pv-block-end:8m03j8 */}
+                {/* pv-editable-zone-end:btl59t */}
+              </div>
+              {/* pv-block-end:aev719 */}
+          
+              {/* pv-block-start:xdjkc1 */}
+              <Container className="flex-row gap-2" data-pv-block="xdjkc1">
+                {/* pv-editable-zone-start:zqe8bz */}
+                  {/* pv-block-start:0gfvam */}
+                  <Avatar data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
+                  {/* pv-block-end:0gfvam */}
+          
+                  {/* pv-block-start:w9x0m7 */}
+                  <Avatar data-pv-block="w9x0m7" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?456456" />
+                  {/* pv-block-end:w9x0m7 */}
+          
+                  {/* pv-block-start:6cky30 */}
+                  <Avatar data-pv-block="6cky30" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?4564" />
+                  {/* pv-block-end:6cky30 */}
+                {/* pv-editable-zone-end:zqe8bz */}
+              </Container>
+              {/* pv-block-end:xdjkc1 */}
+            {/* pv-editable-zone-end:lzk3wr */}
+          </Card>
+          {/* pv-block-end:58e4sq */}
           {/* pv-block-start:d36tba */}
           <Card className="gap-4 items-stretch" data-pv-block="d36tba">
             {/* pv-editable-zone-start:tg5xgy */}

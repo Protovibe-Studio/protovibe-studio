@@ -38,13 +38,13 @@ export default function App() {
           <div data-pv-block="br2002" className="flex items-center gap-3 border-b border-border-default h-12 pl-4 pr-6">
             {/* pv-editable-zone-start:bzn202 */}
               {/* pv-block-start:smg8v8 */}
-              <div className="flex flex-col bg-contain bg-center bg-no-repeat h-7 bg-[url('/src/images/from-protovibe/logo2-6.png')] aspect-[55/14] dark:hidden" data-pv-block="smg8v8">
+              <div className="flex flex-col bg-contain bg-center bg-no-repeat bg-[url('/src/images/from-protovibe/logo2-6.png')] aspect-[55/14] dark:hidden h-6" data-pv-block="smg8v8">
                 {/* pv-editable-zone-start:h5hz60 */}
                 {/* pv-editable-zone-end:h5hz60 */}
               </div>
               {/* pv-block-end:smg8v8 */}
               {/* pv-block-start:lgd2k9 */}
-              <div className="hidden flex-col bg-contain bg-center bg-no-repeat h-7 dark:flex bg-[url('/src/images/from-protovibe/logo-dark-mode.png')] aspect-[55/14]" data-pv-block="lgd2k9">
+              <div className="hidden flex-col bg-contain bg-center bg-no-repeat dark:flex bg-[url('/src/images/from-protovibe/logo-dark-mode.png')] aspect-[55/14] h-6" data-pv-block="lgd2k9">
                 {/* pv-editable-zone-start:dkz3p4 */}
                 {/* pv-editable-zone-end:dkz3p4 */}
               </div>

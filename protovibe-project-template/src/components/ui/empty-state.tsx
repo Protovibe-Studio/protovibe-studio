@@ -33,10 +33,7 @@ export function EmptyState({
   return (
     <div
       data-icon-size={iconSize}
-      className={cn(
-        "flex flex-col items-center justify-center gap-4 min-h-48 py-12 px-6 text-center",
-        className
-      )}
+      className={cn("flex flex-col items-center justify-center min-h-48 py-12 px-6 text-center gap-2", className)}
       {...props}
       data-pv-component-id="EmptyState"
     >

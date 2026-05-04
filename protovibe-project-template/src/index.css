@@ -106,93 +106,93 @@
  color-scheme: dark;
 
  /* Backgrounds */
- --background-default: oklch(24.1% 0.0058 248.5);
- --background-default-hover: oklch(29.1% 0.00728 250.3);
- --background-default-pressed: oklch(31.2% 0.01051 262.8);
- --background-subtle: oklch(26.1% 0.00234 256.4); /* zebra rows, ghost cards — between default and secondary */
- --background-subtle-hover: #2e2f33;
- --background-subtle-pressed: #313235;
- --background-secondary: #2b2b2e;
- --background-secondary-hover: #38393d;
- --background-secondary-pressed: #414045;
- --background-tertiary: #313235;
- --background-tertiary-hover: #38393d;
- --background-tertiary-pressed: #414045;
- --background-elevated: #2e2f33; /* lighter than background-default */
- --background-elevated-hover: #38393d;
- --background-elevated-pressed: #414045;
- --background-sunken: #1b1c1e; /* recessed wells — darker than default in dark mode */
- --background-sunken-hover: #222326;
- --background-sunken-pressed: #2b2b2e;
- --background-strong: #c9cbcf;
- --background-strong-hover: #dfe0e2;
- --background-strong-pressed: #d1d3d6;
+ --background-default: oklch(24.1% 0.0058 260);
+ --background-default-hover: oklch(29.1% 0.00728 279.1);
+ --background-default-pressed: oklch(31.2% 0.01051 286.2);
+ --background-subtle: oklch(26.1% 0.00234 308.4); /* zebra rows, ghost cards — between default and secondary */
+ --background-subtle-hover: oklch(26.5% 0.005 308.4);
+ --background-subtle-pressed: oklch(27.7% 0.004 308.4);
+ --background-secondary: oklch(25% 0.004 295.5);
+ --background-secondary-hover: oklch(30.5% 0.005 295.5);
+ --background-secondary-pressed: oklch(33.7% 0.006 295.5);
+ --background-tertiary: oklch(27.7% 0.004 301.2);
+ --background-tertiary-hover: oklch(30.5% 0.005 301.2);
+ --background-tertiary-pressed: oklch(33.7% 0.006 301.2);
+ --background-elevated: oklch(26.5% 0.005 260); /* lighter than background-default */
+ --background-elevated-hover: oklch(30.5% 0.005 259);
+ --background-elevated-pressed: oklch(33.7% 0.006 258.5);
+ --background-sunken: oklch(21.7% 0.003 295.5); /* recessed wells — darker than default in dark mode */
+ --background-sunken-hover: oklch(22.7% 0.003 295.5);
+ --background-sunken-pressed: oklch(25% 0.004 295.5);
+ --background-strong: oklch(82.4% 0.006 260);
+ --background-strong-hover: oklch(89.3% 0.004 260);
+ --background-strong-pressed: oklch(85.2% 0.005 260);
  --background-overlay: rgba(0, 0, 0, 0.80);
- --background-disabled: #36353b;
+ --background-disabled: oklch(29.1% 0.008 260);
  --background-transparent: transparent;
- --background-transparent-hover: oklch(85.7% 0.022 325.6 / 0.05); /* alpha tint for elements with no base background */
- --background-transparent-pressed: oklch(0% 0.07 317.3 / 0.12);
+ --background-transparent-hover: oklch(85.7% 0.022 292 / 0.05); /* alpha tint for elements with no base background */
+ --background-transparent-pressed: oklch(0% 0.07 300.4 / 0.12);
 
  /* Solid accent fills */
- --background-primary: oklch(69.43% 0.1693 263.7);
- --background-primary-hover: oklch(75.28% 0.13556 263.7);
- --background-primary-pressed: oklch(81.46% 0.09965 263.7);
- --background-destructive: #ff7073;
- --background-destructive-hover: #ff8d8f;
- --background-destructive-pressed: #ffa9ab;
- --background-success: #23bd7d;
- --background-warning: #ed913b;
- --background-info: #5a9dfc;
- --background-primary-soft: oklch(50.5% 0.13904 263.7);
- --background-accent: #fd62b0;
- --background-accent-soft: #bc94ea;
+ --background-primary: oklch(69.43% 0.1693 287.9);
+ --background-primary-hover: oklch(75.28% 0.13556 287.9);
+ --background-primary-pressed: oklch(81.46% 0.09965 287.9);
+ --background-destructive: oklch(72% 0.19 27.1);
+ --background-destructive-hover: oklch(78% 0.15 25);
+ --background-destructive-pressed: oklch(83% 0.11 25);
+ --background-success: oklch(70% 0.16 153.2);
+ --background-warning: oklch(72% 0.16 80);
+ --background-info: oklch(67% 0.16 220);
+ --background-primary-soft: oklch(50.5% 0.13904 287.9);
+ --background-accent: oklch(70% 0.21 64.7);
+ --background-accent-soft: oklch(70.5% 0.107 86.8);
 
  /* Tinted semantic backgrounds */
- --background-primary-subtle: oklch(33.5% 0.06379 263.7);
- --background-primary-subtle-hover: oklch(33.33% 0.07415 263.7);
- --background-primary-subtle-pressed: oklch(40.59% 0.12097 263.7);
- --background-destructive-subtle: #4f1618;
- --background-destructive-subtle-hover: #7b2d2f;
- --background-destructive-subtle-pressed: #a74345;
- --background-success-subtle: #0b412b;
- --background-success-subtle-hover: #0f5235;
- --background-success-subtle-pressed: #16784f;
- --background-warning-subtle: #512f10;
- --background-warning-subtle-hover: #603915;
- --background-warning-subtle-pressed: #995d25;
- --background-info-subtle: #152e51;
- --background-info-subtle-hover: #1d3a63;
- --background-info-subtle-pressed: #3663a1;
- --gradient-background-special: linear-gradient(270deg, #E9E0F5 0%, #FFD3E9 100%);
- --gradient-background-special-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
+ --background-primary-subtle: oklch(33.5% 0.06379 276.5);
+ --background-primary-subtle-hover: oklch(33.33% 0.07415 286.7);
+ --background-primary-subtle-pressed: oklch(40.59% 0.12097 292.7);
+ --background-destructive-subtle: oklch(28% 0.10 9.7);
+ --background-destructive-subtle-hover: oklch(40% 0.13 25);
+ --background-destructive-subtle-pressed: oklch(53% 0.16 25);
+ --background-success-subtle: oklch(33% 0.07 169.6);
+ --background-success-subtle-hover: oklch(39% 0.08 166.6);
+ --background-success-subtle-pressed: oklch(53% 0.12 164);
+ --background-warning-subtle: oklch(32% 0.06 67.4);
+ --background-warning-subtle-hover: oklch(37% 0.07 67.4);
+ --background-warning-subtle-pressed: oklch(53% 0.11 67.4);
+ --background-info-subtle: oklch(25% 0.07 224);
+ --background-info-subtle-hover: oklch(30% 0.08 224.2);
+ --background-info-subtle-pressed: oklch(48% 0.12 245.4);
+ --gradient-background-special: linear-gradient(270deg, oklch(91% 0.025 240) 0%, oklch(89% 0.05 305) 100%);
+ --gradient-background-special-subtle: linear-gradient(270deg, oklch(96% 0.02 280) 0%, oklch(95% 0.02 270) 100%);
 
  /* Text */
- --foreground-default: #c9cbcf;
- --foreground-secondary: #95989d;
- --foreground-tertiary: #6d6b70;
+ --foreground-default: oklch(82.4% 0.006 291.1);
+ --foreground-secondary: oklch(64.5% 0.008 301.9);
+ --foreground-tertiary: oklch(50.2% 0.008 286.5);
  --foreground-strong: #ffffff;
- --foreground-disabled: #57585c;
- --foreground-inverse: #1b1c1e;
+ --foreground-disabled: oklch(43.3% 0.005 280.6);
+ --foreground-inverse: oklch(21% 0.003 89.9);
  --foreground-on-primary: oklch(100% 0 0);
- --foreground-primary: oklch(69.43% 0.1693 263.7);
- --foreground-primary-link: oklch(73.06% 0.15131 263.7);
- --foreground-destructive: #ff7073;
- --foreground-success: #23bd7d;
- --foreground-warning: #ed913b;
- --foreground-info: #5a9dfc;
- --gradient-foreground-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
+ --foreground-primary: oklch(69.43% 0.1693 287.9);
+ --foreground-primary-link: oklch(73.06% 0.15131 287.9);
+ --foreground-destructive: oklch(72% 0.19 25);
+ --foreground-success: oklch(70% 0.16 172.9);
+ --foreground-warning: oklch(72% 0.16 51);
+ --foreground-info: oklch(67% 0.16 215.4);
+ --gradient-foreground-special: linear-gradient(270deg, oklch(36% 0.21 290) 0%, oklch(54% 0.24 270) 100%);
 
  /* Borders */
- --border-default: oklch(37.43% 0.00852 261.7);
- --border-secondary: oklch(33.23% 0.01051 246.5);
- --border-strong: oklch(43.03% 0.00823 247.6);
- --border-focus: #af80f4;
- --border-primary: oklch(69.43% 0.1693 263.7);
- --border-destructive: #ff7073;
- --border-success: #23bd7d;
- --border-warning: #ed913b;
- --border-info: #5a9dfc;
- --gradient-border-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
+ --border-default: oklch(37.43% 0.00852 264.5);
+ --border-secondary: oklch(33.23% 0.01051 264.5);
+ --border-strong: oklch(43.03% 0.00823 286.6);
+ --border-focus: oklch(67% 0.18 281.2);
+ --border-primary: oklch(69.43% 0.1693 287.9);
+ --border-destructive: oklch(72% 0.19 25);
+ --border-success: oklch(70% 0.16 166.9);
+ --border-warning: oklch(72% 0.16 53.4);
+ --border-info: oklch(67% 0.16 262);
+ --gradient-border-special: linear-gradient(270deg, oklch(36% 0.21 290) 0%, oklch(54% 0.24 270) 100%);
 
 }
 
