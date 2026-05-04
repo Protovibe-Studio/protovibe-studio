@@ -21,7 +21,7 @@ export function TextParagraph({
 
   if (typography === 'small') {
     return (
-      <p {...props} data-pv-component-id="TextParagraph" className={cn("m-0 text-sm text-foreground-secondary leading-tight font-normal", className)}>
+      <p {...props} data-pv-component-id="TextParagraph" className={cn("m-0 text-sm text-foreground-secondary font-normal leading-snug", className)}>
         {children}
       </p>
     );

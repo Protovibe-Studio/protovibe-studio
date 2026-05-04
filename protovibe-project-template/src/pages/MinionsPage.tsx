@@ -23,6 +23,7 @@ import { DropdownItem } from '@/components/ui/dropdown-item';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DateInput } from '@/components/ui/date-input';
+import { Avatar } from '@/components/ui/avatar'
 
 function recruitedToIso(v: string): string {
   const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
@@ -202,143 +203,215 @@ function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () 
 
   return (
     <DialogWindow size="md" showCloseButton={false}>
-      <div className="flex flex-col">
-        <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-border-default">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-background-tertiary flex items-center justify-center shrink-0">
-              <Icon iconSymbol="mdi:account-hard-hat" size="md" className="text-foreground-secondary" />
+      {/* pv-editable-zone-start:zr00ot */}
+        {/* pv-block-start:m1n2o3 */}
+        <div data-pv-block="m1n2o3" className="flex flex-col">
+          {/* pv-editable-zone-start:zsh3ll */}
+            {/* pv-block-start:h4d5r6 */}
+            <div data-pv-block="h4d5r6" className="flex items-start justify-between gap-4 px-6 py-5 border-b border-border-default">
+              {/* pv-editable-zone-start:zhdri1 */}
+                {/* pv-block-start:g7r8p9 */}
+                <div data-pv-block="g7r8p9" className="flex items-center gap-3">
+                  {/* pv-editable-zone-start:zhdri2 */}
+                    {/* pv-block-start:lbgdq6 */}
+                    <Avatar data-pv-block="lbgdq6" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60" />
+                    {/* pv-block-end:lbgdq6 */}
+                    {/* pv-block-start:n4m5d6 */}
+                    <div data-pv-block="n4m5d6" className="flex flex-col">
+                      {/* pv-editable-zone-start:zhdri3 */}
+                        {/* pv-block-start:t7h8x9 */}
+                        <TextHeading data-pv-block="t7h8x9" typography="heading-md">{minion.name}</TextHeading>
+                        {/* pv-block-end:t7h8x9 */}
+                        {/* pv-block-start:p1s2u3 */}
+                        <TextParagraph data-pv-block="p1s2u3" typography="secondary" className="text-sm">{minion.division}</TextParagraph>
+                        {/* pv-block-end:p1s2u3 */}
+                      {/* pv-editable-zone-end:zhdri3 */}
+                    </div>
+                    {/* pv-block-end:n4m5d6 */}
+                  {/* pv-editable-zone-end:zhdri2 */}
+                </div>
+                {/* pv-block-end:g7r8p9 */}
+                {/* pv-block-start:c4l5s6 */}
+                <Button data-pv-block="c4l5s6" variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
+                {/* pv-block-end:c4l5s6 */}
+              {/* pv-editable-zone-end:zhdri1 */}
             </div>
-            <div className="flex flex-col">
-              <TextHeading typography="heading-md">{minion.name}</TextHeading>
-              <TextParagraph typography="secondary" className="text-sm">{minion.division}</TextParagraph>
+            {/* pv-block-end:h4d5r6 */}
+
+            {/* pv-block-start:b7o8d9 */}
+            <div data-pv-block="b7o8d9" className="flex flex-col gap-5 px-6 py-5">
+              {/* pv-editable-zone-start:zbody1 */}
+                {/* pv-block-start:f1n2m3 */}
+                <div data-pv-block="f1n2m3" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfnm01 */}
+                    {/* pv-block-start:l1n2m3 */}
+                    <TextParagraph data-pv-block="l1n2m3" typography="semibold-primary" className="text-sm">Name</TextParagraph>
+                    {/* pv-block-end:l1n2m3 */}
+                    {/* pv-block-start:e1n2m3 */}
+                    {editingField === 'name' ? (
+                      <div data-pv-block="e1n2m3" className="flex items-center gap-2">
+                        <Input value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
+                        <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('name')} disabled={!name.trim()} />
+                        <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                      </div>
+                    ) : (
+                      <div data-pv-block="e1n2m3" className="flex items-center justify-between gap-2">
+                        <TextParagraph typography="regular">{minion.name}</TextParagraph>
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('name')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e1n2m3 */}
+                  {/* pv-editable-zone-end:zfnm01 */}
+                </div>
+                {/* pv-block-end:f1n2m3 */}
+
+                {/* pv-block-start:f4d5v6 */}
+                <div data-pv-block="f4d5v6" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfdv01 */}
+                    {/* pv-block-start:l4d5v6 */}
+                    <TextParagraph data-pv-block="l4d5v6" typography="semibold-primary" className="text-sm">Division</TextParagraph>
+                    {/* pv-block-end:l4d5v6 */}
+                    {/* pv-block-start:e4d5v6 */}
+                    {editingField === 'division' ? (
+                      <div data-pv-block="e4d5v6" className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <SelectDropdown value={division} onSelectionChange={setDivision} placeholder="Select division...">
+                            <DropdownItem value="Field Operations" label="Field Operations" />
+                            <DropdownItem value="Laser Division" label="Laser Division" />
+                            <DropdownItem value="Espionage" label="Espionage" />
+                            <DropdownItem value="Doomsday R&D" label="Doomsday R&D" />
+                            <DropdownItem value="Lair Maintenance" label="Lair Maintenance" />
+                          </SelectDropdown>
+                        </div>
+                        <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('division')} />
+                        <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                      </div>
+                    ) : (
+                      <div data-pv-block="e4d5v6" className="flex items-center justify-between gap-2">
+                        <TextParagraph typography="regular">{minion.division}</TextParagraph>
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('division')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e4d5v6 */}
+                  {/* pv-editable-zone-end:zfdv01 */}
+                </div>
+                {/* pv-block-end:f4d5v6 */}
+
+                {/* pv-block-start:f7s8p9 */}
+                <div data-pv-block="f7s8p9" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfsp01 */}
+                    {/* pv-block-start:l7s8p9 */}
+                    <TextParagraph data-pv-block="l7s8p9" typography="semibold-primary" className="text-sm">Specialty</TextParagraph>
+                    {/* pv-block-end:l7s8p9 */}
+                    {/* pv-block-start:e7s8p9 */}
+                    {editingField === 'specialty' ? (
+                      <div data-pv-block="e7s8p9" className="flex items-center gap-2">
+                        <Input value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="flex-1" />
+                        <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('specialty')} />
+                        <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                      </div>
+                    ) : (
+                      <div data-pv-block="e7s8p9" className="flex items-center justify-between gap-2">
+                        <TextParagraph typography="regular">{minion.specialty}</TextParagraph>
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('specialty')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e7s8p9 */}
+                  {/* pv-editable-zone-end:zfsp01 */}
+                </div>
+                {/* pv-block-end:f7s8p9 */}
+
+                {/* pv-block-start:f1s2t3 */}
+                <div data-pv-block="f1s2t3" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfst01 */}
+                    {/* pv-block-start:l1s2t3 */}
+                    <TextParagraph data-pv-block="l1s2t3" typography="semibold-primary" className="text-sm">Status</TextParagraph>
+                    {/* pv-block-end:l1s2t3 */}
+                    {/* pv-block-start:e1s2t3 */}
+                    {editingField === 'status' ? (
+                      <div data-pv-block="e1s2t3" className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <SelectDropdown value={status} onSelectionChange={(v) => setStatus(v as Minion['status'])} placeholder="Select status...">
+                            <DropdownItem value="Active" label="Active" />
+                            <DropdownItem value="On Mission" label="On Mission" />
+                            <DropdownItem value="Recovering" label="Recovering" />
+                          </SelectDropdown>
+                        </div>
+                        <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('status')} />
+                        <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                      </div>
+                    ) : (
+                      <div data-pv-block="e1s2t3" className="flex items-center justify-between gap-2">
+                        <Badge label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
+                        <Button variant="ghost" color="neutral" size="md" iconOnly leftIcon="edit" onClick={() => startEdit('status')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e1s2t3 */}
+                  {/* pv-editable-zone-end:zfst01 */}
+                </div>
+                {/* pv-block-end:f1s2t3 */}
+
+                {/* pv-block-start:f4b5g6 */}
+                <div data-pv-block="f4b5g6" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfbg01 */}
+                    {/* pv-block-start:l4b5g6 */}
+                    <TextParagraph data-pv-block="l4b5g6" typography="semibold-primary" className="text-sm">Background</TextParagraph>
+                    {/* pv-block-end:l4b5g6 */}
+                    {/* pv-block-start:e4b5g6 */}
+                    {editingField === 'background' ? (
+                      <div data-pv-block="e4b5g6" className="flex items-start gap-2">
+                        <Textarea value={background} onChange={(e) => setBackground(e.target.value)} rows={4} className="flex-1" />
+                        <div className="flex gap-2 flex-row">
+                          <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('background')} />
+                          <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div data-pv-block="e4b5g6" className="flex items-start justify-between gap-2">
+                        <TextParagraph typography="regular" className="whitespace-pre-wrap">{minion.background || '—'}</TextParagraph>
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('background')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e4b5g6 */}
+                  {/* pv-editable-zone-end:zfbg01 */}
+                </div>
+                {/* pv-block-end:f4b5g6 */}
+
+                {/* pv-block-start:f7r8c9 */}
+                <div data-pv-block="f7r8c9" className="flex flex-col gap-0">
+                  {/* pv-editable-zone-start:zfrc01 */}
+                    {/* pv-block-start:l7r8c9 */}
+                    <TextParagraph data-pv-block="l7r8c9" typography="semibold-primary" className="text-sm">Recruited</TextParagraph>
+                    {/* pv-block-end:l7r8c9 */}
+                    {/* pv-block-start:e7r8c9 */}
+                    {editingField === 'recruited' ? (
+                      <div data-pv-block="e7r8c9" className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <DateInput
+                            value={recruitedToIso(recruited)}
+                            onValueChange={(iso) => setRecruited(iso ? isoToRecruited(iso) : '')}
+                          />
+                        </div>
+                        <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('recruited')} disabled={!recruited} />
+                        <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
+                      </div>
+                    ) : (
+                      <div data-pv-block="e7r8c9" className="flex items-center justify-between gap-2">
+                        <TextParagraph typography="regular">{minion.recruited}</TextParagraph>
+                        <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('recruited')} />
+                      </div>
+                    )}
+                    {/* pv-block-end:e7r8c9 */}
+                  {/* pv-editable-zone-end:zfrc01 */}
+                </div>
+                {/* pv-block-end:f7r8c9 */}
+              {/* pv-editable-zone-end:zbody1 */}
             </div>
-          </div>
-          <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="close" onClick={onClose} />
+            {/* pv-block-end:b7o8d9 */}
+          {/* pv-editable-zone-end:zsh3ll */}
         </div>
-
-        <div className="flex flex-col gap-5 px-6 py-5">
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Name</TextParagraph>
-            {editingField === 'name' ? (
-              <div className="flex items-center gap-2">
-                <Input value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
-                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('name')} disabled={!name.trim()} />
-                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <TextParagraph typography="regular">{minion.name}</TextParagraph>
-                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('name')} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Division</TextParagraph>
-            {editingField === 'division' ? (
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <SelectDropdown value={division} onSelectionChange={setDivision} placeholder="Select division...">
-                    <DropdownItem value="Field Operations" label="Field Operations" />
-                    <DropdownItem value="Laser Division" label="Laser Division" />
-                    <DropdownItem value="Espionage" label="Espionage" />
-                    <DropdownItem value="Doomsday R&D" label="Doomsday R&D" />
-                    <DropdownItem value="Lair Maintenance" label="Lair Maintenance" />
-                  </SelectDropdown>
-                </div>
-                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('division')} />
-                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <TextParagraph typography="regular">{minion.division}</TextParagraph>
-                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('division')} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Specialty</TextParagraph>
-            {editingField === 'specialty' ? (
-              <div className="flex items-center gap-2">
-                <Input value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="flex-1" />
-                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('specialty')} />
-                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <TextParagraph typography="regular">{minion.specialty}</TextParagraph>
-                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('specialty')} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Status</TextParagraph>
-            {editingField === 'status' ? (
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <SelectDropdown value={status} onSelectionChange={(v) => setStatus(v as Minion['status'])} placeholder="Select status...">
-                    <DropdownItem value="Active" label="Active" />
-                    <DropdownItem value="On Mission" label="On Mission" />
-                    <DropdownItem value="Recovering" label="Recovering" />
-                  </SelectDropdown>
-                </div>
-                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('status')} />
-                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <Badge label={minion.status} color={minion.status === 'Active' ? 'success' : minion.status === 'On Mission' ? 'primary' : 'warning'} />
-                <Button variant="ghost" color="neutral" size="md" iconOnly leftIcon="edit" onClick={() => startEdit('status')} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Background</TextParagraph>
-            {editingField === 'background' ? (
-              <div className="flex items-start gap-2">
-                <Textarea value={background} onChange={(e) => setBackground(e.target.value)} rows={4} className="flex-1" />
-                <div className="flex gap-2 flex-row">
-                  <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('background')} />
-                  <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start justify-between gap-2">
-                <TextParagraph typography="regular" className="whitespace-pre-wrap">{minion.background || '—'}</TextParagraph>
-                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('background')} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-0">
-            <TextParagraph typography="semibold-primary" className="text-sm">Recruited</TextParagraph>
-            {editingField === 'recruited' ? (
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <DateInput
-                    value={recruitedToIso(recruited)}
-                    onValueChange={(iso) => setRecruited(iso ? isoToRecruited(iso) : '')}
-                  />
-                </div>
-                <Button variant="solid" color="primary" size="md" label="Save" onClick={() => saveField('recruited')} disabled={!recruited} />
-                <Button variant="ghost" color="neutral" size="md" label="Cancel" onClick={cancelEdit} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <TextParagraph typography="regular">{minion.recruited}</TextParagraph>
-                <Button variant="ghost" color="neutral" size="sm" iconOnly leftIcon="edit" onClick={() => startEdit('recruited')} />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-default bg-background-subtle">
-          <Button variant="solid" color="primary" label="Close" onClick={onClose} />
-        </div>
-      </div>
+        {/* pv-block-end:m1n2o3 */}
+      {/* pv-editable-zone-end:zr00ot */}
     </DialogWindow>
   );
 }

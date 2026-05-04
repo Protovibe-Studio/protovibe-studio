@@ -67,8 +67,11 @@ export function SurveillancePage() {
         <div data-pv-block="svgrid1" className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* pv-editable-zone-start:svgz1 */}
             {/* pv-block-start:svcam1 */}
-            <Card data-pv-block="svcam1" className="flex flex-col gap-3">
+            <Card data-pv-block="svcam1" className="flex flex-col gap-3 items-stretch">
               {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:svcfeed1 */}
+                <EmptyState data-pv-block="svcfeed1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:svcfeed1 */}
                 {/* pv-block-start:svch1 */}
                 <div data-pv-block="svch1" className="flex items-center justify-between">
                   {/* pv-editable-zone-start:svche1 */}
@@ -76,61 +79,39 @@ export function SurveillancePage() {
                     <TextParagraph data-pv-block="svcht1" typography="semibold-primary">Cam 01 — Volcano Entrance</TextParagraph>
                     {/* pv-block-end:svcht1 */}
                     {/* pv-block-start:svchs1 */}
-                    <Badge data-pv-block="svchs1" label="Live" color="success" />
+                    <Badge data-pv-block="svchs1" label="Error" color="destructive" />
                     {/* pv-block-end:svchs1 */}
                   {/* pv-editable-zone-end:svche1 */}
                 </div>
                 {/* pv-block-end:svch1 */}
-                {/* pv-block-start:svcfeed1 */}
-                <EmptyState data-pv-block="svcfeed1" icon="mdi:cctv" bigHeading="" secondaryText="Feed active — no anomalies" className="bg-background-tertiary rounded min-h-32" />
-                {/* pv-block-end:svcfeed1 */}
               {/* pv-editable-zone-end:svce1 */}
             </Card>
             {/* pv-block-end:svcam1 */}
 
-            {/* pv-block-start:svcam2 */}
-            <Card data-pv-block="svcam2" className="flex flex-col gap-3">
-              {/* pv-editable-zone-start:svce2 */}
-                {/* pv-block-start:svch2 */}
-                <div data-pv-block="svch2" className="flex items-center justify-between">
-                  {/* pv-editable-zone-start:svche2 */}
-                    {/* pv-block-start:svcht2 */}
-                    <TextParagraph data-pv-block="svcht2" typography="semibold-primary">Cam 02 — Shark Tank</TextParagraph>
-                    {/* pv-block-end:svcht2 */}
-                    {/* pv-block-start:svchs2 */}
-                    <Badge data-pv-block="svchs2" label="Live" color="success" />
-                    {/* pv-block-end:svchs2 */}
-                  {/* pv-editable-zone-end:svche2 */}
+            {/* pv-block-start:o9nf3x */}
+            <Card data-pv-block="o9nf3x" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:2km09x */}
+                <div data-pv-block="2km09x" className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-05-04-at-134811.png')] bg-center bg-no-repeat aspect-video bg-cover rounded" />
+                {/* pv-block-end:2km09x */}
+                {/* pv-block-start:svcfeed1 */}
+                <EmptyState data-pv-block="svcfeed1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:svcfeed1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:svche1 */}
+                    {/* pv-block-start:aa4yzx */}
+                    <TextParagraph data-pv-block="aa4yzx" typography="semibold-primary">Cam 01 — Volcano Entrance</TextParagraph>
+                    {/* pv-block-end:aa4yzx */}
+                    {/* pv-block-start:vdm8u9 */}
+                    <Badge data-pv-block="vdm8u9" label="Error" color="destructive" />
+                    {/* pv-block-end:vdm8u9 */}
+                  {/* pv-editable-zone-end:svche1 */}
                 </div>
-                {/* pv-block-end:svch2 */}
-                {/* pv-block-start:svcfeed2 */}
-                <EmptyState data-pv-block="svcfeed2" icon="mdi:cctv" bigHeading="" secondaryText="2 sharks visible" className="bg-background-tertiary rounded min-h-32" />
-                {/* pv-block-end:svcfeed2 */}
-              {/* pv-editable-zone-end:svce2 */}
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
             </Card>
-            {/* pv-block-end:svcam2 */}
-
-            {/* pv-block-start:svcam3 */}
-            <Card data-pv-block="svcam3" className="flex flex-col gap-3">
-              {/* pv-editable-zone-start:svce3 */}
-                {/* pv-block-start:svch3 */}
-                <div data-pv-block="svch3" className="flex items-center justify-between">
-                  {/* pv-editable-zone-start:svche3 */}
-                    {/* pv-block-start:svcht3 */}
-                    <TextParagraph data-pv-block="svcht3" typography="semibold-primary">Cam 03 — Monologue Chamber</TextParagraph>
-                    {/* pv-block-end:svcht3 */}
-                    {/* pv-block-start:svchs3 */}
-                    <Badge data-pv-block="svchs3" label="Offline" color="neutral" />
-                    {/* pv-block-end:svchs3 */}
-                  {/* pv-editable-zone-end:svche3 */}
-                </div>
-                {/* pv-block-end:svch3 */}
-                {/* pv-block-start:svcfeed3 */}
-                <EmptyState data-pv-block="svcfeed3" icon="mdi:cctv" bigHeading="" secondaryText="Signal lost — check cable" className="bg-background-tertiary rounded min-h-32" />
-                {/* pv-block-end:svcfeed3 */}
-              {/* pv-editable-zone-end:svce3 */}
-            </Card>
-            {/* pv-block-end:svcam3 */}
+            {/* pv-block-end:o9nf3x */}
           {/* pv-editable-zone-end:svgz1 */}
         </div>
         {/* pv-block-end:svgrid1 */}

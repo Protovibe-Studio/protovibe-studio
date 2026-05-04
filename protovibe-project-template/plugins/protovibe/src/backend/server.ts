@@ -1013,11 +1013,18 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           newBlockIds.push(newId);
         });
 
-        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
-        let match;
-        while ((match = idRegex.exec(pastedContent)) !== null) {
-          if (!idMap[match[1]]) {
-            idMap[match[1]] = Math.random().toString(36).substring(2, 8);
+        const pasteIdSourceRegexes = [
+          /data-pv-block="([a-zA-Z0-9_-]{6})"/g,
+          /pv-block-(?:start|end):([a-zA-Z0-9_-]{6})/g,
+          /pv-editable-zone-(?:start|end):([a-zA-Z0-9_-]{6})/g,
+        ];
+        for (const src of pasteIdSourceRegexes) {
+          const r = new RegExp(src.source, 'g');
+          let match;
+          while ((match = r.exec(pastedContent)) !== null) {
+            if (!idMap[match[1]]) {
+              idMap[match[1]] = Math.random().toString(36).substring(2, 8);
+            }
           }
         }
 
@@ -1611,13 +1618,19 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         // references (e.g., a sibling pointing at another sibling's id) stay linked
         // in the duplicated copies instead of getting independently re-randomised.
         const idMap: Record<string, string> = {};
-        const idRegex = /data-pv-block="([a-zA-Z0-9_-]{6})"/g;
+        const idSourceRegexes = [
+          /data-pv-block="([a-zA-Z0-9_-]{6})"/g,
+          /pv-block-(?:start|end):([a-zA-Z0-9_-]{6})/g,
+          /pv-editable-zone-(?:start|end):([a-zA-Z0-9_-]{6})/g,
+        ];
         for (const match of matches) {
-          let idMatch;
-          const r = new RegExp(idRegex.source, 'g');
-          while ((idMatch = r.exec(match.content)) !== null) {
-            if (!idMap[idMatch[1]]) {
-              idMap[idMatch[1]] = Math.random().toString(36).substring(2, 8);
+          for (const src of idSourceRegexes) {
+            const r = new RegExp(src.source, 'g');
+            let idMatch;
+            while ((idMatch = r.exec(match.content)) !== null) {
+              if (!idMap[idMatch[1]]) {
+                idMap[idMatch[1]] = Math.random().toString(36).substring(2, 8);
+              }
             }
           }
         }
