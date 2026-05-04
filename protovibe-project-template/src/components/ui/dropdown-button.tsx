@@ -101,7 +101,7 @@ export function DropdownButton({
         size={size}
         leftIcon={leftIcon}
         rightIcon={rightIcon}
-        className="w-full data-[variant=outline]:font-normal"
+        className="w-full"
         onClick={() => setIsOpen((prev) => !prev)}
       />
 

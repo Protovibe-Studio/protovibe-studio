@@ -238,13 +238,13 @@ function MinionDetailsDialog({ minion, onClose }: { minion: Minion; onClose: () 
                 <Tabs data-pv-block="9wqmco" value="tab1">
                   {/* pv-editable-zone-start:czqnt4 */}
                     {/* pv-block-start:wunlfl */}
-                    <TabItem data-pv-block="wunlfl" label="Tab 1" value="tab1" />
+                    <TabItem data-pv-block="wunlfl" label="Basic data" value="tab1" />
                     {/* pv-block-end:wunlfl */}
                     {/* pv-block-start:nffsa9 */}
-                    <TabItem data-pv-block="nffsa9" label="Tab 2" value="tab2" />
+                    <TabItem data-pv-block="nffsa9" label="Assignments" value="tab2" />
                     {/* pv-block-end:nffsa9 */}
                     {/* pv-block-start:ilyb8x */}
-                    <TabItem data-pv-block="ilyb8x" label="Tab 3" value="tab3" />
+                    <TabItem data-pv-block="ilyb8x" label="Achievements" value="tab3" />
                     {/* pv-block-end:ilyb8x */}
                   {/* pv-editable-zone-end:czqnt4 */}
                 </Tabs>
@@ -673,7 +673,7 @@ export function MinionsPage() {
 
       {selectedMinion && createPortal(
         <DialogContext.Provider value={{ isOpen: true, close: () => setSelectedMinionId(null) }}>
-          <DialogOverlay>
+          <DialogOverlay customDistanceFromTopEdge="15">
             <MinionDetailsDialog minion={selectedMinion} onClose={() => setSelectedMinionId(null)} />
           </DialogOverlay>
         </DialogContext.Provider>,
