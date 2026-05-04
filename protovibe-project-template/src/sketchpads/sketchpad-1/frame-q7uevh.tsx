@@ -16,32 +16,44 @@ export default function Frame12() {
     <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:mjhqpl */}
         {/* pv-block-start:ba0hce */}
-        <span className="text-4xl font-bold" data-pv-block="ba0hce" data-pv-sketchpad-el="ba0hce" style={{ position: 'absolute', left: 325, top: 145 }}>
+        <span className="text-4xl font-bold" data-pv-block="ba0hce" data-pv-sketchpad-el="ba0hce" style={{ position: 'absolute', left: 292, top: 185 }}>
           Welcome to Sketchpads!
         </span>
         {/* pv-block-end:ba0hce */}
         {/* pv-block-start:ey6z9r */}
-        <span className="font-normal text-3xl text-foreground-secondary" data-pv-block="ey6z9r"  data-pv-sketchpad-el="ey6z9r" style={{ position: 'absolute', width: 728, left: 388, top: 220 }}>
-          Here you can design like a human in a familiar infinite canvas interface. But you can use real React components here.
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="ey6z9r"  data-pv-sketchpad-el="ey6z9r" style={{ position: 'absolute', width: 728, left: 355, top: 265 }}>
+          Here you can design like a human in a familiar infinite canvas interface. But You can still use real React components here.
         </span>
         {/* pv-block-end:ey6z9r */}
-        {/* pv-block-start:svcose */}
-        <div data-pv-block="svcose" data-pv-sketchpad-el="svcose" style={{ position: 'absolute', left: -51, top: 399, width: 1541 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
-          {/* pv-editable-zone-start:60suys */}
-          {/* pv-editable-zone-end:60suys */}
-        </div>
-        {/* pv-block-end:svcose */}
         {/* pv-block-start:sw1cpp */}
-        <span className="font-normal text-3xl text-foreground-secondary" data-pv-block="sw1cpp"  data-pv-sketchpad-el="sw1cpp" style={{ position: 'absolute', left: 388, top: 321, width: 728 }}>
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="sw1cpp"  data-pv-sketchpad-el="sw1cpp" style={{ position: 'absolute', left: 355, top: 366, width: 728 }}>
           Double-click to select children. Hold Cmd and click to directly select the deepest child.
         </span>
         {/* pv-block-end:sw1cpp */}
         {/* pv-block-start:20c6x7 */}
-        <Icon className="text-foreground-primary" data-pv-block="20c6x7" data-pv-sketchpad-el="20c6x7" style={{ position: 'absolute', left: 323, top: 321 }} iconSymbol="material-symbols:mouse" size="2xl" />
+        <Icon className="text-foreground-primary" data-pv-block="20c6x7" data-pv-sketchpad-el="20c6x7" style={{ position: 'absolute', left: 290, top: 366 }} iconSymbol="material-symbols:mouse" size="2xl" />
         {/* pv-block-end:20c6x7 */}
         {/* pv-block-start:0az2kb */}
-        <Icon className="text-foreground-primary" data-pv-block="0az2kb" data-pv-sketchpad-el="0az2kb" style={{ position: 'absolute', width: 38, left: 325, top: 220 }} iconSymbol="tabler:bulb" size="2xl" />
+        <Icon className="text-foreground-primary" data-pv-block="0az2kb" data-pv-sketchpad-el="0az2kb" style={{ position: 'absolute', width: 38, left: 292, top: 265 }} iconSymbol="tabler:bulb-filled" size="2xl" />
         {/* pv-block-end:0az2kb */}
+        {/* pv-block-start:wlxhsv */}
+        <Icon className="text-foreground-primary" data-pv-block="wlxhsv" data-pv-sketchpad-el="wlxhsv" style={{ position: 'absolute', left: 291, top: 461 }} iconSymbol="material-symbols:keyboard" size="2xl" />
+        {/* pv-block-end:wlxhsv */}
+        
+        {/* pv-block-start:h9r5ux */}
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="h9r5ux"  data-pv-sketchpad-el="h9r5ux" style={{ position: 'absolute', left: 358, top: 472, width: 728 }}>
+          Alt+Drag to duplicate. Hold space to pan.
+        </span>
+        {/* pv-block-end:h9r5ux */}
+        {/* pv-block-start:wz3ziy */}
+        <Icon className="text-foreground-primary" data-pv-block="wz3ziy" data-pv-sketchpad-el="wz3ziy" style={{ position: 'absolute', left: 293, top: 568 }} iconSymbol="tabler:layout-filled" size="2xl" />
+        {/* pv-block-end:wz3ziy */}
+        
+        {/* pv-block-start:cub24k */}
+        <span className="font-normal text-3xl text-foreground-secondary leading-normal" data-pv-block="cub24k"  data-pv-sketchpad-el="cub24k" style={{ position: 'absolute', left: 358, top: 568, width: 728 }}>
+          Shift+A to wrap elements in autolayout and style them with paddings and margins
+        </span>
+        {/* pv-block-end:cub24k */}
       {/* pv-editable-zone-end:mjhqpl */}
     </div>
   );

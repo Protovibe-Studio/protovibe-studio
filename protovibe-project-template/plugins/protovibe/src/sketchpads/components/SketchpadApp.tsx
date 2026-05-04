@@ -83,6 +83,30 @@ const VerticalLineIcon = (props: React.ComponentProps<typeof Minus>) => (
   <Minus {...props} style={{ ...props.style, transform: 'rotate(90deg)' }} />
 );
 
+function isFrameInViewport(
+  frame: SketchpadFrame,
+  transform: CanvasTransform,
+  viewportWidth: number,
+  viewportHeight: number,
+): boolean {
+  const left = transform.panX + frame.canvasX * transform.zoom;
+  const top = transform.panY + frame.canvasY * transform.zoom;
+  const right = left + frame.width * transform.zoom;
+  const bottom = top + frame.height * transform.zoom;
+  return right > 0 && left < viewportWidth && bottom > 0 && top < viewportHeight;
+}
+
+function ensureFramesVisible(
+  frames: SketchpadFrame[],
+  transform: CanvasTransform,
+  viewportWidth: number,
+  viewportHeight: number,
+): CanvasTransform {
+  if (frames.length === 0 || viewportWidth <= 0 || viewportHeight <= 0) return transform;
+  if (frames.some((f) => isFrameInViewport(f, transform, viewportWidth, viewportHeight))) return transform;
+  return centeredTransformForFrames(frames, viewportWidth, viewportHeight);
+}
+
 function centeredTransformForFrames(frames: SketchpadFrame[], viewportWidth: number, viewportHeight: number): CanvasTransform {
   if (frames.length === 0) return INITIAL_TRANSFORM;
   const zoom = 0.7;
@@ -410,6 +434,29 @@ export function SketchpadApp() {
     return () => observer.disconnect();
   }, [activeSketchpad]);
 
+  // When the user opens the Sketchpad nav tab, ensure at least one Frame is in
+  // the viewport — otherwise auto-center on the bounding box of all frames.
+  // Guards against stale viewState pointing into empty space (e.g. after a frame
+  // was deleted far from the camera, or after coordinate corruption).
+  const transformRef = useRef(transform);
+  useEffect(() => { transformRef.current = transform; }, [transform]);
+  const activeSketchpadRef = useRef(activeSketchpad);
+  useEffect(() => { activeSketchpadRef.current = activeSketchpad; }, [activeSketchpad]);
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type !== 'PV_SKETCHPAD_TAB_OPENED') return;
+      const sp = activeSketchpadRef.current;
+      const container = containerRef.current;
+      if (!sp || !container || sp.frames.length === 0) return;
+      const { width, height } = container.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      const next = ensureFramesVisible(sp.frames, transformRef.current, width, height);
+      if (next !== transformRef.current) setTransform(next);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
   // Sketchpad CRUD
   const handleCreateSketchpad = useCallback(async (name: string) => {
     await runLockedMutation(async () => {
@@ -439,8 +486,19 @@ export function SketchpadApp() {
         } else {
           setSketchpads(remaining);
           if (activeSketchpadId === id) {
-            setActiveSketchpadId(remaining[0].id);
-            loadAllFrameModules(remaining[0].id, remaining[0].frames);
+            const next = remaining[0];
+            setActiveSketchpadId(next.id);
+            setSelectedFrameIds([]);
+            const rect = containerRef.current?.getBoundingClientRect();
+            const baseTransform = next.viewState ?? INITIAL_TRANSFORM;
+            const safeTransform =
+              rect && rect.width > 0 && rect.height > 0
+                ? ensureFramesVisible(next.frames, baseTransform, rect.width, rect.height)
+                : baseTransform;
+            setTransform(safeTransform);
+            initialTransformAppliedRef.current = true;
+            hasInitiallyCentered.current = true;
+            loadAllFrameModules(next.id, next.frames);
           }
         }
       });
@@ -1842,8 +1900,13 @@ export function SketchpadApp() {
           setSelectedFrameIds([]);
           const sp = sketchpads.find((s) => s.id === id);
           if (sp) {
+            const rect = containerRef.current?.getBoundingClientRect();
             if (sp.viewState) {
-              setTransform(sp.viewState);
+              const safeTransform =
+                rect && rect.width > 0 && rect.height > 0
+                  ? ensureFramesVisible(sp.frames, sp.viewState, rect.width, rect.height)
+                  : sp.viewState;
+              setTransform(safeTransform);
               initialTransformAppliedRef.current = true;
             } else {
               initialTransformAppliedRef.current = false;

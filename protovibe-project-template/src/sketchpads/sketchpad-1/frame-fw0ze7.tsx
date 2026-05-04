@@ -15,49 +15,69 @@ export default function Frame12() {
   return (
     <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:3ubuxh */}
-        {/* pv-block-start:8dynul */}
-        <Input data-pv-block="8dynul" data-pv-sketchpad-el="8dynul" style={{ position: 'absolute', width: 332, left: 169, top: 236 }} placeholder="" />
-        {/* pv-block-end:8dynul */}
-        {/* pv-block-start:atjzo7 */}
-        <SuperLabel data-pv-block="atjzo7" data-pv-sketchpad-el="atjzo7" style={{ position: 'absolute', left: 169, top: 208 }} primaryText="Email or username" />
-        {/* pv-block-end:atjzo7 */}
-        {/* pv-block-start:574z1k */}
-        <TextHeading data-pv-block="574z1k" data-pv-sketchpad-el="574z1k" style={{ position: 'absolute', left: 169, top: 139 }} typography="heading-md">
-          Login to EvilCorp
-        </TextHeading>
-        {/* pv-block-end:574z1k */}
-        {/* pv-block-start:3fn7mn */}
-        <SuperLabel data-pv-block="3fn7mn" data-pv-sketchpad-el="3fn7mn" style={{ position: 'absolute', left: 169, top: 295 }} primaryText="Password" />
-        {/* pv-block-end:3fn7mn */}
-        
-        {/* pv-block-start:4vts8v */}
-        <Input data-pv-block="4vts8v" data-pv-sketchpad-el="4vts8v" style={{ position: 'absolute', left: 169, top: 323, width: 332 }} placeholder="" />
-        {/* pv-block-end:4vts8v */}
-        {/* pv-block-start:4fg2im */}
-        <SuperLabel data-pv-block="4fg2im" data-pv-sketchpad-el="4fg2im" style={{ position: 'absolute', left: 309, top: 428 }} primaryText="— OR —" />
-        {/* pv-block-end:4fg2im */}
-        {/* pv-block-start:r4xwg4 */}
-        <Button data-pv-block="r4xwg4" data-pv-sketchpad-el="r4xwg4" style={{ position: 'absolute', width: 332, left: 169, top: 372 }} label="Sign in" variant="solid" color="primary" size="md" />
-        {/* pv-block-end:r4xwg4 */}
-        {/* pv-block-start:y8cpan */}
-        <Button leftIcon="ion:logo-google" data-pv-block="y8cpan" data-pv-sketchpad-el="y8cpan" style={{ position: 'absolute', left: 170, top: 468, width: 332 }} label="Continue with Google" variant="solid" color="neutral" size="md" />
-        {/* pv-block-end:y8cpan */}
-        {/* pv-block-start:44rkki */}
-        <Button leftIcon="radix-icons:github-logo" data-pv-block="44rkki" data-pv-sketchpad-el="44rkki" style={{ position: 'absolute', left: 170, top: 520, width: 332 }} label="Continue with GitHub" variant="solid" color="neutral" size="md" />
-        {/* pv-block-end:44rkki */}
+        {/* pv-block-start:jqzz83 */}
+        <div data-pv-block="jqzz83" className="flex flex-col gap-4" data-pv-sketchpad-el="jqzz83" style={{ position: 'absolute', left: 162, top: 200 }}>
+          {/* pv-editable-zone-start:hyvc8b */}
+          {/* pv-block-start:574z1k */}
+          <TextHeading data-pv-block="574z1k"  typography="heading-md">
+            Login to EvilCorp
+          </TextHeading>
+          {/* pv-block-end:574z1k */}
+          {/* pv-block-start:8qm6lj */}
+          <div data-pv-block="8qm6lj" className="flex flex-col gap-1" >
+            {/* pv-editable-zone-start:bnq9q2 */}
+            {/* pv-block-start:atjzo7 */}
+            <SuperLabel data-pv-block="atjzo7"  primaryText="Email or username" />
+            {/* pv-block-end:atjzo7 */}
+            {/* pv-block-start:8dynul */}
+            <Input data-pv-block="8dynul" style={{ width: 332 }} placeholder="" />
+            {/* pv-block-end:8dynul */}
+            {/* pv-editable-zone-end:bnq9q2 */}
+          </div>
+          {/* pv-block-end:8qm6lj */}
+          {/* pv-block-start:48t12t */}
+          <div data-pv-block="48t12t" className="flex flex-col gap-1" >
+            {/* pv-editable-zone-start:p81anq */}
+            {/* pv-block-start:3fn7mn */}
+            <SuperLabel data-pv-block="3fn7mn"  primaryText="Password" />
+            {/* pv-block-end:3fn7mn */}
+            {/* pv-block-start:4vts8v */}
+            <Input data-pv-block="4vts8v" style={{ width: 332 }} placeholder="" />
+            {/* pv-block-end:4vts8v */}
+            {/* pv-editable-zone-end:p81anq */}
+          </div>
+          {/* pv-block-end:48t12t */}
+          {/* pv-block-start:4fg2im */}
+          <SuperLabel className="justify-center flex-col" data-pv-block="4fg2im"  primaryText="— OR —" />
+          {/* pv-block-end:4fg2im */}
+          {/* pv-block-start:r4xwg4 */}
+          <Button data-pv-block="r4xwg4" style={{ width: 332 }} label="Sign in" variant="solid" color="primary" size="md" />
+          {/* pv-block-end:r4xwg4 */}
+          {/* pv-block-start:y8cpan */}
+          <Button leftIcon="ion:logo-google" data-pv-block="y8cpan" style={{ width: 332 }} label="Continue with Google" variant="solid" color="neutral" size="md" />
+          {/* pv-block-end:y8cpan */}
+          {/* pv-block-start:44rkki */}
+          <Button leftIcon="radix-icons:github-logo" data-pv-block="44rkki" style={{ width: 332 }} label="Continue with GitHub" variant="solid" color="neutral" size="md" />
+          {/* pv-block-end:44rkki */}
+          {/* pv-block-start:lic3hc */}
+          <TextParagraph className="flex flex-row gap-1 items-center bg-transparent justify-center rounded-none" data-pv-block="lic3hc" style={{ width: 328 }} typography="regular">
+            Don't have account? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Sign up</a>
+          </TextParagraph>
+          {/* pv-block-end:lic3hc */}
+          {/* pv-editable-zone-end:hyvc8b */}
+        </div>
+        {/* pv-block-end:jqzz83 */}
+
         {/* pv-block-start:n0mcq4 */}
-        <TextParagraph data-pv-block="n0mcq4" data-pv-sketchpad-el="n0mcq4" style={{ position: 'absolute', left: 169, top: 30 }} typography="regular">
+        <TextParagraph data-pv-block="n0mcq4" data-pv-sketchpad-el="n0mcq4" style={{ position: 'absolute', left: 173, top: 35 }} typography="regular">
           To take over the world!
         </TextParagraph>
         {/* pv-block-end:n0mcq4 */}
-        {/* pv-block-start:mu0unz */}
-        <div data-pv-block="mu0unz" data-pv-sketchpad-el="mu0unz" style={{ position: 'absolute', left: 365, top: -54 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
-        {/* pv-block-end:mu0unz */}
         {/* pv-block-start:ny6dao */}
         <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 900, width: 768, left: 671, top: -1 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
           {/* pv-editable-zone-start:69fbo3 */}
             {/* pv-block-start:9cbtll */}
-            <div data-pv-block="9cbtll" data-pv-sketchpad-el="9cbtll" style={{ position: 'absolute', width: 1541, left: -177, top: 0 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
+            <div data-pv-block="9cbtll" data-pv-sketchpad-el="9cbtll" style={{ position: 'absolute', width: 1541, left: -167, top: 33 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
               {/* pv-editable-zone-start:r5i3w2 */}
                 {/* pv-block-start:q7xn2s */}
                 <Button data-pv-block="q7xn2s"  label="Sign in" variant="solid" color="primary" size="md" />
@@ -74,11 +94,6 @@ export default function Frame12() {
           {/* pv-editable-zone-end:sqjwhd */}
         </VerticalLine>
         {/* pv-block-end:e4gqhr */}
-        {/* pv-block-start:lic3hc */}
-        <TextParagraph className="flex flex-row gap-1 items-center bg-transparent justify-center rounded-none" data-pv-block="lic3hc" data-pv-sketchpad-el="lic3hc" style={{ position: 'absolute', width: 328, left: 173, top: 582 }} typography="regular">
-          Don't have account? <a href="https://" target="_blank" rel="noopener noreferrer" className="text-foreground-primary-link hover:opacity-80 transition-opacity">Sign up</a>
-        </TextParagraph>
-        {/* pv-block-end:lic3hc */}
         {/* pv-block-start:eq74v6 */}
         <TextParagraph className="text-tiny text-foreground-tertiary" data-pv-block="eq74v6" data-pv-sketchpad-el="eq74v6" style={{ position: 'absolute', width: 331, left: 173, top: 733 }} typography="small">
           By logging in you accept EvilCorop terms of services.
@@ -91,7 +106,7 @@ export default function Frame12() {
         </HorizontalLine>
         {/* pv-block-end:gk2qgn */}
         {/* pv-block-start:d5c4xk */}
-        <div data-pv-block="d5c4xk" data-pv-sketchpad-el="d5c4xk" style={{ position: 'absolute', width: 106, left: 33, top: 29 }} className="w-full bg-[url('/src/images/from-protovibe/logo2-6.png')] bg-contain bg-center bg-no-repeat aspect-[55/14]" />
+        <div data-pv-block="d5c4xk" data-pv-sketchpad-el="d5c4xk" style={{ position: 'absolute', width: 103, left: 33, top: 32 }} className="w-full bg-[url('/src/images/from-protovibe/logo2-6.png')] bg-contain bg-center bg-no-repeat aspect-[55/14]" />
         {/* pv-block-end:d5c4xk */}
       {/* pv-editable-zone-end:3ubuxh */}
     </div>

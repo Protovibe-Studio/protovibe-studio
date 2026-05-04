@@ -300,7 +300,11 @@ export const handleSketchpadDelete: Connect.NextHandleFunction = async (req, res
     );
     snapshotFiles(null, '?tab=sketchpad', 'src/sketchpads/_registry.json', ...framePaths);
 
+    const wasActive = reg.lastActiveSketchpadId === id;
     reg.sketchpads = reg.sketchpads.filter((s) => s.id !== id);
+    if (wasActive) {
+      reg.lastActiveSketchpadId = reg.sketchpads[0]?.id;
+    }
     writeRegistry(reg);
 
     const dirPath = path.join(SKETCHPADS_DIR, id);

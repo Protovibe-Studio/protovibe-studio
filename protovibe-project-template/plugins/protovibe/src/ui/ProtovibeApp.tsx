@@ -112,6 +112,10 @@ export const ProtovibeApp: React.FC = () => {
       (document.activeElement as HTMLElement | null)?.blur?.();
       requestAnimationFrame(() => {
         sketchpadIframeRef.current?.contentWindow?.focus();
+        sketchpadIframeRef.current?.contentWindow?.postMessage(
+          { type: 'PV_SKETCHPAD_TAB_OPENED' },
+          '*',
+        );
       });
     }
   }, [refreshComponents, activeIframeTab, captureAppScrollPositions, restoreAppScrollPositions]);

@@ -25,7 +25,8 @@
       "Bash(git commit -m ' *)",
       "Bash(awk *)",
       "mcp__ide__getDiagnostics",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(find *)"
     ]
   },
   "outputStyle": "Explanatory"
