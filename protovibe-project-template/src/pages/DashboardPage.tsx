@@ -18,7 +18,7 @@ export function DashboardPage() {
         </TextHeading>
         {/* pv-block-end:da1sh2 */}
         {/* pv-block-start:i3b4c5 */}
-        <InfoBoxBanner color="info" className=""
+        <InfoBoxBanner color="primary" className=""
           data-pv-block="i3b4c5"
           heading="Welcome back, HR Admin!"
           secondaryText="You have 4 pending time-off requests and 2 upcoming performance reviews to manage."

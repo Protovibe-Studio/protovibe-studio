@@ -2218,7 +2218,8 @@ function removeGoogleFontImport(css: string, tokenSlot: string): string {
 /** Prepend a managed Google Font @import for a given token slot at the top of the CSS. */
 function addGoogleFontImport(css: string, tokenSlot: string, fontName: string): string {
   const encodedName = fontName.replace(/ /g, '+');
-  const importLine = `/* pv-google-font:${tokenSlot} */\n@import url('https://fonts.googleapis.com/css2?family=${encodedName}:wght@400;700&display=swap');\n`;
+  const weights = '100,200,300,400,500,600,700,800,900,100i,200i,300i,400i,500i,600i,700i,800i,900i';
+  const importLine = `/* pv-google-font:${tokenSlot} */\n@import url('https://fonts.googleapis.com/css?family=${encodedName}:${weights}&display=swap');\n`;
   return importLine + css;
 }
 

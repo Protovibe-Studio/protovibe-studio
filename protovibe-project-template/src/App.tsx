@@ -32,25 +32,23 @@ export default function App() {
       <TooltipProvider />
       {/* Sidebar */}
       {/* pv-block-start:sb1001 */}
-      <div data-pv-block="sb1001" className="w-64 flex flex-col shrink-0 bg-background-subtle border-border-default border-r">
+      <div data-pv-block="sb1001" className="w-64 flex flex-col shrink-0 border-border-default bg-background-default">
         {/* pv-editable-zone-start:szn101 */}
           {/* pv-block-start:br2002 */}
-          <div data-pv-block="br2002" className="h-16 flex items-center px-6 gap-3 border-b border-border-default">
+          <div data-pv-block="br2002" className="flex items-center gap-3 border-b border-border-default h-12 pl-4 pr-6">
             {/* pv-editable-zone-start:bzn202 */}
-              {/* pv-block-start:ic3003 */}
-              <div data-pv-block="ic3003" className="w-8 h-8 rounded-lg bg-background-destructive flex items-center justify-center text-foreground-on-primary shadow-sm">
-                <Icon iconSymbol="mdi:skull-crossbones" size="sm" />
+              {/* pv-block-start:smg8v8 */}
+              <div className="flex flex-col bg-contain bg-center bg-no-repeat h-7 bg-[url('/src/images/from-protovibe/logo2-6.png')] aspect-[55/14]" data-pv-block="smg8v8">
+                {/* pv-editable-zone-start:h5hz60 */}
+                {/* pv-editable-zone-end:h5hz60 */}
               </div>
-              {/* pv-block-end:ic3003 */}
-              {/* pv-block-start:hd3004 */}
-              <TextHeading data-pv-block="hd3004" typography="heading-sm" className="tracking-tight">EvilCorp HQ</TextHeading>
-              {/* pv-block-end:hd3004 */}
+              {/* pv-block-end:smg8v8 */}
             {/* pv-editable-zone-end:bzn202 */}
           </div>
           {/* pv-block-end:br2002 */}
 
           {/* pv-block-start:nv2005 */}
-          <div data-pv-block="nv2005" className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
+          <div data-pv-block="nv2005" className="p-4 flex-1 overflow-y-auto flex flex-col gap-4 border-r border-border-default">
             {/* pv-editable-zone-start:nzn205 */}
               {/* pv-block-start:ns2009 */}
               <div data-pv-block="ns2009">
@@ -93,7 +91,7 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
         {/* pv-block-start:hd5001 */}
-        <header data-pv-block="hd5001" className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
+        <header data-pv-block="hd5001" className="flex items-center justify-end shrink-0 h-12 pl-8 pr-2 bg-background-default border-b border-border-default">
           {/* pv-editable-zone-start:hzn501 */}
             {/* pv-block-start:nv5002 */}
             <div data-pv-block="nv5002" className="flex items-center gap-1">

@@ -411,7 +411,7 @@ export function MinionsPage() {
               {/* pv-block-end:0zvrdl */}
 
               {/* pv-block-start:07vjpp */}
-              <div data-pv-block="07vjpp" className="flex flex-col gap-2 pl-6 pr-7">
+              <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-7">
                 {/* pv-editable-zone-start:dg0paq */}
                 {/* pv-block-start:tb5t6y */}
                 <Table data-pv-block="tb5t6y" className="">
@@ -508,7 +508,7 @@ export function MinionsPage() {
               {/* pv-block-end:07vjpp */}
 
               {/* pv-block-start:tb3e4r */}
-              <div data-pv-block="tb3e4r" className="flex items-center gap-4 w-full px-5 justify-end">
+              <div data-pv-block="tb3e4r" className="flex items-center gap-4 w-full justify-end px-7">
                 {/* pv-editable-zone-start:zn1abc */}
                   {/* pv-block-start:bk3ghi */}
                   <div data-pv-block="bk3ghi" className="flex items-center gap-3 shrink-0">
