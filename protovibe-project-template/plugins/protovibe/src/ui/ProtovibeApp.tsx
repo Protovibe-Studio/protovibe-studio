@@ -599,32 +599,32 @@ export const ProtovibeApp: React.FC = () => {
           )}
         </div>
 
-        {activeSidebarTab === 'design' && (
+        <div style={{ display: activeSidebarTab === 'design' ? 'contents' : 'none' }}>
           <Sidebar isOpen={inspectorOpen} />
-        )}
+        </div>
 
-        {activeSidebarTab === 'tokens' && inspectorOpen && (
+        {inspectorOpen && (
           <div
             style={{
               width: `${INSPECTOR_WIDTH_PX}px`,
               flexShrink: 0,
               borderLeft: `1px solid ${theme.border_default}`,
               overflow: 'hidden',
-              display: 'flex',
+              display: activeSidebarTab === 'tokens' ? 'flex' : 'none',
             }}
           >
             <TokensTab />
           </div>
         )}
 
-        {activeSidebarTab === 'prompts' && inspectorOpen && (
+        {inspectorOpen && (
           <div
             style={{
               width: `${INSPECTOR_WIDTH_PX}px`,
               flexShrink: 0,
               borderLeft: `1px solid ${theme.border_default}`,
               overflow: 'hidden',
-              display: 'flex',
+              display: activeSidebarTab === 'prompts' ? 'flex' : 'none',
             }}
           >
             <PromptsTab />
