@@ -355,20 +355,22 @@ export function MinionsPage() {
       {/* pv-editable-zone-start:sk1a2b */}
 
         {/* pv-block-start:lbcm1t */}
-        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 border-b border-border-default p-5">
+        <div data-pv-block="lbcm1t" className="flex flex-col gap-2 border-border-default p-7">
           {/* pv-editable-zone-start:uz9d2r */}
           {/* pv-block-start:sk3c4d */}
           <div data-pv-block="sk3c4d" className="flex items-center justify-between">
           {/* pv-editable-zone-start:sk5e6f */}
 
           {/* pv-block-start:sk7g8h */}
-          <div data-pv-block="sk7g8h" className="flex flex-col gap-1">
+          <div data-pv-block="sk7g8h" className="flex flex-col gap-0">
           {/* pv-editable-zone-start:sk9i0j */}
           {/* pv-block-start:skaj1k */}
-          <TextHeading data-pv-block="skaj1k" typography="heading-md">Minions</TextHeading>
+          <TextHeading data-pv-block="skaj1k" typography="heading-lg">Minions</TextHeading>
           {/* pv-block-end:skaj1k */}
           {/* pv-block-start:skbl2m */}
-          <TextParagraph data-pv-block="skbl2m" typography="secondary">Recruit and manage your loyal henchmen across all divisions.</TextParagraph>
+          <TextParagraph data-pv-block="skbl2m" typography="secondary">
+            Manage your loyal henchmen across all divisions.
+          </TextParagraph>
           {/* pv-block-end:skbl2m */}
           {/* pv-editable-zone-end:sk9i0j */}
           </div>
@@ -396,10 +398,10 @@ export function MinionsPage() {
             secondaryText="No minions recruited yet. Start by recruiting your first henchman."
           />
         ) : (
-          <div data-pv-block="skht8u" className="flex flex-col gap-4 pt-3">
+          <div data-pv-block="skht8u" className="flex flex-col gap-4">
             {/* pv-editable-zone-start:tb1q2w */}
               {/* pv-block-start:0zvrdl */}
-              <div data-pv-block="0zvrdl" className="flex items-center justify-between gap-4 w-full px-5">
+              <div data-pv-block="0zvrdl" className="flex items-center justify-between gap-4 w-full px-7">
                 {/* pv-editable-zone-start:zn1abc */}
                   {/* pv-block-start:xnbg1g */}
                   <Input data-pv-block="xnbg1g" prefixIcon="search" placeholder="Search minion" className="" />
@@ -409,7 +411,7 @@ export function MinionsPage() {
               {/* pv-block-end:0zvrdl */}
 
               {/* pv-block-start:07vjpp */}
-              <div data-pv-block="07vjpp" className="flex flex-col gap-2 px-5">
+              <div data-pv-block="07vjpp" className="flex flex-col gap-2 pl-6 pr-7">
                 {/* pv-editable-zone-start:dg0paq */}
                 {/* pv-block-start:tb5t6y */}
                 <Table data-pv-block="tb5t6y" className="">
@@ -438,7 +440,7 @@ export function MinionsPage() {
                   <TableBody>
                     {/* pv-block-start:rw1m2n */}
                     {state.minions.map(minion => (
-                      <TableRowContent data-pv-block="rw1m2n" key={minion.id} onClick={() => setSelectedMinionId(minion.id)} className="even:bg-background-default hover:!bg-background-tertiary transition-colors cursor-pointer">
+                      <TableRowContent data-pv-block="rw1m2n" key={minion.id} onClick={() => setSelectedMinionId(minion.id)} className="transition-colors cursor-pointer">
                         {/* pv-editable-zone-start:zr3o4p */}
                           {/* pv-block-start:cl5q6r */}
                           <TableCellContent data-pv-block="cl5q6r">

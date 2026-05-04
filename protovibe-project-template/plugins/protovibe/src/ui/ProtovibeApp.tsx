@@ -34,7 +34,7 @@ export const ProtovibeApp: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
-  const { inspectorOpen, toggleInspector, clearFocus, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme } = useProtovibe();
+  const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -92,21 +92,17 @@ export const ProtovibeApp: React.FC = () => {
   useIframeBridge(appIframeRef, sketchpadIframeRef, componentsIframeRef);
   useKeyboardShortcuts();
 
-  // Canonical tab-switch: always clears inspector focus and iframe outlines.
-  // Use this everywhere instead of calling setActiveIframeTab directly.
+  // Canonical tab-switch: preserves inspector focus across tabs so users can
+  // tweak a component in Components and preview it in App without re-selecting.
   const handleIframeTabChange = useCallback((tab: IframeTab) => {
     if (activeIframeTab === 'app' && tab !== 'app') {
       captureAppScrollPositions();
     }
-    clearFocus();
     setActiveIframeTab(tab);
     syncTabToURL(tab);
     if (tab === 'app' && activeIframeTab !== 'app') {
       restoreAppScrollPositions();
     }
-    [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
-      ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
-    });
     refreshComponents();
     if (tab === 'components') {
       componentsIframeRef.current?.contentWindow?.postMessage({ type: 'PV_REFRESH_COMPONENTS' }, '*');
@@ -117,7 +113,7 @@ export const ProtovibeApp: React.FC = () => {
         sketchpadIframeRef.current?.contentWindow?.focus();
       });
     }
-  }, [clearFocus, refreshComponents, activeIframeTab, captureAppScrollPositions, restoreAppScrollPositions]);
+  }, [refreshComponents, activeIframeTab, captureAppScrollPositions, restoreAppScrollPositions]);
 
   // Ensure ?tab param is always present in the URL on initial load
   useEffect(() => {
@@ -134,14 +130,10 @@ export const ProtovibeApp: React.FC = () => {
     const handlePopState = () => {
       const tab = parseTabParam(window.location.search);
       setActiveIframeTab(tab);
-      clearFocus();
-      [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
-        ref.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
-      });
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [clearFocus]);
+  }, []);
 
   // When a ui-source tab is clicked in the inspector, switch to the Components
   // iframe and tell the previewer to open that component's playground view.

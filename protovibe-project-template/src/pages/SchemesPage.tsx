@@ -21,15 +21,28 @@ const mockSchemes = [
 
 export function SchemesPage() {
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
+    <div className="flex flex-col animate-in fade-in duration-300 p-7 gap-5">
       {/* pv-editable-zone-start:sc1z2x3 */}
 
         {/* pv-block-start:schead1 */}
         <div data-pv-block="schead1" className="flex gap-2 flex-row items-start justify-between">
           {/* pv-editable-zone-start:schn3m1 */}
-          {/* pv-block-start:sctitle */}
-          <TextHeading data-pv-block="sctitle" typography="heading-lg">Schemes</TextHeading>
-          {/* pv-block-end:sctitle */}
+          {/* pv-block-start:aqkzc8 */}
+          <div data-pv-block="aqkzc8" className="flex flex-col gap-0">
+          {/* pv-editable-zone-start:sk9i0j */}
+          {/* pv-block-start:h73nx8 */}
+          <TextHeading data-pv-block="h73nx8" typography="heading-lg">
+            Schemes
+          </TextHeading>
+          {/* pv-block-end:h73nx8 */}
+          {/* pv-block-start:ws89js */}
+          <TextParagraph data-pv-block="ws89js" typography="secondary">
+            Plans to conquer the world
+          </TextParagraph>
+          {/* pv-block-end:ws89js */}
+          {/* pv-editable-zone-end:sk9i0j */}
+          </div>
+          {/* pv-block-end:aqkzc8 */}
           {/* pv-block-start:scbtn1 */}
           <Button data-pv-block="scbtn1" label="New Scheme" variant="solid" color="primary" leftIcon="plus" />
           {/* pv-block-end:scbtn1 */}
@@ -38,7 +51,7 @@ export function SchemesPage() {
         {/* pv-block-end:schead1 */}
 
         {/* pv-block-start:scinfo1 */}
-        <InfoBoxBanner data-pv-block="scinfo1" color="warning" heading="3 schemes over budget!" secondaryText="Operation Moonbase Alpha has exceeded its quarterly allocation by 340%. Please submit a revised funding request to the Supreme Council." icon="alert-triangle" primaryActionLabel="Request Funds" actionsLayout="right" />
+        <InfoBoxBanner data-pv-block="scinfo1" color="warning" heading="3 schemes over budget!" secondaryText="Operation Moonbase Alpha has exceeded its quarterly allocation by 340%. Please submit a revised funding request to the Supreme Council." icon="alert-triangle"  actionsLayout="right" />
         {/* pv-block-end:scinfo1 */}
 
         {/* pv-block-start:sctable1 */}
@@ -73,7 +86,7 @@ export function SchemesPage() {
                 </TableCellContent>
                 <TableCellContent>
                   <div className="flex items-center gap-2">
-                    <Avatar initials={scheme.lead} size="sm" bgColor="warning" />
+                    <Avatar initials={scheme.lead} size="sm" bgColor="default" />
                     <TextParagraph typography="regular">{scheme.lead}</TextParagraph>
                   </div>
                 </TableCellContent>

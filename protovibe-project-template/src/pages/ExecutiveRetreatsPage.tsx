@@ -35,9 +35,22 @@ export function ExecutiveRetreatsPage() {
         {/* pv-block-start:erhead1 */}
         <div data-pv-block="erhead1" className="flex justify-between items-center">
           {/* pv-editable-zone-start:ern9o1 */}
-            {/* pv-block-start:ertitle */}
-            <TextHeading data-pv-block="ertitle" typography="heading-lg">Executive Retreats</TextHeading>
-            {/* pv-block-end:ertitle */}
+            {/* pv-block-start:86vn59 */}
+            <div data-pv-block="86vn59" className="flex flex-col gap-0">
+            {/* pv-editable-zone-start:sk9i0j */}
+            {/* pv-block-start:jepzlt */}
+            <TextHeading data-pv-block="jepzlt" typography="heading-lg">
+              Executive Retreats
+            </TextHeading>
+            {/* pv-block-end:jepzlt */}
+            {/* pv-block-start:ieepe2 */}
+            <TextParagraph data-pv-block="ieepe2" typography="secondary">
+              Luxurious perks only for senior directors, not for the small
+            </TextParagraph>
+            {/* pv-block-end:ieepe2 */}
+            {/* pv-editable-zone-end:sk9i0j */}
+            </div>
+            {/* pv-block-end:86vn59 */}
             {/* pv-block-start:erbtn1 */}
             <Button data-pv-block="erbtn1" label="Book Retreat" leftIcon="plus" color="primary" onClick={() => setDrawerOpen(true)} />
             {/* pv-block-end:erbtn1 */}

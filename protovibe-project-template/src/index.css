@@ -1,3 +1,5 @@
+/* pv-google-font:font-sans */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 @import "tailwindcss";
 @source "./sketchpads";
 
@@ -69,11 +71,11 @@
  --gradient-background-special-subtle: linear-gradient(270deg, #F8F2FF 0%, #FCEEF5 100%);
 
  /* Text */
- --foreground-default: oklch(18.69% 0.01048 303.5); /* body */
- --foreground-secondary: oklch(46.81% 0.03609 299.6); /* muted labels */
- --foreground-tertiary: oklch(58.45% 0.02948 299.9); /* placeholders, captions */
+ --foreground-default: oklch(14.1% 0.01048 291.1); /* body */
+ --foreground-secondary: oklch(46.81% 0.004 301.9); /* muted labels */
+ --foreground-tertiary: oklch(58.45% 0.011 296.6); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
- --foreground-disabled: oklch(76.1% 0.01747 301.1);
+ --foreground-disabled: oklch(76.1% 0.006 280.6);
  --foreground-inverse: oklch(100% 0 89.9); /* text on dark/strong bg */
  --foreground-on-primary: oklch(100% 0 89.9); /* text inside filled primary */
  --foreground-primary: oklch(42.77% 0.21541 263.7); /* primary-tinted text & links */
@@ -85,15 +87,15 @@
  --gradient-foreground-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
  /* Borders */
- --border-default: oklch(88.89% 0.0168 301.2); /* default hairline */
- --border-secondary: oklch(93.73% 0.01528 302.5); /* subtle divider */
- --border-strong: oklch(80.54% 0.0188 314.7); /* active tab, prominent */
+ --border-default: oklch(92.4% 0.0118 237.7); /* default hairline */
+ --border-secondary: oklch(94.7% 0.01528 229.3); /* subtle divider */
+ --border-strong: oklch(82% 0.0088 242.2); /* active tab, prominent */
  --border-focus: oklch(55% 0.22 260); /* focus ring */
  --border-primary: oklch(42.77% 0.21541 263.7);
  --border-destructive: oklch(60% 0.22 25);
  --border-success: oklch(62.74% 0.16087 153.2);
- --border-warning: oklch(75% 0.18 80);
- --border-info: oklch(65% 0.18 220);
+ --border-warning: oklch(75% 0.18 53.4);
+ --border-info: oklch(65% 0.18 262);
  --gradient-border-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 }
 
@@ -102,10 +104,10 @@
  color-scheme: dark;
 
  /* Backgrounds */
- --background-default: #222326;
- --background-default-hover: #2e2f33;
- --background-default-pressed: #36353b;
- --background-subtle: #272829; /* zebra rows, ghost cards — between default and secondary */
+ --background-default: oklch(24.1% 0.0058 248.5);
+ --background-default-hover: oklch(29.1% 0.00728 250.3);
+ --background-default-pressed: oklch(31.2% 0.01051 262.8);
+ --background-subtle: oklch(26.1% 0.00234 256.4); /* zebra rows, ghost cards — between default and secondary */
  --background-subtle-hover: #2e2f33;
  --background-subtle-pressed: #313235;
  --background-secondary: #2b2b2e;
@@ -179,9 +181,9 @@
  --gradient-foreground-special: linear-gradient(270deg, #5A1CB7 0%, #D91C7A 100%);
 
  /* Borders */
- --border-default: #414045;
- --border-secondary: #36353b;
- --border-strong: #504f54;
+ --border-default: oklch(37.43% 0.00852 261.7);
+ --border-secondary: oklch(33.23% 0.01051 246.5);
+ --border-strong: oklch(43.03% 0.00823 247.6);
  --border-focus: #af80f4;
  --border-primary: oklch(69.43% 0.1693 263.7);
  --border-destructive: #ff7073;
@@ -577,7 +579,7 @@
  --color-white: #fff;
 
  /* ── Fonts ──────────────────────────────────────────────────────────────── */
- --font-sans: ui-sans-serif, system-ui, sans-serif;
+ --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
  --font-secondary: ui-sans-serif, system-ui, sans-serif;
  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -661,15 +663,15 @@
  --leading-loose: 2;
 
  /* ── Border radius ────────────────────────────────────────────────────────── */
- --radius: 0.5rem;
- --radius-xs: 0.125rem;
- --radius-sm: 0.25rem;
- --radius-md: 0.75rem;
- --radius-lg: 1rem;
- --radius-xl: 1.25rem;
- --radius-2xl: 1.5rem;
- --radius-3xl: 1.75rem;
- --radius-4xl: 2rem;
+ --radius: 0.625rem;
+ --radius-xs: 0.25rem;
+ --radius-sm: 0.5rem;
+ --radius-md: 1rem;
+ --radius-lg: 1.25rem;
+ --radius-xl: 1.5rem;
+ --radius-2xl: 1.75rem;
+ --radius-3xl: 2rem;
+ --radius-4xl: 2.5rem;
 
  /* ── Shadows ─────────────────────────────────────────────────────────────── */
  --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);

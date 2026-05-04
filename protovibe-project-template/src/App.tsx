@@ -31,99 +31,203 @@ export default function App() {
     <div className="flex h-screen bg-background-default text-foreground-default font-sans overflow-hidden">
       <TooltipProvider />
       {/* Sidebar */}
-      <div className="w-64 flex flex-col shrink-0 bg-background-subtle">
-        <div className="h-16 flex items-center px-6 gap-3">
-          <div className="w-8 h-8 rounded-lg bg-background-destructive flex items-center justify-center text-foreground-on-primary shadow-sm">
-            <Icon iconSymbol="mdi:skull-crossbones" size="sm" />
+      {/* pv-block-start:sb1001 */}
+      <div data-pv-block="sb1001" className="w-64 flex flex-col shrink-0 bg-background-subtle border-border-default border-r">
+        {/* pv-editable-zone-start:szn101 */}
+          {/* pv-block-start:br2002 */}
+          <div data-pv-block="br2002" className="h-16 flex items-center px-6 gap-3 border-b border-border-default">
+            {/* pv-editable-zone-start:bzn202 */}
+              {/* pv-block-start:ic3003 */}
+              <div data-pv-block="ic3003" className="w-8 h-8 rounded-lg bg-background-destructive flex items-center justify-center text-foreground-on-primary shadow-sm">
+                <Icon iconSymbol="mdi:skull-crossbones" size="sm" />
+              </div>
+              {/* pv-block-end:ic3003 */}
+              {/* pv-block-start:hd3004 */}
+              <TextHeading data-pv-block="hd3004" typography="heading-sm" className="tracking-tight">EvilCorp HQ</TextHeading>
+              {/* pv-block-end:hd3004 */}
+            {/* pv-editable-zone-end:bzn202 */}
           </div>
-          <TextHeading typography="heading-sm" className="tracking-tight">EvilCorp HQ</TextHeading>
-        </div>
+          {/* pv-block-end:br2002 */}
 
-        <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
-          <div>
-            <VerticalTabs value={currentPath} onValueChange={navigate}>
-              <VerticalTabItem value="/profile" label="Dr. Evil" prefixIcon="mdi:account-circle-outline" />
-            </VerticalTabs>
+          {/* pv-block-start:nv2005 */}
+          <div data-pv-block="nv2005" className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
+            {/* pv-editable-zone-start:nzn205 */}
+              {/* pv-block-start:ns2009 */}
+              <div data-pv-block="ns2009">
+                {/* pv-editable-zone-start:nzn209 */}
+                  {/* pv-block-start:vt3011 */}
+                  <VerticalTabs data-pv-block="vt3011" value={currentPath} onValueChange={navigate}>
+                    {/* pv-editable-zone-start:vzn311 */}
+                      {/* pv-block-start:vi4012 */}
+                      <VerticalTabItem data-pv-block="vi4012" value="/dashboard" label="Home" prefixIcon="mdi:home" />
+                      {/* pv-block-end:vi4012 */}
+                      {/* pv-block-start:vi4013 */}
+                      <VerticalTabItem data-pv-block="vi4013" value="/minions" label="Minions" prefixIcon="mdi:account-hard-hat" />
+                      {/* pv-block-end:vi4013 */}
+                      {/* pv-block-start:vi4014 */}
+                      <VerticalTabItem data-pv-block="vi4014" value="/schemes" label="Schemes" prefixIcon="game-icons:evil-love" />
+                      {/* pv-block-end:vi4014 */}
+                      {/* pv-block-start:vi4015 */}
+                      <VerticalTabItem data-pv-block="vi4015" value="/kpis" label="KPIs" prefixIcon="mdi:chart-donut" />
+                      {/* pv-block-end:vi4015 */}
+                      {/* pv-block-start:vi4016 */}
+                      <VerticalTabItem data-pv-block="vi4016" value="/retreats" label="Executive Retreats" prefixIcon="mdi:beach" />
+                      {/* pv-block-end:vi4016 */}
+                      {/* pv-block-start:vi4017 */}
+                      <VerticalTabItem data-pv-block="vi4017" value="/surveillance" label="Surveillance" prefixIcon="mdi:cctv" />
+                      {/* pv-block-end:vi4017 */}
+                    {/* pv-editable-zone-end:vzn311 */}
+                  </VerticalTabs>
+                  {/* pv-block-end:vt3011 */}
+                {/* pv-editable-zone-end:nzn209 */}
+              </div>
+              {/* pv-block-end:ns2009 */}
+            {/* pv-editable-zone-end:nzn205 */}
           </div>
-
-          <div>
-            <TextParagraph typography="semibold-secondary" className="mb-1 text-xs px-2">Operations</TextParagraph>
-            <VerticalTabs value={currentPath} onValueChange={navigate}>
-              <VerticalTabItem value="/dashboard" label="Home" prefixIcon="mdi:home" />
-              <VerticalTabItem value="/minions" label="Minions" prefixIcon="mdi:account-hard-hat" />
-              <VerticalTabItem value="/schemes" label="Schemes" prefixIcon="game-icons:evil-love" />
-              <VerticalTabItem value="/kpis" label="KPIs" prefixIcon="mdi:chart-donut" />
-              <VerticalTabItem value="/retreats" label="Executive Retreats" prefixIcon="mdi:beach" />
-              <VerticalTabItem value="/surveillance" label="Surveillance" prefixIcon="mdi:cctv" />
-            </VerticalTabs>
-          </div>
-        </div>
+          {/* pv-block-end:nv2005 */}
+        {/* pv-editable-zone-end:szn101 */}
       </div>
+      {/* pv-block-end:sb1001 */}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background-subtle pb-2 pr-2">
+      <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
-        <header className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
-          <div className="flex items-center gap-1">
-            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:help-circle-outline" size="md" /></Button>
-            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:cog-outline" size="md" /></Button>
-            <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="material-symbols:inbox" size="md" /></Button>
-            <div className="relative">
-              <Button iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>
+        {/* pv-block-start:hd5001 */}
+        <header data-pv-block="hd5001" className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
+          {/* pv-editable-zone-start:hzn501 */}
+            {/* pv-block-start:nv5002 */}
+            <div data-pv-block="nv5002" className="flex items-center gap-1">
+              {/* pv-editable-zone-start:nzn502 */}
+                {/* pv-block-start:bw6006 */}
+                <div data-pv-block="bw6006" className="relative">
+                  {/* pv-editable-zone-start:bzn606 */}
+                    {/* pv-block-start:bt7007 */}
+                    <Button data-pv-block="bt7007" iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
+                    {/* pv-block-end:bt7007 */}
+                    {/* pv-block-start:dt7008 */}
+                    <span data-pv-block="dt7008" className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>
+                    {/* pv-block-end:dt7008 */}
+                  {/* pv-editable-zone-end:bzn606 */}
+                </div>
+                {/* pv-block-end:bw6006 */}
+                {/* pv-block-start:bt6004 */}
+                <Button data-pv-block="bt6004" iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:cog-outline" size="md" /></Button>
+                {/* pv-block-end:bt6004 */}
+                {/* pv-block-start:bt6003 */}
+                <Button data-pv-block="bt6003" iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:help-circle-outline" size="md" /></Button>
+                {/* pv-block-end:bt6003 */}
+
+                {/* User Avatar Dropdown */}
+                {/* pv-block-start:pt6009 */}
+                <PopoverTrigger data-pv-block="pt6009" placement="bottom" align="right">
+                  {/* pv-editable-zone-start:pzn609 */}
+                    {/* pv-block-start:tg7010 */}
+                    <Button data-pv-block="tg7010" iconOnly variant="ghost" color="neutral">
+                      <Avatar initials="JD" bgColor="default" size="sm" />
+                    </Button>
+                    {/* pv-block-end:tg7010 */}
+
+                    {/* pv-block-start:dl7011 */}
+                    <DropdownList data-pv-block="dl7011" width="lg" className="">
+                      {/* pv-editable-zone-start:dzn711 */}
+                        {/* pv-block-start:di8012 */}
+                        <DropdownItem data-pv-block="di8012">
+                          {/* pv-editable-zone-start:izn812 */}
+                            {/* pv-block-start:av9013 */}
+                            <Avatar data-pv-block="av9013" initials="JD" bgColor="info" size="sm" />
+                            {/* pv-block-end:av9013 */}
+                            {/* pv-block-start:nm9014 */}
+                            <div data-pv-block="nm9014" className="flex flex-col">
+                              {/* pv-editable-zone-start:nzn914 */}
+                                {/* pv-block-start:sp1015 */}
+                                <span data-pv-block="sp1015" className="text-sm font-medium text-foreground-default">Dr. Evil</span>
+                                {/* pv-block-end:sp1015 */}
+                                {/* pv-block-start:sp1016 */}
+                                <span data-pv-block="sp1016" className="text-xs text-foreground-tertiary">dr.evil@evilcorp.com</span>
+                                {/* pv-block-end:sp1016 */}
+                              {/* pv-editable-zone-end:nzn914 */}
+                            </div>
+                            {/* pv-block-end:nm9014 */}
+                          {/* pv-editable-zone-end:izn812 */}
+                        </DropdownItem>
+                        {/* pv-block-end:di8012 */}
+                        {/* pv-block-start:sp8017 */}
+                        <DropdownSeparator data-pv-block="sp8017" />
+                        {/* pv-block-end:sp8017 */}
+                        {/* pv-block-start:di8018 */}
+                        <DropdownItem data-pv-block="di8018">
+                          {/* pv-editable-zone-start:izn818 */}
+                            {/* pv-block-start:ic9019 */}
+                            <Icon data-pv-block="ic9019" iconSymbol="bell" size="sm" className="text-foreground-secondary" />
+                            {/* pv-block-end:ic9019 */}
+                            {/* pv-block-start:sp9020 */}
+                            <span data-pv-block="sp9020" className="text-foreground-default">Notifications</span>
+                            {/* pv-block-end:sp9020 */}
+                            {/* pv-block-start:bd9021 */}
+                            <Badge data-pv-block="bd9021" label="4" color="destructive" />
+                            {/* pv-block-end:bd9021 */}
+                          {/* pv-editable-zone-end:izn818 */}
+                        </DropdownItem>
+                        {/* pv-block-end:di8018 */}
+                        {/* pv-block-start:di8022 */}
+                        <DropdownItem data-pv-block="di8022" label="Account Settings" prefixIcon="settings" />
+                        {/* pv-block-end:di8022 */}
+                        {/* pv-block-start:di8023 */}
+                        <DropdownItem data-pv-block="di8023" label="Help & Support" prefixIcon="help-circle" />
+                        {/* pv-block-end:di8023 */}
+                        {/* pv-block-start:sp8024 */}
+                        <DropdownSeparator data-pv-block="sp8024" />
+                        {/* pv-block-end:sp8024 */}
+                        {/* pv-block-start:gl8025 */}
+                        <DropdownGroupLabel data-pv-block="gl8025" label="Appearance" />
+                        {/* pv-block-end:gl8025 */}
+                        {/* pv-block-start:di8026 */}
+                        <DropdownItem
+                          data-pv-block="di8026"
+                          label="Auto theme"
+                          prefixIcon="mdi:theme-light-dark"
+                          selected={themePreference === 'auto'}
+                          onClick={() => updateTheme('auto')}
+                        />
+                        {/* pv-block-end:di8026 */}
+                        {/* pv-block-start:di8027 */}
+                        <DropdownItem
+                          data-pv-block="di8027"
+                          label="Light"
+                          prefixIcon="mdi:white-balance-sunny"
+                          selected={themePreference === 'light'}
+                          onClick={() => updateTheme('light')}
+                        />
+                        {/* pv-block-end:di8027 */}
+                        {/* pv-block-start:di8028 */}
+                        <DropdownItem
+                          data-pv-block="di8028"
+                          label="Dark"
+                          prefixIcon="mdi:weather-night"
+                          selected={themePreference === 'dark'}
+                          onClick={() => updateTheme('dark')}
+                        />
+                        {/* pv-block-end:di8028 */}
+                        {/* pv-block-start:sp8029 */}
+                        <DropdownSeparator data-pv-block="sp8029" />
+                        {/* pv-block-end:sp8029 */}
+                        {/* pv-block-start:di8030 */}
+                        <DropdownItem data-pv-block="di8030" label="Sign out" prefixIcon="log-out" destructive />
+                        {/* pv-block-end:di8030 */}
+                      {/* pv-editable-zone-end:dzn711 */}
+                    </DropdownList>
+                    {/* pv-block-end:dl7011 */}
+                  {/* pv-editable-zone-end:pzn609 */}
+                </PopoverTrigger>
+                {/* pv-block-end:pt6009 */}
+              {/* pv-editable-zone-end:nzn502 */}
             </div>
-
-            {/* User Avatar Dropdown */}
-            <PopoverTrigger placement="bottom" align="right">
-              <Button iconOnly variant="ghost" color="neutral">
-                <Avatar initials="JD" bgColor="default" size="sm" />
-              </Button>
-
-              <DropdownList width="lg" className="">
-                <DropdownItem>
-                  <Avatar initials="JD" bgColor="info" size="sm" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground-default">Dr. Evil</span>
-                    <span className="text-xs text-foreground-tertiary">dr.evil@evilcorp.com</span>
-                  </div>
-                </DropdownItem>
-                <DropdownSeparator />
-                <DropdownItem>
-                  <Icon iconSymbol="bell" size="sm" className="text-foreground-secondary" />
-                  <span className="text-foreground-default">Notifications</span>
-                  <Badge label="4" color="destructive" />
-                </DropdownItem>
-                <DropdownItem label="Account Settings" prefixIcon="settings" />
-                <DropdownItem label="Help & Support" prefixIcon="help-circle" />
-                <DropdownSeparator />
-                <DropdownGroupLabel label="Appearance" />
-                <DropdownItem
-                  label="Auto theme"
-                  prefixIcon="mdi:theme-light-dark"
-                  selected={themePreference === 'auto'}
-                  onClick={() => updateTheme('auto')}
-                />
-                <DropdownItem
-                  label="Light"
-                  prefixIcon="mdi:white-balance-sunny"
-                  selected={themePreference === 'light'}
-                  onClick={() => updateTheme('light')}
-                />
-                <DropdownItem
-                  label="Dark"
-                  prefixIcon="mdi:weather-night"
-                  selected={themePreference === 'dark'}
-                  onClick={() => updateTheme('dark')}
-                />
-                <DropdownSeparator />
-                <DropdownItem label="Sign out" prefixIcon="log-out" destructive />
-              </DropdownList>
-            </PopoverTrigger>
-          </div>
+            {/* pv-block-end:nv5002 */}
+          {/* pv-editable-zone-end:hzn501 */}
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto rounded-tl-lg bg-background-default border-border-default border rounded">
+        <main className="flex-1 overflow-y-auto bg-background-default border rounded-lg border-transparent">
           {/* pv-block-start:m1x4ar */}
           <div data-pv-block="m1x4ar" className="mx-auto">
             {/* pv-editable-zone-start:p2g7vc */}

@@ -28,24 +28,37 @@ export function SurveillancePage() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:sv1z2x3 */}
-        {/* pv-block-start:svhead1 */}
-        <div data-pv-block="svhead1" className="flex items-center justify-between">
-          {/* pv-editable-zone-start:svhn1 */}
-            {/* pv-block-start:svtitle */}
-            <TextHeading data-pv-block="svtitle" typography="heading-lg">Surveillance</TextHeading>
-            {/* pv-block-end:svtitle */}
-          {/* pv-editable-zone-end:svhn1 */}
+        {/* pv-block-start:vtr94r1 */}
+        <div data-pv-block="vtr94r1" className="flex justify-between items-center">
+          {/* pv-editable-zone-start:ern9o1 */}
+            {/* pv-block-start:g0goke */}
+            <div data-pv-block="g0goke" className="flex flex-col gap-0">
+            {/* pv-editable-zone-start:sk9i0j */}
+            {/* pv-block-start:spryrx */}
+            <TextHeading data-pv-block="spryrx" typography="heading-lg">
+              Surveillance
+            </TextHeading>
+            {/* pv-block-end:spryrx */}
+            {/* pv-block-start:nkp1ds */}
+            <TextParagraph data-pv-block="nkp1ds" typography="secondary">
+              Hidden cameras spying on our enemies
+            </TextParagraph>
+            {/* pv-block-end:nkp1ds */}
+            {/* pv-editable-zone-end:sk9i0j */}
+            </div>
+            {/* pv-block-end:g0goke */}
+            {/* pv-block-start:rfdjlv */}
+            <Button data-pv-block="rfdjlv" label="Add camera" leftIcon="plus" color="primary" onClick={() => setDrawerOpen(true)} />
+            {/* pv-block-end:rfdjlv */}
+          {/* pv-editable-zone-end:ern9o1 */}
         </div>
-        {/* pv-block-end:svhead1 */}
+        {/* pv-block-end:vtr94r1 */}
 
         {/* pv-block-start:rqqb6kle */}
         <div data-pv-block="rqqb6kle" className="flex items-center gap-3">
           {/* pv-editable-zone-start:svte1 */}
-            {/* pv-block-start:svtl1 */}
-            <TextParagraph data-pv-block="svtl1" typography="secondary">Global Monitoring</TextParagraph>
-            {/* pv-block-end:svtl1 */}
             {/* pv-block-start:svts1 */}
-            <ToggleSwitch data-pv-block="svts1" checked={globalMonitoring} onCheckedChange={() => setGlobalMonitoring(v => !v)} />
+            <ToggleSwitch secondaryText="Temporarily disable if in risk" heading="Enable monitoring" data-pv-block="svts1" checked={globalMonitoring} onCheckedChange={() => setGlobalMonitoring(v => !v)} />
             {/* pv-block-end:svts1 */}
           {/* pv-editable-zone-end:svte1 */}
         </div>

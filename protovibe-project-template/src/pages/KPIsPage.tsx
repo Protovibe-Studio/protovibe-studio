@@ -23,14 +23,27 @@ const mockKpis = [
 
 export function KPIsPage() {
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-7">
       {/* pv-editable-zone-start:kp1z2q3 */}
         {/* pv-block-start:kphead1 */}
         <div data-pv-block="kphead1" className="flex justify-between items-center">
           {/* pv-editable-zone-start:kpe1f2 */}
-            {/* pv-block-start:kptitle */}
-            <TextHeading data-pv-block="kptitle" typography="heading-lg">KPIs</TextHeading>
-            {/* pv-block-end:kptitle */}
+            {/* pv-block-start:nuho94 */}
+            <div data-pv-block="nuho94" className="flex flex-col gap-0">
+            {/* pv-editable-zone-start:sk9i0j */}
+            {/* pv-block-start:4jjrqc */}
+            <TextHeading data-pv-block="4jjrqc" typography="heading-lg">
+              KPIs
+            </TextHeading>
+            {/* pv-block-end:4jjrqc */}
+            {/* pv-block-start:8ijdtf */}
+            <TextParagraph data-pv-block="8ijdtf" typography="secondary">
+              Very important numbers
+            </TextParagraph>
+            {/* pv-block-end:8ijdtf */}
+            {/* pv-editable-zone-end:sk9i0j */}
+            </div>
+            {/* pv-block-end:nuho94 */}
             {/* pv-block-start:kpbtn1 */}
             <Button data-pv-block="kpbtn1" label="Export Report" leftIcon="download" color="neutral" variant="outline" />
             {/* pv-block-end:kpbtn1 */}
