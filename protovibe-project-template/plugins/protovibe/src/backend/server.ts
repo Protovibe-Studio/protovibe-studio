@@ -837,7 +837,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
       const i = baseSpaces;
       const i2 = i + '  ';
 
-      let wrapperAttrs = `data-pv-block="${wrapperId}" className="flex flex-col gap-2"`;
+      let wrapperAttrs = `data-pv-block="${wrapperId}" className="flex flex-col gap-1"`;
       
       // Safely verify if the first block is actually positioned absolutely
       const isFirstBlockAbsolute = extractedBlocks.length > 0 && /style=\{\s*\{[^}]*position:\s*['"]absolute['"]/.test(extractedBlocks[0]);

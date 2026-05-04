@@ -66,45 +66,22 @@ export function SurveillancePage() {
         {/* pv-block-start:svgrid1 */}
         <div data-pv-block="svgrid1" className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* pv-editable-zone-start:svgz1 */}
-            {/* pv-block-start:svcam1 */}
-            <Card data-pv-block="svcam1" className="flex flex-col gap-3 items-stretch">
-              {/* pv-editable-zone-start:svce1 */}
-                {/* pv-block-start:svcfeed1 */}
-                <EmptyState data-pv-block="svcfeed1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
-                {/* pv-block-end:svcfeed1 */}
-                {/* pv-block-start:svch1 */}
-                <div data-pv-block="svch1" className="flex items-center justify-between">
-                  {/* pv-editable-zone-start:svche1 */}
-                    {/* pv-block-start:svcht1 */}
-                    <TextParagraph data-pv-block="svcht1" typography="semibold-primary">Cam 01 — Volcano Entrance</TextParagraph>
-                    {/* pv-block-end:svcht1 */}
-                    {/* pv-block-start:svchs1 */}
-                    <Badge data-pv-block="svchs1" label="Error" color="destructive" />
-                    {/* pv-block-end:svchs1 */}
-                  {/* pv-editable-zone-end:svche1 */}
-                </div>
-                {/* pv-block-end:svch1 */}
-              {/* pv-editable-zone-end:svce1 */}
-            </Card>
-            {/* pv-block-end:svcam1 */}
-
             {/* pv-block-start:o9nf3x */}
             <Card data-pv-block="o9nf3x" className="flex flex-col gap-3 items-stretch">
               {/* pv-editable-zone-start:svce1 */}
                 {/* pv-block-start:2km09x */}
                 <div data-pv-block="2km09x" className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-05-04-at-134811.png')] bg-center bg-no-repeat aspect-video bg-cover rounded" />
                 {/* pv-block-end:2km09x */}
-                {/* pv-block-start:svcfeed1 */}
-                <EmptyState data-pv-block="svcfeed1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
-                {/* pv-block-end:svcfeed1 */}
                 {/* pv-block-start:svch1 */}
                 <div data-pv-block="svch1" className="flex items-center justify-between">
                   {/* pv-editable-zone-start:svche1 */}
                     {/* pv-block-start:aa4yzx */}
-                    <TextParagraph data-pv-block="aa4yzx" typography="semibold-primary">Cam 01 — Volcano Entrance</TextParagraph>
+                    <TextParagraph data-pv-block="aa4yzx" typography="semibold-primary">
+                      Cam 01 — Invisible drone
+                    </TextParagraph>
                     {/* pv-block-end:aa4yzx */}
                     {/* pv-block-start:vdm8u9 */}
-                    <Badge data-pv-block="vdm8u9" label="Error" color="destructive" />
+                    <Badge data-pv-block="vdm8u9" label="Live" color="success" />
                     {/* pv-block-end:vdm8u9 */}
                   {/* pv-editable-zone-end:svche1 */}
                 </div>
@@ -112,6 +89,124 @@ export function SurveillancePage() {
               {/* pv-editable-zone-end:svce1 */}
             </Card>
             {/* pv-block-end:o9nf3x */}
+
+            {/* pv-block-start:p4175t */}
+            <Card data-pv-block="p4175t" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:15qpj1d1 */}
+                <EmptyState data-pv-block="15qpj1d1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:15qpj1d1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:bm5e5w */}
+                    {/* pv-block-start:gj6qu6 */}
+                    <TextParagraph data-pv-block="gj6qu6" typography="semibold-primary">Cam 01 — Volcano Entrance</TextParagraph>
+                    {/* pv-block-end:gj6qu6 */}
+                    {/* pv-block-start:x6wqbj */}
+                    <Badge data-pv-block="x6wqbj" label="Error" color="destructive" />
+                    {/* pv-block-end:x6wqbj */}
+                  {/* pv-editable-zone-end:bm5e5w */}
+                </div>
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
+            </Card>
+            {/* pv-block-end:p4175t */}
+
+            {/* pv-block-start:l0xasb */}
+            <Card data-pv-block="l0xasb" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:g9ismld1 */}
+                <EmptyState data-pv-block="g9ismld1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:g9ismld1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:tmykp5 */}
+                    {/* pv-block-start:dlse1l */}
+                    <TextParagraph data-pv-block="dlse1l" typography="semibold-primary">
+                      Cam 02 - New York palace
+                    </TextParagraph>
+                    {/* pv-block-end:dlse1l */}
+                    {/* pv-block-start:udbqru */}
+                    <Badge data-pv-block="udbqru" label="Error" color="destructive" />
+                    {/* pv-block-end:udbqru */}
+                  {/* pv-editable-zone-end:tmykp5 */}
+                </div>
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
+            </Card>
+            {/* pv-block-end:l0xasb */}
+
+            {/* pv-block-start:rkm49s */}
+            <Card data-pv-block="rkm49s" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:1c8pv4d1 */}
+                <EmptyState data-pv-block="1c8pv4d1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:1c8pv4d1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:nkm0ra */}
+                    {/* pv-block-start:jtbnvv */}
+                    <TextParagraph data-pv-block="jtbnvv" typography="semibold-primary">
+                      Cam A01 - Headquarters
+                    </TextParagraph>
+                    {/* pv-block-end:jtbnvv */}
+                    {/* pv-block-start:84h9tb */}
+                    <Badge data-pv-block="84h9tb" label="Error" color="destructive" />
+                    {/* pv-block-end:84h9tb */}
+                  {/* pv-editable-zone-end:nkm0ra */}
+                </div>
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
+            </Card>
+            {/* pv-block-end:rkm49s */}
+
+            {/* pv-block-start:wlbwej */}
+            <Card data-pv-block="wlbwej" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:v5vwfkd1 */}
+                <EmptyState data-pv-block="v5vwfkd1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:v5vwfkd1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:xgxenk */}
+                    {/* pv-block-start:qtw0ly */}
+                    <TextParagraph data-pv-block="qtw0ly" typography="semibold-primary">
+                      Cam 024
+                    </TextParagraph>
+                    {/* pv-block-end:qtw0ly */}
+                    {/* pv-block-start:tf4pgu */}
+                    <Badge data-pv-block="tf4pgu" label="Error" color="destructive" />
+                    {/* pv-block-end:tf4pgu */}
+                  {/* pv-editable-zone-end:xgxenk */}
+                </div>
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
+            </Card>
+            {/* pv-block-end:wlbwej */}
+
+            {/* pv-block-start:m5nyfo */}
+            <Card data-pv-block="m5nyfo" className="flex flex-col gap-3 items-stretch">
+              {/* pv-editable-zone-start:svce1 */}
+                {/* pv-block-start:qiby83d1 */}
+                <EmptyState data-pv-block="qiby83d1" icon="mdi:cctv" bigHeading="" secondaryText="Video camera broken" className="rounded aspect-video bg-background-subtle" />
+                {/* pv-block-end:qiby83d1 */}
+                {/* pv-block-start:svch1 */}
+                <div data-pv-block="svch1" className="flex items-center justify-between">
+                  {/* pv-editable-zone-start:ui3pf0 */}
+                    {/* pv-block-start:wpmazx */}
+                    <TextParagraph data-pv-block="wpmazx" typography="semibold-primary">
+                      Cam 0234
+                    </TextParagraph>
+                    {/* pv-block-end:wpmazx */}
+                    {/* pv-block-start:2zfl42 */}
+                    <Badge data-pv-block="2zfl42" label="Error" color="destructive" />
+                    {/* pv-block-end:2zfl42 */}
+                  {/* pv-editable-zone-end:ui3pf0 */}
+                </div>
+                {/* pv-block-end:svch1 */}
+              {/* pv-editable-zone-end:svce1 */}
+            </Card>
+            {/* pv-block-end:m5nyfo */}
           {/* pv-editable-zone-end:svgz1 */}
         </div>
         {/* pv-block-end:svgrid1 */}

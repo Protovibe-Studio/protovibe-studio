@@ -31,7 +31,6 @@ export function ExecutiveRetreatsPage() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
       {/* pv-editable-zone-start:er1z2r3 */}
-
         {/* pv-block-start:erhead1 */}
         <div data-pv-block="erhead1" className="flex justify-between items-center">
           {/* pv-editable-zone-start:ern9o1 */}
@@ -57,10 +56,6 @@ export function ExecutiveRetreatsPage() {
           {/* pv-editable-zone-end:ern9o1 */}
         </div>
         {/* pv-block-end:erhead1 */}
-
-        {/* pv-block-start:erinfo1 */}
-        <InfoBoxBanner secondaryActionLabel="View Availability" data-pv-block="erinfo1" color="info" heading="Q4 Retreat Season is Open" secondaryText="Volcano lairs offer premium privacy and excellent acoustics for monologuing. Book early — the secret island fills up fast." icon="mdi:beach"  actionsLayout="right" />
-        {/* pv-block-end:erinfo1 */}
 
         {/* pv-block-start:ertable1 */}
         <Table data-pv-block="ertable1">
@@ -115,7 +110,6 @@ export function ExecutiveRetreatsPage() {
           </TableBody>
         </Table>
         {/* pv-block-end:ertable1 */}
-
       {/* pv-editable-zone-end:er1z2r3 */}
 
       {drawerOpen && createPortal(
