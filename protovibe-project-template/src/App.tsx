@@ -61,7 +61,7 @@ export default function App() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
+      <div className="flex-1 flex flex-col min-w-0 bg-background-subtle pb-2 pr-2">
         {/* Topbar */}
         <header className="flex items-center justify-end shrink-0 bg-background-subtle h-12 pl-8 pr-2">
           <div className="flex items-center gap-1">
@@ -123,7 +123,7 @@ export default function App() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto rounded-tl-lg bg-background-default border-t border-l border-border-default">
+        <main className="flex-1 overflow-y-auto rounded-tl-lg bg-background-default border-border-default border rounded">
           {/* pv-block-start:m1x4ar */}
           <div data-pv-block="m1x4ar" className="mx-auto">
             {/* pv-editable-zone-start:p2g7vc */}

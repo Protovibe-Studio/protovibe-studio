@@ -59,6 +59,13 @@ export interface PromptDef {
    */
   requiresSelection?: boolean;
   /**
+   * If true, the user input textarea may be left empty — the Copy button
+   * stays enabled and the placeholder is prefixed with "Optional — ". Used
+   * for prompts where the selected element/code carries the intent and the
+   * textarea is just for tweaks.
+   */
+  inputOptional?: boolean;
+  /**
    * Final prompt template. Supports the placeholders listed at the top of
    * this file. Indentation inside the backticks is preserved verbatim.
    */
@@ -154,6 +161,7 @@ export const PROMPTS: PromptDef[] = [
     icon: Braces,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'treat each list item as its own block',
+    inputOptional: true,
     references: ['file', 'blockId', 'lineRange', 'code'],
     template: `Additional user instructions:
   {{input}}
@@ -215,6 +223,7 @@ export const PROMPTS: PromptDef[] = [
     icon: Rocket,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'place it inside the dashboard main column, above the stats cards',
+    inputOptional: true,
     references: ['file', 'blockId', 'lineRange', 'code'],
     template: `Additional user instructions: 
   {{input}}
@@ -250,6 +259,7 @@ export const PROMPTS: PromptDef[] = [
     icon: PencilRuler,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'simplify the header to just a title and a button',
+    inputOptional: true,
     references: ['file', 'blockId', 'lineRange', 'code'],
     template: `Additional user instructions: 
   {{input}}
@@ -307,6 +317,7 @@ export const PROMPTS: PromptDef[] = [
     icon: Component,
     inputLabel: 'Extra instructions (optional)…',
     inputPlaceholder: 'name it StatTile; treat the trend arrow as optional',
+    inputOptional: true,
     references: ['file', 'blockId', 'lineRange', 'code'],
     template: `Additional user instructions: 
   {{input}}
@@ -431,7 +442,7 @@ export function renderPrompt(
   userInput: string,
 ): string {
   const map: Record<string, string> = {
-    input: userInput.trim() || '(user input missing)',
+    input: userInput.trim() || (def.inputOptional ? '(no extra instructions)' : '(user input missing)'),
     file: fallback(ctx.file, 'file selected'),
     startLine: fallback(ctx.startLine, 'start line'),
     endLine: fallback(ctx.endLine, 'end line'),

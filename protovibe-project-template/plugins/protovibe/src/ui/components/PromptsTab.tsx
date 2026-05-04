@@ -486,7 +486,13 @@ export const PromptsTab: React.FC = () => {
           <textarea
             value={userInput}
             onChange={e => { setUserInput(e.target.value); if (step !== 1) setStep(1); }}
-            placeholder={selectedPrompt.inputPlaceholder}
+            placeholder={
+              selectedPrompt.inputOptional
+                ? selectedPrompt.inputPlaceholder
+                  ? `Optional — ${selectedPrompt.inputPlaceholder}`
+                  : 'Optional'
+                : selectedPrompt.inputPlaceholder
+            }
             rows={5}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -552,25 +558,30 @@ export const PromptsTab: React.FC = () => {
 
         {/* Step 2 — copy */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <SectionHeading n={2} state={step < 2 && !userInput.trim() ? 'pending' : step >= 3 ? 'done' : 'active'}>
+          <SectionHeading n={2} state={step < 2 && !userInput.trim() && !selectedPrompt.inputOptional ? 'pending' : step >= 3 ? 'done' : 'active'}>
             Copy prompt
           </SectionHeading>
+          {(() => {
+            const canCopy = selectedPrompt.inputOptional || !!userInput.trim();
+            return (
           <button
             onClick={handleCopy}
-            disabled={!userInput.trim()}
+            disabled={!canCopy}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '10px 14px',
-              background: userInput.trim() ? theme.text_default : theme.bg_tertiary,
-              color: userInput.trim() ? theme.bg_strong : theme.text_tertiary,
+              background: canCopy ? theme.text_default : theme.bg_tertiary,
+              color: canCopy ? theme.bg_strong : theme.text_tertiary,
               border: 'none', borderRadius: 6,
-              cursor: userInput.trim() ? 'pointer' : 'not-allowed',
+              cursor: canCopy ? 'pointer' : 'not-allowed',
               fontFamily: theme.font_ui, fontSize: 12, fontWeight: 600,
             }}
           >
             {step >= 3 ? <Check size={14} /> : <Copy size={14} />}
             {step >= 3 ? 'Copied — copy again' : 'Copy prompt'}
           </button>
+            );
+          })()}
         </section>
 
         {/* Step 3 — open project */}
