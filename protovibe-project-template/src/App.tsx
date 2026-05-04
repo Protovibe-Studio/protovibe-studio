@@ -32,17 +32,23 @@ export default function App() {
       <TooltipProvider />
       {/* Sidebar */}
       {/* pv-block-start:sb1001 */}
-      <div data-pv-block="sb1001" className="w-64 flex flex-col shrink-0 border-border-default bg-background-default">
+      <div data-pv-block="sb1001" className="w-64 flex flex-col shrink-0 border-border-default bg-background-elevated">
         {/* pv-editable-zone-start:szn101 */}
           {/* pv-block-start:br2002 */}
           <div data-pv-block="br2002" className="flex items-center gap-3 border-b border-border-default h-12 pl-4 pr-6">
             {/* pv-editable-zone-start:bzn202 */}
               {/* pv-block-start:smg8v8 */}
-              <div className="flex flex-col bg-contain bg-center bg-no-repeat h-7 bg-[url('/src/images/from-protovibe/logo2-6.png')] aspect-[55/14]" data-pv-block="smg8v8">
+              <div className="flex flex-col bg-contain bg-center bg-no-repeat h-7 bg-[url('/src/images/from-protovibe/logo2-6.png')] aspect-[55/14] dark:hidden" data-pv-block="smg8v8">
                 {/* pv-editable-zone-start:h5hz60 */}
                 {/* pv-editable-zone-end:h5hz60 */}
               </div>
               {/* pv-block-end:smg8v8 */}
+              {/* pv-block-start:lgd2k9 */}
+              <div className="hidden flex-col bg-contain bg-center bg-no-repeat h-7 dark:flex bg-[url('/src/images/from-protovibe/logo-dark-mode.png')] aspect-[55/14]" data-pv-block="lgd2k9">
+                {/* pv-editable-zone-start:dkz3p4 */}
+                {/* pv-editable-zone-end:dkz3p4 */}
+              </div>
+              {/* pv-block-end:lgd2k9 */}
             {/* pv-editable-zone-end:bzn202 */}
           </div>
           {/* pv-block-end:br2002 */}
@@ -91,7 +97,7 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 bg-background-subtle">
         {/* Topbar */}
         {/* pv-block-start:hd5001 */}
-        <header data-pv-block="hd5001" className="flex items-center justify-end shrink-0 h-12 pl-8 pr-2 bg-background-default border-b border-border-default">
+        <header data-pv-block="hd5001" className="flex items-center justify-end shrink-0 h-12 pl-8 pr-2 border-b border-border-default bg-background-elevated">
           {/* pv-editable-zone-start:hzn501 */}
             {/* pv-block-start:nv5002 */}
             <div data-pv-block="nv5002" className="flex items-center gap-1">
@@ -153,17 +159,24 @@ export default function App() {
                         <DropdownSeparator data-pv-block="sp8017" />
                         {/* pv-block-end:sp8017 */}
                         {/* pv-block-start:di8018 */}
-                        <DropdownItem data-pv-block="di8018">
+                        <DropdownItem className="" data-pv-block="di8018">
                           {/* pv-editable-zone-start:izn818 */}
-                            {/* pv-block-start:ic9019 */}
-                            <Icon data-pv-block="ic9019" iconSymbol="bell" size="sm" className="text-foreground-secondary" />
-                            {/* pv-block-end:ic9019 */}
-                            {/* pv-block-start:sp9020 */}
-                            <span data-pv-block="sp9020" className="text-foreground-default">Notifications</span>
-                            {/* pv-block-end:sp9020 */}
-                            {/* pv-block-start:bd9021 */}
-                            <Badge data-pv-block="bd9021" label="4" color="destructive" />
-                            {/* pv-block-end:bd9021 */}
+                            {/* pv-block-start:fmcrx5 */}
+                            <div data-pv-block="fmcrx5" className="flex flex-row gap-2 items-center">
+                              {/* pv-editable-zone-start:yfc4ca */}
+                              {/* pv-block-start:ic9019 */}
+                              <Icon data-pv-block="ic9019" iconSymbol="bell" size="sm" className="text-foreground-secondary" />
+                              {/* pv-block-end:ic9019 */}
+                              {/* pv-block-start:sp9020 */}
+                              <span data-pv-block="sp9020" className="text-foreground-default">Notifications</span>
+                              {/* pv-block-end:sp9020 */}
+                              {/* pv-block-start:bd9021 */}
+                              <Badge data-pv-block="bd9021" label="4" color="destructive" />
+                              {/* pv-block-end:bd9021 */}
+                              {/* pv-editable-zone-end:yfc4ca */}
+                            </div>
+                            {/* pv-block-end:fmcrx5 */}
+
                           {/* pv-editable-zone-end:izn818 */}
                         </DropdownItem>
                         {/* pv-block-end:di8018 */}

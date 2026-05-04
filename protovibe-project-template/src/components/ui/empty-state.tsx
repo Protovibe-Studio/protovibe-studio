@@ -41,7 +41,7 @@ export function EmptyState({
       data-pv-component-id="EmptyState"
     >
       {icon && (
-        <div className="flex items-center justify-center text-foreground-disabled rounded-md p-3 bg-background-tertiary/80">
+        <div className="flex items-center justify-center text-foreground-disabled rounded-md p-3">
           <Icon iconSymbol={icon} size={iconSize} />
         </div>
       )}

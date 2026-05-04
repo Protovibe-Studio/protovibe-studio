@@ -45,19 +45,11 @@ export default function Frame12() {
         {/* pv-block-start:44rkki */}
         <Button leftIcon="radix-icons:github-logo" data-pv-block="44rkki" data-pv-sketchpad-el="44rkki" style={{ position: 'absolute', left: 170, top: 520, width: 332 }} label="Continue with GitHub" variant="solid" color="neutral" size="md" />
         {/* pv-block-end:44rkki */}
-        {/* pv-block-start:dgd9df */}
-        <TextHeading data-pv-block="dgd9df" data-pv-sketchpad-el="dgd9df" style={{ position: 'absolute', width: 82, left: 67, top: 30 }} typography="heading-md">
-          EvilCorp
-        </TextHeading>
-        {/* pv-block-end:dgd9df */}
         {/* pv-block-start:n0mcq4 */}
         <TextParagraph data-pv-block="n0mcq4" data-pv-sketchpad-el="n0mcq4" style={{ position: 'absolute', left: 169, top: 30 }} typography="regular">
           To take over the world!
         </TextParagraph>
         {/* pv-block-end:n0mcq4 */}
-        {/* pv-block-start:poz5eh */}
-        <Icon data-pv-block="poz5eh" data-pv-sketchpad-el="poz5eh" style={{ position: 'absolute', width: 20, left: 33, top: 29 }} iconSymbol="fluent-emoji-high-contrast:see-no-evil-monkey" size="lg" />
-        {/* pv-block-end:poz5eh */}
         {/* pv-block-start:mu0unz */}
         <div data-pv-block="mu0unz" data-pv-sketchpad-el="mu0unz" style={{ position: 'absolute', left: 365, top: -54 }} className="w-full bg-[url('/src/images/from-protovibe/image-3.png')] bg-contain bg-center bg-no-repeat aspect-[995/917]" />
         {/* pv-block-end:mu0unz */}
@@ -98,6 +90,9 @@ export default function Frame12() {
           {/* pv-editable-zone-end:wwkua1 */}
         </HorizontalLine>
         {/* pv-block-end:gk2qgn */}
+        {/* pv-block-start:d5c4xk */}
+        <div data-pv-block="d5c4xk" data-pv-sketchpad-el="d5c4xk" style={{ position: 'absolute', width: 106, left: 33, top: 29 }} className="w-full bg-[url('/src/images/from-protovibe/logo2-6.png')] bg-contain bg-center bg-no-repeat aspect-[55/14]" />
+        {/* pv-block-end:d5c4xk */}
       {/* pv-editable-zone-end:3ubuxh */}
     </div>
   );

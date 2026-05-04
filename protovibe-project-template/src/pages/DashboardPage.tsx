@@ -68,7 +68,7 @@ export function DashboardPage() {
               <div data-pv-block="aev719" className="flex gap-3 flex-col grow">
                 {/* pv-editable-zone-start:btl59t */}
                 {/* pv-block-start:k78o7c */}
-                <Icon className="text-foreground-primary" data-pv-block="k78o7c" iconSymbol="material-symbols:add" size="lg" />
+                <Icon className="text-foreground-primary" data-pv-block="k78o7c" iconSymbol="material-symbols:keyboard-outline" size="lg" />
                 {/* pv-block-end:k78o7c */}
                 {/* pv-block-start:8m03j8 */}
                 <div data-pv-block="8m03j8" className="flex flex-col gap-2">
@@ -84,7 +84,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:c7npsa */}
                   {/* pv-block-start:quhudk */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="quhudk" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="quhudk" typography="regular">
                     Try selecting the avatar below, the click "W" to select avatars container.
                   </TextParagraph>
                   {/* pv-block-end:quhudk */}
@@ -99,15 +99,15 @@ export function DashboardPage() {
               <Container className="flex-row gap-2" data-pv-block="xdjkc1">
                 {/* pv-editable-zone-start:zqe8bz */}
                   {/* pv-block-start:0gfvam */}
-                  <Avatar data-pv-block="0gfvam" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
+                  <Avatar data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
                   {/* pv-block-end:0gfvam */}
           
                   {/* pv-block-start:w9x0m7 */}
-                  <Avatar data-pv-block="w9x0m7" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60?456456" />
+                  <Avatar data-pv-block="w9x0m7" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?456456" />
                   {/* pv-block-end:w9x0m7 */}
           
                   {/* pv-block-start:6cky30 */}
-                  <Avatar data-pv-block="6cky30" initials="AB" size="md" bgColor="default" imageSrc="https://i.pravatar.cc/60?4564" />
+                  <Avatar data-pv-block="6cky30" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?4564" />
                   {/* pv-block-end:6cky30 */}
                 {/* pv-editable-zone-end:zqe8bz */}
               </Container>
@@ -122,7 +122,7 @@ export function DashboardPage() {
               <div data-pv-block="6n8z5u" className="flex gap-3 flex-col grow">
                 {/* pv-editable-zone-start:vp3jem */}
                 {/* pv-block-start:ei87x2 */}
-                <Icon className="text-foreground-primary" data-pv-block="ei87x2" iconSymbol="material-symbols:mouse" size="lg" />
+                <Icon className="text-foreground-primary" data-pv-block="ei87x2" iconSymbol="material-symbols:mouse-outline" size="lg" />
                 {/* pv-block-end:ei87x2 */}
                 {/* pv-block-start:7lddhq */}
                 <div data-pv-block="7lddhq" className="flex flex-col gap-2">
@@ -138,7 +138,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:itlz1l */}
                   {/* pv-block-start:oubpio */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="oubpio" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="oubpio" typography="regular">
                     Try doubleclicking the menu button below. Then the menu opens and you can edit it normally.
                   </TextParagraph>
                   {/* pv-block-end:oubpio */}
@@ -250,7 +250,7 @@ export function DashboardPage() {
               <div data-pv-block="ipmelx" className="flex gap-3 flex-col items-start grow">
                 {/* pv-editable-zone-start:icrhhy */}
                 {/* pv-block-start:2wfrkt */}
-                <Icon className="text-foreground-primary" data-pv-block="2wfrkt" iconSymbol="mdi:color" size="lg" />
+                <Icon className="text-foreground-primary" data-pv-block="2wfrkt" iconSymbol="mdi:paint-outline" size="lg" />
                 {/* pv-block-end:2wfrkt */}
                 {/* pv-block-start:yvndi1 */}
                 <div data-pv-block="yvndi1" className="flex flex-col gap-2">
@@ -266,7 +266,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:qh174e */}
                   {/* pv-block-start:yspkyp */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="yspkyp" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="yspkyp" typography="regular">
                     Go to Tokens tab and try to edit background-primary colors. You will see how buttons colors change.
                   </TextParagraph>
                   {/* pv-block-end:yspkyp */}
@@ -303,7 +303,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:ilrduc */}
                   {/* pv-block-start:h4rc95 */}
-                  <TextParagraph className="text-foreground-primary leading-snug text-sm" data-pv-block="h4rc95" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="h4rc95" typography="regular">
                     Try changing this button to outline variant
                   </TextParagraph>
                   {/* pv-block-end:h4rc95 */}
@@ -349,7 +349,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:dpyqm3 */}
                   {/* pv-block-start:5nhxxq */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="5nhxxq" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="5nhxxq" typography="regular">
                     Go to the "Components" tab and see which components are available out-of-the-box.
                   </TextParagraph>
                   {/* pv-block-end:5nhxxq */}
@@ -385,7 +385,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:9zziqs */}
                   {/* pv-block-start:yhjj76 */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="yhjj76" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="yhjj76" typography="regular">
                     Try changing horizontal padding for all the buttons in the design system
                   </TextParagraph>
                   {/* pv-block-end:yhjj76 */}
@@ -400,7 +400,7 @@ export function DashboardPage() {
               <Container data-pv-block="boo3oh">
                 {/* pv-editable-zone-start:jyzz7z */}
                   {/* pv-block-start:ftnyv4 */}
-                  <Button leftIcon="mdi:arrow-right" data-pv-block="ftnyv4" label="Select me to see that I'm a component" variant="outline" color="primary" size="md" />
+                  <Button leftIcon="mdi:arrow-right" data-pv-block="ftnyv4" label="I'm a component!" variant="outline" color="primary" size="md" />
                   {/* pv-block-end:ftnyv4 */}
                 {/* pv-editable-zone-end:jyzz7z */}
               </Container>
@@ -432,7 +432,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:1bnop2 */}
                   {/* pv-block-start:elfure */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="elfure" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="elfure" typography="regular">
                     Go to components tab and try changing horizontal padding only for small buttons.
                   </TextParagraph>
                   {/* pv-block-end:elfure */}
@@ -469,7 +469,7 @@ export function DashboardPage() {
                   </TextParagraph>
                   {/* pv-block-end:88ajzk */}
                   {/* pv-block-start:99amab */}
-                  <TextParagraph className="text-foreground-primary text-sm leading-snug" data-pv-block="99amab" typography="regular">
+                  <TextParagraph className="text-foreground-primary text-sm" data-pv-block="99amab" typography="regular">
                     You can read full docs on <br />protovibe-studio.github.io/docs
                   </TextParagraph>
                   {/* pv-block-end:99amab */}

@@ -6,146 +6,26 @@
       "createdAt": "2026-04-08T06:27:12.445Z",
       "frames": [
         {
-          "id": "frame-frame-1",
-          "name": "generate-file-intro",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 2688,
-          "canvasY": 1040
-        },
-        {
-          "id": "frame-generate-file-intro-copy",
-          "name": "generate-file-form",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 4279,
-          "canvasY": 1051
-        },
-        {
-          "id": "frame-generate-file-intro-copy-2",
-          "name": "generate-file-loading",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 6163,
-          "canvasY": 1032
-        },
-        {
-          "id": "frame-generate-file-intro-copy-3",
-          "name": "generate-file-done",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 7764,
-          "canvasY": 1032
-        },
-        {
-          "id": "frame-generate-file-intro-copy-4",
-          "name": "import-file-intro",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 2660,
-          "canvasY": 2519
-        },
-        {
-          "id": "frame-generate-file-form-copy",
-          "name": "import-file-form",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 4295,
-          "canvasY": 2523
-        },
-        {
-          "id": "frame-generate-file-loading-copy",
-          "name": "import-importing-in-progress",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 7625,
-          "canvasY": 2514
-        },
-        {
-          "id": "frame-pkowi1",
-          "name": "import-file-form-file-uploaded",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 5934,
-          "canvasY": 2520
-        },
-        {
-          "id": "frame-m2o15i",
-          "name": "import-review-skills",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 9241,
-          "canvasY": 2517
-        },
-        {
-          "id": "frame-sxq9ea",
-          "name": "import-importing",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 10834,
-          "canvasY": 2524
-        },
-        {
-          "id": "frame-kgnokg",
-          "name": "import-done",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 12465,
-          "canvasY": 2528
-        },
-        {
           "id": "frame-fw0ze7",
           "name": "Frame 12",
           "width": 1440,
           "height": 900,
-          "canvasX": 4112,
-          "canvasY": -2283
+          "canvasX": 5287,
+          "canvasY": -2101
         },
         {
-          "id": "frame-bwqcbx",
+          "id": "frame-q7uevh",
           "name": "Frame 12 Copy",
           "width": 1440,
           "height": 900,
-          "canvasX": 5831,
-          "canvasY": -3575
-        },
-        {
-          "id": "frame-ink5wh",
-          "name": "Frame 14",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 3683,
-          "canvasY": -3539
-        },
-        {
-          "id": "frame-fv30wp",
-          "name": "Frame 14 Copy",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 7585,
-          "canvasY": -3541
-        },
-        {
-          "id": "frame-615maf",
-          "name": "Frame 12 Copy 2",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 7580,
-          "canvasY": -2268
-        },
-        {
-          "id": "frame-sh3qc3",
-          "name": "Frame 12 Copy 3",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 9299,
-          "canvasY": -3560
+          "canvasX": 3647,
+          "canvasY": -2104
         }
       ],
       "viewState": {
-        "zoom": 0.7240907187226224,
-        "panX": -2581.01061346901,
-        "panY": 1689.7631878814564
+        "zoom": 0.5969795346414664,
+        "panX": -1843.4331203362049,
+        "panY": 1430.4737223708228
       }
     },
     {
@@ -171,9 +51,9 @@
         }
       ],
       "viewState": {
-        "zoom": 0.2249375606025964,
-        "panX": -1291.44788258367,
-        "panY": -115.47111934489294
+        "zoom": 0.3727185842453242,
+        "panX": -2692.108182097503,
+        "panY": -758.8420451552213
       }
     },
     {

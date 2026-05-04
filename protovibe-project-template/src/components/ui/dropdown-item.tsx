@@ -36,13 +36,7 @@ export function DropdownItem({
       data-value={value}
       data-destructive={destructive}
       data-disabled={disabled}
-      className={cn(
-        'flex flex-col px-3 py-2 text-sm cursor-pointer select-none transition-colors',
-        'text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed',
-        'data-[destructive=true]:text-background-destructive hover:data-[destructive=true]:bg-background-destructive-subtle active:data-[destructive=true]:bg-background-destructive-subtle-pressed',
-        'data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none',
-        className
-      )}
+      className={cn("flex flex-col px-3 py-2 cursor-pointer select-none transition-colors text-foreground-default hover:bg-background-transparent-hover active:bg-background-transparent-pressed data-[destructive=true]:text-background-destructive hover:data-[destructive=true]:bg-background-destructive-subtle active:data-[destructive=true]:bg-background-destructive-subtle-pressed data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none text-base", className)}
       {...props}
       data-pv-component-id="DropdownItem"
     >
@@ -58,7 +52,7 @@ export function DropdownItem({
         {children}
         {prefixIcon && <Icon iconSymbol={prefixIcon} size="sm" className="text-foreground-secondary mt-0.5" />}
         {(label || secondaryText) && (
-          <div className="flex flex-col flex-1 gap-0.5">
+          <div className="flex flex-col flex-1 gap-0.5 leading-snug">
             {label && <span className="text-foreground-default font-medium">{label}</span>}
             {secondaryText && <span className="text-foreground-tertiary text-sm">{secondaryText}</span>}
           </div>

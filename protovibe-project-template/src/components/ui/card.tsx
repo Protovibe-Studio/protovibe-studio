@@ -6,7 +6,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 export function Card({ className, children, ...props }: CardProps) {
   return (
     <div
-      className={cn("bg-background-elevated border border-border-default p-5 flex flex-col items-start justify-start gap-2 min-h-12 rounded shadow-sm", className)}
+      className={cn("bg-background-elevated border border-border-default flex flex-col justify-start gap-2 min-h-12 rounded shadow-sm items-stretch p-6", className)}
       {...props}
       data-pv-component-id="Card"
     >

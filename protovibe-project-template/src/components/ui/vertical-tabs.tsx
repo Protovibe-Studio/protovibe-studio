@@ -41,7 +41,7 @@ export function VerticalTabs({
     <VerticalTabsContext.Provider value={{ activeValue, onValueChange: handleValueChange }}>
       <div
         data-value={activeValue}
-        className={cn("flex flex-col w-full gap-0.5", className)}
+        className={cn("flex flex-col w-full gap-0", className)}
         {...props}
         data-pv-component-id="VerticalTabs"
       >
