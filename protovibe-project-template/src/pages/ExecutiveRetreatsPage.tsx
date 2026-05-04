@@ -43,7 +43,7 @@ export function ExecutiveRetreatsPage() {
         {/* pv-block-end:erhead1 */}
 
         {/* pv-block-start:iuv3ok */}
-        <EmptyState bigHeading="" data-pv-block="iuv3ok" icon="Inbox" iconSize="2xl" heading="Nothing here yet" secondaryText="Get started by creating your first item." />
+        <EmptyState bigHeading="" data-pv-block="iuv3ok" icon="tabler:coffee" iconSize="2xl" heading="Nothing here yet" secondaryText="Get started by creating your first retreat." />
         {/* pv-block-end:iuv3ok */}
       {/* pv-editable-zone-end:er1z2r3 */}
     </div>

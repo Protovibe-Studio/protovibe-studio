@@ -12,6 +12,23 @@ import { TableRowContent } from '@/components/ui/table-row-content';
 import { TableCellHeading } from '@/components/ui/table-cell-heading';
 import { TableCellContent } from '@/components/ui/table-cell-content';
 
+const chartBars = [
+  { id: 'q1-22', label: "Q1 '22", height: 'h-8', color: 'bg-background-primary-subtle' },
+  { id: 'q2-22', label: "Q2 '22", height: 'h-10', color: 'bg-background-primary-subtle' },
+  { id: 'q3-22', label: "Q3 '22", height: 'h-12', color: 'bg-background-primary-subtle' },
+  { id: 'q4-22', label: "Q4 '22", height: 'h-14', color: 'bg-background-primary-subtle' },
+  { id: 'q1-23', label: "Q1 '23", height: 'h-16', color: 'bg-background-primary-subtle' },
+  { id: 'q2-23', label: "Q2 '23", height: 'h-20', color: 'bg-background-primary-subtle' },
+  { id: 'q3-23', label: "Q3 '23", height: 'h-20', color: 'bg-background-primary-subtle' },
+  { id: 'q4-23', label: "Q4 '23", height: 'h-24', color: 'bg-background-primary-subtle' },
+  { id: 'q1-24', label: "Q1 '24", height: 'h-24', color: 'bg-background-primary-subtle' },
+  { id: 'q2-24', label: "Q2 '24", height: 'h-28', color: 'bg-background-primary-subtle' },
+  { id: 'q3-24', label: "Q3 '24", height: 'h-32', color: 'bg-background-primary' },
+  { id: 'q4-24', label: "Q4 '24", height: 'h-36', color: 'bg-background-primary' },
+  { id: 'q1-25', label: "Q1 '25", height: 'h-40', color: 'bg-background-primary' },
+  { id: 'q2-25', label: "Q2 '25", height: 'h-44', color: 'bg-background-primary' },
+];
+
 const mockKpis = [
   { id: 'k1', metric: 'World Domination Progress', target: '100%', current: '23%', trend: 'up', status: 'At Risk' },
   { id: 'k2', metric: 'Active Laser Count', target: '1,000', current: '847', trend: 'up', status: 'On Track' },
@@ -55,7 +72,7 @@ export function KPIsPage() {
         <Card className="items-stretch" data-pv-block="chrt001">
           {/* pv-editable-zone-start:chrtz01 */}
             {/* pv-block-start:chrth01 */}
-            <div data-pv-block="chrth01" className="flex flex-col gap-0">
+            <div data-pv-block="chrth01" className="flex flex-col gap-0 mb-3">
               {/* pv-editable-zone-start:chrthz1 */}
                 {/* pv-block-start:chrtt01 */}
                 <TextHeading data-pv-block="chrtt01" typography="heading-sm">
@@ -72,141 +89,68 @@ export function KPIsPage() {
             {/* pv-block-end:chrth01 */}
 
             {/* pv-block-start:chrtb01 */}
-            <div data-pv-block="chrtb01" className="flex items-end h-48 pt-6 gap-[4%]">
+            <div data-pv-block="chrtb01" className="flex flex-col gap-2 border-border-default rounded">
               {/* pv-editable-zone-start:chrtbz1 */}
-                {/* pv-block-start:bar0001 */}
-                <div data-pv-block="bar0001" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz001 */}
-                    {/* pv-block-start:barb001 */}
-                    <div data-pv-block="barb001" className="w-full h-12 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb001 */}
-                    {/* pv-block-start:barl001 */}
-                    <TextParagraph data-pv-block="barl001" typography="secondary">Q1 '23</TextParagraph>
-                    {/* pv-block-end:barl001 */}
-                  {/* pv-editable-zone-end:barz001 */}
-                </div>
-                {/* pv-block-end:bar0001 */}
+                {/* pv-block-start:plotrw1 */}
+                <div data-pv-block="plotrw1" className="flex gap-3">
+                  {/* pv-editable-zone-start:plotrwz1 */}
+                    {/* pv-block-start:yaxis01 */}
+                    <div data-pv-block="yaxis01" className="flex flex-col justify-between items-end h-52 w-8 text-sm">
+                      {/* pv-editable-zone-start:yaxisz1 */}
+                        {/* pv-block-start:ylab005 */}
+                        <TextParagraph data-pv-block="ylab005" typography="small">100</TextParagraph>
+                        {/* pv-block-end:ylab005 */}
+                        {/* pv-block-start:ylab004 */}
+                        <TextParagraph data-pv-block="ylab004" typography="small">75</TextParagraph>
+                        {/* pv-block-end:ylab004 */}
+                        {/* pv-block-start:ylab003 */}
+                        <TextParagraph data-pv-block="ylab003" typography="small">50</TextParagraph>
+                        {/* pv-block-end:ylab003 */}
+                        {/* pv-block-start:ylab002 */}
+                        <TextParagraph data-pv-block="ylab002" typography="small">25</TextParagraph>
+                        {/* pv-block-end:ylab002 */}
+                        {/* pv-block-start:ylab001 */}
+                        <TextParagraph data-pv-block="ylab001" typography="small">0</TextParagraph>
+                        {/* pv-block-end:ylab001 */}
+                      {/* pv-editable-zone-end:yaxisz1 */}
+                    </div>
+                    {/* pv-block-end:yaxis01 */}
 
-                {/* pv-block-start:bar0002 */}
-                <div data-pv-block="bar0002" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz002 */}
-                    {/* pv-block-start:barb002 */}
-                    <div data-pv-block="barb002" className="w-full h-20 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb002 */}
-                    {/* pv-block-start:barl002 */}
-                    <TextParagraph data-pv-block="barl002" typography="secondary">Q2 '23</TextParagraph>
-                    {/* pv-block-end:barl002 */}
-                  {/* pv-editable-zone-end:barz002 */}
+                    {/* pv-block-start:plotar1 */}
+                    <div data-pv-block="plotar1" className="flex flex-1 items-end justify-around gap-2 h-52 px-2 border-l border-b border-border-default">
+                      {/* pv-editable-zone-start:plotz01 */}
+                        {/* pv-block-start:bartpl1 */}
+                        {chartBars.map((bar) => (
+                          <div key={bar.id} data-pv-block="bartpl1" className={`flex flex-1 max-w-10 ${bar.height} ${bar.color} rounded rounded-bl-none rounded-br-none`} />
+                        ))}
+                        {/* pv-block-end:bartpl1 */}
+                      {/* pv-editable-zone-end:plotz01 */}
+                    </div>
+                    {/* pv-block-end:plotar1 */}
+                  {/* pv-editable-zone-end:plotrwz1 */}
                 </div>
-                {/* pv-block-end:bar0002 */}
+                {/* pv-block-end:plotrw1 */}
 
-                {/* pv-block-start:bar0003 */}
-                <div data-pv-block="bar0003" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz003 */}
-                    {/* pv-block-start:barb003 */}
-                    <div data-pv-block="barb003" className="w-full h-16 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb003 */}
-                    {/* pv-block-start:barl003 */}
-                    <TextParagraph data-pv-block="barl003" typography="secondary">Q3 '23</TextParagraph>
-                    {/* pv-block-end:barl003 */}
-                  {/* pv-editable-zone-end:barz003 */}
+                {/* pv-block-start:xaxis01 */}
+                <div data-pv-block="xaxis01" className="flex gap-3">
+                  {/* pv-editable-zone-start:xaxisz1 */}
+                    {/* pv-block-start:xspcr01 */}
+                    <div data-pv-block="xspcr01" className="w-8" />
+                    {/* pv-block-end:xspcr01 */}
+                    {/* pv-block-start:xlbrow1 */}
+                    <div data-pv-block="xlbrow1" className="flex flex-1 justify-around gap-2 px-2">
+                      {/* pv-editable-zone-start:xlbz01 */}
+                        {/* pv-block-start:xlbtpl1 */}
+                        {chartBars.map((bar) => (
+                          <TextParagraph key={bar.id} data-pv-block="xlbtpl1" typography="secondary" className="flex-1 max-w-10 text-center text-sm whitespace-nowrap">{bar.label}</TextParagraph>
+                        ))}
+                        {/* pv-block-end:xlbtpl1 */}
+                      {/* pv-editable-zone-end:xlbz01 */}
+                    </div>
+                    {/* pv-block-end:xlbrow1 */}
+                  {/* pv-editable-zone-end:xaxisz1 */}
                 </div>
-                {/* pv-block-end:bar0003 */}
-
-                {/* pv-block-start:bar0004 */}
-                <div data-pv-block="bar0004" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz004 */}
-                    {/* pv-block-start:barb004 */}
-                    <div data-pv-block="barb004" className="w-full h-24 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb004 */}
-                    {/* pv-block-start:barl004 */}
-                    <TextParagraph data-pv-block="barl004" typography="secondary">Q4 '23</TextParagraph>
-                    {/* pv-block-end:barl004 */}
-                  {/* pv-editable-zone-end:barz004 */}
-                </div>
-                {/* pv-block-end:bar0004 */}
-
-                {/* pv-block-start:bar0005 */}
-                <div data-pv-block="bar0005" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz005 */}
-                    {/* pv-block-start:barb005 */}
-                    <div data-pv-block="barb005" className="w-full h-20 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb005 */}
-                    {/* pv-block-start:barl005 */}
-                    <TextParagraph data-pv-block="barl005" typography="secondary">Q1 '24</TextParagraph>
-                    {/* pv-block-end:barl005 */}
-                  {/* pv-editable-zone-end:barz005 */}
-                </div>
-                {/* pv-block-end:bar0005 */}
-
-                {/* pv-block-start:bar0006 */}
-                <div data-pv-block="bar0006" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz006 */}
-                    {/* pv-block-start:barb006 */}
-                    <div data-pv-block="barb006" className="w-full h-28 bg-background-primary-subtle rounded" />
-                    {/* pv-block-end:barb006 */}
-                    {/* pv-block-start:barl006 */}
-                    <TextParagraph data-pv-block="barl006" typography="secondary">Q2 '24</TextParagraph>
-                    {/* pv-block-end:barl006 */}
-                  {/* pv-editable-zone-end:barz006 */}
-                </div>
-                {/* pv-block-end:bar0006 */}
-
-                {/* pv-block-start:bar0007 */}
-                <div data-pv-block="bar0007" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz007 */}
-                    {/* pv-block-start:barb007 */}
-                    <div data-pv-block="barb007" className="w-full h-32 bg-background-primary rounded" />
-                    {/* pv-block-end:barb007 */}
-                    {/* pv-block-start:barl007 */}
-                    <TextParagraph data-pv-block="barl007" typography="secondary">Q3 '24</TextParagraph>
-                    {/* pv-block-end:barl007 */}
-                  {/* pv-editable-zone-end:barz007 */}
-                </div>
-                {/* pv-block-end:bar0007 */}
-
-                {/* pv-block-start:bar0008 */}
-                <div data-pv-block="bar0008" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:barz008 */}
-                    {/* pv-block-start:barb008 */}
-                    <div data-pv-block="barb008" className="w-full h-40 bg-background-primary rounded" />
-                    {/* pv-block-end:barb008 */}
-                    {/* pv-block-start:barl008 */}
-                    <TextParagraph data-pv-block="barl008" typography="secondary">Q4 '24</TextParagraph>
-                    {/* pv-block-end:barl008 */}
-                  {/* pv-editable-zone-end:barz008 */}
-                </div>
-                {/* pv-block-end:bar0008 */}
-
-                {/* pv-block-start:u6vtfw8 */}
-                <div data-pv-block="u6vtfw8" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:ojeixa8 */}
-                    {/* pv-block-start:g9xc9n8 */}
-                    <div data-pv-block="g9xc9n8" className="w-full h-40 bg-background-primary rounded" />
-                    {/* pv-block-end:g9xc9n8 */}
-                    {/* pv-block-start:z2stqs8 */}
-                    <TextParagraph data-pv-block="z2stqs8" typography="secondary">
-                      Q1 '25
-                    </TextParagraph>
-                    {/* pv-block-end:z2stqs8 */}
-                  {/* pv-editable-zone-end:ojeixa8 */}
-                </div>
-                {/* pv-block-end:u6vtfw8 */}
-
-                {/* pv-block-start:49ofbo8 */}
-                <div data-pv-block="49ofbo8" className="flex flex-1 flex-col items-center gap-2">
-                  {/* pv-editable-zone-start:mof3xz8 */}
-                    {/* pv-block-start:jk3axz8 */}
-                    <div data-pv-block="jk3axz8" className="w-full h-40 bg-background-primary rounded" />
-                    {/* pv-block-end:jk3axz8 */}
-                    {/* pv-block-start:wjld8n8 */}
-                    <TextParagraph data-pv-block="wjld8n8" typography="secondary">
-                      Q2 '25
-                    </TextParagraph>
-                    {/* pv-block-end:wjld8n8 */}
-                  {/* pv-editable-zone-end:mof3xz8 */}
-                </div>
-                {/* pv-block-end:49ofbo8 */}
+                {/* pv-block-end:xaxis01 */}
               {/* pv-editable-zone-end:chrtbz1 */}
             </div>
             {/* pv-block-end:chrtb01 */}

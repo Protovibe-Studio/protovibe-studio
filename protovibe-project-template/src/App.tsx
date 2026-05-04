@@ -68,12 +68,12 @@ export default function App() {
                       {/* pv-block-start:vi4013 */}
                       <VerticalTabItem data-pv-block="vi4013" value="/minions" label="Minions" prefixIcon="mdi:account-hard-hat" />
                       {/* pv-block-end:vi4013 */}
-                      {/* pv-block-start:vi4014 */}
-                      <VerticalTabItem data-pv-block="vi4014" value="/schemes" label="Schemes" prefixIcon="game-icons:evil-love" />
-                      {/* pv-block-end:vi4014 */}
                       {/* pv-block-start:vi4015 */}
                       <VerticalTabItem data-pv-block="vi4015" value="/kpis" label="KPIs" prefixIcon="mdi:chart-donut" />
                       {/* pv-block-end:vi4015 */}
+                      {/* pv-block-start:vi4014 */}
+                      <VerticalTabItem data-pv-block="vi4014" value="/schemes" label="Schemes" prefixIcon="game-icons:evil-love" />
+                      {/* pv-block-end:vi4014 */}
                       {/* pv-block-start:vi4016 */}
                       <VerticalTabItem data-pv-block="vi4016" value="/retreats" label="Executive Retreats" prefixIcon="mdi:beach" />
                       {/* pv-block-end:vi4016 */}
