@@ -148,7 +148,7 @@ export function DashboardPage() {
         {/* pv-block-end:lib3xn */}
 
         {/* pv-block-start:dkwss2 */}
-        <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 p-4 border border-border-default rounded bg-background-elevated" data-pv-block="dkwss2">
+        <div data-testid="e2e-pv-block" className="flex flex-col min-h-4 border rounded bg-background-elevated border-border-default p-5" data-pv-block="dkwss2">
           {/* pv-editable-zone-start:inside-dkwss2 */}
             {/* pv-block-start:rkj7hq */}
             <span className="" data-pv-block="rkj7hq">

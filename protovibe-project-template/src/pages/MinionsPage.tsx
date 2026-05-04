@@ -63,7 +63,7 @@ function NewMinionDrawer({ onClose }: { onClose: () => void }) {
         {/* pv-block-end:nsdh1 */}
       {/* pv-editable-zone-end:nsd-header */}
 
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 bg-background-subtle">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 bg-background-default">
         {/* pv-editable-zone-start:nsd-body */}
           {/* pv-block-start:nsdb1 */}
           <TextParagraph data-pv-block="nsdb1" typography="secondary" className="text-sm">

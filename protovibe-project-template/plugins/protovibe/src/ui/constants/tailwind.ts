@@ -47,7 +47,7 @@ export const SCALES = {
     { val: '2xl', desc: '24px' }, { val: '3xl', desc: '28px' }, { val: 'full', desc: '9999px' }
   ],
   borderWidth: [{ val: '0', desc: '0px' }, { val: 'DEFAULT', desc: '1px' }, { val: '2', desc: '2px' }, { val: '4', desc: '4px' }, { val: '8', desc: '8px' }],
-  shadow: [{ val: 'sm', desc: 'Small' }, { val: 'DEFAULT', desc: 'Normal' }, { val: 'md', desc: 'Medium' }, { val: 'lg', desc: 'Large' }, { val: 'xl', desc: 'Extra Large' }, { val: '2xl', desc: '2XL' }, { val: 'inner', desc: 'Inner' }, { val: 'none', desc: 'None' }],
+  shadow: [{ val: '2xs', desc: '2X Small' }, { val: 'xs', desc: 'Extra Small' }, { val: 'sm', desc: 'Small' }, { val: 'md', desc: 'Medium' }, { val: 'lg', desc: 'Large' }, { val: 'xl', desc: 'Extra Large' }, { val: '2xl', desc: '2XL' }, { val: 'none', desc: 'None' }],
   opacity: [{ val: '0', desc: '0%' }, { val: '10', desc: '10%' }, { val: '25', desc: '25%' }, { val: '50', desc: '50%' }, { val: '75', desc: '75%' }, { val: '90', desc: '90%' }, { val: '100', desc: '100%' }],
   zIndex: [{ val: '0', desc: '' }, { val: '10', desc: '' }, { val: '20', desc: '' }, { val: '30', desc: '' }, { val: '40', desc: '' }, { val: '50', desc: '' }, { val: 'auto', desc: '' }],
   leading: [
@@ -165,7 +165,30 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
       })
     : SCALES.fontFamily;
 
-  return { ...SCALES, spacing, size, radius, textSize, leading, tracking, fontFamily };
+  // ── Shadow ─────────────────────────────────────────────────────────────────
+  // Token names: --shadow (DEFAULT), --shadow-sm, --shadow-md, …
+  const shadowTokens = tokens.filter(t => t.category === 'Shadow');
+  const shadowMap: Record<string, string> = {};
+  shadowTokens.forEach(t => {
+    const suffix = t.name.replace('shadow', '');
+    const val = suffix === '' ? 'DEFAULT' : suffix.slice(1);
+    shadowMap[val] = t.value;
+  });
+  const shadowOrder = ['2xs', 'xs', 'sm', 'DEFAULT', 'md', 'lg', 'xl', '2xl', '3xl'];
+  const shadowLabels: Record<string, string> = {
+    '2xs': '2X Small', 'xs': 'Extra Small', 'sm': 'Small', 'DEFAULT': 'Normal',
+    'md': 'Medium', 'lg': 'Large', 'xl': 'Extra Large', '2xl': '2XL', '3xl': '3XL',
+  };
+  const shadow = shadowTokens.length > 0
+    ? [
+        ...shadowOrder
+          .filter(val => shadowMap[val])
+          .map(val => ({ val, desc: shadowLabels[val] ?? val })),
+        { val: 'none', desc: 'None' },
+      ]
+    : SCALES.shadow;
+
+  return { ...SCALES, spacing, size, radius, textSize, leading, tracking, fontFamily, shadow };
 }
 
 /** Re-orders a color options array so tokens whose `val` starts with `prefix` appear first. */

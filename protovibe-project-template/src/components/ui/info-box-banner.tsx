@@ -36,7 +36,7 @@ export function InfoBoxBanner({
     <div
       data-color={color}
       data-actions-layout={actionsLayout}
-      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start p-3 gap-2 data-[color=info]:border-border-info/20 data-[color=warning]:border-border-warning/15 data-[color=success]:border-border-success/20 data-[color=primary]:border-border-primary/20 data-[color=neutral]:border-border-default data-[color=destructive]:border-border-destructive/10 border-border-strong/10 border-0", className)}
+      className={cn("relative flex data-[color=primary]:bg-background-primary-subtle data-[color=destructive]:bg-background-destructive-subtle data-[color=success]:bg-background-success-subtle data-[color=warning]:bg-background-warning-subtle data-[color=info]:bg-background-info-subtle data-[color=neutral]:bg-background-secondary rounded items-start gap-2 data-[color=info]:border-border-info/20 data-[color=warning]:border-border-warning/15 data-[color=success]:border-border-success/20 data-[color=primary]:border-border-primary/20 data-[color=neutral]:border-border-default data-[color=destructive]:border-border-destructive/10 border-border-strong/10 border-0 py-4 px-5", className)}
       {...props}
       data-pv-component-id="InfoBoxBanner"
     >
@@ -48,7 +48,7 @@ export function InfoBoxBanner({
       {/* Middle: heading + secondary text + optional zone + (bottom) action buttons */}
       <div className="min-w-0 flex-1 pr-3">
         {heading && (
-          <p className="font-semibold data-[color=primary]:text-foreground-primary data-[color=destructive]:text-foreground-destructive data-[color=success]:text-foreground-success data-[color=warning]:text-foreground-warning data-[color=info]:text-foreground-info data-[color=neutral]:text-foreground-default text-base pt-0.5" data-color={color}>
+          <p className="font-semibold data-[color=neutral]:text-foreground-default text-base pt-0.5 data-[color=primary]:text-foreground-default data-[color=info]:text-foreground-default data-[color=warning]:text-foreground-default data-[color=success]:text-foreground-default data-[color=destructive]:text-foreground-default" data-color={color}>
             {heading}
           </p>
         )}

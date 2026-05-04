@@ -598,14 +598,14 @@ export const TokensTab: React.FC = () => {
                         >
                           {category === 'Shadow' && (
                             <div style={{
-                              width: '100%', height: 48,
+                              width: '100%', aspectRatio: '1 / 1',
                               background: '#f6f6f6',
                               backgroundImage: 'radial-gradient(circle, #ececec 0.8px, transparent 0.5px)',
                               backgroundSize: '6px 6px',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>
                               <div style={{
-                                width: 28, height: 28, borderRadius: 6,
+                                width: '50%', height: '50%', borderRadius: 8,
                                 background: '#ffffff',
                                 boxShadow: t.value,
                               }} />

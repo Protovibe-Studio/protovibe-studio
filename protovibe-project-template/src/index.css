@@ -72,8 +72,8 @@
 
  /* Text */
  --foreground-default: oklch(14.1% 0.01048 291.1); /* body */
- --foreground-secondary: oklch(46.81% 0.004 301.9); /* muted labels */
- --foreground-tertiary: oklch(58.45% 0.011 296.6); /* placeholders, captions */
+ --foreground-secondary: oklch(47% 0.01 301.9); /* muted labels */
+ --foreground-tertiary: oklch(58.45% 0.016 286.5); /* placeholders, captions */
  --foreground-strong: oklch(5% 0 0); /* maximum contrast */
  --foreground-disabled: oklch(76.1% 0.006 280.6);
  --foreground-inverse: oklch(100% 0 89.9); /* text on dark/strong bg */
@@ -87,9 +87,9 @@
  --gradient-foreground-special: linear-gradient(270deg, #783cd3 0%, #2927a0 100%);
 
  /* Borders */
- --border-default: oklch(92.4% 0.0118 237.7); /* default hairline */
- --border-secondary: oklch(94.7% 0.01528 229.3); /* subtle divider */
- --border-strong: oklch(82% 0.0088 242.2); /* active tab, prominent */
+ --border-default: oklch(92.1% 0.00287 264.5); /* default hairline */
+ --border-secondary: oklch(96.7% 0.00287 264.5); /* subtle divider */
+ --border-strong: oklch(87.4% 0.0129 286.6); /* active tab, prominent */
  --border-focus: oklch(33.57% 0.18956 281.2); /* focus ring */
  --border-primary: oklch(47.57% 0.22723 287.9);
  --border-destructive: oklch(60% 0.22 25);
@@ -676,7 +676,7 @@
  /* ── Shadows ─────────────────────────────────────────────────────────────── */
  --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);
  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
- --shadow-sm: 0 2px 5px 0 rgba(0, 0, 0, 0.02), 0 1px 1px 0 rgba(0, 0, 0, 0.08);
+ --shadow-sm: 0px 2px 5px 0px rgba(2, 0, 36, 0.023), 0px 0.726px 1.814px 0px rgba(2, 0, 36, 0.031), 0px 0.128px 0.321px 0px rgba(2, 0, 36, 0.039);
  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);

@@ -17,7 +17,7 @@ export function TableCellHeading({
 }: TableCellHeadingProps) {
   return (
     <th
-      className={cn("text-left text-xs font-semibold uppercase text-foreground-secondary whitespace-nowrap py-2 px-4 tracking-wide", className)}
+      className={cn("text-left text-xs font-semibold uppercase whitespace-nowrap py-2 px-4 tracking-wide text-foreground-tertiary", className)}
       {...props}
       data-pv-component-id="TableCellHeading"
     >
