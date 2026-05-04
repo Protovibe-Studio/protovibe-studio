@@ -90,6 +90,13 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // 1.5. Clear focus on ESC
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        clearFocus();
+        return;
+      }
+
       // 2. Undo & Redo
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();

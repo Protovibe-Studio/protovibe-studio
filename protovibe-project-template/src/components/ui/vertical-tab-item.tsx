@@ -74,7 +74,7 @@ export function VerticalTabItem({
       >
         {subtab && (
           <span className="shrink-0 w-4 flex justify-center">
-            <span className="h-4 rounded-full bg-border-default group-data-[state=active]:bg-background-primary transition-colors w-0.5" />
+            <span className="rounded-full bg-border-default group-data-[state=active]:bg-background-primary transition-colors w-1 h-1" />
           </span>
         )}
         {prefixIcon && (

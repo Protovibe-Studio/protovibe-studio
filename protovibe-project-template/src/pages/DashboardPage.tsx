@@ -19,14 +19,14 @@ export function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8 max-w-[1200px] mx-auto">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:oryele */}
-        <div data-pv-block="oryele" className="flex items-center justify-between mb-5">
+        <div data-pv-block="oryele" className="flex items-center justify-between mb-2">
         {/* pv-editable-zone-start:sk5e6f */}
         {/* pv-block-start:5hdsgr */}
         <div data-pv-block="5hdsgr" className="flex flex-col gap-0">
         {/* pv-editable-zone-start:sk9i0j */}
         {/* pv-block-start:vqs3bs */}
         <TextHeading data-pv-block="vqs3bs" typography="heading-xxl">
-          👋 Welcome to example project!
+          Welcome to Protovibe project template!
         </TextHeading>
         {/* pv-block-end:vqs3bs */}
         {/* pv-editable-zone-end:sk9i0j */}
