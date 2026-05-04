@@ -11,20 +11,29 @@ export type ToastOptions = {
   persistent?: boolean;
 };
 
-export type Skill = {
+export type Minion = {
   id: string;
   name: string;
-  areaOfExpertise: string;
-  positionsCount: number;
-  creationDate: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  division: string;
+  background: string;
+  specialty: string;
+  assignments: number;
+  recruited: string;
+  status: 'Active' | 'On Mission' | 'Recovering';
+};
+
+export type NewMinionInput = {
+  name: string;
+  division: string;
+  background: string;
+  specialty: string;
 };
 
 type State = {
   path: string;
   queryParams: Record<string, string>;
   toast: ToastOptions | null;
-  skillsLibrary: Skill[];
+  minions: Minion[];
 };
 
 type StoreContextType = {
@@ -33,8 +42,26 @@ type StoreContextType = {
   setQueryParams: (params: Record<string, string | null>) => void;
   showToast: (options: ToastOptions) => void;
   hideToast: () => void;
-  importSkills: (previewSkills: any[]) => void;
+  addMinion: (input: NewMinionInput) => void;
+  updateMinion: (id: string, patch: Partial<Omit<Minion, 'id'>>) => void;
 };
+
+const DIVISION_LABELS: Record<string, string> = {
+  'field-ops': 'Field Operations',
+  'laser-div': 'Laser Division',
+  'espionage': 'Espionage',
+  'software-dev': 'Software Development',
+  'doomsday-rd': 'Doomsday R&D',
+  'lair-maint': 'Lair Maintenance',
+};
+
+const DEFAULT_MINIONS: Minion[] = [
+  { id: 'm1', name: 'Bob #427', division: 'Field Operations', background: 'Former mall security guard with a passion for cone-shaped hats.', specialty: 'Henchwork', assignments: 3, recruited: '12/02/2025', status: 'Active' },
+  { id: 'm2', name: 'Dr. Klaus Vexler', division: 'Doomsday R&D', background: 'Disgraced physicist obsessed with weather control devices.', specialty: 'Mad Science', assignments: 2, recruited: '04/01/2025', status: 'On Mission' },
+  { id: 'm3', name: 'Mira "Whisper" Kovac', division: 'Espionage', background: 'Ex-circus contortionist turned infiltration specialist.', specialty: 'Stealth', assignments: 5, recruited: '21/03/2025', status: 'Active' },
+  { id: 'm4', name: 'Greg the Reliable', division: 'Lair Maintenance', background: 'Plumber by day, lava-pit technician by night.', specialty: 'Maintenance', assignments: 1, recruited: '08/04/2025', status: 'Recovering' },
+  { id: 'm5', name: 'Captain Zara Flux', division: 'Laser Division', background: 'Decommissioned naval officer with a flair for theatrical lighting.', specialty: 'Beam Calibration', assignments: 4, recruited: '17/02/2025', status: 'Active' },
+];
 
 const StoreContext = createContext<StoreContextType | null>(null);
 
@@ -50,24 +77,29 @@ const getQueryParamsFromURL = (): Record<string, string> => {
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [queryParams, setQueryParamsState] = useState<Record<string, string>>(getQueryParamsFromURL);
   const [toast, setToast] = useState<ToastOptions | null>(null);
-  const [skillsLibrary, setSkillsLibrary] = useState<Skill[]>([]);
+  const [minions, setMinions] = useState<Minion[]>(DEFAULT_MINIONS);
 
-  const importSkills = useCallback((previewSkills: any[]) => {
-    const newSkills: Skill[] = previewSkills.map(s => {
-      // Calculate total positions across all levels
-      const positionsCount = s.levels ? s.levels.reduce((acc: number, lvl: any) => acc + (lvl.positions?.length || 0), 0) : 0;
-      
-      return {
-        id: s.id,
-        name: s.name,
-        areaOfExpertise: s.areaOfExpertise || '-',
-        positionsCount,
-        creationDate: '14/04/2025', // Hardcoded to match screenshot
-        status: 'ACTIVE'
-      };
-    });
-    
-    setSkillsLibrary(prev => [...prev, ...newSkills]);
+  const updateMinion = useCallback((id: string, patch: Partial<Omit<Minion, 'id'>>) => {
+    setMinions(prev => prev.map(m => (m.id === id ? { ...m, ...patch } : m)));
+  }, []);
+
+  const addMinion = useCallback((input: NewMinionInput) => {
+    const today = new Date();
+    const recruited = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    const division = DIVISION_LABELS[input.division] || input.division;
+    setMinions(prev => [
+      {
+        id: `m${Date.now()}`,
+        name: input.name,
+        division,
+        background: input.background,
+        specialty: input.specialty,
+        assignments: 0,
+        recruited,
+        status: 'Active',
+      },
+      ...prev,
+    ]);
   }, []);
 
   // Derive the active path from the 'page' query param
@@ -133,7 +165,7 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <StoreContext.Provider value={{ state: { path, queryParams, toast, skillsLibrary }, navigate, setQueryParams, showToast, hideToast, importSkills }}>
+    <StoreContext.Provider value={{ state: { path, queryParams, toast, minions }, navigate, setQueryParams, showToast, hideToast, addMinion, updateMinion }}>
       {children}
     </StoreContext.Provider>
   );

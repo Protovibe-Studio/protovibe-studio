@@ -23,7 +23,9 @@
       "Bash(python3)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(awk *)"
+      "Bash(awk *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(grep *)"
     ]
   },
   "outputStyle": "Explanatory"
