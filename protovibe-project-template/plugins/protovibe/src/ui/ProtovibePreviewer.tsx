@@ -659,17 +659,42 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
       }
     });
 
-    // Delay the focus to ensure PV_CLEAR_SELECTION from the tab switch is fully processed
-    setTimeout(() => {
+    // Poll until the variant cell, the component element, AND its Babel-injected
+    // data-pv-loc-* locator attributes are all present. A fixed timeout was racing
+    // with mount/locator attachment, causing the first focus to land on a stale
+    // ancestor and leaving the inspector scoped to the consumer-side source
+    // (which has minimal parsedClasses, so the "Which state to style" list rendered
+    // incomplete until the user clicked the tab a second time).
+    const MAX_ATTEMPTS = 20;
+    const INTERVAL_MS = 50;
+    const INITIAL_DELAY_MS = 50;
+    let attempts = 0;
+    const tryFocus = () => {
       const cell = document.querySelector(`[data-combo-index="${bestMatchIndex}"]`);
-      if (cell) {
-        const targetEl = cell.querySelector(`[data-pv-component-id="${config.name}"]`) || cell.querySelector('[data-pv-component-id]');
-        if (targetEl) {
-          targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
-        }
+      const targetEl = cell
+        ? (cell.querySelector(`[data-pv-component-id="${config.name}"]`) || cell.querySelector('[data-pv-component-id]'))
+        : null;
+      const hasLocator = targetEl
+        ? Array.from(targetEl.attributes).some(a => a.name.startsWith('data-pv-loc-'))
+        : false;
+
+      if (targetEl && hasLocator) {
+        targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+        return;
       }
-    }, 250);
+      attempts++;
+      if (attempts < MAX_ATTEMPTS) {
+        setTimeout(tryFocus, INTERVAL_MS);
+        return;
+      }
+      // Last-resort: dispatch on whatever we have so the user still sees a focus.
+      if (targetEl) {
+        targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+      }
+    };
+    setTimeout(tryFocus, INITIAL_DELAY_MS);
   }, [targetProps, visibleCombos, config]);
 
   return (
