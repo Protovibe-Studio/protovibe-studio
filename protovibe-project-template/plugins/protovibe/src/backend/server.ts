@@ -2334,6 +2334,15 @@ function setCfState(state: CfPublishState): void {
 }
 
 const PUBLISH_META_PATH = path.resolve(process.cwd(), 'protovibe-data.json');
+const PUBLISH_LOG_PATH = path.resolve(process.cwd(), 'protovibe-publish.log');
+
+function cfLog(...parts: unknown[]): void {
+  const line = `[${new Date().toISOString()}] [protovibe:cloudflare] ${parts.map((p) => (p instanceof Error ? (p.stack ?? p.message) : typeof p === 'string' ? p : JSON.stringify(p))).join(' ')}`;
+  // Print to whichever terminal is hosting the Vite middleware
+  process.stdout.write(line + '\n');
+  // Also append to a file in the project root so the user can always tail it
+  try { fs.appendFileSync(PUBLISH_LOG_PATH, line + '\n', 'utf-8'); } catch {}
+}
 
 function readPublishMeta(): Record<string, any> {
   if (!fs.existsSync(PUBLISH_META_PATH)) return {};
@@ -2375,7 +2384,7 @@ function spawnCmd(
   opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void; timeoutMs?: number },
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe' });
+    const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe', shell: process.platform === 'win32' });
     let out = '';
     let settled = false;
     const settle = (fn: typeof resolve | typeof reject, val: string | Error) => {
@@ -2411,11 +2420,20 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     baseEnv.CLOUDFLARE_API_TOKEN = apiToken;
   }
 
+  cfLog('=== Publish started ===', { projectName, accountId, hasApiToken: !!apiToken, cwd, platform: process.platform, log: PUBLISH_LOG_PATH });
+
   // 0. Verify wrangler is available
   try {
-    await spawnCmd('pnpm', ['exec', 'wrangler', '--version'], { cwd, env: baseEnv, timeoutMs: 15_000 });
-  } catch {
-    setCfState({ status: 'error', message: 'Wrangler is not installed. Run `pnpm add -D wrangler` and try again.' });
+    const v = await spawnCmd('pnpm', ['exec', 'wrangler', '--version'], { cwd, env: baseEnv, timeoutMs: 15_000 });
+    cfLog('wrangler --version OK:', v.trim());
+  } catch (err) {
+    const errStr = err instanceof Error ? (err.stack ?? err.message) : String(err);
+    cfLog('wrangler --version FAILED:', errStr);
+    setCfState({
+      status: 'error',
+      message: 'Wrangler is not installed or could not be launched.',
+      error: errStr,
+    });
     return;
   }
 
@@ -2647,8 +2665,16 @@ export const handleCloudflarePublishStart: Connect.NextHandleFunction = (req, re
         res.statusCode = 400;
         return res.end(JSON.stringify({ error: 'Project name not set.' }));
       }
+      // Mark the state busy synchronously so the frontend's status poll observes
+      // an active state on its next tick. Without this, the worker's first
+      // `setCfState` only fires after `wrangler --version` returns (several seconds
+      // on Windows), during which polls see the prior `idle` state and the UI
+      // exits the publishing view — leaving the backend running with no listener.
+      setCfState({ status: 'publishing', message: 'Starting…' });
       runCloudflarePublish(projectName, accountId || undefined, apiToken || undefined).catch((err) => {
-        setCfState({ status: 'error', message: 'Unexpected error.', error: String(err) });
+        const errStr = err instanceof Error ? (err.stack ?? err.message) : String(err);
+        cfLog('runCloudflarePublish threw:', errStr);
+        setCfState({ status: 'error', message: 'Unexpected error.', error: errStr });
       });
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -2745,7 +2771,9 @@ export const handleCloudflareLoginStart: Connect.NextHandleFunction = (_req, res
       FORCE_COLOR: '0',
       WRANGLER_SEND_METRICS: 'false',
       DO_NOT_TRACK: '1',
-      NODE_OPTIONS: `${existingNodeOptions} --require "${spoofScriptPath}"`.trim()
+      // NODE_OPTIONS uses shell-style word splitting and trips on Windows backslashes
+      // even inside quotes; forward slashes are accepted by Node's require on Windows.
+      NODE_OPTIONS: `${existingNodeOptions} --require "${spoofScriptPath.replace(/\\/g, '/')}"`.trim()
     };
     delete env.CI; // Must unset CI to force interactive behavior for the login flow
 
