@@ -1,16 +1,12 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig, loadEnv} from 'vite';
-import { protovibePlugin } from 'vite-plugin-protovibe' 
+import {defineConfig} from 'vite';
+import { protovibePlugin } from 'vite-plugin-protovibe'
 
-export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
+export default defineConfig(() => {
   return {
     plugins: [react() as any, tailwindcss(), protovibePlugin()],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
     optimizeDeps: {
       entries: ['index.html'],
     },
