@@ -2,17 +2,21 @@
 
 A tool for rapidly creating and managing prototype projects with an AI-assisted visual editor.
 
-> ### Demo, installation and docs
-> **[protovibe-studio.github.io](https://protovibe-studio.github.io)**
+## Installation and docs
+Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and click "Download", then follow the instructions.
+
+---
+<br/><br/>
+<br/><br/>
+<br/><br/>
+<br/><br/>
 
 ## Contact Protovibe Team
 
 protovibe.studio@gmail.com
 
-## Installation
-Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and follow the instructions.
-
-## Folder structure
+ 
+## Monorepo Folder structure
 
 ### protovibe-project-manager
 
