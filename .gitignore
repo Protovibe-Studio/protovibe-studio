@@ -11,3 +11,4 @@ pnpm-lock.yaml
 test-results/
 .install.lock
 .mac-installer/
+settings.local.json
