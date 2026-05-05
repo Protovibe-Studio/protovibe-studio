@@ -576,6 +576,29 @@ async function handleUpdatePlugin(_req, res, id) {
     return sendJson(res, 409, { error: 'Wait for setup to finish before updating the plugin.' })
   }
 
+  // Stop the dev server before swapping plugin files — Vite holds open file
+  // handles on plugins/protovibe/dist and would otherwise serve stale modules.
+  if (existing?.proc?.pid && existing.status === 'running') {
+    const pid = existing.proc.pid
+    existing.logs.push('--- stopping project before plugin update ---')
+    try {
+      await new Promise((resolve) => {
+        let settled = false
+        const finish = () => { if (!settled) { settled = true; resolve() } }
+        existing.proc.once('exit', finish)
+        treeKill(pid, 'SIGTERM', (err) => {
+          if (err) console.error('[protovibe-home] tree-kill error:', err)
+        })
+        // Safety net: if 'exit' never fires (already-dead proc), unblock after 5s.
+        setTimeout(finish, 5000)
+      })
+    } catch (err) {
+      console.error('[protovibe-home] stop-before-update error:', err)
+    }
+    existing.status = 'stopped'
+    existing.port = null
+  }
+
   updatingPlugins.add(id)
 
   // Reuse / create a state slot so the existing /api/projects/:id/logs SSE
