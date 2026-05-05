@@ -4,6 +4,9 @@ A tool for rapidly creating and managing prototype projects with an AI-assisted 
 
 (Docs work in progress)
 
+## Contact Protovibe Team
+
+protovibe.studio@gmail.com
 
 ## Folder structure
 
