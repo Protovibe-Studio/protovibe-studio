@@ -1,6 +1,6 @@
 # Protovibe App
 
-This app was created with [Protovibe Studio](https://protovibe-studio.github.io) — an AST-based visual builder that reads and writes React code directly.
+This app was created with [Protovibe Studio](https://protovibe-studio.github.io).
 
 ## Run Locally
 

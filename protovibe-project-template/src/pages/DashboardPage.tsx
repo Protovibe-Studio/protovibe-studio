@@ -61,7 +61,7 @@ export function DashboardPage() {
           </div>
           {/* pv-block-end:25v9uy */}
           {/* pv-block-start:pf1hzs */}
-          <div data-pv-block="pf1hzs" className="flex-col grid gap-7 grid-cols-3 mb-7">
+          <div data-pv-block="pf1hzs" className="flex-col grid gap-7 mb-7 grid-cols-2 xl:grid xl:grid-cols-3">
             {/* pv-editable-zone-start:ewz19j */}
             {/* pv-block-start:lf7bog */}
             <Card className="gap-4 items-stretch" data-pv-block="lf7bog">
@@ -250,7 +250,7 @@ export function DashboardPage() {
           </div>
           {/* pv-block-end:oqzvp4 */}
           {/* pv-block-start:9s48fz */}
-          <div data-pv-block="9s48fz" className="flex-col grid gap-7 grid-cols-3">
+          <div data-pv-block="9s48fz" className="flex-col grid gap-7 grid-cols-2 xl:grid xl:grid-cols-3">
             {/* pv-editable-zone-start:o9d9z3 */}
             {/* pv-block-start:0z20q2 */}
             <Card className="gap-4 items-stretch" data-pv-block="0z20q2">

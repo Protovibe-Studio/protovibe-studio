@@ -1,54 +1,9 @@
-# Protovibe
+# Protovibe Studio
 
 A tool for rapidly creating and managing prototype projects with an AI-assisted visual editor.
 
-## Getting started
+(Docs work in progress)
 
-### Zero-clone install (recommended — also what you'd paste into a coding agent)
-
-The init-installation-via-curl script clones the repo to `~/Protovibe` (or `%USERPROFILE%\Protovibe` on Windows) and runs the full installer.
-
-**macOS / Linux**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/init-installation-via-curl.sh | bash
-```
-
-**Windows (PowerShell)**
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/init-installation-via-curl.ps1 | iex
-```
-
-Override the install location if you don't want it under your home folder:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe/main/init-installation-via-curl.sh \
-  | PROTOVIBE_DIR=~/code/protovibe bash
-```
-
-The init script installs git if missing (via `xcode-select --install` on macOS, `winget install Git.Git` on Windows), clones the repo, then hands off to `install.sh` / `install.bat` which install Node + pnpm into `~/.local/`, install all dependencies, and create a desktop shortcut. No sudo required; if you already have Node ≥ v22 on PATH it's reused.
-
-### Already cloned the repo?
-
-```bash
-./install.sh        # macOS / Linux
-install.bat         # Windows (double-click also works)
-```
-
-On macOS this opens a small Finder window — drag `Protovibe.app` onto the `Applications` shortcut, then launch it from Launchpad or `/Applications`. On Linux, look for the `Protovibe` launcher on your Desktop. On Windows, the installer places a `Protovibe` shortcut on your Desktop and auto-launches the app the first time.
-
-If you ever move the repo to a different folder, just re-run the installer — the desktop shortcut keeps working.
-
-### Manual install
-
-If you'd rather skip the shortcut/installer and just install deps:
-
-```bash
-pnpm install:all
-```
-
-This runs `pnpm install` inside `protovibe-project-manager` and `protovibe-project-template` sequentially. There is no pnpm workspace — each app is fully self-contained.
 
 ## Folder structure
 
