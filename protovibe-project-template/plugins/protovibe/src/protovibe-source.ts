@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -173,6 +173,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__cloudflare-publish-start', handleCloudflarePublishStart);
       server.middlewares.use('/__cloudflare-publish-status', handleCloudflarePublishStatus);
       server.middlewares.use('/__cloudflare-login-start', handleCloudflareLoginStart);
+      server.middlewares.use('/__cloudflare-logout', handleCloudflareLogout);
 
       // Resolve a relative file path to its absolute path on disk
       server.middlewares.use('/__resolve-file-path', (req, res) => {

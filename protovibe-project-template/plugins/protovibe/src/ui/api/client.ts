@@ -273,6 +273,14 @@ export async function startCloudflareLogin(): Promise<void> {
   if (!res.ok) throw new Error('Failed to start login');
 }
 
+export async function cloudflareLogout(): Promise<void> {
+  const res = await fetch('/__cloudflare-logout', { method: 'POST' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as any).error || 'Failed to log out');
+  }
+}
+
 export interface CloudflarePublishStatus {
   status: 'idle' | 'installing-wrangler' | 'building' | 'publishing' | 'waiting-for-browser-approval' | 'needs-api-token' | 'account-selection' | 'not-logged-in' | 'success' | 'error';
   message: string;

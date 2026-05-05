@@ -54,9 +54,9 @@
  --background-accent-soft: oklch(87.9% 0.059 86.8);
 
  /* Tinted semantic backgrounds — badges, alerts, toasts */
- --background-primary-subtle: oklch(94.2% 0.025 276.5);
- --background-primary-subtle-hover: oklch(89% 0.033 286.7);
- --background-primary-subtle-pressed: oklch(84.8% 0.023 292.7);
+ --background-primary-subtle: oklch(94.2% 0.025 299.2);
+ --background-primary-subtle-hover: oklch(89% 0.033 309.3);
+ --background-primary-subtle-pressed: oklch(84.8% 0.023 312.2);
  --background-destructive-subtle: oklch(92.87% 0.02889 9.7);
  --background-destructive-subtle-hover: oklch(93% 0.05 25);
  --background-destructive-subtle-pressed: oklch(89% 0.08 25);
@@ -758,6 +758,7 @@ body {
 
 html {
     font-size: 16px;
+    background: var(--color-background-default);
 }
 
 /* ── Custom Utilities for Gradients ───────────────────────────────────────── */

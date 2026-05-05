@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb } from 'lucide-react';
+import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut } from 'lucide-react';
 import { theme } from '../theme';
 import {
   fetchCloudflarePublishMetadata,
@@ -7,6 +7,7 @@ import {
   startCloudflarePublish,
   fetchCloudflarePublishStatus,
   startCloudflareLogin,
+  cloudflareLogout,
   type CloudflarePublishStatus,
 } from '../api/client';
 
@@ -89,6 +90,10 @@ export function PublishButton() {
   const [editingName, setEditingName] = useState(false);
   const [apiToken, setApiToken] = useState('');
   const [authUrl, setAuthUrl] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [loggedOutFlash, setLoggedOutFlash] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Publish state
   const [status, setStatus] = useState<CloudflarePublishStatus['status']>('idle');
@@ -145,6 +150,44 @@ export function PublishButton() {
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
+
+  // Close menu on outside click (within the popover)
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onDown(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [menuOpen]);
+
+  const handleLogout = async () => {
+    setMenuOpen(false);
+    setLoggingOut(true);
+    try {
+      await cloudflareLogout();
+      // Reset all transient publish-flow state so the popover returns to its default view.
+      setStatus('idle');
+      setStatusMessage('');
+      setErrorText('');
+      setAccounts([]);
+      setSelectedAccount('');
+      setAuthUrl('');
+      setApiToken('');
+      setLoggedOutFlash(true);
+    } catch (err) {
+      setErrorText(String(err));
+      setStatus('error');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  // Clear the banner whenever the view transitions out of idle so it doesn't
+  // bleed into login/publish/error screens.
+  useEffect(() => {
+    if (loggedOutFlash && status !== 'idle') setLoggedOutFlash(false);
+  }, [status, loggedOutFlash]);
 
   // Auto-generate a project name from the folder name
   const generateProjectName = (): string => {
@@ -546,6 +589,74 @@ export function PublishButton() {
             fontFamily: theme.font_ui,
           }}
         >
+          {/* Kebab "more" menu — always visible in the popover's top-right */}
+          <div ref={menuRef} style={{ position: 'absolute', top: '10px', right: '10px' }}>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              title="More"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '24px', height: '24px', borderRadius: '6px',
+                border: 'none', background: menuOpen ? theme.bg_tertiary : 'transparent',
+                color: theme.text_tertiary, cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = theme.bg_secondary; }}
+              onMouseLeave={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <MoreHorizontal size={14} />
+            </button>
+            {menuOpen && (
+              <div
+                style={{
+                  position: 'absolute', top: '28px', right: '0',
+                  minWidth: '200px',
+                  backgroundColor: theme.bg_default,
+                  border: `1px solid ${theme.border_default}`,
+                  borderRadius: '8px',
+                  padding: '4px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  zIndex: 10000,
+                }}
+              >
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    width: '100%', padding: '8px 10px',
+                    background: 'transparent', border: 'none', borderRadius: '6px',
+                    color: theme.text_default, fontSize: '12px', fontFamily: theme.font_ui,
+                    cursor: loggingOut ? 'not-allowed' : 'pointer',
+                    textAlign: 'left',
+                    opacity: loggingOut ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => { if (!loggingOut) e.currentTarget.style.backgroundColor = theme.bg_secondary; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  {loggingOut ? <Loader2 size={13} style={spinStyle} /> : <LogOut size={13} />}
+                  Logout from Cloudflare
+                </button>
+              </div>
+            )}
+          </div>
+          {loggedOutFlash && (
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '8px 10px',
+                marginRight: '32px', // leave room for the kebab button
+                marginBottom: '14px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(52, 199, 89, 0.12)',
+                border: '1px solid rgba(52, 199, 89, 0.35)',
+                color: theme.text_default,
+                fontSize: '11px', lineHeight: '1.4',
+              }}
+            >
+              <CircleCheck size={13} color="#34c759" style={{ flexShrink: 0 }} />
+              <span>You logged out. Publish your project again to log in.</span>
+            </div>
+          )}
           {renderBody()}
         </div>
       )}
