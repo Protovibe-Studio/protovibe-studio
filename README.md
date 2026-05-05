@@ -2,11 +2,14 @@
 
 A tool for rapidly creating and managing prototype projects with an AI-assisted visual editor.
 
-(Docs work in progress)
-
 ## Contact Protovibe Team
 
 protovibe.studio@gmail.com
+
+## Install via terminal
+```bash
+curl -fsSL https://raw.githubusercontent.com/Protovibe-Studio/protovibe-studio/main/init-installation-via-curl.sh | bash
+```
 
 ## Folder structure
 
