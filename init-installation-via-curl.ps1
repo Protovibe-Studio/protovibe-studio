@@ -9,55 +9,58 @@
 
 $ErrorActionPreference = 'Stop'
 
-$RepoUrl     = if ($env:PROTOVIBE_REPO)   { $env:PROTOVIBE_REPO }   else { 'https://github.com/Protovibe-Studio/protovibe-studio.git' }
-$InstallDir  = if ($env:PROTOVIBE_DIR)    { $env:PROTOVIBE_DIR }    else { Join-Path $HOME 'Protovibe' }
-$Branch      = if ($env:PROTOVIBE_BRANCH) { $env:PROTOVIBE_BRANCH } else { 'main' }
+$RepoSlug   = if ($env:PROTOVIBE_REPO_SLUG) { $env:PROTOVIBE_REPO_SLUG } else { 'Protovibe-Studio/protovibe-studio' }
+$InstallDir = if ($env:PROTOVIBE_DIR)       { $env:PROTOVIBE_DIR }       else { Join-Path $HOME 'Protovibe' }
+$Branch     = if ($env:PROTOVIBE_BRANCH)    { $env:PROTOVIBE_BRANCH }    else { 'main' }
+$ZipUrl     = "https://codeload.github.com/$RepoSlug/zip/refs/heads/$Branch"
 
 function Say  { param($m) Write-Host $m -ForegroundColor Cyan }
 function Ok   { param($m) Write-Host "✔ $m" -ForegroundColor Green }
 function Fail { param($m) Write-Host "✖ $m" -ForegroundColor Red; exit 1 }
 
-# ── Ensure git ──────────────────────────────────────────────────────────────
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-  Say "git is not installed — attempting install via winget..."
-  if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-    Fail "winget is unavailable. Install Git from https://git-scm.com/download/win and re-run."
-  }
-  winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements | Out-Null
-  if ($LASTEXITCODE -ne 0) { Fail "winget failed to install Git." }
-  # Refresh PATH from registry so this session picks up git
-  $userPath = [System.Environment]::GetEnvironmentVariable('Path', 'User')
-  $sysPath  = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
-  $env:Path = "$sysPath;$userPath"
-  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Fail "Git was installed but is not on PATH in this session. Open a new PowerShell window and re-run the installer."
-  }
-}
-
-Say "Repo:   $RepoUrl ($Branch)"
+Say "Source: $ZipUrl"
 Say "Target: $InstallDir"
 Write-Host ''
 
-# ── Clone or update ─────────────────────────────────────────────────────────
-if (Test-Path (Join-Path $InstallDir '.git')) {
-  Say 'Existing checkout found — updating...'
-  git -C $InstallDir fetch --depth=1 origin $Branch
-  git -C $InstallDir checkout $Branch
-  git -C $InstallDir reset --hard "origin/$Branch"
+# ── Refuse to clobber an existing non-empty directory ───────────────────────
+if ((Test-Path $InstallDir) -and (Get-ChildItem -Force $InstallDir -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+  Fail "$InstallDir already exists and is not empty. Remove it or pick a different location via `$env:PROTOVIBE_DIR."
 }
-elseif ((Test-Path $InstallDir) -and (Get-ChildItem -Force $InstallDir | Select-Object -First 1)) {
-  Fail "$InstallDir already exists and is not empty (and not a git checkout). Pick a different location via `$env:PROTOVIBE_DIR."
+
+# ── Download & extract ──────────────────────────────────────────────────────
+New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
+
+$TmpZip = Join-Path ([System.IO.Path]::GetTempPath()) ("protovibe-" + [System.Guid]::NewGuid().ToString('N') + ".zip")
+$TmpExtract = Join-Path ([System.IO.Path]::GetTempPath()) ("protovibe-" + [System.Guid]::NewGuid().ToString('N'))
+
+try {
+  Say 'Downloading...'
+  # Use TLS 1.2 for older PowerShell defaults
+  [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
+  Invoke-WebRequest -UseBasicParsing -Uri $ZipUrl -OutFile $TmpZip
+
+  Say 'Extracting...'
+  New-Item -ItemType Directory -Path $TmpExtract -Force | Out-Null
+  Expand-Archive -Path $TmpZip -DestinationPath $TmpExtract -Force
+
+  # The zip wraps everything in a single top-level "<repo>-<branch>" folder.
+  $Inner = Get-ChildItem -Force $TmpExtract | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+  if (-not $Inner) { Fail 'Downloaded archive was empty or malformed.' }
+
+  Get-ChildItem -Force -LiteralPath $Inner.FullName | ForEach-Object {
+    Move-Item -LiteralPath $_.FullName -Destination $InstallDir -Force
+  }
 }
-else {
-  Say 'Cloning...'
-  New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-  git clone --depth=1 --branch $Branch $RepoUrl $InstallDir
+finally {
+  if (Test-Path $TmpZip)     { Remove-Item -LiteralPath $TmpZip -Force -ErrorAction SilentlyContinue }
+  if (Test-Path $TmpExtract) { Remove-Item -LiteralPath $TmpExtract -Recurse -Force -ErrorAction SilentlyContinue }
 }
+
 Ok "Source ready at $InstallDir"
 
 # ── Hand off to install.bat ─────────────────────────────────────────────────
 Set-Location $InstallDir
-if (-not (Test-Path '.\install.bat')) { Fail 'install.bat missing from the cloned repo.' }
+if (-not (Test-Path '.\install.bat')) { Fail 'install.bat missing from the downloaded archive.' }
 Write-Host ''
 Say 'Running install.bat...'
 & cmd /c '.\install.bat'
