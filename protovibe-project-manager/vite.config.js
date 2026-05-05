@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
+import { pipeline } from 'node:stream/promises'
 import { spawn, execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
@@ -19,7 +21,6 @@ const PROJECTS_JSON = path.join(PROJECTS_DIR, 'projects.json')
 const TEMPLATE_DIR = path.join(REPO_ROOT, 'protovibe-project-template')
 const PLUGIN_REL_DIR = path.join('plugins', 'protovibe')
 const SOURCE_PLUGIN_DIR = path.join(TEMPLATE_DIR, PLUGIN_REL_DIR)
-const UPDATER_SCRIPT = path.join(REPO_ROOT, 'download-newest-version.sh')
 const REMOTE_REPO = 'Protovibe-Studio/protovibe-studio'
 const REMOTE_BRANCH = 'main'
 // Plugin sync exclusions: huge / generated / lockfile artefacts stay
@@ -961,8 +962,8 @@ function handleSetup(req, res, id) {
 
 // ── App self-update ──────────────────────────────────────────────────────────
 // Reads protovibe-project-manager/protovibe-project-template versions locally
-// and from GitHub raw, runs ./download-newest-version.sh on demand, and
-// auto-restarts the project-manager dev server when its own files change.
+// and from GitHub, downloads + applies updates in pure Node so it works on
+// both macOS and Windows.
 
 function readLocalVersion(pkgPath) {
   try {
@@ -1044,14 +1045,177 @@ async function handleGetVersion(_req, res) {
 
 let updateInProgress = false
 
+// ── Pure-Node updater ───────────────────────────────────────────────────────
+// Replaces download-newest-version.sh for the in-app "Download new version"
+// flow so it works on both macOS and Windows (where bash isn't on PATH).
+// The .sh script remains for CLI use on Unix.
+
+async function downloadZipball(destPath, log) {
+  const url = `https://api.github.com/repos/${REMOTE_REPO}/zipball/${REMOTE_BRANCH}`
+  const token = githubToken()
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'protovibe-project-manager',
+  }
+  if (token) headers.Authorization = `Bearer ${token}`
+  log(`Downloading latest protovibe from github.com/${REMOTE_REPO}@${REMOTE_BRANCH} ...`)
+  const res = await fetch(url, { headers, redirect: 'follow' })
+  if (!res.ok || !res.body) {
+    throw new Error(`Failed to download zipball: GitHub returned ${res.status}`)
+  }
+  await pipeline(res.body, fs.createWriteStream(destPath))
+}
+
+async function extractZip(zipPath, destDir) {
+  const directory = await unzipper.Open.file(zipPath)
+  for (const file of directory.files) {
+    const outPath = path.join(destDir, file.path)
+    if (file.type === 'Directory') {
+      fs.mkdirSync(outPath, { recursive: true })
+      continue
+    }
+    fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    await pipeline(file.stream(), fs.createWriteStream(outPath))
+  }
+}
+
+function findExtractedRoot(extractDir) {
+  for (const entry of fs.readdirSync(extractDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const candidate = path.join(extractDir, entry.name)
+    if (
+      fs.existsSync(path.join(candidate, 'protovibe-project-manager')) &&
+      fs.existsSync(path.join(candidate, 'protovibe-project-template'))
+    ) {
+      return candidate
+    }
+  }
+  return null
+}
+
+// Replace `dest` with `src` contents, but preserve the relative paths in
+// `preserve` (e.g., node_modules). Cross-platform: uses fs.cpSync (Node 16.7+).
+function syncDir(src, dest, preserve) {
+  const stash = fs.mkdtempSync(path.join(os.tmpdir(), 'protovibe-stash-'))
+  try {
+    for (const rel of preserve) {
+      const from = path.join(dest, rel)
+      if (!fs.existsSync(from)) continue
+      const to = path.join(stash, rel)
+      fs.mkdirSync(path.dirname(to), { recursive: true })
+      fs.renameSync(from, to)
+    }
+    fs.rmSync(dest, { recursive: true, force: true })
+    fs.mkdirSync(dest, { recursive: true })
+    fs.cpSync(src, dest, { recursive: true })
+    for (const rel of preserve) {
+      const from = path.join(stash, rel)
+      if (!fs.existsSync(from)) continue
+      const to = path.join(dest, rel)
+      fs.rmSync(to, { recursive: true, force: true })
+      fs.mkdirSync(path.dirname(to), { recursive: true })
+      fs.renameSync(from, to)
+    }
+  } finally {
+    fs.rmSync(stash, { recursive: true, force: true })
+  }
+}
+
+function runPnpmInstall(cwd, log) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('pnpm', ['install'], {
+      cwd,
+      stdio: 'pipe',
+      shell: true, // pnpm.cmd on Windows; harmless on Unix
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+    })
+    let buf = ''
+    const onChunk = (chunk) => {
+      buf += chunk.toString()
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
+      for (const line of lines) if (line.trim()) log(line)
+    }
+    proc.stdout.on('data', onChunk)
+    proc.stderr.on('data', onChunk)
+    proc.on('error', reject)
+    proc.on('exit', (code) => {
+      if (buf.trim()) log(buf)
+      if (code === 0) resolve()
+      else reject(new Error(`pnpm install exited with code ${code} in ${cwd}`))
+    })
+  })
+}
+
+async function runUpdate(which, log) {
+  const PM_DIR = path.join(REPO_ROOT, 'protovibe-project-manager')
+  const TPL_DIR = TEMPLATE_DIR
+
+  const localPmVer = readLocalVersion(path.join(PM_DIR, 'package.json'))
+  const localTplVer = readLocalVersion(path.join(TPL_DIR, 'package.json'))
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'protovibe-update-'))
+  try {
+    const zipPath = path.join(tmp, 'repo.zip')
+    await downloadZipball(zipPath, log)
+    const extractDir = path.join(tmp, 'extract')
+    fs.mkdirSync(extractDir, { recursive: true })
+    log('Extracting archive ...')
+    await extractZip(zipPath, extractDir)
+
+    const srcRoot = findExtractedRoot(extractDir)
+    if (!srcRoot) throw new Error('Could not find protovibe folders in extracted archive.')
+
+    const remotePmVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-manager', 'package.json'))
+    const remoteTplVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-template', 'package.json'))
+
+    const wantPm = which !== 'template'
+    const wantTpl = which !== 'manager'
+    const updatePm = wantPm && !!(remotePmVer && localPmVer && semverGt(remotePmVer, localPmVer))
+    const updateTpl = wantTpl && !!(remoteTplVer && localTplVer && semverGt(remoteTplVer, localTplVer))
+
+    if (!updatePm && !updateTpl) {
+      log(`Already up to date — manager ${localPmVer}, template ${localTplVer}.`)
+      return {
+        manager: false, template: false,
+        managerVersion: remotePmVer, templateVersion: remoteTplVer,
+      }
+    }
+
+    if (updatePm) {
+      // Staged: write to sibling .pending dir; launcher swaps on next start.
+      const pendingDir = path.join(REPO_ROOT, 'protovibe-project-manager.pending')
+      log(`Staging protovibe-project-manager: ${localPmVer} → ${remotePmVer} (apply on next launch)`)
+      fs.rmSync(pendingDir, { recursive: true, force: true })
+      fs.mkdirSync(pendingDir, { recursive: true })
+      fs.cpSync(path.join(srcRoot, 'protovibe-project-manager'), pendingDir, { recursive: true })
+    }
+
+    if (updateTpl) {
+      log(`Updating protovibe-project-template: ${localTplVer} → ${remoteTplVer}`)
+      syncDir(
+        path.join(srcRoot, 'protovibe-project-template'),
+        TPL_DIR,
+        ['node_modules', path.join('plugins', 'protovibe', 'node_modules')],
+      )
+      log('Running pnpm install in protovibe-project-template ...')
+      await runPnpmInstall(TPL_DIR, log)
+    }
+
+    log('Update complete.')
+    return {
+      manager: updatePm, template: updateTpl,
+      managerVersion: remotePmVer, templateVersion: remoteTplVer,
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
+
 function handleUpdateApp(req, res, which) {
   if (updateInProgress) {
     return sendJson(res, 409, { error: 'Update already in progress.' })
   }
-  if (!fs.existsSync(UPDATER_SCRIPT)) {
-    return sendJson(res, 500, { error: `Updater script not found at ${UPDATER_SCRIPT}` })
-  }
-
   updateInProgress = true
 
   res.writeHead(200, {
@@ -1069,71 +1233,21 @@ function handleUpdateApp(req, res, which) {
     if (aborted) return
     try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`) } catch {}
   }
+  const log = (text) => send('log', { text })
 
-  const args = [UPDATER_SCRIPT]
-  if (which === 'template' || which === 'manager') args.push(`--only=${which}`)
-  // Manager updates always stage to a sibling .pending dir so we don't
-  // overwrite files the running vite server is reading. The launcher swaps
-  // it into place on next start, before vite boots.
-  if (which === 'manager') args.push('--stage')
-
-  const proc = spawn('bash', args, {
-    cwd: REPO_ROOT,
-    stdio: 'pipe',
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-  })
-
-  let buffer = ''
-  let result = null
-
-  const onChunk = (chunk) => {
-    buffer += chunk.toString()
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
-    for (const line of lines) {
-      if (!line.trim()) continue
-      const marker = line.indexOf('__PROTOVIBE_UPDATE_RESULT__')
-      if (marker >= 0) {
-        try { result = JSON.parse(line.slice(marker + '__PROTOVIBE_UPDATE_RESULT__'.length).trim()) } catch {}
-        continue
-      }
-      send('log', { text: line })
-    }
-  }
-  proc.stdout.on('data', onChunk)
-  proc.stderr.on('data', onChunk)
-
-  proc.on('error', (err) => {
-    updateInProgress = false
-    send('fail', { message: err.message })
-    try { res.end() } catch {}
-  })
-
-  proc.on('exit', (code) => {
-    if (buffer.trim()) send('log', { text: buffer })
-    // Exit 2 = "nothing to update"; treat as success with no changes.
-    const ok = code === 0 || code === 2
-    if (!ok) {
-      updateInProgress = false
-      send('fail', { message: `Updater exited with code ${code}` })
-      try { res.end() } catch {}
-      return
-    }
-
-    const managerUpdated = !!result?.manager
-    const templateUpdated = !!result?.template
-
+  runUpdate(which, log).then((result) => {
     send('done', {
-      managerUpdated,
-      templateUpdated,
-      managerVersion: result?.managerVersion ?? null,
-      templateVersion: result?.templateVersion ?? null,
-      // Manager updates are staged to a sibling .pending dir; the launcher
-      // applies them on next start. The user must restart Protovibe.
-      restartRequired: managerUpdated,
+      managerUpdated: !!result.manager,
+      templateUpdated: !!result.template,
+      managerVersion: result.managerVersion ?? null,
+      templateVersion: result.templateVersion ?? null,
+      restartRequired: !!result.manager,
     })
-
     updateInProgress = false
+    try { res.end() } catch {}
+  }).catch((err) => {
+    updateInProgress = false
+    send('fail', { message: err?.message || String(err) })
     try { res.end() } catch {}
   })
 }
