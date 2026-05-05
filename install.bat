@@ -18,9 +18,20 @@ set "LOG=%ROOT%\install.log"
 set "LOCK=%ROOT%\.install.lock"
 set "STEP=(starting up)"
 
+REM ── Unattended mode (used by the Inno Setup wrapper) ─────────────────────
+REM  /UNATTENDED arg or PROTOVIBE_UNATTENDED=1 env var — suppresses pauses,
+REM  the trailing "press any key" banner, and the auto-launch at the end.
+set "UNATTENDED=0"
+if /i "%~1"=="/UNATTENDED" set "UNATTENDED=1"
+if /i "%PROTOVIBE_UNATTENDED%"=="1" set "UNATTENDED=1"
+
 REM ── Auto-elevate (Admin needed for global npm install) ───────────────────
 net session >nul 2>&1
 if errorlevel 1 (
+  if "%UNATTENDED%"=="1" (
+    echo [FAIL] /UNATTENDED requires the script to already be running as Administrator.
+    exit /b 1
+  )
   echo.
   echo Administrator privileges are required to configure Node.js and install pnpm globally.
   echo Requesting elevation...
@@ -203,6 +214,14 @@ call :ok "Self-test passed: node, pnpm, vite, plugin dist all good."
 
 REM ── Success banner ────────────────────────────────────────────────────────
 del /f /q "%LOCK%" >nul 2>&1
+
+if "%UNATTENDED%"=="1" (
+  echo.
+  echo [ok ] Protovibe installed successfully.
+  >>"%LOG%" echo [ok ] Protovibe installed successfully ^(unattended^).
+  exit /b 0
+)
+
 echo.
 echo.
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -270,7 +289,7 @@ echo        %~1
 echo        Full log: %LOG%
 >>"%LOG%" echo [FAIL] %STEP%: %~1
 del /f /q "%LOCK%" >nul 2>&1
-pause
+if not "%UNATTENDED%"=="1" pause
 exit /b 1
 
 :proxy_hint
