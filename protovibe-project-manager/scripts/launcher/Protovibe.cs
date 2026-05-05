@@ -109,6 +109,8 @@ static class Protovibe {
             return 0;
         }
 
+        ApplyStagedManagerUpdate(root);
+
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("   Starting dev server, please wait...");
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -138,6 +140,62 @@ static class Protovibe {
             Console.WriteLine("Failed to start dev server: " + ex.Message);
             Pause();
             return 1;
+        }
+    }
+
+    // The /api/update-app handler stages manager updates to a sibling
+    // .pending dir so the running vite never sees its own files change. Apply
+    // the swap here, before vite boots, and reconcile deps via pnpm install.
+    // node_modules is preserved across the swap so install is fast when deps
+    // are unchanged.
+    static void ApplyStagedManagerUpdate(string root) {
+        try {
+            string pmDir = Path.Combine(root, "protovibe-project-manager");
+            string pending = pmDir + ".pending";
+            string oldDir = pmDir + ".old";
+            if (!Directory.Exists(pending)) return;
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("   Applying staged project-manager update...");
+            Console.ResetColor();
+
+            string pmNm = Path.Combine(pmDir, "node_modules");
+            string pendingNm = Path.Combine(pending, "node_modules");
+            if (Directory.Exists(pmNm) && !Directory.Exists(pendingNm)) {
+                Directory.Move(pmNm, pendingNm);
+            }
+
+            if (Directory.Exists(oldDir)) Directory.Delete(oldDir, true);
+            Directory.Move(pmDir, oldDir);
+            try {
+                Directory.Move(pending, pmDir);
+            } catch (Exception ex) {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("   Failed to apply staged update: " + ex.Message);
+                Console.ResetColor();
+                if (!Directory.Exists(pmDir) && Directory.Exists(oldDir)) Directory.Move(oldDir, pmDir);
+                return;
+            }
+            try { Directory.Delete(oldDir, true); } catch {}
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("   Installing dependencies...");
+            Console.ResetColor();
+            var install = new ProcessStartInfo("cmd.exe", "/c pnpm --dir protovibe-project-manager install --prefer-offline") {
+                UseShellExecute = false,
+                WorkingDirectory = root,
+            };
+            try {
+                using (var p = Process.Start(install)) { p.WaitForExit(); }
+            } catch (Exception ex) {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("   pnpm install failed: " + ex.Message);
+                Console.ResetColor();
+            }
+        } catch (Exception ex) {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("   Could not apply staged update: " + ex.Message);
+            Console.ResetColor();
         }
     }
 

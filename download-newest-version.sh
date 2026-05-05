@@ -44,12 +44,14 @@ fi
 
 MODE="auto"
 ONLY=""   # ""=both, "template", "manager"
+STAGE_MANAGER=0  # if 1, write manager files to a sibling .pending dir
 for arg in "$@"; do
   case "$arg" in
     --force) MODE="force" ;;
     --check) MODE="check" ;;
     --only=template) ONLY="template" ;;
     --only=manager)  ONLY="manager" ;;
+    --stage) STAGE_MANAGER=1 ;;
     "" ) ;;
     *) err "Unknown flag: $arg"; exit 1 ;;
   esac
@@ -185,9 +187,21 @@ updated_pm=0
 updated_tpl=0
 
 if [ "$update_pm" -eq 1 ]; then
-  say "Updating protovibe-project-manager: $LOCAL_PM_VER → $REMOTE_PM_VER"
-  sync_dir "$SRC_ROOT/protovibe-project-manager" "$PM_DIR" "node_modules"
-  updated_pm=1
+  if [ "$STAGE_MANAGER" -eq 1 ]; then
+    # Staged mode: write the new manager into a sibling .pending dir so the
+    # currently running manager can keep serving files. The launcher swaps it
+    # into place on next start, before vite boots.
+    PENDING_DIR="$SCRIPT_DIR/protovibe-project-manager.pending"
+    say "Staging protovibe-project-manager: $LOCAL_PM_VER → $REMOTE_PM_VER (apply on next launch)"
+    rm -rf "$PENDING_DIR"
+    mkdir -p "$PENDING_DIR"
+    ( cd "$SRC_ROOT/protovibe-project-manager" && tar -cf - . ) | ( cd "$PENDING_DIR" && tar -xf - )
+    updated_pm=1
+  else
+    say "Updating protovibe-project-manager: $LOCAL_PM_VER → $REMOTE_PM_VER"
+    sync_dir "$SRC_ROOT/protovibe-project-manager" "$PM_DIR" "node_modules"
+    updated_pm=1
+  fi
 fi
 
 if [ "$update_tpl" -eq 1 ]; then
@@ -218,10 +232,11 @@ if ! ensure_pnpm; then
   exit 1
 fi
 
-if [ "$updated_pm" -eq 1 ]; then
+if [ "$updated_pm" -eq 1 ] && [ "$STAGE_MANAGER" -eq 0 ]; then
   say "Running pnpm install in protovibe-project-manager ..."
   ( cd "$PM_DIR" && pnpm install ) || { err "pnpm install failed in protovibe-project-manager"; exit 1; }
 fi
+# Staged manager updates defer pnpm install to the launcher (runs on next start).
 if [ "$updated_tpl" -eq 1 ]; then
   say "Running pnpm install in protovibe-project-template ..."
   ( cd "$TPL_DIR" && pnpm install ) || { err "pnpm install failed in protovibe-project-template"; exit 1; }

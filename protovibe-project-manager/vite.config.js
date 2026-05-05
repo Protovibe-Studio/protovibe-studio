@@ -1052,15 +1052,6 @@ function handleUpdateApp(req, res, which) {
     return sendJson(res, 500, { error: `Updater script not found at ${UPDATER_SCRIPT}` })
   }
 
-  // The manager-update phase needs special handling: we can't replace files
-  // that Vite is serving without breaking HMR / module graph. Instead, schedule
-  // a detached helper that waits for *this* process to exit, then runs the
-  // file swap and starts the new dev server. From Vite's perspective nothing
-  // changes — it just sees a clean shutdown.
-  if (which === 'manager') {
-    return scheduleManagerUpdate(req, res)
-  }
-
   updateInProgress = true
 
   res.writeHead(200, {
@@ -1081,6 +1072,10 @@ function handleUpdateApp(req, res, which) {
 
   const args = [UPDATER_SCRIPT]
   if (which === 'template' || which === 'manager') args.push(`--only=${which}`)
+  // Manager updates always stage to a sibling .pending dir so we don't
+  // overwrite files the running vite server is reading. The launcher swaps
+  // it into place on next start, before vite boots.
+  if (which === 'manager') args.push('--stage')
 
   const proc = spawn('bash', args, {
     cwd: REPO_ROOT,
@@ -1133,81 +1128,14 @@ function handleUpdateApp(req, res, which) {
       templateUpdated,
       managerVersion: result?.managerVersion ?? null,
       templateVersion: result?.templateVersion ?? null,
-      restartScheduled: managerUpdated,
+      // Manager updates are staged to a sibling .pending dir; the launcher
+      // applies them on next start. The user must restart Protovibe.
+      restartRequired: managerUpdated,
     })
 
-    // The auto/template path never reaches here for manager-restart logic —
-    // that's handled separately by scheduleManagerUpdate. Just close the SSE.
     updateInProgress = false
     try { res.end() } catch {}
   })
-}
-
-// Schedule a manager update by handing the file swap to a detached helper.
-// The helper waits for our PID to exit (so Vite's filewatcher / HMR client
-// never see any in-place file changes), runs the updater script with
-// --only=manager, then starts a fresh dev server. Logs go to dev.log.
-function scheduleManagerUpdate(_req, res) {
-  updateInProgress = true
-
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no',
-    'Access-Control-Allow-Origin': '*',
-  })
-  res.write(':\n\n')
-
-  const send = (event, data) => {
-    try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`) } catch {}
-  }
-
-  const logFile = path.join(REPO_ROOT, 'dev.log')
-  send('log', { text: '--- scheduling project-manager update ---' })
-  send('log', { text: 'The dev server will exit; a helper will swap files and restart.' })
-  send('log', { text: `Helper output is being appended to ${logFile}` })
-
-  // The helper waits for this very process to exit (tracked by PID), then
-  // runs ./download-newest-version.sh --only=manager and re-launches the dev
-  // server. `bash -lc` loads the user's shell profile so ~/.local/bin (where
-  // install.sh puts node/pnpm) is on PATH.
-  const myPid = process.pid
-  const helperCmd = [
-    `while kill -0 ${myPid} 2>/dev/null; do sleep 0.5; done`,
-    `cd ${JSON.stringify(REPO_ROOT)}`,
-    `bash ${JSON.stringify(UPDATER_SCRIPT)} --only=manager >> ${JSON.stringify(logFile)} 2>&1`,
-    `PROTOVIBE_NO_OPEN=1 pnpm --dir protovibe-project-manager dev >> ${JSON.stringify(logFile)} 2>&1`,
-  ].join(' && ')
-
-  try {
-    const child = spawn('bash', ['-lc', helperCmd], {
-      detached: true,
-      stdio: 'ignore',
-      env: { ...process.env, PROTOVIBE_NO_OPEN: '1' },
-    })
-    child.unref()
-  } catch (err) {
-    updateInProgress = false
-    send('fail', { message: `Failed to schedule manager update: ${err.message}` })
-    try { res.end() } catch {}
-    return
-  }
-
-  // Tell the client we're done from the SSE point of view; the connection
-  // will drop the moment we exit. The client transitions to 'restarting' and
-  // polls /api/version until the new server is up.
-  send('done', {
-    managerUpdated: true,
-    templateUpdated: false,
-    managerVersion: null,
-    templateVersion: null,
-    restartScheduled: true,
-  })
-
-  // Flush, end the response, exit so the helper can take over the port.
-  try { res.end() } catch {}
-  setTimeout(() => process.exit(0), 500)
 }
 
 // ── Export / Import ──────────────────────────────────────────────────────────

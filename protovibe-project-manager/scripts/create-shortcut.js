@@ -133,7 +133,32 @@ printf '   \\033[1mStarting dev server, please wait…\\033[0m\\n'
 printf '   The browser will open automatically when it is ready.\\n\\n'
 
 export NODE_NO_WARNINGS=1
-cd "$ROOT" && exec pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"
+cd "$ROOT"
+
+# Apply a staged project-manager update if one is pending. The updater writes
+# to protovibe-project-manager.pending/ so the running vite never sees its own
+# files change. Here, before vite boots, we swap dirs and run pnpm install to
+# reconcile dependencies. node_modules is preserved across the swap so install
+# is a fast no-op when deps are unchanged.
+PM_DIR="protovibe-project-manager"
+PENDING="$PM_DIR.pending"
+if [ -d "$PENDING" ]; then
+  printf '   \\033[36mApplying staged project-manager update…\\033[0m\\n'
+  if [ -d "$PM_DIR/node_modules" ] && [ ! -d "$PENDING/node_modules" ]; then
+    mv "$PM_DIR/node_modules" "$PENDING/node_modules"
+  fi
+  rm -rf "$PM_DIR.old"
+  if mv "$PM_DIR" "$PM_DIR.old" && mv "$PENDING" "$PM_DIR"; then
+    rm -rf "$PM_DIR.old"
+    printf '   \\033[36mInstalling dependencies…\\033[0m\\n'
+    pnpm --dir "$PM_DIR" install --prefer-offline
+  else
+    printf '   \\033[31mFailed to apply staged update; reverting.\\033[0m\\n'
+    [ -d "$PM_DIR.old" ] && [ ! -d "$PM_DIR" ] && mv "$PM_DIR.old" "$PM_DIR"
+  fi
+fi
+
+exec pnpm --dir protovibe-project-manager dev 2>&1 | tee "$ROOT/dev.log"
 `;
   fs.mkdirSync(PROTOVIBE_CONFIG_DIR, { recursive: true });
   fs.writeFileSync(launcherPath, script, 'utf8');
@@ -410,9 +435,26 @@ function createWindowsShortcut() {
     '  exit /b 0',
     ')',
     '',
-    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Starting dev server, please wait...' -ForegroundColor Cyan; Write-Host '   The browser will open automatically when it is ready.' -ForegroundColor Gray; Write-Host ''"`,
     'set "NODE_NO_WARNINGS=1"',
     'cd /d "%PROJECT_ROOT%"',
+    '',
+    'rem Apply a staged project-manager update if one is pending. The updater',
+    'rem writes to protovibe-project-manager.pending\\ so the running vite never',
+    'rem sees its own files change. Swap dirs here and reconcile deps.',
+    'if exist "protovibe-project-manager.pending" (',
+    `  powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Applying staged project-manager update...' -ForegroundColor Cyan"`,
+    '  if exist "protovibe-project-manager\\node_modules" if not exist "protovibe-project-manager.pending\\node_modules" (',
+    '    move "protovibe-project-manager\\node_modules" "protovibe-project-manager.pending\\node_modules" >nul',
+    '  )',
+    '  if exist "protovibe-project-manager.old" rmdir /s /q "protovibe-project-manager.old"',
+    '  move "protovibe-project-manager" "protovibe-project-manager.old" >nul',
+    '  move "protovibe-project-manager.pending" "protovibe-project-manager" >nul',
+    '  if exist "protovibe-project-manager.old" rmdir /s /q "protovibe-project-manager.old"',
+    `  powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Installing dependencies...' -ForegroundColor Cyan"`,
+    '  call pnpm --dir protovibe-project-manager install --prefer-offline',
+    ')',
+    '',
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Starting dev server, please wait...' -ForegroundColor Cyan; Write-Host '   The browser will open automatically when it is ready.' -ForegroundColor Gray; Write-Host ''"`,
     'call pnpm --dir protovibe-project-manager dev',
     'if errorlevel 1 (',
     '  echo.',
