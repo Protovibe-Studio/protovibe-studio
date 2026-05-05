@@ -991,7 +991,12 @@ function githubToken() {
   if (env) return env
   if (cachedGhToken !== null) return cachedGhToken
   try {
-    const out = execFileSync('gh', ['auth', 'token'], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+    // shell:true on Windows so `gh.cmd` / `gh.exe` resolves via PATHEXT.
+    const out = execFileSync('gh', ['auth', 'token'], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      shell: process.platform === 'win32',
+    }).trim()
     cachedGhToken = out || ''
   } catch {
     cachedGhToken = ''
@@ -1093,32 +1098,56 @@ function findExtractedRoot(extractDir) {
   return null
 }
 
-// Replace `dest` with `src` contents, but preserve the relative paths in
-// `preserve` (e.g., node_modules). Cross-platform: uses fs.cpSync (Node 16.7+).
-function syncDir(src, dest, preserve) {
-  const stash = fs.mkdtempSync(path.join(os.tmpdir(), 'protovibe-stash-'))
-  try {
-    for (const rel of preserve) {
-      const from = path.join(dest, rel)
-      if (!fs.existsSync(from)) continue
-      const to = path.join(stash, rel)
-      fs.mkdirSync(path.dirname(to), { recursive: true })
-      fs.renameSync(from, to)
+// In-place sync: overwrite `dest` with `src` contents and remove stale entries,
+// but keep paths listed in `preserve` (e.g., node_modules) and never delete the
+// `dest` directory itself. Avoids EPERM on Windows when OneDrive / IDE / file
+// watchers hold a handle on the directory.
+function syncDir(src, dest, preserve, log) {
+  const norm = (p) => path.normalize(p)
+  const preserveSet = new Set(preserve.map(norm))
+  const isPreserved = (rel) => {
+    const r = norm(rel)
+    for (const p of preserveSet) {
+      if (r === p || r.startsWith(p + path.sep)) return true
     }
-    fs.rmSync(dest, { recursive: true, force: true })
-    fs.mkdirSync(dest, { recursive: true })
-    fs.cpSync(src, dest, { recursive: true })
-    for (const rel of preserve) {
-      const from = path.join(stash, rel)
-      if (!fs.existsSync(from)) continue
-      const to = path.join(dest, rel)
-      fs.rmSync(to, { recursive: true, force: true })
-      fs.mkdirSync(path.dirname(to), { recursive: true })
-      fs.renameSync(from, to)
-    }
-  } finally {
-    fs.rmSync(stash, { recursive: true, force: true })
+    return false
   }
+
+  const srcPaths = new Set()
+  const walk = (dir, rel) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const r = rel ? path.join(rel, ent.name) : ent.name
+      srcPaths.add(norm(r))
+      if (ent.isDirectory()) walk(path.join(dir, ent.name), r)
+    }
+  }
+  walk(src, '')
+
+  // Remove dest entries that aren't in src and aren't preserved. Best-effort —
+  // a locked file on Windows shouldn't abort the whole update.
+  const cleanup = (dir, rel) => {
+    if (!fs.existsSync(dir)) return
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const r = rel ? path.join(rel, ent.name) : ent.name
+      if (isPreserved(r)) continue
+      const abs = path.join(dir, ent.name)
+      if (srcPaths.has(norm(r))) {
+        if (ent.isDirectory()) cleanup(abs, r)
+        continue
+      }
+      try {
+        fs.rmSync(abs, { recursive: true, force: true })
+      } catch (err) {
+        log?.(`  warning: could not remove stale ${r}: ${err.message}`)
+      }
+    }
+  }
+  cleanup(dest, '')
+
+  // Copy src over dest. force:true overwrites existing files. We do not
+  // descend into preserved subtrees because src never contains them
+  // (node_modules isn't shipped in the zipball).
+  fs.cpSync(src, dest, { recursive: true, force: true })
 }
 
 function runPnpmInstall(cwd, log) {
@@ -1197,6 +1226,7 @@ async function runUpdate(which, log) {
         path.join(srcRoot, 'protovibe-project-template'),
         TPL_DIR,
         ['node_modules', path.join('plugins', 'protovibe', 'node_modules')],
+        log,
       )
       log('Running pnpm install in protovibe-project-template ...')
       await runPnpmInstall(TPL_DIR, log)
