@@ -221,6 +221,19 @@ if [ "$USE_EXISTING_NODE" -ne 1 ]; then
   ok "Installed Node from $NODE_DIR_NAME"
 fi
 
+# Always symlink node/npm/npx into ~/.local/bin, even when using existing
+# system Node. The macOS .app launcher (Platypus, no shell rc) only puts
+# ~/.local/bin on PATH — without these symlinks, a user with brew/nvm/volta
+# Node sees "env: node: No such file or directory" because pnpm itself has
+# a #!/usr/bin/env node shebang.
+mkdir -p "$LOCAL_BIN"
+for bin in node npm npx; do
+  bin_path="$(command -v "$bin" 2>/dev/null || true)"
+  if [ -n "$bin_path" ] && [ "$bin_path" != "$LOCAL_BIN/$bin" ]; then
+    ln -sf "$bin_path" "$LOCAL_BIN/$bin"
+  fi
+done
+
 step "ensure ~/.local/bin is on PATH ($RC_FILE)"
 if ! grep -q '\.local/bin' "$RC_FILE" 2>/dev/null; then
   cat >> "$RC_FILE" << 'PATHBLOCK'
