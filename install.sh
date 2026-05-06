@@ -256,9 +256,16 @@ else
     err "    and add \"\$HOME/.npm-global/bin\" to your PATH, then re-run."
     exit 1
   fi
-  if [ "$USE_EXISTING_NODE" -ne 1 ] && [ -x "$NODE_INSTALL_DIR/bin/pnpm" ]; then
-    ln -sf "$NODE_INSTALL_DIR/bin/pnpm" "$LOCAL_BIN/pnpm"
-  fi
+fi
+
+# Always symlink pnpm into ~/.local/bin, regardless of where it lives. The
+# macOS .app launcher (Platypus, no shell rc) only puts ~/.local/bin on PATH,
+# so a user whose pnpm sits in /opt/homebrew/bin or ~/.volta/bin would see
+# "pnpm not found" at startup without this.
+PNPM_PATH="$(command -v pnpm 2>/dev/null || true)"
+if [ -n "$PNPM_PATH" ] && [ "$PNPM_PATH" != "$LOCAL_BIN/pnpm" ]; then
+  mkdir -p "$LOCAL_BIN"
+  ln -sf "$PNPM_PATH" "$LOCAL_BIN/pnpm"
 fi
 if ! command -v pnpm >/dev/null 2>&1; then
   err "pnpm is still not on PATH after install."
@@ -272,8 +279,15 @@ ok "pnpm $(pnpm --version) ready."
 run_pnpm_install() {
   local dir=$1
   local name=$2
-  step "pnpm install ($name)"
-  if ! ( cd "$dir" && pnpm install ); then
+  # On reinstall, --force re-verifies every linked file in node_modules and
+  # re-fetches anything corrupt/missing from the pnpm store. Catches the
+  # "Cannot find module .../vite/dist/node/chunks/dep-XXX.js" failure mode.
+  local extra_args=()
+  if [ "${PROTOVIBE_REINSTALL:-0}" = "1" ]; then
+    extra_args+=(--force)
+  fi
+  step "pnpm install ($name)${extra_args[*]:+ ${extra_args[*]}}"
+  if ! ( cd "$dir" && pnpm install "${extra_args[@]}" ); then
     err "pnpm install failed in $name."
     if [ -z "${HTTPS_PROXY:-}${HTTP_PROXY:-}" ]; then
       err "If you're behind a proxy, set HTTPS_PROXY and HTTP_PROXY and re-run."

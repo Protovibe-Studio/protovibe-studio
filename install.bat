@@ -139,14 +139,20 @@ if errorlevel 1 (
 for /f "tokens=*" %%v in ('cmd /c "pnpm --version"') do set "PNPM_VER=%%v"
 call :ok "pnpm !PNPM_VER! ready."
 
+REM On reinstall, --force re-verifies every linked file in node_modules and
+REM re-fetches anything corrupt/missing from the pnpm store. Catches the
+REM "Cannot find module .../vite/dist/node/chunks/dep-XXX.js" failure mode.
+set "PNPM_INSTALL_CMD=pnpm install"
+if "%PROTOVIBE_REINSTALL%"=="1" set "PNPM_INSTALL_CMD=pnpm install --force"
+
 REM ── pnpm install (project-manager) ────────────────────────────────────────
 set "STEP=pnpm install (project-manager)"
 call :step
 echo.
-echo --- pnpm install (project-manager) ---
+echo --- !PNPM_INSTALL_CMD! (project-manager) ---
 echo.
 pushd "%PM_DIR%"
-call :run_streamed "pnpm install"
+call :run_streamed "!PNPM_INSTALL_CMD!"
 if errorlevel 1 (
   popd
   call :proxy_hint
@@ -159,10 +165,10 @@ REM ── pnpm install (project-template) ────────────�
 set "STEP=pnpm install (project-template, builds vite plugin)"
 call :step
 echo.
-echo --- pnpm install (project-template) — also runs postinstall to build the vite plugin ---
+echo --- !PNPM_INSTALL_CMD! (project-template) — also runs postinstall to build the vite plugin ---
 echo.
 pushd "%TPL_DIR%"
-call :run_streamed "pnpm install"
+call :run_streamed "!PNPM_INSTALL_CMD!"
 if errorlevel 1 (
   popd
   call :proxy_hint

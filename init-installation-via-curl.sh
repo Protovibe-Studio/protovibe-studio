@@ -83,4 +83,11 @@ if [ ! -x "./install.sh" ]; then
 fi
 echo
 say "Running install.sh..."
+# Tell install.sh whether this is a fresh install or a reinstall on top of
+# an existing one. Reinstalls run pnpm install --force to re-verify every
+# linked file in node_modules, which fixes corrupt/missing files in pnpm's
+# content-addressable store left over from earlier interrupted installs.
+if [ -n "$BACKUP_DIR" ]; then
+  export PROTOVIBE_REINSTALL=1
+fi
 exec ./install.sh

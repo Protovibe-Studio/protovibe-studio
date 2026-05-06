@@ -90,5 +90,9 @@ Set-Location $InstallDir
 if (-not (Test-Path '.\install.bat')) { Fail 'install.bat missing from the downloaded archive.' }
 Write-Host ''
 Say 'Running install.bat...'
+# Signal a reinstall to install.bat so dependency installs use --force,
+# which re-verifies every file in node_modules and recovers from a corrupt
+# pnpm store (e.g. missing vite chunks left over from an interrupted run).
+if ($BackupDir) { $env:PROTOVIBE_REINSTALL = '1' }
 & cmd /c '.\install.bat'
 exit $LASTEXITCODE
