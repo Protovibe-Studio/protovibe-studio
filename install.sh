@@ -276,6 +276,12 @@ fi
 # so a user whose pnpm sits in /opt/homebrew/bin or ~/.volta/bin would see
 # "pnpm not found" at startup without this.
 PNPM_PATH="$(command -v pnpm 2>/dev/null || true)"
+# Bundled Node installs pnpm into $NODE_INSTALL_DIR/bin, which isn't on PATH
+# (only ~/.local/bin is) — so command -v won't find it. Fall back to the
+# known location in that case.
+if [ -z "$PNPM_PATH" ] && [ "$USE_EXISTING_NODE" -ne 1 ] && [ -x "${NODE_INSTALL_DIR:-}/bin/pnpm" ]; then
+  PNPM_PATH="$NODE_INSTALL_DIR/bin/pnpm"
+fi
 if [ -n "$PNPM_PATH" ] && [ "$PNPM_PATH" != "$LOCAL_BIN/pnpm" ]; then
   mkdir -p "$LOCAL_BIN"
   ln -sf "$PNPM_PATH" "$LOCAL_BIN/pnpm"
