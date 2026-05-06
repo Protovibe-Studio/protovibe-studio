@@ -166,9 +166,25 @@ function iconExampleForKey(key: string): string | null {
   return 'Settings'; // generic fallback
 }
 
+function predicateDeps(
+  pred: (p: Record<string, any>) => boolean,
+  schemaKeys: Set<string>
+): Set<string> {
+  const src = pred.toString();
+  const deps = new Set<string>();
+  const re = /props(?:\.(\w+)|\[['"`](\w+)['"`]\])/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    const k = m[1] ?? m[2];
+    if (schemaKeys.has(k)) deps.add(k);
+  }
+  return deps;
+}
+
 function generateCombinations(
   propsSchema: Record<string, { type: string; options?: string[]; exampleValue?: string }>,
-  baseProps: Record<string, any>
+  baseProps: Record<string, any>,
+  invalidCombinations: Array<(props: Record<string, any>) => boolean> = []
 ): { combos: Record<string, any>[], isCapped: boolean } {
   const varyEntries: [string, any[]][] = [];
   const textPropKeys: string[] = [];
@@ -199,33 +215,63 @@ function generateCombinations(
 
   const MAX_COMBOS = 1000;
 
-  // Pre-trim: only include props whose cumulative combinations stay under MAX_COMBOS.
-  // Skipped props are dropped entirely rather than causing a partial explosion.
-  const trimmedEntries: [string, any[]][] = [];
-  let estimatedTotal = 1;
-  for (const entry of varyEntries) {
-    const factor = entry[1].length;
-    if (estimatedTotal * factor > MAX_COMBOS) break;
-    trimmedEntries.push(entry);
-    estimatedTotal *= factor;
-  }
-  const isCapped = trimmedEntries.length < varyEntries.length;
+  // Expand props one at a time, applying invalidCombinations predicates as soon
+  // as their dependencies are bound so the working set stays small. If adding a
+  // prop would still blow MAX_COMBOS post-filter, skip it and try later props.
+  const schemaKeys = new Set(varyEntries.map(([k]) => k));
+  const predDeps = invalidCombinations.map(pred => ({
+    pred,
+    deps: predicateDeps(pred, schemaKeys),
+  }));
+  const appliedPreds = new Set<number>();
+  const boundKeys = new Set<string>();
 
   let combos: Record<string, any>[] = [{ ...baseProps }];
-  for (const [key, values] of trimmedEntries) {
-    const nextCombos: Record<string, any>[] = [];
+  let isCapped = false;
+
+  // Apply any predicates with no schema-key deps up front (they're constant w.r.t. expansion).
+  predDeps.forEach(({ pred, deps }, i) => {
+    if (deps.size === 0) {
+      combos = combos.filter(c => !pred(c));
+      appliedPreds.add(i);
+    }
+  });
+
+  for (const [key, values] of varyEntries) {
+    const next: Record<string, any>[] = [];
     for (const combo of combos) {
       for (const val of values) {
-        const next = { ...combo };
-        if (val === undefined) {
-          delete next[key];
-        } else {
-          next[key] = val;
-        }
-        nextCombos.push(next);
+        const c = { ...combo };
+        if (val === undefined) delete c[key]; else c[key] = val;
+        next.push(c);
       }
     }
-    combos = nextCombos;
+
+    const nowBound = new Set(boundKeys);
+    nowBound.add(key);
+    const eligible: number[] = [];
+    let filtered = next;
+    predDeps.forEach(({ pred, deps }, i) => {
+      if (appliedPreds.has(i)) return;
+      let allBound = true;
+      for (const d of deps) {
+        if (!nowBound.has(d)) { allBound = false; break; }
+      }
+      if (allBound) {
+        filtered = filtered.filter(c => !pred(c));
+        eligible.push(i);
+      }
+    });
+
+    if (filtered.length > MAX_COMBOS) {
+      // Skip this prop; predicates eligible only because of this key remain unapplied.
+      isCapped = true;
+      continue;
+    }
+
+    combos = filtered;
+    boundKeys.add(key);
+    eligible.forEach(i => appliedPreds.add(i));
   }
 
   // Sort: ascending by total number of props set (least set -> most set)
@@ -598,9 +644,9 @@ const VariantMatrix: React.FC<{ entry: ComponentEntry; targetProps: Record<strin
   const { config } = entry;
   const displayName = config.displayName || config.name;
   const baseProps = parseDefaultProps(config.defaultProps || '');
-  const { combos: allCombos, isCapped: generationCapped } = generateCombinations(config.props || {}, baseProps);
   const checkers = config.invalidCombinations ?? [];
-  const isCapped = generationCapped && checkers.length === 0;
+  const { combos: allCombos, isCapped } = generateCombinations(config.props || {}, baseProps, checkers);
+  // Final safety pass for predicates whose deps were never fully bound (skipped props).
   const combos = checkers.length > 0
     ? allCombos.filter((combo: Record<string, any>) => !checkers.some(fn => fn(combo)))
     : allCombos;
