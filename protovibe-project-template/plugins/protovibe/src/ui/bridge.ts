@@ -50,7 +50,11 @@ function setEditingStylesheet(enabled: boolean) {
 let hoveredEl: HTMLElement | null = null;
 let selectedEls: HTMLElement[] = [];
 let selectedParentEl: HTMLElement | null = null;
-let suppressNextClickTarget: HTMLElement | null = null;
+// Set by handleDoubleClick when synthesizing a real click sequence, so our capture-phase
+// pointerdown/click handlers let those events through to the app (and to library outside-
+// click listeners that watch pointerdown).
+let bypassNextClick = false;
+let bypassNextPointerDown = false;
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
@@ -362,6 +366,10 @@ function handlePointerDown(e: PointerEvent) {
   window.parent.postMessage({ type: 'PV_IFRAME_POINTER_DOWN' }, '*');
 
   if (!isInspectorActive) return;
+  if (bypassNextPointerDown) {
+    bypassNextPointerDown = false;
+    return;
+  }
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -372,15 +380,8 @@ function handlePointerDown(e: PointerEvent) {
   if (!target) return;
 
   const isMulti = e.shiftKey;
-  if (target === selectedEls[0] && !isMulti && selectedEls.length === 1) {
-    suppressNextClickTarget = null;
-    clearHoverOutline();
-    return;
-  }
-
   e.preventDefault();
   e.stopPropagation();
-  suppressNextClickTarget = target;
   clearHoverOutline();
 
   applySelectionOutline(target, isMulti);
@@ -405,6 +406,11 @@ function handlePointerDown(e: PointerEvent) {
 
 function handleClick(e: MouseEvent) {
   if (!isInspectorActive) return;
+  if (bypassNextClick) {
+    // Synthetic click dispatched from handleDoubleClick — let it through.
+    bypassNextClick = false;
+    return;
+  }
   if (isLocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -413,18 +419,6 @@ function handleClick(e: MouseEvent) {
 
   const target = findInspectableTarget(e.target);
   if (!target) return;
-
-  if (suppressNextClickTarget && suppressNextClickTarget.contains(target)) {
-    e.preventDefault();
-    e.stopPropagation();
-    suppressNextClickTarget = null;
-    return;
-  }
-
-  if (selectedEls.includes(target) && !e.shiftKey && selectedEls.length === 1) {
-    clearHoverOutline();
-    return;
-  }
 
   e.preventDefault();
   e.stopPropagation();
@@ -489,6 +483,23 @@ function handleDoubleClick(e: MouseEvent) {
 
   e.preventDefault();
   e.stopPropagation();
+
+  // Pass a real click through to the app, and also signal text-edit-on-double-click.
+  // Most editable-text elements are not interactive, so the two co-exist cleanly.
+  // Replay the full pointer/mouse sequence so the app sees what looks like a real click.
+  // Library outside-click detectors (Radix, Floating UI) listen on pointerdown/mousedown,
+  // not click — synthesizing only `click` would leave open dropdowns stuck open.
+  const clickTarget = (e.target as HTMLElement | null) ?? target;
+  const coords = { clientX: e.clientX, clientY: e.clientY, bubbles: true, cancelable: true, view: window };
+
+  bypassNextPointerDown = true;
+  clickTarget.dispatchEvent(new PointerEvent('pointerdown', { ...coords, pointerType: 'mouse', isPrimary: true }));
+  clickTarget.dispatchEvent(new MouseEvent('mousedown', coords));
+  clickTarget.dispatchEvent(new PointerEvent('pointerup', { ...coords, pointerType: 'mouse', isPrimary: true }));
+  clickTarget.dispatchEvent(new MouseEvent('mouseup', coords));
+  bypassNextClick = true;
+  clickTarget.dispatchEvent(new MouseEvent('click', coords));
+
   window.parent.postMessage({ type: 'PV_DOUBLE_CLICK' }, '*');
 }
 
