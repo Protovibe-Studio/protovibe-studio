@@ -136,7 +136,7 @@ export async function executeClipboardBlockAction({
     return;
   }
 
-  const oldTarget = findBlockElement(blockId);
+  const oldTarget = Array.isArray(blockId) ? findBlockElement(blockId[0]) : findBlockElement(blockId);
 
   await takeSnapshot(file, activeSourceId);
   await blockAction(action, blockId, file);

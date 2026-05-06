@@ -377,7 +377,7 @@ export const handleGetSourceInfo = (req: any, res: any, server: import('vite').V
       // locatorMap snapshot (e.g. indentation changed since last HMR cycle).
       const lineMatches: Array<{ el: any; nameEndCol: number }> = [];
 
-      babel.traverse(ast, {
+      babel.traverse(ast!, {
         // 1. Build a map of all imports in the file
         ImportDeclaration(path) {
           const source = path.node.source.value;
@@ -708,7 +708,7 @@ export const handleGetZones: Connect.NextHandleFunction = (req, res) => {
         const zones: any[] = [];
         let pristineIndex = 1;
 
-        babel.traverse(ast, {
+        babel.traverse(ast!, {
           JSXElement(jsxPath) {
             const openingEl = jsxPath.node.openingElement;
             if (
@@ -1135,7 +1135,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         let lastImportLine = 0;
         let useClientLine = 0;
 
-        babel.traverse(ast, {
+        babel.traverse(ast!, {
           Directive(path) {
             if (path.node.value.value === 'use client' && path.node.loc) {
               useClientLine = path.node.loc.end.line;
@@ -1699,7 +1699,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
 
         // 3. Find the target block and the zone it lives in. Only swap with a sibling
         //    block that shares the same direct enclosing zone.
-        let targetParent: Node | null = null;
+        let targetParent = null as Node | null;
         let targetSiblings: Node[] = [];
         let targetIndex = -1;
 
@@ -1767,7 +1767,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         });
 
         let targetNode: any = null;
-        babel.traverse(ast, {
+        babel.traverse(ast!, {
           JSXOpeningElement(p) {
             const hasBlockId = p.node.attributes.some(attr =>
               babel.types.isJSXAttribute(attr) &&
@@ -1786,7 +1786,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
           const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
           const candidates: Array<{ node: any; nameEndCol: number }> = [];
 
-          babel.traverse(ast, {
+          babel.traverse(ast!, {
             JSXOpeningElement(p) {
               if (p.node.loc?.start.line !== Number(startLine)) return;
               const nameNode = p.node.name;

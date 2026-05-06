@@ -532,8 +532,8 @@ export function useKeyboardShortcuts() {
     const attachToIframeDoc = (doc: Document | null | undefined) => {
       if (!doc || attachedDocs.has(doc)) return;
       attachedDocs.add(doc);
-      doc.addEventListener('dragover', handleDragOver as EventListener);
-      doc.addEventListener('drop', handleDrop as EventListener);
+      doc.addEventListener('dragover', handleDragOver as unknown as EventListener);
+      doc.addEventListener('drop', handleDrop as unknown as EventListener);
     };
     const iframeLoadHandlers = new Map<HTMLIFrameElement, () => void>();
     const wireIframes = () => {
@@ -563,8 +563,8 @@ export function useKeyboardShortcuts() {
         try {
           const doc = (iframe as HTMLIFrameElement).contentDocument;
           if (doc) {
-            doc.removeEventListener('dragover', handleDragOver as EventListener);
-            doc.removeEventListener('drop', handleDrop as EventListener);
+            doc.removeEventListener('dragover', handleDragOver as unknown as EventListener);
+            doc.removeEventListener('drop', handleDrop as unknown as EventListener);
           }
         } catch {}
       });

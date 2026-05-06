@@ -29,7 +29,7 @@ export async function fetchComponents() {
 }
 
 export async function blockAction(action: string, blockId: string | string[], file: string, text?: string, locInfo?: { startLine?: number; nameEnd?: number[] }) {
-  const payload = Array.isArray(blockId)
+  const payload: Record<string, unknown> = Array.isArray(blockId)
     ? { action, blockIds: blockId, file, text }
     : { action, blockId, file, text };
   if (locInfo) {

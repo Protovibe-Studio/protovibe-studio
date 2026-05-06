@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { VisualSection } from './VisualSection';
-import { AutocompleteDropdown } from './AutocompleteDropdown';
+import { AutocompleteDropdown, type AutocompleteOption } from './AutocompleteDropdown';
 import { SpacingBoxSVG } from './SpacingBoxSVG';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
@@ -58,7 +58,7 @@ const SpacingAutocomplete: React.FC<{
   inheritedPlaceholder?: string;
   options?: typeof SCALES.spacing;
   testId?: string;
-  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+  previewBuild?: (val: string, option?: AutocompleteOption) => Record<string, string> | null;
 }> = ({ value, onChange, placeholder, posStyle, inheritedPlaceholder, options, testId, previewBuild }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.spacing;
@@ -190,7 +190,7 @@ const RadiusAutocomplete: React.FC<{
   inheritedValue?: string;
   options?: typeof SCALES.radius;
   testId?: string;
-  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+  previewBuild?: (val: string, option?: AutocompleteOption) => Record<string, string> | null;
 }> = ({ value, onChange, placeholder, icon, inheritedValue, options, testId, previewBuild }) => {
   const scales = useScales();
   const resolvedOptions = options ?? scales.radius;
@@ -224,7 +224,7 @@ const BorderColorAutocomplete: React.FC<{
   inheritedValue?: string;
   colorOptions: any[];
   testId?: string;
-  previewBuild?: (val: string) => { remove: string[]; add: string[] } | null;
+  previewBuild?: (val: string, option?: AutocompleteOption) => Record<string, string> | null;
 }> = ({ value, onChange, icon, inheritedValue, colorOptions, testId, previewBuild }) => (
   <AutocompleteDropdown
     testId={testId}
