@@ -22,9 +22,20 @@ Say "Source: $ZipUrl"
 Say "Target: $InstallDir"
 Write-Host ''
 
-# ── Refuse to clobber an existing non-empty directory ───────────────────────
+# ── Preserve any existing install by renaming it aside ─────────────────────
+# We never delete user data. If $InstallDir exists and is non-empty, rename
+# it to a sibling Protovibe_old_version_N. After extraction, if the backup
+# contains a projects\ folder, move it into the fresh install so the user's
+# work is preserved in place.
+$BackupDir = $null
 if ((Test-Path $InstallDir) -and (Get-ChildItem -Force $InstallDir -ErrorAction SilentlyContinue | Select-Object -First 1)) {
-  Fail "$InstallDir already exists and is not empty. Remove it or pick a different location via `$env:PROTOVIBE_DIR."
+  $ParentDir = Split-Path -Parent $InstallDir
+  $BaseName  = Split-Path -Leaf   $InstallDir
+  $n = 1
+  while (Test-Path (Join-Path $ParentDir ("{0}_old_version_{1}" -f $BaseName, $n))) { $n++ }
+  $BackupDir = Join-Path $ParentDir ("{0}_old_version_{1}" -f $BaseName, $n)
+  Say "Existing install found — renaming to $BackupDir"
+  Move-Item -LiteralPath $InstallDir -Destination $BackupDir -Force
 }
 
 # ── Download & extract ──────────────────────────────────────────────────────
@@ -57,6 +68,22 @@ finally {
 }
 
 Ok "Source ready at $InstallDir"
+
+# ── Restore user's projects\ from the backup (never deleted) ───────────────
+if ($BackupDir) {
+  $BackupProjects = Join-Path $BackupDir 'projects'
+  if (Test-Path -LiteralPath $BackupProjects) {
+    $NewProjects = Join-Path $InstallDir 'projects'
+    if (Test-Path -LiteralPath $NewProjects) {
+      Remove-Item -LiteralPath $NewProjects -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Say 'Restoring projects\ from previous install...'
+    Move-Item -LiteralPath $BackupProjects -Destination $NewProjects -Force
+    Ok "projects\ moved into new install. Old install kept at $BackupDir"
+  } else {
+    Ok "Previous install kept at $BackupDir (no projects\ folder to restore)"
+  }
+}
 
 # ── Hand off to install.bat ─────────────────────────────────────────────────
 Set-Location $InstallDir

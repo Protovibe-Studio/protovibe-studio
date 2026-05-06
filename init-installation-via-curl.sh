@@ -32,11 +32,22 @@ say "Source: $TARBALL_URL"
 say "Target: $INSTALL_DIR"
 echo
 
-# ── Refuse to clobber an existing non-empty directory ───────────────────────
+# ── Preserve any existing install by renaming it aside ─────────────────────
+# We never delete user data. If $INSTALL_DIR exists and is non-empty, rename
+# it to a sibling Protovibe_old_version_N. After extraction, if the backup
+# contains a projects/ folder, move it into the fresh install so the user's
+# work is preserved in place.
+BACKUP_DIR=""
 if [ -e "$INSTALL_DIR" ] && [ "$(ls -A "$INSTALL_DIR" 2>/dev/null)" ]; then
-  err "$INSTALL_DIR already exists and is not empty."
-  err "Remove it or pick a different location:  PROTOVIBE_DIR=~/somewhere-else  curl ... | bash"
-  exit 1
+  parent_dir="$(dirname "$INSTALL_DIR")"
+  base_name="$(basename "$INSTALL_DIR")"
+  n=1
+  while [ -e "$parent_dir/${base_name}_old_version_${n}" ]; do
+    n=$((n + 1))
+  done
+  BACKUP_DIR="$parent_dir/${base_name}_old_version_${n}"
+  say "Existing install found — renaming to $BACKUP_DIR"
+  mv "$INSTALL_DIR" "$BACKUP_DIR"
 fi
 
 # ── Download & extract ──────────────────────────────────────────────────────
@@ -52,6 +63,18 @@ say "Extracting..."
 tar -xzf "$TMP_TGZ" -C "$INSTALL_DIR" --strip-components=1
 
 ok "Source ready at $INSTALL_DIR"
+
+# ── Restore user's projects/ from the backup (never deleted) ───────────────
+if [ -n "$BACKUP_DIR" ] && [ -d "$BACKUP_DIR/projects" ]; then
+  if [ -e "$INSTALL_DIR/projects" ]; then
+    rm -rf "$INSTALL_DIR/projects"
+  fi
+  say "Restoring projects/ from previous install..."
+  mv "$BACKUP_DIR/projects" "$INSTALL_DIR/projects"
+  ok "projects/ moved into new install. Old install kept at $BACKUP_DIR"
+elif [ -n "$BACKUP_DIR" ]; then
+  ok "Previous install kept at $BACKUP_DIR (no projects/ folder to restore)"
+fi
 
 # ── Hand off to install.sh ──────────────────────────────────────────────────
 cd "$INSTALL_DIR"
