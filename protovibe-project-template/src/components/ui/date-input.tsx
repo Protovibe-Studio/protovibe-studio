@@ -154,7 +154,7 @@ export function DateInput({
         data-error={error}
         data-disabled={disabled}
         onClick={() => { if (!disabled) inputRef.current?.focus(); }}
-        className={cn("relative flex items-center border border-border-default px-3 cursor-text transition-colors data-[focused=true]:ring-2 data-[focused=true]:ring-border-focus data-[focused=true]:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-border-focus data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed text-base h-9 rounded grow bg-background-sunken", className)}
+        className={cn("relative flex items-center border border-border-default px-3 cursor-text transition-colors data-[focused=true]:border-border-primary data-[open=true]:border-border-primary data-[error=true]:border-background-destructive data-[disabled=true]:opacity-50 data-[disabled=true]:cursor-not-allowed text-base h-9 rounded grow bg-background-sunken", className)}
         data-pv-component-id="DateInput"
       >
         <Icon iconSymbol="Calendar" size="sm" className="shrink-0 mr-2 text-foreground-tertiary pointer-events-none" />

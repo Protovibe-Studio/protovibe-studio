@@ -187,7 +187,7 @@ export function Slider({
         <div
           data-disabled={disabled}
           data-error={error}
-          className="shrink-0 inline-flex items-center border border-border-default px-2 rounded bg-background-sunken h-9 transition-colors focus-within:ring-2 focus-within:ring-border-focus focus-within:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:opacity-50"
+          className="shrink-0 inline-flex items-center border border-border-default px-2 rounded bg-background-sunken h-9 transition-colors focus-within:border-border-primary data-[error=true]:border-background-destructive data-[disabled=true]:opacity-50"
         >
           <input
             type="text"

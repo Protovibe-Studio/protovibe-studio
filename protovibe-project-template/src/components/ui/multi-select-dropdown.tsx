@@ -217,7 +217,7 @@ export function MultiSelectDropdown({
         data-open={isOpen || isForcedOpen}
         data-error={error}
         data-disabled={disabled}
-        className={cn("flex min-h-10 items-center gap-2 border border-border-default text-sm text-left text-foreground-default focus:outline-none focus:ring-2 focus:ring-background-primary focus:border-transparent data-[open=true]:ring-2 data-[open=true]:ring-background-primary data-[open=true]:border-transparent data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-1.5 cursor-pointer transition-colors relative bg-background-sunken", className)}
+        className={cn("flex min-h-10 items-center gap-2 border border-border-default text-sm text-left text-foreground-default focus:outline-none focus:border-border-primary data-[open=true]:border-border-primary data-[error=true]:border-background-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 rounded w-full p-1.5 cursor-pointer transition-colors relative bg-background-sunken", className)}
         onClick={(e) => {
           if (!disabled) setIsOpen((prev) => !prev);
           onClick?.(e);
