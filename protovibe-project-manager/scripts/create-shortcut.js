@@ -143,7 +143,8 @@ esac
 
 print_banner
 printf '   %sStarting dev server, please wait…%s\\n' "$C_BOLD" "$C_RESET"
-printf '   The browser will open automatically when it is ready.\\n\\n'
+printf '   The browser will open automatically when it is ready.\\n'
+printf '   If it does not, open: %s\\n\\n' "$PROTOVIBE_URL"
 
 export NODE_NO_WARNINGS=1
 cd "$ROOT"
