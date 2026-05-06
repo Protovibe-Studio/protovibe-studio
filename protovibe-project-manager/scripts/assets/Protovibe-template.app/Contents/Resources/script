@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Protovibe launcher shim — baked into Protovibe.app/Contents/Resources/script.
+# Defers to ~/.protovibe/launch.sh, which install.sh keeps up-to-date.
+LAUNCH="$HOME/.protovibe/launch.sh"
+if [ ! -x "$LAUNCH" ]; then
+  echo "Protovibe is not installed."
+  echo "Run ./install.sh from the Protovibe project folder, then re-launch this app."
+  exit 1
+fi
+exec bash "$LAUNCH"
