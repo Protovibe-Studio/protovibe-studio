@@ -9,6 +9,7 @@ export default defineConfig(() => {
     plugins: [react() as any, tailwindcss(), protovibePlugin()],
     optimizeDeps: {
       entries: ['index.html'],
+      include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
     },
     resolve: {
       alias: {
