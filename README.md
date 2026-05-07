@@ -9,9 +9,9 @@ Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and c
 
 ## Try it in your browser
 
-[![Open in CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/github/Protovibe-Studio/protovibe-studio/main)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Protovibe-Studio/protovibe-studio)
 
-Spins up a forked Devbox with the full Protovibe Studio — no install needed.
+Spins up a fresh GitHub Codespace with the Protovibe template ready to run — no local install needed. Uses your personal free Codespaces quota (60 core-hours/month).
 
 ## Docs
 Documentation and guide: **[protovibe-studio.github.io/docs](https://protovibe-studio.github.io/docs)** 
