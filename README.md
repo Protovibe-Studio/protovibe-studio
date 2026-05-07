@@ -8,7 +8,7 @@ A visual editor web builder for React + Tailwind apps for rapidly creating and e
 Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and click "Download", then follow the instructions.
 
 ## Docs
-Documentation and guide: **[protovibe-studio.github.io](https://protovibe-studio.github.io/docs)** 
+Documentation and guide: **[protovibe-studio.github.io/docs](https://protovibe-studio.github.io/docs)** 
 
 ## Contact Protovibe Team
 
