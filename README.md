@@ -10,17 +10,18 @@ Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and c
 ## Docs
 Documentation and guide: **[protovibe-studio.github.io](https://protovibe-studio.github.io/docs)** 
 
-
-<br/><br/>
-<br/><br/>
-<br/><br/>
-<br/><br/>
----
-
 ## Contact Protovibe Team
 
 Got feedback or noticed a bug? Contact us at protovibe.studio@gmail.com
- 
+
+
+<br/><br/>
+<br/><br/>
+<br/><br/>
+<br/><br/>
+
+---
+
 ## Monorepo Folder structure
 
 ### protovibe-project-manager
