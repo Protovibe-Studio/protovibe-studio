@@ -1,0 +1,18 @@
+{
+  "setupTasks": [
+    {
+      "name": "Install dependencies",
+      "command": "pnpm install:all"
+    }
+  ],
+  "tasks": {
+    "dev": {
+      "name": "Run Protovibe",
+      "command": "pnpm dev",
+      "runAtStart": true,
+      "preview": {
+        "port": 5173
+      }
+    }
+  }
+}

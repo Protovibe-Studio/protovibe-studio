@@ -7,6 +7,12 @@ A visual editor web builder for React + Tailwind apps for rapidly creating and e
 ## Installation
 Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and click "Download", then follow the instructions.
 
+## Try it in your browser
+
+[![Open in CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/github/Protovibe-Studio/protovibe-studio/main)
+
+Spins up a forked Devbox with the full Protovibe Studio — no install needed.
+
 ## Docs
 Documentation and guide: **[protovibe-studio.github.io/docs](https://protovibe-studio.github.io/docs)** 
 
