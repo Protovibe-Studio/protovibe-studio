@@ -1,9 +1,12 @@
 # Protovibe Studio
 
-A tool for rapidly creating and managing prototype projects with an AI-assisted visual editor.
+A visual editor web builder for React + Tailwind apps for rapidly creating and managing prototype projects with an AI.
+
+![Protovibe UI](protovibe-ui.png)
 
 ## Installation and docs
 Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and click "Download", then follow the instructions.
+
 
 ---
 <br/><br/>
