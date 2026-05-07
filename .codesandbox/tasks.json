@@ -1,17 +1,21 @@
 {
   "setupTasks": [
     {
-      "name": "Install dependencies",
-      "command": "bash install-codesandbox.sh"
+      "name": "Install pnpm",
+      "command": "npm install -g pnpm@9.15.9"
+    },
+    {
+      "name": "Install template dependencies",
+      "command": "pnpm --dir protovibe-project-template install"
     }
   ],
   "tasks": {
     "dev": {
-      "name": "Run Protovibe",
-      "command": "PROTOVIBE_NO_OPEN=1 pnpm --dir protovibe-project-manager dev",
+      "name": "Run Protovibe template",
+      "command": "pnpm --dir protovibe-project-template dev",
       "runAtStart": true,
       "preview": {
-        "port": 5173
+        "port": 3000
       }
     }
   }
