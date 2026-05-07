@@ -2,13 +2,13 @@
   "setupTasks": [
     {
       "name": "Install dependencies",
-      "command": "pnpm install:all"
+      "command": "bash install-codesandbox.sh"
     }
   ],
   "tasks": {
     "dev": {
       "name": "Run Protovibe",
-      "command": "pnpm dev",
+      "command": "pnpm --dir protovibe-project-manager dev",
       "runAtStart": true,
       "preview": {
         "port": 5173
