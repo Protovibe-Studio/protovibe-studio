@@ -57,6 +57,15 @@ Because the plugin is symlinked, rebuilds of `plugins/protovibe/dist/` are immed
 
 Created and managed by the project manager at runtime. Each subdirectory is an independent copy of `protovibe-project-template`. Do not edit these by hand — use the project manager UI instead to run the projects. *When developing with coding agents, open just the single project folder.*
 
+## Installation scripts
+
+The repo also ships its own end-user installers and a desktop shortcut builder, so non-technical users can get Protovibe running without touching a terminal.
+
+- `init-installation-via-curl.sh` / `init-installation-via-curl.ps1` — one-liner bootstrappers that download the repo tarball into `~/Protovibe` (or `%USERPROFILE%\Protovibe`) and then invoke the platform installer below.
+- `install.sh` (macOS / Linux) — runs pre-flight checks, installs Node without sudo (downloads the official tarball into `~/.local/share/protovibe/` and symlinks into `~/.local/bin`) if a recent enough Node isn't already on PATH, runs `pnpm install` for the project manager and template, and creates a path-independent shortcut that reads `~/.protovibe/project-path` at runtime. Logs to `install.log`, lock-file guarded, with a self-test at the end.
+- `install.bat` (Windows) — the Windows equivalent: auto-elevates for global npm install, uses `winget` to bring in dependencies, sets up the same path-independent shortcut, and supports an `/UNATTENDED` flag for the Inno Setup wrapper.
+- `download-newest-version.sh` — self-updater that pulls fresh copies of `protovibe-project-manager` and `protovibe-project-template` from GitHub when their `package.json` versions are newer than the local ones. Never touches user data under `projects/`.
+
 ## License & dual licensing
 
 Protovibe operates under a dual-licensing model to ensure the project remains sustainable while protecting the core source code from unauthorized commercial exploitation by evil corporations.
