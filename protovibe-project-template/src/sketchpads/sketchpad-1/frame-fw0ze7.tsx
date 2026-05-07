@@ -16,7 +16,7 @@ export default function Frame12() {
     <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:3ubuxh */}
         {/* pv-block-start:jqzz83 */}
-        <div data-pv-block="jqzz83" className="flex flex-col gap-4" data-pv-sketchpad-el="jqzz83" style={{ position: 'absolute', left: 162, top: 200 }}>
+        <div data-pv-block="jqzz83" className="flex flex-col gap-4" data-pv-sketchpad-el="jqzz83" style={{ position: 'absolute', left: 548, top: 187 }}>
           {/* pv-editable-zone-start:hyvc8b */}
           {/* pv-block-start:574z1k */}
           <TextHeading data-pv-block="574z1k"  typography="heading-md">
@@ -73,21 +73,6 @@ export default function Frame12() {
           To take over the world!
         </TextParagraph>
         {/* pv-block-end:n0mcq4 */}
-        {/* pv-block-start:ny6dao */}
-        <Rectangle data-pv-block="ny6dao" data-pv-sketchpad-el="ny6dao" style={{ position: 'absolute', height: 900, width: 768, left: 671, top: -1 }} className="w-[200px] h-[200px] overflow-hidden border-0 rounded-none bg-transparent">
-          {/* pv-editable-zone-start:69fbo3 */}
-            {/* pv-block-start:9cbtll */}
-            <div data-pv-block="9cbtll" data-pv-sketchpad-el="9cbtll" style={{ position: 'absolute', width: 1541, left: -167, top: 33 }} className="w-full bg-[url('/src/images/from-protovibe/image-4.png')] bg-contain bg-center bg-no-repeat aspect-[1935/1612]">
-              {/* pv-editable-zone-start:r5i3w2 */}
-                {/* pv-block-start:q7xn2s */}
-                <Button data-pv-block="q7xn2s"  label="Sign in" variant="solid" color="primary" size="md" />
-                {/* pv-block-end:q7xn2s */}
-              {/* pv-editable-zone-end:r5i3w2 */}
-            </div>
-            {/* pv-block-end:9cbtll */}
-          {/* pv-editable-zone-end:69fbo3 */}
-        </Rectangle>
-        {/* pv-block-end:ny6dao */}
         {/* pv-block-start:e4gqhr */}
         <VerticalLine data-pv-block="e4gqhr" data-pv-sketchpad-el="e4gqhr" style={{ position: 'absolute', height: 20, left: 154, top: 32 }} className="w-[4px] h-[200px]">
           {/* pv-editable-zone-start:sqjwhd */}
@@ -95,12 +80,12 @@ export default function Frame12() {
         </VerticalLine>
         {/* pv-block-end:e4gqhr */}
         {/* pv-block-start:eq74v6 */}
-        <TextParagraph className="text-tiny text-foreground-tertiary" data-pv-block="eq74v6" data-pv-sketchpad-el="eq74v6" style={{ position: 'absolute', width: 331, left: 173, top: 733 }} typography="small">
+        <TextParagraph className="text-tiny text-foreground-tertiary" data-pv-block="eq74v6" data-pv-sketchpad-el="eq74v6" style={{ position: 'absolute', width: 331, left: 559, top: 720 }} typography="small">
           By logging in you accept EvilCorop terms of services.
         </TextParagraph>
         {/* pv-block-end:eq74v6 */}
         {/* pv-block-start:gk2qgn */}
-        <HorizontalLine data-pv-block="gk2qgn" data-pv-sketchpad-el="gk2qgn" style={{ position: 'absolute', width: 321, left: 173, top: 710 }} className="w-[200px] h-[4px]">
+        <HorizontalLine data-pv-block="gk2qgn" data-pv-sketchpad-el="gk2qgn" style={{ position: 'absolute', width: 321, left: 559, top: 697 }} className="w-[200px] h-[4px]">
           {/* pv-editable-zone-start:wwkua1 */}
           {/* pv-editable-zone-end:wwkua1 */}
         </HorizontalLine>

@@ -70,7 +70,7 @@ export function SurveillancePage() {
             <Card data-pv-block="o9nf3x" className="flex flex-col gap-3 items-stretch">
               {/* pv-editable-zone-start:svce1 */}
                 {/* pv-block-start:2km09x */}
-                <div data-pv-block="2km09x" className="w-full bg-[url('/src/images/from-protovibe/screenshot-2026-05-04-at-134811.png')] bg-center bg-no-repeat aspect-video bg-cover rounded" />
+                <div data-pv-block="2km09x" className="w-full bg-center bg-no-repeat bg-cover rounded bg-[url('/src/images/from-protovibe/screenshot-2026-05-04-at-134811.jpg')] aspect-[629/347]" />
                 {/* pv-block-end:2km09x */}
                 {/* pv-block-start:svch1 */}
                 <div data-pv-block="svch1" className="flex items-center justify-between">
