@@ -8,7 +8,7 @@
   "tasks": {
     "dev": {
       "name": "Run Protovibe",
-      "command": "pnpm --dir protovibe-project-manager dev",
+      "command": "PROTOVIBE_NO_OPEN=1 pnpm --dir protovibe-project-manager dev",
       "runAtStart": true,
       "preview": {
         "port": 5173
