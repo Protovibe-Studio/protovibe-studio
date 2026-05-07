@@ -16,8 +16,7 @@ Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and c
 
 ## Contact Protovibe Team
 
-protovibe.studio@gmail.com
-
+Got feedback or noticed a bug? Contact us at protovibe.studio@gmail.com
  
 ## Monorepo Folder structure
 
