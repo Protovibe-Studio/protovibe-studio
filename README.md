@@ -1,6 +1,6 @@
 # Protovibe Studio
 
-A visual editor web builder for React + Tailwind apps for rapidly creating and managing prototype projects with an AI.
+A visual editor web builder for React + Tailwind apps for rapidly creating and editing web projects with your own AI agent.
 
 ![Protovibe UI](protovibe-ui.png)
 
