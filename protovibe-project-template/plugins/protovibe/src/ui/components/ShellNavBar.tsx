@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
 import React, { useEffect, useState } from 'react';
-import { Monitor, LayoutGrid, Palette, Paintbrush, Play, Pause, PenTool, Sparkles, ChevronDown } from 'lucide-react';
+import { Monitor, LayoutGrid, Palette, Paintbrush, Play, Pause, PenTool, Sparkles, ChevronDown, ArrowLeft } from 'lucide-react';
 import { theme } from '../theme';
 import { PublishButton } from './PublishButton';
 
@@ -92,6 +92,8 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [logoHovered, setLogoHovered] = useState(false);
   const [inspectorHovered, setInspectorHovered] = useState(false);
+  const [projectManagerAvailable, setProjectManagerAvailable] = useState(false);
+  const [goToProjectsHovered, setGoToProjectsHovered] = useState(false);
   const logoRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -107,6 +109,26 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!projectMenuOpen) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 800);
+    fetch('http://127.0.0.1:5173/', { mode: 'no-cors', cache: 'no-store', signal: controller.signal })
+      .then(() => {
+        if (!cancelled) setProjectManagerAvailable(true);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectManagerAvailable(false);
+      })
+      .finally(() => clearTimeout(timeout));
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [projectMenuOpen]);
 
   useEffect(() => {
     if (!projectMenuOpen) return;
@@ -239,6 +261,45 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
                   </span>
                 )}
               </div>
+            )}
+            {projectManagerAvailable && (
+              <>
+                <div
+                  style={{
+                    height: '1px',
+                    backgroundColor: theme.border_default,
+                    margin: '10px -12px 6px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = 'http://127.0.0.1:5173/';
+                  }}
+                  onMouseEnter={() => setGoToProjectsHovered(true)}
+                  onMouseLeave={() => setGoToProjectsHovered(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    padding: '6px 8px',
+                    textAlign: 'left',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontFamily: theme.font_ui,
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: theme.text_default,
+                    backgroundColor: goToProjectsHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
+                    transition: 'background-color 0.15s ease',
+                  }}
+                >
+                  <ArrowLeft size={14} strokeWidth={1.8} />
+                  Back to projects
+                </button>
+              </>
             )}
           </div>
         )}
