@@ -2,12 +2,14 @@
   "name": "Protovibe Studio",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "postCreateCommand": "npm install -g pnpm@9.15.9 && pnpm --dir protovibe-project-template install",
-  "postAttachCommand": "PROTOVIBE_NO_OPEN=1 pnpm --dir protovibe-project-template dev",
+  "postAttachCommand": {
+    "dev": "bash .devcontainer/start-protovibe.sh"
+  },
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
       "label": "Protovibe template",
-      "onAutoForward": "openPreview"
+      "onAutoForward": "silent"
     }
   },
   "customizations": {
