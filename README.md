@@ -11,11 +11,11 @@ Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and c
 Documentation and guide: **[protovibe-studio.github.io](https://protovibe-studio.github.io/docs)** 
 
 
+<br/><br/>
+<br/><br/>
+<br/><br/>
+<br/><br/>
 ---
-<br/><br/>
-<br/><br/>
-<br/><br/>
-<br/><br/>
 
 ## Contact Protovibe Team
 
