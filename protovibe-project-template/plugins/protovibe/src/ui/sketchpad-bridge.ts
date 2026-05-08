@@ -1734,14 +1734,12 @@ function init() {
   window.addEventListener('pv-select-frame-root', ((e: CustomEvent<{ frameId?: string }>) => {
     const frameId = e.detail.frameId;
     if (!frameId) return;
-    // Don't override an existing inspector selection — the user may have already
-    // drilled into a child block, and the title click should leave that alone.
-    if (selectedEls.length > 0) return;
     const frameEl = document.querySelector(`[data-sketchpad-frame="${frameId}"]`) as HTMLElement | null;
     if (!frameEl) return;
     const root = findFrameRoot(frameEl);
     if (!root) return;
     clearHover();
+    clearSelection();
     setSelection(root, false);
     notifyInspector(root, true);
     // Tell SketchpadApp we actually selected — used to one-shot suppress the
