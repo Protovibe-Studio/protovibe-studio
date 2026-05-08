@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Sketchpad } from '../types';
 import { ConfirmDialog } from '../../ui/components/ConfirmDialog';
 import { theme } from '../../ui/theme';
@@ -31,6 +32,8 @@ export function SketchpadOverlayPanel({
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [renameDialogId, setRenameDialogId] = useState<string | null>(null);
+  const [renameDialogValue, setRenameDialogValue] = useState('');
 
   if (!isOpen) return null;
 
@@ -57,6 +60,19 @@ export function SketchpadOverlayPanel({
         onClick={onClose}
       />
 
+      <RenameDialog
+        isOpen={renameDialogId !== null}
+        value={renameDialogValue}
+        onChange={setRenameDialogValue}
+        onConfirm={() => {
+          if (renameDialogId && renameDialogValue.trim()) {
+            onRename(renameDialogId, renameDialogValue.trim());
+          }
+          setRenameDialogId(null);
+        }}
+        onCancel={() => setRenameDialogId(null)}
+      />
+
       <ConfirmDialog
         isOpen={deleteConfirmId !== null}
         title="Delete sketchpad"
@@ -79,7 +95,7 @@ export function SketchpadOverlayPanel({
           background: theme.bg_default,
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: 10,
-          width: 240,
+          width: 300,
           maxHeight: 'calc(100vh - 100px)',
           overflowY: 'auto',
           boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
@@ -251,6 +267,32 @@ export function SketchpadOverlayPanel({
                 </button>
               )}
 
+              {/* Edit (rename) button */}
+              {renamingId !== sp.id && (
+                <button
+                  data-testid={`btn-rename-${sp.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenameDialogId(sp.id);
+                    setRenameDialogValue(sp.name);
+                  }}
+                  title="Rename sketchpad"
+                  style={{
+                    marginLeft: 4,
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#999',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <EditIcon />
+                </button>
+              )}
+
               {/* Delete button */}
               {renamingId !== sp.id && (
                 <button
@@ -280,6 +322,128 @@ export function SketchpadOverlayPanel({
         </div>
       </div>
     </>
+  );
+}
+
+function RenameDialog({
+  isOpen,
+  value,
+  onChange,
+  onConfirm,
+  onCancel,
+}: {
+  isOpen: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, onCancel]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <>
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 99998 }}
+        onClick={onCancel}
+      />
+      <div
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 99999,
+          background: theme.bg_default,
+          border: `1px solid ${theme.border_default}`,
+          borderRadius: 12,
+          padding: '20px 24px',
+          width: 340,
+          boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
+          fontFamily: 'var(--font-sans, system-ui, sans-serif)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ fontSize: 14, fontWeight: 700, color: theme.text_default, marginBottom: 12 }}>
+          Rename sketchpad
+        </div>
+        <input
+          autoFocus
+          data-testid="input-rename-sketchpad"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onConfirm();
+          }}
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.06)',
+            border: `1px solid ${theme.border_default}`,
+            borderRadius: 6,
+            padding: '8px 10px',
+            color: theme.text_default,
+            fontSize: 13,
+            outline: 'none',
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+            marginBottom: 20,
+          }}
+        />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 6,
+              border: `1px solid ${theme.border_default}`,
+              background: 'transparent',
+              color: theme.text_secondary,
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            data-testid="dialog-rename-confirm"
+            onClick={onConfirm}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 6,
+              border: 'none',
+              background: '#0092ff',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Rename
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   );
 }
 
