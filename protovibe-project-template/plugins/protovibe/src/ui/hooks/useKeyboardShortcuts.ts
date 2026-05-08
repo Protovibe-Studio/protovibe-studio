@@ -299,6 +299,16 @@ export function useKeyboardShortcuts() {
       // 4. Delete or Move Block
       if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '[' || e.key === ']') {
         const closestBlock = currentBaseTarget.closest('[data-pv-block]');
+        // If the resolved block is a sketchpad frame's root element, defer to
+        // SketchpadApp's keydown handler — it deletes the whole frame instead
+        // of trying to mutate the file-root block (which can't be deleted).
+        if (
+          (e.key === 'Backspace' || e.key === 'Delete') &&
+          closestBlock &&
+          closestBlock.parentElement?.hasAttribute('data-sketchpad-frame')
+        ) {
+          return;
+        }
         const blockId = closestBlock?.getAttribute('data-pv-block');
         const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
         

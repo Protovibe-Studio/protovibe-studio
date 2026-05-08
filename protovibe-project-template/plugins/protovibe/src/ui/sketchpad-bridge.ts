@@ -1526,6 +1526,12 @@ function handleKeyDown(e: KeyboardEvent) {
   }, '*');
 
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEls.length > 0) {
+    // Only intercept when at least one selected element is a sketchpad-el
+    // (an absolute-positioned item managed by this bridge). Frame-root
+    // selections must fall through to SketchpadApp's keydown handler so it
+    // can delete the whole frame.
+    const hasSketchpadEl = selectedEls.some(el => el.hasAttribute('data-pv-sketchpad-el'));
+    if (!hasSketchpadEl) return;
     e.preventDefault();
     e.stopPropagation();
     selectedEls.forEach(el => {

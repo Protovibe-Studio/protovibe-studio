@@ -8,6 +8,18 @@ import { Connect } from 'vite';
 import { undoStack, redoStack } from '../shared/state';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
+const INDEX_CSS_PATH = path.resolve(process.cwd(), 'src/index.css');
+
+// Tailwind v4's `@source "./sketchpads"` scan doesn't reliably pick up files
+// created at runtime — new frame .tsx files end up with their classes (incl.
+// `bg-[url(...)]` and `aspect-[W/H]`) uncompiled until a full reload. Touching
+// index.css forces @tailwindcss/vite to re-evaluate @source dirs.
+function nudgeTailwindRescan(): void {
+  try {
+    const now = new Date();
+    fs.utimesSync(INDEX_CSS_PATH, now, now);
+  } catch {}
+}
 
 function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
@@ -368,6 +380,7 @@ export const handleFrameCreate: Connect.NextHandleFunction = async (req, res) =>
     fs.mkdirSync(dirPath, { recursive: true });
     const filePath = path.join(dirPath, `${frameId}.tsx`);
     fs.writeFileSync(filePath, generateFrameContent(name));
+    nudgeTailwindRescan();
 
     sendJson(res, frame);
   } catch (err) {
