@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, X, FolderRoot, Upload } from 'lucide-react'
+import { Plus, Search, X, FolderRoot } from 'lucide-react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
 import ImportProjectModal from './components/ImportProjectModal.jsx'
+import CloneFromGitModal from './components/CloneFromGitModal.jsx'
+import AddProjectMenu from './components/AddProjectMenu.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
 import VersionInfoMenu from './components/VersionInfoMenu.jsx'
@@ -33,6 +35,7 @@ export default function App() {
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [cloneGitOpen, setCloneGitOpen] = useState(false)
   const [deleteConfirmProject, setDeleteConfirmProject] = useState(null)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
@@ -257,13 +260,11 @@ export default function App() {
                 <Plus size={14} />
                 Create Project
               </button>
-              <button
-                onClick={() => setImportOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-background-secondary hover:bg-background-tertiary text-foreground-default text-sm font-medium rounded-lg border border-border-default transition-colors cursor-pointer"
-              >
-                <Upload size={14} />
-                Import ZIP
-              </button>
+              <AddProjectMenu
+                compact
+                onImportZip={() => setImportOpen(true)}
+                onCloneGit={() => setCloneGitOpen(true)}
+              />
             </div>
           </div>
         ) : (
@@ -273,13 +274,6 @@ export default function App() {
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setImportOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-background-secondary hover:bg-background-tertiary text-foreground-default text-sm font-medium rounded-lg border border-border-default transition-colors cursor-pointer"
-                  >
-                    <Upload size={14} />
-                    Import ZIP
-                  </button>
-                  <button
                     data-testid="btn-new-project"
                     onClick={() => setCreateOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
@@ -287,6 +281,10 @@ export default function App() {
                     <Plus size={14} />
                     New Project
                   </button>
+                  <AddProjectMenu
+                    onImportZip={() => setImportOpen(true)}
+                    onCloneGit={() => setCloneGitOpen(true)}
+                  />
                 </div>
               </div>
               <div className="relative w-full">
@@ -370,6 +368,10 @@ export default function App() {
           onClose={() => setImportOpen(false)}
           onImported={handleImported}
         />
+      )}
+
+      {cloneGitOpen && (
+        <CloneFromGitModal onClose={() => setCloneGitOpen(false)} />
       )}
 
       {deleteConfirmProject && (

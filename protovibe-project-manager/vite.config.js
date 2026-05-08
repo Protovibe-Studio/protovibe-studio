@@ -66,6 +66,41 @@ function ensureProjectsDir() {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true })
 }
 
+// Pick up protovibe projects that appeared on disk without going through the
+// in-app create/import flow — e.g. a user cloned their repo straight into
+// projects/. A direct subdirectory counts as a project when it contains a
+// protovibe-data.json marker; that keeps stray folders out of the registry.
+function scanProjectsFolder() {
+  ensureProjectsDir()
+  const projects = readProjects()
+  const known = new Set(projects.map((p) => p.path))
+
+  let entries
+  try {
+    entries = fs.readdirSync(PROJECTS_DIR, { withFileTypes: true })
+  } catch {
+    return projects
+  }
+
+  let changed = false
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith('.')) continue
+    const abs = path.join(PROJECTS_DIR, entry.name)
+    if (known.has(abs)) continue
+    if (!fs.existsSync(path.join(abs, 'protovibe-data.json'))) continue
+
+    let createdAt
+    try { createdAt = fs.statSync(abs).birthtime.toISOString() } catch {
+      createdAt = new Date().toISOString()
+    }
+    projects.push({ id: generateId(), path: abs, createdAt })
+    changed = true
+  }
+
+  if (changed) writeProjects(projects)
+  return projects
+}
+
 function safePath(name) {
   const resolved = path.resolve(PROJECTS_DIR, name)
   const separator = path.sep
@@ -259,7 +294,7 @@ function parseBody(req) {
 // ── Route handlers ────────────────────────────────────────────────────────────
 
 function handleGetProjects(_req, res) {
-  const stored = readProjects()
+  const stored = scanProjectsFolder()
   const list = stored.map((p) => {
     const proc = processes.get(p.id)
     let updatedAt = null
@@ -1494,6 +1529,9 @@ function projectManagerPlugin() {
           }
           if (method === 'POST' && pathname === '/projects/import') {
             return await handleImportProject(req, res, url)
+          }
+          if (method === 'GET' && pathname === '/projects-dir') {
+            return sendJson(res, 200, { path: PROJECTS_DIR })
           }
           if (method === 'POST' && pathname === '/update-app') {
             const which = url.searchParams.get('which') || 'auto'

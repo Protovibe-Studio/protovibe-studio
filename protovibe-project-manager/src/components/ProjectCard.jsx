@@ -22,6 +22,8 @@ import {
   Download,
 } from 'lucide-react'
 
+import PathDisplay from './PathDisplay.jsx'
+
 const STATUS_LABELS = {
   running: 'Running',
   stopped: 'Stopped',
@@ -69,13 +71,6 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
     onDelete()
   }
 
-  const formatDate = (iso) => iso
-    ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
-    : null
-
-  const createdDate = formatDate(project.createdAt)
-  const updatedDate = formatDate(project.updatedAt)
-
   return (
     <div
       onClick={onOpen}
@@ -93,15 +88,12 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
         <h2 className="text-sm font-semibold text-foreground-default truncate group-hover:text-foreground-primary transition-colors">
           {project.name}
         </h2>
-        <div className="flex items-center gap-2 text-xs text-foreground-tertiary">
-          {createdDate && <span>Created {createdDate}</span>}
-          {updatedDate && updatedDate !== createdDate && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-              <span>Modified {updatedDate}</span>
-            </>
-          )}
-        </div>
+        {project.path && (
+          <PathDisplay
+            path={project.path}
+            className="block text-xs text-foreground-tertiary truncate"
+          />
+        )}
       </div>
 
       {/* Right: Status + menu button */}

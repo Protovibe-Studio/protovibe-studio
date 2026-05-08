@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
+import PathDisplay from './PathDisplay.jsx'
 import { showToast } from './ToastViewport.jsx'
 import {
   ArrowLeft,
@@ -123,14 +124,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     }
   }
 
-  const fmt = (iso) =>
-    iso
-      ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-      : null
-
-  const createdDate = fmt(project.createdAt)
-  const updatedDate = fmt(project.updatedAt)
-
   // pluginLastUpdated is stored as YYYY-MM-DD (no timezone). Reformat to the
   // same human-friendly style as the other dates without sliding by a day.
   const pluginUpdatedDate = (() => {
@@ -242,15 +235,12 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
         <div className="px-7 py-5 flex items-center justify-between gap-4 border-b border-border-default">
             <div className="min-w-0">
               {renderTitle()}
-              <div className="flex items-center gap-2 mt-1 text-xs text-foreground-tertiary">
-                {createdDate && <span>Created {createdDate}</span>}
-                {updatedDate && updatedDate !== createdDate && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-foreground-tertiary/50 inline-block flex-shrink-0" />
-                    <span>Modified {updatedDate}</span>
-                  </>
-                )}
-              </div>
+              {project.path && (
+                <PathDisplay
+                  path={project.path}
+                  className="block mt-1 text-xs text-foreground-tertiary truncate"
+                />
+              )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {/* Status pill */}
