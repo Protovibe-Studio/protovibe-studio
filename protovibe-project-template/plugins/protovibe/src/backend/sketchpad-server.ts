@@ -16,8 +16,8 @@ const INDEX_CSS_PATH = path.resolve(process.cwd(), 'src/index.css');
 // index.css forces @tailwindcss/vite to re-evaluate @source dirs.
 function nudgeTailwindRescan(): void {
   try {
-    const now = new Date();
-    fs.utimesSync(INDEX_CSS_PATH, now, now);
+    const content = fs.readFileSync(INDEX_CSS_PATH, 'utf-8');
+    fs.writeFileSync(INDEX_CSS_PATH, content);
   } catch {}
 }
 
