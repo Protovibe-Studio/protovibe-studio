@@ -299,15 +299,24 @@ export function useKeyboardShortcuts() {
       // 4. Delete or Move Block
       if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '[' || e.key === ']') {
         const closestBlock = currentBaseTarget.closest('[data-pv-block]');
-        // If the resolved block is a sketchpad frame's root element, defer to
-        // SketchpadApp's keydown handler — it deletes the whole frame instead
-        // of trying to mutate the file-root block (which can't be deleted).
-        if (
-          (e.key === 'Backspace' || e.key === 'Delete') &&
-          closestBlock &&
-          closestBlock.parentElement?.hasAttribute('data-sketchpad-frame')
-        ) {
-          return;
+        // If the inspector focus is on a sketchpad frame's root element (the
+        // direct child of `data-sketchpad-frame`, which usually has no
+        // `data-pv-block`), forward Delete to the sketchpad iframe. The iframe's
+        // own keydown handler can't fire here because focusElement blurs the
+        // iframe when selecting the frame root via its title bar.
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          const frameContainer = currentBaseTarget.parentElement?.hasAttribute('data-sketchpad-frame')
+            ? currentBaseTarget.parentElement
+            : closestBlock?.parentElement?.hasAttribute('data-sketchpad-frame')
+              ? closestBlock.parentElement
+              : null;
+          if (frameContainer) {
+            e.preventDefault();
+            const iframeEl = (Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[])
+              .find(f => f.contentDocument === currentBaseTarget.ownerDocument) ?? null;
+            iframeEl?.contentWindow?.postMessage({ type: 'PV_FRAME_DELETE_REQUEST' }, '*');
+            return;
+          }
         }
         const blockId = closestBlock?.getAttribute('data-pv-block');
         const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');

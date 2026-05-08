@@ -1057,10 +1057,15 @@ export function SketchpadApp() {
         else if (code === 'Equal' || code === 'NumpadAdd') zoomByFactor(1.2);
         else if (code === 'Minus' || code === 'NumpadSubtract') zoomByFactor(1 / 1.2);
       }
+      // Title-bar selection moves focus into the parent shell, so the iframe's
+      // own Delete keydown never fires. The parent forwards the intent here.
+      if (e.data?.type === 'PV_FRAME_DELETE_REQUEST' && selectedFrameIds.length > 0) {
+        handleDeleteFramesMulti(selectedFrameIds);
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [reloadRegistry, zoomToCenter, zoomByFactor]);
+  }, [reloadRegistry, zoomToCenter, zoomByFactor, selectedFrameIds, handleDeleteFramesMulti]);
 
   // Keyboard shortcuts
   useEffect(() => {
