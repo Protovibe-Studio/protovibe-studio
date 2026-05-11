@@ -1951,36 +1951,58 @@ function extractDefaultContentSource(source: string): string {
   let jsx = source.substring(start, i).trim();
   // Strip outer Fragment wrapper <> ... </>
   jsx = jsx.replace(/^\s*<>\s*/, '').replace(/\s*<\/>\s*$/, '');
-  return jsx.trim();
+  return sanitizeDefaultContentJsx(jsx.trim());
 }
 
 /**
  * Extracts the inner JSX from an `export function PvDefaultContent()` component.
- * Finds the function's return statement and extracts the parenthesized JSX body,
- * stripping any outer Fragment wrapper.
+ * Finds the function's return statement and extracts the JSX body (parenthesized
+ * or not), stripping any outer Fragment wrapper.
  */
 function extractPvDefaultContentSource(source: string): string {
   const fnMatch = source.match(/export\s+function\s+PvDefaultContent\s*\(/);
   if (!fnMatch || fnMatch.index === undefined) return '';
   // Find the opening brace of the function body
-  let i = source.indexOf('{', fnMatch.index + fnMatch[0].length);
-  if (i === -1) return '';
-  // Find `return (` inside the function body
-  const returnMatch = source.substring(i).match(/return\s*\(/);
-  if (!returnMatch || returnMatch.index === undefined) return '';
-  const returnStart = i + returnMatch.index + returnMatch[0].length;
-  // Match parentheses to find the end of the return expression
-  let depth = 0;
-  let j = returnStart;
-  while (j < source.length) {
-    if (source[j] === '(') depth++;
-    else if (source[j] === ')') {
-      if (depth === 0) break;
-      depth--;
-    }
-    j++;
+  const bodyStart = source.indexOf('{', fnMatch.index + fnMatch[0].length);
+  if (bodyStart === -1) return '';
+  // Find the matching closing brace so the scan stays inside PvDefaultContent —
+  // otherwise a sibling function (e.g. PvPreviewWrapper) can leak in.
+  let braceDepth = 1;
+  let bodyEnd = bodyStart + 1;
+  while (bodyEnd < source.length && braceDepth > 0) {
+    const ch = source[bodyEnd];
+    if (ch === '{') braceDepth++;
+    else if (ch === '}') braceDepth--;
+    bodyEnd++;
   }
-  let jsx = source.substring(returnStart, j);
+  if (braceDepth !== 0) return '';
+  const body = source.substring(bodyStart + 1, bodyEnd - 1);
+
+  // Locate the `return` keyword inside the body
+  const returnKwMatch = body.match(/\breturn\b\s*/);
+  if (!returnKwMatch || returnKwMatch.index === undefined) return '';
+  const afterReturn = returnKwMatch.index + returnKwMatch[0].length;
+  let jsx: string;
+  if (body[afterReturn] === '(') {
+    // `return (JSX)` — match the parens
+    let depth = 0;
+    let j = afterReturn + 1;
+    while (j < body.length) {
+      if (body[j] === '(') depth++;
+      else if (body[j] === ')') {
+        if (depth === 0) break;
+        depth--;
+      }
+      j++;
+    }
+    jsx = body.substring(afterReturn + 1, j);
+  } else {
+    // `return JSX;` / `return null;` / `return;` — take until terminating `;`
+    let j = afterReturn;
+    while (j < body.length && body[j] !== ';') j++;
+    jsx = body.substring(afterReturn, j).trim();
+    if (!jsx || jsx === 'null' || jsx === 'undefined') return '';
+  }
   // Strip outer Fragment wrapper — remove only the <> and </> tags/lines
   jsx = jsx.replace(/^[\s\S]*?<>[ \t]*\n?/, '').replace(/\n?[ \t]*<\/>[\s\S]*$/, '');
   // Dedent: strip the common leading whitespace so the content is indentation-neutral
@@ -1995,7 +2017,33 @@ function extractPvDefaultContentSource(source: string): string {
       jsx = jsxLines.map(l => l.length > 0 ? l.slice(minIndent) : l).join('\n');
     }
   }
-  return jsx.trim();
+  return sanitizeDefaultContentJsx(jsx.trim());
+}
+
+/**
+ * Ensures extracted defaultContent JSX won't reference identifiers that are
+ * undefined at the insertion site (app page or sketchpad frame). If it does
+ * (e.g. `{children}` leaked in from a sibling wrapper), the content is
+ * rejected with a console warning rather than producing a broken file.
+ */
+function sanitizeDefaultContentJsx(jsx: string): string {
+  if (!jsx) return jsx;
+  // Detect bare JSX expressions referencing forbidden free identifiers.
+  // Allows e.g. `children={...}` (prop) and `props.foo` (member access) — only
+  // the standalone reference inside an expression container is a problem.
+  const forbidden = ['children', 'props'];
+  for (const name of forbidden) {
+    const re = new RegExp(`\\{\\s*${name}\\s*\\}`);
+    if (re.test(jsx)) {
+      console.warn(
+        `Protovibe: refusing to inject defaultContent that references free identifier "${name}". ` +
+        `Check PvDefaultContent in the component's source — it likely returns JSX without parentheses, ` +
+        `causing the extractor to read from a sibling function.`,
+      );
+      return '';
+    }
+  }
+  return jsx;
 }
 
 export const handleGetComponents = (req: any, res: any, server: import('vite').ViteDevServer) => {
