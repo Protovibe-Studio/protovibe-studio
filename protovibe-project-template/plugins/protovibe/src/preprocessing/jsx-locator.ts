@@ -42,6 +42,16 @@ export function jsxLocatorPlugin(): Plugin {
 
                   const opening = path.node.openingElement;
 
+                  if (
+                    (t.isJSXIdentifier(opening.name) && opening.name.name === 'Fragment') ||
+                    (t.isJSXMemberExpression(opening.name)
+                      && t.isJSXIdentifier(opening.name.object)
+                      && opening.name.object.name === 'React'
+                      && opening.name.property.name === 'Fragment')
+                  ) {
+                    return;
+                  }
+
                   // Find className
                   const classAttr = opening.attributes.find(
                     (attr: any) => t.isJSXAttribute(attr) && attr.name.name === 'className'

@@ -1767,20 +1767,22 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         });
 
         let targetNode: any = null;
-        babel.traverse(ast!, {
-          JSXOpeningElement(p) {
-            const hasBlockId = p.node.attributes.some(attr =>
-              babel.types.isJSXAttribute(attr) &&
-              attr.name.name === 'data-pv-block' &&
-              babel.types.isStringLiteral(attr.value) &&
-              attr.value.value === blockId
-            );
-            if (hasBlockId) {
-              targetNode = p.parentPath.node; // Get the full JSXElement
-              p.stop();
+        if (blockId) {
+          babel.traverse(ast!, {
+            JSXOpeningElement(p) {
+              const hasBlockId = p.node.attributes.some(attr =>
+                babel.types.isJSXAttribute(attr) &&
+                attr.name.name === 'data-pv-block' &&
+                babel.types.isStringLiteral(attr.value) &&
+                attr.value.value === blockId
+              );
+              if (hasBlockId) {
+                targetNode = p.parentPath.node; // Get the full JSXElement
+                p.stop();
+              }
             }
-          }
-        });
+          });
+        }
 
         if (!targetNode && startLine) {
           const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
