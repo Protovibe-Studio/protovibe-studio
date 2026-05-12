@@ -551,7 +551,7 @@ export function PublishButton() {
         onClick={() => setOpen((v) => !v)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        title="Publish"
+        data-tooltip="Publish"
         style={{
           marginLeft: '4px',
           display: 'flex',
@@ -593,7 +593,7 @@ export function PublishButton() {
           <div ref={menuRef} style={{ position: 'absolute', top: '10px', right: '10px' }}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              title="More"
+              data-tooltip="More"
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: '24px', height: '24px', borderRadius: '6px',

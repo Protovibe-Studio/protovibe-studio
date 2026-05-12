@@ -79,7 +79,7 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       <button
         ref={ratioBtnRef}
         onClick={() => setIsRatioOpen(o => !o)}
-        title="Aspect ratio"
+        data-tooltip="Aspect ratio"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -130,7 +130,7 @@ export const SizePosition: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       {hasRatio && (
         <button
           onClick={() => handleSetRatio('')}
-          title="Clear aspect ratio"
+          data-tooltip="Clear aspect ratio"
           style={{
             display: 'flex',
             alignItems: 'center',

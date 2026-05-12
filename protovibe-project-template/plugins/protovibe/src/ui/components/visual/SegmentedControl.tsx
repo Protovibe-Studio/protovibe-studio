@@ -121,7 +121,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
                 onMouseEnter={() => setHoveredVal(seg.val)}
                 onMouseLeave={() => setHoveredVal(null)}
                 style={btnStyle(isActive, isInherited, hoveredVal === seg.val, seg)}
-                title={seg.title || seg.label}
+                data-tooltip={!seg.label ? seg.title : undefined}
               >
                 {seg.icon && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{seg.icon}</span>}
                 {seg.label && <span style={{ marginLeft: seg.icon ? '4px' : '0' }}>{seg.label}</span>}

@@ -44,7 +44,7 @@ export const ComponentsTab: React.FC = () => {
           </span>
           <button
             onClick={() => { refreshComponents(); emitToast({ message: 'Components refreshed', variant: 'success' }); }}
-            title="Refresh"
+            data-tooltip="Refresh"
             style={{
               background: 'transparent',
               border: 'none',
@@ -121,7 +121,7 @@ const ComponentCard: React.FC<{ comp: any }> = ({ comp }) => {
 
   return (
     <div
-      title={description || name}
+      data-tooltip={description || name}
       style={{
         backgroundColor: theme.bg_secondary,
         border: `1px solid ${theme.border_default}`,

@@ -672,7 +672,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       {hasAnySourceOverride && (
         <button
           onClick={handleClearAll}
-          title="Clear all layout classes"
+          data-tooltip="Clear all layout styles"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '3px', border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0, transition: 'background 0.15s, color 0.15s' }}
           onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}

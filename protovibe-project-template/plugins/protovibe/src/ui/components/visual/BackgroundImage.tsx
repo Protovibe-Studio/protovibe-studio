@@ -338,15 +338,15 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
 
   const headerAction = hasImage ? (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-      <button style={iconBtnStyle} onClick={() => replaceInputRef.current?.click()} title="Replace image" disabled={uploading}>
+      <button style={iconBtnStyle} onClick={() => replaceInputRef.current?.click()} data-tooltip="Replace image" disabled={uploading}>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5v4M4 3.5l2-2 2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /><path d="M10 7v2.5a1 1 0 01-1 1H3a1 1 0 01-1-1V7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
-      <button style={iconBtnStyle} onClick={handleRemove} title="Remove background image">
+      <button style={iconBtnStyle} onClick={handleRemove} data-tooltip="Remove background image">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </button>
     </div>
   ) : (
-    <button style={iconBtnStyle} onClick={() => fileInputRef.current?.click()} title="Add background image" disabled={uploading}>
+    <button style={iconBtnStyle} onClick={() => fileInputRef.current?.click()} data-tooltip="Add background image" disabled={uploading}>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
     </button>
   );
@@ -474,7 +474,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
                     onClick={() => handlePositionDot(posClass)}
                     onMouseEnter={() => setHoveredDot(posClass)}
                     onMouseLeave={() => setHoveredDot(null)}
-                    title={posClass.replace('bg-', '')}
+                    data-tooltip={posClass.replace('bg-', '')}
                     style={{
                       width: '8px', height: '8px', borderRadius: '50%',
                       border: 'none', padding: 0, cursor: 'pointer',
@@ -498,7 +498,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
                   opacity: imgNaturalSize ? 1 : 0.5,
                 }}
                 onClick={imgNaturalSize ? handleAspectToggle : undefined}
-                title={imgNaturalSize ? `Set aspect ratio to ${imgNaturalSize.w}:${imgNaturalSize.h}` : 'Loading image dimensions...'}
+                data-tooltip={imgNaturalSize ? `Set aspect ratio to ${imgNaturalSize.w}:${imgNaturalSize.h}` : 'Loading image dimensions...'}
               >
                 <div
                   style={{

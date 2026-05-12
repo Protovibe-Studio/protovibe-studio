@@ -346,7 +346,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         {showEdit && (
           <button
             type="button"
-            title={`Edit ${opt.val} (${colorMode} mode)`}
+            data-tooltip={`Edit ${opt.val} (${colorMode} mode)`}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();

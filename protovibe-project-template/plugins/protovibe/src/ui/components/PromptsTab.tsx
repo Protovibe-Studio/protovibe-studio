@@ -36,7 +36,7 @@ function RefChip({ label, value }: { label: string; value: string | null }) {
   const present = !!value;
   return (
     <div
-      title={value ?? 'Not available'}
+      data-tooltip={value ?? 'Not available'}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -192,7 +192,7 @@ function SplitButton({
         <button
           onClick={() => setOpen(o => !o)}
           disabled={primary.disabled}
-          title="More options"
+          data-tooltip="More options"
           style={{
             padding: '0 10px',
             background: primary.disabled ? theme.bg_tertiary : theme.text_default,
@@ -463,7 +463,7 @@ export const PromptsTab: React.FC = () => {
           <button
             onClick={handleBack}
             style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
-            title="Back"
+            data-tooltip="Back"
           >
             <ArrowLeft size={16} />
           </button>

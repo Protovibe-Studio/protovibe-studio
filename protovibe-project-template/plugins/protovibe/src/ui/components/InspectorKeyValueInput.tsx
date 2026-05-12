@@ -178,13 +178,13 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
 
   return (
     <div style={rowStyle}>
-      <span style={labelStyle} title={labelTitle}>
+      <span style={labelStyle} data-tooltip={labelTitle}>
         {label}
       </span>
       {inputElement}
       <div style={actionSlotStyle}>
         {showRemove && !disabled && (
-          <button onClick={onRemove} style={removeButtonStyle} title="Remove Prop">
+          <button onClick={onRemove} style={removeButtonStyle} data-tooltip="Remove Prop">
             <X size={12} />
           </button>
         )}

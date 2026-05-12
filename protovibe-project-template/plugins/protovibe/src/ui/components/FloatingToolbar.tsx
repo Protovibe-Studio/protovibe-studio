@@ -411,7 +411,7 @@ export const FloatingToolbar: React.FC = () => {
                 padding: '0 14px',
                 color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
               })}
-              title="Delete selected blocks"
+              data-tooltip="Delete selected blocks"
             >
               <Trash2 size={13} strokeWidth={2} />
               Delete {uniqueSelectedBlockIds.length}
@@ -442,7 +442,7 @@ export const FloatingToolbar: React.FC = () => {
                       color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
                       background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                     })}
-                    title="Add child element"
+                    data-tooltip="Add child element"
                     data-testid="btn-add-child"
                   >
                     <Plus size={13} strokeWidth={2.5} />
@@ -475,7 +475,7 @@ export const FloatingToolbar: React.FC = () => {
                       color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
                       background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                     })}
-                    title="Add element after"
+                    data-tooltip="Add element after"
                   >
                     <Plus size={13} strokeWidth={2.5} />
                     Add after
@@ -487,7 +487,7 @@ export const FloatingToolbar: React.FC = () => {
                     onMouseEnter={() => setHoveredBtn('wrap')}
                     onMouseLeave={() => setHoveredBtn(null)}
                     style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
-                    title="Wrap in div"
+                    data-tooltip="Wrap in div"
                   >
                     <SquareDashed size={13} strokeWidth={2.5} />
                     Wrap
@@ -499,7 +499,7 @@ export const FloatingToolbar: React.FC = () => {
                     onMouseEnter={() => setHoveredBtn('up')}
                     onMouseLeave={() => setHoveredBtn(null)}
                     style={mkBtnStyle('up')}
-                    title={isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
+                    data-tooltip={isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
                   >
                     {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
                     {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
@@ -511,7 +511,7 @@ export const FloatingToolbar: React.FC = () => {
                     onMouseEnter={() => setHoveredBtn('down')}
                     onMouseLeave={() => setHoveredBtn(null)}
                     style={mkBtnStyle('down')}
-                    title={isSketchpadAbsolute ? 'Send backward' : 'Move down'}
+                    data-tooltip={isSketchpadAbsolute ? 'Send backward' : 'Move down'}
                   >
                     {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
                     {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
@@ -526,7 +526,7 @@ export const FloatingToolbar: React.FC = () => {
                       padding: '0 14px',
                       color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
                     })}
-                    title="Delete block"
+                    data-tooltip="Delete block"
                   >
                     <Trash2 size={13} strokeWidth={2} />
                   </button>

@@ -323,7 +323,7 @@ export const ProtovibeApp: React.FC = () => {
               {/* Back / Forward / Refresh */}
               <button
                 onClick={() => appIframeRef.current?.contentWindow?.history.back()}
-                title="Back"
+                data-tooltip="Back"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -336,7 +336,7 @@ export const ProtovibeApp: React.FC = () => {
               </button>
               <button
                 onClick={() => appIframeRef.current?.contentWindow?.history.forward()}
-                title="Forward"
+                data-tooltip="Forward"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -349,7 +349,7 @@ export const ProtovibeApp: React.FC = () => {
               </button>
               <button
                 onClick={() => appIframeRef.current?.contentWindow?.location.reload()}
-                title="Refresh"
+                data-tooltip="Refresh"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -365,7 +365,7 @@ export const ProtovibeApp: React.FC = () => {
                   const win = appIframeRef.current?.contentWindow;
                   if (win) win.location.href = '/';
                 }}
-                title="Home"
+                data-tooltip="Home"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -406,7 +406,7 @@ export const ProtovibeApp: React.FC = () => {
                     window.open('/', '_blank');
                   }
                 }}
-                title="Open in new tab"
+                data-tooltip="Open in new tab"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -419,7 +419,7 @@ export const ProtovibeApp: React.FC = () => {
               </button>
               <button
                 onClick={() => setMobileWidth(v => !v)}
-                title={mobileWidth ? 'Full width' : 'Mobile width'}
+                data-tooltip={mobileWidth ? 'Full width' : 'Mobile width'}
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -442,7 +442,6 @@ export const ProtovibeApp: React.FC = () => {
                   border: 'none',
                   minWidth: 0,
                 }}
-                title="App Preview"
                 onLoad={() => handleIframeLoad(appIframeRef)}
               />
             </div>
@@ -452,7 +451,6 @@ export const ProtovibeApp: React.FC = () => {
               ref={sketchpadIframeRef}
               src="/sketchpad.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
-              title="Sketchpad"
               onLoad={() => handleIframeLoad(sketchpadIframeRef)}
             />
           </div>
@@ -461,7 +459,6 @@ export const ProtovibeApp: React.FC = () => {
               ref={componentsIframeRef}
               src="/components.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
-              title="Components Preview"
               onLoad={() => handleIframeLoad(componentsIframeRef)}
             />
           </div>
@@ -485,7 +482,7 @@ export const ProtovibeApp: React.FC = () => {
                   <button
                     key={t}
                     onClick={() => setIframeTheme(t)}
-                    title={t === 'light' ? 'Light mode' : 'Dark mode'}
+                    data-tooltip={t === 'light' ? 'Light mode' : 'Dark mode'}
                     style={{
                       width: 26,
                       height: 24,
@@ -511,7 +508,7 @@ export const ProtovibeApp: React.FC = () => {
             <button
               ref={moreButtonRef}
               onClick={() => setMoreMenuOpen(v => !v)}
-              title="Help"
+              data-tooltip="Help"
               style={{
                 width: 26,
                 height: 24,

@@ -580,7 +580,7 @@ function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
               position: 'absolute', top: -4, left: -4, width: 30, height: 30,
               cursor: 'pointer', border: 'none', padding: 0, opacity: 0,
             }}
-            title="Pick color"
+            data-tooltip="Pick color"
           />
         </div>
         <input
@@ -598,7 +598,7 @@ function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
         {canRemove && (
           <button
             onClick={onRemove}
-            title="Remove stop"
+            data-tooltip="Remove stop"
             style={{
               width: 22, height: 22, padding: 0, flexShrink: 0,
               background: 'transparent', border: `1px solid ${theme.border_default}`,

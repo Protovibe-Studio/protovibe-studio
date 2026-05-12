@@ -920,6 +920,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onClick={() => setBgExpanded(x => !x)}
           onMouseEnter={() => setBgHovered(true)}
           onMouseLeave={() => setBgHovered(false)}
+          data-tooltip={bgExpanded ? 'Hide advanced' : 'Show advanced'}
         >
           <span style={{ fontSize: '11px', lineHeight: '11px', color: bgHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Background Color</span>
           <span style={{ color: bgHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
@@ -1012,7 +1013,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onClick={() => setBorderColorExpanded((x) => !x)}
           onMouseEnter={() => setBorderColorHovered(true)}
           onMouseLeave={() => setBorderColorHovered(false)}
-          title={borderColorExpanded ? 'Collapse border colors' : 'Expand border colors'}
+          data-tooltip={borderColorExpanded ? 'Hide advanced' : 'Show advanced'}
         >
           <span style={{ fontSize: '11px', lineHeight: '11px', color: borderColorHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Border color</span>
           <span style={{ color: borderColorHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>
@@ -1123,7 +1124,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           onClick={() => setRadiusExpanded((x) => !x)}
           onMouseEnter={() => setRadiusHovered(true)}
           onMouseLeave={() => setRadiusHovered(false)}
-          title={radiusExpanded ? 'Collapse corners' : 'Expand corners'}
+          data-tooltip={radiusExpanded ? 'Hide advanced' : 'Show advanced'}
         >
           <span style={{ fontSize: '11px', lineHeight: '11px', color: radiusHovered ? theme.text_default : theme.text_secondary, transition: 'color 0.15s' }}>Border radius</span>
           <span style={{ color: radiusHovered ? theme.text_default : theme.text_secondary, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}>

@@ -23,7 +23,6 @@ export const PreviewTab: React.FC = () => {
           border: 'none',
           minWidth: 0,
         }}
-        title="App Preview"
       />
       <Sidebar isOpen={inspectorOpen} />
       <ToastViewport />

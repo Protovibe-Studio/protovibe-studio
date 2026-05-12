@@ -42,7 +42,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
-            title={this.state.error?.message}
+            data-tooltip={this.state.error?.message}
           >
             render error
           </div>

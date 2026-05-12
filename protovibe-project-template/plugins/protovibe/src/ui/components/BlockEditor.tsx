@@ -18,7 +18,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ disabled, title, onActiva
   return (
     <button
       type="button"
-      title={title}
+      data-tooltip={title}
       disabled={disabled}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}

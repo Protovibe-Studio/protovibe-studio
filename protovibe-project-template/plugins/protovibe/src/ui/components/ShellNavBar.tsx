@@ -50,7 +50,6 @@ function TabButton({
       key={id}
       data-testid={`tab-${id}`}
       onClick={onClick}
-      title={label}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -241,7 +240,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}
-              title={projectName || 'Untitled project'}
+              data-tooltip={projectName || 'Untitled project'}
             >
               {projectName || 'Untitled project'}
             </div>
@@ -341,7 +340,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           onClick={onToggleInspector}
           onMouseEnter={() => setInspectorHovered(true)}
           onMouseLeave={() => setInspectorHovered(false)}
-          title={inspectorOpen ? 'Enable live preview' : 'Back to editor'}
+          data-tooltip={inspectorOpen ? 'Enable live preview' : 'Back to editor'}
           style={{
             marginLeft: '4px',
             display: 'flex',

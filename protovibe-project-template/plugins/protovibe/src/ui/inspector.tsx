@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ProtovibeProvider } from './context/ProtovibeContext';
 import { ProtovibeApp } from './ProtovibeApp';
+import { TooltipLayer } from './components/Tooltip';
 
 function init() {
 
@@ -40,6 +41,7 @@ function init() {
   reactRoot.render(
     <ProtovibeProvider>
       <ProtovibeApp />
+      <TooltipLayer />
     </ProtovibeProvider>
   );
 }

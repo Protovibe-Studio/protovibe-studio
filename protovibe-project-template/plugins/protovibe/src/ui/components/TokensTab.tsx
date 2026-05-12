@@ -54,7 +54,6 @@ function TokenCell({ color, name, bg, onEdit }: TokenCellProps) {
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      title={`--color-${name} (${isLight ? 'light' : 'dark'})\n${color}${hex ? '\n' + hex : ''}\nClick to edit`}
       style={{
         flex: 1,
         display: 'flex',
@@ -330,7 +329,7 @@ export const TokensTab: React.FC = () => {
           )}
           <button
             onClick={() => { refreshComponents(); refreshThemeColors(); refreshThemeTokens(); emitToast({ message: 'Tokens refreshed', variant: 'success' }); }}
-            title="Refresh"
+            data-tooltip="Refresh"
             style={{ background: 'transparent', border: 'none', color: theme.text_tertiary, cursor: 'pointer', fontSize: '12px', fontFamily: theme.font_ui, padding: '2px 6px', borderRadius: '4px' }}
           >
             ↻ Refresh
@@ -496,7 +495,6 @@ export const TokensTab: React.FC = () => {
                     return (
                       <button
                         key={t.val}
-                        title={`--color-${t.val}: ${color}`}
                         style={{
                           display: 'flex', flexDirection: 'column', gap: '5px', padding: '7px',
                           background: theme.bg_secondary,
@@ -570,7 +568,7 @@ export const TokensTab: React.FC = () => {
                       fontFamily: 'monospace', fontSize: '10px',
                       color: theme.text_secondary,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }} title={`--${t.name}`}>
+                    }}>
                       --{t.name}
                     </span>
                     {activeCategoryObj?.id === 'font-family' ? (
@@ -594,7 +592,6 @@ export const TokensTab: React.FC = () => {
                           }}
                           onMouseEnter={e => e.currentTarget.style.borderColor = theme.border_accent}
                           onMouseLeave={e => e.currentTarget.style.borderColor = theme.border_default}
-                          title="Click to edit shadow"
                         >
                           {category === 'Shadow' && (
                             <div style={{
@@ -638,7 +635,6 @@ export const TokensTab: React.FC = () => {
                         }}
                         onMouseEnter={e => e.currentTarget.style.borderColor = theme.border_accent}
                         onMouseLeave={e => e.currentTarget.style.borderColor = theme.border_default}
-                        title="Click to edit"
                       >
                         <span>{t.value}</span>
                         <span style={{ color: theme.text_tertiary, marginLeft: 'auto', fontSize: '10px' }}>
