@@ -26,7 +26,7 @@ export function DashboardPage() {
         {/* pv-editable-zone-start:sk9i0j */}
         {/* pv-block-start:vqs3bs */}
         <TextHeading data-pv-block="vqs3bs" typography="heading-xxl">
-          Playground!
+          Tutorial playground
         </TextHeading>
         {/* pv-block-end:vqs3bs */}
         {/* pv-editable-zone-end:sk9i0j */}

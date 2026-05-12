@@ -189,6 +189,26 @@ export const ProtovibeApp: React.FC = () => {
       { type: 'PV_SET_INSPECTOR_ACTIVE', active: inspectorOpen },
       '*'
     );
+    // Block Mac trackpad pinch-to-zoom inside app and components-preview iframes.
+    // Sketchpad intercepts pinch itself to zoom its infinite canvas, so skip it.
+    if (ref !== sketchpadIframeRef) {
+      const win = ref.current?.contentWindow;
+      if (win) {
+        const prevent = (e: Event) => e.preventDefault();
+        win.addEventListener('wheel', (e) => {
+          if ((e as WheelEvent).ctrlKey) e.preventDefault();
+        }, { passive: false });
+        win.addEventListener('gesturestart', prevent);
+        win.addEventListener('gesturechange', prevent);
+        win.addEventListener('gestureend', prevent);
+        win.addEventListener('keydown', (e) => {
+          const ke = e as KeyboardEvent;
+          if ((ke.metaKey || ke.ctrlKey) && ['=', '+', '-', '_', '0'].includes(ke.key)) {
+            ke.preventDefault();
+          }
+        });
+      }
+    }
     if (ref === appIframeRef) {
       const iframeDoc = ref.current?.contentDocument;
       if (iframeDoc?.defaultView) {

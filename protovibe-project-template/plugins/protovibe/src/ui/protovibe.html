@@ -62,6 +62,31 @@
         window.WebSocket = PatchedWS;
       })();
     </script>
+    <script>
+      // Block Mac trackpad pinch-to-zoom on the Protovibe shell. Accidental
+      // pinches inside sketchpads zoom the shell itself, and the user can get
+      // stuck unable to zoom back out. Sketchpad iframes run in their own
+      // window so this does not affect them.
+      (function () {
+        const prevent = (e) => e.preventDefault();
+        // Use capture phase on `document` so we run before any descendant
+        // handler can call stopPropagation (some scrollable inspector areas do).
+        // Chrome/Edge report trackpad pinch as wheel events with ctrlKey=true.
+        document.addEventListener('wheel', (e) => {
+          if (e.ctrlKey) e.preventDefault();
+        }, { passive: false, capture: true });
+        // Safari/WebKit fire gesture* events for pinch.
+        document.addEventListener('gesturestart', prevent, { capture: true });
+        document.addEventListener('gesturechange', prevent, { capture: true });
+        document.addEventListener('gestureend', prevent, { capture: true });
+        // Cmd/Ctrl + (=/-/0) keyboard zoom.
+        document.addEventListener('keydown', (e) => {
+          if ((e.metaKey || e.ctrlKey) && ['=', '+', '-', '_', '0'].includes(e.key)) {
+            e.preventDefault();
+          }
+        }, { capture: true });
+      })();
+    </script>
   </head>
   <body style="margin:0;padding:0;overflow:hidden;font-family:sans-serif;box-sizing:border-box;">
     <div id="protovibe-shell"></div>
