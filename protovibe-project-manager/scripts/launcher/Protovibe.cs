@@ -112,9 +112,7 @@ static class Protovibe {
         ApplyStagedManagerUpdate(root);
 
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("   Starting dev server, please wait...");
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine("   The browser will open automatically when it is ready.");
+        Console.WriteLine("   Open your browser and go to URL: " + PROTOVIBE_URL);
         Console.ResetColor();
         Console.WriteLine();
 
@@ -217,16 +215,16 @@ static class Protovibe {
 
     static void PrintBanner() {
         Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("   Keep this window open while using Protovibe.");
-        Console.ResetColor();
-        Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("   ▄▄▄▄▄▄▄▄                                        ▄▄");
         Console.WriteLine("   ███▀▀▀███                ██                 ▀▀  ██");
         Console.WriteLine("   ███   ███ ████▄ ▄█████▄ ▀██▀▀ ▄█████▄ ██ ██ ██  ████▄ ▄█▀█▄");
         Console.WriteLine("   ███  ▀▀▀  ██ ▀▀ ██   ██  ██   ██   ██ ██▄██ ██  ██ ██ ██▄█▀");
         Console.WriteLine("   ███       ██    ▀█████▀  ██   ▀█████▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄");
+        Console.ResetColor();
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("   Keep this window open while using Protovibe in your browser.");
         Console.ResetColor();
         Console.WriteLine();
     }

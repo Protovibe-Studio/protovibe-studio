@@ -111,8 +111,7 @@ fi
 
 print_banner() {
   do_clear
-  printf '\\n%s   Keep this window open while using Protovibe.%s\\n\\n' "$C_YELLOW" "$C_RESET"
-  printf '%s' "$C_CYAN"
+  printf '\\n%s' "$C_CYAN"
   cat <<'LOGO'
    ▄▄▄▄▄▄▄▄                                        ▄▄
    ███▀▀▀███                ██                 ▀▀  ██
@@ -121,6 +120,7 @@ print_banner() {
    ███       ██    ▀█████▀  ██   ▀█████▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄
 LOGO
   printf '%s\\n' "$C_RESET"
+  printf '%s   Keep this window open while using Protovibe in your browser.%s\\n\\n' "$C_YELLOW" "$C_RESET"
 }
 
 # Already running? The project-manager exposes /api/projects, so a 200 there
@@ -142,9 +142,7 @@ case ":$PATH:" in
 esac
 
 print_banner
-printf '   %sStarting dev server, please wait…%s\\n' "$C_BOLD" "$C_RESET"
-printf '   The browser will open automatically when it is ready.\\n'
-printf '   If it does not, open: %s\\n\\n' "$PROTOVIBE_URL"
+printf '   %sOpen your browser and go to URL: %s%s\\n\\n' "$C_BOLD" "$PROTOVIBE_URL" "$C_RESET"
 
 export NODE_NO_WARNINGS=1
 cd "$ROOT"
@@ -397,13 +395,13 @@ function createWindowsShortcut() {
   const bannerPs1 = [
     `$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8`,
     `Write-Host ''`,
-    `Write-Host '   Keep this window open while using Protovibe.' -ForegroundColor Yellow`,
-    `Write-Host ''`,
     `Write-Host '   ▄▄▄▄▄▄▄▄                                        ▄▄' -ForegroundColor Cyan`,
     `Write-Host '   ███▀▀▀███                ██                 ▀▀  ██' -ForegroundColor Cyan`,
     `Write-Host '   ███   ███ ████▄ ▄█████▄ ▀██▀▀ ▄█████▄ ██ ██ ██  ████▄ ▄█▀█▄' -ForegroundColor Cyan`,
     `Write-Host '   ███  ▀▀▀  ██ ▀▀ ██   ██  ██   ██   ██ ██▄██ ██  ██ ██ ██▄█▀' -ForegroundColor Cyan`,
     `Write-Host '   ███       ██    ▀█████▀  ██   ▀█████▀  ▀█▀  ██▄ ████▀ ▀█▄▄▄' -ForegroundColor Cyan`,
+    `Write-Host ''`,
+    `Write-Host '   Keep this window open while using Protovibe in your browser.' -ForegroundColor Yellow`,
     `Write-Host ''`,
   ].join('\r\n');
   // UTF-8 BOM prefix so PowerShell reads this file as UTF-8 on all Windows locales
@@ -462,7 +460,7 @@ function createWindowsShortcut() {
     '  call pnpm --dir protovibe-project-manager install --prefer-offline',
     ')',
     '',
-    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Starting dev server, please wait...' -ForegroundColor Cyan; Write-Host '   The browser will open automatically when it is ready.' -ForegroundColor Gray; Write-Host ''"`,
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host '   Open your browser and go to URL: ${PROTOVIBE_URL}' -ForegroundColor Cyan; Write-Host ''"`,
     'call pnpm --dir protovibe-project-manager dev',
     'if errorlevel 1 (',
     '  echo.',
