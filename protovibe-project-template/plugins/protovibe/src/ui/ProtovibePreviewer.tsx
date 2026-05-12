@@ -1048,28 +1048,20 @@ export function ProtovibePreviewer() {
 
         <div style={{ flex: 1 }} />
 
-        <span style={{ fontSize: 11, color: theme.text_low }}>
-          Click any element to inspect &amp; edit styles
-        </span>
-
         <div
           role="button"
           tabIndex={0}
-          aria-label="Refresh components"
+          aria-label="Reload components"
           onClick={handleRefreshClick}
           onKeyDown={e => activateOnEnterOrSpace(e, handleRefreshClick)}
           style={{
-            width: 16,
-            height: 16,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 6,
             cursor: 'pointer',
             color: refreshFlash ? theme.text_default : theme.text_tertiary,
-            fontSize: 14,
             flexShrink: 0,
-            transition: 'color 0.15s, transform 0.4s ease',
-            transform: refreshFlash ? 'rotate(360deg)' : 'rotate(0deg)',
+            transition: 'color 0.15s',
           }}
           onMouseEnter={e => {
             if (!refreshFlash) e.currentTarget.style.color = theme.text_secondary;
@@ -1078,7 +1070,21 @@ export function ProtovibePreviewer() {
             if (!refreshFlash) e.currentTarget.style.color = theme.text_tertiary;
           }}
         >
-          ↻
+          <span
+            style={{
+              width: 16,
+              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              transition: 'transform 0.4s ease',
+              transform: refreshFlash ? 'rotate(360deg)' : 'rotate(0deg)',
+            }}
+          >
+            ↻
+          </span>
+          <span style={{ fontSize: 11 }}>Reload components</span>
         </div>
       </div>
 
