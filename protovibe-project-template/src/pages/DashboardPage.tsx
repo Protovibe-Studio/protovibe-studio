@@ -26,7 +26,7 @@ export function DashboardPage() {
         {/* pv-editable-zone-start:sk9i0j */}
         {/* pv-block-start:vqs3bs */}
         <TextHeading data-pv-block="vqs3bs" typography="heading-xxl">
-          Welcome to Protovibe example project!
+          Playground!
         </TextHeading>
         {/* pv-block-end:vqs3bs */}
         {/* pv-editable-zone-end:sk9i0j */}
@@ -77,7 +77,7 @@ export function DashboardPage() {
                     {/* pv-editable-zone-start:iugucc */}
                     {/* pv-block-start:hzrzb5 */}
                     <TextHeading data-pv-block="hzrzb5" typography="heading-sm">
-                      Double-click to edit popovers or dialogs
+                      Single-click selects, double-click interacts
                     </TextHeading>
                     {/* pv-block-end:hzrzb5 */}
                     {/* pv-block-start:itlz1l */}

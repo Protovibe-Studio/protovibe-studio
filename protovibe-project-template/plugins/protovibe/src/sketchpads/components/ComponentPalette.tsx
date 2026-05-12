@@ -139,10 +139,6 @@ export function ComponentPalette({
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    requestAnimationFrame(() => searchRef.current?.focus());
-  }, []);
-
-  useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = 0;
   }, []);
 

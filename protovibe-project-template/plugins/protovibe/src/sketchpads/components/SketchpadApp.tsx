@@ -186,7 +186,7 @@ export function SketchpadApp() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [showComponentPalette, setShowComponentPalette] = useState(false);
+  const [showComponentPalette, setShowComponentPalette] = useState(true);
   const [renamePrompt, setRenamePrompt] = useState<{ frameId: string, name: string } | null>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const [pendingAction, setPendingAction] = useState<
