@@ -29,7 +29,7 @@ const STATUS_LABELS = {
   stopped: 'Stopped',
   installing: 'Installing',
   starting: 'Starting',
-  'updating-plugin': 'Updating plugin',
+  'updating-plugin': 'Updating editor',
 }
 
 function MenuItem({ icon, label, onClick, danger, disabled }) {

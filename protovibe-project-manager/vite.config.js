@@ -251,8 +251,16 @@ function stopProjectProcess(id, { timeoutMs = 4000 } = {}) {
 
 function readPluginInfo(projectPath) {
   const data = readProtovibeData(projectPath)
+  let pluginVersion = data?.['plugin-version'] ?? null
+  // Prefer the live version from the plugin's own package.json — it reflects
+  // manual bumps that haven't gone through writePluginMetadata.
+  try {
+    const pkgPath = path.join(projectPath, PLUGIN_REL_DIR, 'package.json')
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+    if (typeof pkg?.version === 'string') pluginVersion = pkg.version
+  } catch {}
   return {
-    pluginVersion: data?.['plugin-version'] ?? null,
+    pluginVersion,
     pluginLastUpdated: data?.['plugin-last-updated'] ?? null,
   }
 }
@@ -295,6 +303,7 @@ function parseBody(req) {
 
 function handleGetProjects(_req, res) {
   const stored = scanProjectsFolder()
+  const sourcePluginVersion = readSourcePluginVersion()
   const list = stored.map((p) => {
     const proc = processes.get(p.id)
     let updatedAt = null
@@ -310,6 +319,7 @@ function handleGetProjects(_req, res) {
       port: proc?.port ?? null,
       pluginVersion,
       pluginLastUpdated,
+      sourcePluginVersion,
     }
   })
   sendJson(res, 200, list)

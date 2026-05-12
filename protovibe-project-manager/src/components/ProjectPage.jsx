@@ -29,7 +29,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const [updatingPlugin, setUpdatingPlugin] = useState(false)
   const bottomRef = useRef(null)
 
-  const { id, name, status, port, pluginVersion, pluginLastUpdated } = project
+  const { id, name, status, port, pluginVersion, sourcePluginVersion } = project
   const isRunning = status === 'running'
   const isStopped = status === 'stopped'
   // isBusy is the trigger for SetupScreen, so 'updating-plugin' deliberately
@@ -124,19 +124,24 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     }
   }
 
-  // pluginLastUpdated is stored as YYYY-MM-DD (no timezone). Reformat to the
-  // same human-friendly style as the other dates without sliding by a day.
-  const pluginUpdatedDate = (() => {
-    if (!pluginLastUpdated) return null
-    const [y, m, d] = pluginLastUpdated.split('-').map(Number)
-    if (!y || !m || !d) return pluginLastUpdated
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  })()
+  const comparePluginVersions = (a, b) => {
+    if (!a || !b) return 0
+    const pa = a.split('.').map((n) => parseInt(n, 10) || 0)
+    const pb = b.split('.').map((n) => parseInt(n, 10) || 0)
+    const len = Math.max(pa.length, pb.length)
+    for (let i = 0; i < len; i++) {
+      const x = pa[i] ?? 0
+      const y = pb[i] ?? 0
+      if (x !== y) return x < y ? -1 : 1
+    }
+    return 0
+  }
+  const pluginOutdated = comparePluginVersions(pluginVersion, sourcePluginVersion) < 0
 
   const handleUpdatePlugin = async () => {
     if (updatingPlugin) return
     if (isBusy) {
-      setError('Wait for setup to finish before updating the plugin.')
+      setError('Wait for setup to finish before updating the editor.')
       return
     }
     setError('')
@@ -145,16 +150,16 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
       const res = await fetch(`/api/projects/${id}/update-plugin`, { method: 'POST' })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error || 'Failed to update plugin.')
-        showToast('Plugin update failed', 'error')
+        setError(data.error || 'Failed to update editor.')
+        showToast('Editor update failed', 'error')
       } else {
         const v = data.pluginVersion ? ` v${data.pluginVersion}` : ''
-        showToast(`Plugin${v} synced from template`, 'success')
+        showToast(`Editor${v} synced from template`, 'success')
         onRenamed && onRenamed()
       }
     } catch {
       setError('Network error. Make sure the dev server is running.')
-      showToast('Plugin update failed', 'error')
+      showToast('Editor update failed', 'error')
     } finally {
       setUpdatingPlugin(false)
     }
@@ -286,7 +291,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground-info opacity-60" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-foreground-info" />
                   </span>
-                  Updating plugin
+                  Updating editor
                 </span>
               )}
               {isBusy && (
@@ -400,26 +405,26 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             )}
             </div>
 
-            {/* Plugin section */}
-            {!isBusy && (
-              <div className="flex items-center justify-between gap-4 px-7 py-5">
+            {/* Plugin update banner — only when project plugin is older than source */}
+            {!isBusy && pluginOutdated && (
+              <div className="flex items-center justify-between gap-4 px-7 py-4 bg-background-info-subtle border-t border-border-default">
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-medium text-foreground-secondary">
-                    Protovibe plugin{pluginVersion ? ` · v${pluginVersion}` : ''}
+                  <span className="text-sm font-medium text-foreground-info">
+                    This project uses an older version of Protovibe editor
                   </span>
-                  <span className="text-xs text-foreground-tertiary truncate">
-                    {pluginUpdatedDate ? `Updated ${pluginUpdatedDate}` : 'Never updated in this project'}
+                  <span className="text-xs text-foreground-secondary truncate">
+                    Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion}
                   </span>
                 </div>
                 <button
                   data-testid="btn-update-plugin"
                   onClick={handleUpdatePlugin}
                   disabled={isUpdating || isBusy}
-                  title="Sync plugin source from protovibe-project-template"
+                  title="Sync Protovibe editor from protovibe-project-template"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 >
                   <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
-                  {isUpdating ? 'Updating…' : 'Update plugin'}
+                  {isUpdating ? 'Updating…' : 'Update editor'}
                 </button>
               </div>
             )}
