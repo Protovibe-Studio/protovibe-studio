@@ -128,7 +128,7 @@ export function DashboardPage() {
             <Card className="gap-4 items-stretch" data-pv-block="58e4sq">
               {/* pv-editable-zone-start:lzk3wr */}
                 {/* pv-block-start:aev719 */}
-                <div data-pv-block="aev719" className="flex gap-3 flex-col grow">
+                <div data-pv-block="aev719" className="grow flex flex-col gap-2">
                   {/* pv-editable-zone-start:btl59t */}
                   {/* pv-block-start:k78o7c */}
                   <Icon className="text-foreground-primary" data-pv-block="k78o7c" iconSymbol="material-symbols:keyboard-outline" size="lg" />

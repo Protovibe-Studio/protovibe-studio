@@ -1,13 +1,15 @@
 // plugins/protovibe/src/ui/components/visual/Layout.tsx
 import React, { useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { MoveRight, ChevronDown, ChevronUp, MoreHorizontal, Check, X } from 'lucide-react';
+import { MoveRight, ChevronDown, ChevronUp, MoreHorizontal, Check, X, WrapText } from 'lucide-react';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { takeSnapshot, updateSource } from '../../api/client';
-import { buildContextPrefix } from '../../utils/tailwind';
+import { buildContextPrefix, cleanVal, makeSafe } from '../../utils/tailwind';
 import { VisualSection } from './VisualSection';
 import { SegmentedControl } from './SegmentedControl';
 import { InspectorSlider } from './InspectorSlider';
+import { AutocompleteDropdown } from './AutocompleteDropdown';
+import { useScales } from '../../hooks/useScales';
 import { useFloatingDropdownPosition } from '../../hooks/useFloatingDropdownPosition';
 import { theme } from '../../theme';
 
@@ -378,6 +380,7 @@ const GRID_ALIGN_CONTENT_OPTIONS: OptionItem[] = [
 
 export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
+  const scales = useScales();
   const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -433,6 +436,87 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       }
     });
   }, [activeData, activeSourceId, v, runLockedMutation]);
+
+  const handleGapUpdate = async (newVal: string, prevVal?: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+
+    const newClass = safeVal && safeVal !== '-' ? `${currentContextPrefix}gap-${safeVal}` : '';
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!);
+      let origClass = v.gap_original || '';
+      if (!origClass) origClass = cleanVal(prevVal ?? v.gap) ? `gap-${cleanVal(prevVal ?? v.gap)}` : '';
+      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
+      if (origClass === newClass) return;
+      await updateSource({
+        ...activeData,
+        id: activeSourceId!,
+        oldClass: origClass,
+        newClass,
+        action,
+      });
+    });
+  };
+
+  const previewGap = (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    return { gap: opt?.desc || hoveredVal };
+  };
+
+  const renderGapField = () => {
+    const sourceGap = cleanVal(v.gap);
+    const inheritedGap = !sourceGap ? cleanVal(domV?.gap) : '';
+    const displayGap = (val: string) => {
+      if (val === 'DEFAULT') return 'default';
+      if (val === 'px') {
+        const opt = scales.spacing.find(o => o.val === 'px');
+        return opt?.desc ?? val;
+      }
+      return val;
+    };
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Gap</span>
+        <AutocompleteDropdown
+          value={sourceGap === '-' ? '' : sourceGap}
+          options={scales.spacing}
+          onCommit={(val, prevVal) => handleGapUpdate(val, prevVal)}
+          previewBuild={previewGap}
+          placeholder={inheritedGap ? displayGap(inheritedGap) : '—'}
+          zIndex={9999999}
+          displayLabel={(val, opt) => {
+            if (val === 'DEFAULT') return 'default';
+            if (val === 'px' && opt?.desc) return opt.desc;
+            return val;
+          }}
+          renderOption={(opt) => {
+            if (opt.val === 'DEFAULT') {
+              return (
+                <>
+                  <span style={{ fontWeight: 'bold' }}>default</span>
+                  <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
+                </>
+              );
+            }
+            const collapseToDesc = opt.val === 'px' && !!opt.desc;
+            return (
+              <>
+                <span style={{ fontWeight: 'bold' }}>{collapseToDesc ? opt.desc : opt.val}</span>
+                {!collapseToDesc && (
+                  <span style={{ color: theme.text_tertiary, fontSize: '9px', marginLeft: '12px' }}>{opt.desc}</span>
+                )}
+              </>
+            );
+          }}
+        />
+      </div>
+    );
+  };
 
   // Three-state derivation: source (v.*) > inherited (domV.*) > unset
   const display = v.display || domV?.display || '';
@@ -788,9 +872,39 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               const baseInherited = (domV?.display || '').replace('inline-', '');
               const canShowInline = baseDisplay === 'block' || baseDisplay === 'flex' || baseDisplay === 'grid'
                 || (!v.display && (baseInherited === 'block' || baseInherited === 'flex' || baseInherited === 'grid'));
+
+              const effective = v.display || domV?.display || '';
+              const baseEffective = effective.replace('inline-', '');
+              const isInlineEffective = effective.startsWith('inline-');
+              const isInlineSource = !!v.display && v.display.startsWith('inline-');
+              const isInlineInherited = !v.display && !!domV?.display && domV.display.startsWith('inline-');
+              const nextInlineVal = isInlineEffective ? baseEffective : `inline-${baseEffective}`;
+              const inlineActive = isInlineSource || isInlineInherited;
+              const inlineColor = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_default : theme.text_tertiary;
+              const inlineBg = isInlineSource ? theme.accent_low : isInlineInherited ? theme.bg_low : 'transparent';
+
               return (
-                <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid || canShowInline) ? '0' : '12px' }}>
-                  <span style={{ display: 'block', fontSize: '11px', lineHeight: '11px', color: theme.text_secondary, marginBottom: '6px' }}>Display</span>
+                <div style={{ padding: '12px 12px', paddingBottom: (isFlexLike || isGrid) ? '0' : '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', height: '14px' }}>
+                    <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Display</span>
+                    {canShowInline && (
+                      <button
+                        onClick={() => handleSetClass(v.display_original, nextInlineVal)}
+                        data-tooltip="Inline — flow with surrounding text"
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: '20px', height: '20px', borderRadius: '3px',
+                          border: 'none', background: inlineBg, color: inlineColor,
+                          cursor: 'pointer', padding: 0,
+                          transition: 'background 0.15s, color 0.15s',
+                        }}
+                        onMouseEnter={e => { if (!inlineActive) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
+                        onMouseLeave={e => { if (!inlineActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
+                      >
+                        <WrapText size={13} />
+                      </button>
+                    )}
+                  </div>
                   <SegmentedControl
                     label=""
                     value={baseDisplay}
@@ -798,8 +912,6 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
                     inheritedValue={baseInherited}
                     width="100%"
                     onChange={(val) => {
-                      // Preserve inline modifier when switching between block/flex/grid
-                      const effective = v.display || domV?.display || '';
                       const wasInline = effective.startsWith('inline-');
                       const next = !val ? '' : (wasInline && (val === 'block' || val === 'flex' || val === 'grid')) ? `inline-${val}` : val;
                       handleSetClass(v.display_original, next);
@@ -822,56 +934,12 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               </div>
             )}
 
-            {/* Inline toggle — applies to block/flex/grid */}
-            {(() => {
-              const effective = v.display || domV?.display || '';
-              const baseEffective = effective.replace('inline-', '');
-              if (!(baseEffective === 'block' || baseEffective === 'flex' || baseEffective === 'grid')) return null;
-
-              const isInlineEffective = effective.startsWith('inline-');
-              const isInlineSource = !!v.display && v.display.startsWith('inline-');
-              const isInlineInherited = !v.display && !!domV?.display && domV.display.startsWith('inline-');
-              const nextVal = isInlineEffective ? baseEffective : `inline-${baseEffective}`;
-
-              const brd = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_secondary : theme.border_default;
-              const bg  = isInlineSource ? theme.accent_low : isInlineInherited ? theme.bg_low : 'transparent';
-              const col = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_default : theme.text_secondary;
-              const cbBg = isInlineSource ? theme.accent_default : isInlineInherited ? theme.text_default : 'transparent';
-              const cbBd = (isInlineSource || isInlineInherited) ? cbBg : theme.border_default;
-
-              return (
-                <div style={{ padding: '12px' }}>
-                  <button
-                    onClick={() => handleSetClass(v.display_original, nextVal)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '8px',
-                      borderRadius: '6px',
-                      border: `1px solid ${brd}`,
-                      background: bg,
-                      color: col,
-                      cursor: 'pointer',
-                      width: '100%',
-                    }}
-                  >
-                    <div style={{ flex: 1, textAlign: 'left' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 500 }}>Inline</div>
-                      <div style={{ fontSize: '9px', opacity: 0.65, marginTop: '1px' }}>Flow with surrounding text</div>
-                    </div>
-                    <div style={{
-                      width: '14px', height: '14px', borderRadius: '3px', flexShrink: 0,
-                      backgroundColor: cbBg,
-                      border: `1px solid ${cbBd}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {isInlineEffective && <Check size={9} color={theme.bg_default} />}
-                    </div>
-                  </button>
-                </div>
-              );
-            })()}
+            {/* Gap — bottom row */}
+            {(isFlexLike || isGrid) && (
+              <div style={{ padding: '12px' }}>
+                {renderGapField()}
+              </div>
+            )}
           </div>
         </>,
         document.body
