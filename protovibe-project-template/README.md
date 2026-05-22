@@ -1,8 +1,16 @@
 # Protovibe App
 
-This app was created with [Protovibe Studio](https://protovibe-studio.github.io).
+This app was created with [Protovibe Studio](https://protovibe-studio.github.io) — an open-source visual builder that reads and writes React code directly.
 
-## Run Locally
+## Run project locally in Protovibe Studio desktop app
+
+The best way to run the project is to do it via Protovibe Studio app, as it allows you to easily update Protovibe to the newest version
+
+1. Install [Protovibe Studio](https://protovibe-studio.github.io)
+2. Clone this repo into ~/Protovibe/projects/ folder
+3. Run project via Protovibe interface
+
+## Run locally without Protovibe app
 
 **Prerequisites:** Node.js, pnpm
 
