@@ -764,3 +764,19 @@ When adding static images (PNG, JPG, SVG) as visual elements in application page
   ```tsx
   <div className="bg-[url('/src/images/from-protovibe/hero-bg.svg')] bg-contain bg-center bg-no-repeat aspect-[4/3]" />
   ```
+
+### Rule: Match Specificity When Overriding Component Styles
+
+When overriding a component's styles from the consumer file, match the specificity of the original class by including the same `data-[...]:` prefix. 
+
+* **❌ BAD: Override loses to component's data-attribute class**
+
+  ```tsx
+  <Button variant="ghost" className="bg-background-primary" />
+  ```
+
+* **✅ GOOD: Override matches the data-attribute specificity**
+
+  ```tsx
+  <Button variant="ghost" className="data-[variant=ghost]:bg-background-primary" />
+  ```
