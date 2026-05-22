@@ -2,7 +2,16 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { theme } from '../theme';
-import { cssColorToHex } from '../utils/colorConversion';
+import { ColorPicker } from './ColorPicker';
+
+const BARE_HEX_RE = /^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{4}$|^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$/;
+
+function normalizeBareHex(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.startsWith('#')) return raw;
+  if (/[(,\s]/.test(trimmed)) return raw;
+  return BARE_HEX_RE.test(trimmed) ? '#' + trimmed : raw;
+}
 
 // ─── Easing ───────────────────────────────────────────────────────────────────
 
@@ -301,9 +310,10 @@ export interface GradientPickerProps {
   anchorRect: DOMRect;
   onSave: (cssValue: string) => void;
   onCancel: () => void;
+  onLivePreview?: (cssValue: string) => void;
 }
 
-export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect, onSave, onCancel }: GradientPickerProps) {
+export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect, onSave, onCancel, onLivePreview }: GradientPickerProps) {
   const parsed = useMemo(() => parseGradient(initialValue), [initialValue]);
   const [type, setType] = useState<GradientType>(parsed?.type ?? 'linear');
   const [angle, setAngle] = useState<number>(parsed?.angle ?? 180);
@@ -314,6 +324,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
   ]);
   const [smoothing, setSmoothing] = useState<Smoothing>('linear');
   const [customCSS, setCustomCSS] = useState<string | null>(null);
+  const [editingStopIdx, setEditingStopIdx] = useState<number | null>(null);
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -322,6 +333,10 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
     [type, angle, radialPos, stops, smoothing],
   );
   const finalCSS = customCSS !== null ? customCSS : generatedCSS;
+
+  useEffect(() => {
+    onLivePreview?.(finalCSS);
+  }, [finalCSS]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function updateStop(i: number, patch: Partial<Stop>) {
     setStops(prev => prev.map((s, idx) => idx === i ? { ...s, ...patch } : s));
@@ -349,17 +364,22 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
   // ── Outside click / Escape ──
   useEffect(() => {
     const handler = (e: MouseEvent) => {
+      if (editingStopIdx !== null) return;
       if (editorRef.current && !editorRef.current.contains(e.target as Node)) onCancel();
     };
     document.addEventListener('mousedown', handler, true);
     return () => document.removeEventListener('mousedown', handler, true);
-  }, [onCancel]);
+  }, [onCancel, editingStopIdx]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (editingStopIdx !== null) return;
+      onCancel();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onCancel]);
+  }, [onCancel, editingStopIdx]);
 
   const modeLabel = themeMode === 'light' ? '☀ Light' : '🌙 Dark';
 
@@ -463,6 +483,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
               canRemove={stops.length > 2}
               onChange={patch => updateStop(i, patch)}
               onRemove={() => removeStop(i)}
+              onOpenColorPicker={() => setEditingStopIdx(i)}
             />
           ))}
         </div>
@@ -537,6 +558,34 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
           Save
         </button>
       </div>
+
+      {editingStopIdx !== null && (() => {
+        const stopAnchorRect = {
+          left: left - 310 - 8,
+          top: top,
+          bottom: top,
+          right: left - 8,
+          width: 0,
+          height: 0,
+          x: left - 310 - 8,
+          y: top,
+          toJSON: () => ({}),
+        } as DOMRect;
+        return (
+          <ColorPicker
+            tokenName={`${tokenName} · stop ${editingStopIdx + 1}`}
+            themeMode={themeMode}
+            initialValue={stops[editingStopIdx].color}
+            anchorRect={stopAnchorRect}
+            onSave={oklchValue => {
+              updateStop(editingStopIdx, { color: oklchValue });
+              setEditingStopIdx(null);
+            }}
+            onCancel={() => setEditingStopIdx(null)}
+            onLivePreview={oklchValue => updateStop(editingStopIdx, { color: oklchValue })}
+          />
+        );
+      })()}
     </div>,
     document.body,
   );
@@ -550,12 +599,10 @@ interface StopRowProps {
   canRemove: boolean;
   onChange: (patch: Partial<Stop>) => void;
   onRemove: () => void;
+  onOpenColorPicker: () => void;
 }
 
-function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
-  const swatchHex = useMemo(() => cssColorToHex(stop.color) || '#000000', [stop.color]);
-  const isHexInput = /^#[0-9a-fA-F]{6,8}$/.test(stop.color.trim());
-
+function StopRow({ index, stop, canRemove, onChange, onRemove, onOpenColorPicker }: StopRowProps) {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 8,
@@ -566,27 +613,33 @@ function StopRow({ index, stop, canRemove, onChange, onRemove }: StopRowProps) {
         <span style={{ fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary, minWidth: 36 }}>
           Stop {index + 1}
         </span>
-        <div style={{
-          width: 22, height: 22, borderRadius: 4,
-          background: stop.color,
-          border: `1px solid ${theme.border_default}`,
-          flexShrink: 0, overflow: 'hidden', position: 'relative',
-        }}>
-          <input
-            type="color"
-            value={isHexInput ? swatchHex : swatchHex}
-            onChange={e => onChange({ color: e.target.value })}
-            style={{
-              position: 'absolute', top: -4, left: -4, width: 30, height: 30,
-              cursor: 'pointer', border: 'none', padding: 0, opacity: 0,
-            }}
-            data-tooltip="Pick color"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={onOpenColorPicker}
+          data-tooltip="Pick color"
+          style={{
+            width: 22, height: 22, borderRadius: 4,
+            background: stop.color,
+            border: `1px solid ${theme.border_default}`,
+            flexShrink: 0, padding: 0, cursor: 'pointer',
+          }}
+        />
         <input
           type="text"
           value={stop.color}
           onChange={e => onChange({ color: e.target.value })}
+          onBlur={e => {
+            const normalized = normalizeBareHex(e.target.value);
+            if (normalized !== e.target.value) onChange({ color: normalized });
+          }}
+          onPaste={e => {
+            const pasted = e.clipboardData.getData('text');
+            const normalized = normalizeBareHex(pasted);
+            if (normalized !== pasted) {
+              e.preventDefault();
+              onChange({ color: normalized });
+            }
+          }}
           spellCheck={false}
           style={{
             flex: 1, minWidth: 0,

@@ -680,8 +680,14 @@ export const TokensTab: React.FC = () => {
             themeMode={editing.themeMode}
             initialValue={initialValue}
             anchorRect={editing.anchorRect}
+            onLivePreview={(cssValue) =>
+              livePreviewRef.current.apply(editing.token.val, editing.themeMode, cssValue)
+            }
             onSave={saving ? () => {} : handleSave}
-            onCancel={() => setEditing(null)}
+            onCancel={() => {
+              livePreviewRef.current.clear();
+              setEditing(null);
+            }}
           />
         ) : (
           <ColorPicker
