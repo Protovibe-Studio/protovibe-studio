@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { VisualSection } from './VisualSection';
 import { VisualControl } from './VisualControl';
-import { SCALES } from '../../constants/tailwind';
 import { cleanVal, buildContextPrefix } from '../../utils/tailwind';
 import { useProtovibe } from '../../context/ProtovibeContext';
+import { useScales } from '../../hooks/useScales';
 import { takeSnapshot, updateSource } from '../../api/client';
 import { theme } from '../../theme';
 
 export const Effects: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
   const { activeData, activeSourceId, activeModifiers, runLockedMutation } = useProtovibe();
+  const scales = useScales();
   const [localOpacity, setLocalOpacity] = useState<number | null>(null);
 
   const opacityRaw = cleanVal(v.opacity);
@@ -77,7 +78,7 @@ export const Effects: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
           </div>
         </div>
 
-        <VisualControl label="Box shadow" prefix="shadow-" cssProperty="boxShadow" value={cleanVal(v.shadow)} options={SCALES.shadow.filter(o => o.val !== 'inner')} originalClass={v.shadow_original} type="input" inheritedValue={cleanVal(domV?.shadow)} />
+        <VisualControl label="Box shadow" prefix="shadow-" cssProperty="boxShadow" value={cleanVal(v.shadow)} options={scales.shadow.filter(o => o.val !== 'inner')} originalClass={v.shadow_original} type="input" inheritedValue={cleanVal(domV?.shadow)} />
         <VisualControl label="Inset shadow" prefix="shadow-" cssProperty="boxShadow" value={cleanVal(v.insetShadow)} options={[{ val: 'inner', desc: 'Inner' }, { val: 'none', desc: 'None' }]} originalClass={v.insetShadow_original} type="input" inheritedValue={cleanVal(domV?.insetShadow)} />
       </div>
     </VisualSection>
