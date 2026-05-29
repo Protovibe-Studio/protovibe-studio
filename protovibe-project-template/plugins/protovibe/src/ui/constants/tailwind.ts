@@ -179,11 +179,14 @@ export function buildScalesFromTokens(tokens: ThemeToken[], htmlFontSize = 16): 
     '2xs': '2X Small', 'xs': 'Extra Small', 'sm': 'Small', 'DEFAULT': 'Normal',
     'md': 'Medium', 'lg': 'Large', 'xl': 'Extra Large', '2xl': '2XL', '3xl': '3XL',
   };
+  const knownShadowVals = shadowOrder.filter(val => shadowMap[val]);
+  const customShadowVals = Object.keys(shadowMap)
+    .filter(val => !shadowOrder.includes(val))
+    .sort();
   const shadow = shadowTokens.length > 0
     ? [
-        ...shadowOrder
-          .filter(val => shadowMap[val])
-          .map(val => ({ val, desc: shadowLabels[val] ?? val })),
+        ...knownShadowVals.map(val => ({ val, desc: shadowLabels[val] ?? val })),
+        ...customShadowVals.map(val => ({ val, desc: val })),
         { val: 'none', desc: 'None' },
       ]
     : SCALES.shadow;
