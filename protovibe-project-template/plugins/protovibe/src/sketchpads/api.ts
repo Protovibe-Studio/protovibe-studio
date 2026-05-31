@@ -13,8 +13,14 @@ export async function fetchRegistry(): Promise<Registry> {
   return post('/__sketchpad-list');
 }
 
-export async function createSketchpad(name: string): Promise<Sketchpad> {
-  return post('/__sketchpad-create', { name });
+export async function createSketchpad(
+  name: string,
+  opts: {
+    withFrame?: { name?: string; width?: number; height?: number; canvasX?: number; canvasY?: number };
+    skipSnapshot?: boolean;
+  } = {},
+): Promise<Sketchpad> {
+  return post('/__sketchpad-create', { name, ...opts });
 }
 
 export async function deleteSketchpad(id: string): Promise<void> {

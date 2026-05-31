@@ -116,7 +116,7 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
-            emitToast({ message: formatUndoRedoMessage(isRedo ? 'Redo' : 'Undo', res), variant: 'info', durationMs: 800 });
+            emitToast({ message: formatUndoRedoMessage(isRedo ? 'Redo' : 'Undo', res), variant: 'info', durationMs: 1600 });
           } else {
             emitToast({ message: isRedo ? 'Nothing to redo' : 'Nothing to undo', variant: 'error', durationMs: 800 });
           }
@@ -137,7 +137,7 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
-            emitToast({ message: formatUndoRedoMessage('Redo', res), variant: 'info', durationMs: 800 });
+            emitToast({ message: formatUndoRedoMessage('Redo', res), variant: 'info', durationMs: 1600 });
           } else {
             emitToast({ message: 'Nothing to redo', variant: 'error', durationMs: 800 });
           }

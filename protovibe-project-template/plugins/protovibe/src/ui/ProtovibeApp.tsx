@@ -234,7 +234,7 @@ export const ProtovibeApp: React.FC = () => {
         Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
           iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
         });
-        emitToast({ message: formatUndoRedoMessage('Undo', res), variant: 'info', durationMs: 800 });
+        emitToast({ message: formatUndoRedoMessage('Undo', res), variant: 'info', durationMs: 1600 });
       } else {
         emitToast({ message: 'Nothing to undo', variant: 'error', durationMs: 800 });
       }

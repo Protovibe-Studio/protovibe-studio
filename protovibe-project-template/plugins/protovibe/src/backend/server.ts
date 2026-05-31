@@ -17,7 +17,7 @@ import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-the
 
 function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
-type SnapshotFiles = { file: string; content: string }[];
+export type SnapshotFiles = { file: string; content: string }[];
 
 // Returns true when the two file sets carry identical content for the same files.
 function filesIdentical(a: SnapshotFiles, b: SnapshotFiles): boolean {
@@ -32,7 +32,7 @@ function filesIdentical(a: SnapshotFiles, b: SnapshotFiles): boolean {
 // identical to the current top entry are NOT duplicated — they only annotate
 // the existing entry with the new note/activeId. This keeps pure selection
 // changes (which re-snapshot identical content) from polluting the stack.
-function pushUndoSnapshot(
+export function pushUndoSnapshot(
   files: SnapshotFiles,
   activeId: string,
   note: string | undefined,

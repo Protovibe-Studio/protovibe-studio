@@ -301,11 +301,14 @@ export function SketchpadApp() {
         }
         loadAllFrameModules(initial.id, initial.frames);
       } else {
-        const sp = await api.createSketchpad('Sketchpad 1');
-        const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
-        setSketchpads([{ ...sp, frames: [frame] }]);
+        // Initial bootstrap — not an undoable user action.
+        const sp = await api.createSketchpad('Sketchpad 1', {
+          withFrame: { name: 'Frame 1', width: 1440, height: 900, canvasX: 0, canvasY: 0 },
+          skipSnapshot: true,
+        });
+        setSketchpads([sp]);
         setActiveSketchpadId(sp.id);
-        loadAllFrameModules(sp.id, [frame]);
+        loadAllFrameModules(sp.id, sp.frames);
       }
     });
   }, [loadAllFrameModules]);
@@ -460,15 +463,19 @@ export function SketchpadApp() {
   // Sketchpad CRUD
   const handleCreateSketchpad = useCallback(async (name: string) => {
     await runLockedMutation(async () => {
-      const sp = await api.createSketchpad(name);
-      const frame = await api.createFrame(sp.id, 'Frame 1', 1440, 900, 0, 0);
-      const spWithFrame = { ...sp, frames: [frame] };
-      setSketchpads((prev) => [...prev, spWithFrame]);
+      // Single call creates the sketchpad + its first frame as one undoable step.
+      const sp = await api.createSketchpad(name, {
+        withFrame: { name: 'Frame 1', width: 1440, height: 900, canvasX: 0, canvasY: 0 },
+      });
+      const frame = sp.frames[0];
+      setSketchpads((prev) => [...prev, sp]);
       setActiveSketchpadId(sp.id);
-      await loadFrameModule(sp.id, frame.id);
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setTransform(centeredTransformForFrames([frame], rect.width, rect.height));
+      if (frame) {
+        await loadFrameModule(sp.id, frame.id);
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setTransform(centeredTransformForFrames([frame], rect.width, rect.height));
+        }
       }
     });
   }, [runLockedMutation, loadFrameModule]);
@@ -479,8 +486,9 @@ export function SketchpadApp() {
         await api.deleteSketchpad(id);
         const remaining = sketchpads.filter((s) => s.id !== id);
         if (remaining.length === 0) {
-          // Auto-create a default sketchpad so the canvas is never empty
-          const sp = await api.createSketchpad('Sketchpad 1');
+          // Auto-create a default sketchpad so the canvas is never empty.
+          // Part of the delete recovery — not a separate undoable step.
+          const sp = await api.createSketchpad('Sketchpad 1', { skipSnapshot: true });
           setSketchpads([sp]);
           setActiveSketchpadId(sp.id);
         } else {
@@ -1011,7 +1019,7 @@ export function SketchpadApp() {
   // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
   const reloadRegistry = useCallback(async () => {
     const reg = await api.fetchRegistry();
-    
+
     if (activeSketchpadId && activeSketchpad) {
       const nextSp = reg.sketchpads.find(s => s.id === activeSketchpadId);
       if (nextSp) {
@@ -1024,9 +1032,31 @@ export function SketchpadApp() {
         }
       }
     }
-    
+
     setSketchpads(reg.sketchpads);
-  }, [activeSketchpadId, activeSketchpad, loadFrameModule]);
+
+    // If undo/redo removed the active sketchpad, re-point to a valid one AND move
+    // the viewport to it — otherwise the canvas stays panned to where the deleted
+    // sketchpad was and shows an empty page.
+    if (activeSketchpadId && !reg.sketchpads.some((s) => s.id === activeSketchpadId)) {
+      const next =
+        reg.sketchpads.find((s) => s.id === reg.lastActiveSketchpadId) ?? reg.sketchpads[0];
+      setActiveSketchpadId(next?.id ?? '');
+      setSelectedFrameIds([]);
+      if (next) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        const baseTransform = next.viewState ?? INITIAL_TRANSFORM;
+        const safeTransform =
+          rect && rect.width > 0 && rect.height > 0
+            ? ensureFramesVisible(next.frames, baseTransform, rect.width, rect.height)
+            : baseTransform;
+        setTransform(safeTransform);
+        initialTransformAppliedRef.current = true;
+        hasInitiallyCentered.current = true;
+        loadAllFrameModules(next.id, next.frames);
+      }
+    }
+  }, [activeSketchpadId, activeSketchpad, loadFrameModule, loadAllFrameModules]);
 
   // One-shot flag: set when the user clicks a frame's title bar so we both keep the
   // frame selected AND focus the frame root in the inspector. The bridge → parent
