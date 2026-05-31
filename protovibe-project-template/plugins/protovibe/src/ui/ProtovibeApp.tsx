@@ -15,7 +15,7 @@ import { useProtovibe } from './context/ProtovibeContext';
 import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
-import { emitToast } from './events/toast';
+import { emitToast, formatUndoRedoMessage } from './events/toast';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -234,7 +234,7 @@ export const ProtovibeApp: React.FC = () => {
         Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
           iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
         });
-        emitToast({ message: 'Undone', variant: 'info', durationMs: 800 });
+        emitToast({ message: formatUndoRedoMessage('Undo', res), variant: 'info', durationMs: 800 });
       } else {
         emitToast({ message: 'Nothing to undo', variant: 'error', durationMs: 800 });
       }

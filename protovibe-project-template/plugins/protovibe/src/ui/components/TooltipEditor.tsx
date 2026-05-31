@@ -28,7 +28,7 @@ export const TooltipEditor: React.FC = () => {
     if (!activeData.file) return;
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newValue === '' ? `remove ${propName}` : `${propName}=${newValue}`);
       await updateProp({
         file: activeData.file,
         action: newValue === '' ? 'remove' : isMissing ? 'add' : 'edit',

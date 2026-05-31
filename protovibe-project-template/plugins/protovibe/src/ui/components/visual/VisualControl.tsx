@@ -107,7 +107,7 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
     };
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || (Array.isArray(originalClass) ? originalClass.join(' ') : originalClass) || 'style');
 
       // For simplicity, we'll handle single class update.
       if (Array.isArray(originalClass)) {

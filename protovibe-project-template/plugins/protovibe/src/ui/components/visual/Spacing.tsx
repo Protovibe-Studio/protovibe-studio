@@ -432,7 +432,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const currentContextPrefix = buildContextPrefix(activeModifiers);
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClasses.join(' ') || `clear ${type === 'm' ? 'margin' : 'padding'}`);
       const prefixedNewClasses = newClasses
         .map((c: string) => `${currentContextPrefix}${c}`)
         .join(' ');
@@ -473,7 +473,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     }
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove border');
       // Fall back to reconstructing original from current value if _original is missing
       let origClass = v.borderWidth_original || '';
       if (!origClass) {
@@ -564,7 +564,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     ]);
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, prefixedNewClasses || 'clear border');
       await updateSource({
         ...activeData,
         id: activeSourceId!,
@@ -608,7 +608,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     }
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove radius');
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({
@@ -650,7 +650,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     }
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove border color');
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass: origClass, newClass, action });
@@ -667,7 +667,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClass = safeVal && safeVal !== '-' ? `${currentContextPrefix}gap-${safeVal}` : '';
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove gap');
       let origClass = v.gap_original || '';
       if (!origClass) origClass = cleanVal(prevVal ?? v.gap) ? `gap-${cleanVal(prevVal ?? v.gap)}` : '';
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
@@ -709,7 +709,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
       newClass = `${currentContextPrefix}bg-${safeVal}${opacitySuffix}`;
     }
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove bg');
       const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
       if (oldClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });
@@ -727,7 +727,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClass = `${currentContextPrefix}bg-${bgColor}${opacitySuffix}`;
     setLocalBgOpacity(null);
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass);
       const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
       if (oldClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });
@@ -745,7 +745,7 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClass = `${currentContextPrefix}border-${borderColor}${opacitySuffix}`;
     setLocalBorderOpacity(null);
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass);
       const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
       if (oldClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });

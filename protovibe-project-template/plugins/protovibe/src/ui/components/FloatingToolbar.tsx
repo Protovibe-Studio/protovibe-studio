@@ -130,7 +130,7 @@ export const FloatingToolbar: React.FC = () => {
     const targetLayoutMode = currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
 
     const res = await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'wrap blocks');
       const response = await fetch('/__wrap-blocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +155,7 @@ export const FloatingToolbar: React.FC = () => {
     }
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, uniqueSelectedBlockIds.length > 1 ? `delete ${uniqueSelectedBlockIds.length} blocks` : 'delete block');
       await deleteBlocks(activeData.file, uniqueSelectedBlockIds);
     });
 
@@ -173,7 +173,7 @@ export const FloatingToolbar: React.FC = () => {
       : (currentBaseTarget?.getAttribute('data-layout-mode') || 'flow');
 
     const res = await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, comp?.name ? `add ${comp.name}` : `add ${type}`);
       return addBlock({
         file: activeData.file,
         zoneId: addMode === 'child' ? selectedZone : undefined,

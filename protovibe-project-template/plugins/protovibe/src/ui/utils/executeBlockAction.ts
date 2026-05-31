@@ -73,7 +73,7 @@ export async function executeBlockAction({
 
   const oldLoc = getPvLocAttr(oldTarget);
 
-  await takeSnapshot(file, activeSourceId);
+  await takeSnapshot(file, activeSourceId, undefined, action);
   await blockAction(action, blockId, file);
 
   const maxAttempts = 15;
@@ -138,7 +138,7 @@ export async function executeClipboardBlockAction({
 
   const oldTarget = Array.isArray(blockId) ? findBlockElement(blockId[0]) : findBlockElement(blockId);
 
-  await takeSnapshot(file, activeSourceId);
+  await takeSnapshot(file, activeSourceId, undefined, action);
   await blockAction(action, blockId, file);
   if (action === 'cut') clearOsClipboard();
 

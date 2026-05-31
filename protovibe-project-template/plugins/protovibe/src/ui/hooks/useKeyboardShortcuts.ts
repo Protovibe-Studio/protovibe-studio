@@ -7,7 +7,7 @@ import {
   type BlockMutationAction,
   type ClipboardBlockAction
 } from '../utils/executeBlockAction';
-import { emitToast } from '../events/toast';
+import { emitToast, formatUndoRedoMessage } from '../events/toast';
 import {
   getAllowedParent,
   getAllowedChild,
@@ -116,7 +116,7 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
-            emitToast({ message: isRedo ? 'Redone' : 'Undone', variant: 'info', durationMs: 800 });
+            emitToast({ message: formatUndoRedoMessage(isRedo ? 'Redo' : 'Undo', res), variant: 'info', durationMs: 800 });
           } else {
             emitToast({ message: isRedo ? 'Nothing to redo' : 'Nothing to undo', variant: 'error', durationMs: 800 });
           }
@@ -137,7 +137,7 @@ export function useKeyboardShortcuts() {
             Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
-            emitToast({ message: 'Redone', variant: 'info', durationMs: 800 });
+            emitToast({ message: formatUndoRedoMessage('Redo', res), variant: 'info', durationMs: 800 });
           } else {
             emitToast({ message: 'Nothing to redo', variant: 'error', durationMs: 800 });
           }
@@ -251,7 +251,7 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         const targetLayoutMode = currentBaseTarget?.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || currentBaseTarget?.getAttribute('data-layout-mode') || 'flow';
         const res = await runLockedMutation(async () => {
-          await takeSnapshot(activeData.file, activeSourceId!);
+          await takeSnapshot(activeData.file, activeSourceId!, undefined, 'wrap blocks');
           const response = await fetch('/__wrap-blocks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -286,7 +286,7 @@ export function useKeyboardShortcuts() {
           }
           e.preventDefault();
           await runLockedMutation(async () => {
-            await takeSnapshot(activeData.file, activeSourceId!);
+            await takeSnapshot(activeData.file, activeSourceId!, undefined, `delete ${multiBlockIds.length} blocks`);
             await deleteBlocks(activeData.file, multiBlockIds);
           });
           clearFocus();
@@ -423,7 +423,7 @@ export function useKeyboardShortcuts() {
 
       await runLockedMutation(async () => {
         const [url, dims] = await Promise.all([uploadImage(imageFile), getImageDimensions(imageFile)]);
-        await takeSnapshot(activeData.file, activeSourceId!);
+        await takeSnapshot(activeData.file, activeSourceId!, undefined, 'insert image');
         const res = await addBlock({
           file: activeData.file,
           zoneId: wantAfter ? undefined : targetZone.id,
@@ -496,7 +496,7 @@ export function useKeyboardShortcuts() {
       const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
 
       await runLockedMutation(async () => {
-        await takeSnapshot(activeData.file, activeSourceId!);
+        await takeSnapshot(activeData.file, activeSourceId!, undefined, 'paste');
         const res = await addBlock({
           file: activeData.file,
           zoneId: wantAfter ? undefined : targetZone.id,

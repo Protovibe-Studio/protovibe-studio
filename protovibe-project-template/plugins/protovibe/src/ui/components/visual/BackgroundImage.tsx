@@ -113,7 +113,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
     if (oldClass === newClass) return;
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || `remove ${property}`);
       let action = 'edit';
       if (!oldClass && newClass) action = 'add';
       if (oldClass && !newClass) action = 'remove';
@@ -169,7 +169,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
       ].filter(Boolean).join(' ');
 
       await runLockedMutation(async () => {
-        await takeSnapshot(activeData.file, activeSourceId!);
+        await takeSnapshot(activeData.file, activeSourceId!, undefined, 'background image');
         await updateSource({
           ...activeData,
           id: activeSourceId!,
@@ -195,7 +195,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
     if (oldClasses.length === 0) return;
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'remove background image');
       await updateSource({
         ...activeData,
         id: activeSourceId!,
@@ -230,7 +230,7 @@ export const BackgroundImage: React.FC<{ v: any; domV?: any }> = ({ v }) => {
       }
 
       await runLockedMutation(async () => {
-        await takeSnapshot(activeData.file, activeSourceId!);
+        await takeSnapshot(activeData.file, activeSourceId!, undefined, 'replace background image');
 
         if (oldAspectClass) {
           await updateSource({

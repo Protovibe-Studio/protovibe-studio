@@ -29,7 +29,7 @@ export const Effects: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClass = opacity === 100 ? '' : `${currentContextPrefix}opacity-${opacity}`;
     setLocalOpacity(null);
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'opacity 100');
       const action = !oldClass && newClass ? 'add' : oldClass && !newClass ? 'remove' : 'edit';
       if (oldClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass, newClass, action });

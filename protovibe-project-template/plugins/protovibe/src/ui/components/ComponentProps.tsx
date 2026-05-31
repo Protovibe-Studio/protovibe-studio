@@ -61,7 +61,7 @@ export const ComponentProps: React.FC = () => {
     if (removeWhenEmpty && String(propValue) === '') {
       if (isMissing) return;
       await runLockedMutation(async () => {
-        await takeSnapshot(activeData.file, activeSourceId!);
+        await takeSnapshot(activeData.file, activeSourceId!, undefined, `remove ${propName}`);
         await updateProp({
           file: activeData.file,
           action: 'remove',
@@ -73,7 +73,7 @@ export const ComponentProps: React.FC = () => {
     }
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, `${propName}=${String(propValue)}`);
 
       await updateProp({
         file: activeData.file,
@@ -89,7 +89,7 @@ export const ComponentProps: React.FC = () => {
   const handleRemoveProp = async (propName: string, loc: any) => {
     if (!activeData.file) return;
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, `remove ${propName}`);
       await updateProp({
         file: activeData.file,
         action: 'remove',
@@ -102,7 +102,7 @@ export const ComponentProps: React.FC = () => {
   const handleAddProp = async () => {
     if (!newPropKey.trim() || !activeData.file) return;
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, `${newPropKey.trim()}=${newPropValue.trim()}`);
       await updateProp({
         file: activeData.file,
         action: 'add',

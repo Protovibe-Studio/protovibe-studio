@@ -413,7 +413,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     if (originalClass === newClass) return;
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || `remove ${originalClass}`);
       let action: 'add' | 'edit' | 'remove' = 'edit';
       if (!originalClass && newClass) action = 'add';
       if (originalClass && !newClass) action = 'remove';
@@ -430,7 +430,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     ].filter(Boolean) as string[];
     if (!originals.length) return;
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'clear layout');
       for (const cls of originals) {
         await updateSource({ ...activeData, id: activeSourceId!, oldClass: cls, newClass: '', action: 'remove' });
       }
@@ -445,7 +445,7 @@ export const Layout: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const newClass = safeVal && safeVal !== '-' ? `${currentContextPrefix}gap-${safeVal}` : '';
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove gap');
       let origClass = v.gap_original || '';
       if (!origClass) origClass = cleanVal(prevVal ?? v.gap) ? `gap-${cleanVal(prevVal ?? v.gap)}` : '';
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';

@@ -56,7 +56,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({ label, value
     if (originalClass === newClass) return;
 
     await runLockedMutation(async () => {
-      await takeSnapshot(activeData.file, activeSourceId!);
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || `remove ${originalClass}`);
 
       let action = 'edit';
       if (!originalClass && newClass) action = 'add';

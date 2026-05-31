@@ -17,6 +17,43 @@ import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-the
 
 function logUndoDebug(_event: string, _details: Record<string, unknown>): void {}
 
+type SnapshotFiles = { file: string; content: string }[];
+
+// Returns true when the two file sets carry identical content for the same files.
+function filesIdentical(a: SnapshotFiles, b: SnapshotFiles): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(f => {
+    const match = b.find(bf => bf.file === f.file);
+    return match && match.content === f.content;
+  });
+}
+
+// Push a pre-edit snapshot onto the undo stack. Snapshots whose content is
+// identical to the current top entry are NOT duplicated — they only annotate
+// the existing entry with the new note/activeId. This keeps pure selection
+// changes (which re-snapshot identical content) from polluting the stack.
+function pushUndoSnapshot(
+  files: SnapshotFiles,
+  activeId: string,
+  note: string | undefined,
+  currentURLQueryString: string | undefined,
+): void {
+  if (files.length === 0) return;
+
+  const top = undoStack[undoStack.length - 1];
+  if (top && filesIdentical(files, top.files)) {
+    // Same content already captured — annotate the existing checkpoint with the
+    // edit that is about to modify it instead of pushing a duplicate.
+    if (note) top.note = note;
+    top.activeId = activeId;
+    if (currentURLQueryString !== undefined) top.currentURLQueryString = currentURLQueryString;
+    return;
+  }
+
+  undoStack.push({ files, activeId, note, currentURLQueryString });
+  redoStack.length = 0;
+}
+
 const RICH_TEXT_TAG_WHITELIST = new Set(['b', 'strong', 'i', 'em', 'u', 'a', 'span', 'br']);
 const VOID_RICH_TEXT_TAGS = new Set(['br']);
 const LINK_DEFAULT_CLASSNAME = 'text-foreground-primary-link hover:opacity-80 transition-opacity';
@@ -122,7 +159,7 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, files: filesArr, activeId, currentURLQueryString } = JSON.parse(body || '{}');
+      const { file, files: filesArr, activeId, currentURLQueryString, note } = JSON.parse(body || '{}');
       // Deduplicate to prevent double-restores corrupting the redo stack
       const toSnapshot: string[] = Array.from(new Set(filesArr ?? (file ? [file] : [])));
       const files = toSnapshot.map((f: string) => {
@@ -130,36 +167,7 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
         return { file: f, content: fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '' };
       });
 
-      if (files.length > 0) {
-        const lastState = undoStack[undoStack.length - 1];
-        let isIdentical = false;
-
-        if (lastState && lastState.files.length === files.length) {
-          isIdentical = files.every(f => {
-            const match = lastState.files.find(lf => lf.file === f.file);
-            return match && match.content === f.content;
-          });
-        }
-
-        if (!isIdentical || (lastState && lastState.activeId !== (activeId || ''))) {
-          undoStack.push({ files, activeId: activeId || '', currentURLQueryString });
-          redoStack.length = 0;
-          logUndoDebug('snapshot-created', {
-            source: 'server',
-            activeId: activeId || '',
-            files: files.map((file) => ({ file: file.file, existed: file.content !== '', size: file.content.length })),
-            undoDepth: undoStack.length,
-            redoDepth: redoStack.length,
-          });
-        } else {
-          logUndoDebug('snapshot-skipped-identical', {
-            source: 'server',
-            activeId: activeId || '',
-            files: files.map((file) => file.file),
-            undoDepth: undoStack.length,
-          });
-        }
-      }
+      pushUndoSnapshot(files, activeId || '', note, currentURLQueryString);
 
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true }));
@@ -170,9 +178,23 @@ export const handleTakeSnapshot: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+// True when restoring this snapshot would actually change a file on disk.
+function snapshotChangesDisk(files: SnapshotFiles): boolean {
+  return files.some(({ file, content: savedContent }) => {
+    const absolutePath = path.resolve(process.cwd(), file);
+    const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
+    return savedContent !== currentContent;
+  });
+}
+
 export const handleUndo: Connect.NextHandleFunction = (req, res) => {
   try {
-    const lastState = undoStack.pop();
+    // Skip checkpoints that don't actually change any file (e.g. snapshots
+    // captured on pure selection changes) and undo to the last real edit.
+    let lastState = undoStack.pop();
+    while (lastState && !snapshotChangesDisk(lastState.files)) {
+      lastState = undoStack.pop();
+    }
     if (!lastState) {
       logUndoDebug('undo-empty', {
         undoDepth: undoStack.length,
@@ -181,7 +203,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to undo.' }));
     }
 
-    const { files, activeId, currentURLQueryString } = lastState;
+    const { files, activeId, currentURLQueryString, note } = lastState;
     logUndoDebug('undo-start', {
       activeId,
       files: files.map((file) => file.file),
@@ -207,7 +229,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
       });
       return { file, content: currentContent };
     });
-    redoStack.push({ files: currentFiles, activeId, currentURLQueryString });
+    redoStack.push({ files: currentFiles, activeId, currentURLQueryString, note });
     logUndoDebug('undo-complete', {
       activeId,
       files: currentFiles.map((file) => file.file),
@@ -216,7 +238,7 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
     });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString, note }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));
@@ -225,12 +247,16 @@ export const handleUndo: Connect.NextHandleFunction = (req, res) => {
 
 export const handleRedo: Connect.NextHandleFunction = (req, res) => {
   try {
-    const nextState = redoStack.pop();
+    // Mirror undo: skip no-op states and redo to the next real edit.
+    let nextState = redoStack.pop();
+    while (nextState && !snapshotChangesDisk(nextState.files)) {
+      nextState = redoStack.pop();
+    }
     if (!nextState) {
       return res.end(JSON.stringify({ success: false, message: 'No more actions to redo.' }));
     }
 
-    const { files, activeId, currentURLQueryString } = nextState;
+    const { files, activeId, currentURLQueryString, note } = nextState;
     const currentFiles = files.map(({ file, content: savedContent }) => {
       const absolutePath = path.resolve(process.cwd(), file);
       const currentContent = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf-8') : '';
@@ -242,10 +268,10 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
       }
       return { file, content: currentContent };
     });
-    undoStack.push({ files: currentFiles, activeId, currentURLQueryString });
+    undoStack.push({ files: currentFiles, activeId, currentURLQueryString, note });
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString }));
+    res.end(JSON.stringify({ success: true, file: files[0]?.file, activeId, currentURLQueryString, note }));
   } catch (err) {
     res.statusCode = 500;
     res.end(JSON.stringify({ error: String(err) }));
@@ -2126,8 +2152,7 @@ export const handleUpdateThemeColor: Connect.NextHandleFunction = (req, res) => 
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       const selector = themeMode === 'light' ? '[data-theme="light"]' : '[data-theme="dark"]';
       const css = fs.readFileSync(cssFilePath, 'utf-8');
-      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
-      redoStack.length = 0;
+      pushUndoSnapshot([{ file: 'src/index.css', content: css }], '', value, undefined);
       const updated = updateCssVariable(css, selector, tokenName, value);
       fs.writeFileSync(cssFilePath, updated, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
@@ -2252,8 +2277,7 @@ export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => 
       const { tokenName, value } = JSON.parse(body);
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       const css = fs.readFileSync(cssFilePath, 'utf-8');
-      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
-      redoStack.length = 0;
+      pushUndoSnapshot([{ file: 'src/index.css', content: css }], '', `${tokenName} ${value}`, undefined);
       const updated = updateCssVariable(css, '@theme', tokenName, value);
       fs.writeFileSync(cssFilePath, updated, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
@@ -2294,8 +2318,7 @@ export const handleUpdateFontFamily: Connect.NextHandleFunction = (req, res) => 
       const { tokenName, value, googleFontName } = JSON.parse(body);
       const cssFilePath = path.resolve(process.cwd(), 'src/index.css');
       let css = fs.readFileSync(cssFilePath, 'utf-8');
-      undoStack.push({ files: [{ file: 'src/index.css', content: css }], activeId: '' });
-      redoStack.length = 0;
+      pushUndoSnapshot([{ file: 'src/index.css', content: css }], '', googleFontName || value, undefined);
       // Remove existing managed import for this slot
       css = removeGoogleFontImport(css, tokenName);
       // Add new import if a Google Font was selected
