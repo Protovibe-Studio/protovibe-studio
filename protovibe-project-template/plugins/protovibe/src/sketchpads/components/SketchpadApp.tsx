@@ -948,7 +948,7 @@ export function SketchpadApp() {
       const targetFile = `src/sketchpads/${activeSketchpadId}/${targetFrame}.tsx`;
 
       await runLockedMutation(async () => {
-        await takeSnapshot(targetFile, '');
+        await takeSnapshot(targetFile, '', undefined, `add ${comp.name}`);
         const result = await addBlock({
           file: targetFile,
           zoneId: 'target-zone-placeholder',
@@ -996,7 +996,7 @@ export function SketchpadApp() {
       const targetFile = `src/sketchpads/${activeSketchpadId}/${frameId}.tsx`;
 
       await runLockedMutation(async () => {
-        await takeSnapshot(targetFile, '');
+        await takeSnapshot(targetFile, '', undefined, 'add text');
         const result = await addBlock({
           file: targetFile,
           zoneId: 'target-zone-placeholder',
@@ -1368,7 +1368,7 @@ export function SketchpadApp() {
             }
 
             const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
-            await takeSnapshot(sourceFile, activeSourceId || '', extraFiles);
+            await takeSnapshot(sourceFile, activeSourceId || '', extraFiles, isDuplicate ? 'duplicate element' : 'move element');
 
             // 3. Paste
             const res = await addBlock({

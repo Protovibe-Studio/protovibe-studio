@@ -21,20 +21,32 @@ function nudgeTailwindRescan(): void {
   } catch {}
 }
 
-// Debounce snapshots for high-frequency drag/resize endpoints. A multi-element drag
-// fires N position-update calls in rapid succession; we want one undo step covering the
-// whole gesture. Snapshot only the first call within the window — its content is the
-// pre-gesture state; subsequent skipped snapshots would just capture intermediate states.
+// Debounce snapshots for high-frequency drag/resize endpoints. A single drag/resize
+// gesture fires N position-update calls in rapid succession; we want one undo step
+// covering the whole gesture. Snapshot only the first call within the window — its
+// content is the pre-gesture state; subsequent skipped snapshots would just capture
+// intermediate states.
+//
+// The window is keyed per element + operation (not per file): moving element A and then
+// element B in the same frame are distinct gestures, so B must still take (and thereby
+// annotate) its own snapshot. Keying by file alone would treat B as a continuation of
+// A's burst and skip it, leaving an un-annotated checkpoint at the top of the stack.
 const recentBurstSnapshots = new Map<string, number>();
 const BURST_SNAPSHOT_WINDOW_MS = 1000;
 
-function maybeSnapshotForBurst(activeId: string | null, relPath: string, note: string): void {
+function maybeSnapshotForBurst(
+  activeId: string | null,
+  relPath: string,
+  blockId: string,
+  note: string,
+): void {
   const now = Date.now();
-  const last = recentBurstSnapshots.get(relPath) ?? 0;
+  const burstKey = `${relPath}::${blockId}::${note}`;
+  const last = recentBurstSnapshots.get(burstKey) ?? 0;
   if (now - last > BURST_SNAPSHOT_WINDOW_MS) {
     snapshotFiles(activeId, '?tab=sketchpad', note, relPath);
   }
-  recentBurstSnapshots.set(relPath, now);
+  recentBurstSnapshots.set(burstKey, now);
 }
 
 // Snapshot one or more files into the undo stack before mutating them.
@@ -727,7 +739,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), 'move element');
+    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'move element');
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Independently update left and top to avoid regex failures if code formatting changes
@@ -763,7 +775,7 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), 'resize element');
+    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'resize element');
     let content = fs.readFileSync(filePath, 'utf-8');
 
     // Helper to update or insert a dimension in the style object
