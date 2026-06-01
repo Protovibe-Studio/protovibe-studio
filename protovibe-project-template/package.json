@@ -17,7 +17,7 @@
   },
   "dependencies": {
 "@iconify/react": "^6.0.2",
-    "@tailwindcss/vite": "^4.1.14",
+    "@tailwindcss/vite": "4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
@@ -34,11 +34,17 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
-    "tailwindcss": "^4.1.14",
+    "tailwindcss": "4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-protovibe": "link:./plugins/protovibe",
     "wrangler": "latest"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": ["current"],
+      "cpu": ["current", "wasm32"]
+    }
   }
 }
