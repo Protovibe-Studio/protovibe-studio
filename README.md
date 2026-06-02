@@ -7,11 +7,15 @@ A visual editor web builder for React + Tailwind apps for rapidly creating and e
 ## Installation
 Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and click "Download", then follow the instructions.
 
-## Try it in your browser
+## Demo online
+
+Try it in your browser - instantly run Protovibe inside a web-based IDE, without local installation.
+
+[![Online Demo on Stackblitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/protovibe-studio-demo?file=README.md&initialpath=/protovibe.html&view=preview)
+
+Try it on GitHub Codespaces with the Protovibe template ready to run — no local install needed. Uses your personal free Codespaces quota (60 core-hours/month).
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Protovibe-Studio/protovibe-studio)
-
-Spins up a fresh GitHub Codespace with the Protovibe template ready to run — no local install needed. Uses your personal free Codespaces quota (60 core-hours/month).
 
 ## Docs
 Documentation and guide: **[protovibe-studio.github.io/docs](https://protovibe-studio.github.io/docs)** 
