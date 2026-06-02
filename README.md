@@ -11,7 +11,7 @@ Go to **[protovibe-studio.github.io](https://protovibe-studio.github.io)** and c
 
 Try it in your browser - instantly run Protovibe inside a web-based IDE, without local installation.
 
-[![Online Demo on Stackblitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/protovibe-studio-demo?file=README.md&initialpath=/protovibe.html&view=preview)
+[![Online Demo on Stackblitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/protovibe-studio-demo?file=AGENTS.md&initialpath=/protovibe.html&view=preview)
 
 Try it on GitHub Codespaces with the Protovibe template ready to run — no local install needed. Uses your personal free Codespaces quota (60 core-hours/month).
 
