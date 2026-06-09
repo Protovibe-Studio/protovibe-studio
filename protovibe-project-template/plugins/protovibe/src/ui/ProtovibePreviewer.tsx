@@ -191,18 +191,21 @@ function generateCombinations(
   for (const [key, schema] of Object.entries(propsSchema || {})) {
     if (schema.type === 'boolean') {
       varyEntries.push([key, [false, true]]);
-    } else if (schema.type === 'select' && schema.options && schema.options.length <= 12) {
-      varyEntries.push([key, schema.options]);
+    } else if (schema.type === 'select' && schema.options) {
+      // A large select MIGHT be an icon picker (hundreds of options) — in that
+      // case just show absent + one example so the matrix doesn't explode.
+      // Otherwise it's a genuine enum (e.g. a color list), so enumerate every
+      // option; the MAX_COMBOS budget below skips it only if it truly blows up.
+      const iconExample = schema.options.length > 12 ? iconExampleForKey(key) : null;
+      if (iconExample) {
+        varyEntries.push([key, [undefined, iconExample]]);
+      } else {
+        varyEntries.push([key, schema.options]);
+      }
     } else if (schema.type === 'iconSearch') {
       // Vary between absent and exampleValue; fall back to key-based heuristic
       const example = schema.exampleValue ?? iconExampleForKey(key);
       if (example) varyEntries.push([key, [undefined, example]]);
-    } else if (schema.type === 'select' && schema.options && schema.options.length > 12) {
-      // Large select — only vary if it looks like an icon picker
-      const example = iconExampleForKey(key);
-      if (example) {
-        varyEntries.push([key, [undefined, example]]);
-      }
     } else if (schema.type === 'string') {
       // Vary text props between absent and the exampleValue (or a Lorem ipsum fallback)
       const example = schema.exampleValue ?? 'Lorem ipsum';
@@ -299,8 +302,7 @@ function comboLabel(combo: Record<string, any>, propsSchema: Record<string, { ty
     const s = propsSchema[k];
     if (s.type === 'boolean') return true;
     if (s.type === 'string') return true;
-    if (s.type === 'select' && (s.options?.length ?? 0) <= 12) return true;
-    if (s.type === 'select' && (s.options?.length ?? 0) > 12 && iconExampleForKey(k)) return true;
+    if (s.type === 'select') return true;
     if (s.type === 'iconSearch') return !!(s.exampleValue ?? iconExampleForKey(k));
     return false;
   });
