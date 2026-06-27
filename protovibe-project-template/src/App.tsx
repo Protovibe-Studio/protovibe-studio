@@ -106,7 +106,7 @@ export default function App() {
                 <div data-pv-block="bw6006" className="relative">
                   {/* pv-editable-zone-start:bzn606 */}
                     {/* pv-block-start:bt7007 */}
-                    <Button data-pv-block="bt7007" iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
+                    <Button data-pv-comment-g59azrbpp4 data-pv-block="bt7007" iconOnly variant="ghost" color="neutral"><Icon className="text-foreground-default" iconSymbol="mdi:bell-outline" size="md" /></Button>
                     {/* pv-block-end:bt7007 */}
                     {/* pv-block-start:dt7008 */}
                     <span data-pv-block="dt7008" className="absolute top-2 right-2 w-2 h-2 bg-background-destructive rounded-full border border-background-default"></span>

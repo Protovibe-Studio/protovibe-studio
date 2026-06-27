@@ -6,17 +6,18 @@ import {
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { theme } from '../theme';
+import { theme, primarySolidHover } from '../theme';
 import { takeSnapshot } from '../api/client';
 import {
   fetchCommentThreads, createCommentThread, replyToThread, editComment,
   deleteComment, updateThreadStatus, deleteThread as deleteThreadApi,
 } from '../api/comments';
+import { emitToast } from '../events/toast';
 import { useCommentUser, authorIsMe } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
-  COMMENT_ATTR, COMMENT_STATUSES, threadFileName, makeCommentId, parseThreadIds,
+  COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds,
 } from '../../shared/comments';
 import type {
   CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus,
@@ -68,10 +69,14 @@ function lastActivity(thread: CommentThread): number {
 function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
   if (!el) return [];
   const ids = new Set<string>();
-  parseThreadIds(el.getAttribute(COMMENT_ATTR)).forEach((id) => ids.add(id));
-  el.querySelectorAll(`[${COMMENT_ATTR}]`).forEach((n) => {
-    parseThreadIds((n as HTMLElement).getAttribute(COMMENT_ATTR)).forEach((id) => ids.add(id));
-  });
+  // Each thread is its own `data-pv-comment-{id}` attribute, so there is no single
+  // selector for "any comment" — read ids straight off the element and every
+  // descendant. This is the only O(subtree) op; callers gate it (see subtreeIds).
+  const collect = (node: Element) => {
+    for (const id of readCommentIds(node.getAttributeNames())) ids.add(id);
+  };
+  collect(el);
+  el.querySelectorAll('*').forEach(collect);
   return Array.from(ids);
 }
 
@@ -111,9 +116,11 @@ function loadStatusFilter(): CommentStatus | 'all' {
 
 interface CommentsTabProps {
   activeIframeTab: IframeTab;
+  /** Whether the Comments panel is the visible sidebar tab (it stays mounted when hidden). */
+  isActive: boolean;
 }
 
-export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => {
+export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isActive }) => {
   const {
     currentBaseTarget, activeData, activeSourceId, runLockedMutation,
   } = useProtovibe();
@@ -169,15 +176,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     return () => window.removeEventListener('pv-comments-refresh', handler);
   }, [refresh]);
 
+  // The subtree walk (querySelectorAll('*') + getAttributeNames) is the one
+  // potentially heavy op for large selections, so only run it when its result is
+  // actually needed: the panel is visible AND "Selection only" is on. Otherwise
+  // there is nothing to compute — visibleThreads ignores subtreeIds anyway.
   const subtreeIds = useMemo(
-    () => gatherSubtreeThreadIds(currentBaseTarget),
-    [currentBaseTarget, threads],
+    () => (isActive && filterToSelection ? gatherSubtreeThreadIds(currentBaseTarget) : []),
+    [isActive, filterToSelection, currentBaseTarget, threads],
   );
-
-  // Raw `data-pv-comment-thread` value on the selected element (may list several
-  // ids). Passed to the backend so a new comment appends to the existing list
-  // instead of replacing it.
-  const selectedAttr = currentBaseTarget?.getAttribute(COMMENT_ATTR) || null;
 
   const visibleThreads = useMemo(() => {
     let base = (filterToSelection && currentBaseTarget)
@@ -276,7 +282,6 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
       anchorFile: activeData.file,
     };
     const commentFile = `src/comments/${threadFileName(id)}`;
-    const existingAttr = selectedAttr || undefined;
 
     setBusy(true);
     setError(null);
@@ -284,14 +289,17 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
       // Snapshot the source file AND the not-yet-created thread file (captured
       // as empty) so a single Cmd+Z removes both the attribute and the file.
       await takeSnapshot(activeData.file, activeSourceId || '', [commentFile], 'add comment');
-      await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread, existingAttr });
+      await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread });
     }).then(async () => {
       await refresh();
       setComposerOpen(false);
       setDraft('');
-      setActiveThreadId(id);
+      // Stay on the list (don't open the new thread) so the user sees it land in
+      // context, and confirm with the global toast.
+      setActiveThreadId(null);
+      emitToast({ message: 'Comment added', variant: 'success' });
     }).catch((e) => setError(String(e))).finally(() => setBusy(false));
-  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh, selectedAttr]);
+  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh]);
 
   // Comment-file-only mutation helper (reply / edit / delete reply / status).
   const mutateThreadFile = useCallback(async (
@@ -354,7 +362,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
 
   const handleAddCommentClick = () => {
     // An element can carry several threads — always start a fresh comment; the
-    // backend appends the new id to any existing data-pv-comment-thread list.
+    // backend injects another valueless data-pv-comment-{id} attribute for it.
     setComposerOpen(true);
     setError(null);
   };
@@ -507,10 +515,11 @@ const ListView: React.FC<{
             onClick={p.onAddClick}
             disabled={!p.canComment}
             data-tooltip={p.canComment ? undefined : 'Select an element on the canvas first'}
+            {...primarySolidHover(p.canComment)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               width: '100%', padding: '9px 12px', borderRadius: 6, border: 'none',
-              background: p.canComment ? theme.accent_default : theme.bg_tertiary,
+              background: p.canComment ? theme.primary_solid : theme.bg_tertiary,
               color: p.canComment ? '#fff' : theme.text_tertiary,
               fontSize: 13, fontWeight: 600, cursor: p.canComment ? 'pointer' : 'not-allowed',
               fontFamily: theme.font_ui,
@@ -540,7 +549,7 @@ const ListView: React.FC<{
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-              background: theme.accent_default, color: '#fff', fontSize: 9, fontWeight: 700,
+              background: theme.primary_solid, color: '#fff', fontSize: 9, fontWeight: 700,
             }}>
               {activeFilters}
             </span>
@@ -824,28 +833,23 @@ const ThreadView: React.FC<{
           Back to all threads
         </button>
         <div style={{ height: 1, background: theme.border_default }} />
-        {/* Primary header = thread id (copyable for AI), secondary = its context.
-            Locate/delete share the title line so they align with the copy icon. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: theme.text_default }}>
-              Thread {thread.id}
-            </span>
-            <CopyIdButton id={thread.id} />
-            <div style={{ flex: 1 }} />
-            <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtnSm}><MapPin size={13} /></button>
-            <ConfirmDeleteButton
-              tooltip="Delete thread"
-              message="Delete this whole thread? This removes the comment marker from the element."
-              confirmLabel="Delete thread"
-              iconSize={13}
-              style={iconBtnSm}
-              onConfirm={p.onDeleteThread}
-            />
-          </div>
-          <span style={{ fontSize: 11, color: theme.text_tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {contextSummary(thread.context)}
+        {/* Header = thread id (copyable for AI); locate/delete share the title line
+            so they align with the copy icon. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: theme.text_default }}>
+            Thread {thread.id}
           </span>
+          <CopyIdButton id={thread.id} />
+          <div style={{ flex: 1 }} />
+          <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtnSm}><MapPin size={13} /></button>
+          <ConfirmDeleteButton
+            tooltip="Delete thread"
+            message="Delete this whole thread? This removes the comment marker from the element."
+            confirmLabel="Delete thread"
+            iconSize={13}
+            style={iconBtnSm}
+            onConfirm={p.onDeleteThread}
+          />
         </div>
         <StatusDropdown status={thread.status} busy={p.busy} onChange={p.onStatus} />
       </div>
@@ -954,9 +958,10 @@ const Composer: React.FC<{
       <button
         onClick={onSubmit}
         disabled={busy || !value.trim()}
+        {...primarySolidHover(!!value.trim() && !busy)}
         style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, border: 'none',
-          background: value.trim() && !busy ? theme.accent_default : theme.bg_tertiary,
+          background: value.trim() && !busy ? theme.primary_solid : theme.bg_tertiary,
           color: value.trim() && !busy ? '#fff' : theme.text_tertiary,
           fontSize: 12, fontWeight: 600, cursor: value.trim() && !busy ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
         }}

@@ -16,7 +16,7 @@ export default function Frame12() {
     <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:mjhqpl */}
         {/* pv-block-start:ba0hce */}
-        <span data-pv-comment-thread="u31uln9v23" className="text-4xl font-bold" data-pv-block="ba0hce" data-pv-sketchpad-el="ba0hce" style={{ position: 'absolute', left: 292, top: 185 }}>
+        <span data-pv-comment-u31uln9v23 className="text-4xl font-bold" data-pv-block="ba0hce" data-pv-sketchpad-el="ba0hce" style={{ position: 'absolute', left: 292, top: 185 }}>
           Welcome to Sketchpad!
         </span>
         {/* pv-block-end:ba0hce */}

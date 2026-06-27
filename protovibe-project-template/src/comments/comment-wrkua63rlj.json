@@ -1,0 +1,22 @@
+{
+  "id": "wrkua63rlj",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/DashboardPage.tsx",
+    "pathname": "/",
+    "url": "/"
+  },
+  "comments": [
+    {
+      "id": "c-lhitlr38x4",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Test asdadad",
+      "createdAt": "2026-06-27T18:33:05.498Z"
+    }
+  ],
+  "createdAt": "2026-06-27T18:33:05.498Z",
+  "anchorFile": "src/pages/DashboardPage.tsx"
+}

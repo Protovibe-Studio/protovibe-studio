@@ -23,6 +23,12 @@ export const theme = {
   accent_tertiary: '#1745a8',
   accent_low: 'rgba(61, 123, 255, 0.14)',
 
+  // Primary solid — high-contrast blue for filled CTAs (Add comment, submit, save).
+  // hover is one step lighter, pressed one step darker (same hue/chroma).
+  primary_solid: 'oklch(0.6159 0.20711 262.9)',
+  primary_solid_hover: 'oklch(0.6859 0.20711 262.9)',
+  primary_solid_pressed: 'oklch(0.5359 0.20711 262.9)',
+
   // Borders
   border_default: '#333',   // Standard dividers
   border_secondary: '#383838', // Subtle dividers
@@ -46,3 +52,22 @@ export const theme = {
   success_tertiary: '#0E856E',
   success_low: 'rgba(26, 188, 156, 0.15)',
 };
+
+// Hover/pressed handlers for a filled `primary_solid` button. Follows the inline
+// `currentTarget.style` convention used across the inspector UI. When `enabled`
+// is false the button keeps its disabled background, so no handlers are attached.
+type StyledTarget = { currentTarget: HTMLElement };
+export function primarySolidHover(enabled: boolean): {
+  onMouseEnter?: (e: StyledTarget) => void;
+  onMouseLeave?: (e: StyledTarget) => void;
+  onMouseDown?: (e: StyledTarget) => void;
+  onMouseUp?: (e: StyledTarget) => void;
+} {
+  if (!enabled) return {};
+  return {
+    onMouseEnter: (e) => { e.currentTarget.style.background = theme.primary_solid_hover; },
+    onMouseLeave: (e) => { e.currentTarget.style.background = theme.primary_solid; },
+    onMouseDown: (e) => { e.currentTarget.style.background = theme.primary_solid_pressed; },
+    onMouseUp: (e) => { e.currentTarget.style.background = theme.primary_solid_hover; },
+  };
+}

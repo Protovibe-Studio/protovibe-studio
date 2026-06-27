@@ -1,0 +1,22 @@
+{
+  "id": "g59azrbpp4",
+  "context": {
+    "tab": "app",
+    "file": "src/App.tsx",
+    "pathname": "/",
+    "url": "/"
+  },
+  "comments": [
+    {
+      "id": "c-h4o4rxfyt4",
+      "author": {
+        "name": "Anika Gameta Very Long Name",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Dzień dobry, pozdrawiam serdecznie",
+      "createdAt": "2026-06-27T18:26:20.047Z"
+    }
+  ],
+  "createdAt": "2026-06-27T18:26:20.047Z",
+  "anchorFile": "src/App.tsx"
+}

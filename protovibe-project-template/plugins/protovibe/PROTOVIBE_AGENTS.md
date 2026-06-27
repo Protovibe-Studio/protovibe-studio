@@ -812,19 +812,22 @@ Git-commit style).
 }
 ```
 
-### Rule: The `data-pv-comment-thread` attribute
+### Rule: The `data-pv-comment-{id}` attribute
 
-When a comment is added, Protovibe injects `data-pv-comment-thread="{id}"` onto the
-opening tag of the anchored element. The `{id}` matches the thread's JSON filename.
-An element can anchor **several threads** — the ids are then stored as a
-space-separated list (`data-pv-comment-thread="id1 id2"`), matched with the CSS
-`~=` operator.
+When a comment is added, Protovibe injects a valueless `data-pv-comment-{id}`
+attribute onto the opening tag of the anchored element. The `{id}` matches the
+thread's JSON filename. An element can anchor **several threads** — each gets its
+**own** attribute (`data-pv-comment-id1 data-pv-comment-id2`), so the names never
+collide. Match one with the CSS selector `[data-pv-comment-{id}]`.
 
-* **Never remove this attribute** during refactors unless you are deleting the
+> An earlier version used a single `data-pv-comment-thread="id1 id2"` list
+> attribute (which could collide into duplicate attributes). Never write that form.
+
+* **Never remove these attributes** during refactors unless you are deleting the
   element itself (in which case also delete the matching `src/comments/comment-{id}.json`
-  for every id it lists).
-* When extracting an element into a new component, **preserve the
-  `data-pv-comment-thread` attribute** on the new root element so the comment stays
+  for every `data-pv-comment-{id}` it carries).
+* When extracting an element into a new component, **preserve every
+  `data-pv-comment-{id}` attribute** on the new root element so the comments stay
   anchored.
 
 ### Rule: Editing comments programmatically
@@ -832,5 +835,5 @@ space-separated list (`data-pv-comment-thread="id1 id2"`), matched with the CSS
 To add or resolve comments on the user's behalf, edit the
 `src/comments/comment-{id}.json` files directly (append to `comments`, change
 `status`, etc.). To anchor a brand-new thread, both create the JSON file **and**
-add the `data-pv-comment-thread="{id}"` attribute to the target element so the two
+add the valueless `data-pv-comment-{id}` attribute to the target element so the two
 stay in sync. Do not edit these files unless the user asks you to.

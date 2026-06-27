@@ -1,0 +1,31 @@
+{
+  "id": "up2ju3xgwe",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/DashboardPage.tsx",
+    "pathname": "/",
+    "url": "/"
+  },
+  "comments": [
+    {
+      "id": "c-09telvurgx",
+      "author": {
+        "name": "Anika Gameta Very Long Name",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Test",
+      "createdAt": "2026-06-27T18:31:09.773Z"
+    },
+    {
+      "id": "c-ain4nbz4k7",
+      "author": {
+        "name": "Anika Gameta Very Long Name",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Test asdasd asd\n\nasdasdadad",
+      "createdAt": "2026-06-27T18:32:22.739Z"
+    }
+  ],
+  "createdAt": "2026-06-27T18:31:09.773Z",
+  "anchorFile": "src/pages/DashboardPage.tsx"
+}

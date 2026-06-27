@@ -17,7 +17,7 @@ import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
-import { COMMENT_ATTR } from '../shared/comments';
+import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 
 function parseTabParam(search: string): IframeTab {
@@ -162,8 +162,8 @@ export const ProtovibeApp: React.FC = () => {
   // Bring a comment's anchored element into view. Retries across iframes because
   // the element may only appear after a tab switch or an app-iframe navigation.
   const focusThreadElement = useCallback((threadId: string) => {
-    // `~=` matches one id within the element's space-separated thread list.
-    const sel = `[${COMMENT_ATTR}~="${threadId}"]`;
+    // Each thread anchors its element via its own `data-pv-comment-{id}` attribute.
+    const sel = commentIdSelector(threadId);
     let attempts = 0;
     const tryFind = () => {
       let el: HTMLElement | null = null;
@@ -747,7 +747,7 @@ export const ProtovibeApp: React.FC = () => {
               display: activeSidebarTab === 'comments' ? 'flex' : 'none',
             }}
           >
-            <CommentsTab activeIframeTab={activeIframeTab} />
+            <CommentsTab activeIframeTab={activeIframeTab} isActive={activeSidebarTab === 'comments'} />
           </div>
         )}
 

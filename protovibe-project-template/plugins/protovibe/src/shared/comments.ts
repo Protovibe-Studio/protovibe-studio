@@ -79,9 +79,9 @@ export interface CommentItem {
   updatedAt?: string; // ISO string, set when edited
 }
 
-/** One thread === one `comment-{id}.json` file === one id in `data-pv-comment-thread`. */
+/** One thread === one `comment-{id}.json` file === one `data-pv-comment-{id}` attribute. */
 export interface CommentThread {
-  /** Appears in the element's `data-pv-comment-thread` attribute (which may list several ids). */
+  /** Anchored on its element as a valueless `data-pv-comment-{id}` attribute. */
   id: string;
   /** Stable status id; undefined until a reviewer triages the thread. */
   status?: CommentStatus;
@@ -93,15 +93,44 @@ export interface CommentThread {
 }
 
 /**
- * Attribute injected onto the anchored element in source + DOM. A single element
- * can carry several threads, stored as a space-separated list of ids.
+ * Anchoring scheme. Each thread is injected onto its element's opening tag as its
+ * OWN valueless attribute, `data-pv-comment-{id}` — never a shared value-bearing
+ * attribute. Because every attribute NAME is unique, an element can anchor any
+ * number of threads without ever producing a duplicate-attribute clash (the bug
+ * the old space-separated `data-pv-comment-thread="id1 id2"` scheme caused when a
+ * second thread failed to merge into the existing list).
+ *
+ * Match one thread's element with `commentIdSelector(id)`; collect every id on an
+ * element with `readCommentIds(el.getAttributeNames())`.
  */
-export const COMMENT_ATTR = 'data-pv-comment-thread';
+export const COMMENT_ATTR_PREFIX = 'data-pv-comment-';
 
-/** Split a `data-pv-comment-thread` attribute value into its thread ids. */
-export function parseThreadIds(attr: string | null | undefined): string[] {
-  if (!attr) return [];
-  return attr.trim().split(/\s+/).filter(Boolean);
+/** The valueless attribute name that anchors a single thread id. */
+export function commentIdAttr(id: string): string {
+  return COMMENT_ATTR_PREFIX + id;
+}
+
+/** CSS selector matching the element that anchors a given thread id. */
+export function commentIdSelector(id: string): string {
+  return `[${COMMENT_ATTR_PREFIX}${id}]`;
+}
+
+/**
+ * Legacy (pre-refactor) attribute: a single value-bearing `data-pv-comment-thread`
+ * holding a space-separated id list. No longer written anywhere; named here only
+ * so `readCommentIds` can defensively skip it (it shares the `data-pv-comment-`
+ * prefix, so a stray one would otherwise read as an id of `"thread"`).
+ */
+export const LEGACY_COMMENT_ATTR = 'data-pv-comment-thread';
+
+/** Pull thread ids out of an element's attribute-name list (getAttributeNames()). */
+export function readCommentIds(attrNames: readonly string[]): string[] {
+  const ids: string[] = [];
+  for (const name of attrNames) {
+    if (name === LEGACY_COMMENT_ATTR) continue;
+    if (name.startsWith(COMMENT_ATTR_PREFIX)) ids.push(name.slice(COMMENT_ATTR_PREFIX.length));
+  }
+  return ids;
 }
 
 /** Directory (relative to project root) where thread files are committed. */

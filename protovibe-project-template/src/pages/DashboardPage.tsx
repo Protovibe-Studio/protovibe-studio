@@ -19,7 +19,7 @@ export function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8 max-w-[1200px] mx-auto">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:oryele */}
-        <div data-pv-block="oryele" className="flex items-center justify-between mt-8 mb-2">
+        <div data-pv-comment-1f5i9hgp3l data-pv-block="oryele" className="flex items-center justify-between mt-8 mb-2">
         {/* pv-editable-zone-start:sk5e6f */}
         {/* pv-block-start:5hdsgr */}
         <div data-pv-block="5hdsgr" className="flex flex-col gap-0">
@@ -76,7 +76,7 @@ export function DashboardPage() {
                   <div data-pv-block="7lddhq" className="flex flex-col gap-2">
                     {/* pv-editable-zone-start:iugucc */}
                     {/* pv-block-start:hzrzb5 */}
-                    <TextHeading data-pv-comment-thread="o06bg64q3s" data-pv-block="hzrzb5" typography="heading-sm">
+                    <TextHeading data-pv-comment-o06bg64q3s data-pv-block="hzrzb5" typography="heading-sm">
                       Single-click selects, double-click interacts
                     </TextHeading>
                     {/* pv-block-end:hzrzb5 */}
@@ -125,7 +125,7 @@ export function DashboardPage() {
             </Card>
             {/* pv-block-end:lf7bog */}
             {/* pv-block-start:58e4sq */}
-            <Card className="gap-4 items-stretch" data-pv-block="58e4sq">
+            <Card data-pv-comment-doztorbrlf data-pv-comment-wrkua63rlj data-pv-comment-cktoxqrf4l data-pv-comment-up2ju3xgwe className="gap-4 items-stretch" data-pv-block="58e4sq">
               {/* pv-editable-zone-start:lzk3wr */}
                 {/* pv-block-start:aev719 */}
                 <div data-pv-block="aev719" className="grow flex flex-col gap-2">
@@ -162,7 +162,7 @@ export function DashboardPage() {
                 <Container className="flex-row gap-2" data-pv-block="xdjkc1">
                   {/* pv-editable-zone-start:zqe8bz */}
                     {/* pv-block-start:0gfvam */}
-                    <Avatar data-pv-comment-thread="k4ypit6d5w" data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
+                    <Avatar data-pv-comment-k4ypit6d5w data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
                     {/* pv-block-end:0gfvam */}
             
                     {/* pv-block-start:w9x0m7 */}

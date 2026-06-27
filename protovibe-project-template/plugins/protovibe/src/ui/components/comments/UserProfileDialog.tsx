@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
-import { theme } from '../../theme';
+import { theme, primarySolidHover } from '../../theme';
 import type { CommentAuthor } from '../../../shared/comments';
 
 interface UserProfileDialogProps {
@@ -157,11 +157,12 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
             <button
               type="submit"
               disabled={!canSave}
+              {...primarySolidHover(canSave)}
               style={{
                 padding: '6px 14px',
                 borderRadius: 6,
                 border: 'none',
-                background: canSave ? theme.accent_default : theme.bg_tertiary,
+                background: canSave ? theme.primary_solid : theme.bg_tertiary,
                 color: canSave ? '#fff' : theme.text_tertiary,
                 fontSize: 12,
                 fontWeight: 600,

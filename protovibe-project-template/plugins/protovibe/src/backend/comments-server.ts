@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { Connect, ViteDevServer } from 'vite';
 import type { CommentThread, CommentItem } from '../shared/comments';
-import { normalizeStatus, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
+import { normalizeStatus, threadFileName, COMMENTS_DIR_REL, commentIdAttr } from '../shared/comments';
 
 const COMMENTS_DIR = path.resolve(process.cwd(), COMMENTS_DIR_REL);
 const REGISTRY_PATH = path.resolve(process.cwd(), 'src/sketchpads/_registry.json');
@@ -118,8 +118,10 @@ function enrichSketchpadContext(thread: CommentThread): void {
 
 // ─── source attribute injection / removal ────────────────────────────────────
 
-// Insert ` data-pv-comment-thread="<id>"` right after the element's tag name,
-// mirroring handleUpdateProp's 'add' branch (insert at nameEnd column).
+// Insert a valueless ` data-pv-comment-<id>` attribute right after the element's
+// tag name, mirroring handleUpdateProp's 'add' branch (insert at nameEnd column).
+// Every thread gets its OWN uniquely-named attribute, so a second thread on the
+// same element can never collide into a duplicate attribute.
 function injectAttribute(source: string, nameEnd: [number, number], id: string): string {
   const lines = source.split('\n');
   const lineIdx = nameEnd[0] - 1;
@@ -128,20 +130,21 @@ function injectAttribute(source: string, nameEnd: [number, number], id: string):
     throw new Error('nameEnd is out of range for the current file');
   }
   const line = lines[lineIdx];
-  lines[lineIdx] = line.substring(0, colIdx) + ` data-pv-comment-thread="${id}"` + line.substring(colIdx);
+  lines[lineIdx] = line.substring(0, colIdx) + ` ${commentIdAttr(id)}` + line.substring(colIdx);
   return lines.join('\n');
 }
 
-// Remove one thread id from whichever `data-pv-comment-thread` attribute lists it.
-// If it was the only id, the whole attribute (and one leading space) is dropped;
-// otherwise the remaining ids are kept. Other elements' attributes are untouched.
+// Build a boundary-safe matcher for a single ` data-pv-comment-<id>` attribute,
+// optionally with an empty value (`=""` / `={...}`). Thread ids are [a-z0-9], so
+// the lookahead stops a short id from matching inside a longer one.
+function idAttrRegex(id: string): RegExp {
+  return new RegExp(`\\s*${commentIdAttr(id)}(?:=(?:""|'')|=\\{[^}]*\\})?(?![\\w-])`, 'g');
+}
+
+// Remove a thread's `data-pv-comment-<id>` attribute (with its leading space).
+// Other elements' attributes — and other ids on the same element — are untouched.
 function removeAttribute(source: string, id: string): string {
-  return source.replace(/(\s*)data-pv-comment-thread="([^"]*)"/g, (full, space, value) => {
-    const ids = String(value).trim().split(/\s+/).filter(Boolean);
-    if (!ids.includes(id)) return full;
-    const remaining = ids.filter((x) => x !== id);
-    return remaining.length ? `${space}data-pv-comment-thread="${remaining.join(' ')}"` : '';
-  });
+  return source.replace(idAttrRegex(id), '');
 }
 
 // ─── endpoint handlers ───────────────────────────────────────────────────────
@@ -169,7 +172,7 @@ export const handleCommentsList: Connect.NextHandleFunction = async (req, res) =
 // orphaned attribute pointing at a missing file.
 export const handleCommentCreateThread: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { file, nameEnd, thread, existingAttr } = await parseBody(req);
+    const { file, nameEnd, thread } = await parseBody(req);
     if (!file) return sendError(res, 'No file provided');
     if (!thread || !thread.id) return sendError(res, 'Missing thread data');
     if (!Array.isArray(nameEnd) || nameEnd.length !== 2) {
@@ -181,22 +184,13 @@ export const handleCommentCreateThread: Connect.NextHandleFunction = async (req,
 
     const original = fs.readFileSync(absolutePath, 'utf-8');
 
-    // Three cases:
-    //  • already injected (id present)         → leave the source untouched
-    //  • element already anchors other threads → append this id to the existing list
-    //  • brand-new anchor                       → inject a fresh attribute at nameEnd
-    let newSource: string;
-    if (original.includes(`data-pv-comment-thread="${thread.id}"`)) {
-      newSource = original;
-    } else if (typeof existingAttr === 'string' && existingAttr.trim()
-      && original.includes(`data-pv-comment-thread="${existingAttr}"`)) {
-      newSource = original.replace(
-        `data-pv-comment-thread="${existingAttr}"`,
-        `data-pv-comment-thread="${existingAttr} ${thread.id}"`,
-      );
-    } else {
-      newSource = injectAttribute(original, nameEnd as [number, number], thread.id);
-    }
+    // Each thread is its own valueless attribute, so there is no list to merge
+    // into: either this id is already present (idempotent), or we inject a fresh
+    // `data-pv-comment-{id}` at nameEnd — even when the element anchors others.
+    const alreadyInjected = idAttrRegex(thread.id).test(original);
+    const newSource = alreadyInjected
+      ? original
+      : injectAttribute(original, nameEnd as [number, number], thread.id);
 
     const fullThread: CommentThread = {
       id: thread.id,
