@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
+import { registerCommentsMiddleware } from './backend/comments-server';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -237,6 +238,9 @@ export function protovibeSourcePlugin(): Plugin {
       // Sketchpad endpoints
       registerSketchpadMiddleware(server);
 
+      // Comments & Notes endpoints
+      registerCommentsMiddleware(server);
+
       // Manual server restart endpoint (triggered by error banner in UI)
       server.middlewares.use('/__restart-server', async (req, res) => {
         if (req.method === 'POST') {
@@ -302,6 +306,13 @@ export function protovibeSourcePlugin(): Plugin {
     handleHotUpdate({ file }) {
       const sketchpadsDir = normalizePath(path.resolve(process.cwd(), 'src/sketchpads'));
       if (file.startsWith(sketchpadsDir) && !file.endsWith('.tsx') && !file.endsWith('.jsx')) {
+        return [];
+      }
+      // Comment thread JSON files are pure data — writing one must not reload
+      // the user's app iframe (the anchor attribute change in the .tsx will
+      // hot-reload on its own).
+      const commentsDir = normalizePath(path.resolve(process.cwd(), 'src/comments'));
+      if (file.startsWith(commentsDir)) {
         return [];
       }
     },

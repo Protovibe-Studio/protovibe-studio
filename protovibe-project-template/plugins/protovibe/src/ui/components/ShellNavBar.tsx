@@ -1,11 +1,11 @@
 // plugins/protovibe/src/ui/components/ShellNavBar.tsx
 import React, { useEffect, useState } from 'react';
-import { Monitor, LayoutGrid, Palette, Paintbrush, Play, Pause, PenTool, Sparkles, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Monitor, LayoutGrid, Palette, Paintbrush, Play, Pause, PenTool, Sparkles, ChevronDown, ArrowLeft, MessageSquare } from 'lucide-react';
 import { theme } from '../theme';
 import { PublishButton } from './PublishButton';
 
 export type IframeTab = 'app' | 'components' | 'sketchpad';
-export type SidebarTab = 'design' | 'tokens' | 'prompts';
+export type SidebarTab = 'design' | 'tokens' | 'prompts' | 'comments';
 
 /** @deprecated Use IframeTab / SidebarTab instead */
 export type ShellTab = IframeTab | SidebarTab;
@@ -20,6 +20,7 @@ const SIDEBAR_TABS: { id: SidebarTab; icon: React.ElementType; label: string }[]
   { id: 'design', icon: Paintbrush, label: 'Design' },
   { id: 'tokens', icon: Palette, label: 'Tokens' },
   { id: 'prompts', icon: Sparkles, label: 'Prompts' },
+  { id: 'comments', icon: MessageSquare, label: 'Comments' },
 ];
 
 type ShellNavBarProps = {

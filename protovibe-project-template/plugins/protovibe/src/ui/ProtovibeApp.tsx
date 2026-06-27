@@ -6,6 +6,7 @@ import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { PromptsTab } from './components/PromptsTab';
+import { CommentsTab } from './components/CommentsTab';
 import { Sidebar } from './components/Sidebar';
 import { FloatingToolbar } from './components/FloatingToolbar';
 import { ToastViewport } from './components/ToastViewport';
@@ -650,6 +651,20 @@ export const ProtovibeApp: React.FC = () => {
             }}
           >
             <PromptsTab />
+          </div>
+        )}
+
+        {inspectorOpen && (
+          <div
+            style={{
+              width: `${INSPECTOR_WIDTH_PX}px`,
+              flexShrink: 0,
+              borderLeft: `1px solid ${theme.border_default}`,
+              overflow: 'hidden',
+              display: activeSidebarTab === 'comments' ? 'flex' : 'none',
+            }}
+          >
+            <CommentsTab activeIframeTab={activeIframeTab} />
           </div>
         )}
 

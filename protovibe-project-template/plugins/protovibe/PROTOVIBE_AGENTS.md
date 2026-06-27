@@ -780,3 +780,53 @@ When overriding a component's styles from the consumer file, match the specifici
   ```tsx
   <Button variant="ghost" className="data-[variant=ghost]:bg-background-primary" />
   ```
+
+## 5. Comments & Notes
+
+Protovibe supports element-level commenting so designers and developers can leave
+collaborative feedback directly on the canvas. As an AI agent you can read these
+comments for context and, when the user asks, create or resolve them
+programmatically.
+
+### Rule: Where comments live
+
+Each comment thread is a standalone JSON file at `src/comments/comment-{id}.json`.
+One file == one thread == one anchored element. These files are normal source
+files and **should be committed to Git** (they are not gitignored). Threads carry
+their own metadata: a triage `status`, the authoring `context` (App / Components /
+Sketchpad, plus the app URL, component name, or sketchpad frame + coordinates),
+and an array of `comments` (each with author name/email, content, and timestamps,
+Git-commit style).
+
+```jsonc
+{
+  "id": "ab12cd34ef",
+  "status": "To revisit",          // "No action required" | "To revisit" | "Done"
+  "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
+  "comments": [
+    { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },
+      "content": "Tighten this spacing", "createdAt": "2026-06-27T10:00:00.000Z" }
+  ],
+  "createdAt": "2026-06-27T10:00:00.000Z",
+  "anchorFile": "src/pages/DashboardPage.tsx"
+}
+```
+
+### Rule: The `data-pv-comment-thread` attribute
+
+When a comment is added, Protovibe injects `data-pv-comment-thread="{id}"` onto the
+opening tag of the anchored element. The `{id}` matches the thread's JSON filename.
+
+* **Never remove this attribute** during refactors unless you are deleting the
+  element itself (in which case also delete the matching `src/comments/comment-{id}.json`).
+* When extracting an element into a new component, **preserve the
+  `data-pv-comment-thread` attribute** on the new root element so the comment stays
+  anchored.
+
+### Rule: Editing comments programmatically
+
+To add or resolve comments on the user's behalf, edit the
+`src/comments/comment-{id}.json` files directly (append to `comments`, change
+`status`, etc.). To anchor a brand-new thread, both create the JSON file **and**
+add the `data-pv-comment-thread="{id}"` attribute to the target element so the two
+stay in sync. Do not edit these files unless the user asks you to.
