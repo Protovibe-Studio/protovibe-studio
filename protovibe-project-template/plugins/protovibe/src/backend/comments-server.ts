@@ -11,8 +11,8 @@
 import fs from 'fs';
 import path from 'path';
 import { Connect, ViteDevServer } from 'vite';
-import type { CommentThread, CommentItem, CommentStatus } from '../shared/comments';
-import { COMMENT_STATUSES, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
+import type { CommentThread, CommentItem } from '../shared/comments';
+import { normalizeStatus, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
 
 const COMMENTS_DIR = path.resolve(process.cwd(), COMMENTS_DIR_REL);
 const REGISTRY_PATH = path.resolve(process.cwd(), 'src/sketchpads/_registry.json');
@@ -48,11 +48,20 @@ function threadPath(id: string): string {
   return path.join(COMMENTS_DIR, threadFileName(id));
 }
 
+// Normalize a freshly-parsed thread so the rest of the app only ever sees
+// current status ids (legacy label-based statuses are remapped in place).
+function hydrateThread(thread: CommentThread): CommentThread {
+  const status = normalizeStatus(thread.status);
+  if (status) thread.status = status;
+  else delete thread.status;
+  return thread;
+}
+
 function readThread(id: string): CommentThread | null {
   const p = threadPath(id);
   if (!fs.existsSync(p)) return null;
   try {
-    return JSON.parse(fs.readFileSync(p, 'utf-8')) as CommentThread;
+    return hydrateThread(JSON.parse(fs.readFileSync(p, 'utf-8')) as CommentThread);
   } catch {
     return null;
   }
@@ -69,7 +78,7 @@ function listThreads(): CommentThread[] {
   for (const f of fs.readdirSync(COMMENTS_DIR)) {
     if (!f.startsWith('comment-') || !f.endsWith('.json')) continue;
     try {
-      threads.push(JSON.parse(fs.readFileSync(path.join(COMMENTS_DIR, f), 'utf-8')));
+      threads.push(hydrateThread(JSON.parse(fs.readFileSync(path.join(COMMENTS_DIR, f), 'utf-8'))));
     } catch {
       // skip malformed file
     }
@@ -77,10 +86,6 @@ function listThreads(): CommentThread[] {
   // Newest first.
   threads.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   return threads;
-}
-
-function isValidStatus(s: unknown): s is CommentStatus {
-  return typeof s === 'string' && (COMMENT_STATUSES as string[]).includes(s);
 }
 
 // ─── context enrichment ──────────────────────────────────────────────────────
@@ -196,7 +201,7 @@ export const handleCommentCreateThread: Connect.NextHandleFunction = async (req,
     const fullThread: CommentThread = {
       id: thread.id,
       // Threads start untriaged; a status is only set once a reviewer picks one.
-      ...(isValidStatus(thread.status) ? { status: thread.status } : {}),
+      ...(normalizeStatus(thread.status) ? { status: normalizeStatus(thread.status) } : {}),
       context: { tab: 'app', ...(thread.context || {}), file },
       comments: Array.isArray(thread.comments) ? thread.comments : [],
       createdAt: thread.createdAt || new Date().toISOString(),
@@ -279,15 +284,23 @@ export const handleCommentDelete: Connect.NextHandleFunction = async (req, res) 
   }
 };
 
-// POST { threadId, status }  → change collaborative status
+// POST { threadId, status }  → change collaborative status.
+// A null/empty status clears the field, returning the thread to untriaged.
 export const handleCommentUpdateStatus: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { threadId, status } = await parseBody(req);
-    if (!threadId || !isValidStatus(status)) return sendError(res, 'threadId and valid status required');
+    if (!threadId) return sendError(res, 'threadId required');
 
     const thread = readThread(threadId);
     if (!thread) return sendError(res, 'Thread not found', 404);
-    thread.status = status;
+
+    if (status == null || status === '') {
+      delete thread.status; // back to "No status"
+    } else {
+      const normalized = normalizeStatus(status);
+      if (!normalized) return sendError(res, 'valid status required');
+      thread.status = normalized;
+    }
     writeThread(thread);
 
     sendJson(res, { success: true, thread });

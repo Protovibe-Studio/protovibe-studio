@@ -801,7 +801,7 @@ Git-commit style).
 ```jsonc
 {
   "id": "ab12cd34ef",
-  "status": "To review",           // optional — "Minor" | "To review" | "Closed"; omitted while untriaged
+  "status": "review",              // optional status id — "minor" | "todo" | "review" | "closed"; omitted while untriaged (labels/colours live in the UI's STATUS_CONFIG)
   "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
   "comments": [
     { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },

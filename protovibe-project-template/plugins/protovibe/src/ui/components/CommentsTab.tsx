@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
-  CornerDownRight, MapPin, Copy, Check, Search, X,
+  CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
@@ -29,10 +29,14 @@ interface CommentSearchHit {
   comment: CommentItem;
 }
 
-const STATUS_COLORS: Record<CommentStatus, string> = {
-  'Minor': theme.text_tertiary,
-  'To review': theme.warning_primary,
-  'Closed': theme.success_default,
+// Presentation for each stable status id. Labels/colours are defined here only —
+// the persisted value is the id (see CommentStatus in shared/comments), so
+// renaming a label or tweaking a colour never breaks existing comment files.
+const STATUS_CONFIG: Record<CommentStatus, { label: string; color: string }> = {
+  minor:  { label: 'Minor',     color: theme.text_tertiary },
+  todo:   { label: 'To do',     color: '#A78BFA' }, // purple — no theme token for it
+  review: { label: 'To review', color: theme.warning_primary },
+  closed: { label: 'Closed',    color: theme.success_default },
 };
 
 function relativeTime(iso: string): string {
@@ -125,6 +129,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   }, []);
 
   useEffect(() => { refresh(); }, [refresh, activeIframeTab]);
+
+  // Every time we land back on the threads list, re-fetch. This also re-runs the
+  // subtreeIds memo (it reads the DOM attribute), so a comment just added to the
+  // selected element shows up immediately under "Selection only" without the user
+  // having to re-click the element on the canvas.
+  useEffect(() => {
+    if (activeThreadId === null) refresh();
+  }, [activeThreadId, refresh]);
 
   // Keep in sync after undo/redo of comment files.
   useEffect(() => {
@@ -281,8 +293,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
       }),
     ).then(() => setReplyDraft(''));
 
-  const handleStatus = (thread: CommentThread, status: CommentStatus) =>
-    mutateThreadFile(thread.id, `comment status: ${status}`, () => updateThreadStatus(thread.id, status));
+  const handleStatus = (thread: CommentThread, status: CommentStatus | null) =>
+    mutateThreadFile(thread.id, status ? `comment status: ${status}` : 'clear comment status',
+      () => updateThreadStatus(thread.id, status));
 
   const handleEditSave = (thread: CommentThread, commentId: string) =>
     mutateThreadFile(thread.id, 'edit comment', () => editComment(thread.id, commentId, editingText.trim()))
@@ -333,12 +346,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   // ── render ───────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
-      <Header
-        user={user}
-        onEditProfile={() => setProfileOpen(true)}
-        inThread={!!activeThread}
-        onBack={() => setActiveThreadId(null)}
-      />
+      {/* In a thread the panel header is the thread's own header (with its
+          "Back to all threads" link); the top bar only shows on the list. */}
+      {!activeThread && (
+        <Header user={user} onEditProfile={() => setProfileOpen(true)} />
+      )}
 
       {error && (
         <div style={{ padding: '8px 16px', fontSize: 12, color: theme.destructive_default, background: theme.destructive_low }}>
@@ -363,6 +375,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
           onDeleteReply={(cid) => handleDeleteReply(activeThread, cid)}
           onDeleteThread={() => handleDeleteThread(activeThread)}
           onLocate={() => navigateToThread(activeThread)}
+          onBack={() => setActiveThreadId(null)}
         />
       ) : (
         <ListView
@@ -403,21 +416,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
 const Header: React.FC<{
   user: CommentAuthor | null;
   onEditProfile: () => void;
-  inThread: boolean;
-  onBack: () => void;
-}> = ({ user, onEditProfile, inThread, onBack }) => (
+}> = ({ user, onEditProfile }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0,
   }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      {inThread && (
-        <button onClick={onBack} data-tooltip="Back to all comments" style={iconBtn}>
-          <ArrowLeft size={16} />
-        </button>
-      )}
       <span style={{ fontSize: 14, fontWeight: 600, color: theme.text_default }}>
-        {inThread ? 'Thread' : 'Comments & Notes'}
+        Comments & Notes
       </span>
     </div>
     {user ? (
@@ -456,6 +462,9 @@ const ListView: React.FC<{
   onOpenThread: (t: CommentThread) => void;
 }> = (p) => {
   const searching = p.query.trim().length > 0;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  // Non-default filters worth surfacing on the collapsed "Filters" header.
+  const activeFilters = (searching ? 1 : 0) + (p.statusFilter !== 'all' ? 1 : 0) + (p.filterToSelection ? 1 : 0);
   return (
     <>
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
@@ -489,23 +498,49 @@ const ListView: React.FC<{
         )}
       </div>
 
-      {/* Search + filters sit below the Add-comment divider. The status/selection
-          filters are hidden while searching, since search spans every comment
-          regardless of selection or status. */}
-      <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-        <SearchField value={p.query} onChange={p.setQuery} />
-        {!searching && (
-          <>
-            <Segmented
-              value={p.filterToSelection ? 'selection' : 'all'}
-              onChange={(v) => p.setFilterToSelection(v === 'selection')}
-              options={[
-                { val: 'all', label: 'All comments' },
-                { val: 'selection', label: 'Selection only' },
-              ]}
-            />
-            <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
-          </>
+      {/* Search + filters live in a collapsible panel below the Add-comment
+          divider. The status/selection filters are hidden while searching, since
+          search spans every comment regardless of selection or status. */}
+      <div style={{ borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+        <button
+          onClick={() => setFiltersOpen((o) => !o)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+            padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
+            color: theme.text_secondary, fontSize: 12, fontWeight: 600, fontFamily: theme.font_ui,
+          }}
+        >
+          <Filter size={14} />
+          <span>Filter comments</span>
+          {activeFilters > 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+              background: theme.accent_default, color: '#fff', fontSize: 9, fontWeight: 700,
+            }}>
+              {activeFilters}
+            </span>
+          )}
+          <div style={{ flex: 1 }} />
+          <ChevronDown size={15} style={{ transform: filtersOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: theme.text_tertiary }} />
+        </button>
+        {filtersOpen && (
+          <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <SearchField value={p.query} onChange={p.setQuery} />
+            {!searching && (
+              <>
+                <Segmented
+                  value={p.filterToSelection ? 'selection' : 'all'}
+                  onChange={(v) => p.setFilterToSelection(v === 'selection')}
+                  options={[
+                    { val: 'all', label: 'All comments' },
+                    { val: 'selection', label: 'Selection only' },
+                  ]}
+                />
+                <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -527,7 +562,7 @@ const ListView: React.FC<{
         ) : p.threads.length === 0 ? (
           <EmptyState text={
             p.statusFilter !== 'all'
-              ? `No ${p.statusFilter} comments.`
+              ? `No ${STATUS_CONFIG[p.statusFilter].label} comments.`
               : p.filterToSelection
                 ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to All comments.')
                 : 'No comments yet. Select an element and add the first one.'
@@ -609,7 +644,7 @@ const StatusFilter: React.FC<{
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
       {options.map((s) => {
         const active = value === s;
-        const color = s === 'all' ? theme.text_secondary : STATUS_COLORS[s];
+        const color = s === 'all' ? theme.text_secondary : STATUS_CONFIG[s].color;
         return (
           <button
             key={s}
@@ -623,7 +658,7 @@ const StatusFilter: React.FC<{
             }}
           >
             {s !== 'all' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />}
-            {s === 'all' ? 'All' : s}
+            {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
           </button>
         );
       })}
@@ -638,13 +673,13 @@ const SearchResultItem: React.FC<{
   onClick: () => void;
 }> = ({ hit, user, query, onClick }) => {
   const { thread, comment } = hit;
-  const dimmed = thread.status === 'Closed';
+  const dimmed = thread.status === 'closed';
   return (
     <button
       onClick={onClick}
       style={{
         display: 'flex', flexDirection: 'column', gap: 6, width: '100%', textAlign: 'left',
-        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_tertiary}`,
+        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_default}`,
         cursor: 'pointer', fontFamily: theme.font_ui, opacity: dimmed ? 0.55 : 1,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
@@ -657,10 +692,10 @@ const SearchResultItem: React.FC<{
         </span>
         <StatusBadge status={thread.status} />
       </div>
-      <span style={{ fontSize: 12, color: theme.text_secondary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
         <Highlight text={comment.content} query={query} />
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: theme.text_tertiary }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: theme.text_tertiary }}>
         <span>{contextSummary(thread.context)}</span>
         <span>·</span>
         <span>{relativeTime(comment.createdAt)}</span>
@@ -688,33 +723,35 @@ const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | nu
   // Surface the most recent message so the list reflects fresh activity.
   const latest = latestComment(thread);
   const replies = thread.comments.length - 1;
-  const dimmed = thread.status === 'Closed';
+  const dimmed = thread.status === 'closed';
   return (
     <button
       onClick={onClick}
       style={{
-        display: 'flex', flexDirection: 'column', gap: 6, width: '100%', textAlign: 'left',
-        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_tertiary}`,
+        display: 'flex', gap: 8, width: '100%', textAlign: 'left',
+        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_default}`,
         cursor: 'pointer', fontFamily: theme.font_ui, opacity: dimmed ? 0.55 : 1,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {latest && <CommentAvatar name={latest.author.name} email={latest.author.email} size={22} mine={authorIsMe(user, latest.author)} />}
-        <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {latest?.author.name || 'Unknown'}
+      {latest && <CommentAvatar name={latest.author.name} email={latest.author.email} size={22} mine={authorIsMe(user, latest.author)} />}
+      {/* Content column is indented past the avatar, mirroring the thread view. */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {latest?.author.name || 'Unknown'}
+          </span>
+          <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{latest ? relativeTime(latest.createdAt) : ''}</span>
+          <div style={{ flex: 1 }} />
+          <StatusBadge status={thread.status} />
+        </div>
+        <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {latest?.content}
         </span>
-        <StatusBadge status={thread.status} />
-      </div>
-      <span style={{ fontSize: 12, color: theme.text_secondary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {latest?.content}
-      </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: theme.text_tertiary }}>
-        <span>{contextSummary(thread.context)}</span>
-        <span>·</span>
-        <span>{latest ? relativeTime(latest.createdAt) : ''}</span>
-        {replies > 0 && (<><span>·</span><span>{replies} {replies === 1 ? 'reply' : 'replies'}</span></>)}
+        {replies > 0 && (
+          <span style={{ fontSize: 10, color: theme.text_tertiary }}>{replies} {replies === 1 ? 'reply' : 'replies'}</span>
+        )}
       </div>
     </button>
   );
@@ -732,11 +769,12 @@ const ThreadView: React.FC<{
   setEditingId: (id: string | null) => void;
   setEditingText: (s: string) => void;
   onReply: (text: string) => void;
-  onStatus: (s: CommentStatus) => void;
+  onStatus: (s: CommentStatus | null) => void;
   onEditSave: (commentId: string) => void;
   onDeleteReply: (commentId: string) => void;
   onDeleteThread: () => void;
   onLocate: () => void;
+  onBack: () => void;
 }> = (p) => {
   const { thread } = p;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -748,49 +786,44 @@ const ThreadView: React.FC<{
   return (
     <>
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-          {/* Primary header = comment id (copyable for AI), secondary = its context. */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default }}>
-                Comment {thread.id}
-              </span>
-              <CopyIdButton id={thread.id} />
-            </div>
-            <span style={{ fontSize: 11, color: theme.text_tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {contextSummary(thread.context)}
+        <button
+          onClick={p.onBack}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
+            padding: '3px 6px', marginLeft: -6, borderRadius: 5, border: 'none', background: 'transparent',
+            color: theme.text_tertiary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+        >
+          <ArrowLeft size={13} />
+          Back to all threads
+        </button>
+        <div style={{ height: 1, background: theme.border_default }} />
+        {/* Primary header = thread id (copyable for AI), secondary = its context.
+            Locate/delete share the title line so they align with the copy icon. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: theme.text_default }}>
+              Thread {thread.id}
             </span>
+            <CopyIdButton id={thread.id} />
+            <div style={{ flex: 1 }} />
+            <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtnSm}><MapPin size={13} /></button>
+            <ConfirmDeleteButton
+              tooltip="Delete thread"
+              message="Delete this whole thread? This removes the comment marker from the element."
+              confirmLabel="Delete thread"
+              iconSize={13}
+              style={iconBtnSm}
+              onConfirm={p.onDeleteThread}
+            />
           </div>
-          <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtn}><MapPin size={14} /></button>
-          <ConfirmDeleteButton
-            tooltip="Delete thread"
-            message="Delete this whole thread? This removes the comment marker from the element."
-            confirmLabel="Delete thread"
-            onConfirm={p.onDeleteThread}
-          />
+          <span style={{ fontSize: 11, color: theme.text_tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {contextSummary(thread.context)}
+          </span>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {COMMENT_STATUSES.map((s) => {
-            const active = thread.status === s;
-            return (
-              <button
-                key={s}
-                onClick={() => p.onStatus(s)}
-                disabled={p.busy}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 999,
-                  border: `1px solid ${active ? STATUS_COLORS[s] : theme.border_default}`,
-                  background: active ? `${STATUS_COLORS[s]}22` : 'transparent',
-                  color: active ? theme.text_default : theme.text_tertiary,
-                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: STATUS_COLORS[s] }} />
-                {s}
-              </button>
-            );
-          })}
-        </div>
+        <StatusDropdown status={thread.status} busy={p.busy} onChange={p.onStatus} />
       </div>
 
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -834,7 +867,7 @@ const ThreadView: React.FC<{
                     />
                   </div>
                 ) : (
-                  <div style={{ marginTop: 3, fontSize: 13, color: theme.text_secondary, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  <div style={{ marginTop: 3, fontSize: 13, color: theme.text_default, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     {c.content}
                   </div>
                 )}
@@ -913,7 +946,7 @@ const Composer: React.FC<{
 
 const StatusBadge: React.FC<{ status?: CommentStatus }> = ({ status }) => {
   if (!status) return null; // untriaged threads show no badge
-  const color = STATUS_COLORS[status];
+  const { label, color } = STATUS_CONFIG[status];
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
@@ -922,8 +955,101 @@ const StatusBadge: React.FC<{ status?: CommentStatus }> = ({ status }) => {
       whiteSpace: 'nowrap',
     }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
-      {status}
+      {label}
     </span>
+  );
+};
+
+// Custom status picker (portaled menu so the inspector's overflow:hidden doesn't
+// clip it). Collapsed trigger shows the current status — or "No status" — and
+// takes on the status colour, mirroring the list badge. The menu lists "No
+// status" plus each colour-coded status; picking "No status" clears the field.
+const STATUS_MENU: (CommentStatus | null)[] = [null, ...COMMENT_STATUSES];
+
+const StatusDropdown: React.FC<{
+  status?: CommentStatus;
+  busy: boolean;
+  onChange: (s: CommentStatus | null) => void;
+}> = ({ status, busy, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const toggle = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    setOpen((v) => !v);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [open]);
+
+  const color = status ? STATUS_CONFIG[status].color : theme.text_tertiary;
+  const label = status ? STATUS_CONFIG[status].label : 'No status';
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={toggle}
+        disabled={busy}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
+          padding: '5px 10px', borderRadius: 6,
+          border: `1px solid ${status ? color : theme.border_default}`,
+          background: status ? `${color}1f` : theme.bg_secondary,
+          color: status ? theme.text_default : theme.text_secondary,
+          fontSize: 11, fontWeight: 600, cursor: busy ? 'default' : 'pointer', fontFamily: theme.font_ui,
+        }}
+      >
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+        <span>{label}</span>
+        <ChevronDown size={13} style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+      </button>
+      {open && pos && createPortal(
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 2147483646 }} />
+          <div style={{
+            position: 'fixed', top: pos.top, left: pos.left, width: Math.max(pos.width, 160), zIndex: 2147483647,
+            background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4,
+            display: 'flex', flexDirection: 'column', gap: 2, fontFamily: theme.font_ui,
+          }}>
+            {STATUS_MENU.map((s) => {
+              const c = s ? STATUS_CONFIG[s].color : theme.text_tertiary;
+              const itemLabel = s ? STATUS_CONFIG[s].label : 'No status';
+              const selected = (status ?? null) === s;
+              return (
+                <button
+                  key={s ?? 'none'}
+                  onClick={() => { setOpen(false); onChange(s); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 5,
+                    border: 'none', background: selected ? theme.bg_tertiary : 'transparent',
+                    color: theme.text_default, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                    fontFamily: theme.font_ui, textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => { if (!selected) e.currentTarget.style.background = theme.bg_low; }}
+                  onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>{itemLabel}</span>
+                  {selected && <Check size={13} style={{ color: theme.accent_default }} />}
+                </button>
+              );
+            })}
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
   );
 };
 

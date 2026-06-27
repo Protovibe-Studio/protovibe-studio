@@ -45,7 +45,8 @@ export async function deleteComment(threadId: string, commentId: string): Promis
   return data.thread;
 }
 
-export async function updateThreadStatus(threadId: string, status: CommentStatus): Promise<CommentThread> {
+// Pass `null` to clear the status (back to "No status" / untriaged).
+export async function updateThreadStatus(threadId: string, status: CommentStatus | null): Promise<CommentThread> {
   const data = await postJson<{ thread: CommentThread }>('/__comments-update-status', { threadId, status });
   return data.thread;
 }

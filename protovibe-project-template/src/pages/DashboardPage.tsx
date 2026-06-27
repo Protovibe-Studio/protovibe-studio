@@ -162,7 +162,7 @@ export function DashboardPage() {
                 <Container className="flex-row gap-2" data-pv-block="xdjkc1">
                   {/* pv-editable-zone-start:zqe8bz */}
                     {/* pv-block-start:0gfvam */}
-                    <Avatar data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
+                    <Avatar data-pv-comment-thread="k4ypit6d5w" data-pv-block="0gfvam" initials="AB" size="sm" bgColor="default" imageSrc="https://i.pravatar.cc/60?3453" />
                     {/* pv-block-end:0gfvam */}
             
                     {/* pv-block-start:w9x0m7 */}

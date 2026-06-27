@@ -2,14 +2,42 @@
 // Shared type definitions for the Comments & Notes feature.
 // Imported by both the Vite backend (comments-server.ts) and the inspector UI.
 
-/** Collaborative triage state for a whole thread. */
-export type CommentStatus = 'Minor' | 'To review' | 'Closed';
+/**
+ * Collaborative triage state for a whole thread, stored as a stable id.
+ *
+ * These ids are what get persisted in thread files, so they must NEVER be
+ * renamed — to change how a status reads or looks, edit STATUS_CONFIG (label +
+ * colour) in the UI, not the id here. Statuses written by older versions (which
+ * stored the human label, e.g. "To review") are remapped on read by
+ * normalizeStatus(), so old comment files keep working.
+ */
+export type CommentStatus = 'minor' | 'todo' | 'review' | 'closed';
 
+/** Display order of the statuses (also the order they appear in pickers). */
 export const COMMENT_STATUSES: CommentStatus[] = [
-  'Minor',
-  'To review',
-  'Closed',
+  'minor',
+  'todo',
+  'review',
+  'closed',
 ];
+
+/** Legacy persisted values (label-based, pre status-id refactor) → current ids. */
+const LEGACY_STATUS_MAP: Record<string, CommentStatus> = {
+  'Minor': 'minor',
+  'To do': 'todo',
+  'To review': 'review',
+  'Closed': 'closed',
+};
+
+/**
+ * Coerce a raw persisted status — a current id or a legacy label — into a known
+ * CommentStatus, or undefined if it is empty / unrecognised (untriaged).
+ */
+export function normalizeStatus(raw: unknown): CommentStatus | undefined {
+  if (typeof raw !== 'string') return undefined;
+  if ((COMMENT_STATUSES as string[]).includes(raw)) return raw as CommentStatus;
+  return LEGACY_STATUS_MAP[raw];
+}
 
 /** Which Protovibe surface the comment was authored against. */
 export type CommentContextTab = 'app' | 'components' | 'sketchpad';
@@ -55,7 +83,7 @@ export interface CommentItem {
 export interface CommentThread {
   /** Appears in the element's `data-pv-comment-thread` attribute (which may list several ids). */
   id: string;
-  /** Undefined until a reviewer triages the thread (Minor / To review / Closed). */
+  /** Stable status id; undefined until a reviewer triages the thread. */
   status?: CommentStatus;
   context: CommentContext;
   comments: CommentItem[];
