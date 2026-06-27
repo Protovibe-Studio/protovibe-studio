@@ -69,7 +69,7 @@ export function KPIsPage() {
         {/* pv-block-end:kphead1 */}
 
         {/* pv-block-start:chrt001 */}
-        <Card data-pv-comment-thread="7v9arq8ae2" data-pv-comment-thread="gv3nwn2qqx" data-pv-comment-thread="v4pbprngd3" data-pv-comment-thread="1yge0vmj6h c3y9wn8k60 qpkv4lmm11 y3imgvhk6e" className="items-stretch" data-pv-block="chrt001">
+        <Card data-pv-comment-thread="7v9arq8ae2" data-pv-comment-thread="gv3nwn2qqx" data-pv-comment-thread="v4pbprngd3" data-pv-comment-thread="1yge0vmj6h c3y9wn8k60 qpkv4lmm11 y3imgvhk6e 1h3f1po7xl" className="items-stretch" data-pv-block="chrt001">
           {/* pv-editable-zone-start:chrtz01 */}
             {/* pv-block-start:chrth01 */}
             <div data-pv-block="chrth01" className="flex flex-col gap-0 mb-3">

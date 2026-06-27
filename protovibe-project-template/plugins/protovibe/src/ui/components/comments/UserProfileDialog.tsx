@@ -1,6 +1,7 @@
 // plugins/protovibe/src/ui/components/comments/UserProfileDialog.tsx
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Info } from 'lucide-react';
 import { theme } from '../../theme';
 import type { CommentAuthor } from '../../../shared/comments';
 
@@ -82,7 +83,8 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
           border: `1px solid ${theme.border_default}`,
           borderRadius: 12,
           padding: '20px 24px',
-          width: 340,
+          width: 420,
+          maxWidth: 'calc(100vw - 32px)',
           boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
           fontFamily: theme.font_ui,
         }}
@@ -95,12 +97,23 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
           left a comment.
         </div>
         <div style={{
-          fontSize: 12, color: theme.text_secondary, marginBottom: 20, lineHeight: 1.4,
-          padding: '10px 12px', borderRadius: 8,
-          background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
+          marginBottom: 20, padding: '12px 14px', borderRadius: 10,
+          background: `${theme.accent_default}14`, border: `1px solid ${theme.accent_default}40`,
         }}>
-          💾 Comments are saved as <b>files inside the project</b>. Other people won’t see them unless you
-          collaborate via a Git repo and <b>push your changes</b> — so don’t forget to commit and push.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Info size={15} style={{ color: theme.accent_default, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: theme.accent_default }}>
+              Comments are saved as files
+            </span>
+          </div>
+          <ul style={{
+            margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5,
+            fontSize: 12, color: theme.text_secondary, lineHeight: 1.45,
+          }}>
+            <li>Each comment is stored as a file inside your project.</li>
+            <li>Teammates only see your comments if you collaborate via a Git repo.</li>
+            <li>Don’t forget to <b>commit and push</b> your changes.</li>
+          </ul>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

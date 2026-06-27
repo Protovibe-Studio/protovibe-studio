@@ -93,6 +93,22 @@ function contextSummary(ctx: CommentContext | undefined): string {
   return ctx.pathname ? `App · ${ctx.pathname}` : 'App';
 }
 
+// Persisted filter preferences (remembered across sessions). Selection scope
+// defaults to "All comments"; status filter defaults to "all".
+const FILTER_SELECTION_KEY = 'pv-comments-filter-selection';
+const FILTER_STATUS_KEY = 'pv-comments-filter-status';
+
+function loadFilterToSelection(): boolean {
+  try { return localStorage.getItem(FILTER_SELECTION_KEY) === '1'; } catch { return false; }
+}
+function loadStatusFilter(): CommentStatus | 'all' {
+  try {
+    const raw = localStorage.getItem(FILTER_STATUS_KEY);
+    if (raw && (COMMENT_STATUSES as string[]).includes(raw)) return raw as CommentStatus;
+  } catch { /* ignore */ }
+  return 'all';
+}
+
 interface CommentsTabProps {
   activeIframeTab: IframeTab;
 }
@@ -110,8 +126,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   const [replyDraft, setReplyDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
-  const [filterToSelection, setFilterToSelection] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<CommentStatus | 'all'>('all');
+  const [filterToSelection, setFilterToSelection] = useState(loadFilterToSelection);
+  const [statusFilter, setStatusFilter] = useState<CommentStatus | 'all'>(loadStatusFilter);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +153,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   useEffect(() => {
     if (activeThreadId === null) refresh();
   }, [activeThreadId, refresh]);
+
+  // Remember filter preferences across sessions.
+  useEffect(() => {
+    try { localStorage.setItem(FILTER_SELECTION_KEY, filterToSelection ? '1' : '0'); } catch { /* ignore */ }
+  }, [filterToSelection]);
+  useEffect(() => {
+    try { localStorage.setItem(FILTER_STATUS_KEY, statusFilter); } catch { /* ignore */ }
+  }, [statusFilter]);
 
   // Keep in sync after undo/redo of comment files.
   useEffect(() => {
@@ -835,8 +859,8 @@ const ThreadView: React.FC<{
               <CommentAvatar name={c.author.name} email={c.author.email} size={26} mine={mine} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default }}>{c.author.name}</span>
-                  <span style={{ fontSize: 10, color: theme.text_tertiary }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.author.name}</span>
+                  <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
                   <div style={{ flex: 1 }} />
                   {mine && !isEditing && (
                     <>
@@ -1009,7 +1033,7 @@ const StatusDropdown: React.FC<{
           fontSize: 11, fontWeight: 600, cursor: busy ? 'default' : 'pointer', fontFamily: theme.font_ui,
         }}
       >
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+        <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: status ? color : 'transparent', border: status ? 'none' : `1px solid ${theme.text_tertiary}` }} />
         <span>{label}</span>
         <ChevronDown size={13} style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
@@ -1039,7 +1063,7 @@ const StatusDropdown: React.FC<{
                   onMouseEnter={(e) => { if (!selected) e.currentTarget.style.background = theme.bg_low; }}
                   onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, flexShrink: 0 }} />
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: s ? c : 'transparent', border: s ? 'none' : `1px solid ${theme.text_tertiary}` }} />
                   <span style={{ flex: 1 }}>{itemLabel}</span>
                   {selected && <Check size={13} style={{ color: theme.accent_default }} />}
                 </button>

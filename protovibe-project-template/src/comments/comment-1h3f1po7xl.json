@@ -1,0 +1,31 @@
+{
+  "id": "1h3f1po7xl",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/KPIsPage.tsx",
+    "pathname": "/?page=kpis",
+    "url": "/?page=kpis"
+  },
+  "comments": [
+    {
+      "id": "c-s9sg705tb7",
+      "author": {
+        "name": "Anika Gameta Very Long Name",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Testsdf s",
+      "createdAt": "2026-06-27T17:55:51.896Z"
+    },
+    {
+      "id": "c-dediq71osi",
+      "author": {
+        "name": "Anika Gameta Very Long Name",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Tesfds sdf",
+      "createdAt": "2026-06-27T17:55:57.146Z"
+    }
+  ],
+  "createdAt": "2026-06-27T17:55:51.896Z",
+  "anchorFile": "src/pages/KPIsPage.tsx"
+}
