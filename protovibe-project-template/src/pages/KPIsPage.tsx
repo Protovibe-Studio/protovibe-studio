@@ -69,7 +69,7 @@ export function KPIsPage() {
         {/* pv-block-end:kphead1 */}
 
         {/* pv-block-start:chrt001 */}
-        <Card className="items-stretch" data-pv-block="chrt001">
+        <Card data-pv-comment-thread="1yge0vmj6h" className="items-stretch" data-pv-block="chrt001">
           {/* pv-editable-zone-start:chrtz01 */}
             {/* pv-block-start:chrth01 */}
             <div data-pv-block="chrth01" className="flex flex-col gap-0 mb-3">

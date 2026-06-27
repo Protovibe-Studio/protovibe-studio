@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
-  Filter, CornerDownRight, MapPin, Copy, Check,
+  CornerDownRight, MapPin, Copy, Check, Search, X,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
@@ -19,9 +19,15 @@ import {
   COMMENT_ATTR, COMMENT_STATUSES, DEFAULT_COMMENT_STATUS, threadFileName, makeCommentId,
 } from '../../shared/comments';
 import type {
-  CommentThread, CommentAuthor, CommentContext, CommentStatus,
+  CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus,
 } from '../../shared/comments';
 import type { IframeTab } from './ShellNavBar';
+
+/** One comment matched by the search box, with its parent thread for navigation. */
+interface CommentSearchHit {
+  thread: CommentThread;
+  comment: CommentItem;
+}
 
 const STATUS_COLORS: Record<CommentStatus, string> = {
   'Minor': theme.text_tertiary,
@@ -102,7 +108,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   const [replyDraft, setReplyDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
-  const [filterToSelection, setFilterToSelection] = useState(false);
+  const [filterToSelection, setFilterToSelection] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<CommentStatus | 'all'>('all');
+  const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -139,12 +147,33 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     : undefined;
 
   const visibleThreads = useMemo(() => {
-    const base = (filterToSelection && currentBaseTarget)
+    let base = (filterToSelection && currentBaseTarget)
       ? threads.filter((t) => new Set(subtreeIds).has(t.id))
       : threads;
+    if (statusFilter !== 'all') base = base.filter((t) => t.status === statusFilter);
     // Most recently active thread first.
     return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
-  }, [threads, filterToSelection, currentBaseTarget, subtreeIds]);
+  }, [threads, filterToSelection, currentBaseTarget, subtreeIds, statusFilter]);
+
+  // Free-text search runs across every individual comment (not just threads),
+  // newest first. Empty query ⇒ no results and we fall back to the thread list.
+  const searchResults = useMemo<CommentSearchHit[]>(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const hits: CommentSearchHit[] = [];
+    for (const thread of threads) {
+      for (const comment of thread.comments) {
+        if (
+          comment.content.toLowerCase().includes(q) ||
+          comment.author.name.toLowerCase().includes(q)
+        ) {
+          hits.push({ thread, comment });
+        }
+      }
+    }
+    return hits.sort((a, b) =>
+      new Date(b.comment.createdAt).getTime() - new Date(a.comment.createdAt).getTime());
+  }, [threads, query]);
 
   const activeThread = activeThreadId ? threads.find((t) => t.id === activeThreadId) : undefined;
 
@@ -349,8 +378,13 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
           draft={draft}
           setDraft={setDraft}
           busy={busy}
+          query={query}
+          setQuery={setQuery}
+          searchResults={searchResults}
           filterToSelection={filterToSelection}
-          onToggleFilter={() => setFilterToSelection((v) => !v)}
+          setFilterToSelection={setFilterToSelection}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
           onCancelComposer={() => { setComposerOpen(false); setDraft(''); }}
@@ -413,73 +447,244 @@ const ListView: React.FC<{
   draft: string;
   setDraft: (s: string) => void;
   busy: boolean;
+  query: string;
+  setQuery: (s: string) => void;
+  searchResults: CommentSearchHit[];
   filterToSelection: boolean;
-  onToggleFilter: () => void;
+  setFilterToSelection: (v: boolean) => void;
+  statusFilter: CommentStatus | 'all';
+  setStatusFilter: (s: CommentStatus | 'all') => void;
   onAddClick: () => void;
   onSubmitComposer: () => void;
   onCancelComposer: () => void;
   onOpenThread: (t: CommentThread) => void;
-}> = (p) => (
-  <>
-    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-      {p.composerOpen ? (
-        <Composer
-          value={p.draft}
-          onChange={p.setDraft}
-          onSubmit={p.onSubmitComposer}
-          onCancel={p.onCancelComposer}
-          busy={p.busy}
-          placeholder="Write a comment for the selected element…"
-          submitLabel="Comment"
-        />
-      ) : (
-        <button
-          onClick={p.onAddClick}
-          disabled={!p.canComment}
-          data-tooltip={p.canComment ? undefined : 'Select an element on the canvas first'}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            width: '100%', padding: '9px 12px', borderRadius: 6, border: 'none',
-            background: p.canComment ? theme.accent_default : theme.bg_tertiary,
-            color: p.canComment ? '#fff' : theme.text_tertiary,
-            fontSize: 13, fontWeight: 600, cursor: p.canComment ? 'pointer' : 'not-allowed',
-            fontFamily: theme.font_ui,
-          }}
-        >
-          <MessageSquarePlus size={15} />
-          {p.selectedHasThread ? 'View comment on selection' : 'Add comment'}
-        </button>
-      )}
+}> = (p) => {
+  const searching = p.query.trim().length > 0;
+  return (
+    <>
+      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+        {p.composerOpen ? (
+          <Composer
+            value={p.draft}
+            onChange={p.setDraft}
+            onSubmit={p.onSubmitComposer}
+            onCancel={p.onCancelComposer}
+            busy={p.busy}
+            placeholder="Write a comment for the selected element…"
+            submitLabel="Comment"
+          />
+        ) : (
+          <button
+            onClick={p.onAddClick}
+            disabled={!p.canComment}
+            data-tooltip={p.canComment ? undefined : 'Select an element on the canvas first'}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%', padding: '9px 12px', borderRadius: 6, border: 'none',
+              background: p.canComment ? theme.accent_default : theme.bg_tertiary,
+              color: p.canComment ? '#fff' : theme.text_tertiary,
+              fontSize: 13, fontWeight: 600, cursor: p.canComment ? 'pointer' : 'not-allowed',
+              fontFamily: theme.font_ui,
+            }}
+          >
+            <MessageSquarePlus size={15} />
+            {p.selectedHasThread ? 'View comment on selection' : 'Add comment'}
+          </button>
+        )}
 
-      {p.hasSelection && p.totalCount > 0 && (
-        <button
-          onClick={p.onToggleFilter}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-            background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
-            color: p.filterToSelection ? theme.accent_default : theme.text_tertiary, fontSize: 11, fontFamily: theme.font_ui,
-          }}
-        >
-          <Filter size={12} />
-          {p.filterToSelection ? 'Showing only this element' : 'Filter to selected element'}
-        </button>
-      )}
-    </div>
+        <SearchField value={p.query} onChange={p.setQuery} />
+      </div>
 
-    <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-      {p.threads.length === 0 ? (
-        <div style={{ padding: '40px 24px', textAlign: 'center', color: theme.text_tertiary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <MessageSquare size={40} strokeWidth={1.5} style={{ opacity: 0.5 }} />
-          <span style={{ fontSize: 13 }}>
-            {p.filterToSelection ? 'No comments on this element yet.' : 'No comments yet. Select an element and add the first one.'}
-          </span>
+      {/* Filters sit below the divider and are hidden while searching, since
+          search spans every comment regardless of selection or status. */}
+      {!searching && (
+        <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+          <Segmented
+            value={p.filterToSelection ? 'selection' : 'all'}
+            onChange={(v) => p.setFilterToSelection(v === 'selection')}
+            options={[
+              { val: 'all', label: 'All comments' },
+              { val: 'selection', label: 'Selection only' },
+            ]}
+          />
+          <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
         </div>
-      ) : (
-        p.threads.map((t) => <ThreadListItem key={t.id} thread={t} user={p.user} onClick={() => p.onOpenThread(t)} />)
       )}
-    </div>
-  </>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+        {searching ? (
+          p.searchResults.length === 0 ? (
+            <EmptyState text={`No comments match “${p.query.trim()}”.`} />
+          ) : (
+            p.searchResults.map((hit) => (
+              <SearchResultItem
+                key={`${hit.thread.id}-${hit.comment.id}`}
+                hit={hit}
+                user={p.user}
+                query={p.query.trim()}
+                onClick={() => p.onOpenThread(hit.thread)}
+              />
+            ))
+          )
+        ) : p.threads.length === 0 ? (
+          <EmptyState text={
+            p.statusFilter !== 'all'
+              ? `No ${p.statusFilter} comments.`
+              : p.filterToSelection
+                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to All comments.')
+                : 'No comments yet. Select an element and add the first one.'
+          } />
+        ) : (
+          p.threads.map((t) => <ThreadListItem key={t.id} thread={t} user={p.user} onClick={() => p.onOpenThread(t)} />)
+        )}
+      </div>
+    </>
+  );
+};
+
+const EmptyState: React.FC<{ text: string }> = ({ text }) => (
+  <div style={{ padding: '40px 24px', textAlign: 'center', color: theme.text_tertiary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+    <MessageSquare size={40} strokeWidth={1.5} style={{ opacity: 0.5 }} />
+    <span style={{ fontSize: 13 }}>{text}</span>
+  </div>
 );
+
+const SearchField: React.FC<{ value: string; onChange: (s: string) => void }> = ({ value, onChange }) => (
+  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+    <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => { if (e.key === 'Escape' && value) { e.preventDefault(); onChange(''); } }}
+      placeholder="Search all comments…"
+      style={{
+        width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px',
+        background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
+        color: theme.text_default, fontSize: 12, outline: 'none', fontFamily: theme.font_ui,
+      }}
+    />
+    {value && (
+      <button onClick={() => onChange('')} data-tooltip="Clear search" style={{ position: 'absolute', right: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0 }}>
+        <X size={13} />
+      </button>
+    )}
+  </div>
+);
+
+// Inspector-style segmented control (self-contained; no source mutation).
+const Segmented: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  options: { val: string; label: string }[];
+}> = ({ value, onChange, options }) => (
+  <div style={{ display: 'flex', background: theme.bg_secondary, borderRadius: 4, border: `1px solid ${theme.border_default}`, overflow: 'hidden' }}>
+    {options.map((o, idx) => {
+      const active = value === o.val;
+      return (
+        <React.Fragment key={o.val}>
+          {idx > 0 && <div style={{ width: 1, background: theme.border_default }} />}
+          <button
+            onClick={() => onChange(o.val)}
+            style={{
+              flex: 1, padding: '5px 8px', border: 'none', cursor: 'pointer',
+              background: active ? theme.bg_tertiary : 'transparent',
+              color: active ? theme.accent_default : theme.text_tertiary,
+              fontSize: 11, fontWeight: 600, fontFamily: theme.font_ui,
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            {o.label}
+          </button>
+        </React.Fragment>
+      );
+    })}
+  </div>
+);
+
+// Single-select status filter rendered as small toggle pills.
+const StatusFilter: React.FC<{
+  value: CommentStatus | 'all';
+  onChange: (s: CommentStatus | 'all') => void;
+}> = ({ value, onChange }) => {
+  const options: (CommentStatus | 'all')[] = ['all', ...COMMENT_STATUSES];
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {options.map((s) => {
+        const active = value === s;
+        const color = s === 'all' ? theme.text_secondary : STATUS_COLORS[s];
+        return (
+          <button
+            key={s}
+            onClick={() => onChange(s)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999,
+              border: `1px solid ${active ? color : theme.border_default}`,
+              background: active ? `${color}22` : 'transparent',
+              color: active ? theme.text_default : theme.text_tertiary,
+              fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
+            }}
+          >
+            {s !== 'all' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />}
+            {s === 'all' ? 'All' : s}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+const SearchResultItem: React.FC<{
+  hit: CommentSearchHit;
+  user: CommentAuthor | null;
+  query: string;
+  onClick: () => void;
+}> = ({ hit, user, query, onClick }) => {
+  const { thread, comment } = hit;
+  const dimmed = thread.status === 'Closed';
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 6, width: '100%', textAlign: 'left',
+        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_tertiary}`,
+        cursor: 'pointer', fontFamily: theme.font_ui, opacity: dimmed ? 0.55 : 1,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <CommentAvatar name={comment.author.name} email={comment.author.email} size={22} mine={authorIsMe(user, comment.author)} />
+        <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {comment.author.name}
+        </span>
+        <StatusBadge status={thread.status} />
+      </div>
+      <span style={{ fontSize: 12, color: theme.text_secondary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <Highlight text={comment.content} query={query} />
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: theme.text_tertiary }}>
+        <span>{contextSummary(thread.context)}</span>
+        <span>·</span>
+        <span>{relativeTime(comment.createdAt)}</span>
+      </div>
+    </button>
+  );
+};
+
+// Highlights the matched substring within a comment snippet.
+const Highlight: React.FC<{ text: string; query: string }> = ({ text, query }) => {
+  const i = text.toLowerCase().indexOf(query.toLowerCase());
+  if (i < 0 || !query) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, i)}
+      <span style={{ background: `${theme.warning_primary}44`, color: theme.text_default, borderRadius: 2 }}>
+        {text.slice(i, i + query.length)}
+      </span>
+      {text.slice(i + query.length)}
+    </>
+  );
+};
 
 const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; onClick: () => void }> = ({ thread, user, onClick }) => {
   // Surface the most recent message so the list reflects fresh activity.
