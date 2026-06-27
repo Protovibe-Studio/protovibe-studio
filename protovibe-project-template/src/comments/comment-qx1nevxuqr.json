@@ -1,0 +1,23 @@
+{
+  "id": "qx1nevxuqr",
+  "status": "To review",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/KPIsPage.tsx",
+    "pathname": "/?page=kpis",
+    "url": "/?page=kpis"
+  },
+  "comments": [
+    {
+      "id": "c-ynlj3aacs9",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": ""
+      },
+      "content": "Test KPI",
+      "createdAt": "2026-06-27T16:40:07.617Z"
+    }
+  ],
+  "createdAt": "2026-06-27T16:40:07.617Z",
+  "anchorFile": "src/pages/KPIsPage.tsx"
+}

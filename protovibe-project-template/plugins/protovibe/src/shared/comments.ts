@@ -3,13 +3,16 @@
 // Imported by both the Vite backend (comments-server.ts) and the inspector UI.
 
 /** Collaborative triage state for a whole thread. */
-export type CommentStatus = 'No action required' | 'To revisit' | 'Done';
+export type CommentStatus = 'Minor' | 'To review' | 'Closed';
 
 export const COMMENT_STATUSES: CommentStatus[] = [
-  'No action required',
-  'To revisit',
-  'Done',
+  'Minor',
+  'To review',
+  'Closed',
 ];
+
+/** Status applied to a freshly created thread. */
+export const DEFAULT_COMMENT_STATUS: CommentStatus = 'To review';
 
 /** Which Protovibe surface the comment was authored against. */
 export type CommentContextTab = 'app' | 'components' | 'sketchpad';

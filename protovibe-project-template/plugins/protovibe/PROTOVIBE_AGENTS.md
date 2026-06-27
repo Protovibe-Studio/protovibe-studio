@@ -801,7 +801,7 @@ Git-commit style).
 ```jsonc
 {
   "id": "ab12cd34ef",
-  "status": "To revisit",          // "No action required" | "To revisit" | "Done"
+  "status": "To review",           // "Minor" | "To review" | "Closed"
   "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
   "comments": [
     { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },

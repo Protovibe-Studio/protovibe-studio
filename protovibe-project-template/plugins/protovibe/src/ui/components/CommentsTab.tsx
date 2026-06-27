@@ -1,8 +1,9 @@
 // plugins/protovibe/src/ui/components/CommentsTab.tsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
-  Filter, CornerDownRight, MapPin,
+  Filter, CornerDownRight, MapPin, Copy, Check,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
@@ -15,7 +16,7 @@ import { useCommentUser, authorIsMe } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
-  COMMENT_ATTR, COMMENT_STATUSES, threadFileName, makeCommentId,
+  COMMENT_ATTR, COMMENT_STATUSES, DEFAULT_COMMENT_STATUS, threadFileName, makeCommentId,
 } from '../../shared/comments';
 import type {
   CommentThread, CommentAuthor, CommentContext, CommentStatus,
@@ -23,9 +24,9 @@ import type {
 import type { IframeTab } from './ShellNavBar';
 
 const STATUS_COLORS: Record<CommentStatus, string> = {
-  'No action required': theme.text_tertiary,
-  'To revisit': theme.warning_primary,
-  'Done': theme.success_default,
+  'Minor': theme.text_tertiary,
+  'To review': theme.warning_primary,
+  'Closed': theme.success_default,
 };
 
 function relativeTime(iso: string): string {
@@ -40,6 +41,18 @@ function relativeTime(iso: string): string {
   const days = Math.round(hrs / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+/** The newest message in a thread — shown in the list and used for sorting. */
+function latestComment(thread: CommentThread) {
+  return thread.comments[thread.comments.length - 1];
+}
+
+/** Epoch ms of a thread's most recent activity (newest comment, else createdAt). */
+function lastActivity(thread: CommentThread): number {
+  const last = latestComment(thread);
+  const t = new Date(last?.createdAt || thread.createdAt).getTime();
+  return isNaN(t) ? 0 : t;
 }
 
 function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
@@ -126,11 +139,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     : undefined;
 
   const visibleThreads = useMemo(() => {
-    if (filterToSelection && currentBaseTarget) {
-      const want = new Set(subtreeIds);
-      return threads.filter((t) => want.has(t.id));
-    }
-    return threads;
+    const base = (filterToSelection && currentBaseTarget)
+      ? threads.filter((t) => new Set(subtreeIds).has(t.id))
+      : threads;
+    // Most recently active thread first.
+    return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
   }, [threads, filterToSelection, currentBaseTarget, subtreeIds]);
 
   const activeThread = activeThreadId ? threads.find((t) => t.id === activeThreadId) : undefined;
@@ -162,8 +175,13 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     const win = currentBaseTarget?.ownerDocument?.defaultView;
     if (activeIframeTab === 'app') {
       try {
-        ctx.url = win?.location?.href;
-        ctx.pathname = win?.location?.pathname;
+        // Store only the part after the hostname (path + query + hash). The host
+        // can differ between sessions/devices, but the relative target is stable
+        // and is what we re-navigate the app iframe to when the comment is opened.
+        const loc = win?.location;
+        const rel = loc ? loc.pathname + loc.search + loc.hash : undefined;
+        ctx.pathname = rel;
+        ctx.url = rel;
       } catch { /* cross-origin guard */ }
     } else if (activeIframeTab === 'components') {
       const compEl = currentBaseTarget?.closest('[data-pv-component-id]') as HTMLElement | null;
@@ -189,7 +207,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     const nowIso = new Date().toISOString();
     const thread: CommentThread = {
       id,
-      status: 'No action required',
+      status: DEFAULT_COMMENT_STATUS,
       context: buildContext(),
       comments: [{ id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso }],
       createdAt: nowIso,
@@ -247,7 +265,6 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId));
 
   const handleDeleteThread = (thread: CommentThread) => {
-    if (!confirm('Delete this whole thread? This removes the comment marker from the element.')) return;
     setBusy(true);
     setError(null);
     const anchor = thread.anchorFile || thread.context?.file;
@@ -465,33 +482,35 @@ const ListView: React.FC<{
 );
 
 const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; onClick: () => void }> = ({ thread, user, onClick }) => {
-  const first = thread.comments[0];
+  // Surface the most recent message so the list reflects fresh activity.
+  const latest = latestComment(thread);
   const replies = thread.comments.length - 1;
+  const dimmed = thread.status === 'Closed';
   return (
     <button
       onClick={onClick}
       style={{
         display: 'flex', flexDirection: 'column', gap: 6, width: '100%', textAlign: 'left',
         padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_tertiary}`,
-        cursor: 'pointer', fontFamily: theme.font_ui,
+        cursor: 'pointer', fontFamily: theme.font_ui, opacity: dimmed ? 0.55 : 1,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {first && <CommentAvatar name={first.author.name} email={first.author.email} size={22} mine={authorIsMe(user, first.author)} />}
+        {latest && <CommentAvatar name={latest.author.name} email={latest.author.email} size={22} mine={authorIsMe(user, latest.author)} />}
         <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {first?.author.name || 'Unknown'}
+          {latest?.author.name || 'Unknown'}
         </span>
-        <StatusDot status={thread.status} />
+        <StatusBadge status={thread.status} />
       </div>
       <span style={{ fontSize: 12, color: theme.text_secondary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {first?.content}
+        {latest?.content}
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: theme.text_tertiary }}>
         <span>{contextSummary(thread.context)}</span>
         <span>·</span>
-        <span>{first ? relativeTime(first.createdAt) : ''}</span>
+        <span>{latest ? relativeTime(latest.createdAt) : ''}</span>
         {replies > 0 && (<><span>·</span><span>{replies} {replies === 1 ? 'reply' : 'replies'}</span></>)}
       </div>
     </button>
@@ -517,16 +536,33 @@ const ThreadView: React.FC<{
   onLocate: () => void;
 }> = (p) => {
   const { thread } = p;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // Jump to the newest comment whenever the thread opens or a message is added.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [thread.id, thread.comments.length]);
   return (
     <>
-      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: theme.text_secondary, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+            Comment {thread.id}
+          </span>
+          <CopyIdButton id={thread.id} />
+          <div style={{ flex: 1 }} />
+          <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtn}><MapPin size={14} /></button>
+          <ConfirmDeleteButton
+            tooltip="Delete thread"
+            message="Delete this whole thread? This removes the comment marker from the element."
+            confirmLabel="Delete thread"
+            onConfirm={p.onDeleteThread}
+          />
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MapPin size={12} style={{ color: theme.text_tertiary, flexShrink: 0 }} />
           <span style={{ fontSize: 11, color: theme.text_tertiary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {contextSummary(thread.context)}
           </span>
-          <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtn}><MapPin size={14} /></button>
-          <button onClick={p.onDeleteThread} data-tooltip="Delete thread" style={iconBtn}><Trash2 size={14} /></button>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {COMMENT_STATUSES.map((s) => {
@@ -552,7 +588,7 @@ const ThreadView: React.FC<{
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {thread.comments.map((c, idx) => {
           const isEditing = p.editingId === c.id;
           const mine = authorIsMe(p.user, c.author);
@@ -568,7 +604,14 @@ const ThreadView: React.FC<{
                     <>
                       <button onClick={() => { p.setEditingId(c.id); p.setEditingText(c.content); }} data-tooltip="Edit" style={iconBtnSm}><Pencil size={12} /></button>
                       {idx > 0 && (
-                        <button onClick={() => p.onDeleteReply(c.id)} data-tooltip="Delete" style={iconBtnSm}><Trash2 size={12} /></button>
+                        <ConfirmDeleteButton
+                          tooltip="Delete"
+                          message="Delete this comment?"
+                          confirmLabel="Delete"
+                          iconSize={12}
+                          style={iconBtnSm}
+                          onConfirm={() => p.onDeleteReply(c.id)}
+                        />
                       )}
                     </>
                   )}
@@ -663,11 +706,97 @@ const Composer: React.FC<{
   </div>
 );
 
-const StatusDot: React.FC<{ status: CommentStatus }> = ({ status }) => (
-  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: theme.text_tertiary }}>
-    <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[status] }} />
-  </span>
-);
+const StatusBadge: React.FC<{ status: CommentStatus }> = ({ status }) => {
+  const color = STATUS_COLORS[status];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
+      padding: '2px 7px', borderRadius: 999, background: `${color}22`,
+      color, fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
+      {status}
+    </span>
+  );
+};
+
+// Copy-to-clipboard button for a thread id, with a transient check confirmation.
+const CopyIdButton: React.FC<{ id: string }> = ({ id }) => {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    try { navigator.clipboard?.writeText(id); } catch { /* ignore */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={copy} data-tooltip="Copy comment ID" style={iconBtnSm}>
+      {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+};
+
+// A trash button that opens a small floating confirmation card (portaled to body
+// so the inspector's overflow:hidden doesn't clip it) instead of a native prompt.
+const ConfirmDeleteButton: React.FC<{
+  tooltip: string;
+  message: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  iconSize?: number;
+  style?: React.CSSProperties;
+}> = ({ tooltip, message, confirmLabel, onConfirm, iconSize = 14, style }) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const toggle = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
+    setOpen((v) => !v);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button ref={btnRef} onClick={toggle} data-tooltip={tooltip} style={style || iconBtn}>
+        <Trash2 size={iconSize} />
+      </button>
+      {open && pos && createPortal(
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 2147483646 }} />
+          <div style={{
+            position: 'fixed', top: pos.top, right: pos.right, zIndex: 2147483647, width: 224,
+            background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 12,
+            display: 'flex', flexDirection: 'column', gap: 10, fontFamily: theme.font_ui,
+          }}>
+            <span style={{ fontSize: 12, color: theme.text_secondary, lineHeight: 1.4 }}>{message}</span>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setOpen(false)} style={{ padding: '5px 10px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
+                Cancel
+              </button>
+              <button onClick={() => { setOpen(false); onConfirm(); }} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: theme.destructive_default, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui }}>
+                {confirmLabel}
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
+  );
+};
 
 const iconBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,

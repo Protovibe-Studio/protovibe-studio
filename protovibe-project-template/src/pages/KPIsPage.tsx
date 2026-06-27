@@ -75,7 +75,7 @@ export function KPIsPage() {
             <div data-pv-block="chrth01" className="flex flex-col gap-0 mb-3">
               {/* pv-editable-zone-start:chrthz1 */}
                 {/* pv-block-start:chrtt01 */}
-                <TextHeading data-pv-block="chrtt01" typography="heading-sm">
+                <TextHeading data-pv-comment-thread="qx1nevxuqr" data-pv-block="chrtt01" typography="heading-sm">
                   Plots foiled per quarter (it's not us, it's the heroes)
                 </TextHeading>
                 {/* pv-block-end:chrtt01 */}

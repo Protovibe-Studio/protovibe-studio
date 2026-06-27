@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { Connect, ViteDevServer } from 'vite';
 import type { CommentThread, CommentItem, CommentStatus } from '../shared/comments';
-import { COMMENT_STATUSES, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
+import { COMMENT_STATUSES, DEFAULT_COMMENT_STATUS, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
 
 const COMMENTS_DIR = path.resolve(process.cwd(), COMMENTS_DIR_REL);
 const REGISTRY_PATH = path.resolve(process.cwd(), 'src/sketchpads/_registry.json');
@@ -176,7 +176,7 @@ export const handleCommentCreateThread: Connect.NextHandleFunction = async (req,
 
     const fullThread: CommentThread = {
       id: thread.id,
-      status: isValidStatus(thread.status) ? thread.status : 'No action required',
+      status: isValidStatus(thread.status) ? thread.status : DEFAULT_COMMENT_STATUS,
       context: { tab: 'app', ...(thread.context || {}), file },
       comments: Array.isArray(thread.comments) ? thread.comments : [],
       createdAt: thread.createdAt || new Date().toISOString(),
