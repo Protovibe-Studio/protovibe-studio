@@ -32,6 +32,20 @@ export function useCommentUser() {
   return { user, saveUser };
 }
 
+/**
+ * Whether a comment author is the locally-stored user. Email is the stable
+ * identity when present; otherwise we fall back to the display name. Mirrors
+ * the check already used to gate edit/delete buttons.
+ */
+export function authorIsMe(
+  user: CommentAuthor | null,
+  author: { name: string; email?: string },
+): boolean {
+  if (!user) return false;
+  if (user.email && author.email) return user.email === author.email;
+  return user.name === author.name;
+}
+
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';

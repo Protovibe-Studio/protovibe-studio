@@ -17,6 +17,8 @@ import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
+import { COMMENT_ATTR } from '../shared/comments';
+import type { CommentContext } from '../shared/comments';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -36,7 +38,7 @@ export const ProtovibeApp: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
-  const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme } = useProtovibe();
+  const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -157,6 +159,83 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-open-component-preview', handler);
   }, [handleIframeTabChange]);
 
+  // Bring a comment's anchored element into view. Retries across iframes because
+  // the element may only appear after a tab switch or an app-iframe navigation.
+  const focusThreadElement = useCallback((threadId: string) => {
+    const sel = `[${COMMENT_ATTR}="${threadId}"]`;
+    let attempts = 0;
+    const tryFind = () => {
+      let el: HTMLElement | null = null;
+      for (const iframe of Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[]) {
+        el = (iframe.contentDocument?.querySelector(sel) as HTMLElement | null) ?? null;
+        if (el) break;
+      }
+      if (!el) el = document.querySelector(sel) as HTMLElement | null;
+      if (el) {
+        focusElement(el, true);
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); } catch {}
+        return;
+      }
+      attempts++;
+      if (attempts < 25) setTimeout(tryFind, 150);
+    };
+    setTimeout(tryFind, 120);
+  }, [focusElement]);
+
+  // The comments panel asks us to bring a thread's saved context into view.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { context, threadId } = (e as CustomEvent<{ context?: CommentContext; threadId: string }>).detail || {};
+      if (!context || !threadId) return;
+
+      if (context.tab === 'sketchpad') {
+        handleIframeTabChange('sketchpad');
+        // Defer so the iframe has non-zero dimensions before computing a transform.
+        requestAnimationFrame(() => {
+          sketchpadIframeRef.current?.contentWindow?.postMessage({
+            type: 'PV_SKETCHPAD_FOCUS',
+            sketchpadId: context.sketchpadId,
+            frameId: context.frameId,
+            position: context.position,
+          }, '*');
+        });
+        return;
+      }
+
+      if (context.tab === 'components') {
+        handleIframeTabChange('components');
+        if (context.file) {
+          componentsIframeRef.current?.contentWindow?.postMessage(
+            { type: 'PV_OPEN_COMPONENT', filePath: context.file, currentProps: {} },
+            '*',
+          );
+        }
+        focusThreadElement(threadId);
+        return;
+      }
+
+      // App: switch tab, navigate the iframe to the saved path when it differs,
+      // then select + scroll to the element (the retry loop covers reload delay).
+      handleIframeTabChange('app');
+      const win = appIframeRef.current?.contentWindow;
+      let targetPath = context.pathname;
+      if (!targetPath && context.url) {
+        try { const u = new URL(context.url); targetPath = u.pathname + u.search; } catch { /* ignore */ }
+      }
+      if (win && targetPath) {
+        try {
+          const current = win.location.pathname + win.location.search;
+          if (current !== targetPath) win.location.href = targetPath;
+        } catch {
+          win.location.href = targetPath;
+        }
+      }
+      focusThreadElement(threadId);
+    };
+    window.addEventListener('pv-comment-navigate', handler);
+    return () => window.removeEventListener('pv-comment-navigate', handler);
+  }, [handleIframeTabChange, focusThreadElement]);
+
   // Forward zoom shortcuts to the sketchpad iframe when it's the active tab
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -235,6 +314,9 @@ export const ProtovibeApp: React.FC = () => {
         Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
           iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
         });
+        // Keep the comments panel in sync — an undone thread/reply must drop out
+        // of the list (and out of any open thread view).
+        window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
         emitToast({ message: formatUndoRedoMessage('Undo', res), variant: 'info', durationMs: 1600 });
       } else {
         emitToast({ message: 'Nothing to undo', variant: 'error', durationMs: 800 });

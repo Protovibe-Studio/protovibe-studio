@@ -1,0 +1,29 @@
+{
+  "id": "u31uln9v23",
+  "status": "Done",
+  "context": {
+    "tab": "sketchpad",
+    "file": "src/sketchpads/sketchpad-1/frame-q7uevh.tsx",
+    "position": {
+      "x": 292,
+      "y": 185
+    },
+    "sketchpadId": "sketchpad-1",
+    "frameId": "frame-q7uevh",
+    "sketchpadName": "Sketchpad 1",
+    "frameName": "Frame 1"
+  },
+  "comments": [
+    {
+      "id": "c-nlti1jgsoi",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": ""
+      },
+      "content": "Test",
+      "createdAt": "2026-06-27T16:03:54.419Z"
+    }
+  ],
+  "createdAt": "2026-06-27T16:03:54.419Z",
+  "anchorFile": "src/sketchpads/sketchpad-1/frame-q7uevh.tsx"
+}

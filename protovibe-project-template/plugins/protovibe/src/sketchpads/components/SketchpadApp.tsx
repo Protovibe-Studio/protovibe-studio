@@ -445,6 +445,59 @@ export function SketchpadApp() {
   useEffect(() => { transformRef.current = transform; }, [transform]);
   const activeSketchpadRef = useRef(activeSketchpad);
   useEffect(() => { activeSketchpadRef.current = activeSketchpad; }, [activeSketchpad]);
+  const sketchpadsRef = useRef(sketchpads);
+  useEffect(() => { sketchpadsRef.current = sketchpads; }, [sketchpads]);
+
+  // A comment in the Comments panel was opened — bring its frame (and the
+  // commented element's coordinates) into view: switch sketchpad if needed,
+  // select the frame, and re-center the canvas on the anchored point.
+  useEffect(() => {
+    const onFocus = (e: MessageEvent) => {
+      if (e.data?.type !== 'PV_SKETCHPAD_FOCUS') return;
+      const { sketchpadId, frameId, position } = e.data as {
+        sketchpadId?: string;
+        frameId?: string;
+        position?: { x: number; y: number };
+      };
+      const sp = sketchpadId
+        ? sketchpadsRef.current.find((s) => s.id === sketchpadId)
+        : activeSketchpadRef.current;
+      if (!sp) return;
+
+      if (sp.id !== activeSketchpadId) {
+        setActiveSketchpadId(sp.id);
+        setSelectedFrameIds([]);
+        loadAllFrameModules(sp.id, sp.frames);
+      }
+
+      const frame = frameId ? sp.frames.find((f) => f.id === frameId) : sp.frames[0];
+      if (!frame) return;
+
+      // Wait for the iframe to have real dimensions (it may have just been
+      // un-hidden by the tab switch), then center on the element's point.
+      let tries = 0;
+      const apply = () => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) {
+          if (tries++ < 20) setTimeout(apply, 80);
+          return;
+        }
+        setSelectedFrameIds([frame.id]);
+        const zoom = 0.8;
+        const px = frame.canvasX + (position ? position.x : frame.width / 2);
+        const py = frame.canvasY + (position ? position.y : frame.height / 2);
+        setTransform({
+          zoom,
+          panX: rect.width / 2 - px * zoom,
+          panY: rect.height / 2 - py * zoom,
+        });
+      };
+      setTimeout(apply, 60);
+    };
+    window.addEventListener('message', onFocus);
+    return () => window.removeEventListener('message', onFocus);
+  }, [activeSketchpadId, loadAllFrameModules]);
+
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.data?.type !== 'PV_SKETCHPAD_TAB_OPENED') return;

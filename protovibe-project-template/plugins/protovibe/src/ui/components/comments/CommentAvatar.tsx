@@ -2,21 +2,25 @@
 import React from 'react';
 import { getInitials } from '../../hooks/useCommentUser';
 
-// Deterministic accent per author so avatars stay visually stable across renders.
-const PALETTE = ['#39a9ff', '#1ABC9C', '#F2C94C', '#F24822', '#9B59B6', '#386ad1'];
+// Identity-based colouring: the local user's own avatar is a solid blue with
+// white text; everyone else gets a neutral white chip with dark text. This makes
+// "which comments are mine" readable at a glance without a legend.
+const MINE_BG = '#386ad1';
+const MINE_FG = '#ffffff';
+const OTHER_BG = '#f1f1f1';
+const OTHER_FG = '#0d0d0d';
 
-function colorFor(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return PALETTE[hash % PALETTE.length];
-}
-
-export const CommentAvatar: React.FC<{ name: string; email?: string; size?: number }> = ({
+export const CommentAvatar: React.FC<{
+  name: string;
+  email?: string;
+  size?: number;
+  mine?: boolean;
+}> = ({
   name,
-  email,
+  email: _email,
   size = 24,
+  mine = false,
 }) => {
-  const bg = colorFor(email || name || '?');
   return (
     <div
       aria-hidden="true"
@@ -25,8 +29,9 @@ export const CommentAvatar: React.FC<{ name: string; email?: string; size?: numb
         height: size,
         flexShrink: 0,
         borderRadius: '50%',
-        background: bg,
-        color: '#0d0d0d',
+        background: mine ? MINE_BG : OTHER_BG,
+        color: mine ? MINE_FG : OTHER_FG,
+        boxShadow: mine ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.12)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -76,7 +76,7 @@ export function DashboardPage() {
                   <div data-pv-block="7lddhq" className="flex flex-col gap-2">
                     {/* pv-editable-zone-start:iugucc */}
                     {/* pv-block-start:hzrzb5 */}
-                    <TextHeading data-pv-block="hzrzb5" typography="heading-sm">
+                    <TextHeading data-pv-comment-thread="o06bg64q3s" data-pv-block="hzrzb5" typography="heading-sm">
                       Single-click selects, double-click interacts
                     </TextHeading>
                     {/* pv-block-end:hzrzb5 */}

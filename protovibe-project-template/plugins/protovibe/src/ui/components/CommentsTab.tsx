@@ -11,7 +11,7 @@ import {
   fetchCommentThreads, createCommentThread, replyToThread, editComment,
   deleteComment, updateThreadStatus, deleteThread as deleteThreadApi,
 } from '../api/comments';
-import { useCommentUser } from '../hooks/useCommentUser';
+import { useCommentUser, authorIsMe } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
@@ -54,14 +54,15 @@ function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
   return Array.from(ids);
 }
 
-// Find a commented element across all canvas iframes by its thread id.
-function findThreadElement(id: string): HTMLElement | null {
-  const sel = `[${COMMENT_ATTR}="${id}"]`;
-  for (const iframe of Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[]) {
-    const el = iframe.contentDocument?.querySelector(sel) as HTMLElement | null;
-    if (el) return el;
-  }
-  return (document.querySelector(sel) as HTMLElement | null);
+// Ask the shell to bring the comment's context into view: switch to the right
+// surface (App / Sketchpad / Components), navigate the app iframe to the saved
+// URL or the sketchpad to the saved frame + coordinates, then select & scroll to
+// the anchored element. The heavy lifting lives in ProtovibeApp, which owns the
+// iframe refs and tab-switching.
+function navigateToThread(thread: CommentThread) {
+  window.dispatchEvent(new CustomEvent('pv-comment-navigate', {
+    detail: { context: thread.context, threadId: thread.id },
+  }));
 }
 
 function contextSummary(ctx: CommentContext | undefined): string {
@@ -77,7 +78,7 @@ interface CommentsTabProps {
 
 export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => {
   const {
-    currentBaseTarget, activeData, activeSourceId, runLockedMutation, focusElement,
+    currentBaseTarget, activeData, activeSourceId, runLockedMutation,
   } = useProtovibe();
   const { user, saveUser } = useCommentUser();
 
@@ -267,8 +268,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
-    const el = findThreadElement(thread.id);
-    if (el) focusElement(el, true);
+    navigateToThread(thread);
   };
 
   const handleAddCommentClick = () => {
@@ -318,10 +318,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
           onEditSave={(cid) => handleEditSave(activeThread, cid)}
           onDeleteReply={(cid) => handleDeleteReply(activeThread, cid)}
           onDeleteThread={() => handleDeleteThread(activeThread)}
-          onLocate={() => { const el = findThreadElement(activeThread.id); if (el) focusElement(el, true); }}
+          onLocate={() => navigateToThread(activeThread)}
         />
       ) : (
         <ListView
+          user={user}
           threads={visibleThreads}
           totalCount={threads.length}
           canComment={canComment}
@@ -373,7 +374,7 @@ const Header: React.FC<{
     </div>
     {user ? (
       <button onClick={onEditProfile} data-tooltip={`${user.name} — edit profile`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-        <CommentAvatar name={user.name} email={user.email} size={24} />
+        <CommentAvatar name={user.name} email={user.email} size={24} mine />
       </button>
     ) : (
       <button onClick={onEditProfile} style={{ background: 'transparent', border: 'none', color: theme.accent_default, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
@@ -385,6 +386,7 @@ const Header: React.FC<{
 
 // ── list view ──────────────────────────────────────────────────────────────────
 const ListView: React.FC<{
+  user: CommentAuthor | null;
   threads: CommentThread[];
   totalCount: number;
   canComment: boolean;
@@ -456,13 +458,13 @@ const ListView: React.FC<{
           </span>
         </div>
       ) : (
-        p.threads.map((t) => <ThreadListItem key={t.id} thread={t} onClick={() => p.onOpenThread(t)} />)
+        p.threads.map((t) => <ThreadListItem key={t.id} thread={t} user={p.user} onClick={() => p.onOpenThread(t)} />)
       )}
     </div>
   </>
 );
 
-const ThreadListItem: React.FC<{ thread: CommentThread; onClick: () => void }> = ({ thread, onClick }) => {
+const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; onClick: () => void }> = ({ thread, user, onClick }) => {
   const first = thread.comments[0];
   const replies = thread.comments.length - 1;
   return (
@@ -477,7 +479,7 @@ const ThreadListItem: React.FC<{ thread: CommentThread; onClick: () => void }> =
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {first && <CommentAvatar name={first.author.name} email={first.author.email} size={22} />}
+        {first && <CommentAvatar name={first.author.name} email={first.author.email} size={22} mine={authorIsMe(user, first.author)} />}
         <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {first?.author.name || 'Unknown'}
         </span>
@@ -553,10 +555,10 @@ const ThreadView: React.FC<{
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {thread.comments.map((c, idx) => {
           const isEditing = p.editingId === c.id;
-          const mine = p.user && (p.user.email ? p.user.email === c.author.email : p.user.name === c.author.name);
+          const mine = authorIsMe(p.user, c.author);
           return (
             <div key={c.id} style={{ display: 'flex', gap: 8 }}>
-              <CommentAvatar name={c.author.name} email={c.author.email} size={26} />
+              <CommentAvatar name={c.author.name} email={c.author.email} size={26} mine={mine} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default }}>{c.author.name}</span>

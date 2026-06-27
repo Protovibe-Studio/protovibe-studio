@@ -28,7 +28,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <button
+    <button data-pv-comment-thread="mwdxnrmkwn"
       data-variant={variant}
       data-color={color}
       data-size={size}
