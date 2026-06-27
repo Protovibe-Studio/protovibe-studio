@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { Connect, ViteDevServer } from 'vite';
 import type { CommentThread, CommentItem, CommentStatus } from '../shared/comments';
-import { COMMENT_STATUSES, DEFAULT_COMMENT_STATUS, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
+import { COMMENT_STATUSES, threadFileName, COMMENTS_DIR_REL } from '../shared/comments';
 
 const COMMENTS_DIR = path.resolve(process.cwd(), COMMENTS_DIR_REL);
 const REGISTRY_PATH = path.resolve(process.cwd(), 'src/sketchpads/_registry.json');
@@ -127,9 +127,16 @@ function injectAttribute(source: string, nameEnd: [number, number], id: string):
   return lines.join('\n');
 }
 
-// Strip the attribute (and one leading space) for a given thread id.
+// Remove one thread id from whichever `data-pv-comment-thread` attribute lists it.
+// If it was the only id, the whole attribute (and one leading space) is dropped;
+// otherwise the remaining ids are kept. Other elements' attributes are untouched.
 function removeAttribute(source: string, id: string): string {
-  return source.replace(new RegExp(`\\s*data-pv-comment-thread="${id}"`), '');
+  return source.replace(/(\s*)data-pv-comment-thread="([^"]*)"/g, (full, space, value) => {
+    const ids = String(value).trim().split(/\s+/).filter(Boolean);
+    if (!ids.includes(id)) return full;
+    const remaining = ids.filter((x) => x !== id);
+    return remaining.length ? `${space}data-pv-comment-thread="${remaining.join(' ')}"` : '';
+  });
 }
 
 // ─── endpoint handlers ───────────────────────────────────────────────────────
@@ -157,7 +164,7 @@ export const handleCommentsList: Connect.NextHandleFunction = async (req, res) =
 // orphaned attribute pointing at a missing file.
 export const handleCommentCreateThread: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { file, nameEnd, thread } = await parseBody(req);
+    const { file, nameEnd, thread, existingAttr } = await parseBody(req);
     if (!file) return sendError(res, 'No file provided');
     if (!thread || !thread.id) return sendError(res, 'Missing thread data');
     if (!Array.isArray(nameEnd) || nameEnd.length !== 2) {
@@ -169,14 +176,27 @@ export const handleCommentCreateThread: Connect.NextHandleFunction = async (req,
 
     const original = fs.readFileSync(absolutePath, 'utf-8');
 
-    // Don't double-inject if this element already carries the attribute.
-    const newSource = original.includes(`data-pv-comment-thread="${thread.id}"`)
-      ? original
-      : injectAttribute(original, nameEnd as [number, number], thread.id);
+    // Three cases:
+    //  • already injected (id present)         → leave the source untouched
+    //  • element already anchors other threads → append this id to the existing list
+    //  • brand-new anchor                       → inject a fresh attribute at nameEnd
+    let newSource: string;
+    if (original.includes(`data-pv-comment-thread="${thread.id}"`)) {
+      newSource = original;
+    } else if (typeof existingAttr === 'string' && existingAttr.trim()
+      && original.includes(`data-pv-comment-thread="${existingAttr}"`)) {
+      newSource = original.replace(
+        `data-pv-comment-thread="${existingAttr}"`,
+        `data-pv-comment-thread="${existingAttr} ${thread.id}"`,
+      );
+    } else {
+      newSource = injectAttribute(original, nameEnd as [number, number], thread.id);
+    }
 
     const fullThread: CommentThread = {
       id: thread.id,
-      status: isValidStatus(thread.status) ? thread.status : DEFAULT_COMMENT_STATUS,
+      // Threads start untriaged; a status is only set once a reviewer picks one.
+      ...(isValidStatus(thread.status) ? { status: thread.status } : {}),
       context: { tab: 'app', ...(thread.context || {}), file },
       comments: Array.isArray(thread.comments) ? thread.comments : [],
       createdAt: thread.createdAt || new Date().toISOString(),

@@ -801,7 +801,7 @@ Git-commit style).
 ```jsonc
 {
   "id": "ab12cd34ef",
-  "status": "To review",           // "Minor" | "To review" | "Closed"
+  "status": "To review",           // optional — "Minor" | "To review" | "Closed"; omitted while untriaged
   "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
   "comments": [
     { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },
@@ -816,9 +816,13 @@ Git-commit style).
 
 When a comment is added, Protovibe injects `data-pv-comment-thread="{id}"` onto the
 opening tag of the anchored element. The `{id}` matches the thread's JSON filename.
+An element can anchor **several threads** — the ids are then stored as a
+space-separated list (`data-pv-comment-thread="id1 id2"`), matched with the CSS
+`~=` operator.
 
 * **Never remove this attribute** during refactors unless you are deleting the
-  element itself (in which case also delete the matching `src/comments/comment-{id}.json`).
+  element itself (in which case also delete the matching `src/comments/comment-{id}.json`
+  for every id it lists).
 * When extracting an element into a new component, **preserve the
   `data-pv-comment-thread` attribute** on the new root element so the comment stays
   anchored.

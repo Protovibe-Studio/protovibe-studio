@@ -11,9 +11,6 @@ export const COMMENT_STATUSES: CommentStatus[] = [
   'Closed',
 ];
 
-/** Status applied to a freshly created thread. */
-export const DEFAULT_COMMENT_STATUS: CommentStatus = 'To review';
-
 /** Which Protovibe surface the comment was authored against. */
 export type CommentContextTab = 'app' | 'components' | 'sketchpad';
 
@@ -54,11 +51,12 @@ export interface CommentItem {
   updatedAt?: string; // ISO string, set when edited
 }
 
-/** One thread === one `comment-{id}.json` file === one `data-pv-comment-thread`. */
+/** One thread === one `comment-{id}.json` file === one id in `data-pv-comment-thread`. */
 export interface CommentThread {
-  /** Matches the `data-pv-comment-thread` attribute value on the element. */
+  /** Appears in the element's `data-pv-comment-thread` attribute (which may list several ids). */
   id: string;
-  status: CommentStatus;
+  /** Undefined until a reviewer triages the thread (Minor / To review / Closed). */
+  status?: CommentStatus;
   context: CommentContext;
   comments: CommentItem[];
   createdAt: string; // ISO string
@@ -66,8 +64,17 @@ export interface CommentThread {
   anchorFile?: string;
 }
 
-/** Attribute injected onto the anchored element in source + DOM. */
+/**
+ * Attribute injected onto the anchored element in source + DOM. A single element
+ * can carry several threads, stored as a space-separated list of ids.
+ */
 export const COMMENT_ATTR = 'data-pv-comment-thread';
+
+/** Split a `data-pv-comment-thread` attribute value into its thread ids. */
+export function parseThreadIds(attr: string | null | undefined): string[] {
+  if (!attr) return [];
+  return attr.trim().split(/\s+/).filter(Boolean);
+}
 
 /** Directory (relative to project root) where thread files are committed. */
 export const COMMENTS_DIR_REL = 'src/comments';

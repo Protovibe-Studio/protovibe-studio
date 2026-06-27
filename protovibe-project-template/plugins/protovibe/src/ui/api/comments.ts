@@ -23,6 +23,8 @@ export async function createCommentThread(params: {
   file: string;
   nameEnd: number[];
   thread: CommentThread;
+  /** Existing `data-pv-comment-thread` value, so a 2nd thread appends to it. */
+  existingAttr?: string;
 }): Promise<CommentThread> {
   const data = await postJson<{ thread: CommentThread }>('/__comments-create-thread', params);
   return data.thread;

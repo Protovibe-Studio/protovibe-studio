@@ -1,0 +1,22 @@
+{
+  "id": "y3imgvhk6e",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/KPIsPage.tsx",
+    "pathname": "/?page=kpis",
+    "url": "/?page=kpis"
+  },
+  "comments": [
+    {
+      "id": "c-xnfahjdrtp",
+      "author": {
+        "name": "Anika Ga",
+        "email": ""
+      },
+      "content": "666",
+      "createdAt": "2026-06-27T17:09:13.808Z"
+    }
+  ],
+  "createdAt": "2026-06-27T17:09:13.808Z",
+  "anchorFile": "src/pages/KPIsPage.tsx"
+}

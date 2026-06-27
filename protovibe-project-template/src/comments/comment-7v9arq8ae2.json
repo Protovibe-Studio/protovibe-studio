@@ -1,0 +1,23 @@
+{
+  "id": "7v9arq8ae2",
+  "status": "To review",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/KPIsPage.tsx",
+    "pathname": "/?page=kpis",
+    "url": "/?page=kpis"
+  },
+  "comments": [
+    {
+      "id": "c-gks9g7ec2q",
+      "author": {
+        "name": "Anika Ga",
+        "email": ""
+      },
+      "content": "Testsdf",
+      "createdAt": "2026-06-27T17:07:07.239Z"
+    }
+  ],
+  "createdAt": "2026-06-27T17:07:07.239Z",
+  "anchorFile": "src/pages/KPIsPage.tsx"
+}

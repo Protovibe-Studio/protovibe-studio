@@ -90,9 +90,17 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         <div style={{ fontSize: 16, fontWeight: 700, color: theme.text_default, marginBottom: 8 }}>
           {currentUser ? 'Edit your profile' : 'Who are you?'}
         </div>
-        <div style={{ fontSize: 12, color: theme.text_secondary, marginBottom: 20, lineHeight: 1.4 }}>
+        <div style={{ fontSize: 12, color: theme.text_secondary, marginBottom: 12, lineHeight: 1.4 }}>
           This is <b>not a signup</b>. Your name is stored locally in this browser so teammates know who
           left a comment.
+        </div>
+        <div style={{
+          fontSize: 12, color: theme.text_secondary, marginBottom: 20, lineHeight: 1.4,
+          padding: '10px 12px', borderRadius: 8,
+          background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
+        }}>
+          💾 Comments are saved as <b>files inside the project</b>. Other people won’t see them unless you
+          collaborate via a Git repo and <b>push your changes</b> — so don’t forget to commit and push.
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

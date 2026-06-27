@@ -162,7 +162,8 @@ export const ProtovibeApp: React.FC = () => {
   // Bring a comment's anchored element into view. Retries across iframes because
   // the element may only appear after a tab switch or an app-iframe navigation.
   const focusThreadElement = useCallback((threadId: string) => {
-    const sel = `[${COMMENT_ATTR}="${threadId}"]`;
+    // `~=` matches one id within the element's space-separated thread list.
+    const sel = `[${COMMENT_ATTR}~="${threadId}"]`;
     let attempts = 0;
     const tryFind = () => {
       let el: HTMLElement | null = null;

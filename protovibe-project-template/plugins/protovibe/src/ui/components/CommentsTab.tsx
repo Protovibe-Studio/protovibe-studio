@@ -16,7 +16,7 @@ import { useCommentUser, authorIsMe } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
-  COMMENT_ATTR, COMMENT_STATUSES, DEFAULT_COMMENT_STATUS, threadFileName, makeCommentId,
+  COMMENT_ATTR, COMMENT_STATUSES, threadFileName, makeCommentId, parseThreadIds,
 } from '../../shared/comments';
 import type {
   CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus,
@@ -64,11 +64,9 @@ function lastActivity(thread: CommentThread): number {
 function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
   if (!el) return [];
   const ids = new Set<string>();
-  const self = el.getAttribute(COMMENT_ATTR);
-  if (self) ids.add(self);
+  parseThreadIds(el.getAttribute(COMMENT_ATTR)).forEach((id) => ids.add(id));
   el.querySelectorAll(`[${COMMENT_ATTR}]`).forEach((n) => {
-    const v = (n as HTMLElement).getAttribute(COMMENT_ATTR);
-    if (v) ids.add(v);
+    parseThreadIds((n as HTMLElement).getAttribute(COMMENT_ATTR)).forEach((id) => ids.add(id));
   });
   return Array.from(ids);
 }
@@ -140,11 +138,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     [currentBaseTarget, threads],
   );
 
-  // The thread directly attached to the selected element (if any).
-  const selectedThreadId = currentBaseTarget?.getAttribute(COMMENT_ATTR) || null;
-  const selectedThread = selectedThreadId
-    ? threads.find((t) => t.id === selectedThreadId)
-    : undefined;
+  // Raw `data-pv-comment-thread` value on the selected element (may list several
+  // ids). Passed to the backend so a new comment appends to the existing list
+  // instead of replacing it.
+  const selectedAttr = currentBaseTarget?.getAttribute(COMMENT_ATTR) || null;
 
   const visibleThreads = useMemo(() => {
     let base = (filterToSelection && currentBaseTarget)
@@ -234,15 +231,16 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
     }
     const id = makeCommentId();
     const nowIso = new Date().toISOString();
+    // New threads start untriaged — status is only set when a reviewer picks one.
     const thread: CommentThread = {
       id,
-      status: DEFAULT_COMMENT_STATUS,
       context: buildContext(),
       comments: [{ id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso }],
       createdAt: nowIso,
       anchorFile: activeData.file,
     };
     const commentFile = `src/comments/${threadFileName(id)}`;
+    const existingAttr = selectedAttr || undefined;
 
     setBusy(true);
     setError(null);
@@ -250,14 +248,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
       // Snapshot the source file AND the not-yet-created thread file (captured
       // as empty) so a single Cmd+Z removes both the attribute and the file.
       await takeSnapshot(activeData.file, activeSourceId || '', [commentFile], 'add comment');
-      await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread });
+      await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread, existingAttr });
     }).then(async () => {
       await refresh();
       setComposerOpen(false);
       setDraft('');
       setActiveThreadId(id);
     }).catch((e) => setError(String(e))).finally(() => setBusy(false));
-  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh]);
+  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh, selectedAttr]);
 
   // Comment-file-only mutation helper (reply / edit / delete reply / status).
   const mutateThreadFile = useCallback(async (
@@ -318,8 +316,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
   };
 
   const handleAddCommentClick = () => {
-    // If the selected element already has a thread, open it instead of duplicating.
-    if (selectedThread) { openThread(selectedThread); return; }
+    // An element can carry several threads — always start a fresh comment; the
+    // backend appends the new id to any existing data-pv-comment-thread list.
     setComposerOpen(true);
     setError(null);
   };
@@ -373,7 +371,6 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab }) => 
           totalCount={threads.length}
           canComment={canComment}
           hasSelection={!!currentBaseTarget}
-          selectedHasThread={!!selectedThread}
           composerOpen={composerOpen}
           draft={draft}
           setDraft={setDraft}
@@ -442,7 +439,6 @@ const ListView: React.FC<{
   totalCount: number;
   canComment: boolean;
   hasSelection: boolean;
-  selectedHasThread: boolean;
   composerOpen: boolean;
   draft: string;
   setDraft: (s: string) => void;
@@ -462,7 +458,7 @@ const ListView: React.FC<{
   const searching = p.query.trim().length > 0;
   return (
     <>
-      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         {p.composerOpen ? (
           <Composer
             value={p.draft}
@@ -488,28 +484,30 @@ const ListView: React.FC<{
             }}
           >
             <MessageSquarePlus size={15} />
-            {p.selectedHasThread ? 'View comment on selection' : 'Add comment'}
+            Add comment
           </button>
         )}
-
-        <SearchField value={p.query} onChange={p.setQuery} />
       </div>
 
-      {/* Filters sit below the divider and are hidden while searching, since
-          search spans every comment regardless of selection or status. */}
-      {!searching && (
-        <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-          <Segmented
-            value={p.filterToSelection ? 'selection' : 'all'}
-            onChange={(v) => p.setFilterToSelection(v === 'selection')}
-            options={[
-              { val: 'all', label: 'All comments' },
-              { val: 'selection', label: 'Selection only' },
-            ]}
-          />
-          <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
-        </div>
-      )}
+      {/* Search + filters sit below the Add-comment divider. The status/selection
+          filters are hidden while searching, since search spans every comment
+          regardless of selection or status. */}
+      <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+        <SearchField value={p.query} onChange={p.setQuery} />
+        {!searching && (
+          <>
+            <Segmented
+              value={p.filterToSelection ? 'selection' : 'all'}
+              onChange={(v) => p.setFilterToSelection(v === 'selection')}
+              options={[
+                { val: 'all', label: 'All comments' },
+                { val: 'selection', label: 'Selection only' },
+              ]}
+            />
+            <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
+          </>
+        )}
+      </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {searching ? (
@@ -749,13 +747,20 @@ const ThreadView: React.FC<{
   }, [thread.id, thread.comments.length]);
   return (
     <>
-      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: theme.text_secondary, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
-            Comment {thread.id}
-          </span>
-          <CopyIdButton id={thread.id} />
-          <div style={{ flex: 1 }} />
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+          {/* Primary header = comment id (copyable for AI), secondary = its context. */}
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default }}>
+                Comment {thread.id}
+              </span>
+              <CopyIdButton id={thread.id} />
+            </div>
+            <span style={{ fontSize: 11, color: theme.text_tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {contextSummary(thread.context)}
+            </span>
+          </div>
           <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtn}><MapPin size={14} /></button>
           <ConfirmDeleteButton
             tooltip="Delete thread"
@@ -763,11 +768,6 @@ const ThreadView: React.FC<{
             confirmLabel="Delete thread"
             onConfirm={p.onDeleteThread}
           />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: theme.text_tertiary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {contextSummary(thread.context)}
-          </span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {COMMENT_STATUSES.map((s) => {
@@ -911,7 +911,8 @@ const Composer: React.FC<{
   </div>
 );
 
-const StatusBadge: React.FC<{ status: CommentStatus }> = ({ status }) => {
+const StatusBadge: React.FC<{ status?: CommentStatus }> = ({ status }) => {
+  if (!status) return null; // untriaged threads show no badge
   const color = STATUS_COLORS[status];
   return (
     <span style={{
