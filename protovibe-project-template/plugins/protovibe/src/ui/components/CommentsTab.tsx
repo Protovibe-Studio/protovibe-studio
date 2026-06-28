@@ -1512,14 +1512,28 @@ const Composer: React.FC<{
       .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
       .map((i) => i.getAsFile())
       .filter((f): f is File => !!f);
-    if (files.length) { e.preventDefault(); addFiles(files); }
+    if (files.length) {
+      // Keep the paste local to the composer — the canvas registers its own
+      // window-level paste/drop handlers that would otherwise ALSO insert the
+      // image onto the canvas (pasting it in two places).
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      addFiles(files);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     if (!imagesOn) return;
     setDragOver(false);
     const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
-    if (files.length) { e.preventDefault(); addFiles(files); }
+    if (files.length) {
+      // Same as paste: stop the drop from bubbling to the canvas drop handler.
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      addFiles(files);
+    }
   };
 
   return (
