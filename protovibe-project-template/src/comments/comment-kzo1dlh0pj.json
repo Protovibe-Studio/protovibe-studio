@@ -21,5 +21,6 @@
     }
   ],
   "createdAt": "2026-06-28T07:11:02.781Z",
-  "anchorFile": "src/pages/KPIsPage.tsx"
+  "anchorFile": "src/pages/KPIsPage.tsx",
+  "status": "closed"
 }

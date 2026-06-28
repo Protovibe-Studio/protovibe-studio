@@ -849,9 +849,9 @@ const SearchField: React.FC<{ value: string; onChange: (s: string) => void }> = 
       onKeyDown={(e) => { if (e.key === 'Escape' && value) { e.preventDefault(); onChange(''); } }}
       placeholder="Search all comments…"
       style={{
-        width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px',
+        width: '100%', boxSizing: 'border-box', padding: '5px 28px',
         background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-        color: theme.text_default, fontSize: 12, outline: 'none', fontFamily: theme.font_ui,
+        color: theme.text_default, fontSize: 11, outline: 'none', fontFamily: theme.font_ui,
       }}
     />
     {value && (
@@ -905,8 +905,8 @@ const FilterPill: React.FC<{
     onClick={onClick}
     style={{
       display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999,
-      border: `1px solid ${active ? color : theme.border_default}`,
-      background: active ? `${color}22` : 'transparent',
+      border: `1px solid ${active ? color : 'transparent'}`,
+      background: active ? `${color}22` : theme.bg_secondary,
       color: active ? theme.text_default : theme.text_tertiary,
       fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
     }}
