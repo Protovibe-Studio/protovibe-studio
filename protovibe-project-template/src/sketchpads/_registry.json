@@ -27,26 +27,6 @@
         "panX": -2621.2000000000003,
         "panY": 1875.2
       }
-    },
-    {
-      "id": "sketchpad-2",
-      "name": "Sketchpad 2",
-      "createdAt": "2026-06-27T18:34:37.557Z",
-      "frames": [
-        {
-          "id": "frame-h7qqdo",
-          "name": "Frame 1",
-          "width": 1440,
-          "height": 900,
-          "canvasX": 0,
-          "canvasY": 0
-        }
-      ],
-      "viewState": {
-        "zoom": 0.7,
-        "panX": 26.000000000000057,
-        "panY": 25
-      }
     }
   ],
   "lastActiveSketchpadId": "sketchpad-1"

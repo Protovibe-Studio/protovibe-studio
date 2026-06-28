@@ -257,8 +257,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   );
 
   const visibleThreads = useMemo(() => {
+    const subtreeSet = new Set(subtreeIds);
     let base = (filterToSelection && currentBaseTarget)
-      ? threads.filter((t) => new Set(subtreeIds).has(t.id))
+      ? threads.filter((t) => subtreeSet.has(t.id))
       : threads;
     // Status pills (incl. 'none' for untriaged) OR within their own group.
     const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
