@@ -1352,7 +1352,7 @@ const Composer: React.FC<{
       style={{
         width: '100%', resize: 'vertical', minHeight: 56, boxSizing: 'border-box',
         background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-        padding: '8px 38px 8px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
+        padding: '8px 10px 38px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
         fontFamily: theme.font_ui, lineHeight: 1.4,
       }}
     />
@@ -1391,12 +1391,12 @@ const QUICK_EMOJIS = ['👍', '🙏', '👌', '➕', '😁', '🤩'];
 // clip it); the menu floats above the button since composers sit low in the panel.
 const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) => {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const toggle = () => {
     const r = btnRef.current?.getBoundingClientRect();
-    if (r) setPos({ top: r.top - 6, right: window.innerWidth - r.right });
+    if (r) setPos({ top: r.top - 6, left: r.left });
     setOpen((v) => !v);
   };
 
@@ -1419,7 +1419,7 @@ const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) 
         onClick={toggle}
         data-tooltip="Add emoji"
         style={{
-          position: 'absolute', right: 8, bottom: 8,
+          position: 'absolute', left: 8, bottom: 8,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           width: 24, height: 24, borderRadius: 6, border: 'none',
           background: open ? theme.bg_tertiary : 'transparent',
@@ -1435,7 +1435,7 @@ const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) 
         <>
           <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 2147483646 }} />
           <div style={{
-            position: 'fixed', top: pos.top, right: pos.right, transform: 'translateY(-100%)', zIndex: 2147483647,
+            position: 'fixed', top: pos.top, left: pos.left, transform: 'translateY(-100%)', zIndex: 2147483647,
             background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4,
             display: 'flex', gap: 2, fontFamily: theme.font_ui,
