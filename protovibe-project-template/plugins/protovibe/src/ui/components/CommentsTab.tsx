@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
-  MoreHorizontal, CheckCheck, Eye,
+  MoreHorizontal, CheckCheck, Eye, Smile,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
@@ -1317,9 +1317,29 @@ const Composer: React.FC<{
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => (
+}> = ({ value, onChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Insert an emoji at the caret (or replace the active selection), then drop the
+  // caret right after it so typing can continue naturally.
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) { onChange(value + emoji); return; }
+    const start = el.selectionStart ?? value.length;
+    const end = el.selectionEnd ?? value.length;
+    onChange(value.slice(0, start) + emoji + value.slice(end));
+    requestAnimationFrame(() => {
+      el.focus();
+      const caret = start + emoji.length;
+      el.setSelectionRange(caret, caret);
+    });
+  };
+
+  return (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ position: 'relative' }}>
     <textarea
+      ref={textareaRef}
       autoFocus
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -1332,10 +1352,12 @@ const Composer: React.FC<{
       style={{
         width: '100%', resize: 'vertical', minHeight: 56, boxSizing: 'border-box',
         background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-        padding: '8px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
+        padding: '8px 38px 8px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
         fontFamily: theme.font_ui, lineHeight: 1.4,
       }}
     />
+      <EmojiPicker onPick={insertEmoji} />
+    </div>
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
       {onCancel && (
         <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
@@ -1358,7 +1380,89 @@ const Composer: React.FC<{
       </button>
     </div>
   </div>
-);
+  );
+};
+
+// Quick-reaction emojis offered by the in-composer picker, in display order.
+const QUICK_EMOJIS = ['👍', '🙏', '👌', '➕', '😁', '🤩'];
+
+// Icon button pinned to the bottom-right of a composer's text area. Opens a small
+// portaled row of quick emojis (portaled so the inspector's overflow:hidden can't
+// clip it); the menu floats above the button since composers sit low in the panel.
+const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const toggle = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setPos({ top: r.top - 6, right: window.innerWidth - r.right });
+    setOpen((v) => !v);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={toggle}
+        data-tooltip="Add emoji"
+        style={{
+          position: 'absolute', right: 8, bottom: 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 24, height: 24, borderRadius: 6, border: 'none',
+          background: open ? theme.bg_tertiary : 'transparent',
+          color: open ? theme.text_secondary : theme.text_tertiary,
+          cursor: 'pointer', padding: 0,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_secondary; e.currentTarget.style.background = theme.bg_tertiary; }}
+        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.color = theme.text_tertiary; e.currentTarget.style.background = 'transparent'; } }}
+      >
+        <Smile size={16} />
+      </button>
+      {open && pos && createPortal(
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 2147483646 }} />
+          <div style={{
+            position: 'fixed', top: pos.top, right: pos.right, transform: 'translateY(-100%)', zIndex: 2147483647,
+            background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4,
+            display: 'flex', gap: 2, fontFamily: theme.font_ui,
+          }}>
+            {QUICK_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => { setOpen(false); onPick(emoji); }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 30, height: 30, borderRadius: 6, border: 'none', background: 'transparent',
+                  fontSize: 18, cursor: 'pointer', padding: 0, lineHeight: 1,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
+  );
+};
 
 const StatusBadge: React.FC<{ status?: CommentStatus }> = ({ status }) => {
   if (!status) return null; // untriaged threads show no badge

@@ -29,6 +29,15 @@
       },
       "content": "Test",
       "createdAt": "2026-06-28T06:52:10.550Z"
+    },
+    {
+      "id": "c-443m5r44sj",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "👍",
+      "createdAt": "2026-06-28T07:02:25.567Z"
     }
   ],
   "createdAt": "2026-06-27T16:56:08.321Z",
