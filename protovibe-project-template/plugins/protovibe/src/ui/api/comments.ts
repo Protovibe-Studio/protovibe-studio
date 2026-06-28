@@ -67,3 +67,19 @@ export async function setCommentSeen(
 export async function markAllCommentsRead(name: string): Promise<void> {
   await postJson<{ success: boolean }>('/__comments-mark-all-read', { name });
 }
+
+// Upload one image attachment (compressed to ≤70kb server-side) and return its
+// stored filename, to be persisted in a comment's `attachments` array. Called on
+// comment submit, not on attach, so abandoned drafts never upload anything.
+export async function uploadCommentAttachment(file: File): Promise<string> {
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const data = await postJson<{ attachment: string }>('/__comments-upload-attachment', {
+    filename: file.name, base64Data,
+  });
+  return data.attachment;
+}

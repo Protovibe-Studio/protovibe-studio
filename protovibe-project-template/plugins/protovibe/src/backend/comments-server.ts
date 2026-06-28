@@ -10,12 +10,22 @@
 
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { Connect, ViteDevServer } from 'vite';
 import type { CommentThread, CommentItem } from '../shared/comments';
-import { normalizeStatus, threadFileName, COMMENTS_DIR_REL, commentIdAttr } from '../shared/comments';
+import {
+  normalizeStatus, threadFileName, COMMENTS_DIR_REL,
+  COMMENT_ATTACHMENTS_DIR_REL, commentIdAttr,
+} from '../shared/comments';
 
 const COMMENTS_DIR = path.resolve(process.cwd(), COMMENTS_DIR_REL);
+const ATTACHMENTS_DIR = path.resolve(process.cwd(), COMMENT_ATTACHMENTS_DIR_REL);
 const REGISTRY_PATH = path.resolve(process.cwd(), 'src/sketchpads/_registry.json');
+
+// Comment image attachments are squeezed under this size so a thread file's
+// neighbouring assets stay small and quick to load inline. Mirrors the
+// background-image compression approach (sharp) but targets a hard byte budget.
+const ATTACHMENT_MAX_BYTES = 70 * 1024;
 
 // ─── small http helpers (mirrors sketchpad-server.ts) ────────────────────────
 
@@ -86,6 +96,34 @@ function listThreads(): CommentThread[] {
   // Newest first.
   threads.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   return threads;
+}
+
+// ─── attachment compression / IO ─────────────────────────────────────────────
+
+// Re-encode an image to WebP, stepping down resolution and quality until it fits
+// under ATTACHMENT_MAX_BYTES. Larger dimensions are preferred over higher quality
+// (the inline thumbnail opens fullscreen on click, so keeping pixels matters more
+// than crispness). Returns the smallest attempt if nothing fits cleanly.
+async function compressAttachment(input: Buffer): Promise<Buffer> {
+  const dims = [2000, 1600, 1200, 900, 700, 500];
+  const qualities = [80, 70, 60, 50, 40, 30];
+  let smallest: Buffer | null = null;
+  for (const width of dims) {
+    for (const quality of qualities) {
+      const buf = await sharp(input, { failOn: 'none' })
+        .rotate()
+        .resize({ width, height: width, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality })
+        .toBuffer();
+      if (buf.length <= ATTACHMENT_MAX_BYTES) return buf;
+      if (!smallest || buf.length < smallest.length) smallest = buf;
+    }
+  }
+  return smallest ?? input;
+}
+
+function randomAttachmentId(): string {
+  return `att-${Math.random().toString(36).substring(2, 12)}`;
 }
 
 // ─── context enrichment ──────────────────────────────────────────────────────
@@ -217,7 +255,9 @@ export const handleCommentCreateThread: Connect.NextHandleFunction = async (req,
 export const handleCommentReply: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { threadId, comment } = await parseBody(req);
-    if (!threadId || !comment?.content) return sendError(res, 'threadId and comment content required');
+    const attachments = Array.isArray(comment?.attachments) ? comment.attachments.filter((a: unknown) => typeof a === 'string') : [];
+    const hasBody = (comment?.content && String(comment.content).trim()) || attachments.length > 0;
+    if (!threadId || !hasBody) return sendError(res, 'threadId and comment content or attachment required');
 
     const thread = readThread(threadId);
     if (!thread) return sendError(res, 'Thread not found', 404);
@@ -225,8 +265,9 @@ export const handleCommentReply: Connect.NextHandleFunction = async (req, res) =
     const item: CommentItem = {
       id: comment.id || `c-${Math.random().toString(36).substring(2, 10)}`,
       author: { name: comment.author?.name || 'Anonymous', email: comment.author?.email || '' },
-      content: String(comment.content),
+      content: String(comment.content || ''),
       createdAt: comment.createdAt || new Date().toISOString(),
+      ...(attachments.length ? { attachments } : {}),
     };
     thread.comments.push(item);
     writeThread(thread);
@@ -358,6 +399,42 @@ export const handleCommentMarkAllRead: Connect.NextHandleFunction = async (req, 
   }
 };
 
+// POST { filename, base64Data }  → { attachment }
+// Compresses an image to ≤70kb (WebP) and stores it under
+// src/comments/attachments/ with a fresh unique id. SVGs are passed through
+// untouched (sharp would rasterise them). The returned filename is what the UI
+// persists in the comment's `attachments` array. Uploads happen on submit, so an
+// upload that the user then abandons is just a harmless orphan file.
+export const handleCommentUploadAttachment: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { filename, base64Data } = await parseBody(req);
+    if (!base64Data) return sendError(res, 'base64Data required');
+
+    const ext = path.extname(String(filename || '')).toLowerCase();
+    const raw = String(base64Data).replace(/^data:[^;]+;base64,/, '');
+    const input = Buffer.from(raw, 'base64');
+
+    let buffer = input;
+    let outExt = '.webp';
+    if (ext === '.svg') {
+      outExt = '.svg';
+    } else {
+      buffer = await compressAttachment(input);
+    }
+
+    fs.mkdirSync(ATTACHMENTS_DIR, { recursive: true });
+    let name = `${randomAttachmentId()}${outExt}`;
+    while (fs.existsSync(path.join(ATTACHMENTS_DIR, name))) {
+      name = `${randomAttachmentId()}${outExt}`;
+    }
+    fs.writeFileSync(path.join(ATTACHMENTS_DIR, name), buffer);
+
+    sendJson(res, { success: true, attachment: name });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
 // POST { threadId }  → remove the anchor attribute from source + delete the file
 export const handleCommentDeleteThread: Connect.NextHandleFunction = async (req, res) => {
   try {
@@ -396,5 +473,6 @@ export function registerCommentsMiddleware(server: ViteDevServer): void {
   server.middlewares.use('/__comments-update-status', handleCommentUpdateStatus);
   server.middlewares.use('/__comments-set-seen', handleCommentSetSeen);
   server.middlewares.use('/__comments-mark-all-read', handleCommentMarkAllRead);
+  server.middlewares.use('/__comments-upload-attachment', handleCommentUploadAttachment);
   server.middlewares.use('/__comments-delete-thread', handleCommentDeleteThread);
 }

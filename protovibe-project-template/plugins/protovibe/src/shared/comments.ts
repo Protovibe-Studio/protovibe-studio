@@ -78,6 +78,12 @@ export interface CommentItem {
   createdAt: string; // ISO string
   updatedAt?: string; // ISO string, set when edited
   /**
+   * Filenames of image attachments stored in `src/comments/attachments/`. Each is
+   * a compressed image (≤70kb) uploaded when the comment was submitted; referenced
+   * by name and served at `/src/comments/attachments/{name}`.
+   */
+  attachments?: string[];
+  /**
    * Names of the people who have seen this message (read receipts). Just the
    * display name is stored — enough to tell "have I read it?" without a real
    * account system. Absent/empty means nobody has marked it read yet. A reader
@@ -143,9 +149,17 @@ export function readCommentIds(attrNames: readonly string[]): string[] {
 /** Directory (relative to project root) where thread files are committed. */
 export const COMMENTS_DIR_REL = 'src/comments';
 
+/** Subdirectory (relative to project root) where comment image attachments live. */
+export const COMMENT_ATTACHMENTS_DIR_REL = 'src/comments/attachments';
+
 /** Filename for a given thread id. */
 export function threadFileName(id: string): string {
   return `comment-${id}.json`;
+}
+
+/** Public dev-server URL for a stored attachment filename. */
+export function commentAttachmentUrl(name: string): string {
+  return `/${COMMENT_ATTACHMENTS_DIR_REL}/${name}`;
 }
 
 /** Generate a random thread / comment id. */

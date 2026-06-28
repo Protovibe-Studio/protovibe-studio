@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
-  MoreHorizontal, CheckCheck, Eye, Smile,
+  MoreHorizontal, CheckCheck, Eye, Smile, ImagePlus,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
@@ -12,14 +12,14 @@ import { takeSnapshot } from '../api/client';
 import {
   fetchCommentThreads, createCommentThread, replyToThread, editComment,
   deleteComment, updateThreadStatus, deleteThread as deleteThreadApi,
-  setCommentSeen, markAllCommentsRead,
+  setCommentSeen, markAllCommentsRead, uploadCommentAttachment,
 } from '../api/comments';
 import { emitToast } from '../events/toast';
 import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
-  COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds,
+  COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds, commentAttachmentUrl,
 } from '../../shared/comments';
 import type {
   CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus,
@@ -30,6 +30,32 @@ import type { IframeTab } from './ShellNavBar';
 interface CommentSearchHit {
   thread: CommentThread;
   comment: CommentItem;
+}
+
+/**
+ * An image staged in a composer but not yet uploaded. We hold the raw File and a
+ * local object-URL for the preview, and only upload on submit (so abandoned drafts
+ * never touch the backend). `id` is just a local React key.
+ */
+interface PendingAttachment {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
+
+/** Wrap picked/pasted/dropped Files as previewable pending attachments (images only). */
+function toPendingAttachments(files: Iterable<File>): PendingAttachment[] {
+  const out: PendingAttachment[] = [];
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    out.push({ id: `a-${makeCommentId()}`, file, previewUrl: URL.createObjectURL(file) });
+  }
+  return out;
+}
+
+/** Upload each staged attachment and return the stored filenames, in order. */
+function uploadPendingAttachments(pending: PendingAttachment[]): Promise<string[]> {
+  return Promise.all(pending.map((a) => uploadCommentAttachment(a.file)));
 }
 
 // Presentation for each stable status id. Labels/colours are defined here only —
@@ -156,7 +182,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [draft, setDraft] = useState('');
+  const [draftAttachments, setDraftAttachments] = useState<PendingAttachment[]>([]);
   const [replyDraft, setReplyDraft] = useState('');
+  const [replyAttachments, setReplyAttachments] = useState<PendingAttachment[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [filterToSelection, setFilterToSelection] = useState(loadFilterToSelection);
@@ -283,6 +311,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     pendingActionRef.current = null;
   };
 
+  // Release the object-URLs behind a set of staged attachments once they've been
+  // uploaded (or discarded), so previews don't leak blobs as the user works.
+  const revokeAttachments = (list: PendingAttachment[]) =>
+    list.forEach((a) => URL.revokeObjectURL(a.previewUrl));
+
   // ── context capture ─────────────────────────────────────────────────────────
   const buildContext = useCallback((): CommentContext => {
     const file = activeData?.file;
@@ -313,7 +346,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [activeData, activeIframeTab, currentBaseTarget]);
 
   // ── mutations ────────────────────────────────────────────────────────────────
-  const doCreateThread = useCallback((text: string, author: CommentAuthor) => {
+  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[]) => {
     if (!activeData?.file || !activeData?.nameEnd) {
       setError('Select an element on the canvas before adding a comment.');
       return;
@@ -321,10 +354,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     const id = makeCommentId();
     const nowIso = new Date().toISOString();
     // New threads start untriaged — status is only set when a reviewer picks one.
+    const comment: CommentItem = { id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] };
     const thread: CommentThread = {
       id,
       context: buildContext(),
-      comments: [{ id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] }],
+      comments: [comment],
       createdAt: nowIso,
       anchorFile: activeData.file,
     };
@@ -336,11 +370,16 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       // Snapshot the source file AND the not-yet-created thread file (captured
       // as empty) so a single Cmd+Z removes both the attribute and the file.
       await takeSnapshot(activeData.file, activeSourceId || '', [commentFile], 'add comment');
+      // Upload staged images now (on submit), folding their stored names onto the
+      // comment before it's written to disk.
+      if (pending.length) comment.attachments = await uploadPendingAttachments(pending);
       await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread });
     }).then(async () => {
       await refresh();
       setComposerOpen(false);
       setDraft('');
+      revokeAttachments(pending);
+      setDraftAttachments([]);
       // Stay on the list (don't open the new thread) so the user sees it land in
       // context, faintly highlighted, and confirm with the global toast.
       setHighlightId(id);
@@ -366,12 +405,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     }
   }, [activeSourceId, refresh]);
 
-  const doReply = (thread: CommentThread, text: string, author: CommentAuthor) =>
-    mutateThreadFile(thread.id, 'reply to comment', () =>
-      replyToThread(thread.id, {
+  const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[]) =>
+    mutateThreadFile(thread.id, 'reply to comment', async () => {
+      const attachments = pending.length ? await uploadPendingAttachments(pending) : undefined;
+      return replyToThread(thread.id, {
         id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: new Date().toISOString(), seenBy: [author.name],
-      }),
-    ).then(() => setReplyDraft(''));
+        ...(attachments ? { attachments } : {}),
+      });
+    }).then(() => { revokeAttachments(pending); setReplyDraft(''); setReplyAttachments([]); });
 
   const handleStatus = (thread: CommentThread, status: CommentStatus | null) =>
     mutateThreadFile(thread.id, status ? `comment status: ${status}` : 'clear comment status',
@@ -454,6 +495,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
+    revokeAttachments(replyAttachments);
+    setReplyAttachments([]);
     navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
@@ -467,8 +510,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
 
   const submitComposer = () => {
     const text = draft.trim();
-    if (!text) return;
-    withAuthor((author) => doCreateThread(text, author));
+    if (!text && draftAttachments.length === 0) return;
+    withAuthor((author) => doCreateThread(text, author, draftAttachments));
   };
 
   const canComment = !!activeData?.file && !!activeData?.nameEnd;
@@ -506,11 +549,13 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onToggleRead={handleToggleRead}
           replyDraft={replyDraft}
           setReplyDraft={setReplyDraft}
+          replyAttachments={replyAttachments}
+          setReplyAttachments={setReplyAttachments}
           editingId={editingId}
           editingText={editingText}
           setEditingId={setEditingId}
           setEditingText={setEditingText}
-          onReply={(text) => withAuthor((author) => doReply(activeThread, text, author))}
+          onReply={(text, atts) => withAuthor((author) => doReply(activeThread, text, author, atts))}
           onStatus={(s) => handleStatus(activeThread, s)}
           onEditSave={(cid) => handleEditSave(activeThread, cid)}
           onDeleteReply={(cid) => handleDeleteReply(activeThread, cid)}
@@ -528,6 +573,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           composerOpen={composerOpen}
           draft={draft}
           setDraft={setDraft}
+          attachments={draftAttachments}
+          setAttachments={setDraftAttachments}
           busy={busy}
           query={query}
           setQuery={setQuery}
@@ -541,7 +588,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
-          onCancelComposer={() => { setComposerOpen(false); setDraft(''); }}
+          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); }}
           onOpenThread={openThread}
         />
       )}
@@ -669,6 +716,8 @@ const ListView: React.FC<{
   composerOpen: boolean;
   draft: string;
   setDraft: (s: string) => void;
+  attachments: PendingAttachment[];
+  setAttachments: (a: PendingAttachment[]) => void;
   busy: boolean;
   query: string;
   setQuery: (s: string) => void;
@@ -705,6 +754,8 @@ const ListView: React.FC<{
           <Composer
             value={p.draft}
             onChange={p.setDraft}
+            attachments={p.attachments}
+            onAttachmentsChange={p.setAttachments}
             onSubmit={p.onSubmitComposer}
             onCancel={p.onCancelComposer}
             busy={p.busy}
@@ -1049,11 +1100,13 @@ const ThreadView: React.FC<{
   onToggleRead: (commentId: string, makeRead: boolean) => void;
   replyDraft: string;
   setReplyDraft: (s: string) => void;
+  replyAttachments: PendingAttachment[];
+  setReplyAttachments: (a: PendingAttachment[]) => void;
   editingId: string | null;
   editingText: string;
   setEditingId: (id: string | null) => void;
   setEditingText: (s: string) => void;
-  onReply: (text: string) => void;
+  onReply: (text: string, attachments: PendingAttachment[]) => void;
   onStatus: (s: CommentStatus | null) => void;
   onEditSave: (commentId: string) => void;
   onDeleteReply: (commentId: string) => void;
@@ -1159,7 +1212,9 @@ const ThreadView: React.FC<{
         <Composer
           value={p.replyDraft}
           onChange={p.setReplyDraft}
-          onSubmit={() => { if (p.replyDraft.trim()) p.onReply(p.replyDraft); }}
+          attachments={p.replyAttachments}
+          onAttachmentsChange={p.setReplyAttachments}
+          onSubmit={() => { if (p.replyDraft.trim() || p.replyAttachments.length) p.onReply(p.replyDraft, p.replyAttachments); }}
           busy={p.busy}
           placeholder="Reply…"
           submitLabel="Reply"
@@ -1249,7 +1304,9 @@ const CommentRow: React.FC<{
 }> = (p) => {
   const c = p.comment;
   const [hovered, setHovered] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const mine = authorIsMe(p.user, c.author);
+  const attachments = c.attachments ?? [];
   return (
     <div
       data-pv-comment-row={c.id}
@@ -1298,30 +1355,122 @@ const CommentRow: React.FC<{
             />
           </div>
         ) : (
-          <div style={{ marginTop: 3, fontSize: 13, color: theme.text_default, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {c.content}
-          </div>
+          <>
+            {c.content && (
+              <div style={{ marginTop: 3, fontSize: 13, color: theme.text_default, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {c.content}
+              </div>
+            )}
+            {attachments.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: c.content ? 8 : 3 }}>
+                {attachments.map((name) => (
+                  <CommentImage key={name} name={name} onOpen={() => setLightbox(name)} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
+      {lightbox && <Lightbox name={lightbox} onClose={() => setLightbox(null)} />}
     </div>
   );
 };
 
+// A full-width inline attachment image inside a comment. Clicking opens the
+// fullscreen lightbox; a missing file (e.g. cleaned up) falls back to a label.
+const CommentImage: React.FC<{ name: string; onOpen: () => void }> = ({ name, onOpen }) => {
+  const [error, setError] = useState(false);
+  if (error) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', height: 64, borderRadius: 6,
+        border: `1px solid ${theme.destructive_default}`, background: theme.destructive_low,
+        color: theme.destructive_default, fontSize: 11, fontWeight: 600,
+      }}>
+        Missing image
+      </div>
+    );
+  }
+  return (
+    <img
+      src={commentAttachmentUrl(name)}
+      alt="Attachment"
+      onClick={onOpen}
+      onError={() => setError(true)}
+      style={{
+        width: '100%', maxHeight: 320, objectFit: 'cover', display: 'block',
+        borderRadius: 6, border: `1px solid ${theme.border_default}`, cursor: 'pointer',
+      }}
+    />
+  );
+};
+
+// Fullscreen image preview, portaled over everything. Click anywhere (or the X,
+// or Escape) to dismiss.
+const Lightbox: React.FC<{ name: string; onClose: () => void }> = ({ name, onClose }) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2147483647, background: 'rgba(0,0,0,0.85)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+      }}
+    >
+      <button
+        onClick={onClose}
+        data-tooltip="Close"
+        style={{
+          position: 'fixed', top: 16, right: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer',
+          background: 'rgba(255,255,255,0.12)', color: '#fff',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+      >
+        <X size={18} />
+      </button>
+      <img
+        src={commentAttachmentUrl(name)}
+        alt="Attachment"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 12px 48px rgba(0,0,0,0.5)' }}
+      />
+    </div>,
+    document.body,
+  );
+};
+
 // ── shared composer ─────────────────────────────────────────────────────────────
+// The field is a bordered wrapper (not the bare textarea) so staged image
+// attachments can live INSIDE it: text on top, a thumbnail strip, then a bottom
+// toolbar of the image + emoji buttons. Passing `attachments`/`onAttachmentsChange`
+// turns on image support (image button, paste, drag-drop); the edit composer omits
+// them and stays text-only.
 const Composer: React.FC<{
   value: string;
   onChange: (s: string) => void;
+  attachments?: PendingAttachment[];
+  onAttachmentsChange?: (a: PendingAttachment[]) => void;
   onSubmit: () => void;
   onCancel?: () => void;
   busy: boolean;
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+}> = ({ value, onChange, attachments, onAttachmentsChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const imagesOn = !!onAttachmentsChange;
+  const staged = attachments ?? [];
+  const canSubmit = !busy && (value.trim().length > 0 || staged.length > 0);
 
   // Grow the field to fit its content instead of scrolling internally, so pasted
-  // or long text never slides under the absolutely-positioned emoji button.
+  // or long text never needs an inner scrollbar.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -1344,28 +1493,77 @@ const Composer: React.FC<{
     });
   };
 
+  const addFiles = (files: Iterable<File>) => {
+    if (!onAttachmentsChange) return;
+    const next = toPendingAttachments(files);
+    if (next.length) onAttachmentsChange([...staged, ...next]);
+  };
+
+  const removeAttachment = (id: string) => {
+    if (!onAttachmentsChange) return;
+    const gone = staged.find((a) => a.id === id);
+    if (gone) URL.revokeObjectURL(gone.previewUrl);
+    onAttachmentsChange(staged.filter((a) => a.id !== id));
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (!imagesOn) return;
+    const files = Array.from(e.clipboardData.items)
+      .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+      .map((i) => i.getAsFile())
+      .filter((f): f is File => !!f);
+    if (files.length) { e.preventDefault(); addFiles(files); }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    if (!imagesOn) return;
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+    if (files.length) { e.preventDefault(); addFiles(files); }
+  };
+
   return (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-    <div style={{ position: 'relative' }}>
-    <textarea
-      ref={textareaRef}
-      autoFocus
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      onKeyDown={(e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); onSubmit(); }
-        if (e.key === 'Escape' && onCancel) { e.preventDefault(); onCancel(); }
-      }}
-      placeholder={placeholder}
-      rows={3}
+    <div
+      onPaste={imagesOn ? handlePaste : undefined}
+      onDragOver={imagesOn ? (e) => { e.preventDefault(); setDragOver(true); } : undefined}
+      onDragLeave={imagesOn ? () => setDragOver(false) : undefined}
+      onDrop={imagesOn ? handleDrop : undefined}
       style={{
-        width: '100%', resize: 'none', minHeight: 56, overflow: 'hidden', boxSizing: 'border-box',
-        background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-        padding: '8px 10px 38px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
-        fontFamily: theme.font_ui, lineHeight: 1.4,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        background: theme.bg_secondary, borderRadius: 6,
+        border: `1px solid ${dragOver ? theme.accent_default : theme.border_default}`,
       }}
-    />
-      <EmojiPicker onPick={insertEmoji} />
+    >
+      <textarea
+        ref={textareaRef}
+        autoFocus
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); if (canSubmit) onSubmit(); }
+          if (e.key === 'Escape' && onCancel) { e.preventDefault(); onCancel(); }
+        }}
+        placeholder={placeholder}
+        rows={3}
+        style={{
+          width: '100%', resize: 'none', minHeight: 48, overflow: 'hidden', boxSizing: 'border-box',
+          background: 'transparent', border: 'none', borderRadius: 0,
+          padding: '8px 10px 2px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
+          fontFamily: theme.font_ui, lineHeight: 1.4,
+        }}
+      />
+      {staged.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '4px 10px 0 10px' }}>
+          {staged.map((a) => (
+            <PendingThumb key={a.id} att={a} onRemove={() => removeAttachment(a.id)} />
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 6px 5px 6px' }}>
+        {imagesOn && <AttachButton onFiles={addFiles} />}
+        <EmojiPicker onPick={insertEmoji} />
+      </div>
     </div>
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
       {onCancel && (
@@ -1375,13 +1573,13 @@ const Composer: React.FC<{
       )}
       <button
         onClick={onSubmit}
-        disabled={busy || !value.trim()}
-        {...primarySolidHover(!!value.trim() && !busy)}
+        disabled={!canSubmit}
+        {...primarySolidHover(canSubmit)}
         style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, border: 'none',
-          background: value.trim() && !busy ? theme.primary_solid : theme.bg_tertiary,
-          color: value.trim() && !busy ? '#fff' : theme.text_tertiary,
-          fontSize: 12, fontWeight: 600, cursor: value.trim() && !busy ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
+          background: canSubmit ? theme.primary_solid : theme.bg_tertiary,
+          color: canSubmit ? '#fff' : theme.text_tertiary,
+          fontSize: 12, fontWeight: 600, cursor: canSubmit ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
         }}
       >
         {submitIcon}
@@ -1392,12 +1590,72 @@ const Composer: React.FC<{
   );
 };
 
+// Image-attach icon button (leftmost in the composer toolbar, before the emoji
+// button). Opens the native multi-file picker; selection is staged locally and
+// only uploaded on submit.
+const AttachButton: React.FC<{ onFiles: (files: File[]) => void }> = ({ onFiles }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          if (e.target.files) onFiles(Array.from(e.target.files));
+          e.target.value = '';
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        data-tooltip="Attach image"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent',
+          color: theme.text_tertiary, cursor: 'pointer', padding: 0,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_secondary; e.currentTarget.style.background = theme.bg_tertiary; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; e.currentTarget.style.background = 'transparent'; }}
+      >
+        <ImagePlus size={16} />
+      </button>
+    </>
+  );
+};
+
+// A staged (not-yet-uploaded) attachment preview with a remove-X in its top-right.
+const PendingThumb: React.FC<{ att: PendingAttachment; onRemove: () => void }> = ({ att, onRemove }) => (
+  <div style={{
+    position: 'relative', width: 56, height: 56, borderRadius: 6, overflow: 'hidden',
+    border: `1px solid ${theme.border_default}`, background: theme.bg_strong, flexShrink: 0,
+  }}>
+    <img src={att.previewUrl} alt={att.file.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+    <button
+      type="button"
+      onClick={onRemove}
+      data-tooltip="Remove"
+      style={{
+        position: 'absolute', top: 2, right: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 16, height: 16, borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0,
+        background: 'rgba(0,0,0,0.6)', color: '#fff',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.8)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; }}
+    >
+      <X size={11} />
+    </button>
+  </div>
+);
+
 // Quick-reaction emojis offered by the in-composer picker, in display order.
 const QUICK_EMOJIS = ['👍', '🙏', '👌', '➕', '😁', '🤩'];
 
-// Icon button pinned to the bottom-right of a composer's text area. Opens a small
-// portaled row of quick emojis (portaled so the inspector's overflow:hidden can't
-// clip it); the menu floats above the button since composers sit low in the panel.
+// Icon button in the composer's bottom toolbar. Opens a small portaled row of
+// quick emojis (portaled so the inspector's overflow:hidden can't clip it); the
+// menu floats above the button since composers sit low in the panel.
 const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -1428,7 +1686,6 @@ const EmojiPicker: React.FC<{ onPick: (emoji: string) => void }> = ({ onPick }) 
         onClick={toggle}
         data-tooltip="Add emoji"
         style={{
-          position: 'absolute', left: 8, bottom: 8,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           width: 24, height: 24, borderRadius: 6, border: 'none',
           background: open ? theme.bg_tertiary : 'transparent',
