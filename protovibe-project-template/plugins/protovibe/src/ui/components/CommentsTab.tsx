@@ -16,6 +16,7 @@ import {
 } from '../api/comments';
 import { emitToast } from '../events/toast';
 import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '../hooks/useCommentUser';
+import { useViewportCommentIds } from '../hooks/useViewportCommentIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
@@ -132,14 +133,26 @@ function contextSummary(ctx: CommentContext | undefined): string {
 type FilterToken = CommentStatus | 'none' | 'unread' | 'mine';
 const VALID_TOKENS = new Set<string>([...COMMENT_STATUSES, 'none', 'unread', 'mine']);
 
-// Persisted filter preferences (remembered across sessions). Selection scope
-// defaults to "Any element"; the pill set defaults to empty ("All").
-const FILTER_SELECTION_KEY = 'pv-comments-filter-selection';
+// Which elements the thread list is scoped to: every element ('all'), only those
+// visible in the active surface's viewport ('viewport'), or only the current
+// selection's subtree ('selection').
+type FilterScope = 'all' | 'viewport' | 'selection';
+
+// Persisted filter preferences (remembered across sessions). Scope defaults to
+// "Any element"; the pill set defaults to empty ("All").
+const FILTER_SCOPE_KEY = 'pv-comments-filter-scope';
+const FILTER_SELECTION_KEY = 'pv-comments-filter-selection'; // legacy boolean scope key (migrated)
 const FILTER_STATUS_KEY = 'pv-comments-filter-status'; // legacy single-status key (migrated)
 const FILTER_TOKENS_KEY = 'pv-comments-filter-tokens';
 
-function loadFilterToSelection(): boolean {
-  try { return localStorage.getItem(FILTER_SELECTION_KEY) === '1'; } catch { return false; }
+function loadFilterScope(): FilterScope {
+  try {
+    const raw = localStorage.getItem(FILTER_SCOPE_KEY);
+    if (raw === 'all' || raw === 'viewport' || raw === 'selection') return raw;
+    // Migrate the old boolean "selection only" preference.
+    if (localStorage.getItem(FILTER_SELECTION_KEY) === '1') return 'selection';
+  } catch { /* ignore */ }
+  return 'all';
 }
 function loadFilterTokens(): Set<FilterToken> {
   try {
@@ -187,7 +200,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [replyAttachments, setReplyAttachments] = useState<PendingAttachment[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
-  const [filterToSelection, setFilterToSelection] = useState(loadFilterToSelection);
+  const [filterScope, setFilterScope] = useState<FilterScope>(loadFilterScope);
   const [filterTokens, setFilterTokens] = useState<Set<FilterToken>>(loadFilterTokens);
   // Comment ids that were unread when the open thread was entered. Opening a
   // thread marks them all read immediately, so this is captured beforehand only
@@ -226,8 +239,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
 
   // Remember filter preferences across sessions.
   useEffect(() => {
-    try { localStorage.setItem(FILTER_SELECTION_KEY, filterToSelection ? '1' : '0'); } catch { /* ignore */ }
-  }, [filterToSelection]);
+    try { localStorage.setItem(FILTER_SCOPE_KEY, filterScope); } catch { /* ignore */ }
+  }, [filterScope]);
   useEffect(() => {
     try { localStorage.setItem(FILTER_TOKENS_KEY, Array.from(filterTokens).join(',')); } catch { /* ignore */ }
   }, [filterTokens]);
@@ -249,18 +262,25 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
 
   // The subtree walk (querySelectorAll('*') + getAttributeNames) is the one
   // potentially heavy op for large selections, so only run it when its result is
-  // actually needed: the panel is visible AND "Selection only" is on. Otherwise
+  // actually needed: the panel is visible AND scope is "Selected". Otherwise
   // there is nothing to compute — visibleThreads ignores subtreeIds anyway.
   const subtreeIds = useMemo(
-    () => (isActive && filterToSelection ? gatherSubtreeThreadIds(currentBaseTarget) : []),
-    [isActive, filterToSelection, currentBaseTarget, threads],
+    () => (isActive && filterScope === 'selection' ? gatherSubtreeThreadIds(currentBaseTarget) : []),
+    [isActive, filterScope, currentBaseTarget, threads],
   );
+
+  // Thread ids whose anchored element is currently on screen (and not occluded)
+  // on the active surface. Only computes while the "In view" scope is active.
+  const viewportIds = useViewportCommentIds(isActive && filterScope === 'viewport', activeIframeTab, threads);
 
   const visibleThreads = useMemo(() => {
     const subtreeSet = new Set(subtreeIds);
-    let base = (filterToSelection && currentBaseTarget)
-      ? threads.filter((t) => subtreeSet.has(t.id))
-      : threads;
+    let base = threads;
+    if (filterScope === 'selection') {
+      base = currentBaseTarget ? threads.filter((t) => subtreeSet.has(t.id)) : threads;
+    } else if (filterScope === 'viewport') {
+      base = threads.filter((t) => viewportIds.has(t.id));
+    }
     // Status pills (incl. 'none' for untriaged) OR within their own group.
     const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
     if (statusSet.size) base = base.filter((t) => statusSet.has(t.status ?? 'none'));
@@ -268,7 +288,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     if (filterTokens.has('mine')) base = base.filter((t) => threadMentionsMe(user, t));
     // Most recently active thread first.
     return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
-  }, [threads, filterToSelection, currentBaseTarget, subtreeIds, filterTokens, user]);
+  }, [threads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
 
   // Free-text search runs across every individual comment (not just threads),
   // newest first. Empty query ⇒ no results and we fall back to the thread list.
@@ -580,8 +600,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           query={query}
           setQuery={setQuery}
           searchResults={searchResults}
-          filterToSelection={filterToSelection}
-          setFilterToSelection={setFilterToSelection}
+          filterScope={filterScope}
+          setFilterScope={setFilterScope}
           filterTokens={filterTokens}
           setFilterTokens={setFilterTokens}
           highlightId={highlightId}
@@ -723,8 +743,8 @@ const ListView: React.FC<{
   query: string;
   setQuery: (s: string) => void;
   searchResults: CommentSearchHit[];
-  filterToSelection: boolean;
-  setFilterToSelection: (v: boolean) => void;
+  filterScope: FilterScope;
+  setFilterScope: (v: FilterScope) => void;
   filterTokens: Set<FilterToken>;
   setFilterTokens: (s: Set<FilterToken>) => void;
   highlightId: string | null;
@@ -738,7 +758,7 @@ const ListView: React.FC<{
   const searching = p.query.trim().length > 0;
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Non-default filters worth surfacing on the collapsed "Filters" header.
-  const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterToSelection ? 1 : 0);
+  const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterScope !== 'all' ? 1 : 0);
   // Restore the threads-list scroll position when coming back from a thread.
   const listRef = useRef<HTMLDivElement>(null);
   const { onScrollChange } = p;
@@ -812,7 +832,7 @@ const ListView: React.FC<{
             <span
               role="button"
               data-tooltip="Clear filters"
-              onClick={(e) => { e.stopPropagation(); p.setFilterTokens(new Set()); p.setFilterToSelection(false); p.setQuery(''); }}
+              onClick={(e) => { e.stopPropagation(); p.setFilterTokens(new Set()); p.setFilterScope('all'); p.setQuery(''); }}
               style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, color: theme.text_tertiary, cursor: 'pointer' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
@@ -828,11 +848,12 @@ const ListView: React.FC<{
             {!searching && (
               <>
                 <Segmented
-                  value={p.filterToSelection ? 'selection' : 'all'}
-                  onChange={(v) => p.setFilterToSelection(v === 'selection')}
+                  value={p.filterScope}
+                  onChange={(v) => p.setFilterScope(v as FilterScope)}
                   options={[
-                    { val: 'all', label: 'Any element' },
-                    { val: 'selection', label: 'Selection only' },
+                    { val: 'all', label: 'Any' },
+                    { val: 'viewport', label: 'In view' },
+                    { val: 'selection', label: 'Selected' },
                   ]}
                 />
                 <FilterPills tokens={p.filterTokens} onChange={p.setFilterTokens} />
@@ -865,9 +886,11 @@ const ListView: React.FC<{
           <EmptyState text={
             p.filterTokens.size > 0
               ? 'No comments match the active filters.'
-              : p.filterToSelection
-                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to Any element.')
-                : 'No comments yet. Select an element and add the first one.'
+              : p.filterScope === 'selection'
+                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to Any.')
+                : p.filterScope === 'viewport'
+                  ? 'No comments are visible in the current view. Scroll the canvas or switch to Any.'
+                  : 'No comments yet. Select an element and add the first one.'
           } />
         ) : (
           p.threads.map((t) => (
