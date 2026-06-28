@@ -1,6 +1,6 @@
 {
   "id": "gv3nwn2qqx",
-  "status": "To review",
+  "status": "review",
   "context": {
     "tab": "app",
     "file": "src/pages/KPIsPage.tsx",
@@ -15,7 +15,11 @@
         "email": ""
       },
       "content": "Testasd",
-      "createdAt": "2026-06-27T17:06:55.597Z"
+      "createdAt": "2026-06-27T17:06:55.597Z",
+      "seenBy": [
+        "Anika Ga",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T17:06:55.597Z",

@@ -14,7 +14,11 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "asdasd asd as",
-      "createdAt": "2026-06-27T18:28:55.457Z"
+      "createdAt": "2026-06-27T18:28:55.457Z",
+      "seenBy": [
+        "Anika Gameta Very Long Name",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T18:28:55.457Z",

@@ -14,7 +14,11 @@
         "email": ""
       },
       "content": "444",
-      "createdAt": "2026-06-27T17:07:55.766Z"
+      "createdAt": "2026-06-27T17:07:55.766Z",
+      "seenBy": [
+        "Anika Ga",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T17:07:55.766Z",

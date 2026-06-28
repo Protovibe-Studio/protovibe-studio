@@ -1,0 +1,22 @@
+{
+  "id": "otju4rrv3k",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/KPIsPage.tsx",
+    "pathname": "/?page=kpis",
+    "url": "/?page=kpis"
+  },
+  "comments": [
+    {
+      "id": "c-nhl0xxgzli",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Test3254335",
+      "createdAt": "2026-06-28T05:46:51.388Z"
+    }
+  ],
+  "createdAt": "2026-06-28T05:46:51.388Z",
+  "anchorFile": "src/pages/KPIsPage.tsx"
+}

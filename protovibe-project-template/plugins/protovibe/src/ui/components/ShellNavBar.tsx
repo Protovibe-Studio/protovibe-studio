@@ -28,6 +28,7 @@ type ShellNavBarProps = {
   onIframeTabChange: (tab: IframeTab) => void;
   activeSidebarTab: SidebarTab;
   onSidebarTabChange: (tab: SidebarTab) => void;
+  unreadComments?: number;
   inspectorOpen?: boolean;
   onToggleInspector?: () => void;
 };
@@ -38,12 +39,14 @@ function TabButton({
   label,
   isActive,
   onClick,
+  dot,
 }: {
   id: string;
   icon: React.ElementType;
   label: string;
   isActive: boolean;
   onClick: () => void;
+  dot?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -54,6 +57,7 @@ function TabButton({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
@@ -70,7 +74,23 @@ function TabButton({
         transition: 'background-color 0.15s ease, color 0.15s ease',
       }}
     >
-      <Icon size={14} strokeWidth={isActive ? 2 : 1.7} />
+      <span style={{ position: 'relative', display: 'flex' }}>
+        <Icon size={14} strokeWidth={isActive ? 2 : 1.7} />
+        {dot && (
+          <span
+            style={{
+              position: 'absolute',
+              top: -3,
+              right: -4,
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: theme.accent_default,
+              border: `1.5px solid ${theme.bg_strong}`,
+            }}
+          />
+        )}
+      </span>
       {label}
     </button>
   );
@@ -83,6 +103,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
   onIframeTabChange,
   activeSidebarTab,
   onSidebarTabChange,
+  unreadComments = 0,
   inspectorOpen,
   onToggleInspector,
 }) => {
@@ -329,6 +350,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
           label={label}
           isActive={activeSidebarTab === id}
           onClick={() => onSidebarTabChange(id)}
+          dot={id === 'comments' && unreadComments > 0}
         />
       ))}
 

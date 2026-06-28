@@ -77,6 +77,13 @@ export interface CommentItem {
   content: string;
   createdAt: string; // ISO string
   updatedAt?: string; // ISO string, set when edited
+  /**
+   * Names of the people who have seen this message (read receipts). Just the
+   * display name is stored — enough to tell "have I read it?" without a real
+   * account system. Absent/empty means nobody has marked it read yet. A reader
+   * is added on thread open and can be removed again via "Mark as unread".
+   */
+  seenBy?: string[];
 }
 
 /** One thread === one `comment-{id}.json` file === one `data-pv-comment-{id}` attribute. */

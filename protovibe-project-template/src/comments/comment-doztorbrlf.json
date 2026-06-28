@@ -14,7 +14,10 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "Pozdr!",
-      "createdAt": "2026-06-27T18:33:17.467Z"
+      "createdAt": "2026-06-27T18:33:17.467Z",
+      "seenBy": [
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T18:33:17.467Z",

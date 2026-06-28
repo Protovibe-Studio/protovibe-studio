@@ -52,3 +52,18 @@ export async function updateThreadStatus(threadId: string, status: CommentStatus
 export async function deleteThread(threadId: string): Promise<void> {
   await postJson<{ success: boolean }>('/__comments-delete-thread', { threadId });
 }
+
+// Add (seen=true) or remove (seen=false) `name` from a comment's read receipts.
+// Pass commentId=null to apply to every comment in the thread (used on open).
+export async function setCommentSeen(
+  threadId: string, commentId: string | null, name: string, seen: boolean,
+): Promise<CommentThread> {
+  const data = await postJson<{ thread: CommentThread }>('/__comments-set-seen', {
+    threadId, commentId: commentId ?? undefined, name, seen,
+  });
+  return data.thread;
+}
+
+export async function markAllCommentsRead(name: string): Promise<void> {
+  await postJson<{ success: boolean }>('/__comments-mark-all-read', { name });
+}

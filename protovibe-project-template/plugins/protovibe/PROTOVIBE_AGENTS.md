@@ -805,7 +805,8 @@ Git-commit style).
   "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
   "comments": [
     { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },
-      "content": "Tighten this spacing", "createdAt": "2026-06-27T10:00:00.000Z" }
+      "content": "Tighten this spacing", "createdAt": "2026-06-27T10:00:00.000Z",
+      "seenBy": ["Jane", "Alex"] }   // optional read receipts — names that have seen this message; omitted/[] = unseen
   ],
   "createdAt": "2026-06-27T10:00:00.000Z",
   "anchorFile": "src/pages/DashboardPage.tsx"

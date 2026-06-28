@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
+  MoreHorizontal, CheckCheck,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
@@ -11,9 +12,10 @@ import { takeSnapshot } from '../api/client';
 import {
   fetchCommentThreads, createCommentThread, replyToThread, editComment,
   deleteComment, updateThreadStatus, deleteThread as deleteThreadApi,
+  setCommentSeen, markAllCommentsRead,
 } from '../api/comments';
 import { emitToast } from '../events/toast';
-import { useCommentUser, authorIsMe } from '../hooks/useCommentUser';
+import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '../hooks/useCommentUser';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
 import {
@@ -135,6 +137,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [editingText, setEditingText] = useState('');
   const [filterToSelection, setFilterToSelection] = useState(loadFilterToSelection);
   const [statusFilter, setStatusFilter] = useState<CommentStatus | 'all'>(loadStatusFilter);
+  // Comment ids that were unread when the open thread was entered. Opening a
+  // thread marks them all read immediately, so this is captured beforehand only
+  // to drive the "scroll to the oldest unread" jump. Cleared when leaving.
+  const [viewedUnread, setViewedUnread] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +181,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     window.addEventListener('pv-comments-refresh', handler);
     return () => window.removeEventListener('pv-comments-refresh', handler);
   }, [refresh]);
+
+  // Broadcast the unread-thread count so the nav bar can show a dot on the
+  // Comments tab even while this panel is hidden (it stays mounted, so this
+  // recomputes as threads / identity change).
+  useEffect(() => {
+    const count = user ? threads.filter((t) => threadHasUnread(user, t)).length : 0;
+    window.dispatchEvent(new CustomEvent('pv-comments-unread', { detail: { count } }));
+  }, [threads, user]);
 
   // The subtree walk (querySelectorAll('*') + getAttributeNames) is the one
   // potentially heavy op for large selections, so only run it when its result is
@@ -352,12 +366,61 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     }).catch((e) => setError(String(e))).finally(() => setBusy(false));
   };
 
+  // ── read receipts ──────────────────────────────────────────────────────────
+  // Set/clear a read receipt locally (optimistic) and persist it. commentId=null
+  // covers every comment in the thread. Read-state writes are deliberately not
+  // snapshotted, so they never pollute undo. On failure we resync from disk.
+  const persistSeen = useCallback((threadId: string, commentId: string | null, seen: boolean) => {
+    if (!user) return;
+    const name = user.name;
+    setThreads((prev) => prev.map((t) => {
+      if (t.id !== threadId) return t;
+      return {
+        ...t,
+        comments: t.comments.map((c) => {
+          if (commentId && c.id !== commentId) return c;
+          const set = new Set(Array.isArray(c.seenBy) ? c.seenBy : [c.author.name]);
+          if (seen) set.add(name); else set.delete(name);
+          return { ...c, seenBy: Array.from(set) };
+        }),
+      };
+    }));
+    setCommentSeen(threadId, commentId, name, seen).catch(() => refresh());
+  }, [user, refresh]);
+
+  // Toggle a single comment's read state from the thread view's hover control.
+  const handleToggleRead = useCallback((commentId: string, makeRead: boolean) => {
+    if (!activeThreadId) return;
+    if (!user) { setProfileOpen(true); return; }
+    persistSeen(activeThreadId, commentId, makeRead);
+  }, [activeThreadId, user, persistSeen]);
+
+  const handleMarkAllRead = useCallback(() => {
+    withAuthor((author) => {
+      const name = author.name;
+      setThreads((prev) => prev.map((t) => ({
+        ...t,
+        comments: t.comments.map((c) => {
+          const set = new Set(Array.isArray(c.seenBy) ? c.seenBy : [c.author.name]); set.add(name);
+          return { ...c, seenBy: Array.from(set) };
+        }),
+      })));
+      setViewedUnread(new Set());
+      markAllCommentsRead(name).catch(() => refresh());
+      emitToast({ message: 'All comments marked as read', variant: 'success' });
+    });
+  }, [withAuthor, refresh]);
+
   // ── navigation ───────────────────────────────────────────────────────────────
   const openThread = (thread: CommentThread) => {
+    // Capture what's unread now (before we mark it read) for the dots + scroll.
+    const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
+    setViewedUnread(new Set(unread));
     setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
     navigateToThread(thread);
+    if (unread.length && user) persistSeen(thread.id, null, true);
   };
 
   const handleAddCommentClick = () => {
@@ -374,6 +437,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   };
 
   const canComment = !!activeData?.file && !!activeData?.nameEnd;
+  const hasUnread = useMemo(
+    () => !!user && threads.some((t) => threadHasUnread(user, t)),
+    [user, threads],
+  );
 
   // ── render ───────────────────────────────────────────────────────────────────
   return (
@@ -381,7 +448,12 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       {/* In a thread the panel header is the thread's own header (with its
           "Back to all threads" link); the top bar only shows on the list. */}
       {!activeThread && (
-        <Header user={user} onEditProfile={() => setProfileOpen(true)} />
+        <Header
+          user={user}
+          onEditProfile={() => setProfileOpen(true)}
+          hasUnread={hasUnread}
+          onMarkAllRead={handleMarkAllRead}
+        />
       )}
 
       {error && (
@@ -395,6 +467,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           thread={activeThread}
           user={user}
           busy={busy}
+          viewedUnread={viewedUnread}
+          onToggleRead={handleToggleRead}
           replyDraft={replyDraft}
           setReplyDraft={setReplyDraft}
           editingId={editingId}
@@ -448,7 +522,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
 const Header: React.FC<{
   user: CommentAuthor | null;
   onEditProfile: () => void;
-}> = ({ user, onEditProfile }) => (
+  hasUnread: boolean;
+  onMarkAllRead: () => void;
+}> = ({ user, onEditProfile, hasUnread, onMarkAllRead }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0,
@@ -458,17 +534,92 @@ const Header: React.FC<{
         Comments & Notes
       </span>
     </div>
-    {user ? (
-      <button onClick={onEditProfile} data-tooltip={`${user.name} — edit profile`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
-        <CommentAvatar name={user.name} email={user.email} size={24} mine />
-      </button>
-    ) : (
-      <button onClick={onEditProfile} style={{ background: 'transparent', border: 'none', color: theme.accent_default, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
-        Set profile
-      </button>
-    )}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <ThreadsMenu hasUnread={hasUnread} onMarkAllRead={onMarkAllRead} />
+      {user ? (
+        <button onClick={onEditProfile} data-tooltip={`${user.name} — edit profile`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
+          <CommentAvatar name={user.name} email={user.email} size={24} mine />
+        </button>
+      ) : (
+        <button onClick={onEditProfile} style={{ background: 'transparent', border: 'none', color: theme.accent_default, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
+          Set profile
+        </button>
+      )}
+    </div>
   </div>
 );
+
+// "More" (kebab) menu sitting before the avatar on the threads list. Portaled so
+// the inspector's overflow:hidden doesn't clip it; currently just "Mark all as
+// read" (disabled when there's nothing unread).
+const ThreadsMenu: React.FC<{ hasUnread: boolean; onMarkAllRead: () => void }> = ({ hasUnread, onMarkAllRead }) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const toggle = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
+    setOpen((v) => !v);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={toggle}
+        data-tooltip="More"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
+          borderRadius: 6, border: 'none', cursor: 'pointer',
+          background: open ? theme.bg_tertiary : 'transparent', color: theme.text_secondary,
+        }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.background = theme.bg_low; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = 'transparent'; }}
+      >
+        <MoreHorizontal size={16} />
+      </button>
+      {open && pos && createPortal(
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 2147483646 }} />
+          <div style={{
+            position: 'fixed', top: pos.top, right: pos.right, zIndex: 2147483647, minWidth: 180,
+            background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4, fontFamily: theme.font_ui,
+          }}>
+            <button
+              onClick={() => { setOpen(false); if (hasUnread) onMarkAllRead(); }}
+              disabled={!hasUnread}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 5,
+                border: 'none', background: 'transparent', textAlign: 'left',
+                color: hasUnread ? theme.text_default : theme.text_tertiary,
+                fontSize: 12, fontWeight: 500, cursor: hasUnread ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
+              }}
+              onMouseEnter={(e) => { if (hasUnread) e.currentTarget.style.background = theme.bg_low; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <CheckCheck size={14} />
+              Mark all as read
+            </button>
+          </div>
+        </>,
+        document.body,
+      )}
+    </>
+  );
+};
 
 // ── list view ──────────────────────────────────────────────────────────────────
 const ListView: React.FC<{
@@ -757,6 +908,7 @@ const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | nu
   const latest = latestComment(thread);
   const replies = thread.comments.length - 1;
   const dimmed = thread.status === 'closed';
+  const unread = threadHasUnread(user, thread);
   return (
     <button
       onClick={onClick}
@@ -772,12 +924,14 @@ const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | nu
       {/* Content column is indented past the avatar, mirroring the thread view. */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, fontWeight: unread ? 700 : 600, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {latest?.author.name || 'Unknown'}
           </span>
           <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{latest ? relativeTime(latest.createdAt) : ''}</span>
           <div style={{ flex: 1 }} />
           <StatusBadge status={thread.status} />
+          {/* Unread dot, top-right after the status badge. */}
+          {unread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default, flexShrink: 0 }} />}
         </div>
         <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {latest?.content}
@@ -795,6 +949,8 @@ const ThreadView: React.FC<{
   thread: CommentThread;
   user: CommentAuthor | null;
   busy: boolean;
+  viewedUnread: Set<string>;
+  onToggleRead: (commentId: string, makeRead: boolean) => void;
   replyDraft: string;
   setReplyDraft: (s: string) => void;
   editingId: string | null;
@@ -811,11 +967,37 @@ const ThreadView: React.FC<{
 }> = (p) => {
   const { thread } = p;
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Jump to the newest comment whenever the thread opens or a message is added.
+  const lastThreadId = useRef<string | null>(null);
+  const lastLen = useRef(0);
+
+  // On open: jump to the OLDEST unread message (so the reader starts where they
+  // left off); if everything is read, fall back to the newest like before.
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [thread.id, thread.comments.length]);
+    if (!el || lastThreadId.current === thread.id) return;
+    lastThreadId.current = thread.id;
+    lastLen.current = thread.comments.length;
+    const firstUnread = thread.comments.find((c) => p.viewedUnread.has(c.id));
+    const node = firstUnread && el.querySelector<HTMLElement>(`[data-pv-comment-row="${firstUnread.id}"]`);
+    if (node) {
+      el.scrollTop = node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 8;
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
+    // viewedUnread is captured at open alongside thread.id; re-running on its
+    // later changes (toggles) would yank the scroll, so key only on thread.id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread.id]);
+
+  // A newly added message (reply) always scrolls to the bottom.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (thread.comments.length > lastLen.current) {
+      lastLen.current = thread.comments.length;
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [thread.comments.length]);
   return (
     <>
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
@@ -855,54 +1037,24 @@ const ThreadView: React.FC<{
       </div>
 
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {thread.comments.map((c, idx) => {
-          const isEditing = p.editingId === c.id;
-          const mine = authorIsMe(p.user, c.author);
-          return (
-            <div key={c.id} style={{ display: 'flex', gap: 8 }}>
-              <CommentAvatar name={c.author.name} email={c.author.email} size={26} mine={mine} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.author.name}</span>
-                  <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
-                  <div style={{ flex: 1 }} />
-                  {mine && !isEditing && (
-                    <>
-                      <button onClick={() => { p.setEditingId(c.id); p.setEditingText(c.content); }} data-tooltip="Edit" style={iconBtnSm}><Pencil size={12} /></button>
-                      {idx > 0 && (
-                        <ConfirmDeleteButton
-                          tooltip="Delete"
-                          message="Delete this comment?"
-                          confirmLabel="Delete"
-                          iconSize={12}
-                          style={iconBtnSm}
-                          onConfirm={() => p.onDeleteReply(c.id)}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-                {isEditing ? (
-                  <div style={{ marginTop: 6 }}>
-                    <Composer
-                      value={p.editingText}
-                      onChange={p.setEditingText}
-                      onSubmit={() => p.onEditSave(c.id)}
-                      onCancel={() => { p.setEditingId(null); p.setEditingText(''); }}
-                      busy={p.busy}
-                      placeholder="Edit comment…"
-                      submitLabel="Save"
-                    />
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 3, fontSize: 13, color: theme.text_default, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {c.content}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {thread.comments.map((c, idx) => (
+          <CommentRow
+            key={c.id}
+            comment={c}
+            index={idx}
+            user={p.user}
+            busy={p.busy}
+            unread={!commentSeenByMe(p.user, c)}
+            isEditing={p.editingId === c.id}
+            editingText={p.editingText}
+            onStartEdit={() => { p.setEditingId(c.id); p.setEditingText(c.content); }}
+            onEditChange={p.setEditingText}
+            onEditSave={() => p.onEditSave(c.id)}
+            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); }}
+            onDelete={() => p.onDeleteReply(c.id)}
+            onToggleRead={(makeRead) => p.onToggleRead(c.id, makeRead)}
+          />
+        ))}
       </div>
 
       <div style={{ padding: '12px 16px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
@@ -917,6 +1069,101 @@ const ThreadView: React.FC<{
         />
       </div>
     </>
+  );
+};
+
+// The unread indicator and its toggle, fused into one control at a comment's top
+// right. Unread → a filled blue dot, always shown, "click to mark as read". Read
+// → a hollow outline that only appears on hover, "mark as unread". The 20px box
+// is always rendered so the header row height stays put whatever the state.
+const UnreadToggle: React.FC<{ unread: boolean; hovered: boolean; onToggle: () => void }> = ({ unread, hovered, onToggle }) => (
+  <button
+    onClick={onToggle}
+    data-tooltip={unread ? 'Click to mark as read' : 'Mark as unread'}
+    style={{ ...iconBtnSm, cursor: 'pointer' }}
+  >
+    {unread ? (
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default }} />
+    ) : hovered ? (
+      <span style={{ width: 6, height: 6, borderRadius: '50%', border: `1.5px solid ${theme.text_tertiary}` }} />
+    ) : null}
+  </button>
+);
+
+// A single message row. Owns its hover state so the edit/delete actions only
+// surface while the row is hovered. The unread control sits at the top right.
+const CommentRow: React.FC<{
+  comment: CommentItem;
+  index: number;
+  user: CommentAuthor | null;
+  busy: boolean;
+  unread: boolean;
+  isEditing: boolean;
+  editingText: string;
+  onStartEdit: () => void;
+  onEditChange: (s: string) => void;
+  onEditSave: () => void;
+  onEditCancel: () => void;
+  onDelete: () => void;
+  onToggleRead: (makeRead: boolean) => void;
+}> = (p) => {
+  const c = p.comment;
+  const [hovered, setHovered] = useState(false);
+  const mine = authorIsMe(p.user, c.author);
+  return (
+    <div
+      data-pv-comment-row={c.id}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ display: 'flex', gap: 8 }}
+    >
+      <CommentAvatar name={c.author.name} email={c.author.email} size={26} mine={mine} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* minHeight matches the icon buttons so the row never grows on hover. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 20 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.author.name}</span>
+          <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
+          <div style={{ flex: 1 }} />
+          {mine && !p.isEditing && hovered && (
+            <>
+              <button onClick={p.onStartEdit} data-tooltip="Edit" style={iconBtnSm}><Pencil size={12} /></button>
+              {p.index > 0 && (
+                <ConfirmDeleteButton
+                  tooltip="Delete"
+                  message="Delete this comment?"
+                  confirmLabel="Delete"
+                  iconSize={12}
+                  style={iconBtnSm}
+                  onConfirm={p.onDelete}
+                />
+              )}
+            </>
+          )}
+          {/* Single unread control, top-right: filled blue when unread (click to
+              read), hollow circle on hover when read (click to mark unread). */}
+          {p.user && !p.isEditing && (
+            <UnreadToggle unread={p.unread} hovered={hovered} onToggle={() => p.onToggleRead(p.unread)} />
+          )}
+        </div>
+        {p.isEditing ? (
+          <div style={{ marginTop: 6 }}>
+            <Composer
+              value={p.editingText}
+              onChange={p.onEditChange}
+              onSubmit={p.onEditSave}
+              onCancel={p.onEditCancel}
+              busy={p.busy}
+              placeholder="Edit comment…"
+              submitLabel="Save"
+            />
+          </div>
+        ) : (
+          <div style={{ marginTop: 3, fontSize: 13, color: theme.text_default, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {c.content}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -69,7 +69,7 @@ export function KPIsPage() {
         {/* pv-block-end:kphead1 */}
 
         {/* pv-block-start:chrt001 */}
-        <Card data-pv-comment-7v9arq8ae2 data-pv-comment-gv3nwn2qqx data-pv-comment-v4pbprngd3 data-pv-comment-1yge0vmj6h data-pv-comment-c3y9wn8k60 data-pv-comment-qpkv4lmm11 data-pv-comment-y3imgvhk6e data-pv-comment-1h3f1po7xl className="items-stretch" data-pv-block="chrt001">
+        <Card data-pv-comment-otju4rrv3k data-pv-comment-7v9arq8ae2 data-pv-comment-gv3nwn2qqx data-pv-comment-v4pbprngd3 data-pv-comment-1yge0vmj6h data-pv-comment-c3y9wn8k60 data-pv-comment-qpkv4lmm11 data-pv-comment-y3imgvhk6e data-pv-comment-1h3f1po7xl className="items-stretch" data-pv-block="chrt001">
           {/* pv-editable-zone-start:chrtz01 */}
             {/* pv-block-start:chrth01 */}
             <div data-pv-block="chrth01" className="flex flex-col gap-0 mb-3">

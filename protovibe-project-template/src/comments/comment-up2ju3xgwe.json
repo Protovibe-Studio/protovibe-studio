@@ -14,7 +14,11 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "Test",
-      "createdAt": "2026-06-27T18:31:09.773Z"
+      "createdAt": "2026-06-27T18:31:09.773Z",
+      "seenBy": [
+        "Anika Gameta Very Long Name",
+        "Maciej Sawicki"
+      ]
     },
     {
       "id": "c-ain4nbz4k7",
@@ -23,7 +27,11 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "Test asdasd asd\n\nasdasdadad",
-      "createdAt": "2026-06-27T18:32:22.739Z"
+      "createdAt": "2026-06-27T18:32:22.739Z",
+      "seenBy": [
+        "Anika Gameta Very Long Name",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T18:31:09.773Z",

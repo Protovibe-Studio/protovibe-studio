@@ -1,6 +1,5 @@
 {
   "id": "o06bg64q3s",
-  "status": "To revisit",
   "context": {
     "tab": "app",
     "file": "src/pages/DashboardPage.tsx",
@@ -15,7 +14,10 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "sdfsdf",
-      "createdAt": "2026-06-27T15:57:36.310Z"
+      "createdAt": "2026-06-27T15:57:36.310Z",
+      "seenBy": [
+        "Maciej Sawicki"
+      ]
     },
     {
       "id": "c-d8lif7pdir",
@@ -24,7 +26,11 @@
         "email": ""
       },
       "content": "Testdsfsd",
-      "createdAt": "2026-06-27T15:58:31.271Z"
+      "createdAt": "2026-06-27T15:58:31.271Z",
+      "seenBy": [
+        "Second person",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T15:57:36.310Z",

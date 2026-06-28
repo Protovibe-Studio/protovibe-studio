@@ -1,6 +1,6 @@
 {
   "id": "qx1nevxuqr",
-  "status": "To review",
+  "status": "review",
   "context": {
     "tab": "app",
     "file": "src/pages/KPIsPage.tsx",
@@ -15,7 +15,10 @@
         "email": ""
       },
       "content": "Test KPI",
-      "createdAt": "2026-06-27T16:40:07.617Z"
+      "createdAt": "2026-06-27T16:40:07.617Z",
+      "seenBy": [
+        "Maciej Sawicki"
+      ]
     },
     {
       "id": "c-m7ul56enco",
@@ -24,7 +27,10 @@
         "email": ""
       },
       "content": "Second",
-      "createdAt": "2026-06-27T16:50:27.261Z"
+      "createdAt": "2026-06-27T16:50:27.261Z",
+      "seenBy": [
+        "Maciej Sawicki"
+      ]
     },
     {
       "id": "c-guw01dqw5f",
@@ -33,7 +39,11 @@
         "email": ""
       },
       "content": "Recent",
-      "createdAt": "2026-06-27T17:28:34.631Z"
+      "createdAt": "2026-06-27T17:28:34.631Z",
+      "seenBy": [
+        "Anika Ga",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T16:40:07.617Z",

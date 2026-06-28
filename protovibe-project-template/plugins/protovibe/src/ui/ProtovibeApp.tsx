@@ -37,6 +37,15 @@ export const ProtovibeApp: React.FC = () => {
   );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
   const [showErrorBanner, setShowErrorBanner] = useState(false);
+  // Unread-thread count broadcast by the (always-mounted) CommentsTab, surfaced
+  // as a dot on the Comments nav tab even while that panel is hidden.
+  const [unreadComments, setUnreadComments] = useState(0);
+
+  useEffect(() => {
+    const handler = (e: Event) => setUnreadComments((e as CustomEvent).detail?.count || 0);
+    window.addEventListener('pv-comments-unread', handler);
+    return () => window.removeEventListener('pv-comments-unread', handler);
+  }, []);
 
   const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
   const [appIframePath, setAppIframePath] = useState('/');
@@ -373,6 +382,7 @@ export const ProtovibeApp: React.FC = () => {
         onIframeTabChange={handleIframeTabChange}
         activeSidebarTab={activeSidebarTab}
         onSidebarTabChange={setActiveSidebarTab}
+        unreadComments={unreadComments}
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => toggleInspector()}
       />

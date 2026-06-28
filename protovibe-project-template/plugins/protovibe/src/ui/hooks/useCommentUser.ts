@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/hooks/useCommentUser.ts
 import { useState, useCallback } from 'react';
-import type { CommentAuthor } from '../../shared/comments';
+import type { CommentAuthor, CommentItem, CommentThread } from '../../shared/comments';
 
 const STORAGE_KEY = 'pv-comment-user';
 
@@ -44,6 +44,25 @@ export function authorIsMe(
   if (!user) return false;
   if (user.email && author.email) return user.email === author.email;
   return user.name === author.name;
+}
+
+/**
+ * Whether the current user has already seen a single comment. With no local
+ * profile we can't track anything, so everything reads as "seen" (no noisy dots
+ * for anonymous users). Once a comment has a `seenBy` array it is authoritative
+ * (this lets you mark even your OWN message unread). A comment that was never
+ * tracked falls back to "author has seen their own message".
+ */
+export function commentSeenByMe(user: CommentAuthor | null, comment: CommentItem): boolean {
+  if (!user) return true;
+  if (!Array.isArray(comment.seenBy)) return authorIsMe(user, comment.author);
+  return comment.seenBy.includes(user.name);
+}
+
+/** A thread is unread if any of its messages is unseen by the current user. */
+export function threadHasUnread(user: CommentAuthor | null, thread: CommentThread): boolean {
+  if (!user) return false;
+  return thread.comments.some((c) => !commentSeenByMe(user, c));
 }
 
 export function getInitials(name: string): string {

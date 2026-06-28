@@ -14,7 +14,11 @@
         "email": "saw.maciej@gmail.com"
       },
       "content": "Test comment with ve Hide all threads search and filters in a collapsible \"Filters\" panel.\n\n---\n\nIn the thread view, remove this header with back button and thread and avatar - what we have below could already be a heading of this panel just say \"Thread {{id}}\" instead of Comment {{id}} and add a small \"<- Back to all threads\" button above it (with arrow icon, nice)\n\nFix a bug: when I add a comment to element, then go back to all threads and \"Selection only\" is active, I don't see my newly added comment unless I click the element on canvas again (we should refetch comments every time the threads list is rendered)\n\n---\nThe buttons to select thread status - let's convert it to a dropdown menu (custom menu like we have in other places like inspector input dropdown, not browser native) - by default should show \"No status\" - and this \"No status\" should be shown in the dropdown list as well. Classic status dropdown menu with colorful options, when status is selected dropdown also changes it's color to reflect the status and be similar as the badge on the list of the threads.",
-      "createdAt": "2026-06-27T17:40:45.075Z"
+      "createdAt": "2026-06-27T17:40:45.075Z",
+      "seenBy": [
+        "Anika Gameta Very Long Name",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T17:40:45.075Z",

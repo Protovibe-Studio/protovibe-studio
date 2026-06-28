@@ -303,6 +303,61 @@ export const handleCommentUpdateStatus: Connect.NextHandleFunction = async (req,
   }
 };
 
+// POST { threadId, commentId?, name, seen }  → set/clear a read receipt.
+// Adds (seen=true) or removes (seen=false) `name` from a comment's seenBy list.
+// With no commentId every comment in the thread is updated (used on thread open
+// and "mark thread read"). Read receipts are intentionally NOT snapshotted, so
+// opening a thread never lands an entry on the undo stack.
+export const handleCommentSetSeen: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { threadId, commentId, name, seen } = await parseBody(req);
+    if (!threadId || !name) return sendError(res, 'threadId and name required');
+
+    const thread = readThread(threadId);
+    if (!thread) return sendError(res, 'Thread not found', 404);
+
+    for (const c of thread.comments) {
+      if (commentId && c.id !== commentId) continue;
+      // Untracked (no seenBy yet) → seed with the author so flipping one reader's
+      // receipt never silently marks the author's own message unread. An explicit
+      // empty array is respected as-is (e.g. the author marked their own unread).
+      const base = Array.isArray(c.seenBy) ? c.seenBy : (c.author?.name ? [c.author.name] : []);
+      const set = new Set(base);
+      if (seen) set.add(name); else set.delete(name);
+      c.seenBy = Array.from(set);
+    }
+    writeThread(thread);
+
+    sendJson(res, { success: true, thread });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
+// POST { name }  → mark every comment in every thread as seen by `name`.
+export const handleCommentMarkAllRead: Connect.NextHandleFunction = async (req, res) => {
+  try {
+    const { name } = await parseBody(req);
+    if (!name) return sendError(res, 'name required');
+
+    const threads = listThreads();
+    for (const t of threads) {
+      let changed = false;
+      for (const c of t.comments) {
+        const base = Array.isArray(c.seenBy) ? c.seenBy : (c.author?.name ? [c.author.name] : []);
+        const set = new Set(base);
+        if (!set.has(name)) { set.add(name); changed = true; }
+        c.seenBy = Array.from(set);
+      }
+      if (changed) writeThread(t);
+    }
+
+    sendJson(res, { success: true, threads });
+  } catch (err) {
+    sendError(res, String(err), 500);
+  }
+};
+
 // POST { threadId }  → remove the anchor attribute from source + delete the file
 export const handleCommentDeleteThread: Connect.NextHandleFunction = async (req, res) => {
   try {
@@ -339,5 +394,7 @@ export function registerCommentsMiddleware(server: ViteDevServer): void {
   server.middlewares.use('/__comments-edit', handleCommentEdit);
   server.middlewares.use('/__comments-delete', handleCommentDelete);
   server.middlewares.use('/__comments-update-status', handleCommentUpdateStatus);
+  server.middlewares.use('/__comments-set-seen', handleCommentSetSeen);
+  server.middlewares.use('/__comments-mark-all-read', handleCommentMarkAllRead);
   server.middlewares.use('/__comments-delete-thread', handleCommentDeleteThread);
 }

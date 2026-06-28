@@ -1,6 +1,6 @@
 {
   "id": "7v9arq8ae2",
-  "status": "Minor",
+  "status": "minor",
   "context": {
     "tab": "app",
     "file": "src/pages/KPIsPage.tsx",
@@ -15,7 +15,11 @@
         "email": ""
       },
       "content": "Testsdf",
-      "createdAt": "2026-06-27T17:07:07.239Z"
+      "createdAt": "2026-06-27T17:07:07.239Z",
+      "seenBy": [
+        "Anika Ga",
+        "Maciej Sawicki"
+      ]
     }
   ],
   "createdAt": "2026-06-27T17:07:07.239Z",
