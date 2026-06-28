@@ -1,6 +1,5 @@
 {
   "id": "qx1nevxuqr",
-  "status": "review",
   "context": {
     "tab": "app",
     "file": "src/pages/KPIsPage.tsx",
@@ -47,5 +46,6 @@
     }
   ],
   "createdAt": "2026-06-27T16:40:07.617Z",
-  "anchorFile": "src/pages/KPIsPage.tsx"
+  "anchorFile": "src/pages/KPIsPage.tsx",
+  "status": "minor"
 }

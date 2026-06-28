@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
-  MoreHorizontal, CheckCheck,
+  MoreHorizontal, CheckCheck, Eye,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
@@ -100,20 +100,44 @@ function contextSummary(ctx: CommentContext | undefined): string {
   return ctx.pathname ? `App · ${ctx.pathname}` : 'App';
 }
 
+// A filter pill is either a status ('minor'…'closed'), 'none' (untriaged), or one
+// of the cross-cutting toggles. The active pills live in a Set; an empty Set means
+// "All". Status pills OR within their group; the toggles AND on top.
+type FilterToken = CommentStatus | 'none' | 'unread' | 'mine';
+const VALID_TOKENS = new Set<string>([...COMMENT_STATUSES, 'none', 'unread', 'mine']);
+
 // Persisted filter preferences (remembered across sessions). Selection scope
-// defaults to "All comments"; status filter defaults to "all".
+// defaults to "Any element"; the pill set defaults to empty ("All").
 const FILTER_SELECTION_KEY = 'pv-comments-filter-selection';
-const FILTER_STATUS_KEY = 'pv-comments-filter-status';
+const FILTER_STATUS_KEY = 'pv-comments-filter-status'; // legacy single-status key (migrated)
+const FILTER_TOKENS_KEY = 'pv-comments-filter-tokens';
 
 function loadFilterToSelection(): boolean {
   try { return localStorage.getItem(FILTER_SELECTION_KEY) === '1'; } catch { return false; }
 }
-function loadStatusFilter(): CommentStatus | 'all' {
+function loadFilterTokens(): Set<FilterToken> {
   try {
-    const raw = localStorage.getItem(FILTER_STATUS_KEY);
-    if (raw && (COMMENT_STATUSES as string[]).includes(raw)) return raw as CommentStatus;
+    const raw = localStorage.getItem(FILTER_TOKENS_KEY);
+    if (raw !== null) {
+      return new Set(raw.split(',').filter((t) => VALID_TOKENS.has(t)) as FilterToken[]);
+    }
+    // Migrate the old single-status preference into the new pill set.
+    const old = localStorage.getItem(FILTER_STATUS_KEY);
+    if (old && (COMMENT_STATUSES as string[]).includes(old)) return new Set([old as FilterToken]);
   } catch { /* ignore */ }
-  return 'all';
+  return new Set();
+}
+
+// "My threads" = threads where I authored a comment or my name appears anywhere
+// in the conversation (author names + content), i.e. searching all comments for me.
+function threadMentionsMe(user: CommentAuthor | null, thread: CommentThread): boolean {
+  if (!user) return false;
+  const needle = user.name.trim().toLowerCase();
+  if (!needle) return false;
+  return thread.comments.some((c) =>
+    authorIsMe(user, c.author) ||
+    c.author.name.toLowerCase().includes(needle) ||
+    c.content.toLowerCase().includes(needle));
 }
 
 interface CommentsTabProps {
@@ -136,7 +160,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [filterToSelection, setFilterToSelection] = useState(loadFilterToSelection);
-  const [statusFilter, setStatusFilter] = useState<CommentStatus | 'all'>(loadStatusFilter);
+  const [filterTokens, setFilterTokens] = useState<Set<FilterToken>>(loadFilterTokens);
   // Comment ids that were unread when the open thread was entered. Opening a
   // thread marks them all read immediately, so this is captured beforehand only
   // to drive the "scroll to the oldest unread" jump. Cleared when leaving.
@@ -144,6 +168,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The most recently opened (or just-added) thread, faintly highlighted in the
+  // list so you can tell where you left off while reading threads one by one.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  // Threads-list scroll offset, preserved across open → back so browsing stays put.
+  const listScrollTop = useRef(0);
 
   // Profile dialog + the action queued behind it.
   const [profileOpen, setProfileOpen] = useState(false);
@@ -172,8 +201,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     try { localStorage.setItem(FILTER_SELECTION_KEY, filterToSelection ? '1' : '0'); } catch { /* ignore */ }
   }, [filterToSelection]);
   useEffect(() => {
-    try { localStorage.setItem(FILTER_STATUS_KEY, statusFilter); } catch { /* ignore */ }
-  }, [statusFilter]);
+    try { localStorage.setItem(FILTER_TOKENS_KEY, Array.from(filterTokens).join(',')); } catch { /* ignore */ }
+  }, [filterTokens]);
 
   // Keep in sync after undo/redo of comment files.
   useEffect(() => {
@@ -203,10 +232,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     let base = (filterToSelection && currentBaseTarget)
       ? threads.filter((t) => new Set(subtreeIds).has(t.id))
       : threads;
-    if (statusFilter !== 'all') base = base.filter((t) => t.status === statusFilter);
+    // Status pills (incl. 'none' for untriaged) OR within their own group.
+    const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
+    if (statusSet.size) base = base.filter((t) => statusSet.has(t.status ?? 'none'));
+    if (filterTokens.has('unread')) base = base.filter((t) => threadHasUnread(user, t));
+    if (filterTokens.has('mine')) base = base.filter((t) => threadMentionsMe(user, t));
     // Most recently active thread first.
     return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
-  }, [threads, filterToSelection, currentBaseTarget, subtreeIds, statusFilter]);
+  }, [threads, filterToSelection, currentBaseTarget, subtreeIds, filterTokens, user]);
 
   // Free-text search runs across every individual comment (not just threads),
   // newest first. Empty query ⇒ no results and we fall back to the thread list.
@@ -309,7 +342,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       setComposerOpen(false);
       setDraft('');
       // Stay on the list (don't open the new thread) so the user sees it land in
-      // context, and confirm with the global toast.
+      // context, faintly highlighted, and confirm with the global toast.
+      setHighlightId(id);
       setActiveThreadId(null);
       emitToast({ message: 'Comment added', variant: 'success' });
     }).catch((e) => setError(String(e))).finally(() => setBusy(false));
@@ -416,6 +450,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     // Capture what's unread now (before we mark it read) for the dots + scroll.
     const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
     setViewedUnread(new Set(unread));
+    setHighlightId(thread.id);
     setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
@@ -499,8 +534,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           searchResults={searchResults}
           filterToSelection={filterToSelection}
           setFilterToSelection={setFilterToSelection}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
+          filterTokens={filterTokens}
+          setFilterTokens={setFilterTokens}
+          highlightId={highlightId}
+          initialScrollTop={listScrollTop.current}
+          onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
           onCancelComposer={() => { setComposerOpen(false); setDraft(''); }}
@@ -637,8 +675,11 @@ const ListView: React.FC<{
   searchResults: CommentSearchHit[];
   filterToSelection: boolean;
   setFilterToSelection: (v: boolean) => void;
-  statusFilter: CommentStatus | 'all';
-  setStatusFilter: (s: CommentStatus | 'all') => void;
+  filterTokens: Set<FilterToken>;
+  setFilterTokens: (s: Set<FilterToken>) => void;
+  highlightId: string | null;
+  initialScrollTop: number;
+  onScrollChange: (top: number) => void;
   onAddClick: () => void;
   onSubmitComposer: () => void;
   onCancelComposer: () => void;
@@ -647,7 +688,16 @@ const ListView: React.FC<{
   const searching = p.query.trim().length > 0;
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Non-default filters worth surfacing on the collapsed "Filters" header.
-  const activeFilters = (searching ? 1 : 0) + (p.statusFilter !== 'all' ? 1 : 0) + (p.filterToSelection ? 1 : 0);
+  const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterToSelection ? 1 : 0);
+  // Restore the threads-list scroll position when coming back from a thread.
+  const listRef = useRef<HTMLDivElement>(null);
+  const { onScrollChange } = p;
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = p.initialScrollTop;
+    // Run once on mount — restoring later would fight the user's scrolling.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
@@ -689,7 +739,7 @@ const ListView: React.FC<{
         <button
           onClick={() => setFiltersOpen((o) => !o)}
           style={{
-            display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 36, boxSizing: 'border-box',
             padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
             color: theme.text_secondary, fontSize: 12, fontWeight: 600, fontFamily: theme.font_ui,
           }}
@@ -706,6 +756,18 @@ const ListView: React.FC<{
             </span>
           )}
           <div style={{ flex: 1 }} />
+          {activeFilters > 0 && (
+            <span
+              role="button"
+              data-tooltip="Clear filters"
+              onClick={(e) => { e.stopPropagation(); p.setFilterTokens(new Set()); p.setFilterToSelection(false); p.setQuery(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, color: theme.text_tertiary, cursor: 'pointer' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+            >
+              <X size={13} />
+            </span>
+          )}
           <ChevronDown size={15} style={{ transform: filtersOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: theme.text_tertiary }} />
         </button>
         {filtersOpen && (
@@ -717,18 +779,22 @@ const ListView: React.FC<{
                   value={p.filterToSelection ? 'selection' : 'all'}
                   onChange={(v) => p.setFilterToSelection(v === 'selection')}
                   options={[
-                    { val: 'all', label: 'All comments' },
+                    { val: 'all', label: 'Any element' },
                     { val: 'selection', label: 'Selection only' },
                   ]}
                 />
-                <StatusFilter value={p.statusFilter} onChange={p.setStatusFilter} />
+                <FilterPills tokens={p.filterTokens} onChange={p.setFilterTokens} />
               </>
             )}
           </div>
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+      <div
+        ref={listRef}
+        onScroll={(e) => onScrollChange(e.currentTarget.scrollTop)}
+        style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}
+      >
         {searching ? (
           p.searchResults.length === 0 ? (
             <EmptyState text={`No comments match “${p.query.trim()}”.`} />
@@ -745,14 +811,22 @@ const ListView: React.FC<{
           )
         ) : p.threads.length === 0 ? (
           <EmptyState text={
-            p.statusFilter !== 'all'
-              ? `No ${STATUS_CONFIG[p.statusFilter].label} comments.`
+            p.filterTokens.size > 0
+              ? 'No comments match the active filters.'
               : p.filterToSelection
-                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to All comments.')
+                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to Any element.')
                 : 'No comments yet. Select an element and add the first one.'
           } />
         ) : (
-          p.threads.map((t) => <ThreadListItem key={t.id} thread={t} user={p.user} onClick={() => p.onOpenThread(t)} />)
+          p.threads.map((t) => (
+            <ThreadListItem
+              key={t.id}
+              thread={t}
+              user={p.user}
+              highlighted={t.id === p.highlightId}
+              onClick={() => p.onOpenThread(t)}
+            />
+          ))
         )}
       </div>
     </>
@@ -818,34 +892,53 @@ const Segmented: React.FC<{
   </div>
 );
 
-// Single-select status filter rendered as small toggle pills.
-const StatusFilter: React.FC<{
-  value: CommentStatus | 'all';
-  onChange: (s: CommentStatus | 'all') => void;
-}> = ({ value, onChange }) => {
-  const options: (CommentStatus | 'all')[] = ['all', ...COMMENT_STATUSES];
+// One toggle pill in the filter bar.
+const FilterPill: React.FC<{
+  active: boolean;
+  color: string;
+  dot?: boolean;
+  round?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ active, color, dot, round, onClick, children }) => (
+  <button
+    onClick={onClick}
+    style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999,
+      border: `1px solid ${active ? color : theme.border_default}`,
+      background: active ? `${color}22` : 'transparent',
+      color: active ? theme.text_default : theme.text_tertiary,
+      fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
+    }}
+  >
+    {dot && <span style={{ width: round ? 6 : 8, height: round ? 6 : 8, borderRadius: round ? '50%' : 2, background: color }} />}
+    {children}
+  </button>
+);
+
+// Multi-select filter bar: "All" (clears everything), the four statuses + "No
+// status", then the cross-cutting "Unread" / "My threads only" toggles. Pills are
+// independently togglable; an empty set is "All".
+const FilterPills: React.FC<{
+  tokens: Set<FilterToken>;
+  onChange: (next: Set<FilterToken>) => void;
+}> = ({ tokens, onChange }) => {
+  const toggle = (t: FilterToken) => {
+    const next = new Set(tokens);
+    if (next.has(t)) next.delete(t); else next.add(t);
+    onChange(next);
+  };
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {options.map((s) => {
-        const active = value === s;
-        const color = s === 'all' ? theme.text_secondary : STATUS_CONFIG[s].color;
-        return (
-          <button
-            key={s}
-            onClick={() => onChange(s)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999,
-              border: `1px solid ${active ? color : theme.border_default}`,
-              background: active ? `${color}22` : 'transparent',
-              color: active ? theme.text_default : theme.text_tertiary,
-              fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
-            }}
-          >
-            {s !== 'all' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />}
-            {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
-          </button>
-        );
-      })}
+      <FilterPill active={tokens.size === 0} color={theme.text_secondary} onClick={() => onChange(new Set())}>All</FilterPill>
+      {COMMENT_STATUSES.map((s) => (
+        <FilterPill key={s} active={tokens.has(s)} color={STATUS_CONFIG[s].color} dot onClick={() => toggle(s)}>
+          {STATUS_CONFIG[s].label}
+        </FilterPill>
+      ))}
+      <FilterPill active={tokens.has('none')} color={theme.text_tertiary} onClick={() => toggle('none')}>No status</FilterPill>
+      <FilterPill active={tokens.has('unread')} color={theme.accent_default} dot round onClick={() => toggle('unread')}>Unread</FilterPill>
+      <FilterPill active={tokens.has('mine')} color={theme.accent_default} onClick={() => toggle('mine')}>My threads only</FilterPill>
     </div>
   );
 };
@@ -903,22 +996,25 @@ const Highlight: React.FC<{ text: string; query: string }> = ({ text, query }) =
   );
 };
 
-const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; onClick: () => void }> = ({ thread, user, onClick }) => {
+const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; highlighted?: boolean; onClick: () => void }> = ({ thread, user, highlighted, onClick }) => {
   // Surface the most recent message so the list reflects fresh activity.
   const latest = latestComment(thread);
   const replies = thread.comments.length - 1;
   const dimmed = thread.status === 'closed';
   const unread = threadHasUnread(user, thread);
+  // The just-viewed / just-added thread keeps a faint blue wash so the reader can
+  // see where they left off; hover still lifts it to the standard row highlight.
+  const baseBg = highlighted ? `${theme.accent_default}14` : 'transparent';
   return (
     <button
       onClick={onClick}
       style={{
         display: 'flex', gap: 8, width: '100%', textAlign: 'left',
-        padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: `1px solid ${theme.border_default}`,
+        padding: '10px 16px', background: baseBg, border: 'none', borderBottom: `1px solid ${theme.border_default}`,
         cursor: 'pointer', fontFamily: theme.font_ui, opacity: dimmed ? 0.55 : 1,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = baseBg)}
     >
       {latest && <CommentAvatar name={latest.author.name} email={latest.author.email} size={22} mine={authorIsMe(user, latest.author)} />}
       {/* Content column is indented past the avatar, mirroring the thread view. */}
@@ -1057,6 +1153,8 @@ const ThreadView: React.FC<{
         ))}
       </div>
 
+      <SeenSummary thread={thread} />
+
       <div style={{ padding: '12px 16px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         <Composer
           value={p.replyDraft}
@@ -1069,6 +1167,44 @@ const ThreadView: React.FC<{
         />
       </div>
     </>
+  );
+};
+
+// Footer strip summarising read receipts for the whole thread. "Seen by N people"
+// when everyone who's looked has read every message; otherwise it calls out how
+// many people are still behind. Names live in the hover tooltip.
+const SeenSummary: React.FC<{ thread: CommentThread }> = ({ thread }) => {
+  const everyone = new Set<string>();
+  thread.comments.forEach((c) => (c.seenBy || []).forEach((n) => everyone.add(n)));
+  const all = Array.from(everyone);
+  const seenAll = all.filter((name) => thread.comments.every((c) => (c.seenBy || []).includes(name)));
+  const pending = all.filter((name) => !seenAll.includes(name));
+  const total = all.length;
+  const people = (n: number) => (n === 1 ? 'person' : 'people');
+
+  const row: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+    borderTop: `1px solid ${theme.border_default}`, flexShrink: 0,
+    fontSize: 11, color: theme.text_tertiary, fontFamily: theme.font_ui, cursor: 'default',
+  };
+
+  if (total === 0) {
+    return <div style={row}><Eye size={13} /><span>Not seen by anyone yet</span></div>;
+  }
+  if (pending.length === 0) {
+    return (
+      <div style={row} data-tooltip={`Seen by ${all.join(', ')}`}>
+        <Eye size={13} />
+        <span>Seen by {total} {people(total)}</span>
+      </div>
+    );
+  }
+  const tip = `Not caught up: ${pending.join(', ')}${seenAll.length ? `  ·  Seen everything: ${seenAll.join(', ')}` : ''}`;
+  return (
+    <div style={row} data-tooltip={tip}>
+      <Eye size={13} />
+      <span>{total} {people(total)} saw this thread, but {pending.length} {pending.length === 1 ? 'has' : 'have'} not yet seen all the comments</span>
+    </div>
   );
 };
 
@@ -1225,12 +1361,11 @@ const StatusBadge: React.FC<{ status?: CommentStatus }> = ({ status }) => {
   const { label, color } = STATUS_CONFIG[status];
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
-      padding: '2px 7px', borderRadius: 999, background: `${color}22`,
+      display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+      padding: '2px 5px', borderRadius: 4, background: `${color}22`,
       color, fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
       {label}
     </span>
   );
@@ -1277,17 +1412,19 @@ const StatusDropdown: React.FC<{
         onClick={toggle}
         disabled={busy}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
-          padding: '5px 10px', borderRadius: 6,
-          border: `1px solid ${status ? color : theme.border_default}`,
-          background: status ? `${color}1f` : theme.bg_secondary,
-          color: status ? theme.text_default : theme.text_secondary,
-          fontSize: 11, fontWeight: 600, cursor: busy ? 'default' : 'pointer', fontFamily: theme.font_ui,
+          display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
+          padding: '4px 6px', borderRadius: 8,
+          // Transparent 1px border in both states: no visible border on either,
+          // and "No status" stays exactly the same size as the coloured statuses.
+          border: '1px solid transparent',
+          background: status ? `${color}22` : theme.bg_secondary,
+          color: status ? color : theme.text_secondary,
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+          cursor: busy ? 'default' : 'pointer', fontFamily: theme.font_ui,
         }}
       >
-        <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: status ? color : 'transparent', border: status ? 'none' : `1px solid ${theme.text_tertiary}` }} />
         <span>{label}</span>
-        <ChevronDown size={13} style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        <ChevronDown size={12} style={{ opacity: 0.7, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
       {open && pos && createPortal(
         <>
@@ -1315,7 +1452,7 @@ const StatusDropdown: React.FC<{
                   onMouseEnter={(e) => { if (!selected) e.currentTarget.style.background = theme.bg_low; }}
                   onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: s ? c : 'transparent', border: s ? 'none' : `1px solid ${theme.text_tertiary}` }} />
+                  <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, background: s ? c : 'transparent', border: s ? 'none' : `1px solid ${theme.text_tertiary}` }} />
                   <span style={{ flex: 1 }}>{itemLabel}</span>
                   {selected && <Check size={13} style={{ color: theme.accent_default }} />}
                 </button>

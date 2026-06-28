@@ -80,10 +80,10 @@ function TabButton({
           <span
             style={{
               position: 'absolute',
-              top: -3,
-              right: -4,
-              width: 6,
-              height: 6,
+              top: -4,
+              right: -5,
+              width: 8,
+              height: 8,
               borderRadius: '50%',
               backgroundColor: theme.accent_default,
               border: `1.5px solid ${theme.bg_strong}`,

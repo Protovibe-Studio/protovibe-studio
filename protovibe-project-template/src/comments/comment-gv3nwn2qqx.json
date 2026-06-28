@@ -1,6 +1,5 @@
 {
   "id": "gv3nwn2qqx",
-  "status": "review",
   "context": {
     "tab": "app",
     "file": "src/pages/KPIsPage.tsx",
@@ -23,5 +22,6 @@
     }
   ],
   "createdAt": "2026-06-27T17:06:55.597Z",
-  "anchorFile": "src/pages/KPIsPage.tsx"
+  "anchorFile": "src/pages/KPIsPage.tsx",
+  "status": "todo"
 }
