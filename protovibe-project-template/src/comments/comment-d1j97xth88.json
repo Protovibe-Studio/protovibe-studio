@@ -1,0 +1,31 @@
+{
+  "id": "d1j97xth88",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/DashboardPage.tsx",
+    "pathname": "/",
+    "url": "/"
+  },
+  "comments": [
+    {
+      "id": "c-1hpvdzdzig",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Addded",
+      "createdAt": "2026-06-28T06:45:53.755Z"
+    },
+    {
+      "id": "c-m569v3eee3",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "Added 223",
+      "createdAt": "2026-06-28T06:46:02.522Z"
+    }
+  ],
+  "createdAt": "2026-06-28T06:45:53.755Z",
+  "anchorFile": "src/pages/DashboardPage.tsx"
+}

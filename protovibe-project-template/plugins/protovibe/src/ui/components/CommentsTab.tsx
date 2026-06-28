@@ -324,7 +324,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     const thread: CommentThread = {
       id,
       context: buildContext(),
-      comments: [{ id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso }],
+      comments: [{ id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] }],
       createdAt: nowIso,
       anchorFile: activeData.file,
     };
@@ -369,7 +369,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const doReply = (thread: CommentThread, text: string, author: CommentAuthor) =>
     mutateThreadFile(thread.id, 'reply to comment', () =>
       replyToThread(thread.id, {
-        id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: new Date().toISOString(),
+        id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: new Date().toISOString(), seenBy: [author.name],
       }),
     ).then(() => setReplyDraft(''));
 
@@ -1174,10 +1174,14 @@ const ThreadView: React.FC<{
 // when everyone who's looked has read every message; otherwise it calls out how
 // many people are still behind. Names live in the hover tooltip.
 const SeenSummary: React.FC<{ thread: CommentThread }> = ({ thread }) => {
+  // Effective seers: an untracked comment counts as seen by its own author, the
+  // same fallback commentSeenByMe uses, so authors always count for their messages.
+  const seers = (c: CommentItem): string[] =>
+    Array.isArray(c.seenBy) ? c.seenBy : (c.author?.name ? [c.author.name] : []);
   const everyone = new Set<string>();
-  thread.comments.forEach((c) => (c.seenBy || []).forEach((n) => everyone.add(n)));
+  thread.comments.forEach((c) => seers(c).forEach((n) => everyone.add(n)));
   const all = Array.from(everyone);
-  const seenAll = all.filter((name) => thread.comments.every((c) => (c.seenBy || []).includes(name)));
+  const seenAll = all.filter((name) => thread.comments.every((c) => seers(c).includes(name)));
   const pending = all.filter((name) => !seenAll.includes(name));
   const total = all.length;
   const people = (n: number) => (n === 1 ? 'person' : 'people');
