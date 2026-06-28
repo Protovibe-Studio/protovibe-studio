@@ -19,7 +19,7 @@ export function DashboardPage() {
     <div className="flex flex-col animate-in fade-in duration-300 gap-6 bg-background-default p-8 max-w-[1200px] mx-auto">
       {/* pv-editable-zone-start:d8z9a1 */}
         {/* pv-block-start:oryele */}
-        <div data-pv-comment-1f5i9hgp3l data-pv-block="oryele" className="flex items-center justify-between mt-8 mb-2">
+        <div data-pv-comment-b3rehjnute data-pv-comment-1f5i9hgp3l data-pv-block="oryele" className="flex items-center justify-between mt-8 mb-2">
         {/* pv-editable-zone-start:sk5e6f */}
         {/* pv-block-start:5hdsgr */}
         <div data-pv-block="5hdsgr" className="flex flex-col gap-0">

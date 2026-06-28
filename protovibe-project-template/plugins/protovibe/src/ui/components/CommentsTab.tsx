@@ -1320,6 +1320,15 @@ const Composer: React.FC<{
 }> = ({ value, onChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Grow the field to fit its content instead of scrolling internally, so pasted
+  // or long text never slides under the absolutely-positioned emoji button.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
   // Insert an emoji at the caret (or replace the active selection), then drop the
   // caret right after it so typing can continue naturally.
   const insertEmoji = (emoji: string) => {
@@ -1350,7 +1359,7 @@ const Composer: React.FC<{
       placeholder={placeholder}
       rows={3}
       style={{
-        width: '100%', resize: 'vertical', minHeight: 56, boxSizing: 'border-box',
+        width: '100%', resize: 'none', minHeight: 56, overflow: 'hidden', boxSizing: 'border-box',
         background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
         padding: '8px 10px 38px 10px', color: theme.text_default, fontSize: 13, outline: 'none',
         fontFamily: theme.font_ui, lineHeight: 1.4,

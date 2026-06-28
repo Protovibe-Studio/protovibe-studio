@@ -1,0 +1,25 @@
+{
+  "id": "b3rehjnute",
+  "context": {
+    "tab": "app",
+    "file": "src/pages/DashboardPage.tsx",
+    "pathname": "/",
+    "url": "/"
+  },
+  "comments": [
+    {
+      "id": "c-o48vb5apxw",
+      "author": {
+        "name": "Maciej Sawicki",
+        "email": "saw.maciej@gmail.com"
+      },
+      "content": "asa\n\n\n👍",
+      "createdAt": "2026-06-28T07:13:21.782Z",
+      "seenBy": [
+        "Maciej Sawicki"
+      ]
+    }
+  ],
+  "createdAt": "2026-06-28T07:13:21.782Z",
+  "anchorFile": "src/pages/DashboardPage.tsx"
+}
