@@ -16,10 +16,10 @@ export default function Frame12() {
     <div className="overflow-hidden" data-layout-mode="absolute" style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* pv-editable-zone-start:3ubuxh */}
         {/* pv-block-start:jqzz83 */}
-        <div data-pv-comment-5lacv3zt2n data-pv-block="jqzz83" className="flex flex-col gap-4" data-pv-sketchpad-el="jqzz83" style={{ position: 'absolute', left: 548, top: 187 }}>
+        <div data-pv-block="jqzz83" className="flex flex-col gap-4" data-pv-sketchpad-el="jqzz83" style={{ position: 'absolute', left: 548, top: 187 }}>
           {/* pv-editable-zone-start:hyvc8b */}
           {/* pv-block-start:574z1k */}
-          <TextHeading data-pv-comment-0myemo4sct data-pv-block="574z1k"  typography="heading-md">
+          <TextHeading data-pv-block="574z1k"  typography="heading-md">
             Login to EvilCorp
           </TextHeading>
           {/* pv-block-end:574z1k */}
