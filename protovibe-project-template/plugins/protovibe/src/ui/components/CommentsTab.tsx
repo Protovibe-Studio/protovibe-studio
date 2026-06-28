@@ -851,9 +851,9 @@ const ListView: React.FC<{
                   value={p.filterScope}
                   onChange={(v) => p.setFilterScope(v as FilterScope)}
                   options={[
-                    { val: 'all', label: 'Any' },
+                    { val: 'all', label: 'All' },
                     { val: 'viewport', label: 'In view' },
-                    { val: 'selection', label: 'Selected' },
+                    { val: 'selection', label: 'In selection' },
                   ]}
                 />
                 <FilterPills tokens={p.filterTokens} onChange={p.setFilterTokens} />
