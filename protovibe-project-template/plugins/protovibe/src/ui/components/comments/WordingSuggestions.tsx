@@ -135,7 +135,7 @@ export const SuggestionComposerSection: React.FC<{
       border: `1px solid ${theme.border_default}`, background: theme.bg_secondary,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: theme.text_secondary, fontSize: 11, fontWeight: 600, fontFamily: theme.font_ui }}>
-        <Type size={12} />
+        <TextCursorInput size={12} />
         Wording suggestions
         <div style={{ flex: 1 }} />
         <button
@@ -257,7 +257,7 @@ export const SuggestionPreviewBlock: React.FC<{
       padding: 8, borderRadius: 6, border: `1px solid ${theme.border_default}`, background: theme.bg_secondary,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: theme.text_secondary, fontSize: 11, fontWeight: 600, fontFamily: theme.font_ui }}>
-        <Type size={12} />
+        <TextCursorInput size={12} />
         Wording suggestion{suggestions.length > 1 ? 's' : ''}
       </div>
       {suggestions.map((s, idx) => (
