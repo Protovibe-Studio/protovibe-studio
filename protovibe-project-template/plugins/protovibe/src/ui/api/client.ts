@@ -303,6 +303,7 @@ export async function fetchCloudflarePublishStatus(): Promise<CloudflarePublishS
 export interface GitStatus {
   gitInstalled: boolean;
   isRepo: boolean;
+  root: string;
   branch: string | null;
   hasUpstream: boolean;
   dirty: boolean;

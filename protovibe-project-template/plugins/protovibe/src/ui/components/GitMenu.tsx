@@ -25,24 +25,30 @@ function osName(): string {
 
 // --- Prompts the user can paste into their coding agent (Claude Code, etc.) ---
 
-const installPrompt = () =>
-  `I'm using Protovibe to design an app on ${osName()}, and Git isn't installed on this computer. ` +
-  `Please install Git, verify it works by running \`git --version\`, and let me know when it's ready so I can sync my work with my team.`;
+const projectLine = (root: string) => (root ? `\n\nThe project folder is at: ${root}` : '');
 
-const setupRepoPrompt = () =>
+const installPrompt = (root: string) =>
+  `I'm using Protovibe to design an app on ${osName()}, and Git isn't installed on this computer. ` +
+  `Please install Git, verify it works by running \`git --version\`, and let me know when it's ready so I can sync my work with my team.` +
+  projectLine(root);
+
+const setupRepoPrompt = (root: string) =>
   `I'm using Protovibe and want to sync my work with my team, but this project isn't set up with Git version control yet. ` +
   `Please set it up: initialize a Git repository here, connect it to a remote (create a new GitHub repository if I don't have one), ` +
-  `make an initial commit, set the upstream for my branch, and push. Then tell me I can sync from Protovibe.`;
+  `make an initial commit, set the upstream for my branch, and push. Then tell me I can sync from Protovibe.` +
+  projectLine(root);
 
-const connectRemotePrompt = () =>
+const connectRemotePrompt = (root: string) =>
   `I'm using Protovibe. This project has Git, but my current branch isn't connected to a shared remote yet, so I can't sync with my team. ` +
   `Please connect it to a remote (create or use a GitHub repository), set the upstream tracking branch for my current branch, and push. ` +
-  `Then confirm I can sync from Protovibe.`;
+  `Then confirm I can sync from Protovibe.` +
+  projectLine(root);
 
-const authPrompt = (error?: string) =>
+const authPrompt = (root: string, error?: string) =>
   `I'm using Protovibe and tried to sync my work with Git, but it failed. ` +
   `I think Git access isn't set up on this computer. Please fix my Git authentication for this project's remote ` +
   `(set up an SSH key or a credential helper / sign me in), verify it works by running \`git push\`, and confirm I can sync from Protovibe.` +
+  projectLine(root) +
   (error ? `\n\nThe exact error was:\n${error.trim()}` : '');
 
 // git failures that mean "access/credentials aren't set up" rather than a real problem.
@@ -144,7 +150,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
           alignItems: 'center',
           gap: 6,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 400,
           maxWidth: 220,
           background: open ? theme.bg_tertiary : 'transparent',
           color: open ? theme.text_default : theme.text_secondary,
@@ -182,7 +188,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             <SetupPanel
               title="Git isn’t installed"
               body="Git is the tool that saves your work and shares it with your team. It isn’t installed on this computer yet."
-              prompt={installPrompt()}
+              prompt={installPrompt(status.root)}
               onRecheck={() => void refresh(false)}
               recheckLabel="I’ve installed it — check again"
             />
@@ -191,7 +197,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             <SetupPanel
               title="Not connected to Git yet"
               body="This project isn’t set up to sync with your team yet. Your coding agent can connect it in a minute."
-              prompt={setupRepoPrompt()}
+              prompt={setupRepoPrompt(status.root)}
               onRecheck={() => void refresh(false)}
               recheckLabel="It’s set up now — check again"
             />
@@ -200,7 +206,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             <SetupPanel
               title="No shared remote yet"
               body={`You’re on branch “${status.branch || 'unknown'}”, but it isn’t connected to a shared remote, so there’s nowhere to sync to yet.`}
-              prompt={connectRemotePrompt()}
+              prompt={connectRemotePrompt(status.root)}
               onRecheck={() => void refresh(true)}
               recheckLabel="It’s connected now — check again"
             />
@@ -223,7 +229,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
                     Syncing failed because Git access isn’t set up on this computer. Your coding agent can fix this for you.
                   </div>
-                  <AgentPrompt prompt={authPrompt(op.error)} />
+                  <AgentPrompt prompt={authPrompt(status.root, op.error)} />
                 </div>
               )}
 

@@ -42,6 +42,7 @@ async function gitTry(args: string[], timeoutMs = 15_000): Promise<string | null
 export interface GitStatus {
   gitInstalled: boolean;
   isRepo: boolean;
+  root: string;
   branch: string | null;
   hasUpstream: boolean;
   dirty: boolean;
@@ -52,6 +53,7 @@ export interface GitStatus {
 }
 
 const BASE_STATUS: Omit<GitStatus, 'gitInstalled' | 'isRepo'> = {
+  root: process.cwd(),
   branch: null, hasUpstream: false,
   dirty: false, changedCount: 0, ahead: 0, behind: 0, remoteUrl: null,
 };
@@ -89,7 +91,7 @@ async function readStatus(): Promise<GitStatus> {
 
   const remoteUrl = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
 
-  return { gitInstalled: true, isRepo: true, branch, hasUpstream, dirty: changedCount > 0, changedCount, ahead, behind, remoteUrl };
+  return { gitInstalled: true, isRepo: true, root: process.cwd(), branch, hasUpstream, dirty: changedCount > 0, changedCount, ahead, behind, remoteUrl };
 }
 
 // ---------------------------------------------------------------------------
