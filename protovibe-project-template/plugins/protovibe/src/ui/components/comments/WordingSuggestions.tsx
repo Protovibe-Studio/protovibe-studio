@@ -16,8 +16,8 @@
 // the canvas keeps showing the proposed copy once the comment lands) and is only
 // dropped on an explicit cancel — the toolbar toggle, the section's X, or the
 // parent discarding the draft via clearSuggestionPreviews().
-import React, { useState, useSyncExternalStore } from 'react';
-import { Type, RotateCcw, TextCursorInput, X } from 'lucide-react';
+import React, { useSyncExternalStore } from 'react';
+import { Type, Plus, RotateCcw, TextCursorInput, X } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { extractTextStrings } from '../../utils/extractTextStrings';
@@ -26,7 +26,7 @@ import type { WordingSuggestion } from '../../../shared/comments';
 
 /** Keep only rows the writer actually changed (suggested differs from original). */
 export function changedSuggestions(rows: WordingSuggestion[]): WordingSuggestion[] {
-  return rows.filter((r) => r.suggested.trim().length > 0 && r.suggested !== r.original);
+  return rows.filter((r) => r.original.trim().length > 0 && r.suggested.trim().length > 0 && r.suggested !== r.original);
 }
 
 /**
@@ -57,7 +57,6 @@ export const SuggestionToggleButton: React.FC<{
 }> = ({ value, onChange }) => {
   const { currentBaseTarget } = useProtovibe();
   const active = value.length > 0;
-  const [tooltip, setTooltip] = useState('Suggest wording change');
 
   const toggle = () => {
     if (active) {
@@ -66,18 +65,18 @@ export const SuggestionToggleButton: React.FC<{
       return;
     }
     const strings = currentBaseTarget ? extractTextStrings(currentBaseTarget) : [];
-    if (strings.length === 0) {
-      setTooltip('No editable text found in the selected element');
-      return;
-    }
-    onChange(strings.map((s) => ({ original: s, suggested: s })));
+    // Nothing extractable (e.g. the copy lives in a tooltip) → start with one
+    // blank row; the original field is editable so any text can be typed in.
+    onChange(strings.length
+      ? strings.map((s) => ({ original: s, suggested: s }))
+      : [{ original: '', suggested: '' }]);
   };
 
   return (
     <button
       type="button"
       onClick={toggle}
-      data-tooltip={tooltip}
+      data-tooltip="Suggest wording change"
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 24, height: 24, borderRadius: 6, border: 'none', padding: 0, cursor: 'pointer',
@@ -87,7 +86,6 @@ export const SuggestionToggleButton: React.FC<{
       onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = theme.text_secondary; e.currentTarget.style.background = theme.bg_tertiary; } }}
       onMouseLeave={(e) => {
         if (!active) { e.currentTarget.style.color = theme.text_tertiary; e.currentTarget.style.background = 'transparent'; }
-        setTooltip('Suggest wording change');
       }}
     >
       <TextCursorInput size={16} />
@@ -113,6 +111,18 @@ export const SuggestionComposerSection: React.FC<{
     // Previews set here deliberately outlive the composer — submitting keeps the
     // proposed copy visible on the canvas; only an explicit cancel clears it.
     preview.set(value[idx].original, suggested); // equal → service treats as no-op/removal
+  };
+
+  // The original is editable too, so copy the canvas can't surface for
+  // extraction (tooltips, aria labels, alt text) can be typed in by hand. A
+  // pristine row keeps suggested mirrored to the original; a dirty row keeps
+  // its suggestion and just re-keys the live preview to the new original.
+  const updateOriginal = (idx: number, original: string) => {
+    const row = value[idx];
+    const suggested = row.suggested === row.original ? original : row.suggested;
+    preview.remove(row.original, row.suggested);
+    onChange(value.map((r, i) => (i === idx ? { original, suggested } : r)));
+    if (suggested !== original) preview.set(original, suggested);
   };
 
   const resetOne = (idx: number) => updateOne(idx, value[idx].original);
@@ -153,12 +163,16 @@ export const SuggestionComposerSection: React.FC<{
             ...(idx > 0 ? { borderTop: `1px solid ${theme.bg_low}`, paddingTop: 10 } : {}),
           }}>
             <div style={labelStyle}>Original wording</div>
-            <div style={{
-              fontSize: 12, color: theme.text_secondary, fontFamily: theme.font_ui, lineHeight: 1.4,
-              padding: '4px 6px', borderRadius: 4, background: theme.bg_strong, wordBreak: 'break-word',
-            }}>
-              {row.original}
-            </div>
+            <input
+              value={row.original}
+              onChange={(e) => updateOriginal(idx, e.target.value)}
+              placeholder="Original wording…"
+              style={{
+                width: '100%', boxSizing: 'border-box', fontSize: 12, fontFamily: theme.font_ui, color: theme.text_secondary,
+                padding: '5px 7px', borderRadius: 4, outline: 'none', lineHeight: 1.4,
+                background: theme.bg_strong, border: `1px solid ${theme.border_default}`,
+              }}
+            />
             <div style={{ ...labelStyle, marginTop: 4 }}>Suggested wording</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <input
@@ -190,6 +204,20 @@ export const SuggestionComposerSection: React.FC<{
         );
       })}
       </div>
+      <button
+        type="button"
+        onClick={() => onChange([...value, { original: '', suggested: '' }])}
+        style={{
+          alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4,
+          padding: '3px 6px', marginLeft: -6, borderRadius: 5, border: 'none', background: 'transparent',
+          color: theme.text_tertiary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+      >
+        <Plus size={12} />
+        Add wording
+      </button>
     </div>
   );
 };
