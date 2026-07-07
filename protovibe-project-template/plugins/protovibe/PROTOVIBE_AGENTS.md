@@ -603,6 +603,13 @@ Pass exactly **one static string** of all internal classes as the first argument
 
 ## 4. Adding Interaction
 
+### Rule: Dialogs and Tabs Live in the URL Query String
+
+Dialog visibility and active tab selection must be driven by URL query-string parameters, not local component state, so any UI state can be deep-linked (e.g. `?view=employees&employeeDialog=true&settingsTab=billing`). Follow the app's existing query-string routing pattern — do not introduce react-router or any other routing library.
+
+* Give each dialog its own key set to `true` when open (`employeeDialog=true`); when closed, **remove the key** from the URL instead of setting it to `false`.
+* Give each tab group its own key holding the active tab id (`settingsTab=billing`); omit the key when the default tab is active.
+
 ### Rule: Compound Components (Context State)
 
 Certain parent-child component pairs manage item state implicitly via React Context (e.g., `Tabs`, `RadioGroup`).
