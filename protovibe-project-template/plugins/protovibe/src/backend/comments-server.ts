@@ -185,6 +185,16 @@ function removeAttribute(source: string, id: string): string {
   return source.replace(idAttrRegex(id), '');
 }
 
+// Coerce a client-supplied suggestions payload into clean {original, suggested}
+// string pairs, dropping malformed entries and empty originals.
+function sanitizeSuggestions(raw: unknown): { original: string; suggested: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s: unknown): s is { original: unknown; suggested: unknown } => !!s && typeof s === 'object')
+    .map((s) => ({ original: String(s.original ?? ''), suggested: String(s.suggested ?? '') }))
+    .filter((s) => s.original.trim().length > 0);
+}
+
 // ─── endpoint handlers ───────────────────────────────────────────────────────
 
 // POST { ids?: string[] }  →  { threads }
@@ -256,12 +266,7 @@ export const handleCommentReply: Connect.NextHandleFunction = async (req, res) =
   try {
     const { threadId, comment } = await parseBody(req);
     const attachments = Array.isArray(comment?.attachments) ? comment.attachments.filter((a: unknown) => typeof a === 'string') : [];
-    const suggestions = Array.isArray(comment?.suggestions)
-      ? comment.suggestions
-          .filter((s: unknown): s is { original: unknown; suggested: unknown } => !!s && typeof s === 'object')
-          .map((s: { original: unknown; suggested: unknown }) => ({ original: String(s.original ?? ''), suggested: String(s.suggested ?? '') }))
-          .filter((s: { original: string }) => s.original.trim().length > 0)
-      : [];
+    const suggestions = sanitizeSuggestions(comment?.suggestions);
     const hasBody = (comment?.content && String(comment.content).trim()) || attachments.length > 0 || suggestions.length > 0;
     if (!threadId || !hasBody) return sendError(res, 'threadId and comment content, attachment, or suggestion required');
 
@@ -285,10 +290,13 @@ export const handleCommentReply: Connect.NextHandleFunction = async (req, res) =
   }
 };
 
-// POST { threadId, commentId, content }  → edit a single message
+// POST { threadId, commentId, content, suggestions? }  → edit a single message.
+// When `suggestions` is present it replaces the comment's wording suggestions
+// wholesale (empty array deletes them); when absent they are left untouched.
 export const handleCommentEdit: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { threadId, commentId, content } = await parseBody(req);
+    const body = await parseBody(req);
+    const { threadId, commentId, content } = body;
     if (!threadId || !commentId || content == null) return sendError(res, 'threadId, commentId and content required');
 
     const thread = readThread(threadId);
@@ -297,6 +305,14 @@ export const handleCommentEdit: Connect.NextHandleFunction = async (req, res) =>
     const item = thread.comments.find((c) => c.id === commentId);
     if (!item) return sendError(res, 'Comment not found', 404);
     item.content = String(content);
+    if ('suggestions' in body) {
+      const suggestions = sanitizeSuggestions(body.suggestions);
+      if (suggestions.length) item.suggestions = suggestions;
+      else delete item.suggestions;
+    }
+    if (!String(item.content).trim() && !(item.attachments?.length) && !(item.suggestions?.length)) {
+      return sendError(res, 'A comment needs text, an attachment, or a wording suggestion');
+    }
     item.updatedAt = new Date().toISOString();
     writeThread(thread);
 

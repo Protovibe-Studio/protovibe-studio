@@ -22,12 +22,19 @@ export interface CopySuggestionPreview {
    * observer reads the current registry).
    */
   set(original: string, suggested: string): void;
-  /** Remove one mapping and restore that string in the canvas. */
-  remove(original: string): void;
+  /**
+   * Remove one mapping and restore that string in the canvas. When
+   * `onlyIfSuggested` is given, the mapping is only removed if it still carries
+   * that exact suggestion — so a caller cleaning up its own preview never kills
+   * a different suggestion that has since superseded it on the same original.
+   */
+  remove(original: string, onlyIfSuggested?: string): void;
   /** Originals currently being previewed (for button on/off state). */
   activeKeys(): Set<string>;
   /** Whether a given original is currently previewed. */
   isActive(original: string): boolean;
+  /** The suggestion currently previewed for an original, if any. */
+  get(original: string): string | undefined;
   /** Subscribe to registry changes; returns an unsubscribe fn. */
   subscribe(fn: () => void): () => void;
 }
@@ -65,7 +72,10 @@ function createService(): CopySuggestionPreview {
     let node = walker.nextNode() as Text | null;
     while (node) {
       const current = node.nodeValue ?? '';
-      const trimmed = current.trim();
+      // A node we've already rewritten holds the suggestion, not the original —
+      // the registry lookup must go through its pristine snapshot, otherwise the
+      // next apply misses the mapping and wrongly restores it.
+      const trimmed = (original.has(node) ? original.get(node)! : current).trim();
       const suggestion = trimmed ? registry.get(trimmed) : undefined;
 
       if (suggestion !== undefined) {
@@ -136,9 +146,10 @@ function createService(): CopySuggestionPreview {
     notify();
   };
 
-  const remove = (originalStr: string) => {
+  const remove = (originalStr: string, onlyIfSuggested?: string) => {
     const key = originalStr.trim();
     if (!registry.has(key)) return;
+    if (onlyIfSuggested !== undefined && registry.get(key) !== onlyIfSuggested) return;
     registry.delete(key);
     applyAll();
     if (registry.size === 0) teardownObservers();
@@ -150,6 +161,7 @@ function createService(): CopySuggestionPreview {
     remove,
     activeKeys: () => new Set(registry.keys()),
     isActive: (originalStr: string) => registry.has(originalStr.trim()),
+    get: (originalStr: string) => registry.get(originalStr.trim()),
     subscribe: (fn: () => void) => { subscribers.add(fn); return () => { subscribers.delete(fn); }; },
   };
 }

@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
-  MoreHorizontal, CheckCheck, Eye, Smile, ImagePlus,
+  MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
@@ -19,7 +19,8 @@ import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '..
 import { useViewportCommentIds } from '../hooks/useViewportCommentIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
-import { SuggestionComposerSection, SuggestionPreviewBlock, changedSuggestions } from './comments/WordingSuggestions';
+import { SuggestionComposerSection, SuggestionToggleButton, SuggestionPreviewBlock, changedSuggestions, clearSuggestionPreviews } from './comments/WordingSuggestions';
+import { getCopySuggestionPreview } from '../utils/copySuggestionPreview';
 import {
   COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds, commentAttachmentUrl,
 } from '../../shared/comments';
@@ -203,6 +204,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [replySuggestions, setReplySuggestions] = useState<WordingSuggestion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
+  const [editingSuggestions, setEditingSuggestions] = useState<WordingSuggestion[]>([]);
   const [filterScope, setFilterScope] = useState<FilterScope>(loadFilterScope);
   const [filterTokens, setFilterTokens] = useState<Set<FilterToken>>(loadFilterTokens);
   // Comment ids that were unread when the open thread was entered. Opening a
@@ -448,8 +450,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       () => updateThreadStatus(thread.id, status));
 
   const handleEditSave = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(thread.id, 'edit comment', () => editComment(thread.id, commentId, editingText.trim()))
-      .then(() => { setEditingId(null); setEditingText(''); });
+    mutateThreadFile(thread.id, 'edit comment', () =>
+      editComment(thread.id, commentId, editingText.trim(), changedSuggestions(editingSuggestions)))
+      .then(() => { setEditingId(null); setEditingText(''); setEditingSuggestions([]); });
 
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
     mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId));
@@ -526,7 +529,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     setReplyDraft('');
     revokeAttachments(replyAttachments);
     setReplyAttachments([]);
+    // Abandoned drafts are a cancel — their canvas previews go with them.
+    clearSuggestionPreviews(replySuggestions);
     setReplySuggestions([]);
+    clearSuggestionPreviews(editingSuggestions);
+    setEditingSuggestions([]);
     navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
@@ -550,6 +557,21 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     [user, threads],
   );
 
+  // Every saved wording suggestion across all threads, for the header menu's
+  // enable/disable-all-previews actions. Enabling walks in thread order, so when
+  // two comments target the same original string the later-set one wins.
+  const allSuggestions = useMemo(
+    () => threads.flatMap((t) => t.comments.flatMap((c) => c.suggestions ?? [])),
+    [threads],
+  );
+  const handlePreviewAll = useCallback((enable: boolean) => {
+    const preview = getCopySuggestionPreview();
+    for (const s of allSuggestions) {
+      if (enable) preview.set(s.original, s.suggested);
+      else preview.remove(s.original);
+    }
+  }, [allSuggestions]);
+
   // ── render ───────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
@@ -561,6 +583,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onEditProfile={() => setProfileOpen(true)}
           hasUnread={hasUnread}
           onMarkAllRead={handleMarkAllRead}
+          hasSuggestions={allSuggestions.length > 0}
+          onPreviewAll={handlePreviewAll}
         />
       )}
 
@@ -587,6 +611,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           editingText={editingText}
           setEditingId={setEditingId}
           setEditingText={setEditingText}
+          editingSuggestions={editingSuggestions}
+          setEditingSuggestions={setEditingSuggestions}
           onReply={(text, atts, sugg) => withAuthor((author) => doReply(activeThread, text, author, atts, sugg))}
           onStatus={(s) => handleStatus(activeThread, s)}
           onEditSave={(cid) => handleEditSave(activeThread, cid)}
@@ -622,7 +648,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
-          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); setDraftSuggestions([]); }}
+          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); clearSuggestionPreviews(draftSuggestions); setDraftSuggestions([]); }}
           onOpenThread={openThread}
         />
       )}
@@ -643,7 +669,9 @@ const Header: React.FC<{
   onEditProfile: () => void;
   hasUnread: boolean;
   onMarkAllRead: () => void;
-}> = ({ user, onEditProfile, hasUnread, onMarkAllRead }) => (
+  hasSuggestions: boolean;
+  onPreviewAll: (enable: boolean) => void;
+}> = ({ user, onEditProfile, hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0,
@@ -654,7 +682,7 @@ const Header: React.FC<{
       </span>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <ThreadsMenu hasUnread={hasUnread} onMarkAllRead={onMarkAllRead} />
+      <ThreadsMenu hasUnread={hasUnread} onMarkAllRead={onMarkAllRead} hasSuggestions={hasSuggestions} onPreviewAll={onPreviewAll} />
       {user ? (
         <button onClick={onEditProfile} data-tooltip={`${user.name} — edit profile`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <CommentAvatar name={user.name} email={user.email} size={24} mine />
@@ -668,10 +696,41 @@ const Header: React.FC<{
   </div>
 );
 
+// One row in the header's kebab menu; disabled rows keep the layout but drop
+// the hover affordance.
+const ThreadsMenuItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  enabled: boolean;
+  onClick: () => void;
+}> = ({ icon, label, enabled, onClick }) => (
+  <button
+    onClick={onClick}
+    disabled={!enabled}
+    style={{
+      display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 5,
+      border: 'none', background: 'transparent', textAlign: 'left',
+      color: enabled ? theme.text_default : theme.text_tertiary,
+      fontSize: 12, fontWeight: 500, cursor: enabled ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
+    }}
+    onMouseEnter={(e) => { if (enabled) e.currentTarget.style.background = theme.bg_low; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+  >
+    {icon}
+    {label}
+  </button>
+);
+
 // "More" (kebab) menu sitting before the avatar on the threads list. Portaled so
-// the inspector's overflow:hidden doesn't clip it; currently just "Mark all as
-// read" (disabled when there's nothing unread).
-const ThreadsMenu: React.FC<{ hasUnread: boolean; onMarkAllRead: () => void }> = ({ hasUnread, onMarkAllRead }) => {
+// the inspector's overflow:hidden doesn't clip it. Holds "Mark all as read"
+// (disabled when there's nothing unread) and the enable/disable-all wording
+// suggestion preview actions (disabled when no thread carries a suggestion).
+const ThreadsMenu: React.FC<{
+  hasUnread: boolean;
+  onMarkAllRead: () => void;
+  hasSuggestions: boolean;
+  onPreviewAll: (enable: boolean) => void;
+}> = ({ hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -717,21 +776,24 @@ const ThreadsMenu: React.FC<{ hasUnread: boolean; onMarkAllRead: () => void }> =
             background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4, fontFamily: theme.font_ui,
           }}>
-            <button
+            <ThreadsMenuItem
+              icon={<CheckCheck size={14} />}
+              label="Mark all as read"
+              enabled={hasUnread}
               onClick={() => { setOpen(false); if (hasUnread) onMarkAllRead(); }}
-              disabled={!hasUnread}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 5,
-                border: 'none', background: 'transparent', textAlign: 'left',
-                color: hasUnread ? theme.text_default : theme.text_tertiary,
-                fontSize: 12, fontWeight: 500, cursor: hasUnread ? 'pointer' : 'not-allowed', fontFamily: theme.font_ui,
-              }}
-              onMouseEnter={(e) => { if (hasUnread) e.currentTarget.style.background = theme.bg_low; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              <CheckCheck size={14} />
-              Mark all as read
-            </button>
+            />
+            <ThreadsMenuItem
+              icon={<Eye size={14} />}
+              label="Enable preview for all wording suggestions"
+              enabled={hasSuggestions}
+              onClick={() => { setOpen(false); if (hasSuggestions) onPreviewAll(true); }}
+            />
+            <ThreadsMenuItem
+              icon={<EyeOff size={14} />}
+              label="Disable preview of all wording suggestions"
+              enabled={hasSuggestions}
+              onClick={() => { setOpen(false); if (hasSuggestions) onPreviewAll(false); }}
+            />
           </div>
         </>,
         document.body,
@@ -1088,6 +1150,29 @@ const Highlight: React.FC<{ text: string; query: string }> = ({ text, query }) =
   );
 };
 
+// One-line stand-in for a comment with no text: summarise its wording suggestion
+// (or image attachments) so a suggestion-only comment never renders a blank row.
+const CommentFallbackSummary: React.FC<{ comment: CommentItem | undefined }> = ({ comment }) => {
+  const sugg = comment?.suggestions?.[0];
+  if (sugg) {
+    const more = (comment!.suggestions!.length - 1) || 0;
+    return (
+      <span style={{ color: theme.text_secondary, fontStyle: 'italic' }}>
+        Suggested wording: “{sugg.suggested}”{more > 0 ? ` (+${more} more)` : ''}
+      </span>
+    );
+  }
+  const images = comment?.attachments?.length ?? 0;
+  if (images > 0) {
+    return (
+      <span style={{ color: theme.text_secondary, fontStyle: 'italic' }}>
+        {images === 1 ? 'Image attachment' : `${images} image attachments`}
+      </span>
+    );
+  }
+  return null;
+};
+
 const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | null; highlighted?: boolean; onClick: () => void }> = ({ thread, user, highlighted, onClick }) => {
   // Surface the most recent message so the list reflects fresh activity.
   const latest = latestComment(thread);
@@ -1122,7 +1207,7 @@ const ThreadListItem: React.FC<{ thread: CommentThread; user: CommentAuthor | nu
           {unread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default, flexShrink: 0 }} />}
         </div>
         <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {latest?.content}
+          {latest?.content || <CommentFallbackSummary comment={latest} />}
         </span>
         {replies > 0 && (
           <span style={{ fontSize: 10, color: theme.text_tertiary }}>{replies} {replies === 1 ? 'reply' : 'replies'}</span>
@@ -1149,6 +1234,8 @@ const ThreadView: React.FC<{
   editingText: string;
   setEditingId: (id: string | null) => void;
   setEditingText: (s: string) => void;
+  editingSuggestions: WordingSuggestion[];
+  setEditingSuggestions: (s: WordingSuggestion[]) => void;
   onReply: (text: string, attachments: PendingAttachment[], suggestions: WordingSuggestion[]) => void;
   onStatus: (s: CommentStatus | null) => void;
   onEditSave: (commentId: string) => void;
@@ -1239,10 +1326,12 @@ const ThreadView: React.FC<{
             unread={!commentSeenByMe(p.user, c)}
             isEditing={p.editingId === c.id}
             editingText={p.editingText}
-            onStartEdit={() => { p.setEditingId(c.id); p.setEditingText(c.content); }}
+            editingSuggestions={p.editingSuggestions}
+            onEditSuggestionsChange={p.setEditingSuggestions}
+            onStartEdit={() => { p.setEditingId(c.id); p.setEditingText(c.content); p.setEditingSuggestions(c.suggestions ?? []); }}
             onEditChange={p.setEditingText}
             onEditSave={() => p.onEditSave(c.id)}
-            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); }}
+            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); clearSuggestionPreviews(p.editingSuggestions); p.setEditingSuggestions([]); }}
             onDelete={() => p.onDeleteReply(c.id)}
             onToggleRead={(makeRead) => p.onToggleRead(c.id, makeRead)}
           />
@@ -1344,6 +1433,8 @@ const CommentRow: React.FC<{
   unread: boolean;
   isEditing: boolean;
   editingText: string;
+  editingSuggestions: WordingSuggestion[];
+  onEditSuggestionsChange: (s: WordingSuggestion[]) => void;
   onStartEdit: () => void;
   onEditChange: (s: string) => void;
   onEditSave: () => void;
@@ -1396,6 +1487,8 @@ const CommentRow: React.FC<{
             <Composer
               value={p.editingText}
               onChange={p.onEditChange}
+              suggestions={p.editingSuggestions}
+              onSuggestionsChange={p.onEditSuggestionsChange}
               onSubmit={p.onEditSave}
               onCancel={p.onEditCancel}
               busy={p.busy}
@@ -1635,6 +1728,7 @@ const Composer: React.FC<{
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 6px 5px 6px' }}>
         {imagesOn && <AttachButton onFiles={addFiles} />}
+        {suggestionsOn && <SuggestionToggleButton value={suggestions ?? []} onChange={onSuggestionsChange!} />}
         <EmojiPicker onPick={insertEmoji} />
       </div>
     </div>

@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/api/comments.ts
-import type { CommentThread, CommentItem, CommentStatus } from '../../shared/comments';
+import type { CommentThread, CommentItem, CommentStatus, WordingSuggestion } from '../../shared/comments';
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -33,8 +33,14 @@ export async function replyToThread(threadId: string, comment: CommentItem): Pro
   return data.thread;
 }
 
-export async function editComment(threadId: string, commentId: string, content: string): Promise<CommentThread> {
-  const data = await postJson<{ thread: CommentThread }>('/__comments-edit', { threadId, commentId, content });
+// `suggestions` replaces the comment's wording suggestions wholesale (an empty
+// array deletes them); omit it to leave the saved suggestions untouched.
+export async function editComment(
+  threadId: string, commentId: string, content: string, suggestions?: WordingSuggestion[],
+): Promise<CommentThread> {
+  const data = await postJson<{ thread: CommentThread }>('/__comments-edit', {
+    threadId, commentId, content, ...(suggestions ? { suggestions } : {}),
+  });
   return data.thread;
 }
 
