@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sketchpad</title>
+    <script>
+      // Suppress Vite full-reloads of the sketchpad iframe. We dynamically load frames
+      // and do not want unaccepted HMR updates (like new files) to reload the canvas.
+      (function () {
+        const OrigWS = window.WebSocket;
+        function PatchedWS(url, protocols) {
+          const ws = new OrigWS(url, protocols);
+          const isViteHmr =
+            Array.isArray(protocols) ? protocols.includes('vite-hmr') : protocols === 'vite-hmr';
+          if (!isViteHmr) return ws;
+
+          const origAdd = ws.addEventListener.bind(ws);
+          ws.addEventListener = function (type, listener, options) {
+            if (type === 'message' && typeof listener === 'function') {
+              const wrapped = function (event) {
+                if (typeof event.data === 'string') {
+                  try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.type === 'full-reload') {
+                      return; // Suppress all full reloads in sketchpad iframe
+                    }
+                  } catch (_) {}
+                }
+                return listener.call(this, event);
+              };
+              return origAdd(type, wrapped, options);
+            }
+            return origAdd(type, listener, options);
+          };
+          Object.defineProperty(ws, 'onmessage', {
+            configurable: true,
+            set(fn) {
+              if (typeof fn === 'function') ws.addEventListener('message', fn);
+            },
+            get() {
+              return null;
+            },
+          });
+          return ws;
+        }
+        PatchedWS.prototype = OrigWS.prototype;
+        PatchedWS.CONNECTING = OrigWS.CONNECTING;
+        PatchedWS.OPEN = OrigWS.OPEN;
+        PatchedWS.CLOSING = OrigWS.CLOSING;
+        PatchedWS.CLOSED = OrigWS.CLOSED;
+        window.WebSocket = PatchedWS;
+      })();
+    </script>
+  </head>
+  <body style="margin:0;padding:0;overflow:hidden;">
+    <div id="sketchpad-root"></div>
+    <script type="module" src="/@fs/[PLUGIN_DIR]/src/sketchpads/sketchpad-main.tsx"></script>
+  </body>
+</html>

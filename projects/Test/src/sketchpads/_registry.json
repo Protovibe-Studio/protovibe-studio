@@ -1,0 +1,33 @@
+{
+  "sketchpads": [
+    {
+      "id": "sketchpad-1",
+      "name": "Sketchpad 1",
+      "createdAt": "2026-04-08T06:27:12.445Z",
+      "frames": [
+        {
+          "id": "frame-fw0ze7",
+          "name": "Frame 2",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 5279,
+          "canvasY": -2107
+        },
+        {
+          "id": "frame-q7uevh",
+          "name": "Frame 1",
+          "width": 1440,
+          "height": 900,
+          "canvasX": 3647,
+          "canvasY": -2104
+        }
+      ],
+      "viewState": {
+        "zoom": 0.7350168834174952,
+        "panX": -3907.869307034197,
+        "panY": 1543.9779169241683
+      }
+    }
+  ],
+  "lastActiveSketchpadId": "sketchpad-1"
+}
