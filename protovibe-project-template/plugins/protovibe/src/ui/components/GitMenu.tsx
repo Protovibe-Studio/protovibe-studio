@@ -2,39 +2,53 @@
 // Bottom-bar Git dropdown: current branch, one-click "Sync changes", and an
 // Advanced section (commit / pull / push). Mirrors the "More" menu mechanics in
 // ProtovibeApp.tsx (floating position + createPortal + mousedown click-outside).
+//
+// When Git isn't ready (not installed, no repo, no remote, or not authenticated)
+// we don't show warnings — we explain the situation in plain language and offer a
+// ready-to-paste prompt the user can hand to their coding agent to fix it.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, AlertTriangle, RefreshCw, Copy } from 'lucide-react';
+import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check } from 'lucide-react';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme, primarySolidHover } from '../theme';
 import type { UseGitSync } from '../hooks/useGitSync';
 
 const SPIN_KEYFRAMES = '@keyframes pv-git-spin { to { transform: rotate(360deg); } }';
 
-type Platform = 'mac' | 'windows' | 'linux';
-
-function detectPlatform(): Platform {
+function osName(): string {
   const ua = navigator.userAgent;
-  if (/Mac/i.test(ua)) return 'mac';
-  if (/Win/i.test(ua)) return 'windows';
-  return 'linux';
+  if (/Mac/i.test(ua)) return 'macOS';
+  if (/Win/i.test(ua)) return 'Windows';
+  return 'Linux';
 }
 
-const INSTALL_HINTS: Record<Platform, { command: string; steps: string }> = {
-  mac: {
-    command: 'xcode-select --install',
-    steps: 'Open the Terminal app, paste this command, press Enter, then click “Install”. Reopen Protovibe when it finishes.',
-  },
-  windows: {
-    command: 'winget install --id Git.Git -e',
-    steps: 'Open PowerShell, paste this command and press Enter (or download from git-scm.com). Restart Protovibe afterwards.',
-  },
-  linux: {
-    command: 'sudo apt install git',
-    steps: 'Install Git with your package manager, then restart Protovibe.',
-  },
-};
+// --- Prompts the user can paste into their coding agent (Claude Code, etc.) ---
+
+const installPrompt = () =>
+  `I'm using Protovibe to design an app on ${osName()}, and Git isn't installed on this computer. ` +
+  `Please install Git, verify it works by running \`git --version\`, and let me know when it's ready so I can sync my work with my team.`;
+
+const setupRepoPrompt = () =>
+  `I'm using Protovibe and want to sync my work with my team, but this project isn't set up with Git version control yet. ` +
+  `Please set it up: initialize a Git repository here, connect it to a remote (create a new GitHub repository if I don't have one), ` +
+  `make an initial commit, set the upstream for my branch, and push. Then tell me I can sync from Protovibe.`;
+
+const connectRemotePrompt = () =>
+  `I'm using Protovibe. This project has Git, but my current branch isn't connected to a shared remote yet, so I can't sync with my team. ` +
+  `Please connect it to a remote (create or use a GitHub repository), set the upstream tracking branch for my current branch, and push. ` +
+  `Then confirm I can sync from Protovibe.`;
+
+const authPrompt = (error?: string) =>
+  `I'm using Protovibe and tried to sync my work with Git, but it failed. ` +
+  `I think Git access isn't set up on this computer. Please fix my Git authentication for this project's remote ` +
+  `(set up an SSH key or a credential helper / sign me in), verify it works by running \`git push\`, and confirm I can sync from Protovibe.` +
+  (error ? `\n\nThe exact error was:\n${error.trim()}` : '');
+
+// git failures that mean "access/credentials aren't set up" rather than a real problem.
+function isAuthOrAccessError(text: string): boolean {
+  return /permission denied|authentication failed|could not read (username|password|from remote)|terminal prompts disabled|invalid username or password|support for password authentication|publickey|access denied|access rights|repository not found|unable to access|host key verification failed|forbidden|please tell me who you are/i.test(text);
+}
 
 // Plain-language description of the working state, aimed at non-technical users.
 function plainStatus(s: { changedCount: number; ahead: number; behind: number }): string {
@@ -74,7 +88,6 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const [open, setOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [commitMessage, setCommitMessage] = useState('');
-  const [copied, setCopied] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -85,7 +98,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     dropdownRef: menuRef,
     preferredPlacement: 'top',
     offset: 6,
-    updateDeps: [advancedOpen, status?.gitInstalled, status?.hasUpstream],
+    updateDeps: [advancedOpen, status?.gitInstalled, status?.isRepo, status?.hasUpstream, op.status],
   });
 
   // Refresh status whenever the menu opens so it's current when they look.
@@ -103,23 +116,17 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     return () => window.removeEventListener('mousedown', onDown);
   }, [open]);
 
-  // Nothing to show until we know the state; hide entirely for a plain non-repo
-  // folder (git installed but no repo) — there's nothing to sync.
-  if (!status) return null;
-  if (status.gitInstalled && !status.isRepo) return null;
+  if (!status) return null; // still loading initial status
 
   const hasChanges = status.changedCount > 0 || status.ahead > 0 || status.behind > 0;
   const branchLabel = !status.gitInstalled
     ? 'Git: not installed'
-    : `Git branch: ${status.branch || 'unknown'}`;
-  const showDot = status.gitInstalled && status.isRepo && hasChanges;
+    : !status.isRepo
+      ? 'Set up Git'
+      : `Git branch: ${status.branch || 'unknown'}`;
+  const showDot = status.gitInstalled && status.isRepo && status.hasUpstream && hasChanges;
 
-  const copyCommand = (cmd: string) => {
-    navigator.clipboard?.writeText(cmd).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }).catch(() => {});
-  };
+  const authIssue = op.status === 'error' && isAuthOrAccessError(`${op.error ?? ''} ${op.message ?? ''}`);
 
   return (
     <>
@@ -146,7 +153,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
         onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_default; } }}
         onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_secondary; } }}
       >
-        {status.gitInstalled ? <GitBranch size={15} /> : <AlertTriangle size={15} color={theme.warning_primary} />}
+        <GitBranch size={15} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{branchLabel}</span>
         {showDot && (
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default, flexShrink: 0 }} />
@@ -164,7 +171,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
             padding: 0,
             zIndex: 9999,
-            width: 260,
+            width: 288,
             overflow: 'hidden',
           }}
         >
@@ -172,39 +179,35 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
 
           {/* --- git not installed --- */}
           {!status.gitInstalled ? (
-            <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: theme.text_default, fontSize: 12, fontWeight: 600 }}>
-                <AlertTriangle size={14} color={theme.warning_primary} /> Git isn’t installed
-              </div>
-              <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
-                {INSTALL_HINTS[detectPlatform()].steps}
-              </div>
-              <button
-                onClick={() => copyCommand(INSTALL_HINTS[detectPlatform()].command)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  padding: '8px 10px', border: `1px solid ${theme.border_default}`, borderRadius: 4,
-                  background: theme.bg_strong, color: theme.text_default, fontSize: 12, cursor: 'pointer',
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', textAlign: 'left',
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{INSTALL_HINTS[detectPlatform()].command}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: theme.text_tertiary, flexShrink: 0 }}>
-                  <Copy size={12} /> {copied ? 'Copied' : 'Copy'}
-                </span>
-              </button>
-              <button
-                onClick={() => void refresh(false)}
-                style={{ ...menuItemStyle, padding: '6px 0', color: theme.text_tertiary, justifyContent: 'center' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
-              >
-                <RefreshCw size={12} /> I’ve installed it — check again
-              </button>
-            </div>
+            <SetupPanel
+              title="Git isn’t installed"
+              body="Git is the tool that saves your work and shares it with your team. It isn’t installed on this computer yet."
+              prompt={installPrompt()}
+              onRecheck={() => void refresh(false)}
+              recheckLabel="I’ve installed it — check again"
+            />
+          ) : !status.isRepo ? (
+            /* --- not a git repo --- */
+            <SetupPanel
+              title="Not connected to Git yet"
+              body="This project isn’t set up to sync with your team yet. Your coding agent can connect it in a minute."
+              prompt={setupRepoPrompt()}
+              onRecheck={() => void refresh(false)}
+              recheckLabel="It’s set up now — check again"
+            />
+          ) : !status.hasUpstream ? (
+            /* --- repo but no remote/upstream --- */
+            <SetupPanel
+              title="No shared remote yet"
+              body={`You’re on branch “${status.branch || 'unknown'}”, but it isn’t connected to a shared remote, so there’s nowhere to sync to yet.`}
+              prompt={connectRemotePrompt()}
+              onRecheck={() => void refresh(true)}
+              recheckLabel="It’s connected now — check again"
+            />
           ) : (
+            /* --- normal repo with a remote --- */
             <>
-              {/* --- header --- */}
+              {/* header */}
               <div style={{ padding: '12px 12px 10px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: theme.text_default, fontSize: 13, fontWeight: 700 }}>
                   <GitBranch size={15} /> Git branch: {status.branch || 'unknown'}
@@ -214,34 +217,38 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 </div>
               </div>
 
-              {/* --- sync --- */}
-              <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {!status.hasUpstream && (
-                  <div style={{ color: theme.warning_primary, fontSize: 11, lineHeight: 1.4 }}>
-                    No remote configured — set an upstream branch to sync.
+              {/* auth / access problem — explain + agent prompt */}
+              {authIssue && (
+                <div style={{ padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}` }}>
+                  <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
+                    Syncing failed because Git access isn’t set up on this computer. Your coding agent can fix this for you.
                   </div>
-                )}
+                  <AgentPrompt prompt={authPrompt(op.error)} />
+                </div>
+              )}
+
+              {/* sync */}
+              <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
-                  disabled={busy || !status.hasUpstream}
+                  disabled={busy}
                   onClick={() => void runOp('sync')}
-                  {...primarySolidHover(!busy && status.hasUpstream)}
+                  {...primarySolidHover(!busy)}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '9px 12px', border: 'none', borderRadius: 4, fontSize: 12, fontWeight: 600,
+                    padding: '9px 12px', border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 600,
                     color: '#fff',
-                    background: busy || !status.hasUpstream ? theme.bg_tertiary : theme.primary_solid,
-                    cursor: busy || !status.hasUpstream ? 'default' : 'pointer',
-                    opacity: !status.hasUpstream ? 0.6 : 1,
+                    background: busy ? theme.bg_tertiary : theme.primary_solid,
+                    cursor: busy ? 'default' : 'pointer',
                   }}
                 >
                   {busy
                     ? <RotateCw size={14} style={{ animation: 'pv-git-spin 1s linear infinite' }} />
                     : <RefreshCw size={14} />}
-                  {busy ? (op.message || 'Syncing…') : 'Sync changes'}
+                  {busy ? (op.message || 'Syncing…') : authIssue ? 'Try sync again' : 'Sync changes'}
                 </button>
               </div>
 
-              {/* --- advanced --- */}
+              {/* advanced */}
               <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
                 <button
                   onClick={() => setAdvancedOpen((v) => !v)}
@@ -268,8 +275,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                     />
                     <div style={{ display: 'flex', gap: 6 }}>
                       <AdvBtn label="Commit" icon={<GitCommit size={13} />} disabled={busy} onClick={() => runOp('commit', commitMessage)} />
-                      <AdvBtn label="Pull" icon={<Download size={13} />} disabled={busy || !status.hasUpstream} onClick={() => runOp('pull')} />
-                      <AdvBtn label="Push" icon={<Upload size={13} />} disabled={busy || !status.hasUpstream} onClick={() => runOp('push')} />
+                      <AdvBtn label="Pull" icon={<Download size={13} />} disabled={busy} onClick={() => runOp('pull')} />
+                      <AdvBtn label="Push" icon={<Upload size={13} />} disabled={busy} onClick={() => runOp('push')} />
                     </div>
                   </div>
                 )}
@@ -280,6 +287,56 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
         document.body,
       )}
     </>
+  );
+};
+
+// A titled setup panel: plain explanation + agent prompt + a "check again" action.
+const SetupPanel: React.FC<{
+  title: string;
+  body: string;
+  prompt: string;
+  onRecheck: () => void;
+  recheckLabel: string;
+}> = ({ title, body, prompt, onRecheck, recheckLabel }) => (
+  <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>{title}</div>
+    <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>{body}</div>
+    <AgentPrompt prompt={prompt} />
+    <button
+      onClick={onRecheck}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 12, cursor: 'pointer' }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
+      onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
+    >
+      <RefreshCw size={12} /> {recheckLabel}
+    </button>
+  </div>
+);
+
+// A ready-to-paste prompt for the user's coding agent, with a Copy button.
+const AgentPrompt: React.FC<{ prompt: string }> = ({ prompt }) => {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard?.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }).catch(() => {});
+  };
+  return (
+    <div style={{ border: `1px solid ${theme.border_default}`, borderRadius: 6, background: theme.bg_strong, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px 6px 10px', borderBottom: `1px solid ${theme.border_default}` }}>
+        <span style={{ color: theme.text_tertiary, fontSize: 11, fontWeight: 600 }}>Paste this to your coding agent</span>
+        <button
+          onClick={copy}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 7px', border: 'none', borderRadius: 4, background: copied ? theme.success_low : theme.bg_tertiary, color: copied ? theme.success_default : theme.text_secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+        >
+          {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <div style={{ padding: 10, color: theme.text_secondary, fontSize: 11.5, lineHeight: 1.5, maxHeight: 132, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+        {prompt}
+      </div>
+    </div>
   );
 };
 

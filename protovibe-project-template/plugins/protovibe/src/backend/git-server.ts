@@ -11,9 +11,19 @@ import { spawnCmd } from './server';
 // git helpers
 // ---------------------------------------------------------------------------
 
+// Never let git block on an interactive auth prompt: with piped stdio (no TTY) an
+// unauthenticated HTTPS/SSH remote would otherwise hang until the timeout. These
+// make git fail fast with a readable error instead, which the UI turns into
+// plain-language guidance.
+const GIT_ENV: NodeJS.ProcessEnv = {
+  ...process.env,
+  GIT_TERMINAL_PROMPT: '0',
+  GIT_SSH_COMMAND: 'ssh -oBatchMode=yes -oStrictHostKeyChecking=accept-new',
+};
+
 /** Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit. */
 function git(args: string[], timeoutMs = 15_000): Promise<string> {
-  return spawnCmd('git', args, { cwd: process.cwd(), timeoutMs });
+  return spawnCmd('git', args, { cwd: process.cwd(), env: GIT_ENV, timeoutMs });
 }
 
 /** Run a git command, returning its output or `null` if it exits non-zero / errors. */
