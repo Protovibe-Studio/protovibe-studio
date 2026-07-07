@@ -14,9 +14,6 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const { status, bannerVisible, runOp, dismissBanner } = git;
   if (!bannerVisible || !status) return null;
 
-  const branch = status.branch || 'your branch';
-  const count = status.behind;
-
   return createPortal(
     <div
       style={{
@@ -37,7 +34,7 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
     >
       <Download size={16} color={theme.accent_default} style={{ flexShrink: 0 }} />
       <span style={{ flex: 1, color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
-        {count} new change{count === 1 ? '' : 's'} on <strong>{branch}</strong> to sync
+        Someone made an update
       </span>
       <button
         onClick={() => void runOp('sync')}
@@ -47,7 +44,7 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
           color: '#fff', background: theme.primary_solid, cursor: 'pointer', flexShrink: 0,
         }}
       >
-        Sync
+        Sync changes
       </button>
       <button
         onClick={dismissBanner}
