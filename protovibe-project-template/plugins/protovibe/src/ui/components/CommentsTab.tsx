@@ -19,11 +19,12 @@ import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '..
 import { useViewportCommentIds } from '../hooks/useViewportCommentIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { CommentAvatar } from './comments/CommentAvatar';
+import { SuggestionComposerSection, SuggestionPreviewBlock, changedSuggestions } from './comments/WordingSuggestions';
 import {
   COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds, commentAttachmentUrl,
 } from '../../shared/comments';
 import type {
-  CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus,
+  CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus, WordingSuggestion,
 } from '../../shared/comments';
 import type { IframeTab } from './ShellNavBar';
 
@@ -198,6 +199,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [draftAttachments, setDraftAttachments] = useState<PendingAttachment[]>([]);
   const [replyDraft, setReplyDraft] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<PendingAttachment[]>([]);
+  const [draftSuggestions, setDraftSuggestions] = useState<WordingSuggestion[]>([]);
+  const [replySuggestions, setReplySuggestions] = useState<WordingSuggestion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [filterScope, setFilterScope] = useState<FilterScope>(loadFilterScope);
@@ -367,7 +370,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [activeData, activeIframeTab, currentBaseTarget]);
 
   // ── mutations ────────────────────────────────────────────────────────────────
-  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[]) => {
+  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) => {
     if (!activeData?.file || !activeData?.nameEnd) {
       setError('Select an element on the canvas before adding a comment.');
       return;
@@ -376,6 +379,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     const nowIso = new Date().toISOString();
     // New threads start untriaged — status is only set when a reviewer picks one.
     const comment: CommentItem = { id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] };
+    const changedSugg = changedSuggestions(suggestions);
+    if (changedSugg.length) comment.suggestions = changedSugg;
     const thread: CommentThread = {
       id,
       context: buildContext(),
@@ -401,6 +406,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       setDraft('');
       revokeAttachments(pending);
       setDraftAttachments([]);
+      setDraftSuggestions([]);
       // Stay on the list (don't open the new thread) so the user sees it land in
       // context, faintly highlighted, and confirm with the global toast.
       setHighlightId(id);
@@ -426,14 +432,16 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     }
   }, [activeSourceId, refresh]);
 
-  const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[]) =>
+  const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) =>
     mutateThreadFile(thread.id, 'reply to comment', async () => {
       const attachments = pending.length ? await uploadPendingAttachments(pending) : undefined;
+      const changedSugg = changedSuggestions(suggestions);
       return replyToThread(thread.id, {
         id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: new Date().toISOString(), seenBy: [author.name],
         ...(attachments ? { attachments } : {}),
+        ...(changedSugg.length ? { suggestions: changedSugg } : {}),
       });
-    }).then(() => { revokeAttachments(pending); setReplyDraft(''); setReplyAttachments([]); });
+    }).then(() => { revokeAttachments(pending); setReplyDraft(''); setReplyAttachments([]); setReplySuggestions([]); });
 
   const handleStatus = (thread: CommentThread, status: CommentStatus | null) =>
     mutateThreadFile(thread.id, status ? `comment status: ${status}` : 'clear comment status',
@@ -518,6 +526,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     setReplyDraft('');
     revokeAttachments(replyAttachments);
     setReplyAttachments([]);
+    setReplySuggestions([]);
     navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
@@ -531,8 +540,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
 
   const submitComposer = () => {
     const text = draft.trim();
-    if (!text && draftAttachments.length === 0) return;
-    withAuthor((author) => doCreateThread(text, author, draftAttachments));
+    if (!text && draftAttachments.length === 0 && changedSuggestions(draftSuggestions).length === 0) return;
+    withAuthor((author) => doCreateThread(text, author, draftAttachments, draftSuggestions));
   };
 
   const canComment = !!activeData?.file && !!activeData?.nameEnd;
@@ -572,11 +581,13 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           setReplyDraft={setReplyDraft}
           replyAttachments={replyAttachments}
           setReplyAttachments={setReplyAttachments}
+          replySuggestions={replySuggestions}
+          setReplySuggestions={setReplySuggestions}
           editingId={editingId}
           editingText={editingText}
           setEditingId={setEditingId}
           setEditingText={setEditingText}
-          onReply={(text, atts) => withAuthor((author) => doReply(activeThread, text, author, atts))}
+          onReply={(text, atts, sugg) => withAuthor((author) => doReply(activeThread, text, author, atts, sugg))}
           onStatus={(s) => handleStatus(activeThread, s)}
           onEditSave={(cid) => handleEditSave(activeThread, cid)}
           onDeleteReply={(cid) => handleDeleteReply(activeThread, cid)}
@@ -596,6 +607,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           setDraft={setDraft}
           attachments={draftAttachments}
           setAttachments={setDraftAttachments}
+          suggestions={draftSuggestions}
+          setSuggestions={setDraftSuggestions}
           busy={busy}
           query={query}
           setQuery={setQuery}
@@ -609,7 +622,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
-          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); }}
+          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); setDraftSuggestions([]); }}
           onOpenThread={openThread}
         />
       )}
@@ -739,6 +752,8 @@ const ListView: React.FC<{
   setDraft: (s: string) => void;
   attachments: PendingAttachment[];
   setAttachments: (a: PendingAttachment[]) => void;
+  suggestions: WordingSuggestion[];
+  setSuggestions: (s: WordingSuggestion[]) => void;
   busy: boolean;
   query: string;
   setQuery: (s: string) => void;
@@ -777,6 +792,8 @@ const ListView: React.FC<{
             onChange={p.setDraft}
             attachments={p.attachments}
             onAttachmentsChange={p.setAttachments}
+            suggestions={p.suggestions}
+            onSuggestionsChange={p.setSuggestions}
             onSubmit={p.onSubmitComposer}
             onCancel={p.onCancelComposer}
             busy={p.busy}
@@ -1126,11 +1143,13 @@ const ThreadView: React.FC<{
   setReplyDraft: (s: string) => void;
   replyAttachments: PendingAttachment[];
   setReplyAttachments: (a: PendingAttachment[]) => void;
+  replySuggestions: WordingSuggestion[];
+  setReplySuggestions: (s: WordingSuggestion[]) => void;
   editingId: string | null;
   editingText: string;
   setEditingId: (id: string | null) => void;
   setEditingText: (s: string) => void;
-  onReply: (text: string, attachments: PendingAttachment[]) => void;
+  onReply: (text: string, attachments: PendingAttachment[], suggestions: WordingSuggestion[]) => void;
   onStatus: (s: CommentStatus | null) => void;
   onEditSave: (commentId: string) => void;
   onDeleteReply: (commentId: string) => void;
@@ -1238,7 +1257,13 @@ const ThreadView: React.FC<{
           onChange={p.setReplyDraft}
           attachments={p.replyAttachments}
           onAttachmentsChange={p.setReplyAttachments}
-          onSubmit={() => { if (p.replyDraft.trim() || p.replyAttachments.length) p.onReply(p.replyDraft, p.replyAttachments); }}
+          suggestions={p.replySuggestions}
+          onSuggestionsChange={p.setReplySuggestions}
+          onSubmit={() => {
+            if (p.replyDraft.trim() || p.replyAttachments.length || changedSuggestions(p.replySuggestions).length) {
+              p.onReply(p.replyDraft, p.replyAttachments, p.replySuggestions);
+            }
+          }}
           busy={p.busy}
           placeholder="Reply…"
           submitLabel="Reply"
@@ -1392,6 +1417,12 @@ const CommentRow: React.FC<{
                 ))}
               </div>
             )}
+            {(c.suggestions?.length ?? 0) > 0 && (
+              <SuggestionPreviewBlock
+                suggestions={c.suggestions!}
+                topMargin={c.content || attachments.length ? 8 : 3}
+              />
+            )}
           </>
         )}
       </div>
@@ -1480,18 +1511,22 @@ const Composer: React.FC<{
   onChange: (s: string) => void;
   attachments?: PendingAttachment[];
   onAttachmentsChange?: (a: PendingAttachment[]) => void;
+  suggestions?: WordingSuggestion[];
+  onSuggestionsChange?: (s: WordingSuggestion[]) => void;
   onSubmit: () => void;
   onCancel?: () => void;
   busy: boolean;
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, attachments, onAttachmentsChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const imagesOn = !!onAttachmentsChange;
+  const suggestionsOn = !!onSuggestionsChange;
   const staged = attachments ?? [];
-  const canSubmit = !busy && (value.trim().length > 0 || staged.length > 0);
+  const hasSuggestions = changedSuggestions(suggestions ?? []).length > 0;
+  const canSubmit = !busy && (value.trim().length > 0 || staged.length > 0 || hasSuggestions);
 
   // Grow the field to fit its content instead of scrolling internally, so pasted
   // or long text never needs an inner scrollbar.
@@ -1603,6 +1638,9 @@ const Composer: React.FC<{
         <EmojiPicker onPick={insertEmoji} />
       </div>
     </div>
+    {suggestionsOn && (
+      <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} />
+    )}
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
       {onCancel && (
         <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>

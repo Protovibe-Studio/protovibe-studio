@@ -806,7 +806,10 @@ Git-commit style).
   "comments": [
     { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },
       "content": "Tighten this spacing", "createdAt": "2026-06-27T10:00:00.000Z",
-      "seenBy": ["Jane", "Alex"] }   // optional read receipts — names that have seen this message; omitted/[] = unseen
+      "seenBy": ["Jane", "Alex"],    // optional read receipts — names that have seen this message; omitted/[] = unseen
+      "suggestions": [               // optional UX-writing suggestions: swap an exact string for a proposed one
+        { "original": "Sign up", "suggested": "Create account" }
+      ] }
   ],
   "createdAt": "2026-06-27T10:00:00.000Z",
   "anchorFile": "src/pages/DashboardPage.tsx"
@@ -838,3 +841,13 @@ To add or resolve comments on the user's behalf, edit the
 `status`, etc.). To anchor a brand-new thread, both create the JSON file **and**
 add the valueless `data-pv-comment-{id}` attribute to the target element so the two
 stay in sync. Do not edit these files unless the user asks you to.
+
+### Rule: Wording suggestions are advisory, not source edits
+
+A comment may carry a `suggestions` array (`{ original, suggested }` pairs) — a UX
+writer proposing replacement copy for exact strings on the anchored element. These
+are **advisory metadata only**: the UI previews them by find/replacing the string in
+the live canvas DOM (never touching source). If the user asks you to *apply* a
+suggestion, make the real edit in the JSX (respecting the pv-block rules above) and
+leave the `suggestions` entry as the record of what was requested — do not treat the
+presence of a suggestion as an automatic code change.

@@ -70,6 +70,16 @@ export interface CommentContext {
   position?: { x: number; y: number };
 }
 
+/**
+ * A UX-writing suggestion: swap an exact `original` string for `suggested`.
+ * Purely advisory data attached to a comment — previewed live by find/replacing
+ * the string in the canvas DOM, never a source-code edit on its own.
+ */
+export interface WordingSuggestion {
+  original: string;
+  suggested: string;
+}
+
 /** A single message inside a thread. */
 export interface CommentItem {
   id: string;
@@ -77,6 +87,12 @@ export interface CommentItem {
   content: string;
   createdAt: string; // ISO string
   updatedAt?: string; // ISO string, set when edited
+  /**
+   * Wording-change suggestions attached to this comment (original → suggested
+   * pairs). Rendered as a diff with a "Preview suggestion" toggle that swaps the
+   * string in the live canvas. Absent/empty when the comment has no suggestions.
+   */
+  suggestions?: WordingSuggestion[];
   /**
    * Filenames of image attachments stored in `src/comments/attachments/`. Each is
    * a compressed image (≤70kb) uploaded when the comment was submitted; referenced

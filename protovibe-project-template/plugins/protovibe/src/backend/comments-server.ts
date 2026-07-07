@@ -256,8 +256,14 @@ export const handleCommentReply: Connect.NextHandleFunction = async (req, res) =
   try {
     const { threadId, comment } = await parseBody(req);
     const attachments = Array.isArray(comment?.attachments) ? comment.attachments.filter((a: unknown) => typeof a === 'string') : [];
-    const hasBody = (comment?.content && String(comment.content).trim()) || attachments.length > 0;
-    if (!threadId || !hasBody) return sendError(res, 'threadId and comment content or attachment required');
+    const suggestions = Array.isArray(comment?.suggestions)
+      ? comment.suggestions
+          .filter((s: unknown): s is { original: unknown; suggested: unknown } => !!s && typeof s === 'object')
+          .map((s: { original: unknown; suggested: unknown }) => ({ original: String(s.original ?? ''), suggested: String(s.suggested ?? '') }))
+          .filter((s: { original: string }) => s.original.trim().length > 0)
+      : [];
+    const hasBody = (comment?.content && String(comment.content).trim()) || attachments.length > 0 || suggestions.length > 0;
+    if (!threadId || !hasBody) return sendError(res, 'threadId and comment content, attachment, or suggestion required');
 
     const thread = readThread(threadId);
     if (!thread) return sendError(res, 'Thread not found', 404);
@@ -268,6 +274,7 @@ export const handleCommentReply: Connect.NextHandleFunction = async (req, res) =
       content: String(comment.content || ''),
       createdAt: comment.createdAt || new Date().toISOString(),
       ...(attachments.length ? { attachments } : {}),
+      ...(suggestions.length ? { suggestions } : {}),
     };
     thread.comments.push(item);
     writeThread(thread);
