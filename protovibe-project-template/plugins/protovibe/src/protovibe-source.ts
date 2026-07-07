@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
+import { registerGitMiddleware } from './backend/git-server';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -240,6 +241,9 @@ export function protovibeSourcePlugin(): Plugin {
 
       // Comments & Notes endpoints
       registerCommentsMiddleware(server);
+
+      // Git sync endpoints
+      registerGitMiddleware(server);
 
       // Manual server restart endpoint (triggered by error banner in UI)
       server.middlewares.use('/__restart-server', async (req, res) => {

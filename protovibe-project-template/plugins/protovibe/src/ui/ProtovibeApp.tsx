@@ -10,6 +10,9 @@ import { CommentsTab } from './components/CommentsTab';
 import { Sidebar } from './components/Sidebar';
 import { FloatingToolbar } from './components/FloatingToolbar';
 import { ToastViewport } from './components/ToastViewport';
+import { GitMenu } from './components/GitMenu';
+import { GitSyncBanner } from './components/GitSyncBanner';
+import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProtovibe } from './context/ProtovibeContext';
@@ -48,6 +51,7 @@ export const ProtovibeApp: React.FC = () => {
   }, []);
 
   const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
+  const git = useGitSync();
   const [appIframePath, setAppIframePath] = useState('/');
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -619,26 +623,29 @@ export const ProtovibeApp: React.FC = () => {
                 );
               })}
             </div>
-            <button
-              ref={moreButtonRef}
-              onClick={() => setMoreMenuOpen(v => !v)}
-              data-tooltip="Help"
-              style={{
-                width: 26,
-                height: 24,
-                border: 'none',
-                borderRadius: 4,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: moreMenuOpen ? theme.bg_tertiary : 'transparent',
-                color: moreMenuOpen ? theme.text_default : theme.text_tertiary,
-                transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              <HelpCircle size={16} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <GitMenu git={git} />
+              <button
+                ref={moreButtonRef}
+                onClick={() => setMoreMenuOpen(v => !v)}
+                data-tooltip="Help"
+                style={{
+                  width: 26,
+                  height: 24,
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: moreMenuOpen ? theme.bg_tertiary : 'transparent',
+                  color: moreMenuOpen ? theme.text_default : theme.text_tertiary,
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+              >
+                <HelpCircle size={16} />
+              </button>
+            </div>
           </div>
           {moreMenuOpen && createPortal(
             <div
@@ -763,6 +770,7 @@ export const ProtovibeApp: React.FC = () => {
 
         <FloatingToolbar />
         <ToastViewport />
+        <GitSyncBanner git={git} />
       </div>
     </div>
   );

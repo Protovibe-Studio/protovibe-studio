@@ -2451,7 +2451,7 @@ const WRANGLER_NON_INTERACTIVE_ENV: Record<string, string> = {
   DO_NOT_TRACK: '1',
 };
 
-function spawnCmd(
+export function spawnCmd(
   cmd: string,
   args: string[],
   opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void; timeoutMs?: number },

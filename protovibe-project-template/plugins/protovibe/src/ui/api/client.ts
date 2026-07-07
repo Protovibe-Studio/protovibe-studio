@@ -295,3 +295,54 @@ export async function fetchCloudflarePublishStatus(): Promise<CloudflarePublishS
   if (!res.ok) throw new Error('Failed to fetch publish status');
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Git sync
+// ---------------------------------------------------------------------------
+
+export interface GitStatus {
+  gitInstalled: boolean;
+  isRepo: boolean;
+  branch: string | null;
+  hasUpstream: boolean;
+  dirty: boolean;
+  changedCount: number;
+  ahead: number;
+  behind: number;
+  remoteUrl: string | null;
+}
+
+export type GitOp = 'sync' | 'commit' | 'pull' | 'push';
+export type GitOpStatus = 'idle' | 'committing' | 'pulling' | 'pushing' | 'success' | 'error';
+
+export interface GitOpState {
+  status: GitOpStatus;
+  message: string;
+  op?: GitOp;
+  resolvedConflict?: boolean;
+  error?: string;
+}
+
+export async function fetchGitStatus(opts?: { fetch?: boolean }): Promise<GitStatus> {
+  const res = await fetch(`/__git-status${opts?.fetch ? '?fetch=1' : ''}`);
+  if (!res.ok) throw new Error('Failed to fetch git status');
+  return res.json();
+}
+
+export async function startGitOp(op: GitOp, message?: string): Promise<void> {
+  const res = await fetch('/__git-op-start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op, message: message ?? null }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || `Failed to start ${op}`);
+  }
+}
+
+export async function fetchGitOpStatus(): Promise<GitOpState> {
+  const res = await fetch('/__git-op-status');
+  if (!res.ok) throw new Error('Failed to fetch git op status');
+  return res.json();
+}
