@@ -676,10 +676,10 @@ async function handleUpdatePlugin(_req, res, id) {
     // 3) pnpm install + rebuild dist inside plugins/protovibe. The project's
     //    own postinstall does this for whole-project installs, but a targeted
     //    plugin update has to repeat the steps so the runtime sees fresh dist.
-    const runStep = (label, command) => new Promise((resolve, reject) => {
+    const runStep = (label, command, cwd = targetPluginDir) => new Promise((resolve, reject) => {
       state.logs.push(`--- ${label} ---`)
       const proc = spawn(command, {
-        cwd: targetPluginDir,
+        cwd,
         stdio: 'pipe',
         shell: true,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
@@ -700,6 +700,13 @@ async function handleUpdatePlugin(_req, res, id) {
     })
 
     try {
+      // If the project was never installed (no root node_modules), a targeted
+      // plugin install/build would fail — e.g. the plugin build's `tsup --dts`
+      // resolves `typescript` hoisted from the root install. Run a full root
+      // install first; its postinstall installs + builds the plugin too.
+      if (!fs.existsSync(path.join(project.path, 'node_modules'))) {
+        await runStep('pnpm install (project)', 'pnpm install', project.path)
+      }
       await runStep('pnpm install (plugins/protovibe)', 'pnpm install')
       // Force a clean rebuild so stale dist artefacts can never shadow the
       // freshly copied source — same recipe as the project's postinstall.
