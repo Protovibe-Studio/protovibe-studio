@@ -36,12 +36,22 @@ const INSTALL_HINTS: Record<Platform, { command: string; steps: string }> = {
   },
 };
 
-function statusLine(s: { changedCount: number; ahead: number; behind: number }): string {
+// Plain-language description of the working state, aimed at non-technical users.
+function plainStatus(s: { changedCount: number; ahead: number; behind: number }): string {
+  if (s.changedCount === 0 && s.ahead === 0 && s.behind === 0) {
+    return 'Everything is synced with your team.';
+  }
   const parts: string[] = [];
-  if (s.changedCount > 0) parts.push(`${s.changedCount} unsaved change${s.changedCount === 1 ? '' : 's'}`);
-  if (s.ahead > 0) parts.push(`${s.ahead} to push`);
-  if (s.behind > 0) parts.push(`${s.behind} to pull`);
-  return parts.length ? parts.join(' · ') : 'Up to date';
+  if (s.changedCount > 0) {
+    parts.push(`You have ${s.changedCount} file${s.changedCount === 1 ? '' : 's'} changed on your local disk, but not synced with Git yet.`);
+  }
+  if (s.ahead > 0) {
+    parts.push(`${s.ahead} saved change${s.ahead === 1 ? ' is' : 's are'} ready to push to your team.`);
+  }
+  if (s.behind > 0) {
+    parts.push(`Your team pushed ${s.behind} new change${s.behind === 1 ? '' : 's'} you don't have yet.`);
+  }
+  return parts.join(' ');
 }
 
 const menuItemStyle: React.CSSProperties = {
@@ -99,7 +109,9 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   if (status.gitInstalled && !status.isRepo) return null;
 
   const hasChanges = status.changedCount > 0 || status.ahead > 0 || status.behind > 0;
-  const branchLabel = status.gitInstalled ? (status.branch || 'Git') : 'Git';
+  const branchLabel = !status.gitInstalled
+    ? 'Git: not installed'
+    : `Git branch: ${status.branch || 'unknown'}`;
   const showDot = status.gitInstalled && status.isRepo && hasChanges;
 
   const copyCommand = (cmd: string) => {
@@ -124,16 +136,17 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          fontSize: 12,
-          maxWidth: 160,
+          fontSize: 13,
+          fontWeight: 600,
+          maxWidth: 220,
           background: open ? theme.bg_tertiary : 'transparent',
-          color: open ? theme.text_default : theme.text_tertiary,
+          color: open ? theme.text_default : theme.text_secondary,
           transition: 'background 0.15s, color 0.15s',
         }}
-        onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
-        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
+        onMouseEnter={(e) => { if (!open) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_default; } }}
+        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_secondary; } }}
       >
-        {status.gitInstalled ? <GitBranch size={14} /> : <AlertTriangle size={14} color={theme.warning_primary} />}
+        {status.gitInstalled ? <GitBranch size={15} /> : <AlertTriangle size={15} color={theme.warning_primary} />}
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{branchLabel}</span>
         {showDot && (
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default, flexShrink: 0 }} />
@@ -191,13 +204,13 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             </div>
           ) : (
             <>
-              {/* --- branch header --- */}
-              <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: theme.text_default, fontSize: 12, fontWeight: 600 }}>
-                  <GitBranch size={13} /> {status.branch || 'detached'}
+              {/* --- header --- */}
+              <div style={{ padding: '12px 12px 10px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: theme.text_default, fontSize: 13, fontWeight: 700 }}>
+                  <GitBranch size={15} /> Git branch: {status.branch || 'unknown'}
                 </div>
-                <div style={{ color: theme.text_tertiary, fontSize: 11 }}>
-                  {op.status !== 'idle' ? op.message : statusLine(status)}
+                <div style={{ color: op.status === 'error' ? theme.destructive_default : theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
+                  {op.status !== 'idle' ? op.message : plainStatus(status)}
                 </div>
               </div>
 
