@@ -103,6 +103,11 @@ export function useGitSync(): UseGitSync {
         if (latest.resolvedConflict) {
           emitToast({ variant: 'info', message: 'Your changes overrode a conflicting edit', durationMs: 5000 });
         }
+        // sync/pull may have pulled new comment files from teammates — tell the
+        // Comments tab to re-read them so the list updates without a page reload.
+        if (opName === 'sync' || opName === 'pull') {
+          window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
+        }
       } else if (latest.status === 'error') {
         emitToast({ variant: 'error', message: latest.error || latest.message || 'Git operation failed', durationMs: 6000 });
       }
