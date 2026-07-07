@@ -122,14 +122,22 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     return () => window.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  // Cmd+S (macOS) / Ctrl+S (Windows/Linux) opens the Sync with Git popover
+  // instead of the browser's Save dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   if (!status) return null; // still loading initial status
 
   const hasChanges = status.changedCount > 0 || status.ahead > 0 || status.behind > 0;
-  const branchLabel = !status.gitInstalled
-    ? 'Git: not installed'
-    : !status.isRepo
-      ? 'Set up Git'
-      : `Git branch: ${status.branch || 'unknown'}`;
   const showDot = status.gitInstalled && status.isRepo && status.hasUpstream && hasChanges;
 
   const authIssue = op.status === 'error' && isAuthOrAccessError(`${op.error ?? ''} ${op.message ?? ''}`);
@@ -160,7 +168,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
         onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_secondary; } }}
       >
         <GitBranch size={15} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{branchLabel}</span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Sync with Git</span>
         {showDot && (
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent_default, flexShrink: 0 }} />
         )}
@@ -216,7 +224,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               {/* header */}
               <div style={{ padding: '12px 12px 10px', borderBottom: `1px solid ${theme.border_default}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: theme.text_default, fontSize: 13, fontWeight: 700 }}>
-                  <GitBranch size={15} /> Git branch: {status.branch || 'unknown'}
+                  <GitBranch size={15} /> Sync with Git
                 </div>
                 <div style={{ color: op.status === 'error' ? theme.destructive_default : theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
                   {op.status !== 'idle' ? op.message : plainStatus(status)}
@@ -252,6 +260,9 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                     : <RefreshCw size={14} />}
                   {busy ? (op.message || 'Syncing…') : authIssue ? 'Try sync again' : 'Sync changes'}
                 </button>
+                <div style={{ color: theme.text_secondary, fontSize: 12, textAlign: 'left' }}>
+                  You’re on Git branch: <span style={{ color: theme.text_default, fontWeight: 600 }}>{status.branch || 'unknown'}</span>
+                </div>
               </div>
 
               {/* advanced */}

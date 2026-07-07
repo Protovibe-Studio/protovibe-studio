@@ -382,8 +382,9 @@ export const FloatingToolbar: React.FC = () => {
           height: '38px',
           background: 'rgba(48, 48, 48)',
           WebkitBackdropFilter: 'blur(14px)',
-          borderRadius: '20px 20px 0 0',
+          borderRadius: '16px 16px 0 0',
           border: '1px solid rgba(255,255,255,0.1)',
+          borderBottomColor: 'transparent',
           boxShadow: '0 4px 20px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.04) inset',
           overflow: 'hidden',
         }}

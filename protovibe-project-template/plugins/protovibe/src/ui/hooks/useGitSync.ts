@@ -67,10 +67,13 @@ export function useGitSync(): UseGitSync {
   useEffect(() => { void refresh(false); }, [refresh]);
 
   // Background poll for remote changes. Gated so we never hit the network when
-  // there's no repo / upstream / git binary.
+  // there's no repo / upstream / git binary. Runs one fetch immediately (as soon
+  // as we know it's a syncable repo) so incoming changes surface right after load
+  // instead of waiting a full interval, then repeats every 2 minutes.
   const canPoll = !!status?.gitInstalled && !!status?.isRepo && !!status?.hasUpstream;
   useEffect(() => {
     if (!canPoll) return;
+    void refresh(true);
     const id = setInterval(() => { void refresh(true); }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [canPoll, refresh]);

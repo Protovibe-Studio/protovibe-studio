@@ -376,6 +376,10 @@ export function useKeyboardShortcuts() {
         }
       };
 
+      // WASD traversal is bare-key only. When Cmd/Ctrl is held these letters mean
+      // something else (e.g. Cmd+S opens the Git sync popover), so don't traverse.
+      if (e.metaKey || e.ctrlKey) return;
+
       const navKey = e.key.toLowerCase();
       if (navKey === 'w') handleNavigate(getAllowedParent(currentBaseTarget));
       else if (navKey === 's') handleNavigate(getAllowedChild(currentBaseTarget));
