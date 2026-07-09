@@ -1,0 +1,23 @@
+{
+  "name": "protovibe-shell",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Protovibe desktop shell",
+  "type": "commonjs",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "electron . --protovibe-repo=..",
+    "prepare-bundle": "node scripts/prepare-bundle.js",
+    "dist": "npm run prepare-bundle && electron-builder --mac",
+    "dist:unsigned": "npm run prepare-bundle && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --config.mac.notarize=false"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2",
+    "tree-kill": "^1.2.2"
+  },
+  "devDependencies": {
+    "electron": "37.10.3",
+    "electron-builder": "^25.1.8",
+    "pnpm": "9.15.9"
+  }
+}

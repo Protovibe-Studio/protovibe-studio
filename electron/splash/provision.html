@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Protovibe</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --fg: #e6e8ee;
+    --muted: #8a90a3;
+    --accent: #6ee7d8;
+    --error: #ff7a7a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 32px;
+    user-select: none;
+    -webkit-app-region: drag;
+  }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: 0.3px; }
+  .step { margin-top: 14px; font-size: 13px; color: var(--muted); min-height: 18px; }
+  .spinner {
+    margin-top: 4px; width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  pre {
+    flex: 1; margin-top: 16px; padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    font: 11px/1.5 ui-monospace, Menlo, monospace;
+    color: var(--muted);
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .error { color: var(--error); }
+  .actions { display: none; gap: 10px; margin-top: 14px; -webkit-app-region: no-drag; }
+  .actions.visible { display: flex; }
+  button {
+    background: rgba(255,255,255,0.08);
+    color: var(--fg);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 7px;
+    padding: 7px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(255,255,255,0.14); }
+  button.primary { background: var(--accent); color: #0b0d12; border: none; }
+</style>
+</head>
+<body>
+  <h1>Protovibe</h1>
+  <div class="row">
+    <div class="spinner" id="spinner"></div>
+    <div class="step" id="step">Starting up…</div>
+  </div>
+  <pre id="log"></pre>
+  <div class="actions" id="actions">
+    <button class="primary" id="retry">Retry</button>
+    <button id="openLog">Open log</button>
+  </div>
+<script>
+  const stepEl = document.getElementById('step');
+  const logEl = document.getElementById('log');
+  const actions = document.getElementById('actions');
+  const spinner = document.getElementById('spinner');
+  const lines = [];
+
+  window.protovibeSplash.onProgress(({ step, line }) => {
+    if (step) stepEl.textContent = step;
+    if (line) {
+      for (const l of line.split('\n')) {
+        if (!l.trim()) continue;
+        lines.push(l);
+        if (lines.length > 8) lines.shift();
+      }
+      logEl.textContent = lines.join('\n');
+    }
+  });
+
+  window.protovibeSplash.onError(({ message, tail }) => {
+    stepEl.textContent = message;
+    stepEl.classList.add('error');
+    spinner.style.display = 'none';
+    if (tail) logEl.textContent = tail;
+    actions.classList.add('visible');
+  });
+
+  document.getElementById('retry').addEventListener('click', () => {
+    stepEl.classList.remove('error');
+    spinner.style.display = '';
+    actions.classList.remove('visible');
+    stepEl.textContent = 'Retrying…';
+    window.protovibeSplash.retry();
+  });
+  document.getElementById('openLog').addEventListener('click', () => window.protovibeSplash.openLog());
+</script>
+</body>
+</html>
