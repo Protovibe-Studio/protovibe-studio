@@ -43,6 +43,9 @@ function buildChildEnv(extra = {}) {
     : `${SHIM_DIR}${path.delimiter}${basePath}`;
   env.NODE_NO_WARNINGS = '1';
   env.PROTOVIBE_NO_OPEN = '1';
+  // Lets the manager adapt when running under the desktop shell (e.g. the
+  // OAuth callback page offers a protovibe:// link back to the app).
+  env.PROTOVIBE_SHELL = '1';
   // Weak-network defaults for every pnpm in the tree (incl. the manager's own
   // `pnpm install` when creating projects): fewer parallel tarball downloads,
   // more retries. pnpm reads npm_config_* from the environment.

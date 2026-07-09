@@ -88,7 +88,7 @@ export default function ProjectMoreMenu({ project, onDuplicate, onDelete, onStop
                 testId="menu-open-editor"
                 onClick={(e) => {
                   e.stopPropagation()
-                  window.open(`http://localhost:${port}/protovibe.html`, '_blank')
+                  window.location.assign(`http://localhost:${port}/protovibe.html`)
                   setMenuOpen(false)
                 }}
                 icon={<ExternalLink size={14} className="shrink-0" />}

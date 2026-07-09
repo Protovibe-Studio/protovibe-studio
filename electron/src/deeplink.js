@@ -56,13 +56,15 @@ class Deeplink {
       return;
     }
     if (parsed.protocol !== 'protovibe:') return;
-    const segments = [parsed.host, parsed.pathname.replace(/^\/+/, '')].filter(Boolean);
-    const target = `${this.managerUrl}/${segments.join('/')}${parsed.search}`;
     const win = this.getWindow();
     if (!win) return;
     if (win.isMinimized()) win.restore();
     win.focus();
-    win.loadURL(target);
+    // Bare protovibe:// just brings the app to the front (e.g. the OAuth
+    // "Back to Protovibe" link) — don't blow away the current UI state.
+    const segments = [parsed.host, parsed.pathname.replace(/^\/+/, '')].filter(Boolean);
+    if (!segments.length && !parsed.search) return;
+    win.loadURL(`${this.managerUrl}/${segments.join('/')}${parsed.search}`);
   }
 }
 

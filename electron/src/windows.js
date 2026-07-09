@@ -1,5 +1,7 @@
 const path = require('node:path');
-const { BrowserWindow } = require('electron');
+const { BrowserWindow, shell } = require('electron');
+
+const LOCAL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/;
 
 function createSplashWindow() {
   const win = new BrowserWindow({
@@ -32,6 +34,20 @@ function createMainWindow(url) {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+  // Anything that isn't the local manager/editor opens in the user's real
+  // browser. Critical for GitHub OAuth: Electron has no passkeys and no saved
+  // passwords, so the sign-in must happen in the default browser — it calls
+  // back to the local /api server, which the manager UI polls.
+  win.webContents.setWindowOpenHandler(({ url: target }) => {
+    if (/^https?:/.test(target) && !LOCAL_RE.test(target)) shell.openExternal(target);
+    return { action: 'deny' };
+  });
+  win.webContents.on('will-navigate', (event, target) => {
+    if (/^https?:/.test(target) && !LOCAL_RE.test(target)) {
+      event.preventDefault();
+      shell.openExternal(target);
+    }
   });
   win.loadURL(url);
   return win;

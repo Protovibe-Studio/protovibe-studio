@@ -44,13 +44,35 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     if (isBusy) setSetupMode(true)
   }, [isBusy])
 
-  // Once ready was signalled, wait for polling to confirm running before dismissing setup
+  // Once ready was signalled, wait for polling to confirm running, then
+  // auto-open the editor in this window as soon as it responds. If it doesn't
+  // come up within the deadline, fall back to the project view as before.
   useEffect(() => {
-    if (awaitingRunning && isRunning) {
-      setAwaitingRunning(false)
+    if (!(awaitingRunning && isRunning)) return
+    setAwaitingRunning(false)
+    if (!port) {
       setSetupMode(false)
+      return
     }
-  }, [awaitingRunning, isRunning])
+    let cancelled = false
+    const editorUrl = `http://localhost:${port}/protovibe.html`
+    const deadline = Date.now() + 10000
+    ;(async () => {
+      while (!cancelled && Date.now() < deadline) {
+        try {
+          // Opaque no-cors fetch resolves for any HTTP response and rejects
+          // only while the dev server isn't accepting connections yet.
+          await fetch(editorUrl, { mode: 'no-cors', cache: 'no-store' })
+          if (!cancelled) window.location.assign(editorUrl)
+          return
+        } catch {
+          await new Promise((r) => setTimeout(r, 500))
+        }
+      }
+      if (!cancelled) setSetupMode(false)
+    })()
+    return () => { cancelled = true }
+  }, [awaitingRunning, isRunning, port])
 
   // Clear stopping spinner once polling confirms stopped; enter setup if restarting
   useEffect(() => {
@@ -335,8 +357,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   <a
                     data-testid="btn-open-editor"
                     href={`http://localhost:${port}/protovibe.html`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer"
                   >
                     <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />

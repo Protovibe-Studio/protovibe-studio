@@ -13,7 +13,7 @@ async function applyStagedUpdate(root, runPnpm, log = () => {}) {
   const old = `${pm}.old`;
   if (!fs.existsSync(pending)) return false;
 
-  log('Applying staged project-manager update…');
+  log('Updating Protovibe Studio…');
   const liveModules = path.join(pm, 'node_modules');
   const pendingModules = path.join(pending, 'node_modules');
   if (fs.existsSync(liveModules) && !fs.existsSync(pendingModules)) {
@@ -29,7 +29,7 @@ async function applyStagedUpdate(root, runPnpm, log = () => {}) {
     throw err;
   }
   fs.rmSync(old, { recursive: true, force: true });
-  log('Installing dependencies…');
+  log('Updating Protovibe Studio…');
   await runPnpm(['--dir', pm, 'install', '--prefer-offline'], root);
   return true;
 }

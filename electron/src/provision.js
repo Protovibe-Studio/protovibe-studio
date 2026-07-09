@@ -113,7 +113,7 @@ async function ensureProvisioned(progress) {
   if (!root) {
     // First run: extract the bundled source tree.
     root = defaultInstallRoot();
-    progress({ step: `Installing Protovibe to ${root}…` });
+    progress({ step: 'Installing Protovibe Studio… It can take a few minutes' });
     fs.mkdirSync(root, { recursive: true });
     for (const entry of fs.readdirSync(bundle)) {
       if (entry === 'manifest.json') continue;
@@ -132,7 +132,7 @@ async function ensureProvisioned(progress) {
       const installed = readVersion(path.join(root, ws));
       const bundled = manifest[ws] || '0.0.0';
       if (forceReinstall || semverGt(bundled, installed)) {
-        progress({ step: `Updating ${ws} to ${bundled}…` });
+        progress({ step: 'Updating Protovibe Studio…' });
         const nodeModules = path.join(root, ws, 'node_modules');
         const keepModules = fs.existsSync(nodeModules) && !forceReinstall;
         const stash = `${nodeModules}.keep`;
@@ -170,7 +170,7 @@ async function ensureProvisioned(progress) {
 
   for (const ws of needingInstall) {
     const wsDir = path.join(root, ws);
-    progress({ step: `Installing dependencies for ${ws}… (first run can take a few minutes)` });
+    progress({ step: 'Installing Protovibe Studio… It can take a few minutes' });
     const args = ['install', '--prefer-offline'];
     if (forceReinstall) args.push('--force');
     await runPnpm(args, wsDir, (line) => progress({ line }));

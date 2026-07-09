@@ -96,7 +96,14 @@ export function handleOauthStart(req, res, sendJson) {
   sendJson(res, 200, { url: `https://github.com/login/oauth/authorize?${params}` })
 }
 
-function callbackPage(title, body) {
+function callbackPage(title, body, { backToApp = false } = {}) {
+  // Under the desktop shell the OAuth flow runs in the user's real browser
+  // (passkeys, saved passwords); offer a protovibe:// link that brings the
+  // app back to the front. The shell's single-instance handler just focuses.
+  const backLink = backToApp
+    ? `<p><a href="protovibe://">Back to Protovibe</a></p>
+<script>setTimeout(() => { location.href = 'protovibe://' }, 400)</script>`
+    : ''
   return `<!doctype html>
 <html>
 <head><meta charset="utf-8"><title>${title}</title>
@@ -106,8 +113,9 @@ function callbackPage(title, body) {
   main { text-align: center; padding: 2rem; }
   h1 { font-size: 1.1rem; }
   p { font-size: 0.9rem; opacity: 0.7; }
+  a { color: inherit; }
 </style></head>
-<body><main><h1>${title}</h1><p>${body}</p></main>
+<body><main><h1>${title}</h1><p>${body}</p>${backLink}</main>
 <script>setTimeout(() => window.close(), 1500)</script>
 </body></html>`
 }
@@ -176,6 +184,7 @@ export async function handleOauthCallback(req, res, url) {
   sendHtml(res, 200, callbackPage(
     login ? `Connected as ${login}` : 'Connected to GitHub',
     'You can close this tab and return to Protovibe.',
+    { backToApp: process.env.PROTOVIBE_SHELL === '1' },
   ))
 }
 
