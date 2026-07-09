@@ -33,7 +33,18 @@ function semverGt(a, b) {
   return false;
 }
 
+// Fresh machines (VMs especially) hit ERR_SOCKET_TIMEOUT with pnpm's
+// defaults (16 parallel tarball downloads, 60s timeout, 2 retries) —
+// throttle and retry harder so first-run installs survive weak networks.
+const INSTALL_NETWORK_FLAGS = [
+  '--network-concurrency=4',
+  '--fetch-retries=5',
+  '--fetch-retry-maxtimeout=120000',
+  '--fetch-timeout=120000',
+];
+
 function runPnpm(args, cwd, onOutput = () => {}) {
+  if (args.includes('install')) args = [...args, ...INSTALL_NETWORK_FLAGS];
   return new Promise((resolve, reject) => {
     const proc = spawn(path.join(SHIM_DIR, 'pnpm'), args, {
       cwd,
@@ -47,6 +58,20 @@ function runPnpm(args, cwd, onOutput = () => {}) {
       if (code === 0) resolve();
       else reject(new Error(`pnpm ${args.join(' ')} exited with code ${code}`));
     });
+  });
+}
+
+// Fail fast when offline instead of letting pnpm grind through minutes of
+// socket-timeout retries that look like a hang on the splash screen.
+function checkOnline(timeoutMs = 5_000) {
+  return new Promise((resolve) => {
+    const https = require('node:https');
+    const req = https.get('https://registry.npmjs.org/-/ping', { timeout: timeoutMs }, (res) => {
+      res.resume();
+      resolve(true);
+    });
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.on('error', () => resolve(false));
   });
 }
 
@@ -102,12 +127,23 @@ async function ensureProvisioned(progress) {
     }
   }
 
-  for (const ws of WORKSPACES) {
+  const needingInstall = WORKSPACES.filter((ws) => {
     const wsDir = path.join(root, ws);
-    if (!fs.existsSync(wsDir)) continue;
-    const needsInstall =
-      refreshed.has(ws) || !fs.existsSync(path.join(wsDir, 'node_modules'));
-    if (!needsInstall) continue;
+    if (!fs.existsSync(wsDir)) return false;
+    return refreshed.has(ws) || !fs.existsSync(path.join(wsDir, 'node_modules'));
+  });
+
+  if (needingInstall.length) {
+    progress({ step: 'Checking internet connection…' });
+    if (!(await checkOnline())) {
+      throw new Error(
+        'No internet connection. Protovibe needs network access for first-time setup — connect and hit Retry.',
+      );
+    }
+  }
+
+  for (const ws of needingInstall) {
+    const wsDir = path.join(root, ws);
     progress({ step: `Installing dependencies for ${ws}… (first run can take a few minutes)` });
     const args = ['install', '--prefer-offline'];
     if (forceReinstall) args.push('--force');

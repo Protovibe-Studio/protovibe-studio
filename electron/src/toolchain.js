@@ -43,6 +43,13 @@ function buildChildEnv(extra = {}) {
     : `${SHIM_DIR}${path.delimiter}${basePath}`;
   env.NODE_NO_WARNINGS = '1';
   env.PROTOVIBE_NO_OPEN = '1';
+  // Weak-network defaults for every pnpm in the tree (incl. the manager's own
+  // `pnpm install` when creating projects): fewer parallel tarball downloads,
+  // more retries. pnpm reads npm_config_* from the environment.
+  env.npm_config_network_concurrency ??= '4';
+  env.npm_config_fetch_retries ??= '5';
+  env.npm_config_fetch_timeout ??= '120000';
+  env.npm_config_fetch_retry_maxtimeout ??= '120000';
   return env;
 }
 
