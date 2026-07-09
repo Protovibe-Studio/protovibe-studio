@@ -13,6 +13,7 @@ import VersionInfoMenu from './components/VersionInfoMenu.jsx'
 import UpdateAppModal from './components/UpdateAppModal.jsx'
 import { ToastViewport, showToast } from './components/ToastViewport.jsx'
 import Logo from './assets/Logo.jsx'
+import GithubMark from './assets/GithubMark.jsx'
 
 async function apiFetch(method, path, body) {
   const res = await fetch(`/api${path}`, {
@@ -76,6 +77,21 @@ export default function App() {
       window.history.replaceState(null, '', window.location.pathname)
     }
   }, [])
+
+  // Connected GitHub account for the header chip. Refreshed when the GitHub
+  // modal closes (connect and log-out both happen inside it).
+  const [githubAccount, setGithubAccount] = useState(null)
+  useEffect(() => {
+    if (githubOpen) return
+    let cancelled = false
+    fetch('/api/github/status')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setGithubAccount(data?.connected ? { login: data.login, avatarUrl: data.avatarUrl } : null)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [githubOpen])
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -359,7 +375,21 @@ export default function App() {
           <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <Logo className="w-auto text-foreground-default" style={{ height: '20px' }} />
           </button>
-          <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
+          <div className="flex items-center gap-4">
+            {githubAccount && (
+              <button
+                onClick={() => setGithubOpen(true)}
+                title="Connected to GitHub — click to manage"
+                className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground-default transition-colors cursor-pointer"
+              >
+                {githubAccount.avatarUrl
+                  ? <img src={githubAccount.avatarUrl} alt="" className="w-5 h-5 rounded-full" />
+                  : <GithubMark className="w-4 h-4" />}
+                <span className="max-w-40 truncate">{githubAccount.login}</span>
+              </button>
+            )}
+            <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
+          </div>
         </div>
       </header>
 

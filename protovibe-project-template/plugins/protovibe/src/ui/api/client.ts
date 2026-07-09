@@ -358,6 +358,11 @@ export async function fetchGithubRepoAccess(): Promise<GithubRepoAccess> {
   return res.json();
 }
 
+export async function githubLogout(): Promise<void> {
+  const res = await fetch('/__github-logout', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to log out of GitHub');
+}
+
 export async function fetchGitStatus(opts?: { fetch?: boolean }): Promise<GitStatus> {
   const res = await fetch(`/__git-status${opts?.fetch ? '?fetch=1' : ''}`);
   if (!res.ok) throw new Error('Failed to fetch git status');

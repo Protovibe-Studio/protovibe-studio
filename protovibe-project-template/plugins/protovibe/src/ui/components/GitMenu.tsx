@@ -109,7 +109,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const {
     status, op, busy, runOp, refresh,
     github, connecting, repoAccess,
-    checkGithub, startConnect, cancelConnect, checkRepoAccess,
+    checkGithub, startConnect, cancelConnect, checkRepoAccess, logout,
   } = git;
   const [open, setOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -133,14 +133,20 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   });
 
   // Refresh status whenever the menu opens so it's current when they look.
+  // GitHub state (cheap token-file read) too — it feeds the account row.
   useEffect(() => {
-    if (open) void refresh(false);
-  }, [open, refresh]);
+    if (!open) return;
+    void refresh(false);
+    void checkGithub(false);
+  }, [open, refresh, checkGithub]);
 
-  // GitHub state (incl. the manager probe) is only needed when a panel that
-  // uses it is visible — fetch it lazily then, not on every status poll.
+  // The manager probe (slow when the manager is down) is only needed once a
+  // disconnected panel has to decide between "Connect GitHub" and "open the
+  // Protovibe app first".
   useEffect(() => {
-    if (open && (needsBackupPanel || githubAuthIssue) && !github) void checkGithub();
+    if (open && (needsBackupPanel || githubAuthIssue) && github && !github.connected && github.managerReachable === undefined) {
+      void checkGithub(true);
+    }
   }, [open, needsBackupPanel, githubAuthIssue, github, checkGithub]);
 
   // A GitHub-remote auth error while connected is usually an app-installation
@@ -288,6 +294,10 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                     Cancel
                   </button>
                 </>
+              ) : github.managerReachable === undefined ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
+                  <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Looking for the Protovibe app…
+                </div>
               ) : github.managerReachable ? (
                 <>
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
@@ -311,6 +321,12 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                     <RefreshCw size={12} /> I’ve opened it — check again
                   </button>
                 </>
+              )}
+
+              {github?.connected && (
+                <div style={{ margin: '0 -12px' }}>
+                  <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={() => void logout()} />
+                </div>
               )}
 
               {/* escape hatch: the old agent prompts */}
@@ -365,6 +381,10 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
                           <RotateCw size={13} style={{ flexShrink: 0, animation: 'pv-git-spin 1s linear infinite' }} />
                           Waiting for you to finish connecting in the Protovibe app…
+                        </div>
+                      ) : github.managerReachable === undefined ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
+                          <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Looking for the Protovibe app…
                         </div>
                       ) : github.managerReachable ? (
                         <>
@@ -458,6 +478,10 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   </div>
                 )}
               </div>
+
+              {github?.connected && (
+                <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={() => void logout()} />
+              )}
             </>
           )}
         </div>,
@@ -466,6 +490,27 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     </>
   );
 };
+
+// Who's connected + Log out. Logging out forgets the machine-wide token, so
+// the Protovibe app and every other project disconnect too.
+const AccountRow: React.FC<{ login: string | null; avatarUrl: string | null; onLogout: () => void }> = ({ login, avatarUrl, onLogout }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderTop: `1px solid ${theme.border_default}` }}>
+    {avatarUrl
+      ? <img src={avatarUrl} alt="" style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0 }} />
+      : <span style={{ color: theme.text_tertiary, display: 'flex' }}><GithubMark size={14} /></span>}
+    <span style={{ flex: 1, color: theme.text_secondary, fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      GitHub: <span style={{ color: theme.text_default, fontWeight: 600 }}>{login ?? 'connected'}</span>
+    </span>
+    <button
+      onClick={onLogout}
+      style={{ border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 11.5, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
+      onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
+    >
+      Log out
+    </button>
+  </div>
+);
 
 // "Give Protovibe access on GitHub" guidance — used when the app installation
 // doesn't cover the repo (backup push and sync both land here).

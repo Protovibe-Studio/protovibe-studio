@@ -23,8 +23,9 @@ export interface StoredAuth {
 
 /**
  * Reads the token the manager stored after "Connect to GitHub". Read fresh on
- * every call so a (re)connect in the manager is picked up immediately. Never
- * delete this file from here — the manager owns it.
+ * every call so a (re)connect in the manager is picked up immediately. Don't
+ * delete this file on API errors (an invalid token is the manager's to clear) —
+ * only clearStoredAuth(), i.e. an explicit user log-out, removes it.
  */
 export function readStoredAuth(): StoredAuth | null {
   try {
@@ -34,6 +35,11 @@ export function readStoredAuth(): StoredAuth | null {
     }
   } catch {}
   return null;
+}
+
+/** Explicit user log-out: forgets the machine-wide token (manager included). */
+export function clearStoredAuth(): void {
+  try { fs.unlinkSync(TOKEN_FILE); } catch {}
 }
 
 // ---------------------------------------------------------------------------

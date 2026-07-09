@@ -9,6 +9,7 @@ import { spawnCmd } from './server';
 import { resolveGit, type ResolvedGit } from './git-engine';
 import {
   readStoredAuth,
+  clearStoredAuth,
   authHeaderFor,
   redactAuth,
   parseGithubHttpsRemote,
@@ -489,6 +490,13 @@ export function registerGitMiddleware(server: ViteDevServer): void {
     } catch (err) {
       sendJson(res, { error: String(err) }, 500);
     }
+  });
+
+  // POST /__github-logout — forget the shared token (logs the manager out too).
+  server.middlewares.use('/__github-logout', (req, res) => {
+    if (req.method !== 'POST') return sendJson(res, { error: 'Method not allowed' }, 405);
+    clearStoredAuth();
+    sendJson(res, { ok: true });
   });
 
   // GET /__github-repo-access — can the stored token see and push to origin?

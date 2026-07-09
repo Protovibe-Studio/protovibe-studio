@@ -9,6 +9,7 @@ import {
   startGitOp,
   fetchGithubStatus,
   fetchGithubRepoAccess,
+  githubLogout,
   type GitStatus,
   type GitOp,
   type GitOpState,
@@ -35,10 +36,11 @@ export interface UseGitSync {
   refresh: (withFetch?: boolean) => Promise<void>;
   runOp: (op: GitOp, message?: string) => Promise<void>;
   dismissBanner: () => void;
-  checkGithub: () => Promise<void>;
+  checkGithub: (probe?: boolean) => Promise<void>;
   startConnect: () => void;
   cancelConnect: () => void;
   checkRepoAccess: () => Promise<GithubRepoAccess | null>;
+  logout: () => Promise<void>;
 }
 
 function isBusy(op: GitOpState): boolean {
@@ -90,14 +92,32 @@ export function useGitSync(): UseGitSync {
     }
   }, []);
 
-  // Full GitHub check including the manager probe — run lazily when the menu
-  // opens a panel that needs it (backup / auth error), not on every poll.
-  const checkGithub = useCallback(async () => {
+  // GitHub check — run lazily when the menu opens, not on every poll. Pass
+  // probe=true only when a panel needs to locate the manager (the port probe
+  // can take a few seconds when it isn't running); the plain form is a cheap
+  // token-file read. A probe's manager fields are kept across plain refreshes.
+  const checkGithub = useCallback(async (probe = false) => {
     try {
-      const next = await fetchGithubStatus(true);
-      if (mounted.current) setGithub(next);
+      const next = await fetchGithubStatus(probe);
+      if (mounted.current) {
+        setGithub((prev) => (probe ? next : { ...next, managerReachable: prev?.managerReachable, managerUrl: prev?.managerUrl }));
+      }
     } catch {
       // dev server hiccup — leave prior value
+    }
+  }, []);
+
+  // Explicit log-out: forgets the machine-wide token (the manager and every
+  // other project lose the connection too — it's one shared account).
+  const logout = useCallback(async () => {
+    try {
+      await githubLogout();
+      if (!mounted.current) return;
+      setGithub((prev) => (prev ? { ...prev, connected: false, login: null, avatarUrl: null } : prev));
+      setRepoAccess(null);
+      emitToast({ variant: 'success', message: 'Logged out of GitHub' });
+    } catch (err) {
+      emitToast({ variant: 'error', message: err instanceof Error ? err.message : String(err), durationMs: 6000 });
     }
   }, []);
 
@@ -230,5 +250,6 @@ export function useGitSync(): UseGitSync {
     startConnect,
     cancelConnect: stopConnectPolling,
     checkRepoAccess,
+    logout,
   };
 }
