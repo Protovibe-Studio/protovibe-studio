@@ -2454,10 +2454,12 @@ const WRANGLER_NON_INTERACTIVE_ENV: Record<string, string> = {
 export function spawnCmd(
   cmd: string,
   args: string[],
-  opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void; timeoutMs?: number },
+  opts: { cwd: string; env?: NodeJS.ProcessEnv; onData?: (chunk: string) => void; timeoutMs?: number; shell?: boolean },
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe', shell: process.platform === 'win32' });
+    // shell is only needed for .cmd shims (pnpm/wrangler) on Windows; callers
+    // passing secrets in argv (git auth headers) must opt out of it.
+    const child = spawn(cmd, args, { cwd: opts.cwd, env: opts.env ?? process.env, stdio: 'pipe', shell: opts.shell ?? process.platform === 'win32' });
     let out = '';
     let settled = false;
     const settle = (fn: typeof resolve | typeof reject, val: string | Error) => {

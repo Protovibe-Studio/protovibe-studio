@@ -56,8 +56,13 @@ function projectGitEnv() {
       cachedProjectGitEnv = {}
     }
   }
-  return cachedProjectGitEnv
+  return { ...cachedProjectGitEnv, PROTOVIBE_MANAGER_URL: managerUrl }
 }
+
+// Where this manager is actually listening — projects use it for the "Connect
+// GitHub" deeplink, and 5173 may have been taken when Vite fell back to another
+// port. Updated once the http server binds.
+let managerUrl = 'http://127.0.0.1:5173'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1553,6 +1558,11 @@ function projectManagerPlugin() {
   return {
     name: 'protovibe-project-manager',
     configureServer(server) {
+      server.httpServer?.once('listening', () => {
+        const addr = server.httpServer.address()
+        if (addr && typeof addr !== 'string') managerUrl = `http://127.0.0.1:${addr.port}`
+      })
+
       server.middlewares.use('/api', async (req, res, next) => {
         // Handle CORS preflight
         if (req.method === 'OPTIONS') {

@@ -306,14 +306,16 @@ export interface GitStatus {
   root: string;
   branch: string | null;
   hasUpstream: boolean;
+  hasOrigin: boolean;
   dirty: boolean;
   changedCount: number;
   ahead: number;
   behind: number;
   remoteUrl: string | null;
+  remoteKind: 'github-https' | 'ssh-or-other' | null;
 }
 
-export type GitOp = 'sync' | 'commit' | 'pull' | 'push';
+export type GitOp = 'sync' | 'commit' | 'pull' | 'push' | 'backup';
 export type GitOpStatus = 'idle' | 'committing' | 'pulling' | 'pushing' | 'success' | 'error';
 
 export interface GitOpState {
@@ -322,6 +324,38 @@ export interface GitOpState {
   op?: GitOp;
   resolvedConflict?: boolean;
   error?: string;
+  needsInstall?: boolean;
+  installUrl?: string;
+  repoUrl?: string;
+}
+
+export interface GithubStatus {
+  connected: boolean;
+  login: string | null;
+  avatarUrl: string | null;
+  installUrl: string;
+  managerReachable?: boolean;
+  managerUrl?: string | null;
+}
+
+export interface GithubRepoAccess {
+  state: 'ok' | 'no-push' | 'not-covered' | 'not-connected' | 'no-remote' | 'not-github';
+  owner?: string;
+  repo?: string;
+  installUrl: string;
+  tokenInvalid?: boolean;
+}
+
+export async function fetchGithubStatus(probe = false): Promise<GithubStatus> {
+  const res = await fetch(`/__github-status${probe ? '?probe=1' : ''}`);
+  if (!res.ok) throw new Error('Failed to fetch GitHub status');
+  return res.json();
+}
+
+export async function fetchGithubRepoAccess(): Promise<GithubRepoAccess> {
+  const res = await fetch('/__github-repo-access');
+  if (!res.ok) throw new Error('Failed to check repository access');
+  return res.json();
 }
 
 export async function fetchGitStatus(opts?: { fetch?: boolean }): Promise<GitStatus> {

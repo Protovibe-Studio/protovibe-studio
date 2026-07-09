@@ -36,8 +36,13 @@ On github.com: **Settings → Developer settings → GitHub Apps → New GitHub 
 6. Leave "Enable Device Flow" **off**.
 7. **Webhook**: uncheck "Active" (no webhook needed).
 8. **Repository permissions**:
-   - **Contents: Read and write** (read for cloning; write keeps the future "Collaborate via GitHub" push feature possible)
+   - **Contents: Read and write** (read for cloning; write for pushing project changes)
+   - **Administration: Read and write** (lets a project's "Back up to GitHub" create a private repository via `POST /user/repos`)
    - **Metadata: Read-only** (added automatically)
+
+   If you add Administration to an existing app, every installation must approve
+   the permission update (GitHub prompts the account owner) before repo creation
+   works — until then Protovibe shows a "GitHub needs updated permissions" message.
 9. **Where can this GitHub App be installed?**: **Any account**.
 10. Create the app, then on its settings page:
     - Note the **Client ID**.

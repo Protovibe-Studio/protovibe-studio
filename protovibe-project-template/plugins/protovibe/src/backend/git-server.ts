@@ -6,6 +6,20 @@
 
 import { Connect, ViteDevServer } from 'vite';
 import { spawnCmd } from './server';
+import { resolveGit, type ResolvedGit } from './git-engine';
+import {
+  readStoredAuth,
+  authHeaderFor,
+  redactAuth,
+  parseGithubHttpsRemote,
+  createUserRepo,
+  checkRepoAccess,
+  slugFromProjectName,
+  probeManager,
+  GhAuthError,
+  RepoCreateForbiddenError,
+  INSTALL_URL,
+} from './github';
 
 // ---------------------------------------------------------------------------
 // git helpers
@@ -15,21 +29,54 @@ import { spawnCmd } from './server';
 // unauthenticated HTTPS/SSH remote would otherwise hang until the timeout. These
 // make git fail fast with a readable error instead, which the UI turns into
 // plain-language guidance.
-const GIT_ENV: NodeJS.ProcessEnv = {
-  ...process.env,
-  GIT_TERMINAL_PROMPT: '0',
-  GIT_SSH_COMMAND: 'ssh -oBatchMode=yes -oStrictHostKeyChecking=accept-new',
-};
+function gitEnv(resolved: ResolvedGit): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    ...resolved.env,
+    GIT_TERMINAL_PROMPT: '0',
+    GIT_SSH_COMMAND: 'ssh -oBatchMode=yes -oStrictHostKeyChecking=accept-new',
+  };
+}
+
+/**
+ * Auth args for network ops against the origin remote: when origin is a GitHub
+ * HTTPS URL and the manager has stored a token, authenticate with a one-shot
+ * HTTP header — the token never lands in .git/config. SSH and non-GitHub
+ * remotes keep the machine's ambient credentials.
+ */
+async function originAuthHeader(): Promise<string | null> {
+  const remote = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
+  if (!parseGithubHttpsRemote(remote)) return null;
+  const auth = readStoredAuth();
+  return auth ? authHeaderFor(auth.token) : null;
+}
 
 /** Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit. */
-function git(args: string[], timeoutMs = 15_000): Promise<string> {
-  return spawnCmd('git', args, { cwd: process.cwd(), env: GIT_ENV, timeoutMs });
+async function git(args: string[], timeoutMs = 15_000, auth = false): Promise<string> {
+  const resolved = resolveGit();
+  if (!resolved) throw new Error('Git isn’t available on this computer yet.');
+
+  let header: string | null = null;
+  let fullArgs = args;
+  if (auth) {
+    header = await originAuthHeader();
+    if (header) fullArgs = ['-c', 'credential.helper=', '-c', `http.extraHeader=${header}`, ...args];
+  }
+
+  try {
+    // shell: false — the auth header travels in argv and must never hit a shell.
+    return await spawnCmd(resolved.binary, fullArgs, { cwd: process.cwd(), env: gitEnv(resolved), timeoutMs, shell: false });
+  } catch (err) {
+    // spawnCmd errors embed child stderr, and op errors reach the UI — scrub the token.
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(header ? redactAuth(msg, header) : msg);
+  }
 }
 
 /** Run a git command, returning its output or `null` if it exits non-zero / errors. */
-async function gitTry(args: string[], timeoutMs = 15_000): Promise<string | null> {
+async function gitTry(args: string[], timeoutMs = 15_000, auth = false): Promise<string | null> {
   try {
-    return await git(args, timeoutMs);
+    return await git(args, timeoutMs, auth);
   } catch {
     return null;
   }
@@ -45,17 +92,19 @@ export interface GitStatus {
   root: string;
   branch: string | null;
   hasUpstream: boolean;
+  hasOrigin: boolean;
   dirty: boolean;
   changedCount: number;
   ahead: number;
   behind: number;
   remoteUrl: string | null;
+  remoteKind: 'github-https' | 'ssh-or-other' | null;
 }
 
 const BASE_STATUS: Omit<GitStatus, 'gitInstalled' | 'isRepo'> = {
   root: process.cwd(),
-  branch: null, hasUpstream: false,
-  dirty: false, changedCount: 0, ahead: 0, behind: 0, remoteUrl: null,
+  branch: null, hasUpstream: false, hasOrigin: false,
+  dirty: false, changedCount: 0, ahead: 0, behind: 0, remoteUrl: null, remoteKind: null,
 };
 
 const GIT_MISSING: GitStatus = { ...BASE_STATUS, gitInstalled: false, isRepo: false };
@@ -63,10 +112,9 @@ const NOT_A_REPO: GitStatus = { ...BASE_STATUS, gitInstalled: true, isRepo: fals
 
 async function readStatus(): Promise<GitStatus> {
   // Distinguish "git binary not installed" from "not a git repo" — a copywriter on
-  // a fresh Mac may have neither. `git --version` failing (ENOENT / not recognized)
-  // means the binary is absent; the UI surfaces install guidance in that case.
-  const version = await gitTry(['--version'], 5_000);
-  if (version == null) return GIT_MISSING;
+  // a fresh Mac may have neither. resolveGit() also finds the embedded git the
+  // manager may have downloaded, so those machines don't see install guidance.
+  if (resolveGit() == null) return GIT_MISSING;
 
   const inside = (await gitTry(['rev-parse', '--is-inside-work-tree']))?.trim();
   if (inside !== 'true') return NOT_A_REPO;
@@ -90,15 +138,16 @@ async function readStatus(): Promise<GitStatus> {
   }
 
   const remoteUrl = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
+  const remoteKind = remoteUrl ? (parseGithubHttpsRemote(remoteUrl) ? 'github-https' as const : 'ssh-or-other' as const) : null;
 
-  return { gitInstalled: true, isRepo: true, root: process.cwd(), branch, hasUpstream, dirty: changedCount > 0, changedCount, ahead, behind, remoteUrl };
+  return { gitInstalled: true, isRepo: true, root: process.cwd(), branch, hasUpstream, hasOrigin: remoteUrl != null, dirty: changedCount > 0, changedCount, ahead, behind, remoteUrl, remoteKind };
 }
 
 // ---------------------------------------------------------------------------
 // mutating ops — async start/status state machine
 // ---------------------------------------------------------------------------
 
-export type GitOp = 'sync' | 'commit' | 'pull' | 'push';
+export type GitOp = 'sync' | 'commit' | 'pull' | 'push' | 'backup';
 export type GitOpStatus = 'idle' | 'committing' | 'pulling' | 'pushing' | 'success' | 'error';
 
 export interface GitOpState {
@@ -107,6 +156,11 @@ export interface GitOpState {
   op?: GitOp;
   resolvedConflict?: boolean;
   error?: string;
+  /** The app installation doesn't cover this repo — send the user to installUrl. */
+  needsInstall?: boolean;
+  installUrl?: string;
+  /** Set on backup success: the repo the project now lives in. */
+  repoUrl?: string;
 }
 
 let gitOpState: GitOpState = { status: 'idle', message: '' };
@@ -140,12 +194,27 @@ function autoCommitMessage(): string {
   return `Protovibe sync — ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * Fresh machines often have no git identity configured, and `git commit` then
+ * fails with "please tell me who you are" — which reads like an auth problem.
+ * When the manager has a connected GitHub account, borrow its login for a
+ * per-invocation identity instead of failing (noreply address, nothing written
+ * to the user's git config).
+ */
+async function identityArgs(): Promise<string[]> {
+  const email = (await gitTry(['config', 'user.email']))?.trim();
+  if (email) return [];
+  const login = readStoredAuth()?.login;
+  if (!login) return [];
+  return ['-c', `user.name=${login}`, '-c', `user.email=${login}@users.noreply.github.com`];
+}
+
 /** Stage everything and commit; returns false if there was nothing to commit. */
 async function stageAndCommit(message: string): Promise<boolean> {
   await git(['add', '-A']);
   const staged = (await gitTry(['diff', '--cached', '--name-only']))?.trim();
   if (!staged) return false;
-  await git(['commit', '-m', message]);
+  await git([...(await identityArgs()), 'commit', '-m', message]);
   return true;
 }
 
@@ -162,7 +231,7 @@ async function stageAndCommit(message: string): Promise<boolean> {
  * A rebase that even `-X theirs` can't settle (e.g. rename/delete) aborts and rethrows.
  */
 async function fetchAndRebase(): Promise<boolean> {
-  await git(['fetch'], 90_000);
+  await git(['fetch'], 90_000, true);
 
   // Fast path: clean rebase (no overlapping edits, or nothing to integrate).
   try {
@@ -202,7 +271,7 @@ async function runGitSync(): Promise<void> {
     }
 
     setGitOpState({ status: 'pushing', message: 'Publishing…', op: 'sync' });
-    await git(['push'], 90_000);
+    await git(['push'], 90_000, true);
 
     setGitOpState({
       status: 'success',
@@ -212,6 +281,95 @@ async function runGitSync(): Promise<void> {
     });
   } catch (err) {
     setGitOpState({ status: 'error', message: 'Sync failed.', op: 'sync', error: String(err) });
+  }
+}
+
+/**
+ * "Back up to GitHub" — one click for a non-technical user takes a project with
+ * no repo (or no remote) to a private GitHub repo with upstream tracking:
+ * init if needed → commit → create the repo under the personal account → add
+ * origin → authenticated push. Reuses the same op state machine as sync.
+ */
+async function runBackup(): Promise<void> {
+  try {
+    if (!resolveGit()) {
+      setGitOpState({ status: 'error', message: 'Git isn’t available on this computer yet.', op: 'backup' });
+      return;
+    }
+    if (!readStoredAuth()) {
+      setGitOpState({ status: 'error', message: 'Connect your GitHub account in the Protovibe app first.', op: 'backup' });
+      return;
+    }
+
+    setGitOpState({ status: 'committing', message: 'Setting up your project…', op: 'backup' });
+    const inside = (await gitTry(['rev-parse', '--is-inside-work-tree']))?.trim();
+    if (inside !== 'true') await git(['init', '-b', 'main']);
+
+    const committed = await stageAndCommit('Initial commit from Protovibe');
+    if (!committed && (await gitTry(['rev-parse', 'HEAD'])) == null) {
+      // Pristine tree with no history — push still needs a commit to send.
+      await git([...(await identityArgs()), 'commit', '--allow-empty', '-m', 'Initial commit from Protovibe']);
+    }
+
+    let repoUrl: string | undefined;
+    const existingRemote = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
+    if (!existingRemote) {
+      setGitOpState({ status: 'committing', message: 'Creating a private space on GitHub…', op: 'backup' });
+      const repo = await createUserRepo(slugFromProjectName());
+      // Plain URL — auth stays per-invocation, never in .git/config.
+      await git(['remote', 'add', 'origin', `https://github.com/${repo.owner}/${repo.name}.git`]);
+      repoUrl = repo.htmlUrl;
+    } else {
+      const parsed = parseGithubHttpsRemote(existingRemote);
+      if (parsed) repoUrl = `https://github.com/${parsed.owner}/${parsed.repo}`;
+    }
+
+    setGitOpState({ status: 'pushing', message: 'Uploading your project…', op: 'backup' });
+    try {
+      await git(['push', '-u', 'origin', 'HEAD'], 120_000, true);
+    } catch (err) {
+      // A push 403/404 on a GitHub HTTPS remote usually means the app
+      // installation doesn't cover the repo (e.g. "only selected repositories"
+      // doesn't auto-include a freshly created one). Confirm via the API so the
+      // UI can send the user straight to the install page.
+      const parsed = parseGithubHttpsRemote((await gitTry(['remote', 'get-url', 'origin']))?.trim() || null);
+      if (parsed && readStoredAuth()) {
+        try {
+          const access = await checkRepoAccess(parsed.owner, parsed.repo);
+          if (access === 'not-covered' || access === 'no-push') {
+            setGitOpState({
+              status: 'error',
+              message: 'GitHub needs permission for this repository.',
+              op: 'backup',
+              needsInstall: true,
+              installUrl: INSTALL_URL,
+              error: String(err),
+            });
+            return;
+          }
+        } catch {}
+      }
+      throw err;
+    }
+
+    setGitOpState({ status: 'success', message: 'Backed up to GitHub', op: 'backup', repoUrl });
+  } catch (err) {
+    if (err instanceof RepoCreateForbiddenError) {
+      setGitOpState({
+        status: 'error',
+        message: 'GitHub needs updated permissions for Protovibe before it can create repositories.',
+        op: 'backup',
+        needsInstall: true,
+        installUrl: INSTALL_URL,
+        error: String(err),
+      });
+      return;
+    }
+    if (err instanceof GhAuthError) {
+      setGitOpState({ status: 'error', message: 'Your GitHub connection expired — reconnect in the Protovibe app.', op: 'backup', error: String(err) });
+      return;
+    }
+    setGitOpState({ status: 'error', message: 'Backup failed.', op: 'backup', error: String(err) });
   }
 }
 
@@ -237,8 +395,12 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     }
     if (op === 'push') {
       setGitOpState({ status: 'pushing', message: 'Publishing…', op });
-      await git(['push'], 90_000);
+      await git(['push'], 90_000, true);
       setGitOpState({ status: 'success', message: 'Pushed', op });
+      return;
+    }
+    if (op === 'backup') {
+      await runBackup();
       return;
     }
     // op === 'sync'
@@ -264,7 +426,7 @@ export function registerGitMiddleware(server: ViteDevServer): void {
     try {
       const url = new URL(req.url || '', 'http://localhost');
       if (url.searchParams.get('fetch') === '1') {
-        await gitTry(['fetch'], 20_000);
+        await gitTry(['fetch'], 20_000, true);
       }
       sendJson(res, await readStatus());
     } catch (err) {
@@ -280,7 +442,7 @@ export function registerGitMiddleware(server: ViteDevServer): void {
     req.on('end', () => {
       try {
         const { op, message } = JSON.parse(body || '{}') as { op?: GitOp; message?: string };
-        if (!op || !['sync', 'commit', 'pull', 'push'].includes(op)) {
+        if (!op || !['sync', 'commit', 'pull', 'push', 'backup'].includes(op)) {
           return sendJson(res, { error: 'Invalid op' }, 400);
         }
         if (isGitBusy()) {
@@ -302,5 +464,51 @@ export function registerGitMiddleware(server: ViteDevServer): void {
   // GET /__git-op-status
   server.middlewares.use('/__git-op-status', (_req, res) => {
     sendJson(res, gitOpState);
+  });
+
+  // GET /__github-status[?probe=1]
+  // Plain form is a cheap token-file read (safe to poll while the user finishes
+  // connecting in the manager); probe=1 additionally locates a running manager
+  // for the "Connect GitHub" deeplink.
+  server.middlewares.use('/__github-status', async (req, res) => {
+    try {
+      const url = new URL(req.url || '', 'http://localhost');
+      const auth = readStoredAuth();
+      const out: Record<string, unknown> = {
+        connected: !!auth,
+        login: auth?.login ?? null,
+        avatarUrl: auth?.avatarUrl ?? null,
+        installUrl: INSTALL_URL,
+      };
+      if (url.searchParams.get('probe') === '1') {
+        const manager = await probeManager();
+        out.managerReachable = manager.reachable;
+        out.managerUrl = manager.url;
+      }
+      sendJson(res, out);
+    } catch (err) {
+      sendJson(res, { error: String(err) }, 500);
+    }
+  });
+
+  // GET /__github-repo-access — can the stored token see and push to origin?
+  server.middlewares.use('/__github-repo-access', async (_req, res) => {
+    try {
+      const remote = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
+      if (!remote) return sendJson(res, { state: 'no-remote', installUrl: INSTALL_URL });
+      const parsed = parseGithubHttpsRemote(remote);
+      if (!parsed) return sendJson(res, { state: 'not-github', installUrl: INSTALL_URL });
+      try {
+        const state = await checkRepoAccess(parsed.owner, parsed.repo);
+        sendJson(res, { state, owner: parsed.owner, repo: parsed.repo, installUrl: INSTALL_URL });
+      } catch (err) {
+        if (err instanceof GhAuthError) {
+          return sendJson(res, { state: 'not-connected', tokenInvalid: true, installUrl: INSTALL_URL });
+        }
+        throw err;
+      }
+    } catch (err) {
+      sendJson(res, { error: String(err) }, 500);
+    }
   });
 }
