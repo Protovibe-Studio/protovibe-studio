@@ -38,7 +38,7 @@ jobs:
         working-directory: electron
 
       - name: Build, sign, notarize, publish
-        run: pnpm exec electron-builder --mac --arm64 --x64 --publish always
+        run: pnpm exec electron-builder --mac --arm64 --publish always
         working-directory: electron
         env:
           CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}

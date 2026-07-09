@@ -8,10 +8,7 @@ Everything below is in order. Do them top to bottom.
 
 The unsigned artifacts are already built in `electron/dist/`:
 
-| File | For |
-|---|---|
-| `Protovibe-0.1.0-arm64.dmg` | Apple Silicon (M1–M4) |
-| `Protovibe-0.1.0.dmg` | Intel |
+The unsigned artifact is `Protovibe-0.1.0-arm64.dmg` (Apple Silicon only — Intel is not supported).
 
 **Important:** on this Mac the shell will *adopt* your real install — it reads `~/.protovibe/project-path` and uses your existing `~/Protovibe` (projects, GitHub login and all). That's the intended migration behavior. If you want a clean-room run instead, launch from Terminal with an isolated home:
 
@@ -107,10 +104,10 @@ git tag shell-v0.1.0
 git push origin shell-v0.1.0
 ```
 
-The `Release Electron shell` workflow builds arm64+x64, signs, notarizes (takes 5–15 min at Apple's end), staples, and publishes a GitHub Release containing:
+The `Release Electron shell` workflow builds arm64, signs, notarizes (takes 5–15 min at Apple's end), staples, and publishes a GitHub Release containing:
 
-- `Protovibe-arm64.dmg`, `Protovibe-x64.dmg` — human downloads (version-less names on purpose, see step 7)
-- `Protovibe-0.1.0-arm64-mac.zip`, `Protovibe-0.1.0-mac.zip` + `latest-mac.yml` — consumed by the auto-updater, don't rename
+- `Protovibe-arm64.dmg` — human download (version-less name on purpose, see step 7)
+- `Protovibe-0.1.0-arm64-mac.zip` + `latest-mac.yml` — consumed by the auto-updater, don't rename
 
 Verify the signed build on any Mac:
 
@@ -129,30 +126,23 @@ First-release gotcha to test once: install `shell-v0.1.0`, then push a `shell-v0
 
 ## 7. Landing page distribution
 
-The repo is public, so GitHub Releases double as your CDN — no hosting needed. Because the DMG names are version-less, these URLs are **permanent** and always serve the newest release:
+The repo is public, so GitHub Releases double as your CDN — no hosting needed. Because the DMG name is version-less, this URL is **permanent** and always serves the newest release:
 
 ```
 https://github.com/Protovibe-Studio/protovibe-studio/releases/latest/download/Protovibe-arm64.dmg
-https://github.com/Protovibe-Studio/protovibe-studio/releases/latest/download/Protovibe-x64.dmg
 ```
 
-Put two buttons on the landing page (browsers can't reliably detect Apple Silicon vs Intel, so let the user choose — default to Apple Silicon since that's most Macs sold since 2020):
+One button on the landing page:
 
 ```html
 <a class="download-btn primary"
    href="https://github.com/Protovibe-Studio/protovibe-studio/releases/latest/download/Protovibe-arm64.dmg">
-  Download for Mac — Apple Silicon
+  Download for Mac
 </a>
-<a class="download-btn"
-   href="https://github.com/Protovibe-Studio/protovibe-studio/releases/latest/download/Protovibe-x64.dmg">
-  Download for Mac — Intel
-</a>
-<p class="hint">Not sure?  → Apple menu → About This Mac. "Chip: Apple M…" = Apple Silicon.</p>
+<p class="hint">Requires a Mac with Apple Silicon (M1 or newer) running macOS 12+.</p>
 ```
 
-Optional nice-to-have: a "which Mac do I have?" auto-hint via `navigator.userAgentData` is possible but unreliable; the two-button approach is what most apps (e.g. Docker, VS Code) do.
-
-When Windows lands later, the same pattern applies: the NSIS installer gets a stable name and a third button.
+Intel Macs are not supported. When Windows lands later, the NSIS installer gets a stable name and a second button.
 
 ---
 
