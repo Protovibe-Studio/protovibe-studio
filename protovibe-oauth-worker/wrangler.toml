@@ -1,0 +1,10 @@
+name = "protovibe-oauth"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Public GitHub App client id — safe to keep in plain config.
+[vars]
+GITHUB_CLIENT_ID = "Iv23livuSUxZGL9QGc6M"
+
+# The client secret must NOT live in this file. Set it with:
+#   pnpm wrangler secret put GITHUB_CLIENT_SECRET

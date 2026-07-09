@@ -7,6 +7,16 @@ import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { spawn, execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
+import {
+  handleOauthStart,
+  handleOauthCallback,
+  handleStatus as handleGithubStatus,
+  handleLogout as handleGithubLogout,
+  readStoredAuth,
+  storedGithubToken,
+} from './server/github-auth.js'
+import { handleListRepos, handleValidateRepo } from './server/github-api.js'
+import { resolveGit, handleClone } from './server/git-engine.js'
 
 const require_ = createRequire(import.meta.url)
 const treeKill = require_('tree-kill')
@@ -31,6 +41,23 @@ const PORT_RE = /Local:\s+http:\/\/localhost:(\d+)/
 
 // In-memory process registry — lives for the duration of the dev server
 const processes = new Map() // id → { proc, logs: [], port: null, status }
+
+// Extra env for spawned project dev servers: point them at the git binary the
+// manager resolved (env override or embedded download) so a project's own git
+// integration works even on machines without a system git. System git needs
+// no hint — it's already on the child's PATH.
+let cachedProjectGitEnv = null
+function projectGitEnv() {
+  if (cachedProjectGitEnv === null) {
+    try {
+      const git = resolveGit()
+      cachedProjectGitEnv = git && git.source !== 'system' ? { PROTOVIBE_GIT_PATH: git.binary } : {}
+    } catch {
+      cachedProjectGitEnv = {}
+    }
+  }
+  return cachedProjectGitEnv
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -507,7 +534,7 @@ function handleStart(_req, res, id) {
     cwd: project.path,
     stdio: 'pipe',
     shell: true,
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+    env: { ...process.env, ...projectGitEnv(), FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
   const state = { proc, logs: existing?.logs ?? [], port: null, status: 'starting' }
@@ -968,7 +995,7 @@ function handleSetup(req, res, id) {
       cwd: project.path,
       stdio: 'pipe',
       shell: true,
-      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+      env: { ...process.env, ...projectGitEnv(), FORCE_COLOR: '0', NO_COLOR: '1' },
     })
 
     state.proc = dev
@@ -1041,6 +1068,9 @@ let cachedGhToken = null
 function githubToken() {
   const env = process.env.PROTOVIBE_GITHUB_TOKEN || process.env.GITHUB_TOKEN
   if (env) return env
+  // Token stored by the "Connect to GitHub" flow.
+  const stored = storedGithubToken()
+  if (stored) return stored
   if (cachedGhToken !== null) return cachedGhToken
   try {
     // shell:true on Windows so `gh.cmd` / `gh.exe` resolves via PATHEXT.
@@ -1553,6 +1583,38 @@ function projectManagerPlugin() {
           if (method === 'POST' && pathname === '/update-app') {
             const which = url.searchParams.get('which') || 'auto'
             return handleUpdateApp(req, res, which)
+          }
+
+          // ── Connect to GitHub ──
+          if (method === 'POST' && pathname === '/github/oauth/start') {
+            return handleOauthStart(req, res, sendJson)
+          }
+          if (method === 'GET' && pathname === '/github/oauth/callback') {
+            return await handleOauthCallback(req, res, url)
+          }
+          if (method === 'GET' && pathname === '/github/status') {
+            return handleGithubStatus(req, res, sendJson)
+          }
+          if (method === 'POST' && pathname === '/github/logout') {
+            return handleGithubLogout(req, res, sendJson)
+          }
+          if (method === 'GET' && pathname === '/github/repos') {
+            return await handleListRepos(req, res, sendJson)
+          }
+          if (method === 'GET' && pathname === '/github/validate') {
+            return await handleValidateRepo(req, res, url, sendJson)
+          }
+          if (method === 'GET' && pathname === '/github/clone') {
+            return await handleClone(req, res, url, {
+              readProjects,
+              writeProjects,
+              ensureProjectsDir,
+              safePath,
+              generateId,
+              sendJson,
+              NAME_RE,
+              readStoredAuth,
+            })
           }
 
           const match = pathname.match(/^\/projects\/([^/]+)(?:\/(.+))?$/)

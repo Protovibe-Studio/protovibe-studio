@@ -28,6 +28,16 @@ const FUNNY_MESSAGES = {
     'Lighting the fuse...',
     'Polishing the pixels...',
   ],
+  'installing-git': [
+    'Fetching a fresh copy of Git...',
+    'No git? No problem...',
+    'Downloading version control itself...',
+  ],
+  cloning: [
+    'Beaming your repository down...',
+    'Copying commits one by one (kidding)...',
+    'Asking GitHub nicely for your files...',
+  ],
 }
 
 const STAGE_LABELS = {
@@ -35,6 +45,8 @@ const STAGE_LABELS = {
   duplicating: 'Duplicating project',
   installing: 'Installing dependencies',
   starting: 'Starting dev server',
+  'installing-git': 'Installing Git',
+  cloning: 'Cloning repository',
   ready: 'Ready!',
   error: 'Something went wrong',
 }
@@ -45,7 +57,7 @@ function Spinner() {
   )
 }
 
-export default function SetupScreen({ projectId, projectName, onBack, onReady, inline = false, initialStage = 'installing', hideName = false }) {
+export default function SetupScreen({ projectId, projectName, onBack, onReady, sseUrl, onDone, inline = false, initialStage = 'installing', hideName = false }) {
   const [stage, setStage] = useState(initialStage)
   const [funnyIndex, setFunnyIndex] = useState(0)
   const [logs, setLogs] = useState([])
@@ -79,6 +91,47 @@ export default function SetupScreen({ projectId, projectName, onBack, onReady, i
   useEffect(() => {
     if (!projectId) setStage(initialStage)
   }, [initialStage, projectId])
+
+  // Generic SSE flow (e.g. GitHub clone): same stage/log/fail grammar as the
+  // setup endpoint, plus a `done` event instead of `ready`. Closing the
+  // EventSource aborts the request; the server kills git and cleans up.
+  useEffect(() => {
+    if (!sseUrl || projectId) return
+    const es = new EventSource(sseUrl)
+    esRef.current = es
+
+    es.addEventListener('stage', (e) => {
+      const data = JSON.parse(e.data)
+      setStage(data.stage)
+      setFunnyIndex(0)
+    })
+
+    es.addEventListener('log', (e) => {
+      const data = JSON.parse(e.data)
+      setLogs((prev) => [...prev, data.text])
+    })
+
+    es.addEventListener('done', (e) => {
+      es.close()
+      const data = JSON.parse(e.data)
+      onDone && onDone(data)
+    })
+
+    es.addEventListener('fail', (e) => {
+      const data = JSON.parse(e.data)
+      setError(data.message || 'Unknown error')
+      setStage('error')
+      es.close()
+    })
+
+    es.onerror = () => {
+      es.close()
+      setError('Connection to server lost')
+      setStage('error')
+    }
+
+    return () => es.close()
+  }, [sseUrl, projectId])
 
   // SSE connection to setup endpoint
   useEffect(() => {

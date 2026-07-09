@@ -110,6 +110,7 @@ test.describe('Project Manager + Editor E2E', () => {
 
     // ── 2. Create a new project ─────────────────────────────────────────────
     await page.getByTestId('btn-new-project').first().click();
+    await page.getByTestId('menu-item-from-scratch').click();
     await page.getByTestId('input-project-name').fill(PROJECT_NAME);
     await page.getByTestId('btn-create-project').click();
 

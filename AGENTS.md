@@ -9,6 +9,7 @@ Always read the whole AGENTS.md file for a given project when working on it
 
 - [protovibe-project-manager/AGENTS.md](protovibe-project-manager/AGENTS.md)
 - [protovibe-project-template/AGENTS.md](protovibe-project-template/AGENTS.md)
+- [protovibe-oauth-worker/AGENTS.md](protovibe-oauth-worker/AGENTS.md)
 - [projects/\<ProjectName\>/AGENTS.md](projects/) (each subdirectory is separate)
 
 **Do not mix concerns across these boundaries.** If you are working on `projects/MyProject/`, do not read, modify, or reference files from `protovibe-project-manager/` or `protovibe-project-template/`, and vice versa.
@@ -24,6 +25,7 @@ When given a task:
 |------|-----------|
 | Managing projects (create/delete/run) | `protovibe-project-manager/` |
 | Editing the shared template or the vite plugin | `protovibe-project-template/` |
+| GitHub OAuth token-exchange worker | `protovibe-oauth-worker/` |
 | Working on a specific user project | `projects/<ProjectName>/` |
 
 ## Projects in `projects/`

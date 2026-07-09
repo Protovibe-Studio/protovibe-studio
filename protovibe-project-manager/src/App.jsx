@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, X, FolderRoot } from 'lucide-react'
+import { Search, X, FolderRoot } from 'lucide-react'
 import ProjectCard from './components/ProjectCard.jsx'
 import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
 import ImportProjectModal from './components/ImportProjectModal.jsx'
 import CloneFromGitModal from './components/CloneFromGitModal.jsx'
+import GithubConnectModal from './components/GithubConnectModal.jsx'
 import AddProjectMenu from './components/AddProjectMenu.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
@@ -36,9 +37,12 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [cloneGitOpen, setCloneGitOpen] = useState(false)
+  const [githubOpen, setGithubOpen] = useState(false)
   const [deleteConfirmProject, setDeleteConfirmProject] = useState(null)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
+  // GitHub clone in progress: { name, sseUrl }
+  const [cloneJob, setCloneJob] = useState(null)
 
   // Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,6 +66,15 @@ export default function App() {
     handlePopState()
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  // Deeplink from projects/tooling: /?connect-github=1 opens the GitHub modal.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('connect-github') === '1') {
+      setGithubOpen(true)
+      window.history.replaceState(null, '', window.location.pathname)
+    }
   }, [])
 
   const fetchProjects = useCallback(async () => {
@@ -139,6 +152,31 @@ export default function App() {
     setActiveProjectId(project.id)
     setSetupStage('installing')
     setView('setup')
+  }
+
+  // Phase A: SetupScreen streams the clone SSE endpoint (installing-git →
+  // cloning). Phase B on done: for a Protovibe project, hand over to the
+  // regular /api/projects/:id/setup flow (install → dev → ready).
+  const handleCloneStart = ({ name, sseUrl }) => {
+    setGithubOpen(false)
+    setError('')
+    setPendingName(name)
+    setCloneJob({ name, sseUrl })
+    setSetupStage('cloning')
+    setActiveProjectId(null)
+    setView('setup')
+  }
+
+  const handleCloneDone = (data) => {
+    setCloneJob(null)
+    fetchProjects()
+    if (data.isProtovibe) {
+      setActiveProjectId(data.id)
+      setSetupStage('installing')
+    } else {
+      showToast(`"${data.name}" cloned — not a Protovibe project, so it can't run here`, 'success')
+      goHome()
+    }
   }
 
   const handleDuplicate = async (id) => {
@@ -222,10 +260,13 @@ export default function App() {
 
   const setupOverlay = view === 'setup' && (
     <SetupScreen
+      key={activeProjectId ?? 'clone'}
       projectId={activeProjectId}
       projectName={activeProject?.name ?? pendingName ?? 'Project'}
-      onBack={goHome}
+      onBack={() => { setCloneJob(null); goHome() }}
       initialStage={setupStage ?? 'installing'}
+      sseUrl={cloneJob?.sseUrl}
+      onDone={handleCloneDone}
       onReady={() => { if (activeProjectId) openProject(activeProjectId) }}
     />
   )
@@ -251,41 +292,25 @@ export default function App() {
               <p className="text-foreground-default font-medium mb-1">No projects yet</p>
               <p className="text-foreground-tertiary text-sm">Create your first project to get started</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                data-testid="btn-new-project"
-                onClick={() => setCreateOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
-              >
-                <Plus size={14} />
-                Create Project
-              </button>
-              <AddProjectMenu
-                compact
-                onImportZip={() => setImportOpen(true)}
-                onCloneGit={() => setCloneGitOpen(true)}
-              />
-            </div>
+            <AddProjectMenu
+              compact
+              onCreateNew={() => setCreateOpen(true)}
+              onImportZip={() => setImportOpen(true)}
+              onConnectGithub={() => setGithubOpen(true)}
+              onCloneGit={() => setCloneGitOpen(true)}
+            />
           </div>
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-foreground-default tracking-tight">Your projects</h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    data-testid="btn-new-project"
-                    onClick={() => setCreateOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
-                  >
-                    <Plus size={14} />
-                    New Project
-                  </button>
-                  <AddProjectMenu
-                    onImportZip={() => setImportOpen(true)}
-                    onCloneGit={() => setCloneGitOpen(true)}
-                  />
-                </div>
+                <AddProjectMenu
+                  onCreateNew={() => setCreateOpen(true)}
+                  onImportZip={() => setImportOpen(true)}
+                  onConnectGithub={() => setGithubOpen(true)}
+                  onCloneGit={() => setCloneGitOpen(true)}
+                />
               </div>
               <div className="relative w-full">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
@@ -372,6 +397,13 @@ export default function App() {
 
       {cloneGitOpen && (
         <CloneFromGitModal onClose={() => setCloneGitOpen(false)} />
+      )}
+
+      {githubOpen && (
+        <GithubConnectModal
+          onClose={() => setGithubOpen(false)}
+          onClone={handleCloneStart}
+        />
       )}
 
       {deleteConfirmProject && (
