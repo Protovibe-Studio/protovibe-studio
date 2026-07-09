@@ -40,7 +40,12 @@ export default function GithubConnectModal({ onClose, onClone }) {
   const [busy, setBusy] = useState(false)
 
   const closedRef = useRef(false)
-  useEffect(() => () => { closedRef.current = true }, [])
+  useEffect(() => {
+    // Reset on setup: StrictMode mounts effects twice (setup → cleanup →
+    // setup), and a stale `true` here would silently discard every fetch.
+    closedRef.current = false
+    return () => { closedRef.current = true }
+  }, [])
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape' && !busy) onClose() }
@@ -71,7 +76,12 @@ export default function GithubConnectModal({ onClose, onClone }) {
       setAccount({ login: data.login, avatarUrl: data.avatarUrl })
       setStep('repos')
     } catch (err) {
-      if (!closedRef.current && !quiet) setConnectError(err.message || 'Failed to load repositories.')
+      if (!closedRef.current && !quiet) {
+        // The error text only renders on the connect step — never strand the
+        // modal on the "Checking connection" spinner with an invisible error.
+        setConnectError(err.message || 'Failed to load repositories.')
+        setStep('connect')
+      }
     } finally {
       if (!closedRef.current) setReposLoading(false)
     }

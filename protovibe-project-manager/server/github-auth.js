@@ -24,7 +24,15 @@ export const GITHUB_CLIENT_ID = process.env.PROTOVIBE_GITHUB_CLIENT_ID || DEFAUL
 export const GITHUB_APP_SLUG = process.env.PROTOVIBE_GITHUB_APP_SLUG || DEFAULT_APP_SLUG
 const OAUTH_WORKER_URL = process.env.PROTOVIBE_OAUTH_WORKER_URL || DEFAULT_WORKER_URL
 
-const CALLBACK_URL = 'http://127.0.0.1:5173/api/github/oauth/callback'
+// The GitHub App registers http://127.0.0.1:5173/... as its callback, but
+// GitHub does not validate the PORT of loopback redirect URIs — so when 5173
+// is taken and Vite picks another port, we send the actual port and the
+// callback still lands on this server instance.
+function callbackUrl(req) {
+  const hostHeader = req.headers.host ?? '127.0.0.1:5173'
+  const port = hostHeader.split(':')[1] ?? '5173'
+  return `http://127.0.0.1:${port}/api/github/oauth/callback`
+}
 
 const PROTOVIBE_HOME = path.join(os.homedir(), '.protovibe')
 const TOKEN_FILE = path.join(PROTOVIBE_HOME, 'github.json')
@@ -78,11 +86,11 @@ function consumeState(state) {
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
-export function handleOauthStart(_req, res, sendJson) {
+export function handleOauthStart(req, res, sendJson) {
   const state = createState()
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
-    redirect_uri: CALLBACK_URL,
+    redirect_uri: callbackUrl(req),
     state,
   })
   sendJson(res, 200, { url: `https://github.com/login/oauth/authorize?${params}` })

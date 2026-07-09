@@ -28,6 +28,9 @@ On github.com: **Settings → Developer settings → GitHub Apps → New GitHub 
 1. **Name**: `Protovibe`.
 2. **Homepage URL**: anything (e.g. the Protovibe repo URL).
 3. **Callback URL**: `http://127.0.0.1:5173/api/github/oauth/callback`
+   (GitHub ignores the port on loopback callback URLs, so the manager still
+   completes the flow when 5173 is taken and Vite falls back to another port —
+   it sends its actual port in `redirect_uri`.)
 4. **Uncheck** "Expire user authorization tokens" (Protovibe v1 does not handle refresh tokens).
 5. **Check** "Request user authorization (OAuth) during installation".
 6. Leave "Enable Device Flow" **off**.
