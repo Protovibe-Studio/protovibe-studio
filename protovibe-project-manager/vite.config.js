@@ -16,7 +16,7 @@ import {
   storedGithubToken,
 } from './server/github-auth.js'
 import { handleListRepos, handleValidateRepo } from './server/github-api.js'
-import { resolveGit, handleClone } from './server/git-engine.js'
+import { resolveGit, ensureEmbeddedGit, handleClone } from './server/git-engine.js'
 
 const require_ = createRequire(import.meta.url)
 const treeKill = require_('tree-kill')
@@ -51,9 +51,16 @@ function projectGitEnv() {
   if (cachedProjectGitEnv === null) {
     try {
       const git = resolveGit()
-      cachedProjectGitEnv = git && git.source !== 'system' ? { PROTOVIBE_GIT_PATH: git.binary } : {}
+      // Only cache once git resolves — the embedded download may still be
+      // running at boot, and caching the miss would starve every later
+      // project of PROTOVIBE_GIT_PATH.
+      if (git) {
+        cachedProjectGitEnv = git.source !== 'system' ? { PROTOVIBE_GIT_PATH: git.binary } : {}
+      } else {
+        return { PROTOVIBE_MANAGER_URL: managerUrl }
+      }
     } catch {
-      cachedProjectGitEnv = {}
+      return { PROTOVIBE_MANAGER_URL: managerUrl }
     }
   }
   return { ...cachedProjectGitEnv, PROTOVIBE_MANAGER_URL: managerUrl }
@@ -1562,6 +1569,16 @@ function projectManagerPlugin() {
         const addr = server.httpServer.address()
         if (addr && typeof addr !== 'string') managerUrl = `http://127.0.0.1:${addr.port}`
       })
+
+      // Zero-dev-tools machines: provision the embedded git in the background
+      // at boot instead of waiting for the first clone, so project editors
+      // (which only *find* git, never download it) see a working git without
+      // the user doing anything. Errors are non-fatal — the clone flow and the
+      // editor's recheck both retry the download later.
+      if (!resolveGit()) {
+        ensureEmbeddedGit((msg) => console.log(`[embedded-git] ${msg}`))
+          .catch((err) => console.warn(`[embedded-git] background install failed: ${err.message}`))
+      }
 
       server.middlewares.use('/api', async (req, res, next) => {
         // Handle CORS preflight
