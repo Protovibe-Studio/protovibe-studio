@@ -75,6 +75,26 @@ function checkOnline(timeoutMs = 5_000) {
   });
 }
 
+const STAMP_FILE = '.protovibe-install-stamp';
+
+function stampValue(wsDir) {
+  return `v1:${readVersion(wsDir)}`;
+}
+
+function readStamp(wsDir) {
+  try {
+    return fs.readFileSync(path.join(wsDir, 'node_modules', STAMP_FILE), 'utf8').trim();
+  } catch {
+    return null;
+  }
+}
+
+function writeStamp(wsDir) {
+  try {
+    fs.writeFileSync(path.join(wsDir, 'node_modules', STAMP_FILE), stampValue(wsDir), 'utf8');
+  } catch {}
+}
+
 function copyWorkspace(fromDir, toDir) {
   fs.rmSync(toDir, { recursive: true, force: true });
   fs.cpSync(fromDir, toDir, { recursive: true });
@@ -127,10 +147,16 @@ async function ensureProvisioned(progress) {
     }
   }
 
+  // A bare node_modules dir is NOT proof of a completed install — an
+  // interrupted first run (e.g. network died mid-install) leaves a partial
+  // tree with no .bin links and vite "command not found". Only the stamp we
+  // write after a successful install counts; anything else reinstalls
+  // (cheap: pnpm resumes from its content-addressable store).
   const needingInstall = WORKSPACES.filter((ws) => {
     const wsDir = path.join(root, ws);
     if (!fs.existsSync(wsDir)) return false;
-    return refreshed.has(ws) || !fs.existsSync(path.join(wsDir, 'node_modules'));
+    if (refreshed.has(ws)) return true;
+    return readStamp(wsDir) !== stampValue(wsDir);
   });
 
   if (needingInstall.length) {
@@ -148,6 +174,7 @@ async function ensureProvisioned(progress) {
     const args = ['install', '--prefer-offline'];
     if (forceReinstall) args.push('--force');
     await runPnpm(args, wsDir, (line) => progress({ line }));
+    writeStamp(wsDir);
   }
 
   return root;
