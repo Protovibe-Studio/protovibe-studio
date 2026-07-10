@@ -1,5 +1,31 @@
 const path = require('node:path');
-const { BrowserWindow } = require('electron');
+const { BrowserWindow, Menu, MenuItem, clipboard } = require('electron');
+
+// Wire up a native right-click context menu with the standard editing
+// actions. Chromium disables the default context menu in packaged apps, so
+// without this the user can't copy/paste text via right-click.
+function attachContextMenu(win) {
+  win.webContents.on('context-menu', (_event, params) => {
+    const menu = new Menu();
+    const { editFlags } = params;
+    const hasText = params.selectionText.trim().length > 0;
+    const isEditable = params.isEditable;
+
+    if (isEditable || hasText) {
+      menu.append(new MenuItem({ role: 'cut', enabled: isEditable && editFlags.canCut }));
+      menu.append(new MenuItem({ role: 'copy', enabled: editFlags.canCopy }));
+      menu.append(
+        new MenuItem({
+          role: 'paste',
+          enabled: isEditable && editFlags.canPaste && clipboard.readText().length > 0,
+        }),
+      );
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({ role: 'selectAll', enabled: editFlags.canSelectAll }));
+      menu.popup({ window: win });
+    }
+  });
+}
 
 function createSplashWindow() {
   const win = new BrowserWindow({
@@ -33,6 +59,7 @@ function createMainWindow(url) {
       nodeIntegration: false,
     },
   });
+  attachContextMenu(win);
   win.loadURL(url);
   return win;
 }

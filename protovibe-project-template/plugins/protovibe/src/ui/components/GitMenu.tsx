@@ -141,14 +141,15 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     void checkGithub(false);
   }, [open, refresh, checkGithub]);
 
-  // The manager probe (slow when the manager is down) is only needed once a
-  // disconnected panel has to decide between "Connect GitHub" and "open the
-  // Protovibe app first".
+  // The manager probe (slow when the manager is down) locates the Protovibe app
+  // so a disconnected panel can decide between "Connect to GitHub" and "open the
+  // Protovibe app first". Needed by every disconnected surface now that the
+  // normal panel also carries an always-present connect bar.
   useEffect(() => {
-    if (open && (needsBackupPanel || githubAuthIssue || gitMissing) && github && !github.connected && github.managerReachable === undefined) {
+    if (open && github && !github.connected && github.managerReachable === undefined) {
       void checkGithub(true);
     }
-  }, [open, needsBackupPanel, githubAuthIssue, gitMissing, github, checkGithub]);
+  }, [open, github, checkGithub]);
 
   // While git is being provisioned in the background (the manager downloads
   // the embedded distribution on git-less machines), poll so the menu flips
@@ -463,8 +464,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 </div>
               </div>
 
-              {/* advanced */}
-              <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
+              {/* advanced — borderless, sits directly above the GitHub bar */}
+              <div>
                 <button
                   onClick={() => setAdvancedOpen((v) => !v)}
                   style={{ ...menuItemStyle, color: theme.text_secondary, justifyContent: 'space-between' }}
@@ -497,9 +498,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 )}
               </div>
 
-              {github?.connected && (
-                <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={() => void logout()} />
-              )}
+              <GithubStatusBar
+                github={github}
+                connecting={connecting}
+                startConnect={startConnect}
+                cancelConnect={cancelConnect}
+                checkGithub={checkGithub}
+                onLogout={() => void logout()}
+              />
             </>
           )}
         </div>,
@@ -529,6 +535,85 @@ const AccountRow: React.FC<{ login: string | null; avatarUrl: string | null; onL
     </button>
   </div>
 );
+
+// Always-present bottom bar in the normal sync panel. When connected it's the
+// account row; when not, it's a small, plain-language "Connect to GitHub" bar so
+// backing up your work is always one click away. Connecting happens in the
+// Protovibe app, so we mirror the same states as the backup panel, compacted.
+const GithubStatusBar: React.FC<{
+  github: UseGitSync['github'];
+  connecting: boolean;
+  startConnect: () => void;
+  cancelConnect: () => void;
+  checkGithub: (probe?: boolean) => Promise<void> | void;
+  onLogout: () => void;
+}> = ({ github, connecting, startConnect, cancelConnect, checkGithub, onLogout }) => {
+  if (github?.connected) {
+    return <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={onLogout} />;
+  }
+
+  const barStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '8px 12px', borderTop: `1px solid ${theme.border_default}`,
+  };
+  const icon = <span style={{ color: theme.text_tertiary, display: 'flex', flexShrink: 0 }}><GithubMark size={14} /></span>;
+  const label = (text: string) => (
+    <span style={{ flex: 1, color: theme.text_secondary, fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
+  );
+  const linkBtn = (text: string, onClick: () => void, color = theme.accent_default) => (
+    <button
+      onClick={onClick}
+      style={{ border: 'none', background: 'transparent', color, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+      onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+      onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+    >
+      {text}
+    </button>
+  );
+
+  // still figuring out where the Protovibe app is
+  if (!github || github.managerReachable === undefined) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: theme.text_tertiary, fontSize: 11.5 }}>
+          <RotateCw size={12} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Checking your GitHub connection…
+        </span>
+      </div>
+    );
+  }
+
+  if (connecting) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: theme.text_secondary, fontSize: 11.5, overflow: 'hidden' }}>
+          <RotateCw size={12} style={{ flexShrink: 0, animation: 'pv-git-spin 1s linear infinite' }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Finish connecting in the Protovibe app…</span>
+        </span>
+        {linkBtn('Cancel', cancelConnect, theme.text_tertiary)}
+      </div>
+    );
+  }
+
+  if (!github.managerReachable) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        {label('Open the Protovibe app to connect')}
+        {linkBtn('Check again', () => void checkGithub(true), theme.text_tertiary)}
+      </div>
+    );
+  }
+
+  return (
+    <div style={barStyle}>
+      {icon}
+      {label('Back up your work')}
+      {linkBtn('Connect to GitHub', startConnect)}
+    </div>
+  );
+};
 
 // "Give Protovibe access on GitHub" guidance — used when the app installation
 // doesn't cover the repo (backup push and sync both land here).

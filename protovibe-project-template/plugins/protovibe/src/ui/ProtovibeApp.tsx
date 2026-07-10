@@ -22,6 +22,7 @@ import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
+import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -52,7 +53,11 @@ export const ProtovibeApp: React.FC = () => {
 
   const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
   const git = useGitSync();
-  const [appIframePath, setAppIframePath] = useState('/');
+  // Restore the last app path once per refresh (the stored value is consumed
+  // on read; interactions re-arm it — see utils/appPath.ts).
+  const [initialAppSrc] = useState(consumePersistedAppPath);
+  const [appIframePath, setAppIframePath] = useState(initialAppSrc);
+  useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const appIframeRef = useRef<HTMLIFrameElement>(null);
@@ -311,7 +316,14 @@ export const ProtovibeApp: React.FC = () => {
       }
       try {
         const loc = ref.current?.contentWindow?.location;
-        if (loc) setAppIframePath(loc.pathname + loc.search + loc.hash);
+        if (loc) {
+          const path = loc.pathname + loc.search + loc.hash;
+          setAppIframePath(path);
+          // Track for other shell components, but don't persist: a bare page
+          // load isn't a user interaction, and persisting here would re-arm
+          // the restored path in a refresh loop even on a broken page.
+          setCurrentAppPath(path);
+        }
       } catch {}
     }
   }, [iframeTheme, inspectorOpen, setHtmlFontSize]);
@@ -351,8 +363,17 @@ export const ProtovibeApp: React.FC = () => {
   // Track app iframe URL changes (client-side navigation via postMessage)
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'PV_URL_CHANGE' && e.source === appIframeRef.current?.contentWindow) {
-        setAppIframePath(e.data.path || '/');
+      if (e.source !== appIframeRef.current?.contentWindow) return;
+      if (e.data?.type === 'PV_URL_CHANGE') {
+        const path = e.data.path || '/';
+        setAppIframePath(path);
+        setCurrentAppPath(path);
+        persistAppPath(path);
+      }
+      // Selecting an element on the canvas also re-arms the persisted path,
+      // so the next refresh restores the page the user is working on.
+      if (e.data?.type === 'PV_ELEMENT_CLICK') {
+        persistAppPath(getCurrentAppPath());
       }
     };
     window.addEventListener('message', handler);
@@ -553,7 +574,7 @@ export const ProtovibeApp: React.FC = () => {
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
               <iframe
                 ref={appIframeRef}
-                src="/"
+                src={initialAppSrc}
                 style={{
                   flex: mobileWidth ? 'none' : 1,
                   width: mobileWidth ? 390 : '100%',

@@ -264,7 +264,7 @@ async function runGitSync(): Promise<void> {
     } catch (err) {
       setGitOpState({
         status: 'error',
-        message: 'Could not merge remote changes automatically. Ask a developer to help.',
+        message: 'Could not merge remote changes automatically. Ask your coding agent for help.',
         op: 'sync',
         error: String(err),
       });

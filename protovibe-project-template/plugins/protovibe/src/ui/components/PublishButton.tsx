@@ -10,6 +10,7 @@ import {
   cloudflareLogout,
   type CloudflarePublishStatus,
 } from '../api/client';
+import { getCurrentAppPath } from '../utils/appPath';
 
 // Inject spin keyframes once
 if (typeof document !== 'undefined' && !document.querySelector('#pv-spin-style')) {
@@ -439,6 +440,16 @@ export function PublishButton() {
     // ── Idle / Success — the "home" view with sections ──────────────────────
     const nameIsSaved = !!savedProjectName;
 
+    // Deep-link the published site to the page currently open on the canvas.
+    const publishedLink = (() => {
+      if (!publishedUrl) return '';
+      try {
+        return new URL(getCurrentAppPath(), publishedUrl).toString();
+      } catch {
+        return publishedUrl;
+      }
+    })();
+
     // Full popover view for editing the project name
     if (editingName) {
       return (
@@ -480,12 +491,12 @@ export function PublishButton() {
         {publishedUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
-            <a href={publishedUrl} target="_blank" rel="noreferrer"
+            <a href={publishedLink} target="_blank" rel="noreferrer"
               style={{ display: 'block', fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
               onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
             >
-              {publishedUrl}
+              {publishedLink}
             </a>
             {deployHistory.length > 0 && (
               <DeployHistory history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
