@@ -2,12 +2,27 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { SHIM_DIR, pnpmCjsPath } = require('./paths');
 
+const PRELOAD_PATH = path.join(SHIM_DIR, 'pv-node-preload.cjs');
+
+// Preloaded (via NODE_OPTIONS) into every child node process. Our `node` is
+// Electron in ELECTRON_RUN_AS_NODE mode, so process.versions.electron stays
+// set — which makes yargs' hideBin() think it's a bundled Electron app and
+// slice argv at 1 instead of 2, leaking the script path into the args (e.g.
+// wrangler dies with "Unknown arguments: cli.js, logout"). Marking the process
+// as defaultApp makes that detection fall back to the normal node slice.
+const PRELOAD_SOURCE = `if (process.versions && process.versions.electron && !process.defaultApp) {
+  try { Object.defineProperty(process, 'defaultApp', { value: true, configurable: true }); }
+  catch (e) { try { process.defaultApp = true; } catch (e2) {} }
+}
+`;
+
 // node/pnpm shims for zero-dev-tools machines: `node` is our own Electron
 // binary in ELECTRON_RUN_AS_NODE mode, `pnpm` is the bundled standalone
 // pnpm.cjs run through it. Rewritten on every boot because process.execPath
 // changes across app updates and install locations.
 function writeShims() {
   fs.mkdirSync(SHIM_DIR, { recursive: true });
+  fs.writeFileSync(PRELOAD_PATH, PRELOAD_SOURCE, 'utf8');
   const shims = {
     node: `#!/bin/sh
 export ELECTRON_RUN_AS_NODE=1
@@ -43,6 +58,11 @@ function buildChildEnv(extra = {}) {
     : `${SHIM_DIR}${path.delimiter}${basePath}`;
   env.NODE_NO_WARNINGS = '1';
   env.PROTOVIBE_NO_OPEN = '1';
+  // Fix yargs' Electron-app misdetection for every node child (wrangler etc.).
+  // Append so we never clobber an inherited NODE_OPTIONS. Quote for any space
+  // in the home path; NODE_OPTIONS supports double-quoted values.
+  const requireArg = `--require "${PRELOAD_PATH}"`;
+  env.NODE_OPTIONS = env.NODE_OPTIONS ? `${env.NODE_OPTIONS} ${requireArg}` : requireArg;
   // Lets the manager adapt when running under the desktop shell (e.g. the
   // OAuth callback page offers a protovibe:// link back to the app).
   env.PROTOVIBE_SHELL = '1';
