@@ -67,8 +67,8 @@ export function clearStoredAuth() {
 const STATE_TTL_MS = 10 * 60 * 1000
 const pendingStates = new Map() // state → expiry timestamp
 
-function createState() {
-  const state = crypto.randomBytes(24).toString('hex')
+function createState(prefix = '') {
+  const state = prefix + crypto.randomBytes(24).toString('hex')
   pendingStates.set(state, Date.now() + STATE_TTL_MS)
   return state
 }
@@ -86,14 +86,17 @@ function consumeState(state) {
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
-export function handleOauthStart(req, res, sendJson) {
-  const state = createState()
+function authorizeUrl(req, state) {
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
     redirect_uri: callbackUrl(req),
     state,
   })
-  sendJson(res, 200, { url: `https://github.com/login/oauth/authorize?${params}` })
+  return `https://github.com/login/oauth/authorize?${params}`
+}
+
+export function handleOauthStart(req, res, sendJson) {
+  sendJson(res, 200, { url: authorizeUrl(req, createState()) })
 }
 
 function callbackPage(title, body, { backToApp = false } = {}) {
@@ -130,6 +133,14 @@ export async function handleOauthCallback(req, res, url) {
   const state = url.searchParams.get('state')
 
   if (!consumeState(state)) {
+    // Stale or lost state: the link expired, the server restarted between
+    // start and callback, or an old GitHub tab was reopened. GitHub already
+    // re-authorized silently, so restart the flow once with a fresh state
+    // instead of dead-ending — the second callback lands here within seconds.
+    if (state && !state.startsWith('r-')) {
+      res.writeHead(302, { Location: authorizeUrl(req, createState('r-')) })
+      return res.end()
+    }
     return sendHtml(res, 400, callbackPage('Connection failed', 'This sign-in link expired or was already used. Go back to Protovibe and try again.'))
   }
   if (!code) {

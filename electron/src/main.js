@@ -17,6 +17,28 @@ let splashWindow = null;
 let supervisor = null;
 let quitting = false;
 
+// App-wide navigation policy, applied to every window (including local popups
+// the manager/editor open, e.g. the "?connect-github=1" connect flow):
+// - local (manager/editor) URLs may open as real child windows
+// - anything else opens in the user's default browser — critical for GitHub
+//   OAuth, where passkeys and saved passwords only exist in the real browser.
+//   GitHub still calls back to the local /api server, which the UI polls.
+const LOCAL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/;
+app.on('web-contents-created', (_event, contents) => {
+  contents.setWindowOpenHandler(({ url: target }) => {
+    if (!/^https?:/.test(target)) return { action: 'deny' };
+    if (LOCAL_RE.test(target)) return { action: 'allow' };
+    shell.openExternal(target);
+    return { action: 'deny' };
+  });
+  contents.on('will-navigate', (event, target) => {
+    if (/^https?:/.test(target) && !LOCAL_RE.test(target)) {
+      event.preventDefault();
+      shell.openExternal(target);
+    }
+  });
+});
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
