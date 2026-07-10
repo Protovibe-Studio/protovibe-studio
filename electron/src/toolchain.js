@@ -1,20 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { SHIM_DIR, pnpmCjsPath } = require('./paths');
+const PRELOAD_SOURCE = require('./preload-source');
 
 const PRELOAD_PATH = path.join(SHIM_DIR, 'pv-node-preload.cjs');
-
-// Preloaded (via NODE_OPTIONS) into every child node process. Our `node` is
-// Electron in ELECTRON_RUN_AS_NODE mode, so process.versions.electron stays
-// set — which makes yargs' hideBin() think it's a bundled Electron app and
-// slice argv at 1 instead of 2, leaking the script path into the args (e.g.
-// wrangler dies with "Unknown arguments: cli.js, logout"). Marking the process
-// as defaultApp makes that detection fall back to the normal node slice.
-const PRELOAD_SOURCE = `if (process.versions && process.versions.electron && !process.defaultApp) {
-  try { Object.defineProperty(process, 'defaultApp', { value: true, configurable: true }); }
-  catch (e) { try { process.defaultApp = true; } catch (e2) {} }
-}
-`;
 
 // node/pnpm shims for zero-dev-tools machines: `node` is our own Electron
 // binary in ELECTRON_RUN_AS_NODE mode, `pnpm` is the bundled standalone

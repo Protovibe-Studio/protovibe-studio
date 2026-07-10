@@ -7,6 +7,7 @@
   "main": "src/main.js",
   "scripts": {
     "dev": "electron . --protovibe-repo=..",
+    "test": "node test/shim-argv.test.cjs",
     "prepare-bundle": "node scripts/prepare-bundle.js",
     "dist": "npm run prepare-bundle && electron-builder --mac",
     "dist:unsigned": "npm run prepare-bundle && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --config.mac.notarize=false"

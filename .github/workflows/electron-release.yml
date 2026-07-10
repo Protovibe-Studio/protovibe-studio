@@ -33,6 +33,10 @@ jobs:
           esac
         working-directory: electron
 
+      - name: Regression tests (toolchain shim, yargs/wrangler)
+        run: pnpm test
+        working-directory: electron
+
       - name: Stage app source bundle
         run: pnpm run prepare-bundle
         working-directory: electron
