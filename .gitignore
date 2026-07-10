@@ -10,5 +10,6 @@ package-lock.json
 pnpm-lock.yaml
 test-results/
 .install.lock
+/backups/
 .mac-installer/
 settings.local.json
