@@ -179,6 +179,13 @@ const BorderLIcon = () => (
   </svg>
 );
 
+const RingIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="1" y="1" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1" strokeOpacity="0.4" />
+    <rect x="3.5" y="3.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" />
+  </svg>
+);
+
 // ─── RadiusAutocomplete ────────────────────────────────────────────────────────
 // Full-width autocomplete for border radius with an icon prefix.
 
@@ -343,6 +350,26 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     return { [prop]: `var(--color-${hoveredVal})`, borderStyle: 'solid' };
   };
 
+  // Tailwind renders ring as a box-shadow, so previews approximate it with a
+  // plain 0-offset spread shadow using the currently effective width/color.
+  const previewRingWidth = (
+    hoveredVal: string,
+    opt?: { val: string; desc?: string },
+  ): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    const width = opt?.desc || hoveredVal;
+    const colorName = (cleanVal(v.ringColor) || 'border-default').split('/')[0];
+    return { boxShadow: `0 0 0 ${width} var(--color-${colorName})` };
+  };
+
+  const previewRingColor = (hoveredVal: string): Record<string, string> | null => {
+    if (!hoveredVal || hoveredVal === '-') return null;
+    const currentWidth = cleanVal(v.ringWidth) || 'DEFAULT';
+    const widthOpt = SCALES.ringWidth.find(o => o.val === currentWidth);
+    const width = widthOpt?.desc || currentWidth;
+    return { boxShadow: `0 0 0 ${width} var(--color-${hoveredVal})` };
+  };
+
   const previewGap = (
     hoveredVal: string,
     opt?: { val: string; desc?: string },
@@ -379,6 +406,17 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
     const clean = cleanVal(val);
     if (!clean) return '';
     return side === 'all' ? `border-${clean}` : `border-${side}-${clean}`;
+  };
+
+  const toRingWidthClass = (val: string) => {
+    const clean = cleanVal(val);
+    if (!clean) return '';
+    return clean === 'DEFAULT' ? 'ring' : `ring-${clean}`;
+  };
+
+  const toRingColorClass = (val: string) => {
+    const clean = cleanVal(val);
+    return clean ? `ring-${clean}` : '';
   };
 
   // ── Spacing update ──────────────────────────────────────────────────────────
@@ -651,6 +689,70 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
 
     await runLockedMutation(async () => {
       await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove border color');
+      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
+      if (origClass === newClass) return;
+      await updateSource({ ...activeData, id: activeSourceId!, oldClass: origClass, newClass, action });
+    });
+  };
+
+  // ── Ring-width update ───────────────────────────────────────────────────────
+
+  const handleRingWidthUpdate = async (newVal: string, prevVal?: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+
+    let newClass = '';
+    if (safeVal && safeVal !== '-') {
+      newClass =
+        safeVal === 'DEFAULT'
+          ? `${currentContextPrefix}ring`
+          : `${currentContextPrefix}ring-${safeVal}`;
+
+      const hasAnyRingColor = v.ringColor || domV?.ringColor;
+      if (!hasAnyRingColor) {
+        newClass += ` ${currentContextPrefix}ring-border-default`;
+      }
+    }
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove ring');
+      // Fall back to reconstructing original from current value if _original is missing
+      let origClass = v.ringWidth_original || '';
+      if (!origClass) {
+        origClass = toRingWidthClass(prevVal ?? v.ringWidth);
+      }
+      const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
+      if (origClass === newClass) return;
+      await updateSource({
+        ...activeData,
+        id: activeSourceId!,
+        oldClass: origClass,
+        newClass,
+        action,
+      });
+    });
+  };
+
+  // ── Ring-color update ───────────────────────────────────────────────────────
+
+  const handleRingColorUpdate = async (newVal: string, prevVal?: string) => {
+    if (!activeData?.file) return;
+    const safeVal = makeSafe(newVal);
+    const currentContextPrefix = buildContextPrefix(activeModifiers);
+
+    let origClass = v.ringColor_original || '';
+    if (!origClass) {
+      origClass = toRingColorClass(prevVal ?? v.ringColor);
+    }
+
+    let newClass = '';
+    if (safeVal && safeVal !== '-') {
+      newClass = `${currentContextPrefix}ring-${safeVal}`;
+    }
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, newClass || 'remove ring color');
       const action = !origClass && newClass ? 'add' : origClass && !newClass ? 'remove' : 'edit';
       if (origClass === newClass) return;
       await updateSource({ ...activeData, id: activeSourceId!, oldClass: origClass, newClass, action });
@@ -1101,6 +1203,29 @@ export const Spacing: React.FC<{ v: any; domV?: any }> = ({ v, domV }) => {
               inheritedValue={cleanVal(domV?.borderColorL)}
               colorOptions={prioritizeColors(themeColors as any[], 'border-')}
             />
+            </div>
+            {/* ── Ring outline (width + color) ── */}
+            <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Ring outline</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              <RadiusAutocomplete
+                value={cleanVal(v.ringWidth)}
+                onChange={(val, prevVal) => handleRingWidthUpdate(val, prevVal)}
+                previewBuild={previewRingWidth}
+                placeholder="—"
+                icon={<RingIcon />}
+                inheritedValue={cleanVal(domV?.ringWidth)}
+                options={SCALES.ringWidth}
+                testId="essentials-ring-width"
+              />
+              <BorderColorAutocomplete
+                value={cleanVal(v.ringColor)}
+                onChange={(val, prevVal) => handleRingColorUpdate(val, prevVal)}
+                previewBuild={previewRingColor}
+                icon={<RingIcon />}
+                inheritedValue={cleanVal(domV?.ringColor)}
+                colorOptions={prioritizeColors(themeColors as any[], 'border-')}
+                testId="essentials-ring-color"
+              />
             </div>
           </div>
         )}

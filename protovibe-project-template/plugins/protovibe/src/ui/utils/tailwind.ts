@@ -147,7 +147,7 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
     w: '', h: '', minW: '', minH: '', maxW: '', maxH: '', aspectRatio: '',
     position: '', top: '', right: '', bottom: '', left: '', z: '',
     fontFamily: '', fontWeight: '', textAlign: '', textDecoration: '', fontStyle: '', textTransform: '', textWrap: '', textSize: '', textColor: '', leading: '', tracking: '',
-    bg: '', bgImage: '', bgSize: '', bgPosition: '', bgRepeat: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', opacity: '', shadow: '', insetShadow: '',
+    bg: '', bgImage: '', bgSize: '', bgPosition: '', bgRepeat: '', fill: '', radius: '', radiusTL: '', radiusTR: '', radiusBR: '', radiusBL: '', borderWidth: '', borderT: '', borderR: '', borderB: '', borderL: '', borderColor: '', borderColorT: '', borderColorR: '', borderColorB: '', borderColorL: '', ringWidth: '', ringColor: '', opacity: '', shadow: '', insetShadow: '',
     flex: '', flexGrow: '', flexShrink: '', selfAlign: ''
   };
   
@@ -301,6 +301,15 @@ export function extractVisualValues(classesArray: (string | ClassInfo)[], textSi
         v[key] = color;
         orig[`${key}_original`] = originalClass;
       } else if (cls.startsWith('border-')) { v.borderColor = cls.replace('border-', ''); orig.borderColor_original = originalClass; }
+    }
+    else if (cls.startsWith('ring') && cls !== 'ring-inset' && !cls.startsWith('ring-offset')) {
+      const ringRest = cls.replace(/^ring-?/, '');
+      const isRingArbLength = ringRest.startsWith('[') && isArbitraryLength(ringRest);
+      if (cls === 'ring' || /^ring-\d+$/.test(cls) || isRingArbLength) {
+        const raw = cls === 'ring' ? 'DEFAULT' : cls.replace('ring-', '');
+        v.ringWidth = isRingArbLength ? stripTypedPrefix(raw) : raw;
+        orig.ringWidth_original = originalClass;
+      } else if (cls.startsWith('ring-')) { v.ringColor = cls.replace('ring-', ''); orig.ringColor_original = originalClass; }
     }
     else if (cls.startsWith('opacity-')) { v.opacity = cls.replace('opacity-', ''); orig.opacity_original = originalClass; }
     else if (cls.startsWith('shadow')) {
