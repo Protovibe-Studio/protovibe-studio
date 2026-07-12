@@ -8,6 +8,9 @@ import { executeBlockAction } from '../utils/executeBlockAction';
 import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { emitToast } from '../events/toast';
+import { openNotEditableDialog } from './NotEditableDialog';
+
+const NOT_EDITABLE_TOOLTIP = "Element isn't editable yet — click to see how to fix it";
 
 export const FloatingToolbar: React.FC = () => {
   const {
@@ -51,7 +54,10 @@ export const FloatingToolbar: React.FC = () => {
   // Open add dialog via keyboard shortcut (Cmd+E)
   useEffect(() => {
     const handler = () => {
-      if (!canAdd) return;
+      if (!canAdd) {
+        if (currentBaseTarget) openNotEditableDialog();
+        return;
+      }
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -59,12 +65,15 @@ export const FloatingToolbar: React.FC = () => {
     };
     window.addEventListener('pv:open-add-dialog', handler);
     return () => window.removeEventListener('pv:open-add-dialog', handler);
-  }, [canAdd, refreshComponents]);
+  }, [canAdd, currentBaseTarget, refreshComponents]);
 
   // Open "add after" dialog via keyboard shortcut (Cmd+Shift+E)
   useEffect(() => {
     const handler = () => {
-      if (!canBlockAction) return;
+      if (!canBlockAction) {
+        if (currentBaseTarget) openNotEditableDialog();
+        return;
+      }
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -72,7 +81,7 @@ export const FloatingToolbar: React.FC = () => {
     };
     window.addEventListener('pv:open-add-after-dialog', handler);
     return () => window.removeEventListener('pv:open-add-after-dialog', handler);
-  }, [canBlockAction, refreshComponents]);
+  }, [canBlockAction, currentBaseTarget, refreshComponents]);
 
   // Focus search input after dialog opens (after React re-renders the input into the DOM)
   useEffect(() => {
@@ -98,7 +107,9 @@ export const FloatingToolbar: React.FC = () => {
     };
   }, [showAddDialog]);
 
-  if (!inspectorOpen || (!canAdd && !canBlockAction)) return null;
+  // Keep the toolbar visible for any selected element — even ones that are not
+  // pv blocks. Actions that need a block open the "not editable" dialog instead.
+  if (!inspectorOpen || (!currentBaseTarget && !canAdd && !canBlockAction)) return null;
 
   const handleBlockAction = async (action: string) => {
     setAddMode(null);
@@ -116,7 +127,11 @@ export const FloatingToolbar: React.FC = () => {
   };
 
   const handleWrapBlocks = async () => {
-    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+    if (uniqueSelectedBlockIds.length === 0) {
+      openNotEditableDialog();
+      return;
+    }
+    if (!activeData?.file) return;
 
     // Check if any selected element is an ancestor/descendant of another selected element
     const isNested = selectedTargets.some(t1 =>
@@ -144,7 +159,11 @@ export const FloatingToolbar: React.FC = () => {
   };
 
   const handleDeleteBlocks = async () => {
-    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+    if (uniqueSelectedBlockIds.length === 0) {
+      openNotEditableDialog();
+      return;
+    }
+    if (!activeData?.file) return;
 
     const isNested = selectedTargets.some(t1 =>
       selectedTargets.some(t2 => t1 !== t2 && t1.contains(t2))
@@ -420,119 +439,118 @@ export const FloatingToolbar: React.FC = () => {
           </>
           ) : (
             <>
-              {canAdd && (
-                <>
-                  <button
-                    disabled={locked}
-                    onClick={() => {
-                      if (addMode !== 'child') {
-                        refreshComponents();
-                        setAddSearch('');
-                        setActiveIndex(0);
-                      }
-                      setAddMode(prev => prev === 'child' ? null : 'child');
-                    }}
-                    onMouseEnter={() => setHoveredBtn('add-child')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('add-child', {
-                      minWidth: canBlockAction ? '120px' : '180px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                      background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-                    })}
-                    data-tooltip="Add child element"
-                    data-testid="btn-add-child"
-                  >
-                    <Plus size={13} strokeWidth={2.5} />
-                    Add child
-                  </button>
-                  {canBlockAction && divider}
-                </>
-              )}
-
-              {canBlockAction && (
-                <>
-                  <button
-                    disabled={locked}
-                    onClick={() => {
-                      if (addMode !== 'after') {
-                        refreshComponents();
-                        setAddSearch('');
-                        setActiveIndex(0);
-                      }
-                      setAddMode(prev => prev === 'after' ? null : 'after');
-                    }}
-                    onMouseEnter={() => setHoveredBtn('add-after')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('add-after', {
-                      minWidth: '120px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                      background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-                    })}
-                    data-tooltip="Add element after"
-                  >
-                    <Plus size={13} strokeWidth={2.5} />
-                    Add after
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={handleWrapBlocks}
-                    onMouseEnter={() => setHoveredBtn('wrap')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
-                    data-tooltip="Wrap in div"
-                  >
-                    <SquareDashed size={13} strokeWidth={2.5} />
-                    Wrap
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up')}
-                    onMouseEnter={() => setHoveredBtn('up')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('up')}
-                    data-tooltip={isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
-                  >
-                    {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
-                    {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down')}
-                    onMouseEnter={() => setHoveredBtn('down')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('down')}
-                    data-tooltip={isSketchpadAbsolute ? 'Send backward' : 'Move down'}
-                  >
-                    {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
-                    {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction('delete')}
-                    onMouseEnter={() => setHoveredBtn('del')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('del', {
-                      padding: '0 14px',
-                      color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
-                    })}
-                    data-tooltip="Delete block"
-                  >
-                    <Trash2 size={13} strokeWidth={2} />
-                  </button>
-                </>
-              )}
+              <button
+                disabled={locked}
+                onClick={() => {
+                  if (!canAdd) {
+                    openNotEditableDialog();
+                    return;
+                  }
+                  if (addMode !== 'child') {
+                    refreshComponents();
+                    setAddSearch('');
+                    setActiveIndex(0);
+                  }
+                  setAddMode(prev => prev === 'child' ? null : 'child');
+                }}
+                onMouseEnter={() => setHoveredBtn('add-child')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('add-child', {
+                  minWidth: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '5px',
+                  color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                  background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                })}
+                data-tooltip={canAdd ? 'Add child element' : NOT_EDITABLE_TOOLTIP}
+                data-testid="btn-add-child"
+              >
+                <Plus size={13} strokeWidth={2.5} />
+                Add child
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => {
+                  if (!canBlockAction) {
+                    openNotEditableDialog();
+                    return;
+                  }
+                  if (addMode !== 'after') {
+                    refreshComponents();
+                    setAddSearch('');
+                    setActiveIndex(0);
+                  }
+                  setAddMode(prev => prev === 'after' ? null : 'after');
+                }}
+                onMouseEnter={() => setHoveredBtn('add-after')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('add-after', {
+                  minWidth: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '5px',
+                  color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                  background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                })}
+                data-tooltip={canBlockAction ? 'Add element after' : NOT_EDITABLE_TOOLTIP}
+              >
+                <Plus size={13} strokeWidth={2.5} />
+                Add after
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleWrapBlocks() : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('wrap')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
+                data-tooltip={canBlockAction ? 'Wrap in div' : NOT_EDITABLE_TOOLTIP}
+              >
+                <SquareDashed size={13} strokeWidth={2.5} />
+                Wrap
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('up')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('up')}
+                data-tooltip={canBlockAction ? (isSketchpadAbsolute ? 'Bring to front' : 'Move up') : NOT_EDITABLE_TOOLTIP}
+              >
+                {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
+                {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('down')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('down')}
+                data-tooltip={canBlockAction ? (isSketchpadAbsolute ? 'Send backward' : 'Move down') : NOT_EDITABLE_TOOLTIP}
+              >
+                {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
+                {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction('delete') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('del')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('del', {
+                  padding: '0 14px',
+                  color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
+                })}
+                data-tooltip={canBlockAction ? 'Delete block' : NOT_EDITABLE_TOOLTIP}
+              >
+                <Trash2 size={13} strokeWidth={2} />
+              </button>
             </>
           )}
       </div>

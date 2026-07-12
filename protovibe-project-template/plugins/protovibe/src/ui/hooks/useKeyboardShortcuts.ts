@@ -8,6 +8,7 @@ import {
   type ClipboardBlockAction
 } from '../utils/executeBlockAction';
 import { emitToast, formatUndoRedoMessage } from '../events/toast';
+import { openNotEditableDialog } from '../components/NotEditableDialog';
 import {
   getAllowedParent,
   getAllowedChild,
@@ -152,11 +153,12 @@ export function useKeyboardShortcuts() {
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
         e.preventDefault();
+        // The FloatingToolbar handlers fall back to the "not editable" dialog
+        // when the selected element can't take the action.
         if (e.shiftKey) {
           window.dispatchEvent(new CustomEvent('pv:open-add-after-dialog'));
         } else {
-          const canAdd = !!(activeData?.file && zones.length > 0);
-          if (canAdd) window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
+          window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
         }
         return;
       }
@@ -185,7 +187,7 @@ export function useKeyboardShortcuts() {
 
         {
           if (blockIds.length === 0 || !isBlockInCurrentFile) {
-            emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
+            openNotEditableDialog();
             return;
           }
 
@@ -244,7 +246,8 @@ export function useKeyboardShortcuts() {
             .filter(Boolean) as string[]
         )];
         if (blockIds.length === 0) {
-          emitToast({ message: "Can't wrap this element", variant: 'error' });
+          e.preventDefault();
+          openNotEditableDialog();
           return;
         }
         const isNested = targets.some(t1 => targets.some(t2 => t1 !== t2 && t1.contains(t2)));
@@ -327,7 +330,8 @@ export function useKeyboardShortcuts() {
         
         if (blockId && activeData?.file) {
           if (!isBlockInCurrentFile) {
-            emitToast({ message: `Can't modify this element here`, variant: 'error' });
+            e.preventDefault();
+            openNotEditableDialog();
             return;
           }
           e.preventDefault();
@@ -346,6 +350,10 @@ export function useKeyboardShortcuts() {
               refreshActiveData
             });
           });
+        } else if (activeData?.file) {
+          // Selected element is not a pv block — explain how to make it editable.
+          e.preventDefault();
+          openNotEditableDialog();
         }
         return;
       }

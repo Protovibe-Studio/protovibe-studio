@@ -9,6 +9,7 @@ import { PromptsTab } from './components/PromptsTab';
 import { CommentsTab } from './components/CommentsTab';
 import { Sidebar } from './components/Sidebar';
 import { FloatingToolbar } from './components/FloatingToolbar';
+import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
@@ -790,6 +791,7 @@ export const ProtovibeApp: React.FC = () => {
         )}
 
         <FloatingToolbar />
+        <NotEditableDialog />
         <ToastViewport />
         <GitSyncBanner git={git} />
       </div>
