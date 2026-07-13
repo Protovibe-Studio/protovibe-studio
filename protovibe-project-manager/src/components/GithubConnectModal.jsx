@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { X, Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft, Clock } from 'lucide-react'
 import GithubMark from '../assets/GithubMark.jsx'
 
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
@@ -259,7 +259,7 @@ export default function GithubConnectModal({ onClose, onClone }) {
           <div className="flex flex-col gap-4">
             <p className="text-sm text-foreground-secondary">
               Connect your GitHub account to clone one of your repositories into Protovibe.
-              A browser tab will open so you can authorize the Protovibe app.
+              A browser tab will open so you can authorize Protovibe.
             </p>
             {connectError && <p className="text-xs text-foreground-destructive">{connectError}</p>}
             <div className="flex items-center gap-2 justify-end">
@@ -290,21 +290,45 @@ export default function GithubConnectModal({ onClose, onClone }) {
 
         {step === 'repos' && needsInstall && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-foreground-secondary">
-              Your account is connected, but the Protovibe app isn't installed on any account yet.
-              Install it and choose which repositories Protovibe may access.
-            </p>
-            <a
-              href={repoData.installUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors"
-            >
-              <ExternalLink size={14} />
-              Install the Protovibe app on GitHub
-            </a>
+            {repoData.installRequestedAt ? (
+              <>
+                <div className="flex items-start gap-2.5 rounded-xl bg-background-warning-subtle border border-border-default px-3 py-2.5">
+                  <Clock size={14} className="shrink-0 mt-0.5 text-foreground-secondary" />
+                  <p className="text-sm text-foreground-secondary">
+                    <span className="font-medium text-foreground-default">Waiting for approval.</span>{' '}
+                    You asked an owner of that organization to approve Protovibe — GitHub has emailed
+                    them. Once they approve, the organization's repositories appear here automatically.
+                  </p>
+                </div>
+                <a
+                  href={repoData.installUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 text-xs text-foreground-tertiary hover:text-foreground-default underline transition-colors"
+                >
+                  <ExternalLink size={12} />
+                  Authorize a different account instead
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-foreground-secondary">
+                  Your account is connected. Now choose which repositories Protovibe may access — on
+                  your personal account or on an organization you belong to.
+                </p>
+                <a
+                  href={repoData.installUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors"
+                >
+                  <ExternalLink size={14} />
+                  Authorize Protovibe GitHub integration
+                </a>
+              </>
+            )}
             <p className="text-xs text-foreground-tertiary text-center">
-              This screen refreshes automatically once the app is installed.
+              This screen refreshes automatically.
             </p>
           </div>
         )}
