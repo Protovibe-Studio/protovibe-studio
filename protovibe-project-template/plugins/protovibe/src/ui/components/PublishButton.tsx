@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut, Link2, Lock, Copy, Check } from 'lucide-react';
 import { theme, primarySolidHover } from '../theme';
+import { handleExternalLinkClick } from '../utils/openExternal';
 import {
   fetchCloudflarePublishMetadata,
   fetchCloudflareAuthStatus,
@@ -74,7 +75,7 @@ function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployH
             const date = formatPublishDate(entry.publishedAt);
             return (
               <div key={entry.url} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                <a href={entry.url} target="_blank" rel="noreferrer"
+                <a href={entry.url} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
                   style={{ fontSize: '12px', color: theme.text_secondary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
@@ -447,6 +448,7 @@ export function PublishButton() {
         href="https://dash.cloudflare.com/sign-up"
         target="_blank"
         rel="noreferrer"
+        onClick={handleExternalLinkClick}
         style={{ display: 'block', textAlign: 'center', marginTop: '10px', fontSize: '12px', color: theme.text_secondary, textDecoration: 'none' }}
         onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
         onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
@@ -475,7 +477,7 @@ export function PublishButton() {
               : (statusMessage || 'Preparing your secure login link…')}
           </div>
           {authUrl ? (
-            <a href={authUrl} target="_blank" rel="noreferrer" style={{ ...primaryBtnStyle, textDecoration: 'none' }}>
+            <a href={authUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ ...primaryBtnStyle, textDecoration: 'none' }}>
               Open Cloudflare login
             </a>
           ) : (
@@ -498,7 +500,7 @@ export function PublishButton() {
           <div style={subStyle}>
             Your environment requires a Cloudflare API Token.
             <br /><br />
-            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" style={{ color: theme.accent_default, textDecoration: 'none' }}>
+            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none' }}>
               Get your token here
             </a>
             <br />
@@ -629,7 +631,7 @@ export function PublishButton() {
           <div style={{ ...subStyle, marginBottom: '10px' }}>
             Anyone with this link can view it:
           </div>
-          <a href={publishedLink || publishedUrl} target="_blank" rel="noreferrer"
+          <a href={publishedLink || publishedUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
             style={{ display: 'block', fontSize: '13px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
@@ -722,7 +724,7 @@ export function PublishButton() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {sectionHeader('Published to', <CircleCheck size={14} color="#34c759" />)}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <a href={publishedLink} target="_blank" rel="noreferrer"
+              <a href={publishedLink} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
                 style={{ display: 'block', flex: 1, fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                 onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
                 onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
