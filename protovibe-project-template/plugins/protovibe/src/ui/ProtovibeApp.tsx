@@ -537,7 +537,7 @@ export const ProtovibeApp: React.FC = () => {
                 </span>
               </div>
 
-              {/* Open in new tab */}
+              {/* Open in browser */}
               <button
                 onClick={() => {
                   const fallback = new URL('/', window.location.href).href;
@@ -548,7 +548,7 @@ export const ProtovibeApp: React.FC = () => {
                     openInBrowser(fallback);
                   }
                 }}
-                data-tooltip="Open in new tab"
+                data-tooltip="Open in browser"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',

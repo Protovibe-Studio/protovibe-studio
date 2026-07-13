@@ -39,6 +39,15 @@ app.on('web-contents-created', (_event, contents) => {
   });
 });
 
+// Explicit renderer request to hand a URL to the system browser, used for local
+// URLs the policy above would otherwise open in-app (the editor's "Open in
+// browser" preview action). Restricted to http(s) so a compromised renderer
+// can't launch arbitrary schemes/files through the shell.
+ipcMain.handle('shell:open-external', (_event, url) => {
+  if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return;
+  shell.openExternal(url);
+});
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();

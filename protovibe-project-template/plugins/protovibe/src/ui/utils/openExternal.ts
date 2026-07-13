@@ -49,6 +49,17 @@ export function openInBrowser(url: string): void {
 }
 
 /**
+ * Open a URL served by Protovibe itself (the manager, the dev server) in a new
+ * window. Deliberately does NOT use the Electron bridge: inside the desktop
+ * shell these belong in an in-app window, not the system browser. In a plain
+ * browser this is an ordinary new tab.
+ */
+export function openLocalWindow(url: string): void {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+/**
  * Click handler for `<a>` elements that should open in the system browser.
  * Prevents the default navigation (which the shell would capture) and routes
  * through `openInBrowser`.
