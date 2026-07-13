@@ -59,9 +59,7 @@ export const NotEditableDialog: React.FC = () => {
           probably forgot to tag it when writing the code.
           <br />
           <br />
-          You can fix this by prompting your coding agent: copy the ready-made
-          "Make editable in Protovibe" prompt below — it already includes this
-          element's file and source context — and paste it into your agent.
+          Ask your coding agent to fix it - just copy the prompt and paste it into your agent.
         </>
       }
       confirmLabel="Copy prompt"
