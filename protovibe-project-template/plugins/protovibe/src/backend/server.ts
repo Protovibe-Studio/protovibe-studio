@@ -2434,10 +2434,11 @@ function parseWranglerAccounts(output: string): Array<{ id: string; name: string
     if (line.includes('Account Name') && line.includes('Account ID')) { seenHeader = true; continue; }
     if (!seenHeader) continue;
     if (/^[-|⎯\s]+$/.test(line)) continue;
-    const parts = line.split('|');
+    // Wrangler draws its table with box-drawing characters (│), not ASCII pipes.
+    const parts = line.split(/[|│]/).map((p) => p.trim()).filter(Boolean);
     if (parts.length >= 2) {
-      const name = parts[0].trim();
-      const id = parts[1].trim();
+      const name = parts[0];
+      const id = parts[1];
       if (name && /^[a-f0-9]{32}$/i.test(id)) accounts.push({ id, name });
     }
   }
