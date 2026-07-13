@@ -174,6 +174,9 @@ export function PublishButton() {
   // Re-check auth whenever the popover opens (served from a backend cache, so cheap)
   useEffect(() => {
     if (open) refreshAuth();
+    // Closing the popover dismisses a finished publish — reopening should land
+    // on the default "Published to" view, ready to publish an update.
+    if (!open && statusRef.current === 'success') handleReset();
   }, [open]);
 
   // Called when the OAuth login completes: refresh the connection badge and,
@@ -370,8 +373,8 @@ export function PublishButton() {
   const spinStyle: React.CSSProperties = { animation: 'pvSpin 1s linear infinite' };
 
   // ── shared sub-styles ──────────────────────────────────────────────────────
-  const labelStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: theme.text_default, marginBottom: '4px' };
-  const subStyle: React.CSSProperties = { fontSize: '14px', color: theme.text_secondary, lineHeight: '1.4', marginBottom: '16px' };
+  const labelStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 700, color: theme.text_default, marginBottom: '4px' };
+  const subStyle: React.CSSProperties = { fontSize: '13px', color: theme.text_secondary, lineHeight: '1.4', marginBottom: '16px' };
   const actionBtnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
     width: '100%', height: '36px', borderRadius: '8px',
@@ -399,7 +402,7 @@ export function PublishButton() {
   };
 
   const sectionHeader = (label: string, icon?: React.ReactNode) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: theme.text_default, marginBottom: '2px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: theme.text_default, marginBottom: '0px' }}>
       {icon}
       {label}
     </div>
@@ -410,7 +413,7 @@ export function PublishButton() {
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px'}}>
         {icon}
       </div>
-      <div style={{ fontSize: '14px', color: theme.text_secondary, lineHeight: '1.4' }}>{text}</div>
+      <div style={{ fontSize: '13px', color: theme.text_secondary, lineHeight: '1.4' }}>{text}</div>
     </div>
   );
 
@@ -542,7 +545,7 @@ export function PublishButton() {
           <div style={{ display: 'flex', gap: '8px', padding: '10px', backgroundColor: theme.bg_secondary, borderRadius: '6px', marginTop: '12px' }}>
             <Lightbulb size={14} style={{ color: theme.accent_default, flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', color: theme.text_secondary, lineHeight: '1.4' }}>
-              Free Cloudflare plan has a monthly limit of 500 deployments. Try not to deploy too often during development.
+              Free Cloudflare plan has a monthly limit of 500 deployments. Try not to publish too often.
             </div>
           </div>
         </>
@@ -621,13 +624,13 @@ export function PublishButton() {
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', ...labelStyle }}>
             <CircleCheck size={16} color="#34c759" />
-            Your app is live
+            Your app is published
           </div>
           <div style={{ ...subStyle, marginBottom: '10px' }}>
             Anyone with this link can view it:
           </div>
           <a href={publishedLink || publishedUrl} target="_blank" rel="noreferrer"
-            style={{ display: 'block', fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
+            style={{ display: 'block', fontSize: '13px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
           >
@@ -710,15 +713,15 @@ export function PublishButton() {
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* ── Popover heading ────────────────────────────────────── */}
         <div style={{ ...labelStyle, marginBottom: '0' }}>Publish your app</div>
 
         {/* ── Published to section (shown first when a URL exists) ── */}
         {publishedUrl && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {sectionHeader('Published to', <CircleCheck size={14} color="#34c759" />)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <a href={publishedLink} target="_blank" rel="noreferrer"
                 style={{ display: 'block', flex: 1, fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                 onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
@@ -732,6 +735,7 @@ export function PublishButton() {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '20px', height: '20px', flexShrink: 0,
+                  height: '15px',
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                   color: copied ? '#34c759' : theme.text_secondary,
                 }}
@@ -763,7 +767,7 @@ export function PublishButton() {
                   onClick={() => openNameForm(false)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '3px',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px',
                     color: theme.text_secondary, fontSize: '12px', fontFamily: theme.font_ui,
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
@@ -775,7 +779,7 @@ export function PublishButton() {
               </div>
               {publishedUrl && (
                 <span style={{ fontSize: '12px', color: theme.text_tertiary}}>
-                  Updates your live site — the link stays the same.
+                  The link stays the same.
                 </span>
               )}
               <button
@@ -801,8 +805,8 @@ export function PublishButton() {
         </div>
 
         {/* ── Connection footer ──────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: theme.text_secondary, borderTop: `1px solid ${theme.border_secondary}`, paddingTop: '10px' }}>
-          <CloudflareLogo size={12} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: theme.text_secondary, borderTop: `1px solid ${theme.border_secondary}`, paddingTop: '10px' }}>
+          <CloudflareLogo size={14} />
           <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {accountEmail ? `Connected as ${accountEmail}` : 'Connected to Cloudflare'}
           </span>
