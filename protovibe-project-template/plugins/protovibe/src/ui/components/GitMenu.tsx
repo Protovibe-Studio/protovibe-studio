@@ -4,13 +4,14 @@
 // ProtovibeApp.tsx (floating position + createPortal + mousedown click-outside).
 //
 // When Git isn't ready we explain the situation in plain language. Projects
-// without a repo/remote get a one-click "Back up to GitHub" flow (connect via
-// the Protovibe manager app, then init + private repo + push); the old
-// paste-to-your-coding-agent prompts remain as a collapsed escape hatch.
+// without a repo/remote get an intro to GitHub (what it is, why a designer would
+// want it) and a one-click flow: connect via the Protovibe manager app, then
+// init + private repo + push. The old paste-to-your-coding-agent prompts remain
+// as a collapsed escape hatch.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check, ExternalLink } from 'lucide-react';
+import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check, ExternalLink, Users, MessageSquare, Cloud } from 'lucide-react';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme, primarySolidHover } from '../theme';
 import { openInBrowser } from '../utils/openExternal';
@@ -252,7 +253,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
           {/* --- git not provisioned yet (manager downloads it in the background) --- */}
           {!status.gitInstalled ? (
             <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Back up to GitHub</div>
+              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Work on this project together</div>
+              <GithubIntro />
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
                 <RotateCw size={13} style={{ flexShrink: 0, marginTop: 2, animation: 'pv-git-spin 1s linear infinite' }} />
                 <span>Protovibe is finishing its one-time setup in the background — usually under a minute. You can already connect your GitHub account.</span>
@@ -267,9 +269,12 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               <TroubleFallback prompt={installPrompt(status.root)} />
             </div>
           ) : needsBackupPanel ? (
-            /* --- no repo / no remote: back up to GitHub --- */
+            /* --- no repo / no remote: intro + one-click connect to GitHub --- */
             <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Back up to GitHub</div>
+              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Work on this project together</div>
+
+              {/* The pitch, until something goes wrong — then the problem takes the space. */}
+              {!(op.status === 'error' && op.op === 'backup') && <GithubIntro />}
 
               {!github ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
@@ -280,7 +285,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   <InstallAccessPanel
                     installUrl={installUrl}
                     body="GitHub needs your permission before Protovibe can use this repository. Open GitHub, give Protovibe access, then try again."
-                    retryLabel="I’ve done it — back up again"
+                    retryLabel="I’ve done it — try again"
                     onRetry={() => void runOp('backup')}
                     disabled={busy}
                   />
@@ -288,14 +293,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   <>
                     <div style={{ color: op.status === 'error' && op.op === 'backup' ? theme.destructive_default : theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
                       {op.status === 'error' && op.op === 'backup'
-                        ? (op.message || 'Backup failed.')
-                        : `Save this project privately to your GitHub account (${github.login ?? 'connected'}) so it’s backed up and you can sync it from anywhere.`}
+                        ? (op.message || 'Couldn’t add this project to GitHub.')
+                        : `Protovibe will add this project to your GitHub account (${github.login ?? 'connected'}). It stays private — only you and the people you invite can see it.`}
                     </div>
                     <button disabled={busy} onClick={() => void runOp('backup')} {...primarySolidHover(!busy)} style={primaryButtonStyle(!busy)}>
                       {backupBusy
                         ? <RotateCw size={14} style={{ animation: 'pv-git-spin 1s linear infinite' }} />
                         : <GithubMark size={14} />}
-                      {backupBusy ? (op.message || 'Backing up…') : op.status === 'error' && op.op === 'backup' ? 'Try again' : 'Back up to GitHub'}
+                      {backupBusy ? (op.message || 'Setting up…') : op.status === 'error' && op.op === 'backup' ? 'Try again' : 'Add project to GitHub'}
                     </button>
                   </>
                 )
@@ -321,7 +326,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               ) : github.managerReachable ? (
                 <>
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
-                    Connect your GitHub account and Protovibe will keep a private backup of this project there.
+                    Start by connecting your GitHub account — it’s free, and Protovibe sets the rest up for you.
                   </div>
                   <button onClick={startConnect} {...primarySolidHover(true)} style={primaryButtonStyle(true)}>
                     <GithubMark size={14} /> Connect GitHub
@@ -515,6 +520,44 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     </>
   );
 };
+
+// What a designer gets out of GitHub, before any of it exists for this project.
+// Our users don't know what a repo, a commit or a remote is — so lead with the
+// outcome (team, feedback, safety) and never make them learn the vocabulary.
+const IntroRow: React.FC<{ icon: React.ReactNode; title: string; body: string }> = ({ icon, title, body }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+    <span style={{ color: theme.accent_default, display: 'flex', flexShrink: 0, marginTop: 2 }}>{icon}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+      <span style={{ color: theme.text_default, fontSize: 12, fontWeight: 600 }}>{title}</span>
+      <span style={{ color: theme.text_tertiary, fontSize: 11.5, lineHeight: 1.45 }}>{body}</span>
+    </div>
+  </div>
+);
+
+const GithubIntro: React.FC = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
+      GitHub is a free service that keeps your project online — think of it as a shared drive made for design and code.
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <IntroRow
+        icon={<Users size={13} />}
+        title="Work with your team"
+        body="Invite people to open this project and design alongside you."
+      />
+      <IntroRow
+        icon={<MessageSquare size={13} />}
+        title="Get feedback"
+        body="Your team can leave comments right on the screens you built."
+      />
+      <IntroRow
+        icon={<Cloud size={13} />}
+        title="Kept safe in the cloud"
+        body="Sync your changes with one click — nothing gets lost, and you can carry on from any computer."
+      />
+    </div>
+  </div>
+);
 
 // Who's connected + Log out. Logging out forgets the machine-wide token, so
 // the Protovibe app and every other project disconnect too.
