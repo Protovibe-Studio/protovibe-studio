@@ -2451,6 +2451,84 @@ const WRANGLER_NON_INTERACTIVE_ENV: Record<string, string> = {
   DO_NOT_TRACK: '1',
 };
 
+interface CfDeployHistoryEntry { url: string; publishedAt?: string }
+
+/** History entries were plain URL strings before publish dates were tracked; accept both shapes. */
+function normalizeDeployHistory(raw: unknown): CfDeployHistoryEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const entries: CfDeployHistoryEntry[] = [];
+  for (const item of raw) {
+    if (typeof item === 'string') {
+      entries.push({ url: item });
+    } else if (item && typeof item === 'object' && typeof (item as any).url === 'string') {
+      entries.push({
+        url: (item as any).url,
+        publishedAt: typeof (item as any).publishedAt === 'string' ? (item as any).publishedAt : undefined,
+      });
+    }
+  }
+  return entries;
+}
+
+// ─── Cloudflare auth status ───────────────────────────────────────────────────
+// `wrangler whoami` takes a few seconds, so the result is cached; the cache is
+// invalidated whenever login/logout changes the underlying state.
+
+interface CfAuthStatus {
+  loggedIn: boolean;
+  email?: string;
+  accounts?: Array<{ id: string; name: string }>;
+}
+
+let cfAuthCache: { result: CfAuthStatus; ts: number } | null = null;
+const CF_AUTH_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function invalidateCfAuthCache(): void {
+  cfAuthCache = null;
+}
+
+async function checkCloudflareAuth(): Promise<CfAuthStatus> {
+  const out = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], {
+    cwd: process.cwd(),
+    env: { ...process.env, ...WRANGLER_NON_INTERACTIVE_ENV },
+    timeoutMs: 30_000,
+  });
+  if (out.includes('You are not authenticated') || out.includes('not logged in')) {
+    return { loggedIn: false };
+  }
+  const emailMatch = out.match(/associated with the email\s+'?([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})'?/i);
+  return {
+    loggedIn: true,
+    email: emailMatch?.[1],
+    accounts: parseWranglerAccounts(out),
+  };
+}
+
+export const handleCloudflareAuthStatus: Connect.NextHandleFunction = (req, res) => {
+  (async () => {
+    res.setHeader('Content-Type', 'application/json');
+    const wantsRefresh = (req.url ?? '').includes('refresh=1');
+    if (!wantsRefresh && cfAuthCache && Date.now() - cfAuthCache.ts < CF_AUTH_CACHE_TTL_MS) {
+      return res.end(JSON.stringify(cfAuthCache.result));
+    }
+    let result: CfAuthStatus;
+    try {
+      result = await checkCloudflareAuth();
+    } catch (err) {
+      // whoami exits non-zero when not authenticated; treat any failure as
+      // logged-out rather than surfacing an error — the UI then shows the
+      // intro/connect view, which is always a safe place to land.
+      const errStr = String(err);
+      if (!/not authenticated|not logged in/i.test(errStr)) {
+        cfLog('auth-status whoami failed:', errStr);
+      }
+      result = { loggedIn: false };
+    }
+    cfAuthCache = { result, ts: Date.now() };
+    res.end(JSON.stringify(result));
+  })();
+};
+
 export function spawnCmd(
   cmd: string,
   args: string[],
@@ -2519,6 +2597,7 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: baseEnv, timeoutMs: 30_000 });
 
     if (whoami.includes('You are not authenticated') || whoami.includes('not logged in')) {
+      invalidateCfAuthCache();
       if (apiToken) {
         setCfState({ status: 'error', message: 'Invalid Cloudflare API Token.', error: whoami });
         return;
@@ -2534,6 +2613,7 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     }
     // Distinguish between "not logged in" and genuine failures (network, wrangler crash)
     if (errStr.includes('not authenticated') || errStr.includes('not logged in')) {
+      invalidateCfAuthCache();
       setCfState({ status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' });
     } else {
       setCfState({ status: 'error', message: 'Failed to verify Cloudflare credentials.', error: errStr });
@@ -2669,10 +2749,12 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     }
 
     const meta = readPublishMeta();
+    const publishedAt = new Date().toISOString();
     meta['cloudflare-pages-url'] = canonicalUrl;
-    const history: string[] = Array.isArray(meta['cloudflare-deploy-history']) ? meta['cloudflare-deploy-history'] : [];
-    if (hashedUrl && hashedUrl !== canonicalUrl && !history.includes(hashedUrl)) {
-      history.unshift(hashedUrl);
+    meta['cloudflare-last-published-at'] = publishedAt;
+    const history = normalizeDeployHistory(meta['cloudflare-deploy-history']);
+    if (hashedUrl && hashedUrl !== canonicalUrl && !history.some((h) => h.url === hashedUrl)) {
+      history.unshift({ url: hashedUrl, publishedAt });
       if (history.length > 20) history.pop();
     }
     meta['cloudflare-deploy-history'] = history;
@@ -2691,7 +2773,8 @@ export const handleCloudflarePublishMetadata: Connect.NextHandleFunction = (_req
     res.end(JSON.stringify({
       projectName: pkg['cloudflare-wrangler-project-name'] ?? '',
       url: pkg['cloudflare-pages-url'] ?? '',
-      deployHistory: Array.isArray(pkg['cloudflare-deploy-history']) ? pkg['cloudflare-deploy-history'] : [],
+      lastPublishedAt: pkg['cloudflare-last-published-at'] ?? '',
+      deployHistory: normalizeDeployHistory(pkg['cloudflare-deploy-history']),
     }));
   } catch (err) {
     res.statusCode = 500;
@@ -2789,6 +2872,7 @@ export const handleCloudflareLogout: Connect.NextHandleFunction = (_req, res) =>
     // Always reset the in-memory lock — the user's intent ("I want to be logged
     // out") is satisfied either way, and stale state shouldn't trap them.
     setCfState({ status: 'idle', message: '' });
+    invalidateCfAuthCache();
 
     // Treat "no active session" as success. Wrangler returns non-zero when there
     // is nothing to log out from, but that's functionally the desired end state.
@@ -2904,6 +2988,7 @@ export const handleCloudflareLoginStart: Connect.NextHandleFunction = (_req, res
     child.on('close', (code) => {
       clearTimeout(loginTimer);
       console.log(`[protovibe:cloudflare] Process exited with code ${code}`);
+      invalidateCfAuthCache();
 
       // Clean up the temporary script
       try { if (fs.existsSync(spoofScriptPath)) fs.unlinkSync(spoofScriptPath); } catch {}

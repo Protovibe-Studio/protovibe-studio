@@ -238,9 +238,33 @@ export async function restartServer() {
   return await res.json();
 }
 
-export async function fetchCloudflarePublishMetadata(): Promise<{ projectName: string; url: string; deployHistory: string[] }> {
+export interface CloudflareDeployHistoryEntry {
+  url: string;
+  publishedAt?: string;
+}
+
+export interface CloudflarePublishMetadata {
+  projectName: string;
+  url: string;
+  lastPublishedAt: string;
+  deployHistory: CloudflareDeployHistoryEntry[];
+}
+
+export async function fetchCloudflarePublishMetadata(): Promise<CloudflarePublishMetadata> {
   const res = await fetch('/__cloudflare-publish-metadata');
   if (!res.ok) throw new Error('Failed to fetch Cloudflare metadata');
+  return res.json();
+}
+
+export interface CloudflareAuthStatus {
+  loggedIn: boolean;
+  email?: string;
+  accounts?: Array<{ id: string; name: string }>;
+}
+
+export async function fetchCloudflareAuthStatus(refresh = false): Promise<CloudflareAuthStatus> {
+  const res = await fetch(`/__cloudflare-auth-status${refresh ? '?refresh=1' : ''}`);
+  if (!res.ok) throw new Error('Failed to fetch Cloudflare auth status');
   return res.json();
 }
 

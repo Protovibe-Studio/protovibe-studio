@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
 import { registerGitMiddleware } from './backend/git-server';
@@ -176,6 +176,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__cloudflare-publish-status', handleCloudflarePublishStatus);
       server.middlewares.use('/__cloudflare-login-start', handleCloudflareLoginStart);
       server.middlewares.use('/__cloudflare-logout', handleCloudflareLogout);
+      server.middlewares.use('/__cloudflare-auth-status', handleCloudflareAuthStatus);
 
       // Resolve a relative file path to its absolute path on disk
       server.middlewares.use('/__resolve-file-path', (req, res) => {
