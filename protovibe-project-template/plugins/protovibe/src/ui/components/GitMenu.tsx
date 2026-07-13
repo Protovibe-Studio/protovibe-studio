@@ -13,6 +13,7 @@ import { createPortal } from 'react-dom';
 import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check, ExternalLink } from 'lucide-react';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme, primarySolidHover } from '../theme';
+import { openInBrowser } from '../utils/openExternal';
 import type { UseGitSync } from '../hooks/useGitSync';
 
 const SPIN_KEYFRAMES = '@keyframes pv-git-spin { to { transform: rotate(360deg); } }';
@@ -524,7 +525,7 @@ const InstallAccessPanel: React.FC<{
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
     <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>{body}</div>
     <button
-      onClick={() => window.open(installUrl, '_blank')}
+      onClick={() => openInBrowser(installUrl)}
       {...primarySolidHover(true)}
       style={primaryButtonStyle(true)}
     >

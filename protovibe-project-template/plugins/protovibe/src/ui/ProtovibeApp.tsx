@@ -20,6 +20,7 @@ import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
+import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 
@@ -517,11 +518,12 @@ export const ProtovibeApp: React.FC = () => {
               {/* Open in new tab */}
               <button
                 onClick={() => {
+                  const fallback = new URL('/', window.location.href).href;
                   try {
                     const loc = appIframeRef.current?.contentWindow?.location;
-                    if (loc) window.open(loc.href, '_blank');
+                    openInBrowser(loc?.href || fallback);
                   } catch {
-                    window.open('/', '_blank');
+                    openInBrowser(fallback);
                   }
                 }}
                 data-tooltip="Open in new tab"
@@ -695,7 +697,7 @@ export const ProtovibeApp: React.FC = () => {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setMoreMenuOpen(false)}
+                  onClick={(e) => { handleExternalLinkClick(e); setMoreMenuOpen(false); }}
                   style={{
                     width: '100%',
                     display: 'flex',

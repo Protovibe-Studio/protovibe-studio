@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut } from 'lucide-react';
 import { theme } from '../theme';
+import { handleExternalLinkClick } from '../utils/openExternal';
 import {
   fetchCloudflarePublishMetadata,
   saveCloudflareProjectName,
@@ -58,7 +59,7 @@ function DeployHistory({ history, open, onToggle }: { history: string[]; open: b
       {open && (
         <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '120px', overflowY: 'auto' }}>
           {history.map((url) => (
-            <a key={url} href={url} target="_blank" rel="noreferrer"
+            <a key={url} href={url} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
               style={{ fontSize: '11px', color: theme.text_tertiary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
               onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_tertiary; }}
@@ -314,7 +315,7 @@ export function PublishButton() {
             {authUrl ? 'Please click the link below to authorize Wrangler.' : (statusMessage || 'Working...')}
           </div>
           {authUrl ? (
-            <a href={authUrl} target="_blank" rel="noreferrer" style={{ ...actionBtnBase, textDecoration: 'none', backgroundColor: theme.accent_default, color: '#fff', border: 'none' }}>
+            <a href={authUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ ...actionBtnBase, textDecoration: 'none', backgroundColor: theme.accent_default, color: '#fff', border: 'none' }}>
               Open Login Page
             </a>
           ) : (
@@ -334,7 +335,7 @@ export function PublishButton() {
           <div style={subStyle}>
             Your environment requires a Cloudflare API Token.
             <br /><br />
-            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" style={{ color: theme.accent_default, textDecoration: 'none' }}>
+            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none' }}>
               Get your token here
             </a>
             <br />
@@ -480,7 +481,7 @@ export function PublishButton() {
         {publishedUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
-            <a href={publishedUrl} target="_blank" rel="noreferrer"
+            <a href={publishedUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
               style={{ display: 'block', fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
               onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
