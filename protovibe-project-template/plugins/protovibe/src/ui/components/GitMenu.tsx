@@ -610,7 +610,6 @@ const GithubStatusBar: React.FC<{
   return (
     <div style={barStyle}>
       {icon}
-      {label('Back up your work')}
       {linkBtn('Connect to GitHub', startConnect)}
     </div>
   );
