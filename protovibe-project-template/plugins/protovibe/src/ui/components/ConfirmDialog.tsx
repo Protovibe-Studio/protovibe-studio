@@ -63,7 +63,7 @@ export function ConfirmDialog({
           border: `1px solid ${theme.border_default}`,
           borderRadius: 12,
           padding: '20px 24px',
-          width: 320,
+          width: 440,
           boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
           fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
