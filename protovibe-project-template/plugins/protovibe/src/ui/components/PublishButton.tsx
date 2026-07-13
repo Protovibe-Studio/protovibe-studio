@@ -62,7 +62,7 @@ function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployH
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           background: 'none', border: 'none', cursor: 'pointer',
-          color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui, padding: '0',
+          color: theme.text_secondary, fontSize: '11px', fontFamily: theme.font_ui, padding: '0',
         }}
       >
         Previous versions ({history.length})
@@ -75,9 +75,9 @@ function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployH
             return (
               <div key={entry.url} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                 <a href={entry.url} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '11px', color: theme.text_tertiary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
+                  style={{ fontSize: '11px', color: theme.text_secondary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_tertiary; }}
+                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
                 >
                   {entry.url}
                 </a>
@@ -371,7 +371,7 @@ export function PublishButton() {
 
   // ── shared sub-styles ──────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: theme.text_default, marginBottom: '6px' };
-  const subStyle: React.CSSProperties = { fontSize: '12px', color: theme.text_tertiary, lineHeight: '1.5', marginBottom: '16px' };
+  const subStyle: React.CSSProperties = { fontSize: '14px', color: theme.text_secondary, lineHeight: '1.4', marginBottom: '16px' };
   const actionBtnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
     width: '100%', height: '36px', borderRadius: '8px',
@@ -387,9 +387,9 @@ export function PublishButton() {
     color: '#fff',
   };
   const ghostBtnStyle: React.CSSProperties = {
-    ...actionBtnBase, backgroundColor: 'transparent', border: 'none', color: theme.text_tertiary,
+    ...actionBtnBase, backgroundColor: 'transparent', border: 'none', color: theme.text_secondary,
   };
-  const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_tertiary; };
+  const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_secondary; };
   const hoverOff = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_secondary; };
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', height: '32px', padding: '0 10px',
@@ -410,7 +410,7 @@ export function PublishButton() {
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', marginTop: '1px' }}>
         {icon}
       </div>
-      <div style={{ fontSize: '11.5px', color: theme.text_secondary, lineHeight: '1.5' }}>{text}</div>
+      <div style={{ fontSize: '14px', color: theme.text_secondary, lineHeight: '1.4' }}>{text}</div>
     </div>
   );
 
@@ -436,7 +436,7 @@ export function PublishButton() {
           <>You own your files. The Protovibe team never sees your project.</>,
         )}
       </div>
-      <div style={{ fontSize: '11px', color: theme.text_tertiary, lineHeight: '1.5', marginBottom: '14px' }}>
+      <div style={{ fontSize: '12px', color: theme.text_secondary, lineHeight: '1.4', marginBottom: '14px' }}>
         Sign up for Cloudflare once — after that, publishing is a single click.
       </div>
       <button style={primaryBtnStyle} {...primarySolidHover(true)} onClick={handleConnect}>
@@ -447,9 +447,9 @@ export function PublishButton() {
         href="https://dash.cloudflare.com/sign-up"
         target="_blank"
         rel="noreferrer"
-        style={{ display: 'block', textAlign: 'center', marginTop: '10px', fontSize: '11px', color: theme.text_tertiary, textDecoration: 'none' }}
+        style={{ display: 'block', textAlign: 'center', marginTop: '10px', fontSize: '11px', color: theme.text_secondary, textDecoration: 'none' }}
         onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
-        onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_tertiary; }}
+        onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
       >
         No Cloudflare account yet? Sign up free
       </a>
@@ -479,7 +479,7 @@ export function PublishButton() {
               Open Cloudflare login
             </a>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px' }}>
               <Loader2 size={14} style={spinStyle} />
               Generating link…
             </div>
@@ -544,7 +544,7 @@ export function PublishButton() {
           </div>
           <div style={{ display: 'flex', gap: '8px', padding: '10px', backgroundColor: theme.bg_secondary, borderRadius: '6px', marginTop: '12px' }}>
             <Lightbulb size={14} style={{ color: theme.accent_default, flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ fontSize: '11px', color: theme.text_secondary, lineHeight: '1.5' }}>
+            <div style={{ fontSize: '11px', color: theme.text_secondary, lineHeight: '1.4' }}>
               Free Cloudflare plan has a monthly limit of 500 deployments. Try not to deploy too often during development.
             </div>
           </div>
@@ -574,7 +574,7 @@ export function PublishButton() {
                   style={{ accentColor: theme.text_default }}
                 />
                 <span style={{ fontWeight: 500 }}>{a.name}</span>
-                <span style={{ color: theme.text_tertiary, fontSize: '10px' }}>{a.id.slice(0, 8)}…</span>
+                <span style={{ color: theme.text_secondary, fontSize: '10px' }}>{a.id.slice(0, 8)}…</span>
               </label>
             ))}
           </div>
@@ -704,7 +704,7 @@ export function PublishButton() {
       return (
         <>
           <div style={labelStyle}>Publish your app</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '8px' }}>
             <Loader2 size={14} style={spinStyle} />
             Checking your Cloudflare connection…
           </div>
@@ -736,10 +736,10 @@ export function PublishButton() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '20px', height: '20px', flexShrink: 0,
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                  color: copied ? '#34c759' : theme.text_tertiary,
+                  color: copied ? '#34c759' : theme.text_secondary,
                 }}
                 onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = theme.text_default; }}
-                onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = theme.text_tertiary; }}
+                onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = theme.text_secondary; }}
               >
                 {copied ? <Check size={12} /> : <Copy size={12} />}
               </button>
@@ -767,10 +767,10 @@ export function PublishButton() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '3px',
                     background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-                    color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui,
+                    color: theme.text_secondary, fontSize: '11px', fontFamily: theme.font_ui,
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_secondary; }}
                 >
                   <Pencil size={10} />
                   Edit project name
@@ -807,7 +807,7 @@ export function PublishButton() {
         </div>
 
         {/* ── Connection footer ──────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: theme.text_tertiary, borderTop: `1px solid ${theme.border_secondary}`, paddingTop: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: theme.text_secondary, borderTop: `1px solid ${theme.border_secondary}`, paddingTop: '10px' }}>
           <CloudflareLogo size={12} />
           <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {accountEmail ? `Connected as ${accountEmail}` : 'Connected to Cloudflare'}
@@ -835,8 +835,8 @@ export function PublishButton() {
           borderRadius: '6px',
           border: 'none',
           cursor: 'pointer',
-          backgroundColor: open ? theme.bg_tertiary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-          color: open ? theme.text_default : theme.text_tertiary,
+          backgroundColor: open ? theme.bg_secondary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
+          color: open ? theme.text_default : theme.text_secondary,
           transition: 'background-color 0.15s ease, color 0.15s ease',
         }}
       >
@@ -870,8 +870,8 @@ export function PublishButton() {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: '24px', height: '24px', borderRadius: '6px',
-                border: 'none', background: menuOpen ? theme.bg_tertiary : 'transparent',
-                color: theme.text_tertiary, cursor: 'pointer',
+                border: 'none', background: menuOpen ? theme.bg_secondary : 'transparent',
+                color: theme.text_secondary, cursor: 'pointer',
               }}
               onMouseEnter={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = theme.bg_secondary; }}
               onMouseLeave={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}

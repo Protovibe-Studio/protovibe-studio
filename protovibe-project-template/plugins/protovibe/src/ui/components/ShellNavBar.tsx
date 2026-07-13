@@ -367,7 +367,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             border: 'none',
             cursor: 'pointer',
             backgroundColor: !inspectorOpen ? theme.bg_tertiary : inspectorHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-            color: !inspectorOpen ? theme.text_default : theme.text_tertiary,
+            color: !inspectorOpen ? theme.text_default : theme.text_secondary,
             transition: 'background-color 0.15s ease, color 0.15s ease',
           }}
         >
