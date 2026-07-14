@@ -33,6 +33,8 @@ import type { IframeTab } from './ShellNavBar';
 interface CommentSearchHit {
   thread: CommentThread;
   comment: CommentItem;
+  /** The comment's wording suggestions the query hit, if any — shown on the row. */
+  suggestionHits: WordingSuggestion[];
 }
 
 /**
@@ -208,6 +210,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [replyDraft, setReplyDraft] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<PendingAttachment[]>([]);
   const [draftSuggestions, setDraftSuggestions] = useState<WordingSuggestion[]>([]);
+  // Status picked in the new-comment composer. Null ⇒ "No status": the thread
+  // lands untriaged, exactly as it did before the picker existed.
+  const [draftStatus, setDraftStatus] = useState<CommentStatus | null>(null);
   const [replySuggestions, setReplySuggestions] = useState<WordingSuggestion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
@@ -314,18 +319,24 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [threads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
 
   // Free-text search runs across every individual comment (not just threads),
-  // newest first. Empty query ⇒ no results and we fall back to the thread list.
+  // newest first. A comment matches on its text, its author, or either side of any
+  // wording suggestion it carries — so copy a writer proposed (or the original
+  // string they proposed it against) is findable even when the comment has no text
+  // of its own. Empty query ⇒ no results and we fall back to the thread list.
   const searchResults = useMemo<CommentSearchHit[]>(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
     const hits: CommentSearchHit[] = [];
     for (const thread of threads) {
       for (const comment of thread.comments) {
+        const suggestionHits = (comment.suggestions ?? []).filter((s) =>
+          s.original.toLowerCase().includes(q) || s.suggested.toLowerCase().includes(q));
         if (
           comment.content.toLowerCase().includes(q) ||
-          comment.author.name.toLowerCase().includes(q)
+          comment.author.name.toLowerCase().includes(q) ||
+          suggestionHits.length > 0
         ) {
-          hits.push({ thread, comment });
+          hits.push({ thread, comment, suggestionHits });
         }
       }
     }
@@ -390,19 +401,21 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [activeData, activeIframeTab, currentBaseTarget]);
 
   // ── mutations ────────────────────────────────────────────────────────────────
-  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) => {
+  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = [], status: CommentStatus | null = null) => {
     if (!activeData?.file || !activeData?.nameEnd) {
       setError('Select an element on the canvas before adding a comment.');
       return;
     }
     const id = makeCommentId();
     const nowIso = new Date().toISOString();
-    // New threads start untriaged — status is only set when a reviewer picks one.
     const comment: CommentItem = { id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] };
     const changedSugg = changedSuggestions(suggestions);
     if (changedSugg.length) comment.suggestions = changedSugg;
     const thread: CommentThread = {
       id,
+      // Untriaged unless the composer's picker set a status — the field is left
+      // off the file entirely for "No status".
+      ...(status ? { status } : {}),
       context: buildContext(),
       comments: [comment],
       createdAt: nowIso,
@@ -427,6 +440,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       revokeAttachments(pending);
       setDraftAttachments([]);
       setDraftSuggestions([]);
+      setDraftStatus(null);
       // The composer's previews were anchored to the selected element (there was
       // no thread yet). Re-anchor them to the thread that just landed so they
       // survive a refresh and stay in sync with the saved comment's block.
@@ -582,7 +596,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const submitComposer = () => {
     const text = draft.trim();
     if (!text && draftAttachments.length === 0 && changedSuggestions(draftSuggestions).length === 0) return;
-    withAuthor((author) => doCreateThread(text, author, draftAttachments, draftSuggestions));
+    withAuthor((author) => doCreateThread(text, author, draftAttachments, draftSuggestions, draftStatus));
   };
 
   const canComment = !!activeData?.file && !!activeData?.nameEnd;
@@ -667,6 +681,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           setAttachments={setDraftAttachments}
           suggestions={draftSuggestions}
           setSuggestions={setDraftSuggestions}
+          status={draftStatus}
+          setStatus={setDraftStatus}
           busy={busy}
           query={query}
           setQuery={setQuery}
@@ -680,7 +696,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
-          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); clearSuggestionPreviews(draftSuggestions); setDraftSuggestions([]); }}
+          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); clearSuggestionPreviews(draftSuggestions); setDraftSuggestions([]); setDraftStatus(null); }}
           onOpenThread={openThread}
         />
       )}
@@ -848,6 +864,8 @@ const ListView: React.FC<{
   setAttachments: (a: PendingAttachment[]) => void;
   suggestions: WordingSuggestion[];
   setSuggestions: (s: WordingSuggestion[]) => void;
+  status: CommentStatus | null;
+  setStatus: (s: CommentStatus | null) => void;
   busy: boolean;
   query: string;
   setQuery: (s: string) => void;
@@ -888,6 +906,9 @@ const ListView: React.FC<{
             onAttachmentsChange={p.setAttachments}
             suggestions={p.suggestions}
             onSuggestionsChange={p.setSuggestions}
+            status={p.status}
+            onStatusChange={p.setStatus}
+            title="Add comment"
             onSubmit={p.onSubmitComposer}
             onCancel={p.onCancelComposer}
             busy={p.busy}
@@ -1135,7 +1156,7 @@ const SearchResultItem: React.FC<{
   query: string;
   onClick: () => void;
 }> = ({ hit, user, query, onClick }) => {
-  const { thread, comment } = hit;
+  const { thread, comment, suggestionHits } = hit;
   const dimmed = thread.status === 'closed';
   return (
     <button
@@ -1155,9 +1176,26 @@ const SearchResultItem: React.FC<{
         </span>
         <StatusBadge status={thread.status} />
       </div>
-      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        <Highlight text={comment.content} query={query} />
-      </span>
+      {(comment.content || suggestionHits.length === 0) && (
+        <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {comment.content ? <Highlight text={comment.content} query={query} /> : <CommentFallbackSummary comment={comment} />}
+        </span>
+      )}
+      {/* Only the suggestions the query actually hit — a comment can carry many,
+          and the row is a search result, not the thread. */}
+      {suggestionHits.map((s, idx) => (
+        <div key={idx} style={{
+          display: 'flex', flexDirection: 'column', gap: 1, fontSize: 11, lineHeight: 1.4, wordBreak: 'break-word',
+          paddingLeft: 7, borderLeft: `2px solid ${theme.border_default}`,
+        }}>
+          <span style={{ color: theme.text_tertiary, textDecoration: 'line-through' }}>
+            <Highlight text={s.original} query={query} />
+          </span>
+          <span style={{ color: theme.text_secondary }}>
+            <Highlight text={s.suggested} query={query} />
+          </span>
+        </div>
+      ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: theme.text_tertiary }}>
         <span>{contextSummary(thread.context)}</span>
         <span>·</span>
@@ -1651,13 +1689,27 @@ const Composer: React.FC<{
    * anchors to the canvas selection instead.
    */
   suggestionThreadId?: string;
+  /**
+   * Triage status for the thread being created, and its setter. Passing them
+   * turns on the status picker below the field (new-comment composer only —
+   * a reply/edit joins a thread that already has its own status control).
+   */
+  status?: CommentStatus | null;
+  onStatusChange?: (s: CommentStatus | null) => void;
+  /**
+   * Heading above the field. With one, cancelling moves to an X on the heading
+   * row and the action row keeps only the status picker and the submit button;
+   * without one (the inline reply/edit composers) cancelling stays a Cancel
+   * button next to submit.
+   */
+  title?: string;
   onSubmit: () => void;
   onCancel?: () => void;
   busy: boolean;
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, suggestionThreadId, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, suggestionThreadId, status, onStatusChange, title, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const imagesOn = !!onAttachmentsChange;
@@ -1735,6 +1787,17 @@ const Composer: React.FC<{
 
   return (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    {title && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 20 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default }}>{title}</span>
+        <div style={{ flex: 1 }} />
+        {onCancel && (
+          <button onClick={onCancel} data-tooltip="Discard comment" style={iconBtnSm}>
+            <X size={14} />
+          </button>
+        )}
+      </div>
+    )}
     <div
       onPaste={imagesOn ? handlePaste : undefined}
       onDragOver={imagesOn ? (e) => { e.preventDefault(); setDragOver(true); } : undefined}
@@ -1780,8 +1843,13 @@ const Composer: React.FC<{
     {suggestionsOn && (
       <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} threadId={suggestionThreadId} />
     )}
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-      {onCancel && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Status for the thread this comment will open, set before it's created
+          (defaults to "No status"). Sits on the left of the action row so it
+          reads as part of the field, not as a submit action. */}
+      {onStatusChange && <StatusDropdown status={status ?? undefined} busy={busy} onChange={onStatusChange} />}
+      <div style={{ flex: 1 }} />
+      {onCancel && !title && (
         <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
           Cancel
         </button>

@@ -8,6 +8,7 @@ import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
 import { registerGitMiddleware } from './backend/git-server';
+import { registerProfileMiddleware } from './backend/profile-server';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -244,6 +245,9 @@ export function protovibeSourcePlugin(): Plugin {
 
       // Comments & Notes endpoints
       registerCommentsMiddleware(server);
+
+      // Shared comment-author profile (~/.protovibe/profile.json)
+      registerProfileMiddleware(server);
 
       // Git sync endpoints
       registerGitMiddleware(server);

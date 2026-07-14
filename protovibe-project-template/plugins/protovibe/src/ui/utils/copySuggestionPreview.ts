@@ -148,11 +148,26 @@ function keyOf(original: string, scope?: SuggestionAnchor): string {
   return `${owner}${SEP}${original}`;
 }
 
+/**
+ * What we did to one text node: the copy it held before we touched it, and the
+ * exact string we last wrote into it.
+ *
+ * `applied` is what makes the snapshot verifiable. React reuses text nodes across
+ * renders, so a node we rewrote can come back holding entirely different copy (a
+ * dialog reopened on another record, a list row recycled). If the node's current
+ * value is no longer the string we wrote, the app — not us — put it there, and
+ * `pristine` is stale: keeping it would let us stamp the old suggestion back over
+ * the app's fresh text, or "restore" text that was never on this node.
+ */
+interface Applied {
+  pristine: string;
+  applied: string;
+}
+
 function createService(): CopySuggestionPreview {
   const registry = new Map<string, Entry>();
-  // Every text node we've rewritten → its pristine value, so removing an entry
-  // (or dropping a node from the registry) restores the exact original text.
-  const pristineText = new WeakMap<Text, string>();
+  // Every text node we've rewritten → what it said before, and what we wrote.
+  const pristineText = new WeakMap<Text, Applied>();
   // Every element we've highlighted → the inline values we overwrote.
   const pristineStyle = new WeakMap<HTMLElement, string[]>();
   const highlighted = new Set<HTMLElement>();
@@ -242,10 +257,17 @@ function createService(): CopySuggestionPreview {
     let node = walker.nextNode() as Text | null;
     while (node) {
       const current = node.nodeValue ?? '';
-      // A node we've already rewritten holds the suggestion, not the original —
-      // the registry lookup must go through its pristine snapshot, otherwise the
-      // next apply misses the mapping and wrongly restores it.
-      const pristine = pristineText.has(node) ? pristineText.get(node)! : current;
+      const prev = pristineText.get(node);
+      // Is this still OUR text? Only if the node reads back exactly what we last
+      // wrote. If it doesn't, the app has re-rendered new copy through the same
+      // node and the snapshot is stale — forget it and treat what's there now as
+      // the pristine text (React recycles text nodes freely; anything else lets
+      // us overwrite a reopened dialog's fresh copy with the previous one's).
+      const ours = !!prev && prev.applied === current;
+      // A node we rewrote holds the suggestion, not the original — the registry
+      // lookup must go through its pristine snapshot, otherwise the next apply
+      // misses the mapping and wrongly restores it.
+      const pristine = ours ? prev!.pristine : current;
       const trimmed = pristine.trim();
 
       let match: Entry | undefined;
@@ -260,18 +282,19 @@ function createService(): CopySuggestionPreview {
       }
 
       if (match) {
-        // Snapshot the pristine text once, then swap in the suggestion while
-        // preserving the node's surrounding whitespace.
-        if (!pristineText.has(node)) pristineText.set(node, current);
+        // Swap in the suggestion, preserving the node's surrounding whitespace,
+        // and re-snapshot both halves of what we did.
         const lead = pristine.match(/^\s*/)?.[0] ?? '';
         const trail = pristine.match(/\s*$/)?.[0] ?? '';
         const next = lead + match.suggested + trail;
         if (node.nodeValue !== next) node.nodeValue = next;
+        pristineText.set(node, { pristine, applied: next });
         if (node.parentElement) wanted.add(node.parentElement);
-      } else if (pristineText.has(node)) {
-        // No longer previewed (entry removed, or the suggestion equals the
-        // original) → restore and forget.
-        if (node.nodeValue !== pristine) node.nodeValue = pristine;
+      } else if (prev) {
+        // No longer previewed (entry removed, the suggestion now equals the
+        // original, or the node was recycled) → restore only text we actually
+        // put there, then forget the node either way.
+        if (ours && node.nodeValue !== pristine) node.nodeValue = pristine;
         pristineText.delete(node);
       }
       node = walker.nextNode() as Text | null;

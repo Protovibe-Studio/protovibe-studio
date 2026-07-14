@@ -24,7 +24,7 @@
 // dropped on an explicit cancel — the toolbar toggle, the section's X, or the
 // parent discarding the draft via clearSuggestionPreviews().
 import React, { useSyncExternalStore } from 'react';
-import { Check, Plus, RotateCcw, TextCursorInput, X } from 'lucide-react';
+import { Check, Plus, RotateCcw, TextCursorInput, Trash2, X } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import { extractTextStrings } from '../../utils/extractTextStrings';
@@ -39,9 +39,19 @@ function scopeOf(row: WordingSuggestion, threadId: string | undefined, selected:
     : { element: selected, replaceAll: !!row.replaceAll };
 }
 
-/** Keep only rows the writer actually changed (suggested differs from original). */
+/**
+ * Keep only rows the writer actually changed (suggested differs from original),
+ * at most one per original: the preview registry keys on (anchor, original), so
+ * two rows proposing different copy for the same string can never both show on
+ * the canvas. Last one wins, which is what the canvas is already previewing.
+ */
 export function changedSuggestions(rows: WordingSuggestion[]): WordingSuggestion[] {
-  return rows.filter((r) => r.original.trim().length > 0 && r.suggested.trim().length > 0 && r.suggested !== r.original);
+  const byOriginal = new Map<string, WordingSuggestion>();
+  for (const r of rows) {
+    if (!r.original.trim() || !r.suggested.trim() || r.suggested === r.original) continue;
+    byOriginal.set(r.original.trim(), r);
+  }
+  return Array.from(byOriginal.values());
 }
 
 /**
@@ -168,6 +178,16 @@ export const SuggestionComposerSection: React.FC<{
 
   const resetOne = (idx: number) => updateOne(idx, value[idx].original);
 
+  // Drop a single row: its canvas preview goes with it, and saving the comment
+  // rewrites the whole suggestions array, so the row is gone from disk too. This
+  // is the only way to remove ONE suggestion from a comment that carries several
+  // — clearing the section (the X above) would take all of them.
+  const removeOne = (idx: number) => {
+    const row = value[idx];
+    preview.remove(row.original, scope(row), row.suggested);
+    onChange(value.filter((_, i) => i !== idx));
+  };
+
   if (value.length === 0) return null;
 
   return (
@@ -203,7 +223,23 @@ export const SuggestionComposerSection: React.FC<{
             display: 'flex', flexDirection: 'column', gap: 2,
             ...(idx > 0 ? { borderTop: `1px solid ${theme.bg_low}`, paddingTop: 10 } : {}),
           }}>
-            <div style={labelStyle}>Original wording</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, ...labelStyle }}>
+              Original wording
+              <div style={{ flex: 1 }} />
+              <button
+                type="button"
+                onClick={() => removeOne(idx)}
+                data-tooltip="Remove this wording suggestion"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18,
+                  borderRadius: 4, border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = theme.destructive_default; e.currentTarget.style.background = theme.bg_tertiary; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; e.currentTarget.style.background = 'transparent'; }}
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
             <input
               value={row.original}
               onChange={(e) => updateOriginal(idx, e.target.value)}
