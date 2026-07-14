@@ -137,8 +137,11 @@ export const FloatingToolbar: React.FC = () => {
   const handleOpenConvertDialog = () => {
     setMoreOpen(false);
     setAddMode(null);
-    if (!closestBlock || !activeData?.file) return;
-    const snapshot = snapshotElement(closestBlock as HTMLElement);
+    // Conversion is DOM-based, so it works for any selected element — prefer
+    // the enclosing pv-block (matches copy/cut semantics) when there is one.
+    const target = (canBlockAction && closestBlock ? closestBlock : currentBaseTarget) as HTMLElement | null;
+    if (!target) return;
+    const snapshot = snapshotElement(target);
     if (!snapshot) {
       emitToast({ message: 'Nothing to convert in this selection', variant: 'error' });
       return;
@@ -636,10 +639,6 @@ export const FloatingToolbar: React.FC = () => {
                   <button
                     disabled={locked}
                     onClick={() => {
-                      if (!canBlockAction) {
-                        openNotEditableDialog();
-                        return;
-                      }
                       setAddMode(null);
                       setMoreOpen(prev => !prev);
                     }}
@@ -649,7 +648,7 @@ export const FloatingToolbar: React.FC = () => {
                       color: moreOpen ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
                       background: moreOpen ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'more' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                     })}
-                    data-tooltip={canBlockAction ? 'More actions' : NOT_EDITABLE_TOOLTIP}
+                    data-tooltip="More actions"
                     data-testid="btn-more-menu"
                   >
                     <MoreVertical size={13} strokeWidth={2.5} />
@@ -665,9 +664,9 @@ export const FloatingToolbar: React.FC = () => {
   return (
     <>
       {createPortal(toolbar, document.body)}
-      {convertSnapshot && activeData?.file && (
+      {convertSnapshot && (
         <ConvertToSketchpadDialog
-          file={activeData.file}
+          file={activeData?.file || ''}
           snapshot={convertSnapshot}
           onClose={() => setConvertSnapshot(null)}
         />
