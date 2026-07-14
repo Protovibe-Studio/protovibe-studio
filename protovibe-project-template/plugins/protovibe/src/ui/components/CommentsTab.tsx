@@ -111,6 +111,13 @@ function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
   return Array.from(ids);
 }
 
+// Every wording suggestion saved on disk, tagged with the thread that anchors it
+// — the reference set for both "preview all" and pruning stale live previews.
+function savedSuggestionRefs(threads: CommentThread[]) {
+  return threads.flatMap((t) =>
+    t.comments.flatMap((c) => (c.suggestions ?? []).map((s) => ({ threadId: t.id, ...s }))));
+}
+
 // Ask the shell to bring the comment's context into view: switch to the right
 // surface (App / Sketchpad / Components), navigate the app iframe to the saved
 // URL or the sketchpad to the saved frame + coordinates, then select & scroll to
@@ -224,9 +231,20 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [profileOpen, setProfileOpen] = useState(false);
   const pendingActionRef = React.useRef<((author: CommentAuthor) => void) | null>(null);
 
+  // Previews the user had switched on survive a page refresh (the service mirrors
+  // them into localStorage), so the first load reconciles them against what's
+  // actually on disk — a suggestion whose comment was deleted or reworded in the
+  // meantime must not keep rewriting the canvas with no UI to switch it off.
+  const reconciledRef = useRef(false);
+
   const refresh = useCallback(async () => {
     try {
-      setThreads(await fetchCommentThreads());
+      const next = await fetchCommentThreads();
+      setThreads(next);
+      if (!reconciledRef.current) {
+        reconciledRef.current = true;
+        getCopySuggestionPreview().reconcile(savedSuggestionRefs(next));
+      }
     } catch (e) {
       setError(String(e));
     }
@@ -409,6 +427,12 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       revokeAttachments(pending);
       setDraftAttachments([]);
       setDraftSuggestions([]);
+      // The composer's previews were anchored to the selected element (there was
+      // no thread yet). Re-anchor them to the thread that just landed so they
+      // survive a refresh and stay in sync with the saved comment's block.
+      const preview = getCopySuggestionPreview();
+      preview.clearDrafts();
+      for (const s of changedSugg) preview.set(s.original, s.suggested, { threadId: id, replaceAll: !!s.replaceAll });
       // Stay on the list (don't open the new thread) so the user sees it land in
       // context, faintly highlighted, and confirm with the global toast.
       setHighlightId(id);
@@ -454,12 +478,21 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       editComment(thread.id, commentId, editingText.trim(), changedSuggestions(editingSuggestions)))
       .then(() => { setEditingId(null); setEditingText(''); setEditingSuggestions([]); });
 
+  // A deleted comment takes its live previews with it — otherwise a "Replace all"
+  // suggestion would keep rewriting the canvas with no block left to switch it off.
+  const dropPreviews = (threadId: string, suggestions: WordingSuggestion[] | undefined) => {
+    const preview = getCopySuggestionPreview();
+    for (const s of suggestions ?? []) preview.remove(s.original, { threadId });
+  };
+
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId));
+    mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId))
+      .then(() => dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions));
 
   const handleDeleteThread = (thread: CommentThread) => {
     setBusy(true);
     setError(null);
+    thread.comments.forEach((c) => dropPreviews(thread.id, c.suggestions));
     const anchor = thread.anchorFile || thread.context?.file;
     const commentFile = `src/comments/${threadFileName(thread.id)}`;
     runLockedMutation(async () => {
@@ -524,16 +557,17 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
     setViewedUnread(new Set(unread));
     setHighlightId(thread.id);
-    setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
     revokeAttachments(replyAttachments);
     setReplyAttachments([]);
-    // Abandoned drafts are a cancel — their canvas previews go with them.
-    clearSuggestionPreviews(replySuggestions);
+    // Abandoned drafts are a cancel — their canvas previews go with them. They
+    // are anchored to the thread we're LEAVING, not the one we're opening.
+    clearSuggestionPreviews(replySuggestions, activeThreadId ?? undefined);
     setReplySuggestions([]);
-    clearSuggestionPreviews(editingSuggestions);
+    clearSuggestionPreviews(editingSuggestions, activeThreadId ?? undefined);
     setEditingSuggestions([]);
+    setActiveThreadId(thread.id);
     navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
@@ -558,17 +592,15 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   );
 
   // Every saved wording suggestion across all threads, for the header menu's
-  // enable/disable-all-previews actions. Enabling walks in thread order, so when
-  // two comments target the same original string the later-set one wins.
-  const allSuggestions = useMemo(
-    () => threads.flatMap((t) => t.comments.flatMap((c) => c.suggestions ?? [])),
-    [threads],
-  );
+  // enable/disable-all-previews actions. Each stays anchored to its own thread,
+  // so two comments proposing different copy for the same string coexist —
+  // only a "Replace all" pair can collide, and there the later-set one shows.
+  const allSuggestions = useMemo(() => savedSuggestionRefs(threads), [threads]);
   const handlePreviewAll = useCallback((enable: boolean) => {
     const preview = getCopySuggestionPreview();
     for (const s of allSuggestions) {
-      if (enable) preview.set(s.original, s.suggested);
-      else preview.remove(s.original);
+      if (enable) preview.set(s.original, s.suggested, { threadId: s.threadId, replaceAll: !!s.replaceAll });
+      else preview.remove(s.original, { threadId: s.threadId });
     }
   }, [allSuggestions]);
 
@@ -1320,6 +1352,7 @@ const ThreadView: React.FC<{
           <CommentRow
             key={c.id}
             comment={c}
+            threadId={thread.id}
             index={idx}
             user={p.user}
             busy={p.busy}
@@ -1331,7 +1364,7 @@ const ThreadView: React.FC<{
             onStartEdit={() => { p.setEditingId(c.id); p.setEditingText(c.content); p.setEditingSuggestions(c.suggestions ?? []); }}
             onEditChange={p.setEditingText}
             onEditSave={() => p.onEditSave(c.id)}
-            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); clearSuggestionPreviews(p.editingSuggestions); p.setEditingSuggestions([]); }}
+            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); clearSuggestionPreviews(p.editingSuggestions, thread.id); p.setEditingSuggestions([]); }}
             onDelete={() => p.onDeleteReply(c.id)}
             onToggleRead={(makeRead) => p.onToggleRead(c.id, makeRead)}
           />
@@ -1348,6 +1381,7 @@ const ThreadView: React.FC<{
           onAttachmentsChange={p.setReplyAttachments}
           suggestions={p.replySuggestions}
           onSuggestionsChange={p.setReplySuggestions}
+          suggestionThreadId={thread.id}
           onSubmit={() => {
             if (p.replyDraft.trim() || p.replyAttachments.length || changedSuggestions(p.replySuggestions).length) {
               p.onReply(p.replyDraft, p.replyAttachments, p.replySuggestions);
@@ -1427,6 +1461,8 @@ const UnreadToggle: React.FC<{ unread: boolean; hovered: boolean; onToggle: () =
 // surface while the row is hovered. The unread control sits at the top right.
 const CommentRow: React.FC<{
   comment: CommentItem;
+  /** Thread that anchors this comment — the scope its wording suggestions apply to. */
+  threadId: string;
   index: number;
   user: CommentAuthor | null;
   busy: boolean;
@@ -1489,6 +1525,7 @@ const CommentRow: React.FC<{
               onChange={p.onEditChange}
               suggestions={p.editingSuggestions}
               onSuggestionsChange={p.onEditSuggestionsChange}
+              suggestionThreadId={p.threadId}
               onSubmit={p.onEditSave}
               onCancel={p.onEditCancel}
               busy={p.busy}
@@ -1513,6 +1550,7 @@ const CommentRow: React.FC<{
             {(c.suggestions?.length ?? 0) > 0 && (
               <SuggestionPreviewBlock
                 suggestions={c.suggestions!}
+                threadId={p.threadId}
                 topMargin={c.content || attachments.length ? 8 : 3}
               />
             )}
@@ -1606,13 +1644,20 @@ const Composer: React.FC<{
   onAttachmentsChange?: (a: PendingAttachment[]) => void;
   suggestions?: WordingSuggestion[];
   onSuggestionsChange?: (s: WordingSuggestion[]) => void;
+  /**
+   * Thread the suggestions hang off, when composing against a saved one (reply /
+   * edit) — it anchors the wording preview to that thread's element. The
+   * new-comment composer omits it: its thread doesn't exist yet, so the preview
+   * anchors to the canvas selection instead.
+   */
+  suggestionThreadId?: string;
   onSubmit: () => void;
   onCancel?: () => void;
   busy: boolean;
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, suggestionThreadId, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const imagesOn = !!onAttachmentsChange;
@@ -1728,12 +1773,12 @@ const Composer: React.FC<{
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 6px 5px 6px' }}>
         {imagesOn && <AttachButton onFiles={addFiles} />}
-        {suggestionsOn && <SuggestionToggleButton value={suggestions ?? []} onChange={onSuggestionsChange!} />}
+        {suggestionsOn && <SuggestionToggleButton value={suggestions ?? []} onChange={onSuggestionsChange!} threadId={suggestionThreadId} />}
         <EmojiPicker onPick={insertEmoji} />
       </div>
     </div>
     {suggestionsOn && (
-      <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} />
+      <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} threadId={suggestionThreadId} />
     )}
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
       {onCancel && (

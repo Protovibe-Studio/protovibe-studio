@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { app, dialog, ipcMain, shell } = require('electron');
+const { app, dialog, ipcMain, session, shell } = require('electron');
 const { devRepoRoot } = require('./paths');
 const { writeShims } = require('./toolchain');
 const { Logger } = require('./logger');
@@ -48,6 +48,12 @@ ipcMain.handle('shell:open-external', (_event, url) => {
   shell.openExternal(url);
 });
 
+// Everything this shell loads is code being edited right now: the manager, the
+// editor, and the preview iframe are all served by a local vite dev server. A
+// disk cache over that only ever hands back a stale version of a file the user
+// just changed, so turn it off — the switch must be set before app ready.
+app.commandLine.appendSwitch('disable-http-cache');
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -74,6 +80,11 @@ function splashError(message) {
 
 async function boot() {
   writeShims();
+
+  // The switch above stops new cache writes, but a user upgrading from a build
+  // that cached is still carrying those entries on disk. Drop them once at boot
+  // (cheap: everything in there came from localhost).
+  await session.defaultSession.clearCache();
 
   splashWindow = createSplashWindow();
   ipcMain.on('provision:retry', () => { provisionAndStart(); });

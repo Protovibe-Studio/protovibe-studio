@@ -74,10 +74,16 @@ export interface CommentContext {
  * A UX-writing suggestion: swap an exact `original` string for `suggested`.
  * Purely advisory data attached to a comment — previewed live by find/replacing
  * the string in the canvas DOM, never a source-code edit on its own.
+ *
+ * The swap is scoped to the element the comment is anchored to (its subtree)
+ * unless `replaceAll` is set, which widens it to every occurrence of the string
+ * on the page.
  */
 export interface WordingSuggestion {
   original: string;
   suggested: string;
+  /** Replace the string everywhere on the page, not just inside the anchor. */
+  replaceAll?: boolean;
 }
 
 /** A single message inside a thread. */

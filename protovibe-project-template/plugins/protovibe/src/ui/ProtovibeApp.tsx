@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -352,6 +352,13 @@ export const ProtovibeApp: React.FC = () => {
     });
   }, [runLockedMutation]);
 
+  // Wipe the prototype's persisted state. The clear runs inside the app iframe
+  // (see PV_CLEAR_STORAGE in bridge.ts), which then reloads itself.
+  const handleClearStorage = () => {
+    appIframeRef.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_STORAGE' }, '*');
+    emitToast({ message: 'localStorage cleared', variant: 'info', durationMs: 1600 });
+  };
+
   // Restart the development server when the banner's restart button is clicked
   const handleRestart = async () => {
     try {
@@ -685,6 +692,30 @@ export const ProtovibeApp: React.FC = () => {
                 minWidth: 180,
               }}
             >
+              <button
+                onClick={() => {
+                  setMoreMenuOpen(false);
+                  handleClearStorage();
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: theme.text_default,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_tertiary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <Eraser size={16} />
+                Clear localStorage
+              </button>
               <button
                 onClick={() => {
                   setMoreMenuOpen(false);
