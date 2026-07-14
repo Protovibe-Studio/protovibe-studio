@@ -17,6 +17,7 @@ import {
 } from './server/github-auth.js'
 import { handleListRepos, handleValidateRepo } from './server/github-api.js'
 import { resolveGit, ensureEmbeddedGit, handleClone } from './server/git-engine.js'
+import { verifyManifest, sha256Hex, KEY_CONFIGURED } from './server/release-verify.js'
 
 const require_ = createRequire(import.meta.url)
 const treeKill = require_('tree-kill')
@@ -32,7 +33,10 @@ const TEMPLATE_DIR = path.join(REPO_ROOT, 'protovibe-project-template')
 const PLUGIN_REL_DIR = path.join('plugins', 'protovibe')
 const SOURCE_PLUGIN_DIR = path.join(TEMPLATE_DIR, PLUGIN_REL_DIR)
 const REMOTE_REPO = 'Protovibe-Studio/protovibe-studio'
-const REMOTE_BRANCH = 'main'
+// Auto-updates are pulled from signed GitHub Releases whose tag starts with this
+// prefix (published by .github/workflows/source-release.yml). This disambiguates
+// source releases from the Electron shell's own `shell-v*` releases in the same repo.
+const RELEASE_TAG_PREFIX = 'source-v'
 // Plugin sync exclusions: huge / generated / lockfile artefacts stay
 // project-local instead of being overwritten by the template.
 const PLUGIN_EXCLUDE = new Set(['node_modules', 'dist'])
@@ -1098,46 +1102,93 @@ function githubToken() {
   return cachedGhToken
 }
 
-async function fetchRemoteVersion(folder) {
-  // Contents API works for both public and private repos and accepts a token.
-  const url = `https://api.github.com/repos/${REMOTE_REPO}/contents/${folder}/package.json?ref=${REMOTE_BRANCH}`
+// ── Signed release fetch/verify ──────────────────────────────────────────────
+// Auto-updates come from a GitHub Release (tag `source-v*`) carrying three
+// assets: the source bundle zip, `manifest.json`, and `manifest.json.sig`. The
+// manifest is verified against the embedded Ed25519 public key before ANY of its
+// contents (versions, artifact name, artifact hash) are trusted. A compromise of
+// the git repo alone cannot forge a release without the offline signing key.
+
+function githubApiHeaders(accept = 'application/vnd.github+json') {
+  const headers = { Accept: accept, 'User-Agent': 'protovibe-project-manager' }
   const token = githubToken()
-  const headers = {
-    Accept: 'application/vnd.github.raw+json',
-    'User-Agent': 'protovibe-project-manager',
-  }
   if (token) headers.Authorization = `Bearer ${token}`
-  try {
-    const res = await fetch(url, { headers, signal: AbortSignal.timeout(8000) })
-    if (!res.ok) return { version: null, error: `GitHub returned ${res.status}` }
-    const pkg = await res.json()
-    const version = typeof pkg?.version === 'string' ? pkg.version : null
-    if (!version) return { version: null, error: 'Remote package.json has no version field' }
-    return { version, error: null }
-  } catch (e) {
-    return { version: null, error: e?.message || 'Network error' }
-  }
+  return headers
+}
+
+// Fetch a release asset's raw bytes. The API asset URL + octet-stream Accept
+// works for both public and private repos (with a token).
+async function fetchAssetBytes(asset, timeoutMs = 15000) {
+  if (!asset?.url) throw new Error('Release asset is missing its download URL.')
+  const res = await fetch(asset.url, {
+    headers: githubApiHeaders('application/octet-stream'),
+    redirect: 'follow',
+    signal: AbortSignal.timeout(timeoutMs),
+  })
+  if (!res.ok) throw new Error(`Failed to download ${asset.name}: GitHub returned ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
+}
+
+// Locate the newest signed source release and verify its manifest. Returns
+// { manifest, release, assetsByName } on success. Throws on network failure, a
+// missing/invalid signature, or when no signed source release exists — callers
+// must let that error surface so an unverified update is never applied.
+async function fetchSignedRelease() {
+  const res = await fetch(`https://api.github.com/repos/${REMOTE_REPO}/releases?per_page=30`, {
+    headers: githubApiHeaders(),
+    signal: AbortSignal.timeout(10000),
+  })
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} listing releases`)
+  const releases = await res.json()
+  // Releases come back newest-first. Pick the newest published (non-draft,
+  // non-prerelease) source release that carries both manifest assets.
+  const release = (Array.isArray(releases) ? releases : []).find((r) =>
+    !r.draft && !r.prerelease &&
+    typeof r.tag_name === 'string' && r.tag_name.startsWith(RELEASE_TAG_PREFIX) &&
+    (r.assets || []).some((a) => a.name === 'manifest.json') &&
+    (r.assets || []).some((a) => a.name === 'manifest.json.sig'),
+  )
+  if (!release) throw new Error('No signed source release found.')
+
+  const assetsByName = new Map((release.assets || []).map((a) => [a.name, a]))
+  const [manifestBuf, sigBuf] = await Promise.all([
+    fetchAssetBytes(assetsByName.get('manifest.json')),
+    fetchAssetBytes(assetsByName.get('manifest.json.sig')),
+  ])
+  // Throws unless the signature verifies against the embedded public key.
+  const manifest = verifyManifest(manifestBuf, sigBuf.toString('utf-8'))
+  return { manifest, release, assetsByName }
 }
 
 async function handleGetVersion(_req, res) {
   const managerCurrent = readLocalVersion(path.join(ROOT, 'package.json'))
   const templateCurrent = readLocalVersion(path.join(TEMPLATE_DIR, 'package.json'))
-  const [managerRemote, templateRemote] = await Promise.all([
-    fetchRemoteVersion('protovibe-project-manager'),
-    fetchRemoteVersion('protovibe-project-template'),
-  ])
+
+  let managerLatest = null
+  let templateLatest = null
+  let error = null
+  try {
+    const { manifest } = await fetchSignedRelease()
+    managerLatest = typeof manifest.managerVersion === 'string' ? manifest.managerVersion : null
+    templateLatest = typeof manifest.templateVersion === 'string' ? manifest.templateVersion : null
+  } catch (e) {
+    // Fail closed: on any verification/network problem we report the error and
+    // never mark anything "outdated", so the UI never offers an unverified update.
+    error = e?.message || 'Could not verify latest release'
+  }
+
   sendJson(res, 200, {
     manager: {
       current: managerCurrent,
-      latest: managerRemote.version,
-      error: managerRemote.error,
-      outdated: semverGt(managerRemote.version, managerCurrent),
+      latest: managerLatest,
+      error,
+      outdated: semverGt(managerLatest, managerCurrent),
     },
     template: {
       current: templateCurrent,
-      latest: templateRemote.version,
-      error: templateRemote.error,
-      outdated: semverGt(templateRemote.version, templateCurrent),
+      latest: templateLatest,
+      error,
+      outdated: semverGt(templateLatest, templateCurrent),
     },
   })
 }
@@ -1149,20 +1200,19 @@ let updateInProgress = false
 // flow so it works on both macOS and Windows (where bash isn't on PATH).
 // The .sh script remains for CLI use on Unix.
 
-async function downloadZipball(destPath, log) {
-  const url = `https://api.github.com/repos/${REMOTE_REPO}/zipball/${REMOTE_BRANCH}`
-  const token = githubToken()
-  const headers = {
-    Accept: 'application/vnd.github+json',
-    'User-Agent': 'protovibe-project-manager',
+// Download a release asset to disk and verify its SHA-256 against the value from
+// the (already signature-verified) manifest. Throws before writing nothing usable
+// if the digest does not match, so tampered/corrupt artifacts never get extracted.
+async function downloadVerifiedArtifact(asset, destPath, expectedSha256, log) {
+  log(`Downloading verified release artifact ${asset.name} ...`)
+  const buf = await fetchAssetBytes(asset, 120000)
+  const got = sha256Hex(buf)
+  const want = String(expectedSha256 || '').toLowerCase()
+  if (!want || got.toLowerCase() !== want) {
+    throw new Error(`Artifact hash mismatch — expected ${want || '(none)'}, got ${got}. Refusing to apply.`)
   }
-  if (token) headers.Authorization = `Bearer ${token}`
-  log(`Downloading latest protovibe from github.com/${REMOTE_REPO}@${REMOTE_BRANCH} ...`)
-  const res = await fetch(url, { headers, redirect: 'follow' })
-  if (!res.ok || !res.body) {
-    throw new Error(`Failed to download zipball: GitHub returned ${res.status}`)
-  }
-  await pipeline(res.body, fs.createWriteStream(destPath))
+  fs.writeFileSync(destPath, buf)
+  log('Artifact hash verified.')
 }
 
 async function extractZip(zipPath, destDir) {
@@ -1277,21 +1327,16 @@ async function runUpdate(which, log) {
   const localPmVer = readLocalVersion(path.join(PM_DIR, 'package.json'))
   const localTplVer = readLocalVersion(path.join(TPL_DIR, 'package.json'))
 
+  // Verify the signed release manifest BEFORE downloading or touching anything.
+  // Throws (aborting the update) if the key is unconfigured or the signature is bad.
+  const { manifest, assetsByName } = await fetchSignedRelease()
+  const remotePmVer = typeof manifest.managerVersion === 'string' ? manifest.managerVersion : null
+  const remoteTplVer = typeof manifest.templateVersion === 'string' ? manifest.templateVersion : null
+
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'protovibe-update-'))
   try {
-    const zipPath = path.join(tmp, 'repo.zip')
-    await downloadZipball(zipPath, log)
-    const extractDir = path.join(tmp, 'extract')
-    fs.mkdirSync(extractDir, { recursive: true })
-    log('Extracting archive ...')
-    await extractZip(zipPath, extractDir)
-
-    const srcRoot = findExtractedRoot(extractDir)
-    if (!srcRoot) throw new Error('Could not find protovibe folders in extracted archive.')
-
-    const remotePmVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-manager', 'package.json'))
-    const remoteTplVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-template', 'package.json'))
-
+    // Downgrade protection: only ever move forward. semverGt is strict, so a
+    // signed release advertising a version <= the installed one is ignored.
     const wantPm = which !== 'template'
     const wantTpl = which !== 'manager'
     const updatePm = wantPm && !!(remotePmVer && localPmVer && semverGt(remotePmVer, localPmVer))
@@ -1303,6 +1348,32 @@ async function runUpdate(which, log) {
         manager: false, template: false,
         managerVersion: remotePmVer, templateVersion: remoteTplVer,
       }
+    }
+
+    // Download + hash-verify the artifact named in the (signed) manifest.
+    const artifactName = typeof manifest.artifact === 'string' ? manifest.artifact : null
+    const artifactAsset = artifactName ? assetsByName.get(artifactName) : null
+    if (!artifactAsset) throw new Error(`Signed manifest references missing artifact "${artifactName}".`)
+    const zipPath = path.join(tmp, 'source.zip')
+    await downloadVerifiedArtifact(artifactAsset, zipPath, manifest.artifactSha256, log)
+
+    const extractDir = path.join(tmp, 'extract')
+    fs.mkdirSync(extractDir, { recursive: true })
+    log('Extracting archive ...')
+    await extractZip(zipPath, extractDir)
+
+    const srcRoot = findExtractedRoot(extractDir)
+    if (!srcRoot) throw new Error('Could not find protovibe folders in extracted archive.')
+
+    // Cross-check: the artifact's own package.json versions must match what the
+    // signed manifest promised, so the signature genuinely covers this payload.
+    const extractedPmVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-manager', 'package.json'))
+    const extractedTplVer = readLocalVersion(path.join(srcRoot, 'protovibe-project-template', 'package.json'))
+    if (updatePm && extractedPmVer !== remotePmVer) {
+      throw new Error(`Artifact manager version ${extractedPmVer} != signed manifest ${remotePmVer}.`)
+    }
+    if (updateTpl && extractedTplVer !== remoteTplVer) {
+      throw new Error(`Artifact template version ${extractedTplVer} != signed manifest ${remoteTplVer}.`)
     }
 
     if (updatePm) {

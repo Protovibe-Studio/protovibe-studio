@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Protovibe self-updater (macOS / Linux)
 #
-# Downloads the latest protovibe-project-manager and protovibe-project-template
-# from the GitHub repo and replaces the local copies — only the folders whose
-# version (in package.json) is newer than the local one. Existing user projects
-# under projects/ are never touched.
+# Downloads the latest SIGNED protovibe release and replaces the local
+# protovibe-project-manager / protovibe-project-template copies — only the folders
+# whose version (in package.json) is newer than the local one. The release's
+# Ed25519 signature and artifact hash are verified (against the public key embedded
+# in the app) before anything is applied; unverified code is never used. Existing
+# user projects under projects/ are never touched. See SECURITY.md.
 #
 # Usage:
 #   ./download-newest-version.sh            # update what is outdated
@@ -18,7 +20,6 @@
 set -o pipefail
 
 REPO="Protovibe-Studio/protovibe-studio"
-BRANCH="main"
 
 if [ -t 1 ]; then
   C_RESET="\033[0m"; C_BOLD="\033[1m"
@@ -77,43 +78,34 @@ ver_gt() {
 LOCAL_PM_VER="$(read_pkg_version "$PM_DIR/package.json")"
 LOCAL_TPL_VER="$(read_pkg_version "$TPL_DIR/package.json")"
 
-# ── 2. Fetch remote tarball ─────────────────────────────────────────────────
+# ── 2. Fetch + verify the signed release ────────────────────────────────────
+# SECURITY: we no longer pull raw source from a branch. Instead we download the
+# latest SIGNED GitHub release and verify its Ed25519 signature + artifact hash
+# (against the public key embedded in the app) before applying anything. This is
+# delegated to scripts/fetch-verified-release.mjs, which fails closed on any
+# verification error. See SECURITY.md.
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-say "Downloading latest protovibe from github.com/$REPO@$BRANCH ..."
-TOKEN="${PROTOVIBE_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}"
-if [ -z "$TOKEN" ] && command -v gh >/dev/null 2>&1; then
-  TOKEN="$(gh auth token 2>/dev/null || true)"
-fi
-auth_args=()
-if [ -n "$TOKEN" ]; then
-  auth_args=(-H "Authorization: Bearer $TOKEN")
-fi
-# API tarball endpoint works for both public and private repos with a token.
-TARBALL_URL="https://api.github.com/repos/$REPO/tarball/$BRANCH"
-if ! curl -fsSL "${auth_args[@]}" -H "Accept: application/vnd.github+json" "$TARBALL_URL" -o "$TMP/repo.tgz"; then
-  err "Failed to download tarball. Check your internet connection."
-  exit 1
-fi
-if ! tar -xzf "$TMP/repo.tgz" -C "$TMP"; then
-  err "Failed to extract tarball."
+if ! command -v unzip >/dev/null 2>&1; then
+  err "unzip is required to verify signed releases. Please install it and retry."
   exit 1
 fi
 
-SRC_ROOT=""
-for d in "$TMP"/*/; do
-  if [ -d "${d}protovibe-project-manager" ] && [ -d "${d}protovibe-project-template" ]; then
-    SRC_ROOT="${d%/}"; break
-  fi
-done
-if [ -z "$SRC_ROOT" ]; then
-  err "Could not find protovibe folders in extracted tarball."
+say "Downloading and verifying the latest signed protovibe release ..."
+VERIFIED_JSON="$(node "$SCRIPT_DIR/scripts/fetch-verified-release.mjs" --dest "$TMP/verified")" || {
+  err "Could not download or verify a signed release. Refusing to apply unverified code."
+  exit 1
+}
+
+SRC_ROOT="$(printf '%s' "$VERIFIED_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).srcRoot||"")}catch{process.stdout.write("")}})')"
+REMOTE_PM_VER="$(printf '%s' "$VERIFIED_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).managerVersion||"")}catch{process.stdout.write("")}})')"
+REMOTE_TPL_VER="$(printf '%s' "$VERIFIED_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).templateVersion||"")}catch{process.stdout.write("")}})')"
+
+if [ -z "$SRC_ROOT" ] || [ ! -d "$SRC_ROOT/protovibe-project-manager" ] || [ ! -d "$SRC_ROOT/protovibe-project-template" ]; then
+  err "Verified release did not contain the expected folders."
   exit 1
 fi
-
-REMOTE_PM_VER="$(read_pkg_version "$SRC_ROOT/protovibe-project-manager/package.json")"
-REMOTE_TPL_VER="$(read_pkg_version "$SRC_ROOT/protovibe-project-template/package.json")"
 
 if [ "$MODE" = "check" ]; then
   printf '{"manager":{"current":"%s","latest":"%s"},"template":{"current":"%s","latest":"%s"}}\n' \

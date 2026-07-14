@@ -1,0 +1,59 @@
+name: Sign source auto-update release
+
+# Publishes a SIGNED source release that the in-app updater verifies before it
+# will offer or apply an update. Triggered by pushing a `source-v*` tag (or the
+# manual "Run workflow" button).
+#
+# Security model (Architecture A): the signing job runs in the protected
+# `release-signing` environment, which is configured with a required reviewer.
+# GitHub therefore PAUSES this job until you approve it in the UI — an approval
+# authenticated by your GitHub passkey/2FA. The Ed25519 signing key is scoped to
+# that environment as the secret PROTOVIBE_SIGNING_KEY, so nothing is ever signed
+# or published without your explicit, second-factor confirmation. A leaked token,
+# a malicious dependency, or an accidental tag push cannot ship a release on their
+# own.
+
+on:
+  push:
+    tags:
+      - 'source-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create (e.g. source-v1.0.12)'
+        required: true
+
+permissions:
+  contents: write # create the GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # ── Passkey-gated approval happens here, before any step runs ──
+    environment: release-signing
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve release tag
+        id: tag
+        run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build + sign release
+        env:
+          PROTOVIBE_SIGNING_KEY: ${{ secrets.PROTOVIBE_SIGNING_KEY }}
+        run: node scripts/sign-source-release.mjs --out dist-release --tag "${{ steps.tag.outputs.tag }}"
+
+      - name: Publish signed GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            dist-release/protovibe-source.zip \
+            dist-release/manifest.json \
+            dist-release/manifest.json.sig \
+            --title "Protovibe source ${{ steps.tag.outputs.tag }}" \
+            --notes "Signed auto-update release. The in-app updater verifies manifest.json.sig against the embedded Ed25519 public key before applying."
