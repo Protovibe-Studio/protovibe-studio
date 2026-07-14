@@ -64,6 +64,8 @@ function createMainWindow(url) {
     },
   });
   attachContextMenu(win);
+  // The width/height above stay as the un-maximized restore size.
+  win.maximize();
   win.loadURL(url);
   return win;
 }
