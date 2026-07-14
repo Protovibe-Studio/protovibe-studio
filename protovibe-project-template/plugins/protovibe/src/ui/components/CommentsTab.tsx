@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
+  ChevronLeft, ChevronRight,
   MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
@@ -301,22 +302,50 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   // on the active surface. Only computes while the "In view" scope is active.
   const viewportIds = useViewportCommentIds(isActive && filterScope === 'viewport', activeIframeTab, threads);
 
+  // Threads read most-recently-active first, but that order is *pinned* while the
+  // panel is open: replying to a thread must not yank it to the top and reshuffle
+  // the list you are stepping through. We keep the id order in a ref and only
+  // extend it — threads not placed yet enter at the top (by activity), deleted
+  // ones fall out, everything else keeps its slot. Re-entering the panel drops the
+  // pin, which is the natural moment for a fresh sort.
+  const orderRef = useRef<string[]>([]);
+  const [orderEpoch, setOrderEpoch] = useState(0);
+  useEffect(() => {
+    if (!isActive) return;
+    orderRef.current = [];
+    setOrderEpoch((n) => n + 1);
+  }, [isActive]);
+
+  const orderedThreads = useMemo(() => {
+    const byActivity = [...threads].sort((a, b) => lastActivity(b) - lastActivity(a));
+    const alive = new Set(byActivity.map((t) => t.id));
+    const placed = new Set(orderRef.current);
+    const order = [
+      ...byActivity.filter((t) => !placed.has(t.id)).map((t) => t.id),
+      ...orderRef.current.filter((id) => alive.has(id)),
+    ];
+    orderRef.current = order;
+    const rank = new Map(order.map((id, i) => [id, i]));
+    return byActivity.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
+    // orderEpoch is the "re-sort from scratch" signal (see the effect above).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, orderEpoch]);
+
   const visibleThreads = useMemo(() => {
     const subtreeSet = new Set(subtreeIds);
-    let base = threads;
+    let base = orderedThreads;
     if (filterScope === 'selection') {
-      base = currentBaseTarget ? threads.filter((t) => subtreeSet.has(t.id)) : threads;
+      base = currentBaseTarget ? base.filter((t) => subtreeSet.has(t.id)) : base;
     } else if (filterScope === 'viewport') {
-      base = threads.filter((t) => viewportIds.has(t.id));
+      base = base.filter((t) => viewportIds.has(t.id));
     }
     // Status pills (incl. 'none' for untriaged) OR within their own group.
     const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
     if (statusSet.size) base = base.filter((t) => statusSet.has(t.status ?? 'none'));
     if (filterTokens.has('unread')) base = base.filter((t) => threadHasUnread(user, t));
     if (filterTokens.has('mine')) base = base.filter((t) => threadMentionsMe(user, t));
-    // Most recently active thread first.
-    return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
-  }, [threads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
+    return base;
+  }, [orderedThreads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
 
   // Free-text search runs across every individual comment (not just threads),
   // newest first. A comment matches on its text, its author, or either side of any
@@ -586,6 +615,29 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
 
+  // What the thread view's ‹ › chevrons step through: whatever the list is
+  // showing right now — the search hits (one entry per thread) while searching,
+  // otherwise the filtered thread list, in its pinned order.
+  const navThreads = useMemo(() => {
+    if (!query.trim()) return visibleThreads;
+    const seen = new Set<string>();
+    const out: CommentThread[] = [];
+    for (const hit of searchResults) {
+      if (seen.has(hit.thread.id)) continue;
+      seen.add(hit.thread.id);
+      out.push(hit.thread);
+    }
+    return out;
+  }, [query, searchResults, visibleThreads]);
+
+  // -1 when the open thread isn't in the current list (e.g. its element was
+  // deselected under "In selection") — both chevrons then sit disabled.
+  const navIndex = activeThreadId ? navThreads.findIndex((t) => t.id === activeThreadId) : -1;
+  const stepThread = (delta: number) => {
+    const next = navIndex >= 0 ? navThreads[navIndex + delta] : undefined;
+    if (next) openThread(next);
+  };
+
   const handleAddCommentClick = () => {
     // An element can carry several threads — always start a fresh comment; the
     // backend injects another valueless data-pv-comment-{id} attribute for it.
@@ -666,6 +718,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onDeleteThread={() => handleDeleteThread(activeThread)}
           onLocate={() => navigateToThread(activeThread)}
           onBack={() => setActiveThreadId(null)}
+          onPrev={navIndex > 0 ? () => stepThread(-1) : undefined}
+          onNext={navIndex >= 0 && navIndex < navThreads.length - 1 ? () => stepThread(1) : undefined}
+          navPosition={navIndex >= 0 ? { index: navIndex, total: navThreads.length } : undefined}
         />
       ) : (
         <ListView
@@ -1313,6 +1368,11 @@ const ThreadView: React.FC<{
   onDeleteThread: () => void;
   onLocate: () => void;
   onBack: () => void;
+  /** Undefined when there is no earlier / later thread to step to. */
+  onPrev?: () => void;
+  onNext?: () => void;
+  /** Where this thread sits in the list being stepped through (0-based). */
+  navPosition?: { index: number; total: number };
 }> = (p) => {
   const { thread } = p;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1371,6 +1431,16 @@ const ThreadView: React.FC<{
             Thread {thread.id}
           </span>
           <CopyIdButton id={thread.id} />
+          <StepThreadButton
+            direction="prev"
+            onClick={p.onPrev}
+            position={p.navPosition}
+          />
+          <StepThreadButton
+            direction="next"
+            onClick={p.onNext}
+            position={p.navPosition}
+          />
           <div style={{ flex: 1 }} />
           <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtnSm}><MapPin size={13} /></button>
           <ConfirmDeleteButton
@@ -1535,7 +1605,9 @@ const CommentRow: React.FC<{
           <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.author.name}</span>
           <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
           <div style={{ flex: 1 }} />
-          {mine && !p.isEditing && hovered && (
+          {/* Anyone can edit/delete any comment — this is a shared prototype, not
+              an account system, so ownership is attribution, not permission. */}
+          {!p.isEditing && hovered && (
             <>
               <button onClick={p.onStartEdit} data-tooltip="Edit" style={iconBtnSm}><Pencil size={12} /></button>
               {p.index > 0 && (
@@ -2134,6 +2206,31 @@ const CopyIdButton: React.FC<{ id: string }> = ({ id }) => {
   return (
     <button onClick={copy} data-tooltip="Copy comment ID" style={iconBtnSm}>
       {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+};
+
+// Chevron that walks to the previous / next thread in the list, so a thread can be
+// read one after another without bouncing back to the list. Disabled (but kept in
+// place, so the header doesn't jump) at either end of the list.
+const StepThreadButton: React.FC<{
+  direction: 'prev' | 'next';
+  onClick?: () => void;
+  position?: { index: number; total: number };
+}> = ({ direction, onClick, position }) => {
+  const enabled = !!onClick;
+  const label = direction === 'prev' ? 'Previous comment' : 'Next comment';
+  const where = position ? ` (${position.index + 1} of ${position.total})` : '';
+  return (
+    <button
+      onClick={onClick}
+      disabled={!enabled}
+      data-tooltip={enabled ? `${label}${where}` : undefined}
+      style={{ ...iconBtnSm, cursor: enabled ? 'pointer' : 'not-allowed', opacity: enabled ? 1 : 0.35 }}
+      onMouseEnter={(e) => { if (enabled) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {direction === 'prev' ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
     </button>
   );
 };
