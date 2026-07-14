@@ -280,7 +280,7 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
 
 // Scan src/ for the file that has a pvConfig with the given componentId.
 // This allows the inspector to find pvConfig regardless of barrel imports.
-async function findPvConfigByComponentId(componentId: string, server: import('vite').ViteDevServer): Promise<any> {
+export async function findPvConfigByComponentId(componentId: string, server: import('vite').ViteDevServer): Promise<any> {
   const srcPath = path.resolve(process.cwd(), 'src');
 
   const collectCandidates = (dir: string): string[] => {

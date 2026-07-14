@@ -1,10 +1,12 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack, MoreVertical, PenTool } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
 import { executeBlockAction } from '../utils/executeBlockAction';
+import { snapshotElement, DomSnapshot } from '../utils/domSnapshot';
+import { ConvertToSketchpadDialog } from './ConvertToSketchpadDialog';
 import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { emitToast } from '../events/toast';
@@ -27,6 +29,8 @@ export const FloatingToolbar: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [convertSnapshot, setConvertSnapshot] = useState<DomSnapshot | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const addSearchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -107,9 +111,40 @@ export const FloatingToolbar: React.FC = () => {
     };
   }, [showAddDialog]);
 
+  // Close the "more" menu on outside click or Escape
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleMouse = (e: MouseEvent) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', handleMouse);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleMouse);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [moreOpen]);
+
   // Keep the toolbar visible for any selected element — even ones that are not
   // pv blocks. Actions that need a block open the "not editable" dialog instead.
   if (!inspectorOpen || (!currentBaseTarget && !canAdd && !canBlockAction)) return null;
+
+  const handleOpenConvertDialog = () => {
+    setMoreOpen(false);
+    setAddMode(null);
+    if (!closestBlock || !activeData?.file) return;
+    const snapshot = snapshotElement(closestBlock as HTMLElement);
+    if (!snapshot) {
+      emitToast({ message: 'Nothing to convert in this selection', variant: 'error' });
+      return;
+    }
+    setConvertSnapshot(snapshot);
+  };
 
   const handleBlockAction = async (action: string) => {
     setAddMode(null);
@@ -374,6 +409,49 @@ export const FloatingToolbar: React.FC = () => {
     );
   };
 
+  const renderMoreMenu = () => (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 'calc(100% + 8px)',
+        right: 0,
+        minWidth: '220px',
+        background: theme.bg_secondary,
+        border: `1px solid ${theme.border_default}`,
+        borderRadius: '8px',
+        boxShadow: '0 8px 28px rgba(0,0,0,0.55)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <button
+        data-testid="item-convert-to-sketchpad"
+        disabled={locked}
+        onClick={handleOpenConvertDialog}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'transparent',
+          border: 'none',
+          color: theme.text_default,
+          fontSize: '11px',
+          fontFamily: theme.font_ui,
+          padding: '9px 12px',
+          textAlign: 'left',
+          cursor: locked ? 'progress' : 'pointer',
+          opacity: locked ? 0.6 : 1,
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      >
+        <PenTool size={13} strokeWidth={2} />
+        Convert to Sketchpad…
+      </button>
+    </div>
+  );
+
   const toolbar = (
     <div
       ref={toolbarRef}
@@ -392,6 +470,7 @@ export const FloatingToolbar: React.FC = () => {
       }}
     >
       {showAddDialog && renderAddDialog()}
+      {moreOpen && renderMoreMenu()}
 
       <div
         style={{
@@ -551,11 +630,48 @@ export const FloatingToolbar: React.FC = () => {
               >
                 <Trash2 size={13} strokeWidth={2} />
               </button>
+              {!isSketchpadAbsolute && (
+                <>
+                  {divider}
+                  <button
+                    disabled={locked}
+                    onClick={() => {
+                      if (!canBlockAction) {
+                        openNotEditableDialog();
+                        return;
+                      }
+                      setAddMode(null);
+                      setMoreOpen(prev => !prev);
+                    }}
+                    onMouseEnter={() => setHoveredBtn('more')}
+                    onMouseLeave={() => setHoveredBtn(null)}
+                    style={mkBtnStyle('more', {
+                      color: moreOpen ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                      background: moreOpen ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'more' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                    })}
+                    data-tooltip={canBlockAction ? 'More actions' : NOT_EDITABLE_TOOLTIP}
+                    data-testid="btn-more-menu"
+                  >
+                    <MoreVertical size={13} strokeWidth={2.5} />
+                  </button>
+                </>
+              )}
             </>
           )}
       </div>
     </div>
   );
 
-  return createPortal(toolbar, document.body);
+  return (
+    <>
+      {createPortal(toolbar, document.body)}
+      {convertSnapshot && activeData?.file && (
+        <ConvertToSketchpadDialog
+          file={activeData.file}
+          snapshot={convertSnapshot}
+          onClose={() => setConvertSnapshot(null)}
+        />
+      )}
+    </>
+  );
 };

@@ -4,6 +4,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
+import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
 import { registerGitMiddleware } from './backend/git-server';
@@ -159,6 +160,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__wrap-blocks', handleWrapBlocks);
       server.middlewares.use('/__delete-blocks', handleDeleteBlocks);
       server.middlewares.use('/__block-action', handleBlockAction);
+      server.middlewares.use('/__convert-to-sketchpad', (req, res) => handleConvertToSketchpad(req, res, server));
       server.middlewares.use('/__take-snapshot', handleTakeSnapshot);
       server.middlewares.use('/__undo', handleUndo);
       server.middlewares.use('/__redo', handleRedo);

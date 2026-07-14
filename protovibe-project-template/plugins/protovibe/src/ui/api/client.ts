@@ -46,6 +46,22 @@ export async function blockAction(action: string, blockId: string | string[], fi
 }
 
 
+export async function convertToSketchpad(params: {
+  file: string;
+  snapshot: unknown;
+  options: { layoutMode: 'flex' | 'absolute'; keepComponents: string[] };
+}): Promise<{ success: boolean; blockCount: number; imports: Array<{ name: string; path: string }>; warnings: string[] }> {
+  const res = await fetch('/__convert-to-sketchpad', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Failed to convert element');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 export async function deleteBlocks(file: string, blockIds: string[]) {
   const res = await fetch('/__delete-blocks', {
     method: 'POST',
