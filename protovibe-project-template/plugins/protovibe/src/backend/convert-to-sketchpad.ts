@@ -25,6 +25,7 @@ interface SnapshotNode {
   attrs?: Record<string, string>;
   componentId?: string;
   pvBlockId?: string;
+  props?: Record<string, string | number | boolean>;
   locId?: string;
   isSvg?: boolean;
   rect?: SnapshotRect;
@@ -332,14 +333,30 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
   const name = cfg.name || node.componentId!;
   if (cfg.importPath) ctx.imports.set(name, cfg.importPath);
 
-  // Props: source AST first (recovers string props like label), DOM data-*
-  // attributes fill the gaps for anything the locator missed.
+  // Props, best source first:
+  // 1. React fiber props from the snapshot — the instance's actual resolved
+  //    props (sees icons, labels, and dynamic expressions already evaluated).
+  // 2. Source AST via the node's locator (literal-valued attributes).
+  // 3. DOM data-* attributes matched against the pvConfig schema.
   let props: RecoveredProp[] = [];
-  const fromSource = node.locId ? recoverPropsFromSource(node.locId) : null;
-  if (fromSource) {
-    props = fromSource;
+  if (node.props && Object.keys(node.props).length > 0) {
+    for (const [key, value] of Object.entries(node.props)) {
+      if (key.startsWith('data-pv-') || key === 'children' || key === 'style') continue;
+      if (typeof value === 'boolean') {
+        props.push({ name: key, code: value ? key : `${key}={false}` });
+      } else if (typeof value === 'number') {
+        props.push({ name: key, code: `${key}={${value}}` });
+      } else {
+        props.push({ name: key, code: `${key}="${escapeJsxAttr(value)}"` });
+      }
+    }
   } else {
-    ctx.warnings.push(`${name}: no source locator — props recovered from DOM attributes only.`);
+    const fromSource = node.locId ? recoverPropsFromSource(node.locId) : null;
+    if (fromSource) {
+      props = fromSource;
+    } else {
+      ctx.warnings.push(`${name}: no fiber props or source locator — props recovered from DOM attributes only.`);
+    }
   }
   const haveNames = new Set(props.map(p => p.name));
   for (const domProp of recoverPropsFromDom(node, cfg.props)) {

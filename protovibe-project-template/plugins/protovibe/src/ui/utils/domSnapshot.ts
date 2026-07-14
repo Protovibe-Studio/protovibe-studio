@@ -26,6 +26,12 @@ export interface SnapshotNode {
   componentId?: string;
   /** data-pv-block id when present. */
   pvBlockId?: string;
+  /**
+   * Resolved component props read from the React fiber tree (dev mode).
+   * Primitives only — the most faithful source, it sees icons, labels and
+   * every dynamic expression already evaluated.
+   */
+  props?: Record<string, string | number | boolean>;
   /** App-level source locator (data-pv-loc-app-<hash> suffix), for AST prop recovery. */
   locId?: string;
   /** True when the node lives inside an <svg> subtree. */
@@ -52,6 +58,51 @@ function isDroppedAttr(name: string): boolean {
     name.startsWith('on') ||
     name.startsWith('data-pv-')
   );
+}
+
+// Resolve a fiber's component display name across plain functions, forwardRef
+// and memo wrappers.
+function fiberTypeName(t: any): string | null {
+  if (!t) return null;
+  if (typeof t === 'function') return t.displayName || t.name || null;
+  if (typeof t === 'object') {
+    return (
+      t.displayName ||
+      t.render?.displayName || t.render?.name || // forwardRef
+      t.type?.displayName || t.type?.name || // memo
+      null
+    );
+  }
+  return null;
+}
+
+/**
+ * Read the resolved props of the component instance that rendered `el`, via
+ * React's dev-mode fiber attached to the DOM node. Walks up the fiber tree to
+ * the nearest component whose name matches `componentId` and returns its
+ * `memoizedProps`, filtered to serializable primitives. Returns null when the
+ * fiber is unavailable (e.g. production build) — callers fall back to
+ * source-AST / data-attribute recovery.
+ */
+function getFiberComponentProps(el: Element, componentId: string): Record<string, string | number | boolean> | null {
+  const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber$'));
+  if (!fiberKey) return null;
+  let fiber: any = (el as any)[fiberKey];
+  for (let depth = 0; fiber && depth < 40; depth++) {
+    if (fiberTypeName(fiber.type) === componentId) {
+      const out: Record<string, string | number | boolean> = {};
+      const props = fiber.memoizedProps || {};
+      for (const [key, value] of Object.entries(props)) {
+        if (key === 'children' || key.startsWith('data-pv-')) continue;
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          out[key] = value;
+        }
+      }
+      return out;
+    }
+    fiber = fiber.return;
+  }
+  return null;
 }
 
 function toRect(r: DOMRect): SnapshotRect {
@@ -124,6 +175,8 @@ function walkElement(el: Element, insideSvg: boolean, counts: Map<string, number
 
   if (node.componentId) {
     counts.set(node.componentId, (counts.get(node.componentId) || 0) + 1);
+    const fiberProps = getFiberComponentProps(el, node.componentId);
+    if (fiberProps && Object.keys(fiberProps).length > 0) node.props = fiberProps;
   }
 
   const children: SnapshotNode[] = [];
