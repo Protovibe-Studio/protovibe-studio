@@ -335,14 +335,27 @@ function collectPvLocs(el: HTMLElement): { name: string; value: string }[] {
   return locs;
 }
 
+/**
+ * Effective resize mode for a sketchpad element. An explicit data-pv-resizable
+ * attribute always wins. Without one, components (data-pv-component-id) resize
+ * width-only — their inner flex layout derives its own height — while plain
+ * HTML elements (divs/spans/svgs produced by Convert to Sketchpad) are
+ * absolutely positioned boxes and resize on both axes.
+ */
+function getResizeMode(el: HTMLElement): 'both' | 'horizontal' | 'vertical' {
+  const explicit = el.getAttribute('data-pv-resizable');
+  if (explicit === 'both' || explicit === 'horizontal' || explicit === 'vertical') return explicit;
+  return el.hasAttribute('data-pv-component-id') ? 'horizontal' : 'both';
+}
+
 /** Check if pointer is near any resizable edge/corner and return which one. */
 function getResizeEdge(el: HTMLElement, clientX: number, clientY: number): ResizeEdge | null {
   const rect = el.getBoundingClientRect();
-  const resizeMode = el.getAttribute('data-pv-resizable');
+  const resizeMode = getResizeMode(el);
   const resizeBoth = resizeMode === 'both';
-  const allowH = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
+  const allowH = resizeBoth || resizeMode === 'horizontal';
   const allowV = resizeBoth || resizeMode === 'vertical';
-  const allowLeft = resizeBoth || resizeMode === 'horizontal' || resizeMode === null;
+  const allowLeft = allowH;
 
   const nearRight = allowH && clientX >= rect.right - RESIZE_EDGE_PX && clientX <= rect.right + RESIZE_EDGE_PX;
   const nearLeft = allowLeft && clientX >= rect.left - RESIZE_EDGE_PX && clientX <= rect.left + RESIZE_EDGE_PX;
@@ -635,17 +648,16 @@ function syncOverlays() {
   }
 
   // Resize affordances: only when exactly one sketchpad-el is selected.
-  //   - SE 8x8 square for data-pv-resizable="both" (the only mode where getResizeEdge returns 'se').
-  //   - E thin vertical pill for the width-only modes (data-pv-resizable="horizontal" or
-  //     missing), where right-edge horizontal resize is allowed but the SE corner is not.
+  //   - SE 8x8 square for the 'both' mode (the only mode where getResizeEdge returns 'se').
+  //   - E thin vertical pill for the width-only 'horizontal' mode, where right-edge
+  //     horizontal resize is allowed but the SE corner is not.
   const single = selectedEls.length === 1 ? selectedEls[0] : null;
   const isSingleSketchpadEl = !!single && single.isConnected && single.hasAttribute('data-pv-sketchpad-el');
-  const resizeMode = isSingleSketchpadEl ? single!.getAttribute('data-pv-resizable') : null;
+  const resizeMode = isSingleSketchpadEl ? getResizeMode(single!) : null;
   const showSeAffordance = isSingleSketchpadEl && resizeMode === 'both';
-  // East handle covers the "width only" cases. Excludes 'both' (SE handle conveys it)
+  // East handle covers the width-only case. Excludes 'both' (SE handle conveys it)
   // and 'vertical' (no horizontal resize allowed).
-  const showEastAffordance = isSingleSketchpadEl
-    && (resizeMode === 'horizontal' || resizeMode === null);
+  const showEastAffordance = isSingleSketchpadEl && resizeMode === 'horizontal';
 
   if (showSeAffordance) {
     if (!resizeAffordance) {
