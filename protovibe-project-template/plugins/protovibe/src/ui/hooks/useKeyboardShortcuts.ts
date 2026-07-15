@@ -280,8 +280,8 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // 3.2. Unwrap Block — Shift+G
-      if (e.shiftKey && e.key === 'G') {
+      // 3.2. Unwrap Block — Shift+G or Cmd/Ctrl+Backspace
+      if ((e.shiftKey && e.key === 'G') || ((e.metaKey || e.ctrlKey) && e.key === 'Backspace')) {
         if (!activeData?.file || !currentBaseTarget) return;
         const closestBlock = currentBaseTarget.closest('[data-pv-block]') as HTMLElement | null;
         const blockId = closestBlock?.getAttribute('data-pv-block');
