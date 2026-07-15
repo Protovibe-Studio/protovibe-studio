@@ -4,6 +4,8 @@
 //   npm run release              # tag source-v<managerVersion> (auto-suffixed if taken)
 //   npm run release -- 1.2.3     # tag source-v1.2.3
 //   npm run release -- source-v1.2.3
+//   npm run release -- --bump all       # bump+commit+push, then tag & release
+//   npm run release -- --bump template  # (manager|template|all)
 //   npm run release -- --dry-run # show what would happen, create/push nothing
 //
 // This creates and pushes a `source-v*` git tag, which triggers
@@ -12,6 +14,7 @@
 // signs and publishes — so pushing the tag is safe and reversible until you
 // approve. See SECURITY.md.
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,9 +24,16 @@ const git = (...args) => execFileSync('git', args, { cwd: REPO_ROOT, encoding: '
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
-const explicit = args.find((a) => !a.startsWith('--'))
+const bumpIdx = args.indexOf('--bump')
+const bumpTarget = bumpIdx !== -1 ? args[bumpIdx + 1] : null
+const explicit = args.find((a) => !a.startsWith('--') && a !== bumpTarget)
 
 function die(msg) { console.error(`\n✖ ${msg}\n`); process.exit(1) }
+
+if (bumpTarget && !['manager', 'template', 'all'].includes(bumpTarget)) {
+  die('--bump must be one of: manager, template, all')
+}
+if (bumpTarget && explicit) die('Use either --bump <target> or an explicit version, not both.')
 
 // ── Preflight ────────────────────────────────────────────────────────────────
 // 1) The client must have a real signing key embedded, or the release it verifies
@@ -40,12 +50,26 @@ if (git('status', '--porcelain')) {
 }
 
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD')
-const managerVersion = JSON.parse(
-  execFileSync('cat', [path.join(REPO_ROOT, 'protovibe-project-manager/package.json')], { encoding: 'utf-8' }),
-).version
-const templateVersion = JSON.parse(
-  execFileSync('cat', [path.join(REPO_ROOT, 'protovibe-project-template/package.json')], { encoding: 'utf-8' }),
-).version
+const pkgVersion = (rel) => JSON.parse(readFileSync(path.join(REPO_ROOT, rel), 'utf-8')).version
+
+// Optionally bump versions, commit, and push before tagging so a fix ships in one step.
+if (bumpTarget) {
+  if (dryRun) {
+    console.log(`(dry run) would bump ${bumpTarget}, commit, and push to ${branch} before tagging.`)
+  } else {
+    console.log(`Bumping ${bumpTarget} ...`)
+    execFileSync('node', [path.join(REPO_ROOT, 'scripts/bump-version.mjs'), bumpTarget], { cwd: REPO_ROOT, stdio: 'inherit' })
+    const m = pkgVersion('protovibe-project-manager/package.json')
+    const t = pkgVersion('protovibe-project-template/package.json')
+    git('add', '-A')
+    git('commit', '-m', `Release: bump ${bumpTarget} (manager ${m}, template ${t})`)
+    console.log(`Pushing ${branch} ...`)
+    git('push', 'origin', branch)
+  }
+}
+
+const managerVersion = pkgVersion('protovibe-project-manager/package.json')
+const templateVersion = pkgVersion('protovibe-project-template/package.json')
 
 // ── Resolve a unique tag ─────────────────────────────────────────────────────
 function normalizeTag(v) {
