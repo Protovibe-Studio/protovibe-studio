@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { ConfirmDialog } from './ConfirmDialog';
 import { emitToast } from '../events/toast';
+import { theme } from '../theme';
 import { PROMPTS, renderPrompt, type PromptRenderContext } from '../prompts/prompts-registry';
 
 export const PV_NOT_EDITABLE_EVENT = 'pv:open-not-editable-dialog';
@@ -60,6 +61,25 @@ export const NotEditableDialog: React.FC = () => {
           <br />
           <br />
           Ask your coding agent to fix it - just copy the prompt and paste it into your agent.
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              marginTop: 16,
+              padding: '10px 12px',
+              background: theme.accent_low,
+              border: `1px solid ${theme.accent_tertiary}`,
+              borderRadius: 8,
+              color: theme.text_secondary,
+              lineHeight: 1.5,
+            }}
+          >
+            <span style={{ flexShrink: 0 }}>💡</span>
+            <span>
+              Tip: you can also select <span style={{ color: theme.text_default, fontWeight: 600 }}>Convert to Sketchpad…</span>{' '}
+              from the menu at the bottom of the screen to freely edit this element.
+            </span>
+          </div>
         </>
       }
       confirmLabel="Copy prompt"
