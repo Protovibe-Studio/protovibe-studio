@@ -1,10 +1,10 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack, MoreVertical, PenTool } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack, MoreVertical, PenTool, Copy, CopyPlus, Clipboard, ClipboardPaste } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
-import { executeBlockAction } from '../utils/executeBlockAction';
+import { executeBlockAction, executeClipboardBlockAction } from '../utils/executeBlockAction';
 import { snapshotElement, DomSnapshot } from '../utils/domSnapshot';
 import { ConvertToSketchpadDialog } from './ConvertToSketchpadDialog';
 import { theme } from '../theme';
@@ -161,6 +161,80 @@ export const FloatingToolbar: React.FC = () => {
         focusElement,
         refreshActiveData,
       });
+    });
+  };
+
+  // Resolve the pv-block ids for the current selection (or the single focused
+  // element), mirroring the copy/cut/paste logic in useKeyboardShortcuts.
+  const getActionBlockIds = () => {
+    const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+    return [...new Set(
+      targets
+        .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+        .filter(Boolean) as string[]
+    )];
+  };
+
+  const handleClipboardAction = async (action: 'copy' | 'duplicate') => {
+    setMoreOpen(false);
+    const blockIds = getActionBlockIds();
+    if (blockIds.length === 0 || !isBlockInCurrentFile || !activeData?.file) {
+      openNotEditableDialog();
+      return;
+    }
+    await runLockedMutation(async () => {
+      await executeClipboardBlockAction({
+        action,
+        blockId: blockIds,
+        file: activeData.file,
+        activeSourceId: activeSourceId!,
+        focusElement,
+        refreshActiveData,
+      });
+    });
+    emitToast({ message: action === 'copy' ? 'Block copied to clipboard' : 'Block duplicated', variant: 'info' });
+  };
+
+  const handlePasteBlock = async (isPasteAfter: boolean) => {
+    setMoreOpen(false);
+    if (!activeData?.file || !currentBaseTarget) return;
+
+    const targetZone = zones[0];
+    const targetBlockId = getActionBlockIds()[0];
+
+    if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+      emitToast({ message: "Can't paste after this element", variant: 'error' });
+      return;
+    }
+    if (!isPasteAfter && !targetZone) {
+      emitToast({ message: "Can't paste inside this element", variant: 'error' });
+      return;
+    }
+
+    const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+    const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'paste');
+      const res = await addBlock({
+        file: activeData.file,
+        zoneId: isPasteAfter ? undefined : targetZone.id,
+        afterBlockId: isPasteAfter ? targetBlockId! : undefined,
+        isPristine: isPasteAfter ? false : targetZone.isPristine,
+        elementType: 'paste',
+        targetStartLine: activeData.startLine,
+        targetEndLine: activeData.endLine,
+        targetLayoutMode,
+        pasteX: 100,
+        pasteY: 100,
+      });
+      const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+      if (focusIds.length > 0) {
+        emitToast({ message: 'Pasted successfully', variant: 'info' });
+        focusNewBlock(focusIds);
+      }
+    }).catch((err: any) => {
+      emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
     });
   };
 
@@ -412,6 +486,41 @@ export const FloatingToolbar: React.FC = () => {
     );
   };
 
+  const renderMoreMenuItem = (
+    icon: React.ReactNode,
+    label: string,
+    onClick: () => void,
+    opts?: { shortcut?: string; testId?: string },
+  ) => (
+    <button
+      data-testid={opts?.testId}
+      disabled={locked}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        background: 'transparent',
+        border: 'none',
+        color: theme.text_default,
+        fontSize: '11px',
+        fontFamily: theme.font_ui,
+        padding: '9px 12px',
+        textAlign: 'left',
+        cursor: locked ? 'progress' : 'pointer',
+        opacity: locked ? 0.6 : 1,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+    >
+      {icon}
+      <span style={{ flex: 1 }}>{label}</span>
+      {opts?.shortcut && (
+        <span style={{ color: theme.text_tertiary, fontSize: '10px', letterSpacing: '0.5px' }}>{opts.shortcut}</span>
+      )}
+    </button>
+  );
+
   const renderMoreMenu = () => (
     <div
       style={{
@@ -428,30 +537,37 @@ export const FloatingToolbar: React.FC = () => {
         overflow: 'hidden',
       }}
     >
-      <button
-        data-testid="item-convert-to-sketchpad"
-        disabled={locked}
-        onClick={handleOpenConvertDialog}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'transparent',
-          border: 'none',
-          color: theme.text_default,
-          fontSize: '11px',
-          fontFamily: theme.font_ui,
-          padding: '9px 12px',
-          textAlign: 'left',
-          cursor: locked ? 'progress' : 'pointer',
-          opacity: locked ? 0.6 : 1,
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-      >
-        <PenTool size={13} strokeWidth={2} />
-        Convert to Sketchpad…
-      </button>
+      {renderMoreMenuItem(
+        <Copy size={13} strokeWidth={2} />,
+        'Copy',
+        () => handleClipboardAction('copy'),
+        { shortcut: '⌘C', testId: 'item-copy' },
+      )}
+      {renderMoreMenuItem(
+        <CopyPlus size={13} strokeWidth={2} />,
+        'Duplicate',
+        () => handleClipboardAction('duplicate'),
+        { shortcut: '⌘D', testId: 'item-duplicate' },
+      )}
+      {renderMoreMenuItem(
+        <Clipboard size={13} strokeWidth={2} />,
+        'Paste',
+        () => handlePasteBlock(false),
+        { shortcut: '⌘V', testId: 'item-paste' },
+      )}
+      {renderMoreMenuItem(
+        <ClipboardPaste size={13} strokeWidth={2} />,
+        'Paste after',
+        () => handlePasteBlock(true),
+        { shortcut: '⌘⇧V', testId: 'item-paste-after' },
+      )}
+      <div style={{ height: '1px', background: theme.border_secondary, margin: '4px 0' }} />
+      {renderMoreMenuItem(
+        <PenTool size={13} strokeWidth={2} />,
+        'Convert to Sketchpad…',
+        handleOpenConvertDialog,
+        { testId: 'item-convert-to-sketchpad' },
+      )}
     </div>
   );
 

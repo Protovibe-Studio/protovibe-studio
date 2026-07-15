@@ -35,8 +35,6 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     if (!inspectorOpen) return;
 
-    let pasteShiftRef = false;
-
     const focusRestoredElement = (sourceId: string | undefined): Promise<void> => {
       return new Promise((resolve) => {
         if (!sourceId) {
@@ -168,9 +166,19 @@ export function useKeyboardShortcuts() {
       // Copy, Cut, Paste, Duplicate
       const key = e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && key === 'v') {
-        // Defer to the `paste` event so we can route image clipboard data
-        // to the image-insert flow even when a protovibe block was previously copied.
-        pasteShiftRef = e.shiftKey;
+        if (e.shiftKey) {
+          // Paste after: browsers don't reliably dispatch a native `paste`
+          // event for Cmd+Shift+V when no editable element is focused, so we
+          // can't defer to `handlePaste` for this one. The copied block lives
+          // in a server-side clipboard, so no browser clipboard data is needed
+          // — perform the paste-after directly here.
+          e.preventDefault();
+          await pasteBlock(true);
+          return;
+        }
+        // Defer plain Cmd+V to the native `paste` event so we can route image
+        // clipboard data to the image-insert flow even when a protovibe block
+        // was previously copied.
         return;
       }
       if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'd')) {
@@ -465,28 +473,10 @@ export function useKeyboardShortcuts() {
       });
     };
 
-    const handlePaste = async (e: ClipboardEvent) => {
-      if (isMutationLocked) return;
-      if (isTypingInput(e.target as HTMLElement)) return;
-      if (!activeData?.file) return;
-      if (!currentBaseTarget) return;
+    const pasteBlock = async (isPasteAfter: boolean) => {
+      if (!activeData?.file || !currentBaseTarget) return;
 
-      const items = e.clipboardData?.items;
-      const imageItem = items
-        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
-        : null;
-      const imageFile = imageItem?.getAsFile() || null;
-
-      const isPasteAfter = pasteShiftRef;
-      pasteShiftRef = false;
-
-      if (imageFile) {
-        e.preventDefault();
-        await insertImageFile(imageFile);
-        return;
-      }
-
-      const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+      const targets = selectedTargets?.length > 0 ? selectedTargets : [currentBaseTarget];
       const blockIds = [...new Set(
         targets
           .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
@@ -495,29 +485,26 @@ export function useKeyboardShortcuts() {
       const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
       const targetZone = zones[0];
       const targetBlockId = blockIds[0];
-      const wantAfter = isPasteAfter;
 
-      if (wantAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+      if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
         emitToast({ message: "Can't paste after this element", variant: 'error' });
         return;
       }
-      if (!wantAfter && !targetZone) {
+      if (!isPasteAfter && !targetZone) {
         emitToast({ message: "Can't paste inside this element", variant: 'error' });
         return;
       }
 
-      e.preventDefault();
-
-      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
       const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
 
       await runLockedMutation(async () => {
         await takeSnapshot(activeData.file, activeSourceId!, undefined, 'paste');
         const res = await addBlock({
           file: activeData.file,
-          zoneId: wantAfter ? undefined : targetZone.id,
-          afterBlockId: wantAfter ? targetBlockId! : undefined,
-          isPristine: wantAfter ? false : targetZone.isPristine,
+          zoneId: isPasteAfter ? undefined : targetZone.id,
+          afterBlockId: isPasteAfter ? targetBlockId! : undefined,
+          isPristine: isPasteAfter ? false : targetZone.isPristine,
           elementType: 'paste',
           targetStartLine: activeData.startLine,
           targetEndLine: activeData.endLine,
@@ -533,6 +520,30 @@ export function useKeyboardShortcuts() {
       }).catch((err: any) => {
         emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
       });
+    };
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (isMutationLocked) return;
+      if (isTypingInput(e.target as HTMLElement)) return;
+      if (!activeData?.file) return;
+      if (!currentBaseTarget) return;
+
+      const items = e.clipboardData?.items;
+      const imageItem = items
+        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
+        : null;
+      const imageFile = imageItem?.getAsFile() || null;
+
+      if (imageFile) {
+        e.preventDefault();
+        await insertImageFile(imageFile);
+        return;
+      }
+
+      // Plain Cmd+V pastes the copied block inside the selected element.
+      // Cmd+Shift+V ("paste after") is handled directly in the keydown handler.
+      e.preventDefault();
+      await pasteBlock(false);
     };
 
     const handleDragOver = (e: DragEvent) => {
