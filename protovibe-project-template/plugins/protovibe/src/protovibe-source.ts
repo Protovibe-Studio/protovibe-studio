@@ -1,4 +1,5 @@
 import { Plugin, normalizePath } from 'vite';
+import type { HtmlTagDescriptor } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -16,6 +17,35 @@ const __dirname = path.dirname(__filename);
 // Absolute path to the plugin's source directory (one level above dist/)
 const PLUGIN_DIR = path.resolve(__dirname, '..');
 const PLUGIN_VERSION = JSON.parse(fs.readFileSync(path.join(PLUGIN_DIR, 'package.json'), 'utf-8')).version as string;
+
+/**
+ * Extract the webfont stylesheet URLs the user's app depends on by reading the
+ * `@import url('https://fonts.googleapis.com/...')` (and `@import url("...")`)
+ * lines from src/index.css.
+ *
+ * These same fonts are pulled in by index.css inside the sketchpad iframe, but
+ * that stylesheet is owned by Tailwind's Vite plugin and gets torn down and
+ * re-injected on every mutation's HMR update. With `display=swap` that momentary
+ * removal of the `@font-face` makes text flash the fallback font on each move.
+ * Injecting the same font stylesheets as plain <link>s in the iframe <head>
+ * keeps the @font-face continuously registered (the browser owns these links,
+ * not HMR), so the glyphs never fall back between updates.
+ */
+function getWebfontHrefs(): string[] {
+  try {
+    const cssPath = path.resolve(process.cwd(), 'src/index.css');
+    const css = fs.readFileSync(cssPath, 'utf-8');
+    const hrefs: string[] = [];
+    const importRegex = /@import\s+url\(\s*(['"]?)(https:\/\/fonts\.googleapis\.com\/[^'")]+)\1\s*\)/g;
+    let m: RegExpExecArray | null;
+    while ((m = importRegex.exec(css)) !== null) {
+      hrefs.push(m[2]);
+    }
+    return hrefs;
+  } catch {
+    return [];
+  }
+}
 
 export function protovibeSourcePlugin(): Plugin {
   return {
@@ -298,14 +328,29 @@ export function protovibeSourcePlugin(): Plugin {
             return [];
           }
 
-          return [
-            {
-              tag: 'script',
-              attrs: {},
-              children: fs.readFileSync(sketchpadBridgePath, 'utf-8'),
-              injectTo: 'body',
-            },
-          ];
+          const tags: HtmlTagDescriptor[] = [];
+
+          // Persistent webfont links so the custom font never flashes to a
+          // fallback during the CSS HMR swap that follows each canvas mutation.
+          const webfontHrefs = getWebfontHrefs();
+          if (webfontHrefs.length > 0) {
+            tags.push(
+              { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' }, injectTo: 'head-prepend' },
+              { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }, injectTo: 'head-prepend' },
+            );
+            for (const href of webfontHrefs) {
+              tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href }, injectTo: 'head-prepend' });
+            }
+          }
+
+          tags.push({
+            tag: 'script',
+            attrs: {},
+            children: fs.readFileSync(sketchpadBridgePath, 'utf-8'),
+            injectTo: 'body',
+          });
+
+          return tags;
         }
 
         return [];
