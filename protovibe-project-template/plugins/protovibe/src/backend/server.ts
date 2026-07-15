@@ -888,14 +888,18 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
         // Universally strip sketchpad draggable attribute from the children
         newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
 
-        // Strip absolute positioning from the root element's style tag
+        // Strip absolute positioning from the root element's style tag. The
+        // wrapper is a flex-column (flow) container, so children also shed any
+        // enforced inline width/height — matching the drop-onto-flow-element
+        // path — otherwise a previously resized element keeps a fixed size
+        // that no longer makes sense inside auto-layout.
         const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
         newBlock = newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
           const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
           if (styleRegex.test(attrs)) {
             const newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
               const cleaned = innerStyles
-                .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
+                .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
                 .trim()
                 .replace(/,$/, '')
                 .trim();
