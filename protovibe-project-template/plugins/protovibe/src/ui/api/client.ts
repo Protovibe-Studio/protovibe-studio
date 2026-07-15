@@ -62,6 +62,23 @@ export async function convertToSketchpad(params: {
   return data;
 }
 
+export async function unwrapBlock(params: {
+  file: string;
+  blockId: string;
+  targetLayoutMode: 'flow' | 'absolute';
+  childPositions?: Record<string, { left: number; top: number; width: number; wasAbsolute: boolean }>;
+}) {
+  const res = await fetch('/__unwrap-block', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Failed to unwrap block');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 export async function deleteBlocks(file: string, blockIds: string[]) {
   const res = await fetch('/__delete-blocks', {
     method: 'POST',

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot, addBlock, deleteBlocks, uploadImage } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock, deleteBlocks, unwrapBlock, uploadImage } from '../api/client';
+import { collectChildPositions } from '../utils/unwrapGeometry';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -276,6 +277,39 @@ export function useKeyboardShortcuts() {
           return await response.json();
         });
         if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
+        return;
+      }
+
+      // 3.2. Unwrap Block — Shift+G
+      if (e.shiftKey && e.key === 'G') {
+        if (!activeData?.file || !currentBaseTarget) return;
+        const closestBlock = currentBaseTarget.closest('[data-pv-block]') as HTMLElement | null;
+        const blockId = closestBlock?.getAttribute('data-pv-block');
+        const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+        if (!closestBlock || !blockId || !isBlockInCurrentFile) {
+          e.preventDefault();
+          openNotEditableDialog();
+          return;
+        }
+        e.preventDefault();
+        const childPositions = collectChildPositions(closestBlock);
+        if (Object.keys(childPositions).length === 0) {
+          emitToast({ message: 'Nothing to unwrap', variant: 'error' });
+          return;
+        }
+        const targetLayoutMode = (closestBlock.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || 'flow') as 'flow' | 'absolute';
+        const res = await runLockedMutation(async () => {
+          await takeSnapshot(activeData.file, activeSourceId!, undefined, 'unwrap block');
+          return unwrapBlock({
+            file: activeData.file,
+            blockId,
+            targetLayoutMode,
+            childPositions: targetLayoutMode === 'absolute' ? childPositions : undefined,
+          });
+        }).catch((err: any) => {
+          emitToast({ message: err.message || 'Failed to unwrap block', variant: 'error' });
+        });
+        if (res?.blockIds?.length) focusNewBlock(res.blockIds, { maxAttempts: 20 });
         return;
       }
 

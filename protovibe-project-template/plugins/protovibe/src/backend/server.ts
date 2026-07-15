@@ -931,6 +931,169 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+// Rewrite a hoisted block's root opening tag for the layout mode it lands in:
+// 'flow' strips absolute positioning and the sketchpad drag attribute,
+// 'absolute' pins the element at the given coordinates and makes it draggable.
+const rehostBlockRoot = (
+  block: string,
+  target: 'flow' | 'absolute',
+  pos?: { left: number; top: number; width?: number | null }
+): string => {
+  let newBlock = block;
+  if (target === 'flow') {
+    newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
+  }
+  const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
+  return newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
+    let newAttrs = attrs;
+    const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
+    const hasStyle = styleRegex.test(newAttrs);
+
+    if (target === 'flow') {
+      if (!hasStyle) return match;
+      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+        const cleaned = innerStyles
+          .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
+          .trim().replace(/,$/, '').trim();
+        return cleaned ? `style={{ ${cleaned} }}` : '';
+      });
+      return `${tag}${newAttrs}${closing}`;
+    }
+
+    if (!newAttrs.includes('data-pv-sketchpad-el')) {
+      const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
+      if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
+    }
+    const left = Math.round(pos?.left ?? 100);
+    const top = Math.round(pos?.top ?? 100);
+    const width = pos?.width != null ? Math.round(pos.width) : null;
+    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}`;
+    if (hasStyle) {
+      const stripProps = width != null ? '(?:position|left|top|width)' : '(?:position|left|top)';
+      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+        const cleaned = innerStyles
+          .replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
+          .trim().replace(/,$/, '').trim();
+        const separator = cleaned ? ', ' : '';
+        return `style={{ ${positioning}${separator}${cleaned} }}`;
+      });
+    } else {
+      newAttrs = `${newAttrs} style={{ ${positioning} }}`;
+    }
+    return `${tag}${newAttrs}${closing}`;
+  });
+};
+
+export const handleUnwrapBlock: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, blockId, targetLayoutMode, childPositions } = JSON.parse(body || '{}') as {
+        file?: string;
+        blockId?: string;
+        targetLayoutMode?: 'flow' | 'absolute';
+        childPositions?: Record<string, { left: number; top: number; width?: number; wasAbsolute?: boolean }>;
+      };
+      if (!file || !blockId) {
+        return res.end(JSON.stringify({ success: false, error: 'Missing parameters' }));
+      }
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      const regex = new RegExp(`(?:\\n?)([ \\t]*)\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}(?:\\n?)`);
+      const match = fileContent.match(regex);
+      if (!match || match.index === undefined) {
+        return res.end(JSON.stringify({ success: false, error: 'Block not found' }));
+      }
+      const baseSpaces = match[1] || '';
+      const wrapperText = match[0];
+
+      // Collect the wrapper's direct child blocks (depth 1 inside the wrapper);
+      // deeper blocks belong to those children and travel with them verbatim.
+      const tagRegex = /\{\/\*\s*pv-block-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}/g;
+      const children: { id: string; start: number; end: number }[] = [];
+      let open: { id: string; start: number } | null = null;
+      let depth = 0;
+      let tagMatch: RegExpExecArray | null;
+      while ((tagMatch = tagRegex.exec(wrapperText)) !== null) {
+        if (tagMatch[1] === 'start') {
+          depth++;
+          if (depth === 2 && !open) open = { id: tagMatch[2], start: tagMatch.index };
+        } else {
+          if (depth === 2 && open && tagMatch[2] === open.id) {
+            children.push({ id: open.id, start: open.start, end: tagMatch.index + tagMatch[0].length });
+            open = null;
+          }
+          depth--;
+        }
+      }
+
+      if (children.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Nothing to unwrap' }));
+      }
+
+      // Fallback position for children the client couldn't measure: offset
+      // their wrapper-relative coordinates by the wrapper's own left/top.
+      let wrapperLeft = 100, wrapperTop = 100;
+      const wrapperTagMatch = wrapperText.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/);
+      if (wrapperTagMatch) {
+        const styleMatch = wrapperTagMatch[2].match(/style=\{\s*\{([\s\S]*?)\}\s*\}/);
+        const leftMatch = styleMatch?.[1].match(/left:\s*(-?[\d.]+)/);
+        const topMatch = styleMatch?.[1].match(/top:\s*(-?[\d.]+)/);
+        if (leftMatch) wrapperLeft = parseFloat(leftMatch[1]);
+        if (topMatch) wrapperTop = parseFloat(topMatch[1]);
+      }
+
+      const hoisted = children.map(child => {
+        const lineStart = wrapperText.lastIndexOf('\n', child.start) + 1;
+        const indentText = wrapperText.slice(lineStart, child.start);
+        const childIndent = /^[ \t]*$/.test(indentText) ? indentText : '';
+        let blockText = wrapperText.slice(child.start, child.end);
+
+        if (targetLayoutMode === 'absolute') {
+          const measured = childPositions?.[child.id];
+          let pos: { left: number; top: number; width?: number | null };
+          if (measured) {
+            pos = {
+              left: measured.left,
+              top: measured.top,
+              width: measured.wasAbsolute ? null : (measured.width ?? null),
+            };
+          } else {
+            const childStyle = blockText.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/)?.[2].match(/style=\{\s*\{([\s\S]*?)\}\s*\}/)?.[1] || '';
+            const childLeft = parseFloat(childStyle.match(/left:\s*(-?[\d.]+)/)?.[1] ?? '0');
+            const childTop = parseFloat(childStyle.match(/top:\s*(-?[\d.]+)/)?.[1] ?? '0');
+            pos = { left: wrapperLeft + childLeft, top: wrapperTop + childTop, width: null };
+          }
+          blockText = rehostBlockRoot(blockText, 'absolute', pos);
+        } else {
+          blockText = rehostBlockRoot(blockText, 'flow');
+        }
+
+        // Re-anchor the child's indentation at the wrapper's own level.
+        return blockText.split('\n').map((line, idx) => {
+          if (idx === 0) return baseSpaces + line;
+          if (childIndent && line.startsWith(childIndent)) return baseSpaces + line.slice(childIndent.length);
+          return line;
+        }).join('\n');
+      });
+
+      const spliceIndex = match.index;
+      fileContent = fileContent.slice(0, spliceIndex) + '\n' + hoisted.join('\n') + '\n' + fileContent.slice(spliceIndex + wrapperText.length);
+      fileContent = cleanupZonesAtAnchors(fileContent, [spliceIndex + 1]);
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, blockIds: children.map(c => c.id) }));
+
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
 export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });

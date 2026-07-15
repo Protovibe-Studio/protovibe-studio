@@ -1,9 +1,10 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack, MoreVertical, PenTool, Copy, CopyPlus, Clipboard, ClipboardPaste } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, Ungroup, BringToFront, SendToBack, MoreVertical, PenTool, Copy, CopyPlus, Clipboard, ClipboardPaste } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
+import { addBlock, takeSnapshot, deleteBlocks, unwrapBlock } from '../api/client';
+import { collectChildPositions } from '../utils/unwrapGeometry';
 import { executeBlockAction, executeClipboardBlockAction } from '../utils/executeBlockAction';
 import { snapshotElement, DomSnapshot } from '../utils/domSnapshot';
 import { ConvertToSketchpadDialog } from './ConvertToSketchpadDialog';
@@ -268,6 +269,33 @@ export const FloatingToolbar: React.FC = () => {
     });
 
     if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
+  };
+
+  const handleUnwrapBlock = async () => {
+    setAddMode(null);
+    if (!closestBlockId || !closestBlock || !activeData?.file) return;
+
+    const childPositions = collectChildPositions(closestBlock as HTMLElement);
+    if (Object.keys(childPositions).length === 0) {
+      emitToast({ message: 'Nothing to unwrap', variant: 'error' });
+      return;
+    }
+
+    const targetLayoutMode = (closestBlock.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || 'flow') as 'flow' | 'absolute';
+
+    const res = await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'unwrap block');
+      return unwrapBlock({
+        file: activeData.file,
+        blockId: closestBlockId,
+        targetLayoutMode,
+        childPositions: targetLayoutMode === 'absolute' ? childPositions : undefined,
+      });
+    }).catch((err: any) => {
+      emitToast({ message: err.message || 'Failed to unwrap block', variant: 'error' });
+    });
+
+    if (res?.blockIds?.length) focusNewBlock(res.blockIds, { maxAttempts: 20 });
   };
 
   const handleDeleteBlocks = async () => {
@@ -710,6 +738,19 @@ export const FloatingToolbar: React.FC = () => {
               >
                 <SquareDashed size={13} strokeWidth={2.5} />
                 Wrap
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleUnwrapBlock() : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('unwrap')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('unwrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
+                data-tooltip={canBlockAction ? 'Unwrap children' : NOT_EDITABLE_TOOLTIP}
+                data-testid="btn-unwrap"
+              >
+                <Ungroup size={13} strokeWidth={2.5} />
+                Unwrap
               </button>
               {divider}
               <button
