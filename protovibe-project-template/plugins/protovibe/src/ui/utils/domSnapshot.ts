@@ -32,6 +32,12 @@ export interface SnapshotNode {
    * every dynamic expression already evaluated.
    */
   props?: Record<string, string | number | boolean>;
+  /**
+   * True when the component instance was passed a `children` prop (per its
+   * fiber). Lets the converter recover map-rendered children that carry no
+   * data-pv-block markers by falling back to the rendered DOM.
+   */
+  hasChildrenProp?: boolean;
   /** App-level source locator (data-pv-loc-app-<hash> suffix), for AST prop recovery. */
   locId?: string;
   /** True when the node lives inside an <svg> subtree. */
@@ -84,7 +90,10 @@ function fiberTypeName(t: any): string | null {
  * fiber is unavailable (e.g. production build) — callers fall back to
  * source-AST / data-attribute recovery.
  */
-function getFiberComponentProps(el: Element, componentId: string): Record<string, string | number | boolean> | null {
+function getFiberComponentProps(
+  el: Element,
+  componentId: string,
+): { props: Record<string, string | number | boolean>; hasChildren: boolean } | null {
   const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber$'));
   if (!fiberKey) return null;
   let fiber: any = (el as any)[fiberKey];
@@ -98,7 +107,7 @@ function getFiberComponentProps(el: Element, componentId: string): Record<string
           out[key] = value;
         }
       }
-      return out;
+      return { props: out, hasChildren: props.children !== undefined && props.children !== null };
     }
     fiber = fiber.return;
   }
@@ -178,8 +187,11 @@ function walkElement(el: Element, insideSvg: boolean, counts: Map<string, number
 
   if (node.componentId) {
     counts.set(node.componentId, (counts.get(node.componentId) || 0) + 1);
-    const fiberProps = getFiberComponentProps(el, node.componentId);
-    if (fiberProps && Object.keys(fiberProps).length > 0) node.props = fiberProps;
+    const fiber = getFiberComponentProps(el, node.componentId);
+    if (fiber) {
+      if (Object.keys(fiber.props).length > 0) node.props = fiber.props;
+      if (fiber.hasChildren) node.hasChildrenProp = true;
+    }
   }
 
   const children: SnapshotNode[] = [];

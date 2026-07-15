@@ -109,7 +109,32 @@ export function ConvertToSketchpadDialog({ file, snapshot, onClose }: ConvertToS
           clipboard, ready to paste into a Sketchpad frame.
         </div>
 
-        <div style={sectionTitleStyle}>Components</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={sectionTitleStyle}>Components</div>
+          {snapshot.foundComponents.length > 1 && (
+            <button
+              data-testid="convert-toggle-all"
+              onClick={() => {
+                setFlattened(
+                  flattened.size === 0
+                    ? new Set(snapshot.foundComponents.map(c => c.componentId))
+                    : new Set(),
+                );
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                fontSize: 11,
+                color: theme.accent_default,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {flattened.size === 0 ? 'Uncheck all' : 'Check all'}
+            </button>
+          )}
+        </div>
         {snapshot.foundComponents.length === 0 ? (
           <div style={{ fontSize: 12, color: theme.text_tertiary }}>No library components in selection.</div>
         ) : (

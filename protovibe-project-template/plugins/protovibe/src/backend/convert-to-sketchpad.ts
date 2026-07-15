@@ -26,6 +26,7 @@ interface SnapshotNode {
   componentId?: string;
   pvBlockId?: string;
   props?: Record<string, string | number | boolean>;
+  hasChildrenProp?: boolean;
   locId?: string;
   isSvg?: boolean;
   rect?: SnapshotRect;
@@ -282,9 +283,34 @@ function findPvBlockDescendants(node: SnapshotNode): SnapshotNode[] {
   return result;
 }
 
+
 function subtreeText(node: SnapshotNode): string {
   if (node.kind === 'text') return node.text || '';
   return (node.children || []).map(subtreeText).filter(Boolean).join(' ');
+}
+
+// A wrapper whose content is fixed/absolute-positioned measures 0x0 because
+// such children don't contribute to its size. When the converted root is
+// degenerate, replace its rect with the union of its descendants' rects so
+// the frozen box (and child offsets) reflect what's actually visible.
+function ensureRootRect(root: SnapshotNode): void {
+  const rect = root.rect;
+  if (rect && rect.width >= 1 && rect.height >= 1) return;
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  const visit = (node: SnapshotNode) => {
+    const r = node.rect;
+    if (node.kind === 'element' && r && r.width >= 1 && r.height >= 1) {
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.left + r.width);
+      bottom = Math.max(bottom, r.top + r.height);
+    }
+    for (const child of node.children || []) visit(child);
+  };
+  for (const child of root.children || []) visit(child);
+  if (right > left && bottom > top) {
+    root.rect = { left, top, width: right - left, height: bottom - top };
+  }
 }
 
 // Inline style for absolute mode, positioned relative to the nearest emitted
@@ -395,7 +421,15 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
   // are positioned from measured DOM rects relative to the component root.
   const childState: EmitState = { parentRect: node.rect || state.parentRect, absolute: state.absolute, isRoot: false, indent: i + '  ' };
 
-  const childBlocks = findPvBlockDescendants(node);
+  let childBlocks = findPvBlockDescendants(node);
+  if (childBlocks.length === 0 && node.hasChildrenProp) {
+    // The instance was passed children, but they carry no pv-block markers
+    // (map-rendered content, expressions). Take the rendered DOM as the
+    // reference and copy whatever is listed: the component's direct element
+    // children. Gated on hasChildrenProp so leaf components (Button etc.)
+    // never duplicate their internal markup as children.
+    childBlocks = (node.children || []).filter(c => c.kind === 'element');
+  }
   if (childBlocks.length > 0) {
     // Container component: absolute children don't contribute to auto height,
     // so freeze both dimensions and mark it as an absolute layout context.
@@ -555,6 +589,8 @@ export const handleConvertToSketchpad = (req: any, res: any, server: import('vit
         warnings: [],
         blockCount: 0,
       };
+
+      ensureRootRect(snapshot);
 
       const rootState: EmitState = {
         parentRect: null,
