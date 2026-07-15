@@ -253,14 +253,12 @@ interface ConvertContext {
 // component's internal wrapper markup between root and blocks is dropped.
 function findPvBlockDescendants(node: SnapshotNode): SnapshotNode[] {
   const result: SnapshotNode[] = [];
-  const queue = [...(node.children || [])];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (current.kind !== 'element') continue;
-    if (current.pvBlockId) {
-      result.push(current);
+  for (const child of node.children || []) {
+    if (child.kind !== 'element') continue;
+    if (child.pvBlockId) {
+      result.push(child);
     } else {
-      queue.push(...(current.children || []));
+      result.push(...findPvBlockDescendants(child));
     }
   }
   return result;
@@ -287,8 +285,9 @@ function absoluteStyle(node: SnapshotNode, parentRect: SnapshotRect | null, opts
 interface EmitState {
   // Rect of the nearest emitted (absolute-positioned) ancestor; null at root.
   parentRect: SnapshotRect | null;
-  // Absolute conversion stops at kept-component boundaries: inside a kept
-  // component the children keep flowing so the component sizes itself.
+  // Absolute mode applies at every nesting level, kept components included:
+  // components get a hardcoded width (height stays content-driven), flattened
+  // elements get hardcoded width + height.
   absolute: boolean;
   indent: string;
 }
@@ -300,7 +299,7 @@ function emitBlock(node: SnapshotNode, ctx: ConvertContext, state: EmitState): s
     const text = (node.text || '').trim();
     if (!text) return null;
     const id = genId();
-    const style = state.absolute ? absoluteStyle(node, state.parentRect, {}) : '';
+    const style = state.absolute ? absoluteStyle(node, state.parentRect, { width: true, height: true }) : '';
     const sketchpadEl = state.absolute ? ` data-pv-sketchpad-el="${id}"` : '';
     ctx.blockCount++;
     const i = state.indent;
@@ -366,24 +365,30 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
   props = props.filter(p => !p.name.startsWith('data-pv-') && p.name !== 'children');
 
   const id = genId();
-  const style = state.absolute ? absoluteStyle(node, state.parentRect, {}) : '';
   const sketchpadEl = state.absolute ? ` data-pv-sketchpad-el="${id}"` : '';
   const propsStr = props.length > 0 ? ' ' + props.map(p => p.code).join(' ') : '';
   const i = state.indent;
-  const open = `<${name} data-pv-block="${id}"${sketchpadEl}${style}${propsStr}`;
   ctx.blockCount++;
 
-  // Inside a kept component the layout is the component's own business —
-  // children keep flowing even in absolute mode.
-  const childState: EmitState = { parentRect: node.rect || state.parentRect, absolute: false, indent: i + '  ' };
+  // Absolute conversion continues inside kept components: their JSX children
+  // are positioned from measured DOM rects relative to the component root.
+  const childState: EmitState = { parentRect: node.rect || state.parentRect, absolute: state.absolute, indent: i + '  ' };
 
   const childBlocks = findPvBlockDescendants(node);
   if (childBlocks.length > 0) {
+    // Container component: absolute children don't contribute to auto height,
+    // so freeze both dimensions and mark it as an absolute layout context.
+    const style = state.absolute ? absoluteStyle(node, state.parentRect, { width: true, height: true }) : '';
+    const layoutModeAttr = state.absolute ? ' data-layout-mode="absolute"' : '';
+    const open = `<${name} data-pv-block="${id}"${sketchpadEl}${layoutModeAttr}${style}${propsStr}`;
     const zone = emitChildrenZone(childBlocks, ctx, childState);
     if (zone) {
       return `${i}{/* pv-block-start:${id} */}\n${i}${open}>\n${zone}\n${i}</${name}>\n${i}{/* pv-block-end:${id} */}`;
     }
   }
+  // Leaf component: hardcode only the width — height stays content-driven.
+  const style = state.absolute ? absoluteStyle(node, state.parentRect, { width: true }) : '';
+  const open = `<${name} data-pv-block="${id}"${sketchpadEl}${style}${propsStr}`;
 
   if (cfg.allowTextInChildren) {
     const text = subtreeText(node).trim();
@@ -457,7 +462,7 @@ function emitHtmlElement(node: SnapshotNode, ctx: ConvertContext, state: EmitSta
   const id = genId();
   const hasElementChildren = elementChildren.length > 0;
   const style = state.absolute
-    ? absoluteStyle(node, state.parentRect, { width: true, height: hasElementChildren })
+    ? absoluteStyle(node, state.parentRect, { width: true, height: true })
     : '';
   const sketchpadEl = state.absolute ? ` data-pv-sketchpad-el="${id}"` : '';
   const layoutModeAttr = state.absolute && hasElementChildren ? ' data-layout-mode="absolute"' : '';
