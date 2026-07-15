@@ -1207,10 +1207,14 @@ export function SketchpadApp() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedFrameIds, handleDeleteFramesMulti, pendingAction, zoomToCenter, zoomByFactor, handleCopyFrames, handleCutFrames, handlePasteFrames]);
 
-  // Marquee selection: starts on canvas background or empty area inside a frame.
+  // Marquee selection: starts on canvas background or empty area inside a frame,
+  // or from any point when Cmd/Ctrl is held (the bridge defers its deep-click so
+  // we can take over once the drag threshold is passed).
   // Containment-only: an element/frame must be fully enclosed.
   // If any frame is fully contained, only frames are selected (no mixed selection).
-  // Otherwise, selects top-level pv-blocks within the frame the marquee started in.
+  // Otherwise, selects the top-most fully-contained pv-blocks within the frame the
+  // marquee started in — nested blocks count individually, but collapse into an
+  // ancestor block when that ancestor is itself fully contained.
   useEffect(() => {
     const MOVE_THRESHOLD = 3;
     let dragging = false;
@@ -1238,13 +1242,23 @@ export function SketchpadApp() {
         };
       }
       if (!startFrame) return { mode: 'none', els: [] };
-      const allBlocks = Array.from(startFrame.querySelectorAll('[data-pv-block]')) as HTMLElement[];
-      const topLevel = allBlocks.filter((el) => !el.parentElement?.closest('[data-pv-block]'));
-      const contained = topLevel.filter((el) => isInside(rect, el.getBoundingClientRect()));
+      const allBlocks = (Array.from(startFrame.querySelectorAll('[data-pv-block]')) as HTMLElement[])
+        .filter((el) => el.getAttribute('data-pv-block'));
+      const containedSet = new Set(allBlocks.filter((el) => isInside(rect, el.getBoundingClientRect())));
+      // Top-most contained blocks win: a nested block is selectable on its own,
+      // but collapses into an ancestor block that is itself fully contained.
+      const topmost = Array.from(containedSet).filter((el) => {
+        let ancestor = el.parentElement?.closest('[data-pv-block]') as HTMLElement | null;
+        while (ancestor) {
+          if (containedSet.has(ancestor)) return false;
+          ancestor = ancestor.parentElement?.closest('[data-pv-block]') as HTMLElement | null;
+        }
+        return true;
+      });
       return {
         mode: 'blocks',
-        blockIds: contained.map((el) => el.getAttribute('data-pv-block')!).filter(Boolean),
-        els: contained,
+        blockIds: topmost.map((el) => el.getAttribute('data-pv-block')!),
+        els: topmost,
       };
     };
 
@@ -1253,13 +1267,20 @@ export function SketchpadApp() {
       if (spaceHeldRef.current) return;
       const t = e.target as HTMLElement | null;
       if (!t) return;
-      if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
+      // Cmd/Ctrl held: a marquee may start from any point, including on top of
+      // elements and the focused-frame drag overlay — both yield when the
+      // modifier is down (the overlay bails out of its own drag and the bridge
+      // defers its deep-click to pointerup).
+      const forceMarquee = e.metaKey || e.ctrlKey;
+      if (!forceMarquee) {
+        if (t.closest('[data-pv-block], [data-pv-sketchpad-el]')) return;
+        // The focused-frame drag overlay handles its own pointer flow. Without
+        // this guard the window-level marquee handler also engages on the same
+        // pointerdown and runs querySelectorAll + setMarqueePreview on every
+        // move, which manifests as severe lag while dragging the frame.
+        if (t.closest('[data-sketchpad-frame-overlay]')) return;
+      }
       if (t.closest('[data-sketchpad-resize-handle]')) return;
-      // The focused-frame drag overlay handles its own pointer flow. Without
-      // this guard the window-level marquee handler also engages on the same
-      // pointerdown and runs querySelectorAll + setMarqueePreview on every
-      // move, which manifests as severe lag while dragging the frame.
-      if (t.closest('[data-sketchpad-frame-overlay]')) return;
       const frameRoot = t.closest('[data-sketchpad-frame-root]');
       const frameContent = t.closest('[data-sketchpad-frame]') as HTMLElement | null;
       if (frameRoot && !frameContent) return;

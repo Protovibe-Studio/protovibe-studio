@@ -109,6 +109,17 @@ let ghostEls: HTMLElement[] = [];
 let currentActiveSourceId: string | null = null;
 let spaceHeld = false;
 
+// Cmd/Ctrl+pointerdown on an element defers the deep-click selection to
+// pointerup, so a Cmd-drag can become a marquee (owned by SketchpadApp's
+// window-level handler) instead of a click-select or element drag.
+let pendingMetaClick: {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  target: HTMLElement;
+  isMulti: boolean;
+} | null = null;
+
 window.addEventListener('blur', () => {
   spaceHeld = false;
 });
@@ -1039,7 +1050,7 @@ function handlePointerDown(e: PointerEvent) {
   const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
   const selEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
 
-  if (primarySel && selEdge && !isMulti) {
+  if (primarySel && selEdge && !isMulti && !(e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     e.stopPropagation();
     const rect = primarySel.getBoundingClientRect();
@@ -1064,6 +1075,22 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   const path = getInspectablePath(e.target);
+
+  // Cmd/Ctrl held over an element: the user may be starting a marquee from on
+  // top of it (SketchpadApp's window-level handler takes over past the drag
+  // threshold). Defer the deep-click selection to pointerup and let the event
+  // propagate — no stopPropagation, no drag/resize setup.
+  if ((e.metaKey || e.ctrlKey) && path.length > 0) {
+    pendingMetaClick = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      target: path[path.length - 1],
+      isMulti,
+    };
+    e.preventDefault();
+    return;
+  }
 
   // Custom double-click drill-down interception
   if (isDoubleClick && selectedEls.length === 1 && path.includes(selectedEls[0]) && !isMulti) {
@@ -1091,10 +1118,8 @@ function handlePointerDown(e: PointerEvent) {
   let isClickingSelected = false;
 
   if (path.length > 0) {
-    if (e.metaKey || e.ctrlKey) {
-      // Cmd/Ctrl + Click -> Direct deep selection
-      nextTarget = path[path.length - 1];
-    } else if (!isMulti && selectedEls.some(sel => path.includes(sel))) {
+    // (Cmd/Ctrl deep selection already returned above as a deferred click.)
+    if (!isMulti && selectedEls.some(sel => path.includes(sel))) {
       // Clicked down on an already selected element in a group -> keep group selection to drag it
       nextTarget = selectedEls.find(sel => path.includes(sel))!;
       isClickingSelected = true;
@@ -1189,6 +1214,14 @@ function handlePointerMove(e: PointerEvent) {
     return;
   }
 
+  // A Cmd/Ctrl-drag past the threshold means the marquee took over — drop the
+  // deferred deep-click so pointerup doesn't select underneath the marquee.
+  if (pendingMetaClick && e.pointerId === pendingMetaClick.pointerId) {
+    const dx = Math.abs(e.clientX - pendingMetaClick.startX);
+    const dy = Math.abs(e.clientY - pendingMetaClick.startY);
+    if (dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD) pendingMetaClick = null;
+  }
+
   if ((resizeState && e.pointerId === resizeState.pointerId) ||
       (dragState && e.pointerId === dragState.pointerId)) {
     e.preventDefault();
@@ -1258,6 +1291,20 @@ function handlePointerUp(e: PointerEvent) {
     latestClientX = e.clientX;
     latestClientY = e.clientY;
     applyPointerMoveUpdate();
+  }
+
+  // Deferred Cmd/Ctrl deep-click: no marquee drag happened, apply the deep
+  // selection now. Don't stop propagation — SketchpadApp's pointerup still
+  // clears frame multi-selection on a plain click.
+  if (pendingMetaClick && e.pointerId === pendingMetaClick.pointerId) {
+    const pending = pendingMetaClick;
+    pendingMetaClick = null;
+    if (pending.target.isConnected) {
+      clearHover();
+      setSelection(pending.target, pending.isMulti);
+      notifyInspector(pending.target);
+    }
+    return;
   }
 
   // Handle resize end
