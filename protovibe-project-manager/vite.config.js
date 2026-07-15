@@ -1129,6 +1129,15 @@ async function fetchAssetBytes(asset, timeoutMs = 15000) {
   return Buffer.from(await res.arrayBuffer())
 }
 
+// Parse the semver out of a `source-vX.Y.Z` tag. Returns null for tags that are
+// not strictly `source-v` + a three-part numeric version (e.g. the malformed
+// `source-vtemplate`), so junk releases can never be selected as "latest".
+function releaseTagVersion(tagName) {
+  if (typeof tagName !== 'string' || !tagName.startsWith(RELEASE_TAG_PREFIX)) return null
+  const rest = tagName.slice(RELEASE_TAG_PREFIX.length)
+  return /^\d+\.\d+\.\d+$/.test(rest) ? rest : null
+}
+
 // Locate the newest signed source release and verify its manifest. Returns
 // { manifest, release, assetsByName } on success. Throws on network failure, a
 // missing/invalid signature, or when no signed source release exists — callers
@@ -1138,16 +1147,29 @@ async function fetchSignedRelease() {
     headers: githubApiHeaders(),
     signal: AbortSignal.timeout(10000),
   })
-  if (!res.ok) throw new Error(`GitHub returned ${res.status} listing releases`)
+  if (!res.ok) {
+    // Distinguish GitHub's rate limit (very common when the app checks
+    // unauthenticated — 60 req/hr/IP) from a generic failure so the UI can tell
+    // the user to retry later rather than implying the network is down.
+    const remaining = res.headers.get('x-ratelimit-remaining')
+    if ((res.status === 403 || res.status === 429) && remaining === '0') {
+      throw new Error('GitHub API rate limit reached — connect GitHub or try again later.')
+    }
+    throw new Error(`GitHub returned ${res.status} listing releases`)
+  }
   const releases = await res.json()
-  // Releases come back newest-first. Pick the newest published (non-draft,
-  // non-prerelease) source release that carries both manifest assets.
-  const release = (Array.isArray(releases) ? releases : []).find((r) =>
-    !r.draft && !r.prerelease &&
-    typeof r.tag_name === 'string' && r.tag_name.startsWith(RELEASE_TAG_PREFIX) &&
-    (r.assets || []).some((a) => a.name === 'manifest.json') &&
-    (r.assets || []).some((a) => a.name === 'manifest.json.sig'),
-  )
+  // Consider only published (non-draft, non-prerelease) source releases whose
+  // tag is a strict `source-vX.Y.Z` and that carry both manifest assets, then
+  // pick the HIGHEST version — never rely on GitHub's list order, and never let
+  // a malformed tag like `source-vtemplate` win.
+  const release = (Array.isArray(releases) ? releases : [])
+    .filter((r) =>
+      !r.draft && !r.prerelease &&
+      releaseTagVersion(r.tag_name) &&
+      (r.assets || []).some((a) => a.name === 'manifest.json') &&
+      (r.assets || []).some((a) => a.name === 'manifest.json.sig'),
+    )
+    .sort((a, b) => (semverGt(releaseTagVersion(a.tag_name), releaseTagVersion(b.tag_name)) ? -1 : 1))[0]
   if (!release) throw new Error('No signed source release found.')
 
   const assetsByName = new Map((release.assets || []).map((a) => [a.name, a]))
@@ -1160,6 +1182,15 @@ async function fetchSignedRelease() {
   return { manifest, release, assetsByName }
 }
 
+// Cache the verified remote manifest so repeatedly opening the version menu
+// doesn't hit GitHub every time. Unauthenticated checks share a 60 req/hr/IP
+// budget and each check costs several calls, so without this the UI quickly
+// rate-limits itself into "Couldn't reach GitHub". A successful result is
+// cached longer than a failure so transient errors clear quickly.
+let versionCache = { manifest: null, error: null, at: 0 }
+const VERSION_CACHE_OK_MS = 10 * 60 * 1000
+const VERSION_CACHE_ERR_MS = 60 * 1000
+
 async function handleGetVersion(_req, res) {
   const managerCurrent = readLocalVersion(path.join(ROOT, 'package.json'))
   const templateCurrent = readLocalVersion(path.join(TEMPLATE_DIR, 'package.json'))
@@ -1167,14 +1198,28 @@ async function handleGetVersion(_req, res) {
   let managerLatest = null
   let templateLatest = null
   let error = null
-  try {
-    const { manifest } = await fetchSignedRelease()
+
+  const age = Date.now() - versionCache.at
+  const ttl = versionCache.error ? VERSION_CACHE_ERR_MS : VERSION_CACHE_OK_MS
+  const fresh = versionCache.at > 0 && age < ttl
+
+  if (!fresh) {
+    try {
+      const { manifest } = await fetchSignedRelease()
+      versionCache = { manifest, error: null, at: Date.now() }
+    } catch (e) {
+      // Fail closed: on any verification/network problem we report the error and
+      // never mark anything "outdated", so the UI never offers an unverified update.
+      versionCache = { manifest: null, error: e?.message || 'Could not verify latest release', at: Date.now() }
+    }
+  }
+
+  if (versionCache.manifest) {
+    const manifest = versionCache.manifest
     managerLatest = typeof manifest.managerVersion === 'string' ? manifest.managerVersion : null
     templateLatest = typeof manifest.templateVersion === 'string' ? manifest.templateVersion : null
-  } catch (e) {
-    // Fail closed: on any verification/network problem we report the error and
-    // never mark anything "outdated", so the UI never offers an unverified update.
-    error = e?.message || 'Could not verify latest release'
+  } else {
+    error = versionCache.error
   }
 
   sendJson(res, 200, {
