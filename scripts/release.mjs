@@ -66,7 +66,13 @@ if (dirty && bumpTarget && !commitMessage) {
       '--message "<msg>" to fold them into the release commit.')
 }
 
+// Works on whatever branch you're on (electron-shell today, main later) — the
+// branch is resolved at runtime and the signing workflow triggers off the tag,
+// not any specific branch.
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD')
+if (branch === 'HEAD' && willCommit && !noPush) {
+  die('Detached HEAD — check out a branch before creating a release commit, or use --no-push.')
+}
 const pkgVersion = (rel) => JSON.parse(readFileSync(path.join(REPO_ROOT, rel), 'utf-8')).version
 let unpushedCommit = false // a local release commit that --no-push left for you to push
 
