@@ -68,6 +68,7 @@ if (dirty && bumpTarget && !commitMessage) {
 
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD')
 const pkgVersion = (rel) => JSON.parse(readFileSync(path.join(REPO_ROOT, rel), 'utf-8')).version
+let unpushedCommit = false // a local release commit that --no-push left for you to push
 
 // Optionally bump versions and/or commit the working tree, then push — unless
 // --no-push, in which case everything stays local for you to push later.
@@ -90,6 +91,7 @@ if (dryRun) {
       const finalMsg = commitMessage || `Release: bump ${bumpTarget} (manager ${m}, template ${t})`
       git('commit', '-m', finalMsg)
       if (noPush) {
+        unpushedCommit = true
         console.log('Committed locally (not pushed — --no-push).')
       } else {
         console.log(`Pushing ${branch} ...`)
@@ -143,7 +145,7 @@ git('tag', '-a', tag, '-m', message)
 if (noPush) {
   console.log(`\n✔ Created tag ${tag} locally (not pushed — --no-push).`)
   console.log('   Push it yourself when ready to trigger the signing workflow:')
-  if (bumpTarget) console.log(`     git push origin ${branch}`)
+  if (unpushedCommit) console.log(`     git push origin ${branch}`)
   console.log(`     git push origin ${tag}`)
   process.exit(0)
 }
