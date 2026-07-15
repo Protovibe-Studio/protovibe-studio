@@ -106,11 +106,14 @@ function getFiberComponentProps(el: Element, componentId: string): Record<string
 }
 
 function toRect(r: DOMRect): SnapshotRect {
+  // Layout sizes are fractional (e.g. 83.4px); rounding them down produces
+  // boxes slightly smaller than the rendered content and makes text wrap.
+  // Ceil the dimensions so the frozen box always fits its content.
   return {
     left: Math.round(r.left),
     top: Math.round(r.top),
-    width: Math.round(r.width),
-    height: Math.round(r.height),
+    width: Math.ceil(r.width),
+    height: Math.ceil(r.height),
   };
 }
 
