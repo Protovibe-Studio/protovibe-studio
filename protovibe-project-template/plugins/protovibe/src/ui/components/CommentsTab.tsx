@@ -156,6 +156,14 @@ const FILTER_SCOPE_KEY = 'pv-comments-filter-scope';
 const FILTER_SELECTION_KEY = 'pv-comments-filter-selection'; // legacy boolean scope key (migrated)
 const FILTER_STATUS_KEY = 'pv-comments-filter-status'; // legacy single-status key (migrated)
 const FILTER_TOKENS_KEY = 'pv-comments-filter-tokens';
+const FILTER_OPEN_KEY = 'pv-comments-filter-open'; // remember whether the "Filter comments" panel is expanded
+
+function loadFiltersOpen(): boolean {
+  try {
+    return localStorage.getItem(FILTER_OPEN_KEY) === '1';
+  } catch { /* ignore */ }
+  return false;
+}
 
 function loadFilterScope(): FilterScope {
   try {
@@ -938,7 +946,10 @@ const ListView: React.FC<{
   onOpenThread: (t: CommentThread) => void;
 }> = (p) => {
   const searching = p.query.trim().length > 0;
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(loadFiltersOpen);
+  useEffect(() => {
+    try { localStorage.setItem(FILTER_OPEN_KEY, filtersOpen ? '1' : '0'); } catch { /* ignore */ }
+  }, [filtersOpen]);
   // Non-default filters worth surfacing on the collapsed "Filters" header.
   const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterScope !== 'all' ? 1 : 0);
   // Restore the threads-list scroll position when coming back from a thread.
