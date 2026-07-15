@@ -1390,10 +1390,22 @@ export function SketchpadApp() {
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockIds?.length) return;
 
+      // The bridge keeps the drag transform applied after a move-drop so the
+      // element doesn't flash back to its origin while waiting for HMR. On any
+      // path where no reload will arrive for a block, tell it to snap back.
+      const revertRetainedDrop = (blockIds: string[]) => {
+        if (!blockIds.length) return;
+        window.dispatchEvent(new CustomEvent('pv-sketchpad-drop-reverted', { detail: { blockIds } }));
+      };
+
       // When the drop target turns out to be invalid (no source locator or no
       // editable zone), we keep the elements in their source frame and just
       // update their absolute position so the user's drag isn't discarded.
       const applyFallbackPositions = async () => {
+        // Flow elements have no fallback position — no file write is coming
+        // for them, so release their retained drag transform immediately.
+        const coveredIds = new Set((fallbackPositions ?? []).map((p) => p.blockId));
+        revertRetainedDrop(draggedBlockIds.filter((id) => !coveredIds.has(id)));
         if (!fallbackPositions?.length) return;
         await Promise.all(
           fallbackPositions.map((p) =>
@@ -1406,7 +1418,9 @@ export function SketchpadApp() {
       const fallbackTargetFile = `src/sketchpads/${sketchpadId}/${targetFrameId}.tsx`;
 
       try {
+        let mutationRan = false;
         await runLockedMutation(async () => {
+            mutationRan = true;
             // 1. Copy the elements first
             await blockAction('copy', draggedBlockIds, sourceFile);
 
@@ -1465,8 +1479,12 @@ export function SketchpadApp() {
             const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
             if (focusIds.length > 0) await focusNewBlock(focusIds);
         });
+        // Another mutation held the lock, so the drop was silently skipped —
+        // no file writes happened and no reload is coming.
+        if (!mutationRan) revertRetainedDrop(draggedBlockIds);
       } catch (err) {
         console.error('[Sketchpad] Drop sequence failed:', err);
+        revertRetainedDrop(draggedBlockIds);
       }
     };
 

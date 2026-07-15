@@ -282,6 +282,112 @@ function findDropContainerAtPoint(clientX: number, clientY: number, dragTargets:
   return container;
 }
 
+// ─── Drop retention (anti-flicker) ───────────────────────────────────────────
+// When elements are dropped into a different container or frame the move is
+// persisted by rewriting source files, and Vite HMR re-renders the frames a
+// moment later. Resetting the drag transform at pointerup would snap the
+// element back to its pre-drag position until the reload lands (a visible
+// flicker), so we keep the transform applied and release it only once the DOM
+// reflects the drop:
+//  - the node was unmounted (React rendered a fresh node at the target) →
+//    nothing to restore;
+//  - React reused the node for a different block, or re-rendered the same
+//    block with a new persisted left/top (position-fallback path) → restore
+//    the original transform so the stale drag offset doesn't displace it.
+// A timeout and the `pv-sketchpad-drop-reverted` event (fired by the shell
+// when a drop sequence fails or is skipped) act as safety nets that snap the
+// elements back exactly like the old immediate reset did.
+const DROP_RETENTION_TIMEOUT_MS = 3000;
+
+interface DropRetention {
+  el: HTMLElement;
+  blockId: string;
+  origTransform: string;
+  origZIndex: string;
+  origLeft: number;
+  origTop: number;
+  timeoutId: number;
+}
+
+let dropRetentions: DropRetention[] = [];
+let dropRetentionObserver: MutationObserver | null = null;
+
+function releaseDropRetention(entry: DropRetention, restore: boolean) {
+  clearTimeout(entry.timeoutId);
+  dropRetentions = dropRetentions.filter(e => e !== entry);
+  if (restore) {
+    entry.el.style.transition = 'none';
+    entry.el.style.transform = entry.origTransform;
+    entry.el.style.zIndex = entry.origZIndex;
+    requestAnimationFrame(() => { entry.el.style.transition = ''; });
+  }
+  if (dropRetentions.length === 0 && dropRetentionObserver) {
+    dropRetentionObserver.disconnect();
+    dropRetentionObserver = null;
+  }
+}
+
+function checkDropRetentions() {
+  for (const entry of [...dropRetentions]) {
+    if (!entry.el.isConnected) {
+      releaseDropRetention(entry, false);
+      continue;
+    }
+    const currentId = entry.el.getAttribute('data-pv-sketchpad-el') || entry.el.getAttribute('data-pv-block');
+    if (currentId !== entry.blockId) {
+      releaseDropRetention(entry, true);
+      continue;
+    }
+    // Same block re-rendered with a new persisted left/top (position fallback).
+    const left = parseFloat(entry.el.style.left);
+    const top = parseFloat(entry.el.style.top);
+    if ((!Number.isNaN(left) && Math.abs(left - entry.origLeft) > 0.5) ||
+        (!Number.isNaN(top) && Math.abs(top - entry.origTop) > 0.5)) {
+      releaseDropRetention(entry, true);
+    }
+  }
+}
+
+function registerDropRetentions(targets: NonNullable<typeof dragState>['targets']) {
+  targets.forEach(t => {
+    const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
+    if (!blockId) {
+      t.el.style.transform = t.origTransform;
+      return;
+    }
+    // Keep the element painted above the drop target until the reload lands,
+    // matching what the user saw during the drag.
+    t.el.style.zIndex = '2147483640';
+    const entry: DropRetention = {
+      el: t.el,
+      blockId,
+      origTransform: t.origTransform,
+      origZIndex: t.origZIndex,
+      origLeft: t.origLeft,
+      origTop: t.origTop,
+      timeoutId: 0,
+    };
+    entry.timeoutId = window.setTimeout(() => releaseDropRetention(entry, entry.el.isConnected), DROP_RETENTION_TIMEOUT_MS);
+    dropRetentions.push(entry);
+  });
+  if (dropRetentions.length > 0 && !dropRetentionObserver) {
+    dropRetentionObserver = new MutationObserver(checkDropRetentions);
+    dropRetentionObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'data-pv-block', 'data-pv-sketchpad-el'],
+    });
+  }
+}
+
+window.addEventListener('pv-sketchpad-drop-reverted', (e) => {
+  const ids = (e as CustomEvent<{ blockIds?: string[] }>).detail?.blockIds;
+  [...dropRetentions].forEach(entry => {
+    if (!ids || ids.includes(entry.blockId)) releaseDropRetention(entry, entry.el.isConnected);
+  });
+});
+
 function applyDropTargetHighlight(el: HTMLElement | null) {
   if (!el) return;
   const a = el as any;
@@ -1181,6 +1287,11 @@ function handlePointerDown(e: PointerEvent) {
   }
 
   const dragTargets = selectedEls.includes(nextTarget) ? selectedEls : [nextTarget];
+  // A new drag on a still-retained element must start from its true layout
+  // position, so settle any pending drop retention first.
+  [...dropRetentions].forEach(entry => {
+    if (dragTargets.includes(entry.el)) releaseDropRetention(entry, true);
+  });
   const frameForDragSnap = findFrameContainer(nextTarget);
   const dragAllAbsolute = dragTargets.every(t => t.hasAttribute('data-pv-sketchpad-el'));
   dragState = {
@@ -1437,7 +1548,15 @@ function handlePointerUp(e: PointerEvent) {
           minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom);
         });
 
-        dragState.targets.forEach(t => t.el.style.transform = t.origTransform);
+        if (e.altKey) {
+          // Duplicating: the originals stay where they were, so reset them now.
+          dragState.targets.forEach(t => t.el.style.transform = t.origTransform);
+        } else {
+          // Moving: keep the drag transform until HMR re-renders the frames
+          // with the element in its new home — resetting now would flash the
+          // element back at its pre-drag position for a few frames.
+          registerDropRetentions(dragState.targets);
+        }
 
         const targetLocatorId = getNearestPvLocId(dropContainer as HTMLElement);
         const targetBlockId = dropContainer.getAttribute('data-pv-block');
