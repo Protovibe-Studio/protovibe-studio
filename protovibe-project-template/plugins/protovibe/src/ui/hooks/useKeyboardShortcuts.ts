@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { undo, redo, takeSnapshot, addBlock, deleteBlocks, uploadImage } from '../api/client';
+import { undo, redo, takeSnapshot, addBlock, deleteBlocks, unwrapBlock, uploadImage } from '../api/client';
+import { collectChildPositions } from '../utils/unwrapGeometry';
 import {
   executeBlockAction,
   executeClipboardBlockAction,
@@ -8,6 +9,7 @@ import {
   type ClipboardBlockAction
 } from '../utils/executeBlockAction';
 import { emitToast, formatUndoRedoMessage } from '../events/toast';
+import { openNotEditableDialog } from '../components/NotEditableDialog';
 import {
   getAllowedParent,
   getAllowedChild,
@@ -33,8 +35,6 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     if (!inspectorOpen) return;
-
-    let pasteShiftRef = false;
 
     const focusRestoredElement = (sourceId: string | undefined): Promise<void> => {
       return new Promise((resolve) => {
@@ -152,11 +152,12 @@ export function useKeyboardShortcuts() {
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
         e.preventDefault();
+        // The FloatingToolbar handlers fall back to the "not editable" dialog
+        // when the selected element can't take the action.
         if (e.shiftKey) {
           window.dispatchEvent(new CustomEvent('pv:open-add-after-dialog'));
         } else {
-          const canAdd = !!(activeData?.file && zones.length > 0);
-          if (canAdd) window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
+          window.dispatchEvent(new CustomEvent('pv:open-add-dialog'));
         }
         return;
       }
@@ -166,9 +167,19 @@ export function useKeyboardShortcuts() {
       // Copy, Cut, Paste, Duplicate
       const key = e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && key === 'v') {
-        // Defer to the `paste` event so we can route image clipboard data
-        // to the image-insert flow even when a protovibe block was previously copied.
-        pasteShiftRef = e.shiftKey;
+        if (e.shiftKey) {
+          // Paste after: browsers don't reliably dispatch a native `paste`
+          // event for Cmd+Shift+V when no editable element is focused, so we
+          // can't defer to `handlePaste` for this one. The copied block lives
+          // in a server-side clipboard, so no browser clipboard data is needed
+          // — perform the paste-after directly here.
+          e.preventDefault();
+          await pasteBlock(true);
+          return;
+        }
+        // Defer plain Cmd+V to the native `paste` event so we can route image
+        // clipboard data to the image-insert flow even when a protovibe block
+        // was previously copied.
         return;
       }
       if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'd')) {
@@ -185,7 +196,7 @@ export function useKeyboardShortcuts() {
 
         {
           if (blockIds.length === 0 || !isBlockInCurrentFile) {
-            emitToast(`Can't ${key === 'd' ? 'duplicate' : key === 'c' ? 'copy' : 'cut'} this element`);
+            openNotEditableDialog();
             return;
           }
 
@@ -244,7 +255,8 @@ export function useKeyboardShortcuts() {
             .filter(Boolean) as string[]
         )];
         if (blockIds.length === 0) {
-          emitToast({ message: "Can't wrap this element", variant: 'error' });
+          e.preventDefault();
+          openNotEditableDialog();
           return;
         }
         const isNested = targets.some(t1 => targets.some(t2 => t1 !== t2 && t1.contains(t2)));
@@ -265,6 +277,39 @@ export function useKeyboardShortcuts() {
           return await response.json();
         });
         if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
+        return;
+      }
+
+      // 3.2. Unwrap Block — Shift+G
+      if (e.shiftKey && e.key === 'G') {
+        if (!activeData?.file || !currentBaseTarget) return;
+        const closestBlock = currentBaseTarget.closest('[data-pv-block]') as HTMLElement | null;
+        const blockId = closestBlock?.getAttribute('data-pv-block');
+        const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
+        if (!closestBlock || !blockId || !isBlockInCurrentFile) {
+          e.preventDefault();
+          openNotEditableDialog();
+          return;
+        }
+        e.preventDefault();
+        const childPositions = collectChildPositions(closestBlock);
+        if (Object.keys(childPositions).length === 0) {
+          emitToast({ message: 'Nothing to unwrap', variant: 'error' });
+          return;
+        }
+        const targetLayoutMode = (closestBlock.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || 'flow') as 'flow' | 'absolute';
+        const res = await runLockedMutation(async () => {
+          await takeSnapshot(activeData.file, activeSourceId!, undefined, 'unwrap block');
+          return unwrapBlock({
+            file: activeData.file,
+            blockId,
+            targetLayoutMode,
+            childPositions: targetLayoutMode === 'absolute' ? childPositions : undefined,
+          });
+        }).catch((err: any) => {
+          emitToast({ message: err.message || 'Failed to unwrap block', variant: 'error' });
+        });
+        if (res?.blockIds?.length) focusNewBlock(res.blockIds, { maxAttempts: 20 });
         return;
       }
 
@@ -327,7 +372,8 @@ export function useKeyboardShortcuts() {
         
         if (blockId && activeData?.file) {
           if (!isBlockInCurrentFile) {
-            emitToast({ message: `Can't modify this element here`, variant: 'error' });
+            e.preventDefault();
+            openNotEditableDialog();
             return;
           }
           e.preventDefault();
@@ -346,6 +392,10 @@ export function useKeyboardShortcuts() {
               refreshActiveData
             });
           });
+        } else if (activeData?.file) {
+          // Selected element is not a pv block — explain how to make it editable.
+          e.preventDefault();
+          openNotEditableDialog();
         }
         return;
       }
@@ -457,28 +507,10 @@ export function useKeyboardShortcuts() {
       });
     };
 
-    const handlePaste = async (e: ClipboardEvent) => {
-      if (isMutationLocked) return;
-      if (isTypingInput(e.target as HTMLElement)) return;
-      if (!activeData?.file) return;
-      if (!currentBaseTarget) return;
+    const pasteBlock = async (isPasteAfter: boolean) => {
+      if (!activeData?.file || !currentBaseTarget) return;
 
-      const items = e.clipboardData?.items;
-      const imageItem = items
-        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
-        : null;
-      const imageFile = imageItem?.getAsFile() || null;
-
-      const isPasteAfter = pasteShiftRef;
-      pasteShiftRef = false;
-
-      if (imageFile) {
-        e.preventDefault();
-        await insertImageFile(imageFile);
-        return;
-      }
-
-      const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+      const targets = selectedTargets?.length > 0 ? selectedTargets : [currentBaseTarget];
       const blockIds = [...new Set(
         targets
           .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
@@ -487,29 +519,26 @@ export function useKeyboardShortcuts() {
       const isBlockInCurrentFile = activeData?.componentProps?.some((p: any) => p.name === 'data-pv-block');
       const targetZone = zones[0];
       const targetBlockId = blockIds[0];
-      const wantAfter = isPasteAfter;
 
-      if (wantAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+      if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
         emitToast({ message: "Can't paste after this element", variant: 'error' });
         return;
       }
-      if (!wantAfter && !targetZone) {
+      if (!isPasteAfter && !targetZone) {
         emitToast({ message: "Can't paste inside this element", variant: 'error' });
         return;
       }
 
-      e.preventDefault();
-
-      const targetContainer = wantAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+      const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
       const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
 
       await runLockedMutation(async () => {
         await takeSnapshot(activeData.file, activeSourceId!, undefined, 'paste');
         const res = await addBlock({
           file: activeData.file,
-          zoneId: wantAfter ? undefined : targetZone.id,
-          afterBlockId: wantAfter ? targetBlockId! : undefined,
-          isPristine: wantAfter ? false : targetZone.isPristine,
+          zoneId: isPasteAfter ? undefined : targetZone.id,
+          afterBlockId: isPasteAfter ? targetBlockId! : undefined,
+          isPristine: isPasteAfter ? false : targetZone.isPristine,
           elementType: 'paste',
           targetStartLine: activeData.startLine,
           targetEndLine: activeData.endLine,
@@ -525,6 +554,30 @@ export function useKeyboardShortcuts() {
       }).catch((err: any) => {
         emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
       });
+    };
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (isMutationLocked) return;
+      if (isTypingInput(e.target as HTMLElement)) return;
+      if (!activeData?.file) return;
+      if (!currentBaseTarget) return;
+
+      const items = e.clipboardData?.items;
+      const imageItem = items
+        ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
+        : null;
+      const imageFile = imageItem?.getAsFile() || null;
+
+      if (imageFile) {
+        e.preventDefault();
+        await insertImageFile(imageFile);
+        return;
+      }
+
+      // Plain Cmd+V pastes the copied block inside the selected element.
+      // Cmd+Shift+V ("paste after") is handled directly in the keydown handler.
+      e.preventDefault();
+      await pasteBlock(false);
     };
 
     const handleDragOver = (e: DragEvent) => {

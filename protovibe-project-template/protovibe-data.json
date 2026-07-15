@@ -1,19 +1,8 @@
 {
   "project-name": "Project template",
-  "cloudflare-wrangler-project-name": "protovibe-html-v310",
-  "cloudflare-pages-url": "https://protovibe-html-v310.pages.dev",
+  "cloudflare-wrangler-project-name": "protovibe-app",
+  "cloudflare-pages-url": "",
   "cloudflare-deploy-history": [
-    "https://c30b71f6.protovibe-html-v310.pages.dev",
-    "https://dc44f552.protovibe-html-v310.pages.dev",
-    "https://515ab58b.protovibe-html-v310.pages.dev",
-    "https://ef6c3517.protovibe-html-v310.pages.dev",
-    "https://93c49d88.protovibe-html-v310.pages.dev",
-    "https://f0e86924.protovibe-html-v310.pages.dev",
-    "https://f97bf82a.protovibe-html-v310.pages.dev",
-    "https://105de33e.protovibe-html-v310.pages.dev",
-    "https://051fcd34.protovibe-html-v310.pages.dev",
-    "https://218513c0.protovibe-html-v310.pages.dev",
-    "https://efc60ade.protovibe-html-v310.pages.dev",
-    "https://d916524a.protovibe-html-v310.pages.dev"
-  ]
+  ],
+  "cloudflare-last-published-at": "2026-07-13T07:29:07.363Z"
 }

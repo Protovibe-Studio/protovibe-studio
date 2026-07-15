@@ -3,10 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
+import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
 import { registerGitMiddleware } from './backend/git-server';
+import { registerProfileMiddleware } from './backend/profile-server';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -157,8 +159,10 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__get-zones', handleGetZones);
       server.middlewares.use('/__add-block', handleAddBlock);
       server.middlewares.use('/__wrap-blocks', handleWrapBlocks);
+      server.middlewares.use('/__unwrap-block', handleUnwrapBlock);
       server.middlewares.use('/__delete-blocks', handleDeleteBlocks);
       server.middlewares.use('/__block-action', handleBlockAction);
+      server.middlewares.use('/__convert-to-sketchpad', (req, res) => handleConvertToSketchpad(req, res, server));
       server.middlewares.use('/__take-snapshot', handleTakeSnapshot);
       server.middlewares.use('/__undo', handleUndo);
       server.middlewares.use('/__redo', handleRedo);
@@ -176,6 +180,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__cloudflare-publish-status', handleCloudflarePublishStatus);
       server.middlewares.use('/__cloudflare-login-start', handleCloudflareLoginStart);
       server.middlewares.use('/__cloudflare-logout', handleCloudflareLogout);
+      server.middlewares.use('/__cloudflare-auth-status', handleCloudflareAuthStatus);
 
       // Resolve a relative file path to its absolute path on disk
       server.middlewares.use('/__resolve-file-path', (req, res) => {
@@ -241,6 +246,9 @@ export function protovibeSourcePlugin(): Plugin {
 
       // Comments & Notes endpoints
       registerCommentsMiddleware(server);
+
+      // Shared comment-author profile (~/.protovibe/profile.json)
+      registerProfileMiddleware(server);
 
       // Git sync endpoints
       registerGitMiddleware(server);

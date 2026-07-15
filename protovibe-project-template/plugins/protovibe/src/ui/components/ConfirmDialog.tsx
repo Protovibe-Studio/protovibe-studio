@@ -5,8 +5,10 @@ import { theme } from '../theme';
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
+  /** 'destructive' (default) renders a red confirm button, 'primary' a blue one. */
+  confirmVariant?: 'destructive' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -16,6 +18,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Delete',
+  confirmVariant = 'destructive',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -30,6 +33,9 @@ export function ConfirmDialog({
   }, [isOpen, onCancel, onConfirm]);
 
   if (!isOpen) return null;
+
+  const confirmBg = confirmVariant === 'primary' ? theme.primary_solid : theme.destructive_default;
+  const confirmHoverBg = confirmVariant === 'primary' ? theme.primary_solid_hover : theme.destructive_secondary;
 
   return createPortal(
     <>
@@ -46,6 +52,7 @@ export function ConfirmDialog({
 
       {/* Dialog */}
       <div
+        data-pv-ui="true"
         style={{
           position: 'fixed',
           top: '50%',
@@ -56,7 +63,7 @@ export function ConfirmDialog({
           border: `1px solid ${theme.border_default}`,
           borderRadius: 12,
           padding: '20px 24px',
-          width: 320,
+          width: 440,
           boxShadow: '0 16px 64px rgba(0,0,0,0.7)',
           fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
@@ -109,7 +116,7 @@ export function ConfirmDialog({
               padding: '6px 14px',
               borderRadius: 6,
               border: 'none',
-              background: theme.destructive_default,
+              background: confirmBg,
               color: '#fff',
               fontSize: 12,
               fontWeight: 600,
@@ -117,8 +124,8 @@ export function ConfirmDialog({
               fontFamily: 'inherit',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = theme.destructive_secondary)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = theme.destructive_default)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = confirmHoverBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = confirmBg)}
           >
             {confirmLabel}
           </button>

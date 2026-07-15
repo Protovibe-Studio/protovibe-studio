@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Protovibe</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --fg: #e6e8ee;
+    --muted: #8a90a3;
+    --primary: oklch(61.59% 0.20711 262.9); /* matches --primary in the manager */
+    --error: #ff7a7a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 36px;
+    user-select: none;
+    -webkit-app-region: drag;
+  }
+  .logo { height: 22px; width: auto; align-self: flex-start; }
+  .row { display: flex; align-items: center; gap: 12px; margin-top: 32px; }
+  .spinner {
+    width: 18px; height: 18px; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .step { font-size: 14px; font-weight: 500; }
+  .funny { margin-top: 14px; font-size: 12px; color: var(--muted); min-height: 16px; }
+  pre {
+    display: none;
+    flex: 1; margin-top: 16px; padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    font: 11px/1.5 ui-monospace, Menlo, monospace;
+    color: var(--muted);
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .error { color: var(--error); }
+  .actions { display: none; gap: 10px; margin-top: 16px; -webkit-app-region: no-drag; }
+  .visible { display: flex; }
+  pre.visible { display: block; }
+  button {
+    background: rgba(255,255,255,0.08);
+    color: var(--fg);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 7px;
+    padding: 7px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(255,255,255,0.14); }
+  button.primary { background: var(--primary); color: #fff; border: none; }
+</style>
+</head>
+<body>
+  <img class="logo" alt="Protovibe Studio" src="data:image/png;base64,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" />
+  <div class="row">
+    <div class="spinner" id="spinner"></div>
+    <div class="step" id="step">Starting up…</div>
+  </div>
+  <div class="funny" id="funny"></div>
+  <pre id="log"></pre>
+  <div class="actions" id="actions">
+    <button class="primary" id="retry">Retry</button>
+    <button id="openLog">Open log</button>
+  </div>
+<script>
+  const stepEl = document.getElementById('step');
+  const funnyEl = document.getElementById('funny');
+  const logEl = document.getElementById('log');
+  const actions = document.getElementById('actions');
+  const spinner = document.getElementById('spinner');
+  const lines = [];
+
+  const FUNNY = [
+    'Unpacking a fresh set of brushes…',
+    'Stocking the studio shelves…',
+    'Sharpening every pencil…',
+    'Mixing the paint…',
+    'Laying out the drawing tools…',
+    'Aligning pixels into a tidy grid…',
+    'Untangling the cables behind the desk…',
+    'Adjusting the lighting…',
+    'Almost there, pinky promise…',
+  ];
+  let funnyIndex = 0;
+  let funnyTimer = setInterval(() => {
+    funnyEl.textContent = FUNNY[funnyIndex++ % FUNNY.length];
+  }, 3000);
+
+  window.protovibeSplash.onProgress(({ step, line }) => {
+    if (step) stepEl.textContent = step;
+    if (line) {
+      for (const l of line.split('\n')) {
+        if (!l.trim()) continue;
+        lines.push(l);
+        if (lines.length > 8) lines.shift();
+      }
+    }
+  });
+
+  window.protovibeSplash.onError(({ message, tail }) => {
+    clearInterval(funnyTimer);
+    funnyEl.textContent = '';
+    stepEl.textContent = message;
+    stepEl.classList.add('error');
+    spinner.style.display = 'none';
+    logEl.textContent = tail || lines.join('\n');
+    logEl.classList.add('visible');
+    actions.classList.add('visible');
+  });
+
+  document.getElementById('retry').addEventListener('click', () => {
+    stepEl.classList.remove('error');
+    spinner.style.display = '';
+    actions.classList.remove('visible');
+    logEl.classList.remove('visible');
+    stepEl.textContent = 'Retrying…';
+    funnyTimer = setInterval(() => {
+      funnyEl.textContent = FUNNY[funnyIndex++ % FUNNY.length];
+    }, 3000);
+    window.protovibeSplash.retry();
+  });
+  document.getElementById('openLog').addEventListener('click', () => window.protovibeSplash.openLog());
+</script>
+</body>
+</html>

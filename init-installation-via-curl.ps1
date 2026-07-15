@@ -23,17 +23,17 @@ Say "Target: $InstallDir"
 Write-Host ''
 
 # ── Preserve any existing install by renaming it aside ─────────────────────
-# We never delete user data. If $InstallDir exists and is non-empty, rename
-# it to a sibling Protovibe_old_version_N. After extraction, if the backup
-# contains a projects\ folder, move it into the fresh install so the user's
-# work is preserved in place.
+# We never delete user projects. If $InstallDir exists and is non-empty,
+# rename it aside. After extraction, projects\ is moved into the fresh
+# install, node_modules are stripped from the backup (they are recreated by
+# install.bat and only waste space), and the backup lands in
+# $InstallDir\backups\ where only the 2 most recent are kept.
 $BackupDir = $null
+$BackupStamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 if ((Test-Path $InstallDir) -and (Get-ChildItem -Force $InstallDir -ErrorAction SilentlyContinue | Select-Object -First 1)) {
   $ParentDir = Split-Path -Parent $InstallDir
   $BaseName  = Split-Path -Leaf   $InstallDir
-  $n = 1
-  while (Test-Path (Join-Path $ParentDir ("{0}_old_version_{1}" -f $BaseName, $n))) { $n++ }
-  $BackupDir = Join-Path $ParentDir ("{0}_old_version_{1}" -f $BaseName, $n)
+  $BackupDir = Join-Path $ParentDir ("{0}_backup_{1}" -f $BaseName, $BackupStamp)
   Say "Existing install found — renaming to $BackupDir"
   Move-Item -LiteralPath $InstallDir -Destination $BackupDir -Force
 }
@@ -79,10 +79,43 @@ if ($BackupDir) {
     }
     Say 'Restoring projects\ from previous install...'
     Move-Item -LiteralPath $BackupProjects -Destination $NewProjects -Force
-    Ok "projects\ moved into new install. Old install kept at $BackupDir"
-  } else {
-    Ok "Previous install kept at $BackupDir (no projects\ folder to restore)"
   }
+}
+
+# ── Tuck the backup into $InstallDir\backups\, keep the 2 most recent ──────
+if ($BackupDir) {
+  $BackupsRoot = Join-Path $InstallDir 'backups'
+  # Carry backup history from the previous install forward.
+  $OldBackupsRoot = Join-Path $BackupDir 'backups'
+  if (Test-Path -LiteralPath $OldBackupsRoot) {
+    Move-Item -LiteralPath $OldBackupsRoot -Destination $BackupsRoot -Force
+  }
+  New-Item -ItemType Directory -Path $BackupsRoot -Force | Out-Null
+
+  # node_modules are recreated by install.bat — dropping them shrinks the
+  # backup from gigabytes to megabytes.
+  Say 'Trimming node_modules from backup...'
+  Get-ChildItem -LiteralPath $BackupDir -Recurse -Directory -Filter node_modules -ErrorAction SilentlyContinue |
+    Sort-Object { $_.FullName.Length } |
+    ForEach-Object {
+      if (Test-Path -LiteralPath $_.FullName) {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    }
+
+  $FinalBackup = Join-Path $BackupsRoot ("backup-{0}" -f $BackupStamp)
+  Move-Item -LiteralPath $BackupDir -Destination $FinalBackup -Force
+  Ok "Previous install backed up to $FinalBackup"
+
+  # Keep only the 2 most recent backups (timestamped names sort chronologically).
+  Get-ChildItem -LiteralPath $BackupsRoot -Directory -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like 'backup-*' } |
+    Sort-Object Name -Descending |
+    Select-Object -Skip 2 |
+    ForEach-Object {
+      Say ("Removing old backup {0}" -f $_.Name)
+      Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
 # ── Hand off to install.bat ─────────────────────────────────────────────────

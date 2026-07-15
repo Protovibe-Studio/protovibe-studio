@@ -186,12 +186,17 @@ function removeAttribute(source: string, id: string): string {
 }
 
 // Coerce a client-supplied suggestions payload into clean {original, suggested}
-// string pairs, dropping malformed entries and empty originals.
-function sanitizeSuggestions(raw: unknown): { original: string; suggested: string }[] {
+// string pairs, dropping malformed entries and empty originals. `replaceAll` is
+// only written when true, so scoped suggestions (the default) stay terse on disk.
+function sanitizeSuggestions(raw: unknown): { original: string; suggested: string; replaceAll?: boolean }[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .filter((s: unknown): s is { original: unknown; suggested: unknown } => !!s && typeof s === 'object')
-    .map((s) => ({ original: String(s.original ?? ''), suggested: String(s.suggested ?? '') }))
+    .filter((s: unknown): s is Record<string, unknown> => !!s && typeof s === 'object')
+    .map((s) => ({
+      original: String(s.original ?? ''),
+      suggested: String(s.suggested ?? ''),
+      ...(s.replaceAll ? { replaceAll: true } : {}),
+    }))
     .filter((s) => s.original.trim().length > 0);
 }
 

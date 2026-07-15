@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { X, Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft, Clock } from 'lucide-react'
 import GithubMark from '../assets/GithubMark.jsx'
 
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
@@ -211,18 +211,22 @@ export default function GithubConnectModal({ onClose, onClone }) {
   )
 
   const accountChip = account?.login && (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 min-w-0">
       {account.avatarUrl && (
-        <img src={account.avatarUrl} alt="" className="w-5 h-5 rounded-full" />
+        <img src={account.avatarUrl} alt="" className="w-6 h-6 rounded-full shrink-0" />
       )}
-      <span className="text-xs text-foreground-secondary">{account.login}</span>
-      <button
-        type="button"
-        onClick={logout}
-        className="text-xs text-foreground-tertiary hover:text-foreground-default underline transition-colors cursor-pointer"
-      >
-        Log out
-      </button>
+      <div className="flex flex-col min-w-0 leading-tight">
+        <span className="text-xs text-foreground-secondary truncate max-w-[160px]">
+          {account.login}
+        </span>
+        <button
+          type="button"
+          onClick={logout}
+          className="self-start text-[11px] text-foreground-tertiary hover:text-foreground-default underline transition-colors cursor-pointer"
+        >
+          Log out
+        </button>
+      </div>
     </div>
   )
 
@@ -231,22 +235,20 @@ export default function GithubConnectModal({ onClose, onClone }) {
       className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose() }}
     >
-      <div className="bg-background-elevated border border-border-default rounded-2xl shadow-xl w-full max-w-lg p-6 flex flex-col gap-5 max-h-[85vh]">
-        <div className="flex items-center justify-between gap-3">
+      <div className="relative bg-background-elevated border border-border-default rounded-2xl shadow-xl w-full max-w-lg p-6 flex flex-col gap-5 max-h-[85vh]">
+        <button
+          onClick={onClose}
+          disabled={busy}
+          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          <X size={14} />
+        </button>
+        <div className="flex items-center justify-between gap-3 pr-9">
           <h2 className="text-base font-semibold text-foreground-default flex items-center gap-2">
             <GithubMark size={16} />
             Connect to GitHub
           </h2>
-          <div className="flex items-center gap-3">
-            {step !== 'connect' && step !== 'loading' && accountChip}
-            <button
-              onClick={onClose}
-              disabled={busy}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              <X size={14} />
-            </button>
-          </div>
+          {step !== 'connect' && step !== 'loading' && accountChip}
         </div>
 
         {step === 'loading' && (
@@ -257,7 +259,7 @@ export default function GithubConnectModal({ onClose, onClone }) {
           <div className="flex flex-col gap-4">
             <p className="text-sm text-foreground-secondary">
               Connect your GitHub account to clone one of your repositories into Protovibe.
-              A browser tab will open so you can authorize the Protovibe app.
+              A browser tab will open so you can authorize Protovibe.
             </p>
             {connectError && <p className="text-xs text-foreground-destructive">{connectError}</p>}
             <div className="flex items-center gap-2 justify-end">
@@ -288,21 +290,45 @@ export default function GithubConnectModal({ onClose, onClone }) {
 
         {step === 'repos' && needsInstall && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-foreground-secondary">
-              Your account is connected, but the Protovibe app isn't installed on any account yet.
-              Install it and choose which repositories Protovibe may access.
-            </p>
-            <a
-              href={repoData.installUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors"
-            >
-              <ExternalLink size={14} />
-              Install the Protovibe app on GitHub
-            </a>
+            {repoData.installRequestedAt ? (
+              <>
+                <div className="flex items-start gap-2.5 rounded-xl bg-background-warning-subtle border border-border-default px-3 py-2.5">
+                  <Clock size={14} className="shrink-0 mt-0.5 text-foreground-secondary" />
+                  <p className="text-sm text-foreground-secondary">
+                    <span className="font-medium text-foreground-default">Waiting for approval.</span>{' '}
+                    You asked an owner of that organization to approve Protovibe — GitHub has emailed
+                    them. Once they approve, the organization's repositories appear here automatically.
+                  </p>
+                </div>
+                <a
+                  href={repoData.installUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 text-xs text-foreground-tertiary hover:text-foreground-default underline transition-colors"
+                >
+                  <ExternalLink size={12} />
+                  Authorize a different account instead
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-foreground-secondary">
+                  Your account is connected. Now choose which repositories Protovibe may access — on
+                  your personal account or on an organization you belong to.
+                </p>
+                <a
+                  href={repoData.installUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors"
+                >
+                  <ExternalLink size={14} />
+                  Authorize Protovibe GitHub integration
+                </a>
+              </>
+            )}
             <p className="text-xs text-foreground-tertiary text-center">
-              This screen refreshes automatically once the app is installed.
+              This screen refreshes automatically.
             </p>
           </div>
         )}

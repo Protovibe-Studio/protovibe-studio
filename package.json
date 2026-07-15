@@ -4,8 +4,15 @@
   "scripts": {
     "install:all": "pnpm --dir protovibe-project-manager install && pnpm --dir protovibe-project-template install",
     "dev": "pnpm --dir protovibe-project-manager dev",
+    "electron": "pnpm --dir electron dev",
+    "build:all": "pnpm --dir electron install && pnpm --dir electron run dist:unsigned",
+    "build:all:signed": "pnpm --dir electron install && pnpm --dir electron run dist",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "bump:manager": "node scripts/bump-version.mjs manager",
+    "bump:template": "node scripts/bump-version.mjs template",
+    "bump:all": "node scripts/bump-version.mjs all",
+    "release": "node scripts/release.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

@@ -1,0 +1,53 @@
+name: Release Electron shell
+
+on:
+  push:
+    tags:
+      - 'shell-v*'
+
+jobs:
+  mac:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install shell dependencies
+        run: pnpm install
+        working-directory: electron
+
+      - name: Assert Electron ships Node 22 (toolchain shim contract)
+        run: |
+          NODE_V=$(ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron -e 'console.log(process.version)')
+          echo "Electron node: $NODE_V"
+          case "$NODE_V" in
+            v22.*) echo "OK" ;;
+            *) echo "Electron's Node is $NODE_V, expected v22.x (see .nvmrc)"; exit 1 ;;
+          esac
+        working-directory: electron
+
+      - name: Regression tests (toolchain shim, yargs/wrangler)
+        run: pnpm test
+        working-directory: electron
+
+      - name: Stage app source bundle
+        run: pnpm run prepare-bundle
+        working-directory: electron
+
+      - name: Build, sign, notarize, publish
+        run: pnpm exec electron-builder --mac --arm64 --publish always
+        working-directory: electron
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

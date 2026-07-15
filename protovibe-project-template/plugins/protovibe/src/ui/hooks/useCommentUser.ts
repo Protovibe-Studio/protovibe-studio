@@ -1,35 +1,92 @@
 // plugins/protovibe/src/ui/hooks/useCommentUser.ts
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { CommentAuthor, CommentItem, CommentThread } from '../../shared/comments';
 
 const STORAGE_KEY = 'pv-comment-user';
 
+function readCache(): CommentAuthor | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as CommentAuthor) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(user: CommentAuthor): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  } catch (err) {
+    console.warn('Failed to cache comment user', err);
+  }
+}
+
 /**
- * Local-only author identity for comment attribution. This is deliberately NOT
- * a signup — it lives in localStorage so a teammate can tell who left a note.
+ * Author identity for comment attribution. This is deliberately NOT a signup.
+ *
+ * The profile lives in ~/.protovibe/profile.json so it follows the user across
+ * every project on this machine — localStorage is keyed by origin, and each
+ * project runs on its own dev-server port, so a browser-only profile would have
+ * to be re-entered per project. localStorage is still written, but only as a
+ * cache: it lets the first render show the right author instead of flashing the
+ * "Who are you?" gate while the server responds. The file always wins.
  */
 export function useCommentUser() {
-  const [user, setUser] = useState<CommentAuthor | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as CommentAuthor) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<CommentAuthor | null>(readCache);
+  const userRef = useRef(user);
+  userRef.current = user;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/__profile');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (data.profile) {
+          setUser(data.profile as CommentAuthor);
+          writeCache(data.profile as CommentAuthor);
+          return;
+        }
+
+        // No shared profile yet. A cached one means this browser set an identity
+        // before the profile moved to disk — promote it so it survives the next
+        // project instead of asking the user again.
+        const cached = userRef.current;
+        if (cached) void saveProfile(cached);
+      } catch {
+        // Offline / older dev server: the cached identity still works locally.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const saveUser = useCallback((name: string, email: string) => {
     const next: CommentAuthor = { name: name.trim(), email: email.trim() };
+    // Applied optimistically: callers act on the returned author immediately
+    // (posting the comment that opened the profile gate), and a failed write
+    // should not cost them that comment.
     setUser(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch (err) {
-      console.warn('Failed to persist comment user', err);
-    }
+    writeCache(next);
+    void saveProfile(next);
     return next;
   }, []);
 
   return { user, saveUser };
+}
+
+async function saveProfile(author: CommentAuthor): Promise<void> {
+  try {
+    await fetch('/__profile-save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(author),
+    });
+  } catch (err) {
+    console.warn('Failed to persist comment profile', err);
+  }
 }
 
 /**

@@ -52,17 +52,18 @@ async function originAuthHeader(): Promise<string | null> {
   return auth ? authHeaderFor(auth.token) : null;
 }
 
-/** Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit. */
-async function git(args: string[], timeoutMs = 15_000, auth = false): Promise<string> {
+/**
+ * Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit.
+ * With `header`, authenticate the remote from the stored token instead of the
+ * machine's credentials; without it, git uses whatever the machine already has.
+ */
+async function runGit(args: string[], timeoutMs: number, header: string | null): Promise<string> {
   const resolved = resolveGit();
   if (!resolved) throw new Error('Git isn’t available on this computer yet.');
 
-  let header: string | null = null;
-  let fullArgs = args;
-  if (auth) {
-    header = await originAuthHeader();
-    if (header) fullArgs = ['-c', 'credential.helper=', '-c', `http.extraHeader=${header}`, ...args];
-  }
+  const fullArgs = header
+    ? ['-c', 'credential.helper=', '-c', `http.extraHeader=${header}`, ...args]
+    : args;
 
   try {
     // shell: false — the auth header travels in argv and must never hit a shell.
@@ -74,10 +75,64 @@ async function git(args: string[], timeoutMs = 15_000, auth = false): Promise<st
   }
 }
 
-/** Run a git command, returning its output or `null` if it exits non-zero / errors. */
-async function gitTry(args: string[], timeoutMs = 15_000, auth = false): Promise<string | null> {
+/** Local (no-network) git command. Rejects on non-zero exit. */
+async function git(args: string[], timeoutMs = 15_000): Promise<string> {
+  return runGit(args, timeoutMs, null);
+}
+
+/** Local git command, returning its output or `null` if it exits non-zero / errors. */
+async function gitTry(args: string[], timeoutMs = 15_000): Promise<string | null> {
   try {
-    return await git(args, timeoutMs, auth);
+    return await git(args, timeoutMs);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Does this failure mean "these credentials aren't allowed here" rather than
+ * "the operation itself was wrong"? Only the former is worth retrying with a
+ * different credential — a non-fast-forward rejection, say, would fail
+ * identically no matter who pushes.
+ */
+function isAccessDenied(text: string): boolean {
+  return /\b(401|403)\b|not granted|permission denied|authentication failed|repository not found|access denied|could not read (username|password)|terminal prompts disabled/i.test(text);
+}
+
+/**
+ * A network op against origin (fetch / push), with a credential fallback.
+ *
+ * We prefer the token the manager stored, but it only carries the GitHub App's
+ * installation rights: if the app isn't installed on this repo, the token is
+ * rejected even when the user's own machine can push it perfectly well (SSH key,
+ * credential helper, gh CLI). So when the token is refused, retry once with the
+ * machine's ambient credentials — that path succeeding is a real success, and
+ * the user sees no error at all.
+ *
+ * If both are refused we surface the *token* error: it's the one that tells the
+ * UI to send the user to the app-installation page.
+ */
+async function gitNet(args: string[], timeoutMs: number): Promise<string> {
+  const header = await originAuthHeader();
+  if (!header) return runGit(args, timeoutMs, null);
+
+  try {
+    return await runGit(args, timeoutMs, header);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!isAccessDenied(msg)) throw err;
+    try {
+      return await runGit(args, timeoutMs, null);
+    } catch {
+      throw err;
+    }
+  }
+}
+
+/** Network git op against origin, returning its output or `null` on failure. */
+async function gitNetTry(args: string[], timeoutMs: number): Promise<string | null> {
+  try {
+    return await gitNet(args, timeoutMs);
   } catch {
     return null;
   }
@@ -232,7 +287,7 @@ async function stageAndCommit(message: string): Promise<boolean> {
  * A rebase that even `-X theirs` can't settle (e.g. rename/delete) aborts and rethrows.
  */
 async function fetchAndRebase(): Promise<boolean> {
-  await git(['fetch'], 90_000, true);
+  await gitNet(['fetch'], 90_000);
 
   // Fast path: clean rebase (no overlapping edits, or nothing to integrate).
   try {
@@ -264,7 +319,7 @@ async function runGitSync(): Promise<void> {
     } catch (err) {
       setGitOpState({
         status: 'error',
-        message: 'Could not merge remote changes automatically. Ask a developer to help.',
+        message: 'Could not merge remote changes automatically. Ask your coding agent for help.',
         op: 'sync',
         error: String(err),
       });
@@ -272,7 +327,7 @@ async function runGitSync(): Promise<void> {
     }
 
     setGitOpState({ status: 'pushing', message: 'Publishing…', op: 'sync' });
-    await git(['push'], 90_000, true);
+    await gitNet(['push'], 90_000);
 
     setGitOpState({
       status: 'success',
@@ -286,10 +341,11 @@ async function runGitSync(): Promise<void> {
 }
 
 /**
- * "Back up to GitHub" — one click for a non-technical user takes a project with
- * no repo (or no remote) to a private GitHub repo with upstream tracking:
+ * "Add project to GitHub" — one click for a non-technical user takes a project
+ * with no repo (or no remote) to a private GitHub repo with upstream tracking:
  * init if needed → commit → create the repo under the personal account → add
- * origin → authenticated push. Reuses the same op state machine as sync.
+ * origin → authenticated push. From there the project can be shared, commented
+ * on and synced. Reuses the same op state machine as sync.
  */
 async function runBackup(): Promise<void> {
   try {
@@ -327,12 +383,13 @@ async function runBackup(): Promise<void> {
 
     setGitOpState({ status: 'pushing', message: 'Uploading your project…', op: 'backup' });
     try {
-      await git(['push', '-u', 'origin', 'HEAD'], 120_000, true);
+      await gitNet(['push', '-u', 'origin', 'HEAD'], 120_000);
     } catch (err) {
-      // A push 403/404 on a GitHub HTTPS remote usually means the app
-      // installation doesn't cover the repo (e.g. "only selected repositories"
-      // doesn't auto-include a freshly created one). Confirm via the API so the
-      // UI can send the user straight to the install page.
+      // Neither the stored token nor the machine's own credentials could push.
+      // A 403/404 on a GitHub HTTPS remote usually means the app installation
+      // doesn't cover the repo (e.g. "only selected repositories" doesn't
+      // auto-include a freshly created one). Confirm via the API so the UI can
+      // send the user straight to the install page.
       const parsed = parseGithubHttpsRemote((await gitTry(['remote', 'get-url', 'origin']))?.trim() || null);
       if (parsed && readStoredAuth()) {
         try {
@@ -353,7 +410,7 @@ async function runBackup(): Promise<void> {
       throw err;
     }
 
-    setGitOpState({ status: 'success', message: 'Backed up to GitHub', op: 'backup', repoUrl });
+    setGitOpState({ status: 'success', message: 'Your project is on GitHub', op: 'backup', repoUrl });
   } catch (err) {
     if (err instanceof RepoCreateForbiddenError) {
       setGitOpState({
@@ -370,7 +427,7 @@ async function runBackup(): Promise<void> {
       setGitOpState({ status: 'error', message: 'Your GitHub connection expired — reconnect in the Protovibe app.', op: 'backup', error: String(err) });
       return;
     }
-    setGitOpState({ status: 'error', message: 'Backup failed.', op: 'backup', error: String(err) });
+    setGitOpState({ status: 'error', message: 'Couldn’t add this project to GitHub.', op: 'backup', error: String(err) });
   }
 }
 
@@ -396,7 +453,7 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     }
     if (op === 'push') {
       setGitOpState({ status: 'pushing', message: 'Publishing…', op });
-      await git(['push'], 90_000, true);
+      await gitNet(['push'], 90_000);
       setGitOpState({ status: 'success', message: 'Pushed', op });
       return;
     }
@@ -427,7 +484,7 @@ export function registerGitMiddleware(server: ViteDevServer): void {
     try {
       const url = new URL(req.url || '', 'http://localhost');
       if (url.searchParams.get('fetch') === '1') {
-        await gitTry(['fetch'], 20_000, true);
+        await gitNetTry(['fetch'], 20_000);
       }
       sendJson(res, await readStatus());
     } catch (err) {

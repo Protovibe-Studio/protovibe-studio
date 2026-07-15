@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -9,6 +9,7 @@ import { PromptsTab } from './components/PromptsTab';
 import { CommentsTab } from './components/CommentsTab';
 import { Sidebar } from './components/Sidebar';
 import { FloatingToolbar } from './components/FloatingToolbar';
+import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
@@ -20,8 +21,10 @@ import { theme } from './theme';
 import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
+import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
+import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -52,7 +55,11 @@ export const ProtovibeApp: React.FC = () => {
 
   const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
   const git = useGitSync();
-  const [appIframePath, setAppIframePath] = useState('/');
+  // Restore the last app path once per refresh (the stored value is consumed
+  // on read; interactions re-arm it — see utils/appPath.ts).
+  const [initialAppSrc] = useState(consumePersistedAppPath);
+  const [appIframePath, setAppIframePath] = useState(initialAppSrc);
+  useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const appIframeRef = useRef<HTMLIFrameElement>(null);
@@ -311,7 +318,14 @@ export const ProtovibeApp: React.FC = () => {
       }
       try {
         const loc = ref.current?.contentWindow?.location;
-        if (loc) setAppIframePath(loc.pathname + loc.search + loc.hash);
+        if (loc) {
+          const path = loc.pathname + loc.search + loc.hash;
+          setAppIframePath(path);
+          // Track for other shell components, but don't persist: a bare page
+          // load isn't a user interaction, and persisting here would re-arm
+          // the restored path in a refresh loop even on a broken page.
+          setCurrentAppPath(path);
+        }
       } catch {}
     }
   }, [iframeTheme, inspectorOpen, setHtmlFontSize]);
@@ -338,6 +352,13 @@ export const ProtovibeApp: React.FC = () => {
     });
   }, [runLockedMutation]);
 
+  // Wipe the prototype's persisted state. The clear runs inside the app iframe
+  // (see PV_CLEAR_STORAGE in bridge.ts), which then reloads itself.
+  const handleClearStorage = () => {
+    appIframeRef.current?.contentWindow?.postMessage({ type: 'PV_CLEAR_STORAGE' }, '*');
+    emitToast({ message: 'localStorage cleared', variant: 'info', durationMs: 1600 });
+  };
+
   // Restart the development server when the banner's restart button is clicked
   const handleRestart = async () => {
     try {
@@ -351,8 +372,17 @@ export const ProtovibeApp: React.FC = () => {
   // Track app iframe URL changes (client-side navigation via postMessage)
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'PV_URL_CHANGE' && e.source === appIframeRef.current?.contentWindow) {
-        setAppIframePath(e.data.path || '/');
+      if (e.source !== appIframeRef.current?.contentWindow) return;
+      if (e.data?.type === 'PV_URL_CHANGE') {
+        const path = e.data.path || '/';
+        setAppIframePath(path);
+        setCurrentAppPath(path);
+        persistAppPath(path);
+      }
+      // Selecting an element on the canvas also re-arms the persisted path,
+      // so the next refresh restores the page the user is working on.
+      if (e.data?.type === 'PV_ELEMENT_CLICK') {
+        persistAppPath(getCurrentAppPath());
       }
     };
     window.addEventListener('message', handler);
@@ -514,17 +544,18 @@ export const ProtovibeApp: React.FC = () => {
                 </span>
               </div>
 
-              {/* Open in new tab */}
+              {/* Open in browser */}
               <button
                 onClick={() => {
+                  const fallback = new URL('/', window.location.href).href;
                   try {
                     const loc = appIframeRef.current?.contentWindow?.location;
-                    if (loc) window.open(loc.href, '_blank');
+                    openInBrowser(loc?.href || fallback);
                   } catch {
-                    window.open('/', '_blank');
+                    openInBrowser(fallback);
                   }
                 }}
-                data-tooltip="Open in new tab"
+                data-tooltip="Open in browser"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -553,7 +584,7 @@ export const ProtovibeApp: React.FC = () => {
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
               <iframe
                 ref={appIframeRef}
-                src="/"
+                src={initialAppSrc}
                 style={{
                   flex: mobileWidth ? 'none' : 1,
                   width: mobileWidth ? 390 : '100%',
@@ -664,6 +695,30 @@ export const ProtovibeApp: React.FC = () => {
               <button
                 onClick={() => {
                   setMoreMenuOpen(false);
+                  handleClearStorage();
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: theme.text_default,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = theme.bg_tertiary)}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <Eraser size={16} />
+                Clear localStorage
+              </button>
+              <button
+                onClick={() => {
+                  setMoreMenuOpen(false);
                   handleRestart();
                 }}
                 style={{
@@ -695,7 +750,7 @@ export const ProtovibeApp: React.FC = () => {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setMoreMenuOpen(false)}
+                  onClick={(e) => { handleExternalLinkClick(e); setMoreMenuOpen(false); }}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -769,6 +824,7 @@ export const ProtovibeApp: React.FC = () => {
         )}
 
         <FloatingToolbar />
+        <NotEditableDialog />
         <ToastViewport />
         <GitSyncBanner git={git} />
       </div>

@@ -280,7 +280,7 @@ export const handleRedo: Connect.NextHandleFunction = (req, res) => {
 
 // Scan src/ for the file that has a pvConfig with the given componentId.
 // This allows the inspector to find pvConfig regardless of barrel imports.
-async function findPvConfigByComponentId(componentId: string, server: import('vite').ViteDevServer): Promise<any> {
+export async function findPvConfigByComponentId(componentId: string, server: import('vite').ViteDevServer): Promise<any> {
   const srcPath = path.resolve(process.cwd(), 'src');
 
   const collectCandidates = (dir: string): string[] => {
@@ -924,6 +924,169 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true, wrapperId }));
+
+    } catch (err) {
+      res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+};
+
+// Rewrite a hoisted block's root opening tag for the layout mode it lands in:
+// 'flow' strips absolute positioning and the sketchpad drag attribute,
+// 'absolute' pins the element at the given coordinates and makes it draggable.
+const rehostBlockRoot = (
+  block: string,
+  target: 'flow' | 'absolute',
+  pos?: { left: number; top: number; width?: number | null }
+): string => {
+  let newBlock = block;
+  if (target === 'flow') {
+    newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
+  }
+  const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
+  return newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
+    let newAttrs = attrs;
+    const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
+    const hasStyle = styleRegex.test(newAttrs);
+
+    if (target === 'flow') {
+      if (!hasStyle) return match;
+      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+        const cleaned = innerStyles
+          .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
+          .trim().replace(/,$/, '').trim();
+        return cleaned ? `style={{ ${cleaned} }}` : '';
+      });
+      return `${tag}${newAttrs}${closing}`;
+    }
+
+    if (!newAttrs.includes('data-pv-sketchpad-el')) {
+      const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
+      if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
+    }
+    const left = Math.round(pos?.left ?? 100);
+    const top = Math.round(pos?.top ?? 100);
+    const width = pos?.width != null ? Math.round(pos.width) : null;
+    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}`;
+    if (hasStyle) {
+      const stripProps = width != null ? '(?:position|left|top|width)' : '(?:position|left|top)';
+      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+        const cleaned = innerStyles
+          .replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
+          .trim().replace(/,$/, '').trim();
+        const separator = cleaned ? ', ' : '';
+        return `style={{ ${positioning}${separator}${cleaned} }}`;
+      });
+    } else {
+      newAttrs = `${newAttrs} style={{ ${positioning} }}`;
+    }
+    return `${tag}${newAttrs}${closing}`;
+  });
+};
+
+export const handleUnwrapBlock: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { file, blockId, targetLayoutMode, childPositions } = JSON.parse(body || '{}') as {
+        file?: string;
+        blockId?: string;
+        targetLayoutMode?: 'flow' | 'absolute';
+        childPositions?: Record<string, { left: number; top: number; width?: number; wasAbsolute?: boolean }>;
+      };
+      if (!file || !blockId) {
+        return res.end(JSON.stringify({ success: false, error: 'Missing parameters' }));
+      }
+
+      const absolutePath = path.resolve(process.cwd(), file);
+      let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+      const regex = new RegExp(`(?:\\n?)([ \\t]*)\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}(?:\\n?)`);
+      const match = fileContent.match(regex);
+      if (!match || match.index === undefined) {
+        return res.end(JSON.stringify({ success: false, error: 'Block not found' }));
+      }
+      const baseSpaces = match[1] || '';
+      const wrapperText = match[0];
+
+      // Collect the wrapper's direct child blocks (depth 1 inside the wrapper);
+      // deeper blocks belong to those children and travel with them verbatim.
+      const tagRegex = /\{\/\*\s*pv-block-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}/g;
+      const children: { id: string; start: number; end: number }[] = [];
+      let open: { id: string; start: number } | null = null;
+      let depth = 0;
+      let tagMatch: RegExpExecArray | null;
+      while ((tagMatch = tagRegex.exec(wrapperText)) !== null) {
+        if (tagMatch[1] === 'start') {
+          depth++;
+          if (depth === 2 && !open) open = { id: tagMatch[2], start: tagMatch.index };
+        } else {
+          if (depth === 2 && open && tagMatch[2] === open.id) {
+            children.push({ id: open.id, start: open.start, end: tagMatch.index + tagMatch[0].length });
+            open = null;
+          }
+          depth--;
+        }
+      }
+
+      if (children.length === 0) {
+        return res.end(JSON.stringify({ success: false, error: 'Nothing to unwrap' }));
+      }
+
+      // Fallback position for children the client couldn't measure: offset
+      // their wrapper-relative coordinates by the wrapper's own left/top.
+      let wrapperLeft = 100, wrapperTop = 100;
+      const wrapperTagMatch = wrapperText.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/);
+      if (wrapperTagMatch) {
+        const styleMatch = wrapperTagMatch[2].match(/style=\{\s*\{([\s\S]*?)\}\s*\}/);
+        const leftMatch = styleMatch?.[1].match(/left:\s*(-?[\d.]+)/);
+        const topMatch = styleMatch?.[1].match(/top:\s*(-?[\d.]+)/);
+        if (leftMatch) wrapperLeft = parseFloat(leftMatch[1]);
+        if (topMatch) wrapperTop = parseFloat(topMatch[1]);
+      }
+
+      const hoisted = children.map(child => {
+        const lineStart = wrapperText.lastIndexOf('\n', child.start) + 1;
+        const indentText = wrapperText.slice(lineStart, child.start);
+        const childIndent = /^[ \t]*$/.test(indentText) ? indentText : '';
+        let blockText = wrapperText.slice(child.start, child.end);
+
+        if (targetLayoutMode === 'absolute') {
+          const measured = childPositions?.[child.id];
+          let pos: { left: number; top: number; width?: number | null };
+          if (measured) {
+            pos = {
+              left: measured.left,
+              top: measured.top,
+              width: measured.wasAbsolute ? null : (measured.width ?? null),
+            };
+          } else {
+            const childStyle = blockText.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/)?.[2].match(/style=\{\s*\{([\s\S]*?)\}\s*\}/)?.[1] || '';
+            const childLeft = parseFloat(childStyle.match(/left:\s*(-?[\d.]+)/)?.[1] ?? '0');
+            const childTop = parseFloat(childStyle.match(/top:\s*(-?[\d.]+)/)?.[1] ?? '0');
+            pos = { left: wrapperLeft + childLeft, top: wrapperTop + childTop, width: null };
+          }
+          blockText = rehostBlockRoot(blockText, 'absolute', pos);
+        } else {
+          blockText = rehostBlockRoot(blockText, 'flow');
+        }
+
+        // Re-anchor the child's indentation at the wrapper's own level.
+        return blockText.split('\n').map((line, idx) => {
+          if (idx === 0) return baseSpaces + line;
+          if (childIndent && line.startsWith(childIndent)) return baseSpaces + line.slice(childIndent.length);
+          return line;
+        }).join('\n');
+      });
+
+      const spliceIndex = match.index;
+      fileContent = fileContent.slice(0, spliceIndex) + '\n' + hoisted.join('\n') + '\n' + fileContent.slice(spliceIndex + wrapperText.length);
+      fileContent = cleanupZonesAtAnchors(fileContent, [spliceIndex + 1]);
+
+      fs.writeFileSync(absolutePath, fileContent, 'utf-8');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true, blockIds: children.map(c => c.id) }));
 
     } catch (err) {
       res.statusCode = 500; res.end(JSON.stringify({ error: String(err) }));
@@ -2434,10 +2597,11 @@ function parseWranglerAccounts(output: string): Array<{ id: string; name: string
     if (line.includes('Account Name') && line.includes('Account ID')) { seenHeader = true; continue; }
     if (!seenHeader) continue;
     if (/^[-|⎯\s]+$/.test(line)) continue;
-    const parts = line.split('|');
+    // Wrangler draws its table with box-drawing characters (│), not ASCII pipes.
+    const parts = line.split(/[|│]/).map((p) => p.trim()).filter(Boolean);
     if (parts.length >= 2) {
-      const name = parts[0].trim();
-      const id = parts[1].trim();
+      const name = parts[0];
+      const id = parts[1];
       if (name && /^[a-f0-9]{32}$/i.test(id)) accounts.push({ id, name });
     }
   }
@@ -2449,6 +2613,84 @@ const WRANGLER_NON_INTERACTIVE_ENV: Record<string, string> = {
   CI: '1',
   WRANGLER_SEND_METRICS: 'false',
   DO_NOT_TRACK: '1',
+};
+
+interface CfDeployHistoryEntry { url: string; publishedAt?: string }
+
+/** History entries were plain URL strings before publish dates were tracked; accept both shapes. */
+function normalizeDeployHistory(raw: unknown): CfDeployHistoryEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const entries: CfDeployHistoryEntry[] = [];
+  for (const item of raw) {
+    if (typeof item === 'string') {
+      entries.push({ url: item });
+    } else if (item && typeof item === 'object' && typeof (item as any).url === 'string') {
+      entries.push({
+        url: (item as any).url,
+        publishedAt: typeof (item as any).publishedAt === 'string' ? (item as any).publishedAt : undefined,
+      });
+    }
+  }
+  return entries;
+}
+
+// ─── Cloudflare auth status ───────────────────────────────────────────────────
+// `wrangler whoami` takes a few seconds, so the result is cached; the cache is
+// invalidated whenever login/logout changes the underlying state.
+
+interface CfAuthStatus {
+  loggedIn: boolean;
+  email?: string;
+  accounts?: Array<{ id: string; name: string }>;
+}
+
+let cfAuthCache: { result: CfAuthStatus; ts: number } | null = null;
+const CF_AUTH_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function invalidateCfAuthCache(): void {
+  cfAuthCache = null;
+}
+
+async function checkCloudflareAuth(): Promise<CfAuthStatus> {
+  const out = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], {
+    cwd: process.cwd(),
+    env: { ...process.env, ...WRANGLER_NON_INTERACTIVE_ENV },
+    timeoutMs: 30_000,
+  });
+  if (out.includes('You are not authenticated') || out.includes('not logged in')) {
+    return { loggedIn: false };
+  }
+  const emailMatch = out.match(/associated with the email\s+'?([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})'?/i);
+  return {
+    loggedIn: true,
+    email: emailMatch?.[1],
+    accounts: parseWranglerAccounts(out),
+  };
+}
+
+export const handleCloudflareAuthStatus: Connect.NextHandleFunction = (req, res) => {
+  (async () => {
+    res.setHeader('Content-Type', 'application/json');
+    const wantsRefresh = (req.url ?? '').includes('refresh=1');
+    if (!wantsRefresh && cfAuthCache && Date.now() - cfAuthCache.ts < CF_AUTH_CACHE_TTL_MS) {
+      return res.end(JSON.stringify(cfAuthCache.result));
+    }
+    let result: CfAuthStatus;
+    try {
+      result = await checkCloudflareAuth();
+    } catch (err) {
+      // whoami exits non-zero when not authenticated; treat any failure as
+      // logged-out rather than surfacing an error — the UI then shows the
+      // intro/connect view, which is always a safe place to land.
+      const errStr = String(err);
+      if (!/not authenticated|not logged in/i.test(errStr)) {
+        cfLog('auth-status whoami failed:', errStr);
+      }
+      result = { loggedIn: false };
+    }
+    cfAuthCache = { result, ts: Date.now() };
+    res.end(JSON.stringify(result));
+  })();
 };
 
 export function spawnCmd(
@@ -2519,6 +2761,7 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     whoami = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], { cwd, env: baseEnv, timeoutMs: 30_000 });
 
     if (whoami.includes('You are not authenticated') || whoami.includes('not logged in')) {
+      invalidateCfAuthCache();
       if (apiToken) {
         setCfState({ status: 'error', message: 'Invalid Cloudflare API Token.', error: whoami });
         return;
@@ -2534,6 +2777,7 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     }
     // Distinguish between "not logged in" and genuine failures (network, wrangler crash)
     if (errStr.includes('not authenticated') || errStr.includes('not logged in')) {
+      invalidateCfAuthCache();
       setCfState({ status: 'not-logged-in', message: 'You are not logged in to Cloudflare.' });
     } else {
       setCfState({ status: 'error', message: 'Failed to verify Cloudflare credentials.', error: errStr });
@@ -2669,10 +2913,12 @@ async function runCloudflarePublish(projectName: string, accountId?: string, api
     }
 
     const meta = readPublishMeta();
+    const publishedAt = new Date().toISOString();
     meta['cloudflare-pages-url'] = canonicalUrl;
-    const history: string[] = Array.isArray(meta['cloudflare-deploy-history']) ? meta['cloudflare-deploy-history'] : [];
-    if (hashedUrl && hashedUrl !== canonicalUrl && !history.includes(hashedUrl)) {
-      history.unshift(hashedUrl);
+    meta['cloudflare-last-published-at'] = publishedAt;
+    const history = normalizeDeployHistory(meta['cloudflare-deploy-history']);
+    if (hashedUrl && hashedUrl !== canonicalUrl && !history.some((h) => h.url === hashedUrl)) {
+      history.unshift({ url: hashedUrl, publishedAt });
       if (history.length > 20) history.pop();
     }
     meta['cloudflare-deploy-history'] = history;
@@ -2691,7 +2937,8 @@ export const handleCloudflarePublishMetadata: Connect.NextHandleFunction = (_req
     res.end(JSON.stringify({
       projectName: pkg['cloudflare-wrangler-project-name'] ?? '',
       url: pkg['cloudflare-pages-url'] ?? '',
-      deployHistory: Array.isArray(pkg['cloudflare-deploy-history']) ? pkg['cloudflare-deploy-history'] : [],
+      lastPublishedAt: pkg['cloudflare-last-published-at'] ?? '',
+      deployHistory: normalizeDeployHistory(pkg['cloudflare-deploy-history']),
     }));
   } catch (err) {
     res.statusCode = 500;
@@ -2789,6 +3036,7 @@ export const handleCloudflareLogout: Connect.NextHandleFunction = (_req, res) =>
     // Always reset the in-memory lock — the user's intent ("I want to be logged
     // out") is satisfied either way, and stale state shouldn't trap them.
     setCfState({ status: 'idle', message: '' });
+    invalidateCfAuthCache();
 
     // Treat "no active session" as success. Wrangler returns non-zero when there
     // is nothing to log out from, but that's functionally the desired end state.
@@ -2904,6 +3152,7 @@ export const handleCloudflareLoginStart: Connect.NextHandleFunction = (_req, res
     child.on('close', (code) => {
       clearTimeout(loginTimer);
       console.log(`[protovibe:cloudflare] Process exited with code ${code}`);
+      invalidateCfAuthCache();
 
       // Clean up the temporary script
       try { if (fs.existsSync(spoofScriptPath)) fs.unlinkSync(spoofScriptPath); } catch {}

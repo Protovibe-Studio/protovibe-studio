@@ -545,6 +545,20 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_SET_THEME':
       document.documentElement.dataset.theme = e.data.theme;
       break;
+    case 'PV_CLEAR_STORAGE': {
+      // The app iframe is same-origin with the shell, so they share one
+      // localStorage. Drop only what the app wrote — `pv-` keys are the shell's
+      // own state (theme, comment identity, panel prefs) and must survive.
+      try {
+        Object.keys(localStorage)
+          .filter(key => !key.startsWith('pv-'))
+          .forEach(key => localStorage.removeItem(key));
+      } catch {
+        // storage disabled — nothing to clear
+      }
+      window.location.reload();
+      break;
+    }
   }
 }
 

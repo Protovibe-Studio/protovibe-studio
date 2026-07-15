@@ -10,5 +10,11 @@ package-lock.json
 pnpm-lock.yaml
 test-results/
 .install.lock
+/backups/
 .mac-installer/
 settings.local.json
+# Signed-release build output and any local signing keys — never commit these
+dist-release/
+*.signing-key.pem
+signing-key*.pem
+/projects/

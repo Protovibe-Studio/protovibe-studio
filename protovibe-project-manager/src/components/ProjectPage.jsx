@@ -44,12 +44,43 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     if (isBusy) setSetupMode(true)
   }, [isBusy])
 
-  // Once ready was signalled, wait for polling to confirm running before dismissing setup
+  // Once ready was signalled, wait for polling to confirm running, then
+  // auto-open the editor in this window as soon as it responds. Hard 5s cap:
+  // if the editor doesn't answer in time (or the port never arrives), fall
+  // back to the normal project view — never linger on "Ready".
+  // The probe must NOT clear awaitingRunning before it finishes: the state is
+  // a dependency of this effect, so clearing it early re-runs the effect and
+  // the cleanup cancels the probe (redirect and fallback both die).
+  const openingEditorRef = useRef(false)
+  const portRef = useRef(port)
+  portRef.current = port
   useEffect(() => {
-    if (awaitingRunning && isRunning) {
-      setAwaitingRunning(false)
-      setSetupMode(false)
-    }
+    if (!(awaitingRunning && isRunning) || openingEditorRef.current) return
+    openingEditorRef.current = true
+    let cancelled = false
+    const deadline = Date.now() + 5000
+    ;(async () => {
+      while (!cancelled && Date.now() < deadline) {
+        const p = portRef.current
+        if (p) {
+          try {
+            // Opaque no-cors fetch resolves for any HTTP response and rejects
+            // only while the dev server isn't accepting connections yet.
+            const editorUrl = `http://localhost:${p}/protovibe.html`
+            await fetch(editorUrl, { mode: 'no-cors', cache: 'no-store' })
+            if (!cancelled) window.location.assign(editorUrl)
+            return
+          } catch {}
+        }
+        await new Promise((r) => setTimeout(r, 400))
+      }
+      if (!cancelled) {
+        openingEditorRef.current = false
+        setAwaitingRunning(false)
+        setSetupMode(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [awaitingRunning, isRunning])
 
   // Clear stopping spinner once polling confirms stopped; enter setup if restarting
@@ -335,8 +366,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   <a
                     data-testid="btn-open-editor"
                     href={`http://localhost:${port}/protovibe.html`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer"
                   >
                     <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />

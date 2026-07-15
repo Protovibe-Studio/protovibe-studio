@@ -62,13 +62,30 @@ export function clearStoredAuth() {
   try { fs.unlinkSync(TOKEN_FILE) } catch {}
 }
 
+// A user without admin rights on an org can't authorize Protovibe for it — they
+// can only ask an owner to approve. GitHub exposes no API for pending requests,
+// so we remember it ourselves and the UI shows "waiting for approval" instead of
+// nagging the user to install an app they already asked for.
+export function markInstallRequested() {
+  const auth = readStoredAuth()
+  if (!auth) return
+  writeStoredAuth({ ...auth, installRequestedAt: new Date().toISOString() })
+}
+
+export function clearInstallRequested() {
+  const auth = readStoredAuth()
+  if (!auth?.installRequestedAt) return
+  const { installRequestedAt: _dropped, ...rest } = auth
+  writeStoredAuth(rest)
+}
+
 // ── CSRF state ───────────────────────────────────────────────────────────────
 
 const STATE_TTL_MS = 10 * 60 * 1000
 const pendingStates = new Map() // state → expiry timestamp
 
-function createState() {
-  const state = crypto.randomBytes(24).toString('hex')
+function createState(prefix = '') {
+  const state = prefix + crypto.randomBytes(24).toString('hex')
   pendingStates.set(state, Date.now() + STATE_TTL_MS)
   return state
 }
@@ -86,30 +103,66 @@ function consumeState(state) {
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
-export function handleOauthStart(req, res, sendJson) {
-  const state = createState()
+function authorizeUrl(req, state) {
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
     redirect_uri: callbackUrl(req),
     state,
   })
-  sendJson(res, 200, { url: `https://github.com/login/oauth/authorize?${params}` })
+  return `https://github.com/login/oauth/authorize?${params}`
 }
 
-function callbackPage(title, body) {
+export function handleOauthStart(req, res, sendJson) {
+  sendJson(res, 200, { url: authorizeUrl(req, createState()) })
+}
+
+function callbackPage(title, body, { backToApp = false, autoClose = true } = {}) {
+  // Under the desktop shell the OAuth flow runs in the user's real browser
+  // (passkeys, saved passwords); offer a protovibe:// link that brings the
+  // app back to the front. The shell's single-instance handler just focuses.
+  const backLink = backToApp
+    ? `<p><a href="protovibe://">Back to Protovibe</a></p>
+<script>setTimeout(() => { location.href = 'protovibe://' }, 400)</script>`
+    : ''
+  // Pages the user actually has to read must not vanish from under them.
+  const closer = autoClose ? '<script>setTimeout(() => window.close(), 1500)</script>' : ''
   return `<!doctype html>
 <html>
 <head><meta charset="utf-8"><title>${title}</title>
 <style>
   body { font-family: -apple-system, system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 90vh; margin: 0; color: #333; background: #fafafa; }
   @media (prefers-color-scheme: dark) { body { color: #ddd; background: #1a1a1a; } }
-  main { text-align: center; padding: 2rem; }
+  main { text-align: center; padding: 2rem; max-width: 32rem; }
   h1 { font-size: 1.1rem; }
-  p { font-size: 0.9rem; opacity: 0.7; }
+  p { font-size: 0.9rem; opacity: 0.7; line-height: 1.5; }
+  a { color: inherit; }
 </style></head>
-<body><main><h1>${title}</h1><p>${body}</p></main>
-<script>setTimeout(() => window.close(), 1500)</script>
+<body><main><h1>${title}</h1><p>${body}</p>${backLink}</main>
+${closer}
 </body></html>`
+}
+
+// Authorizing Protovibe for an account redirects back here too, but with a
+// setup_action instead of a state we issued — there is nothing to exchange
+// (the account is already connected), so just explain where the user stands.
+function setupActionPage(setupAction) {
+  const backToApp = process.env.PROTOVIBE_SHELL === '1'
+
+  if (setupAction === 'request') {
+    markInstallRequested()
+    return callbackPage(
+      'Approval requested',
+      "You don't have permission to authorize Protovibe for that organization yourself, so GitHub has asked its owners to approve it. They get an email right away — once one of them approves, the organization's repositories appear in Protovibe automatically. You can close this tab.",
+      { backToApp, autoClose: false },
+    )
+  }
+
+  clearInstallRequested()
+  return callbackPage(
+    'Protovibe is authorized',
+    'You can close this tab and return to Protovibe — your repositories are loading.',
+    { backToApp },
+  )
 }
 
 function sendHtml(res, status, html) {
@@ -120,8 +173,21 @@ function sendHtml(res, status, html) {
 export async function handleOauthCallback(req, res, url) {
   const code = url.searchParams.get('code')
   const state = url.searchParams.get('state')
+  const setupAction = url.searchParams.get('setup_action')
+
+  // Came from the app's authorization page, not from our sign-in link: GitHub
+  // sends setup_action (install / update / request) and no state of ours.
+  if (setupAction && !state) return sendHtml(res, 200, setupActionPage(setupAction))
 
   if (!consumeState(state)) {
+    // Stale or lost state: the link expired, the server restarted between
+    // start and callback, or an old GitHub tab was reopened. GitHub already
+    // re-authorized silently, so restart the flow once with a fresh state
+    // instead of dead-ending — the second callback lands here within seconds.
+    if (state && !state.startsWith('r-')) {
+      res.writeHead(302, { Location: authorizeUrl(req, createState('r-')) })
+      return res.end()
+    }
     return sendHtml(res, 400, callbackPage('Connection failed', 'This sign-in link expired or was already used. Go back to Protovibe and try again.'))
   }
   if (!code) {
@@ -176,6 +242,7 @@ export async function handleOauthCallback(req, res, url) {
   sendHtml(res, 200, callbackPage(
     login ? `Connected as ${login}` : 'Connected to GitHub',
     'You can close this tab and return to Protovibe.',
+    { backToApp: process.env.PROTOVIBE_SHELL === '1' },
   ))
 }
 

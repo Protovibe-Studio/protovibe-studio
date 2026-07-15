@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut } from 'lucide-react';
-import { theme } from '../theme';
+import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut, Link2, Lock, Copy, Check } from 'lucide-react';
+import { theme, primarySolidHover } from '../theme';
+import { handleExternalLinkClick } from '../utils/openExternal';
 import {
   fetchCloudflarePublishMetadata,
+  fetchCloudflareAuthStatus,
   saveCloudflareProjectName,
   startCloudflarePublish,
   fetchCloudflarePublishStatus,
   startCloudflareLogin,
   cloudflareLogout,
   type CloudflarePublishStatus,
+  type CloudflareDeployHistoryEntry,
 } from '../api/client';
+import { getCurrentAppPath } from '../utils/appPath';
 
 // Inject spin keyframes once
 if (typeof document !== 'undefined' && !document.querySelector('#pv-spin-style')) {
@@ -41,7 +45,17 @@ function CloudflareLogo({ size = 20 }: { size?: number }) {
   );
 }
 
-function DeployHistory({ history, open, onToggle }: { history: string[]; open: boolean; onToggle: () => void }) {
+function formatPublishDate(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) });
+  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return `${date}, ${time}`;
+}
+
+function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployHistoryEntry[]; open: boolean; onToggle: () => void }) {
   return (
     <div>
       <button
@@ -49,23 +63,31 @@ function DeployHistory({ history, open, onToggle }: { history: string[]; open: b
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           background: 'none', border: 'none', cursor: 'pointer',
-          color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui, padding: '0',
+          color: theme.text_secondary, fontSize: '12px', fontFamily: theme.font_ui, padding: '0',
         }}
       >
         Previous versions ({history.length})
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
       </button>
       {open && (
-        <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '120px', overflowY: 'auto' }}>
-          {history.map((url) => (
-            <a key={url} href={url} target="_blank" rel="noreferrer"
-              style={{ fontSize: '11px', color: theme.text_tertiary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_tertiary; }}
-            >
-              {url}
-            </a>
-          ))}
+        <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+          {history.map((entry) => {
+            const date = formatPublishDate(entry.publishedAt);
+            return (
+              <div key={entry.url} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <a href={entry.url} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
+                  style={{ fontSize: '12px', color: theme.text_secondary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
+                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
+                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
+                >
+                  {entry.url}
+                </a>
+                {date && (
+                  <span style={{ fontSize: '12px', color: theme.text_tertiary }}>Published {date}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -83,16 +105,26 @@ export function PublishButton() {
   const [projectName, setProjectName] = useState('');
   const [savedProjectName, setSavedProjectName] = useState('');
   const [publishedUrl, setPublishedUrl] = useState('');
-  const [deployHistory, setDeployHistory] = useState<string[]>([]);
+  const [lastPublishedAt, setLastPublishedAt] = useState('');
+  const [deployHistory, setDeployHistory] = useState<CloudflareDeployHistoryEntry[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Cloudflare connection state — known up-front so the popover can explain
+  // the flow to logged-out users before anything is deployed.
+  const [auth, setAuth] = useState<'unknown' | 'logged-out' | 'logged-in'>('unknown');
+  const [accountEmail, setAccountEmail] = useState('');
 
   // UI state
   const [editingName, setEditingName] = useState(false);
+  // When true, saving the project name immediately starts a publish (first-run
+  // flow) instead of just persisting the name (edit flow).
+  const [namePublishIntent, setNamePublishIntent] = useState(false);
   const [apiToken, setApiToken] = useState('');
   const [authUrl, setAuthUrl] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [loggedOutFlash, setLoggedOutFlash] = useState(false);
+  const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Publish state
@@ -102,15 +134,73 @@ export function PublishButton() {
   const [selectedAccount, setSelectedAccount] = useState('');
   const [errorText, setErrorText] = useState('');
 
-  // Load metadata once on mount
+  // Refs mirrored for use inside the poll interval (avoids stale closures).
+  const statusRef = useRef(status);
+  useEffect(() => { statusRef.current = status; }, [status]);
+  const savedProjectNameRef = useRef(savedProjectName);
+  useEffect(() => { savedProjectNameRef.current = savedProjectName; }, [savedProjectName]);
+  // Set when the user starts a login as part of publishing, so the flow can
+  // continue automatically once OAuth completes.
+  const pendingPublishRef = useRef(false);
+
+  const applyMetadata = (data: { projectName: string; url: string; lastPublishedAt: string; deployHistory: CloudflareDeployHistoryEntry[] }) => {
+    setSavedProjectName(data.projectName);
+    setPublishedUrl(data.url);
+    setLastPublishedAt(data.lastPublishedAt ?? '');
+    setDeployHistory(data.deployHistory ?? []);
+  };
+
+  const refreshAuth = (refresh = false) => {
+    fetchCloudflareAuthStatus(refresh)
+      .then((a) => {
+        setAuth(a.loggedIn ? 'logged-in' : 'logged-out');
+        setAccountEmail(a.email ?? '');
+      })
+      .catch(() => {
+        // Can't determine the state — assume logged out; the connect flow and
+        // the backend's own whoami check both recover gracefully from this.
+        setAuth('logged-out');
+      });
+  };
+
+  // Load metadata + auth state once on mount
   useEffect(() => {
     fetchCloudflarePublishMetadata().then((data) => {
-      setSavedProjectName(data.projectName);
+      applyMetadata(data);
       setProjectName(data.projectName);
-      setPublishedUrl(data.url);
-      setDeployHistory(data.deployHistory ?? []);
     }).catch(() => {});
+    refreshAuth();
   }, []);
+
+  // Re-check auth whenever the popover opens (served from a backend cache, so cheap)
+  useEffect(() => {
+    if (open) refreshAuth();
+    // Closing the popover dismisses a finished publish — reopening should land
+    // on the default "Published to" view, ready to publish an update.
+    if (!open && statusRef.current === 'success') handleReset();
+  }, [open]);
+
+  // Called when the OAuth login completes: refresh the connection badge and,
+  // if the user was mid-publish, continue the flow without another click.
+  const handleLoginComplete = () => {
+    setAuthUrl('');
+    fetchCloudflareAuthStatus(true)
+      .then((a) => {
+        setAuth(a.loggedIn ? 'logged-in' : 'logged-out');
+        setAccountEmail(a.email ?? '');
+      })
+      .catch(() => { setAuth('logged-in'); });
+    if (!pendingPublishRef.current) return;
+    pendingPublishRef.current = false;
+    if (savedProjectNameRef.current) {
+      handlePublish();
+    } else {
+      setProjectName((prev) => (prev.trim() ? prev : generateProjectName()));
+      setNamePublishIntent(true);
+      setEditingName(true);
+      requestAnimationFrame(() => nameInputRef.current?.select());
+    }
+  };
 
   // Poll while a deploy is active
   const isPolling = ['installing-wrangler', 'building', 'publishing', 'waiting-for-browser-approval'].includes(status);
@@ -119,18 +209,21 @@ export function PublishButton() {
     const id = setInterval(async () => {
       try {
         const s = await fetchCloudflarePublishStatus();
+        const wasWaitingForLogin = statusRef.current === 'waiting-for-browser-approval';
         setStatus(s.status);
         setStatusMessage(s.message ?? '');
         if (s.accounts) { setAccounts(s.accounts); setSelectedAccount(s.accounts[0]?.id ?? ''); }
         if (s.url) setPublishedUrl(s.url);
         if (s.authUrl) setAuthUrl(s.authUrl);
-        // On success, refresh history and return to the idle "home" view
+        // Login finished (backend drops back to idle) — continue automatically
+        if (wasWaitingForLogin && s.status === 'idle') {
+          handleLoginComplete();
+        }
+        // Deploy finished — refresh metadata; the success view stays up until dismissed
         if (s.status === 'success') {
-          setStatus('idle');
-          setStatusMessage('');
           setAuthUrl('');
           setApiToken('');
-          fetchCloudflarePublishMetadata().then((m) => setDeployHistory(m.deployHistory ?? [])).catch(() => {});
+          fetchCloudflarePublishMetadata().then(applyMetadata).catch(() => {});
         }
         if (s.error) setErrorText(s.error);
       } catch { /* ignore transient fetch errors */ }
@@ -174,6 +267,9 @@ export function PublishButton() {
       setSelectedAccount('');
       setAuthUrl('');
       setApiToken('');
+      setAuth('logged-out');
+      setAccountEmail('');
+      pendingPublishRef.current = false;
       setLoggedOutFlash(true);
     } catch (err) {
       setErrorText(String(err));
@@ -201,12 +297,13 @@ export function PublishButton() {
     return base ? `${base}-${suffix}` : `my-app-${suffix}`;
   };
 
-  const openNameForm = () => {
+  const openNameForm = (publishAfter: boolean) => {
     if (!projectName.trim() && !savedProjectName) {
       setProjectName(generateProjectName());
     } else if (savedProjectName) {
       setProjectName(savedProjectName);
     }
+    setNamePublishIntent(publishAfter);
     setEditingName(true);
     // Select text after React renders the input
     requestAnimationFrame(() => nameInputRef.current?.select());
@@ -219,6 +316,10 @@ export function PublishButton() {
       await saveCloudflareProjectName(trimmed);
       setSavedProjectName(trimmed);
       setEditingName(false);
+      if (namePublishIntent) {
+        setNamePublishIntent(false);
+        handlePublish();
+      }
     } catch (err) { setErrorText(String(err)); }
   };
 
@@ -234,6 +335,29 @@ export function PublishButton() {
     }
   };
 
+  // Start the Cloudflare OAuth login and remember to continue publishing once
+  // it completes.
+  const handleConnect = async () => {
+    pendingPublishRef.current = true;
+    setErrorText('');
+    setAuthUrl('');
+    setStatus('waiting-for-browser-approval');
+    setStatusMessage('Generating login link…');
+    try {
+      await startCloudflareLogin();
+    } catch (err) {
+      setStatus('error');
+      setErrorText(String(err));
+    }
+  };
+
+  const handleCopyLink = (link: string) => {
+    navigator.clipboard?.writeText(link).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  };
+
   const handleReset = () => {
     setStatus('idle');
     setStatusMessage('');
@@ -242,14 +366,16 @@ export function PublishButton() {
     setSelectedAccount('');
     setAuthUrl('');
     setApiToken('');
+    setNamePublishIntent(false);
+    pendingPublishRef.current = false;
   };
 
   const btnRect = btnRef.current?.getBoundingClientRect();
   const spinStyle: React.CSSProperties = { animation: 'pvSpin 1s linear infinite' };
 
   // ── shared sub-styles ──────────────────────────────────────────────────────
-  const labelStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: theme.text_default, marginBottom: '6px' };
-  const subStyle: React.CSSProperties = { fontSize: '12px', color: theme.text_tertiary, lineHeight: '1.5', marginBottom: '16px' };
+  const labelStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 700, color: theme.text_default, marginBottom: '4px' };
+  const subStyle: React.CSSProperties = { fontSize: '13px', color: theme.text_secondary, lineHeight: '1.4', marginBottom: '16px' };
   const actionBtnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
     width: '100%', height: '36px', borderRadius: '8px',
@@ -258,7 +384,16 @@ export function PublishButton() {
     fontSize: '13px', fontWeight: 500, fontFamily: theme.font_ui,
     transition: 'background-color 0.15s ease',
   };
-  const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_tertiary; };
+  const primaryBtnStyle: React.CSSProperties = {
+    ...actionBtnBase,
+    border: 'none',
+    background: theme.primary_solid,
+    color: '#fff',
+  };
+  const ghostBtnStyle: React.CSSProperties = {
+    ...actionBtnBase, backgroundColor: 'transparent', border: 'none', color: theme.text_secondary,
+  };
+  const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_secondary; };
   const hoverOff = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.backgroundColor = theme.bg_secondary; };
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', height: '32px', padding: '0 10px',
@@ -268,61 +403,92 @@ export function PublishButton() {
   };
 
   const sectionHeader = (label: string, icon?: React.ReactNode) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: theme.text_default, letterSpacing: '0.2px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: theme.text_default, marginBottom: '0px' }}>
       {icon}
       {label}
     </div>
   );
 
+  const benefitRow = (icon: React.ReactNode, text: React.ReactNode) => (
+    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px'}}>
+        {icon}
+      </div>
+      <div style={{ fontSize: '13px', color: theme.text_secondary, lineHeight: '1.4' }}>{text}</div>
+    </div>
+  );
+
+  // Intro shown to users who aren't connected to Cloudflare yet — explains what
+  // publishing does before anything happens.
+  const renderIntro = () => (
+    <>
+      <div style={labelStyle}>Publish your app</div>
+      <div style={{ ...subStyle, marginBottom: '14px' }}>
+        Let others view your app, e.g. share it with your client or during usability tests.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+        {benefitRow(
+          <Link2 size={14} style={{ color: theme.accent_default }} />,
+          <>Anyone with the link will be able to view your app</>,
+        )}
+        {benefitRow(
+          <CloudflareLogo size={15} />,
+          <>Publishing runs on <span style={{ color: theme.text_default }}>your own free Cloudflare account</span> — robust hosting at no cost.</>,
+        )}
+        {benefitRow(
+          <Lock size={14} style={{ color: theme.accent_default }} />,
+          <>You own your files. The Protovibe team never sees your project.</>,
+        )}
+      </div>
+      <button style={primaryBtnStyle} {...primarySolidHover(true)} onClick={handleConnect}>
+        <CloudflareLogo size={16} />
+        Connect Cloudflare
+      </button>
+      <a
+        href="https://dash.cloudflare.com/sign-up"
+        target="_blank"
+        rel="noreferrer"
+        onClick={handleExternalLinkClick}
+        style={{ display: 'block', textAlign: 'center', marginTop: '10px', fontSize: '12px', color: theme.text_secondary, textDecoration: 'none' }}
+        onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
+        onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
+      >
+        No Cloudflare account yet? Sign up free
+      </a>
+    </>
+  );
+
   // ── popover body ───────────────────────────────────────────────────────────
   const renderBody = () => {
+    // Backend discovered mid-publish that we're logged out — show the intro,
+    // which explains the flow and offers the connect button.
     if (status === 'not-logged-in') {
-      return (
-        <>
-          <div style={labelStyle}>Login Required</div>
-          <div style={subStyle}>
-            You need to authenticate with Cloudflare to publish your app.
-          </div>
-          <button
-            onClick={async () => {
-              setStatus('waiting-for-browser-approval');
-              await startCloudflareLogin();
-            }}
-            style={actionBtnBase}
-            onMouseEnter={hoverOn}
-            onMouseLeave={hoverOff}
-          >
-            <CloudflareLogo size={16} />
-            Login to Cloudflare
-          </button>
-          <button
-            style={{ ...actionBtnBase, marginTop: '8px', backgroundColor: 'transparent', border: 'none', color: theme.text_tertiary }}
-            onClick={handleReset}
-          >
-            Cancel
-          </button>
-        </>
-      );
+      return renderIntro();
     }
 
     // In-progress states
     if (status === 'waiting-for-browser-approval') {
       return (
         <>
-          <div style={labelStyle}>Cloudflare Login</div>
+          <div style={labelStyle}>Connect Cloudflare</div>
           <div style={subStyle}>
-            {authUrl ? 'Please click the link below to authorize Wrangler.' : (statusMessage || 'Working...')}
+            {authUrl
+              ? 'Click below to open Cloudflare and approve access. We\'ll continue automatically once you\'re done.'
+              : (statusMessage || 'Preparing your secure login link…')}
           </div>
           {authUrl ? (
-            <a href={authUrl} target="_blank" rel="noreferrer" style={{ ...actionBtnBase, textDecoration: 'none', backgroundColor: theme.accent_default, color: '#fff', border: 'none' }}>
-              Open Login Page
+            <a href={authUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ ...primaryBtnStyle, textDecoration: 'none' }}>
+              Open Cloudflare login
             </a>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_tertiary, fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px' }}>
               <Loader2 size={14} style={spinStyle} />
               Generating link…
             </div>
           )}
+          <button style={{ ...ghostBtnStyle, marginTop: '8px' }} onClick={handleReset}>
+            Cancel
+          </button>
         </>
       );
     }
@@ -334,7 +500,7 @@ export function PublishButton() {
           <div style={subStyle}>
             Your environment requires a Cloudflare API Token.
             <br /><br />
-            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" style={{ color: theme.accent_default, textDecoration: 'none' }}>
+            <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none' }}>
               Get your token here
             </a>
             <br />
@@ -361,7 +527,7 @@ export function PublishButton() {
             Submit & Deploy
           </button>
           <button
-            style={{ ...actionBtnBase, marginTop: '8px', backgroundColor: 'transparent', border: 'none', color: theme.text_tertiary }}
+            style={{ ...ghostBtnStyle, marginTop: '8px' }}
             onClick={handleReset}
           >
             Cancel
@@ -373,15 +539,15 @@ export function PublishButton() {
     if (isPolling) {
       return (
         <>
-          <div style={labelStyle}>Publishing…</div>
+          <div style={labelStyle}>Publishing your app…</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '12px' }}>
             <Loader2 size={14} style={spinStyle} />
             {statusMessage || 'Working…'}
           </div>
           <div style={{ display: 'flex', gap: '8px', padding: '10px', backgroundColor: theme.bg_secondary, borderRadius: '6px', marginTop: '12px' }}>
             <Lightbulb size={14} style={{ color: theme.accent_default, flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ fontSize: '11px', color: theme.text_secondary, lineHeight: '1.5' }}>
-              Free Cloudflare plan has a monthly limit of 500 deployments. Try not to deploy too often during development.
+            <div style={{ fontSize: '12px', color: theme.text_secondary, lineHeight: '1.4' }}>
+              Free Cloudflare plan has a monthly limit of 500 deployments. Try not to publish too often.
             </div>
           </div>
         </>
@@ -392,6 +558,9 @@ export function PublishButton() {
       return (
         <>
           <div style={labelStyle}>Select Cloudflare account</div>
+          <div style={{ ...subStyle, marginBottom: '12px' }}>
+            Your Cloudflare login has access to several accounts. Pick the one to publish with.
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
             {accounts.map((a) => (
               <label
@@ -407,7 +576,7 @@ export function PublishButton() {
                   style={{ accentColor: theme.text_default }}
                 />
                 <span style={{ fontWeight: 500 }}>{a.name}</span>
-                <span style={{ color: theme.text_tertiary, fontSize: '10px' }}>{a.id.slice(0, 8)}…</span>
+                <span style={{ color: theme.text_secondary, fontSize: '12px' }}>{a.id.slice(0, 8)}…</span>
               </label>
             ))}
           </div>
@@ -416,7 +585,7 @@ export function PublishButton() {
             disabled={!selectedAccount}
           >
             <CloudflareLogo size={16} />
-            Deploy with this account
+            Publish with this account
           </button>
         </>
       );
@@ -425,26 +594,72 @@ export function PublishButton() {
     if (status === 'error') {
       return (
         <>
-          <div style={labelStyle}>Deploy failed</div>
-          <div style={{ fontSize: '11px', color: '#e05252', marginBottom: '16px', lineHeight: '1.4', wordBreak: 'break-word', maxHeight: '80px', overflowY: 'auto' }}>
+          <div style={labelStyle}>Publishing failed</div>
+          <div style={{ fontSize: '12px', color: '#e05252', marginBottom: '16px', lineHeight: '1.4', wordBreak: 'break-word', maxHeight: '80px', overflowY: 'auto' }}>
             {errorText || 'An unknown error occurred.'}
           </div>
-          <button style={actionBtnBase} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={handleReset}>
+          {savedProjectName && (
+            <button style={{ ...actionBtnBase, marginBottom: '8px' }} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => handlePublish()}>
+              Try again
+            </button>
+          )}
+          <button style={savedProjectName ? ghostBtnStyle : actionBtnBase} onClick={handleReset}>
             Dismiss
           </button>
         </>
       );
     }
 
-    // ── Idle / Success — the "home" view with sections ──────────────────────
+    // Deep-link the published site to the page currently open on the canvas.
+    const publishedLink = (() => {
+      if (!publishedUrl) return '';
+      try {
+        return new URL(getCurrentAppPath(), publishedUrl).toString();
+      } catch {
+        return publishedUrl;
+      }
+    })();
+
+    // Deploy finished — celebrate and hand over the link.
+    if (status === 'success') {
+      return (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', ...labelStyle }}>
+            <CircleCheck size={16} color="#34c759" />
+            Your app is published
+          </div>
+          <div style={{ ...subStyle, marginBottom: '10px' }}>
+            Anyone with this link can view it:
+          </div>
+          <a href={publishedLink || publishedUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
+            style={{ display: 'block', fontSize: '13px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
+            onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
+            onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
+          >
+            {publishedLink || publishedUrl}
+          </a>
+          <button style={primaryBtnStyle} {...primarySolidHover(true)} onClick={() => handleCopyLink(publishedLink || publishedUrl)}>
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+          <button style={{ ...ghostBtnStyle, marginTop: '8px' }} onClick={handleReset}>
+            Done
+          </button>
+        </>
+      );
+    }
+
+    // ── Idle — the "home" view ────────────────────────────────────────────────
     const nameIsSaved = !!savedProjectName;
 
-    // Full popover view for editing the project name
+    // Full popover view for editing / choosing the project name
     if (editingName) {
       return (
         <>
-          <div style={labelStyle}>Edit project name</div>
-          <div style={{ ...subStyle, marginBottom: '12px' }}>This is the name of your Cloudflare Pages project.</div>
+          <div style={labelStyle}>{namePublishIntent ? 'Name your project' : 'Edit project name'}</div>
+          <div style={{ ...subStyle, marginBottom: '12px' }}>
+            Your app will live at <span style={{ color: theme.text_secondary }}>{(projectName.trim() || 'my-app')}.pages.dev</span>. You can change the name any time.
+          </div>
           <input
             ref={nameInputRef}
             style={{ ...inputStyle, marginBottom: '12px' }}
@@ -458,15 +673,43 @@ export function PublishButton() {
             onClick={handleSaveName}
             disabled={!projectName.trim()}
             style={{
-              ...actionBtnBase,
+              ...(namePublishIntent ? primaryBtnStyle : actionBtnBase),
               opacity: !projectName.trim() ? 0.4 : 1,
               cursor: !projectName.trim() ? 'not-allowed' : 'pointer',
             }}
-            onMouseEnter={(e) => { if (projectName.trim()) hoverOn(e); }}
-            onMouseLeave={(e) => { if (projectName.trim()) hoverOff(e); }}
+            {...(namePublishIntent
+              ? primarySolidHover(!!projectName.trim())
+              : {
+                  onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => { if (projectName.trim()) hoverOn(e); },
+                  onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => { if (projectName.trim()) hoverOff(e); },
+                })}
           >
-            {nameIsSaved ? 'Save' : 'Continue'}
+            {namePublishIntent ? 'Publish' : 'Save'}
           </button>
+          <button
+            style={{ ...ghostBtnStyle, marginTop: '8px' }}
+            onClick={() => { setEditingName(false); setNamePublishIntent(false); }}
+          >
+            Cancel
+          </button>
+        </>
+      );
+    }
+
+    // Not connected to Cloudflare — explain the flow before anything happens.
+    if (auth === 'logged-out') {
+      return renderIntro();
+    }
+
+    // Connection state not resolved yet — brief transient state on first open.
+    if (auth === 'unknown') {
+      return (
+        <>
+          <div style={labelStyle}>Publish your app</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '8px' }}>
+            <Loader2 size={14} style={spinStyle} />
+            Checking your Cloudflare connection…
+          </div>
         </>
       );
     }
@@ -474,19 +717,39 @@ export function PublishButton() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* ── Popover heading ────────────────────────────────────── */}
-        <div style={labelStyle}>Publish your app</div>
+        <div style={{ ...labelStyle, marginBottom: '0' }}>Publish your app</div>
 
         {/* ── Published to section (shown first when a URL exists) ── */}
         {publishedUrl && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {sectionHeader('Published to', <CircleCheck size={13} color="#34c759" />)}
-            <a href={publishedUrl} target="_blank" rel="noreferrer"
-              style={{ display: 'block', fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
-            >
-              {publishedUrl}
-            </a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {sectionHeader('Published to', <CircleCheck size={14} color="#34c759" />)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <a href={publishedLink} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
+                style={{ display: 'block', flex: 1, fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
+                onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
+              >
+                {publishedLink}
+              </a>
+              <button
+                onClick={() => handleCopyLink(publishedLink)}
+                data-tooltip="Copy link"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '20px', height: '20px', flexShrink: 0,
+                  height: '15px',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  color: copied ? '#34c759' : theme.text_secondary,
+                }}
+                onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = theme.text_default; }}
+                onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = theme.text_secondary; }}
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+              </button>
+            </div>
+            {lastPublishedAt && (
+              <span style={{ fontSize: '12px', color: theme.text_tertiary }}>Last published {formatPublishDate(lastPublishedAt)}</span>
+            )}
             {deployHistory.length > 0 && (
               <DeployHistory history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
             )}
@@ -495,7 +758,7 @@ export function PublishButton() {
 
         {/* ── Deploy section ─────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {sectionHeader('Deploy project')}
+          {sectionHeader(publishedUrl ? 'Publish changes' : 'Publish project')}
 
           {nameIsSaved ? (
             <>
@@ -503,34 +766,36 @@ export function PublishButton() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '12px', color: theme.text_secondary, fontWeight: 500 }}>{savedProjectName}</span>
                 <button
-                  onClick={openNameForm}
+                  onClick={() => openNameForm(false)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '3px',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-                    color: theme.text_tertiary, fontSize: '11px', fontFamily: theme.font_ui,
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px',
+                    color: theme.text_secondary, fontSize: '12px', fontFamily: theme.font_ui,
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = theme.text_default; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_tertiary; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = theme.text_secondary; }}
                 >
                   <Pencil size={10} />
                   Edit project name
                 </button>
               </div>
-
+              {publishedUrl && (
+                <span style={{ fontSize: '12px', color: theme.text_tertiary}}>
+                  The link stays the same.
+                </span>
+              )}
               <button
                 onClick={() => handlePublish()}
-                style={{ ...actionBtnBase, marginTop: '8px' }}
-                onMouseEnter={hoverOn}
-                onMouseLeave={hoverOff}
+                style={{ ...primaryBtnStyle, marginTop: '8px' }}
+                {...primarySolidHover(true)}
               >
-                <CloudflareLogo size={16} />
-                Publish to Cloudflare
+                {publishedUrl ? 'Publish update' : 'Publish to Cloudflare'}
               </button>
             </>
           ) : (
-            /* No project name yet — just show the publish button that opens the name form */
+            /* No project name yet — the publish button opens the name form and then publishes */
             <button
-              onClick={openNameForm}
+              onClick={() => openNameForm(true)}
               style={{ ...actionBtnBase, marginTop: '8px' }}
               onMouseEnter={hoverOn}
               onMouseLeave={hoverOff}
@@ -539,6 +804,14 @@ export function PublishButton() {
               Publish to Cloudflare
             </button>
           )}
+        </div>
+
+        {/* ── Connection footer ──────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: theme.text_secondary, borderTop: `1px solid ${theme.border_secondary}`, paddingTop: '10px' }}>
+          <CloudflareLogo size={14} />
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {accountEmail ? `Connected as ${accountEmail}` : 'Connected to Cloudflare'}
+          </span>
         </div>
       </div>
     );
@@ -562,8 +835,8 @@ export function PublishButton() {
           borderRadius: '6px',
           border: 'none',
           cursor: 'pointer',
-          backgroundColor: open ? theme.bg_tertiary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-          color: open ? theme.text_default : theme.text_tertiary,
+          backgroundColor: open ? theme.bg_secondary : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
+          color: open ? theme.text_default : theme.text_secondary,
           transition: 'background-color 0.15s ease, color 0.15s ease',
         }}
       >
@@ -579,7 +852,7 @@ export function PublishButton() {
             position: 'fixed',
             top: btnRect.bottom + 8,
             right: window.innerWidth - btnRect.right,
-            width: '300px',
+            width: '320px',
             backgroundColor: theme.bg_default,
             border: `1px solid ${theme.border_default}`,
             borderRadius: '10px',
@@ -597,8 +870,8 @@ export function PublishButton() {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: '24px', height: '24px', borderRadius: '6px',
-                border: 'none', background: menuOpen ? theme.bg_tertiary : 'transparent',
-                color: theme.text_tertiary, cursor: 'pointer',
+                border: 'none', background: menuOpen ? theme.bg_secondary : 'transparent',
+                color: theme.text_secondary, cursor: 'pointer',
               }}
               onMouseEnter={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = theme.bg_secondary; }}
               onMouseLeave={(e) => { if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -650,11 +923,11 @@ export function PublishButton() {
                 backgroundColor: 'rgba(52, 199, 89, 0.12)',
                 border: '1px solid rgba(52, 199, 89, 0.35)',
                 color: theme.text_default,
-                fontSize: '11px', lineHeight: '1.4',
+                fontSize: '12px', lineHeight: '1.4',
               }}
             >
               <CircleCheck size={13} color="#34c759" style={{ flexShrink: 0 }} />
-              <span>You logged out. Publish your project again to log in.</span>
+              <span>You logged out of Cloudflare. Connect again anytime to publish.</span>
             </div>
           )}
           {renderBody()}

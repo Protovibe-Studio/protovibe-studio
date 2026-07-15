@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
+  ChevronLeft, ChevronRight,
   MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
@@ -33,6 +34,8 @@ import type { IframeTab } from './ShellNavBar';
 interface CommentSearchHit {
   thread: CommentThread;
   comment: CommentItem;
+  /** The comment's wording suggestions the query hit, if any — shown on the row. */
+  suggestionHits: WordingSuggestion[];
 }
 
 /**
@@ -111,6 +114,13 @@ function gatherSubtreeThreadIds(el: HTMLElement | null): string[] {
   return Array.from(ids);
 }
 
+// Every wording suggestion saved on disk, tagged with the thread that anchors it
+// — the reference set for both "preview all" and pruning stale live previews.
+function savedSuggestionRefs(threads: CommentThread[]) {
+  return threads.flatMap((t) =>
+    t.comments.flatMap((c) => (c.suggestions ?? []).map((s) => ({ threadId: t.id, ...s }))));
+}
+
 // Ask the shell to bring the comment's context into view: switch to the right
 // surface (App / Sketchpad / Components), navigate the app iframe to the saved
 // URL or the sketchpad to the saved frame + coordinates, then select & scroll to
@@ -146,6 +156,14 @@ const FILTER_SCOPE_KEY = 'pv-comments-filter-scope';
 const FILTER_SELECTION_KEY = 'pv-comments-filter-selection'; // legacy boolean scope key (migrated)
 const FILTER_STATUS_KEY = 'pv-comments-filter-status'; // legacy single-status key (migrated)
 const FILTER_TOKENS_KEY = 'pv-comments-filter-tokens';
+const FILTER_OPEN_KEY = 'pv-comments-filter-open'; // remember whether the "Filter comments" panel is expanded
+
+function loadFiltersOpen(): boolean {
+  try {
+    return localStorage.getItem(FILTER_OPEN_KEY) === '1';
+  } catch { /* ignore */ }
+  return false;
+}
 
 function loadFilterScope(): FilterScope {
   try {
@@ -201,6 +219,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [replyDraft, setReplyDraft] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<PendingAttachment[]>([]);
   const [draftSuggestions, setDraftSuggestions] = useState<WordingSuggestion[]>([]);
+  // Status picked in the new-comment composer. Null ⇒ "No status": the thread
+  // lands untriaged, exactly as it did before the picker existed.
+  const [draftStatus, setDraftStatus] = useState<CommentStatus | null>(null);
   const [replySuggestions, setReplySuggestions] = useState<WordingSuggestion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
@@ -224,9 +245,20 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [profileOpen, setProfileOpen] = useState(false);
   const pendingActionRef = React.useRef<((author: CommentAuthor) => void) | null>(null);
 
+  // Previews the user had switched on survive a page refresh (the service mirrors
+  // them into localStorage), so the first load reconciles them against what's
+  // actually on disk — a suggestion whose comment was deleted or reworded in the
+  // meantime must not keep rewriting the canvas with no UI to switch it off.
+  const reconciledRef = useRef(false);
+
   const refresh = useCallback(async () => {
     try {
-      setThreads(await fetchCommentThreads());
+      const next = await fetchCommentThreads();
+      setThreads(next);
+      if (!reconciledRef.current) {
+        reconciledRef.current = true;
+        getCopySuggestionPreview().reconcile(savedSuggestionRefs(next));
+      }
     } catch (e) {
       setError(String(e));
     }
@@ -278,36 +310,70 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   // on the active surface. Only computes while the "In view" scope is active.
   const viewportIds = useViewportCommentIds(isActive && filterScope === 'viewport', activeIframeTab, threads);
 
+  // Threads read most-recently-active first, but that order is *pinned* while the
+  // panel is open: replying to a thread must not yank it to the top and reshuffle
+  // the list you are stepping through. We keep the id order in a ref and only
+  // extend it — threads not placed yet enter at the top (by activity), deleted
+  // ones fall out, everything else keeps its slot. Re-entering the panel drops the
+  // pin, which is the natural moment for a fresh sort.
+  const orderRef = useRef<string[]>([]);
+  const [orderEpoch, setOrderEpoch] = useState(0);
+  useEffect(() => {
+    if (!isActive) return;
+    orderRef.current = [];
+    setOrderEpoch((n) => n + 1);
+  }, [isActive]);
+
+  const orderedThreads = useMemo(() => {
+    const byActivity = [...threads].sort((a, b) => lastActivity(b) - lastActivity(a));
+    const alive = new Set(byActivity.map((t) => t.id));
+    const placed = new Set(orderRef.current);
+    const order = [
+      ...byActivity.filter((t) => !placed.has(t.id)).map((t) => t.id),
+      ...orderRef.current.filter((id) => alive.has(id)),
+    ];
+    orderRef.current = order;
+    const rank = new Map(order.map((id, i) => [id, i]));
+    return byActivity.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
+    // orderEpoch is the "re-sort from scratch" signal (see the effect above).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, orderEpoch]);
+
   const visibleThreads = useMemo(() => {
     const subtreeSet = new Set(subtreeIds);
-    let base = threads;
+    let base = orderedThreads;
     if (filterScope === 'selection') {
-      base = currentBaseTarget ? threads.filter((t) => subtreeSet.has(t.id)) : threads;
+      base = currentBaseTarget ? base.filter((t) => subtreeSet.has(t.id)) : base;
     } else if (filterScope === 'viewport') {
-      base = threads.filter((t) => viewportIds.has(t.id));
+      base = base.filter((t) => viewportIds.has(t.id));
     }
     // Status pills (incl. 'none' for untriaged) OR within their own group.
     const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
     if (statusSet.size) base = base.filter((t) => statusSet.has(t.status ?? 'none'));
     if (filterTokens.has('unread')) base = base.filter((t) => threadHasUnread(user, t));
     if (filterTokens.has('mine')) base = base.filter((t) => threadMentionsMe(user, t));
-    // Most recently active thread first.
-    return [...base].sort((a, b) => lastActivity(b) - lastActivity(a));
-  }, [threads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
+    return base;
+  }, [orderedThreads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
 
   // Free-text search runs across every individual comment (not just threads),
-  // newest first. Empty query ⇒ no results and we fall back to the thread list.
+  // newest first. A comment matches on its text, its author, or either side of any
+  // wording suggestion it carries — so copy a writer proposed (or the original
+  // string they proposed it against) is findable even when the comment has no text
+  // of its own. Empty query ⇒ no results and we fall back to the thread list.
   const searchResults = useMemo<CommentSearchHit[]>(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
     const hits: CommentSearchHit[] = [];
     for (const thread of threads) {
       for (const comment of thread.comments) {
+        const suggestionHits = (comment.suggestions ?? []).filter((s) =>
+          s.original.toLowerCase().includes(q) || s.suggested.toLowerCase().includes(q));
         if (
           comment.content.toLowerCase().includes(q) ||
-          comment.author.name.toLowerCase().includes(q)
+          comment.author.name.toLowerCase().includes(q) ||
+          suggestionHits.length > 0
         ) {
-          hits.push({ thread, comment });
+          hits.push({ thread, comment, suggestionHits });
         }
       }
     }
@@ -372,19 +438,21 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [activeData, activeIframeTab, currentBaseTarget]);
 
   // ── mutations ────────────────────────────────────────────────────────────────
-  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) => {
+  const doCreateThread = useCallback((text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = [], status: CommentStatus | null = null) => {
     if (!activeData?.file || !activeData?.nameEnd) {
       setError('Select an element on the canvas before adding a comment.');
       return;
     }
     const id = makeCommentId();
     const nowIso = new Date().toISOString();
-    // New threads start untriaged — status is only set when a reviewer picks one.
     const comment: CommentItem = { id: `c-${makeCommentId()}`, author, content: text.trim(), createdAt: nowIso, seenBy: [author.name] };
     const changedSugg = changedSuggestions(suggestions);
     if (changedSugg.length) comment.suggestions = changedSugg;
     const thread: CommentThread = {
       id,
+      // Untriaged unless the composer's picker set a status — the field is left
+      // off the file entirely for "No status".
+      ...(status ? { status } : {}),
       context: buildContext(),
       comments: [comment],
       createdAt: nowIso,
@@ -409,6 +477,13 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       revokeAttachments(pending);
       setDraftAttachments([]);
       setDraftSuggestions([]);
+      setDraftStatus(null);
+      // The composer's previews were anchored to the selected element (there was
+      // no thread yet). Re-anchor them to the thread that just landed so they
+      // survive a refresh and stay in sync with the saved comment's block.
+      const preview = getCopySuggestionPreview();
+      preview.clearDrafts();
+      for (const s of changedSugg) preview.set(s.original, s.suggested, { threadId: id, replaceAll: !!s.replaceAll });
       // Stay on the list (don't open the new thread) so the user sees it land in
       // context, faintly highlighted, and confirm with the global toast.
       setHighlightId(id);
@@ -454,12 +529,21 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       editComment(thread.id, commentId, editingText.trim(), changedSuggestions(editingSuggestions)))
       .then(() => { setEditingId(null); setEditingText(''); setEditingSuggestions([]); });
 
+  // A deleted comment takes its live previews with it — otherwise a "Replace all"
+  // suggestion would keep rewriting the canvas with no block left to switch it off.
+  const dropPreviews = (threadId: string, suggestions: WordingSuggestion[] | undefined) => {
+    const preview = getCopySuggestionPreview();
+    for (const s of suggestions ?? []) preview.remove(s.original, { threadId });
+  };
+
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId));
+    mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId))
+      .then(() => dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions));
 
   const handleDeleteThread = (thread: CommentThread) => {
     setBusy(true);
     setError(null);
+    thread.comments.forEach((c) => dropPreviews(thread.id, c.suggestions));
     const anchor = thread.anchorFile || thread.context?.file;
     const commentFile = `src/comments/${threadFileName(thread.id)}`;
     runLockedMutation(async () => {
@@ -524,18 +608,42 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
     setViewedUnread(new Set(unread));
     setHighlightId(thread.id);
-    setActiveThreadId(thread.id);
     setEditingId(null);
     setReplyDraft('');
     revokeAttachments(replyAttachments);
     setReplyAttachments([]);
-    // Abandoned drafts are a cancel — their canvas previews go with them.
-    clearSuggestionPreviews(replySuggestions);
+    // Abandoned drafts are a cancel — their canvas previews go with them. They
+    // are anchored to the thread we're LEAVING, not the one we're opening.
+    clearSuggestionPreviews(replySuggestions, activeThreadId ?? undefined);
     setReplySuggestions([]);
-    clearSuggestionPreviews(editingSuggestions);
+    clearSuggestionPreviews(editingSuggestions, activeThreadId ?? undefined);
     setEditingSuggestions([]);
+    setActiveThreadId(thread.id);
     navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
+  };
+
+  // What the thread view's ‹ › chevrons step through: whatever the list is
+  // showing right now — the search hits (one entry per thread) while searching,
+  // otherwise the filtered thread list, in its pinned order.
+  const navThreads = useMemo(() => {
+    if (!query.trim()) return visibleThreads;
+    const seen = new Set<string>();
+    const out: CommentThread[] = [];
+    for (const hit of searchResults) {
+      if (seen.has(hit.thread.id)) continue;
+      seen.add(hit.thread.id);
+      out.push(hit.thread);
+    }
+    return out;
+  }, [query, searchResults, visibleThreads]);
+
+  // -1 when the open thread isn't in the current list (e.g. its element was
+  // deselected under "In selection") — both chevrons then sit disabled.
+  const navIndex = activeThreadId ? navThreads.findIndex((t) => t.id === activeThreadId) : -1;
+  const stepThread = (delta: number) => {
+    const next = navIndex >= 0 ? navThreads[navIndex + delta] : undefined;
+    if (next) openThread(next);
   };
 
   const handleAddCommentClick = () => {
@@ -548,7 +656,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const submitComposer = () => {
     const text = draft.trim();
     if (!text && draftAttachments.length === 0 && changedSuggestions(draftSuggestions).length === 0) return;
-    withAuthor((author) => doCreateThread(text, author, draftAttachments, draftSuggestions));
+    withAuthor((author) => doCreateThread(text, author, draftAttachments, draftSuggestions, draftStatus));
   };
 
   const canComment = !!activeData?.file && !!activeData?.nameEnd;
@@ -558,17 +666,15 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   );
 
   // Every saved wording suggestion across all threads, for the header menu's
-  // enable/disable-all-previews actions. Enabling walks in thread order, so when
-  // two comments target the same original string the later-set one wins.
-  const allSuggestions = useMemo(
-    () => threads.flatMap((t) => t.comments.flatMap((c) => c.suggestions ?? [])),
-    [threads],
-  );
+  // enable/disable-all-previews actions. Each stays anchored to its own thread,
+  // so two comments proposing different copy for the same string coexist —
+  // only a "Replace all" pair can collide, and there the later-set one shows.
+  const allSuggestions = useMemo(() => savedSuggestionRefs(threads), [threads]);
   const handlePreviewAll = useCallback((enable: boolean) => {
     const preview = getCopySuggestionPreview();
     for (const s of allSuggestions) {
-      if (enable) preview.set(s.original, s.suggested);
-      else preview.remove(s.original);
+      if (enable) preview.set(s.original, s.suggested, { threadId: s.threadId, replaceAll: !!s.replaceAll });
+      else preview.remove(s.original, { threadId: s.threadId });
     }
   }, [allSuggestions]);
 
@@ -620,6 +726,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onDeleteThread={() => handleDeleteThread(activeThread)}
           onLocate={() => navigateToThread(activeThread)}
           onBack={() => setActiveThreadId(null)}
+          onPrev={navIndex > 0 ? () => stepThread(-1) : undefined}
+          onNext={navIndex >= 0 && navIndex < navThreads.length - 1 ? () => stepThread(1) : undefined}
+          navPosition={navIndex >= 0 ? { index: navIndex, total: navThreads.length } : undefined}
         />
       ) : (
         <ListView
@@ -635,6 +744,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           setAttachments={setDraftAttachments}
           suggestions={draftSuggestions}
           setSuggestions={setDraftSuggestions}
+          status={draftStatus}
+          setStatus={setDraftStatus}
           busy={busy}
           query={query}
           setQuery={setQuery}
@@ -648,7 +759,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onScrollChange={(v) => { listScrollTop.current = v; }}
           onAddClick={handleAddCommentClick}
           onSubmitComposer={submitComposer}
-          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); clearSuggestionPreviews(draftSuggestions); setDraftSuggestions([]); }}
+          onCancelComposer={() => { setComposerOpen(false); setDraft(''); revokeAttachments(draftAttachments); setDraftAttachments([]); clearSuggestionPreviews(draftSuggestions); setDraftSuggestions([]); setDraftStatus(null); }}
           onOpenThread={openThread}
         />
       )}
@@ -816,6 +927,8 @@ const ListView: React.FC<{
   setAttachments: (a: PendingAttachment[]) => void;
   suggestions: WordingSuggestion[];
   setSuggestions: (s: WordingSuggestion[]) => void;
+  status: CommentStatus | null;
+  setStatus: (s: CommentStatus | null) => void;
   busy: boolean;
   query: string;
   setQuery: (s: string) => void;
@@ -833,7 +946,10 @@ const ListView: React.FC<{
   onOpenThread: (t: CommentThread) => void;
 }> = (p) => {
   const searching = p.query.trim().length > 0;
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(loadFiltersOpen);
+  useEffect(() => {
+    try { localStorage.setItem(FILTER_OPEN_KEY, filtersOpen ? '1' : '0'); } catch { /* ignore */ }
+  }, [filtersOpen]);
   // Non-default filters worth surfacing on the collapsed "Filters" header.
   const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterScope !== 'all' ? 1 : 0);
   // Restore the threads-list scroll position when coming back from a thread.
@@ -856,6 +972,9 @@ const ListView: React.FC<{
             onAttachmentsChange={p.setAttachments}
             suggestions={p.suggestions}
             onSuggestionsChange={p.setSuggestions}
+            status={p.status}
+            onStatusChange={p.setStatus}
+            title="Add comment"
             onSubmit={p.onSubmitComposer}
             onCancel={p.onCancelComposer}
             busy={p.busy}
@@ -1103,7 +1222,7 @@ const SearchResultItem: React.FC<{
   query: string;
   onClick: () => void;
 }> = ({ hit, user, query, onClick }) => {
-  const { thread, comment } = hit;
+  const { thread, comment, suggestionHits } = hit;
   const dimmed = thread.status === 'closed';
   return (
     <button
@@ -1123,9 +1242,26 @@ const SearchResultItem: React.FC<{
         </span>
         <StatusBadge status={thread.status} />
       </div>
-      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        <Highlight text={comment.content} query={query} />
-      </span>
+      {(comment.content || suggestionHits.length === 0) && (
+        <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {comment.content ? <Highlight text={comment.content} query={query} /> : <CommentFallbackSummary comment={comment} />}
+        </span>
+      )}
+      {/* Only the suggestions the query actually hit — a comment can carry many,
+          and the row is a search result, not the thread. */}
+      {suggestionHits.map((s, idx) => (
+        <div key={idx} style={{
+          display: 'flex', flexDirection: 'column', gap: 1, fontSize: 11, lineHeight: 1.4, wordBreak: 'break-word',
+          paddingLeft: 7, borderLeft: `2px solid ${theme.border_default}`,
+        }}>
+          <span style={{ color: theme.text_tertiary, textDecoration: 'line-through' }}>
+            <Highlight text={s.original} query={query} />
+          </span>
+          <span style={{ color: theme.text_secondary }}>
+            <Highlight text={s.suggested} query={query} />
+          </span>
+        </div>
+      ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: theme.text_tertiary }}>
         <span>{contextSummary(thread.context)}</span>
         <span>·</span>
@@ -1243,6 +1379,11 @@ const ThreadView: React.FC<{
   onDeleteThread: () => void;
   onLocate: () => void;
   onBack: () => void;
+  /** Undefined when there is no earlier / later thread to step to. */
+  onPrev?: () => void;
+  onNext?: () => void;
+  /** Where this thread sits in the list being stepped through (0-based). */
+  navPosition?: { index: number; total: number };
 }> = (p) => {
   const { thread } = p;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1301,6 +1442,16 @@ const ThreadView: React.FC<{
             Thread {thread.id}
           </span>
           <CopyIdButton id={thread.id} />
+          <StepThreadButton
+            direction="prev"
+            onClick={p.onPrev}
+            position={p.navPosition}
+          />
+          <StepThreadButton
+            direction="next"
+            onClick={p.onNext}
+            position={p.navPosition}
+          />
           <div style={{ flex: 1 }} />
           <button onClick={p.onLocate} data-tooltip="Select element on canvas" style={iconBtnSm}><MapPin size={13} /></button>
           <ConfirmDeleteButton
@@ -1320,6 +1471,7 @@ const ThreadView: React.FC<{
           <CommentRow
             key={c.id}
             comment={c}
+            threadId={thread.id}
             index={idx}
             user={p.user}
             busy={p.busy}
@@ -1331,7 +1483,7 @@ const ThreadView: React.FC<{
             onStartEdit={() => { p.setEditingId(c.id); p.setEditingText(c.content); p.setEditingSuggestions(c.suggestions ?? []); }}
             onEditChange={p.setEditingText}
             onEditSave={() => p.onEditSave(c.id)}
-            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); clearSuggestionPreviews(p.editingSuggestions); p.setEditingSuggestions([]); }}
+            onEditCancel={() => { p.setEditingId(null); p.setEditingText(''); clearSuggestionPreviews(p.editingSuggestions, thread.id); p.setEditingSuggestions([]); }}
             onDelete={() => p.onDeleteReply(c.id)}
             onToggleRead={(makeRead) => p.onToggleRead(c.id, makeRead)}
           />
@@ -1348,6 +1500,7 @@ const ThreadView: React.FC<{
           onAttachmentsChange={p.setReplyAttachments}
           suggestions={p.replySuggestions}
           onSuggestionsChange={p.setReplySuggestions}
+          suggestionThreadId={thread.id}
           onSubmit={() => {
             if (p.replyDraft.trim() || p.replyAttachments.length || changedSuggestions(p.replySuggestions).length) {
               p.onReply(p.replyDraft, p.replyAttachments, p.replySuggestions);
@@ -1427,6 +1580,8 @@ const UnreadToggle: React.FC<{ unread: boolean; hovered: boolean; onToggle: () =
 // surface while the row is hovered. The unread control sits at the top right.
 const CommentRow: React.FC<{
   comment: CommentItem;
+  /** Thread that anchors this comment — the scope its wording suggestions apply to. */
+  threadId: string;
   index: number;
   user: CommentAuthor | null;
   busy: boolean;
@@ -1461,7 +1616,9 @@ const CommentRow: React.FC<{
           <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.author.name}</span>
           <span style={{ fontSize: 10, color: theme.text_tertiary, flexShrink: 0 }}>{relativeTime(c.createdAt)}{c.updatedAt ? ' · edited' : ''}</span>
           <div style={{ flex: 1 }} />
-          {mine && !p.isEditing && hovered && (
+          {/* Anyone can edit/delete any comment — this is a shared prototype, not
+              an account system, so ownership is attribution, not permission. */}
+          {!p.isEditing && hovered && (
             <>
               <button onClick={p.onStartEdit} data-tooltip="Edit" style={iconBtnSm}><Pencil size={12} /></button>
               {p.index > 0 && (
@@ -1489,6 +1646,7 @@ const CommentRow: React.FC<{
               onChange={p.onEditChange}
               suggestions={p.editingSuggestions}
               onSuggestionsChange={p.onEditSuggestionsChange}
+              suggestionThreadId={p.threadId}
               onSubmit={p.onEditSave}
               onCancel={p.onEditCancel}
               busy={p.busy}
@@ -1513,6 +1671,7 @@ const CommentRow: React.FC<{
             {(c.suggestions?.length ?? 0) > 0 && (
               <SuggestionPreviewBlock
                 suggestions={c.suggestions!}
+                threadId={p.threadId}
                 topMargin={c.content || attachments.length ? 8 : 3}
               />
             )}
@@ -1606,13 +1765,34 @@ const Composer: React.FC<{
   onAttachmentsChange?: (a: PendingAttachment[]) => void;
   suggestions?: WordingSuggestion[];
   onSuggestionsChange?: (s: WordingSuggestion[]) => void;
+  /**
+   * Thread the suggestions hang off, when composing against a saved one (reply /
+   * edit) — it anchors the wording preview to that thread's element. The
+   * new-comment composer omits it: its thread doesn't exist yet, so the preview
+   * anchors to the canvas selection instead.
+   */
+  suggestionThreadId?: string;
+  /**
+   * Triage status for the thread being created, and its setter. Passing them
+   * turns on the status picker below the field (new-comment composer only —
+   * a reply/edit joins a thread that already has its own status control).
+   */
+  status?: CommentStatus | null;
+  onStatusChange?: (s: CommentStatus | null) => void;
+  /**
+   * Heading above the field. With one, cancelling moves to an X on the heading
+   * row and the action row keeps only the status picker and the submit button;
+   * without one (the inline reply/edit composers) cancelling stays a Cancel
+   * button next to submit.
+   */
+  title?: string;
   onSubmit: () => void;
   onCancel?: () => void;
   busy: boolean;
   placeholder: string;
   submitLabel: string;
   submitIcon?: React.ReactNode;
-}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
+}> = ({ value, onChange, attachments, onAttachmentsChange, suggestions, onSuggestionsChange, suggestionThreadId, status, onStatusChange, title, onSubmit, onCancel, busy, placeholder, submitLabel, submitIcon }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const imagesOn = !!onAttachmentsChange;
@@ -1690,6 +1870,17 @@ const Composer: React.FC<{
 
   return (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    {title && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 20 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default }}>{title}</span>
+        <div style={{ flex: 1 }} />
+        {onCancel && (
+          <button onClick={onCancel} data-tooltip="Discard comment" style={iconBtnSm}>
+            <X size={14} />
+          </button>
+        )}
+      </div>
+    )}
     <div
       onPaste={imagesOn ? handlePaste : undefined}
       onDragOver={imagesOn ? (e) => { e.preventDefault(); setDragOver(true); } : undefined}
@@ -1728,15 +1919,20 @@ const Composer: React.FC<{
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 6px 5px 6px' }}>
         {imagesOn && <AttachButton onFiles={addFiles} />}
-        {suggestionsOn && <SuggestionToggleButton value={suggestions ?? []} onChange={onSuggestionsChange!} />}
+        {suggestionsOn && <SuggestionToggleButton value={suggestions ?? []} onChange={onSuggestionsChange!} threadId={suggestionThreadId} />}
         <EmojiPicker onPick={insertEmoji} />
       </div>
     </div>
     {suggestionsOn && (
-      <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} />
+      <SuggestionComposerSection value={suggestions ?? []} onChange={onSuggestionsChange!} threadId={suggestionThreadId} />
     )}
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-      {onCancel && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Status for the thread this comment will open, set before it's created
+          (defaults to "No status"). Sits on the left of the action row so it
+          reads as part of the field, not as a submit action. */}
+      {onStatusChange && <StatusDropdown status={status ?? undefined} busy={busy} onChange={onStatusChange} />}
+      <div style={{ flex: 1 }} />
+      {onCancel && !title && (
         <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${theme.border_default}`, background: 'transparent', color: theme.text_secondary, fontSize: 12, cursor: 'pointer', fontFamily: theme.font_ui }}>
           Cancel
         </button>
@@ -2021,6 +2217,31 @@ const CopyIdButton: React.FC<{ id: string }> = ({ id }) => {
   return (
     <button onClick={copy} data-tooltip="Copy comment ID" style={iconBtnSm}>
       {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+};
+
+// Chevron that walks to the previous / next thread in the list, so a thread can be
+// read one after another without bouncing back to the list. Disabled (but kept in
+// place, so the header doesn't jump) at either end of the list.
+const StepThreadButton: React.FC<{
+  direction: 'prev' | 'next';
+  onClick?: () => void;
+  position?: { index: number; total: number };
+}> = ({ direction, onClick, position }) => {
+  const enabled = !!onClick;
+  const label = direction === 'prev' ? 'Previous comment' : 'Next comment';
+  const where = position ? ` (${position.index + 1} of ${position.total})` : '';
+  return (
+    <button
+      onClick={onClick}
+      disabled={!enabled}
+      data-tooltip={enabled ? `${label}${where}` : undefined}
+      style={{ ...iconBtnSm, cursor: enabled ? 'pointer' : 'not-allowed', opacity: enabled ? 1 : 0.35 }}
+      onMouseEnter={(e) => { if (enabled) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {direction === 'prev' ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
     </button>
   );
 };

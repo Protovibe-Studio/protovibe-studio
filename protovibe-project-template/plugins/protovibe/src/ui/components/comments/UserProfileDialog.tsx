@@ -93,8 +93,8 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
           {currentUser ? 'Edit your profile' : 'Who are you?'}
         </div>
         <div style={{ fontSize: 12, color: theme.text_secondary, marginBottom: 12, lineHeight: 1.4 }}>
-          This is <b>not a signup</b>. Your name is stored locally in this browser so teammates know who
-          left a comment.
+          This is <b>not a signup</b>. Your name is stored locally on this computer — shared across all
+          your Protovibe projects — so teammates know who left a comment.
         </div>
         <div style={{
           marginBottom: 20, padding: '12px 14px', borderRadius: 10,
@@ -110,9 +110,9 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
             margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 5,
             fontSize: 12, color: theme.text_secondary, lineHeight: 1.45,
           }}>
-            <li>Each comment is stored as a file inside your project.</li>
+            <li>Your coding agent can read these comments easily.</li>
             <li>Teammates only see your comments if you collaborate via a Git repo.</li>
-            <li>Don’t forget to <b>commit and push</b> your changes.</li>
+            <li>Don’t forget to click<b>Sync with Git</b> to push your comments to others.</li>
           </ul>
         </div>
 

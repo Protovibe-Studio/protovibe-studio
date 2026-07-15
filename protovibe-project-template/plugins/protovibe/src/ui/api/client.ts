@@ -46,6 +46,39 @@ export async function blockAction(action: string, blockId: string | string[], fi
 }
 
 
+export async function convertToSketchpad(params: {
+  file: string;
+  snapshot: unknown;
+  options: { layoutMode: 'flex' | 'absolute' | 'flat'; keepComponents: string[] };
+}): Promise<{ success: boolean; blockCount: number; imports: Array<{ name: string; path: string }>; warnings: string[] }> {
+  const res = await fetch('/__convert-to-sketchpad', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Failed to convert element');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+export async function unwrapBlock(params: {
+  file: string;
+  blockId: string;
+  targetLayoutMode: 'flow' | 'absolute';
+  childPositions?: Record<string, { left: number; top: number; width: number; wasAbsolute: boolean }>;
+}) {
+  const res = await fetch('/__unwrap-block', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Failed to unwrap block');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 export async function deleteBlocks(file: string, blockIds: string[]) {
   const res = await fetch('/__delete-blocks', {
     method: 'POST',
@@ -238,9 +271,33 @@ export async function restartServer() {
   return await res.json();
 }
 
-export async function fetchCloudflarePublishMetadata(): Promise<{ projectName: string; url: string; deployHistory: string[] }> {
+export interface CloudflareDeployHistoryEntry {
+  url: string;
+  publishedAt?: string;
+}
+
+export interface CloudflarePublishMetadata {
+  projectName: string;
+  url: string;
+  lastPublishedAt: string;
+  deployHistory: CloudflareDeployHistoryEntry[];
+}
+
+export async function fetchCloudflarePublishMetadata(): Promise<CloudflarePublishMetadata> {
   const res = await fetch('/__cloudflare-publish-metadata');
   if (!res.ok) throw new Error('Failed to fetch Cloudflare metadata');
+  return res.json();
+}
+
+export interface CloudflareAuthStatus {
+  loggedIn: boolean;
+  email?: string;
+  accounts?: Array<{ id: string; name: string }>;
+}
+
+export async function fetchCloudflareAuthStatus(refresh = false): Promise<CloudflareAuthStatus> {
+  const res = await fetch(`/__cloudflare-auth-status${refresh ? '?refresh=1' : ''}`);
+  if (!res.ok) throw new Error('Failed to fetch Cloudflare auth status');
   return res.json();
 }
 

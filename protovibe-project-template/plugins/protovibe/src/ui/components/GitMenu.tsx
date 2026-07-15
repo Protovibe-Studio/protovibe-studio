@@ -4,15 +4,17 @@
 // ProtovibeApp.tsx (floating position + createPortal + mousedown click-outside).
 //
 // When Git isn't ready we explain the situation in plain language. Projects
-// without a repo/remote get a one-click "Back up to GitHub" flow (connect via
-// the Protovibe manager app, then init + private repo + push); the old
-// paste-to-your-coding-agent prompts remain as a collapsed escape hatch.
+// without a repo/remote get an intro to GitHub (what it is, why a designer would
+// want it) and a one-click flow: connect via the Protovibe manager app, then
+// init + private repo + push. The old paste-to-your-coding-agent prompts remain
+// as a collapsed escape hatch.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check, ExternalLink } from 'lucide-react';
+import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshCw, Copy, Check, ExternalLink, Users, MessageSquare, Cloud } from 'lucide-react';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme, primarySolidHover } from '../theme';
+import { openInBrowser } from '../utils/openExternal';
 import type { UseGitSync } from '../hooks/useGitSync';
 
 const SPIN_KEYFRAMES = '@keyframes pv-git-spin { to { transform: rotate(360deg); } }';
@@ -119,6 +121,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const gitMissing = !!status && !status.gitInstalled;
   const needsBackupPanel = !!status?.gitInstalled && (!status.isRepo || !status.hasUpstream);
   const authIssue = op.status === 'error' && isAuthOrAccessError(`${op.error ?? ''} ${op.message ?? ''}`);
   const githubAuthIssue = authIssue && status?.remoteKind === 'github-https';
@@ -140,14 +143,24 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     void checkGithub(false);
   }, [open, refresh, checkGithub]);
 
-  // The manager probe (slow when the manager is down) is only needed once a
-  // disconnected panel has to decide between "Connect GitHub" and "open the
-  // Protovibe app first".
+  // The manager probe (slow when the manager is down) locates the Protovibe app
+  // so a disconnected panel can decide between "Connect to GitHub" and "open the
+  // Protovibe app first". Needed by every disconnected surface now that the
+  // normal panel also carries an always-present connect bar.
   useEffect(() => {
-    if (open && (needsBackupPanel || githubAuthIssue) && github && !github.connected && github.managerReachable === undefined) {
+    if (open && github && !github.connected && github.managerReachable === undefined) {
       void checkGithub(true);
     }
-  }, [open, needsBackupPanel, githubAuthIssue, github, checkGithub]);
+  }, [open, github, checkGithub]);
+
+  // While git is being provisioned in the background (the manager downloads
+  // the embedded distribution on git-less machines), poll so the menu flips
+  // to the backup panel by itself the moment git is ready.
+  useEffect(() => {
+    if (!open || !gitMissing) return;
+    const timer = setInterval(() => { void refresh(false); }, 3000);
+    return () => clearInterval(timer);
+  }, [open, gitMissing, refresh]);
 
   // A GitHub-remote auth error while connected is usually an app-installation
   // coverage problem — check so we can point at the install page.
@@ -237,19 +250,31 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
         >
           <style>{SPIN_KEYFRAMES}</style>
 
-          {/* --- git not installed --- */}
+          {/* --- git not provisioned yet (manager downloads it in the background) --- */}
           {!status.gitInstalled ? (
-            <SetupPanel
-              title="Git isn’t installed"
-              body="Git is the tool that saves your work and shares it with your team. It isn’t installed on this computer yet."
-              prompt={installPrompt(status.root)}
-              onRecheck={() => void refresh(false)}
-              recheckLabel="I’ve installed it — check again"
-            />
-          ) : needsBackupPanel ? (
-            /* --- no repo / no remote: back up to GitHub --- */
             <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Back up to GitHub</div>
+              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Work on this project together</div>
+              <GithubIntro />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
+                <RotateCw size={13} style={{ flexShrink: 0, marginTop: 2, animation: 'pv-git-spin 1s linear infinite' }} />
+                <span>Protovibe is finishing its one-time setup in the background — usually under a minute. You can already connect your GitHub account.</span>
+              </div>
+              <ConnectBlock
+                github={github}
+                connecting={connecting}
+                startConnect={startConnect}
+                cancelConnect={cancelConnect}
+                checkGithub={checkGithub}
+              />
+              <TroubleFallback prompt={installPrompt(status.root)} />
+            </div>
+          ) : needsBackupPanel ? (
+            /* --- no repo / no remote: intro + one-click connect to GitHub --- */
+            <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>Work on this project together</div>
+
+              {/* The pitch, until something goes wrong — then the problem takes the space. */}
+              {!(op.status === 'error' && op.op === 'backup') && <GithubIntro />}
 
               {!github ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
@@ -260,7 +285,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   <InstallAccessPanel
                     installUrl={installUrl}
                     body="GitHub needs your permission before Protovibe can use this repository. Open GitHub, give Protovibe access, then try again."
-                    retryLabel="I’ve done it — back up again"
+                    retryLabel="I’ve done it — try again"
                     onRetry={() => void runOp('backup')}
                     disabled={busy}
                   />
@@ -268,14 +293,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   <>
                     <div style={{ color: op.status === 'error' && op.op === 'backup' ? theme.destructive_default : theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
                       {op.status === 'error' && op.op === 'backup'
-                        ? (op.message || 'Backup failed.')
-                        : `Save this project privately to your GitHub account (${github.login ?? 'connected'}) so it’s backed up and you can sync it from anywhere.`}
+                        ? (op.message || 'Couldn’t add this project to GitHub.')
+                        : `Protovibe will add this project to your GitHub account (${github.login ?? 'connected'}). It stays private — only you and the people you invite can see it.`}
                     </div>
                     <button disabled={busy} onClick={() => void runOp('backup')} {...primarySolidHover(!busy)} style={primaryButtonStyle(!busy)}>
                       {backupBusy
                         ? <RotateCw size={14} style={{ animation: 'pv-git-spin 1s linear infinite' }} />
                         : <GithubMark size={14} />}
-                      {backupBusy ? (op.message || 'Backing up…') : op.status === 'error' && op.op === 'backup' ? 'Try again' : 'Back up to GitHub'}
+                      {backupBusy ? (op.message || 'Setting up…') : op.status === 'error' && op.op === 'backup' ? 'Try again' : 'Add project to GitHub'}
                     </button>
                   </>
                 )
@@ -301,7 +326,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               ) : github.managerReachable ? (
                 <>
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
-                    Connect your GitHub account and Protovibe will keep a private backup of this project there.
+                    Start by connecting your GitHub account — it’s free, and Protovibe sets the rest up for you.
                   </div>
                   <button onClick={startConnect} {...primarySolidHover(true)} style={primaryButtonStyle(true)}>
                     <GithubMark size={14} /> Connect GitHub
@@ -445,8 +470,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 </div>
               </div>
 
-              {/* advanced */}
-              <div style={{ borderTop: `1px solid ${theme.border_default}` }}>
+              {/* advanced — borderless, sits directly above the GitHub bar */}
+              <div>
                 <button
                   onClick={() => setAdvancedOpen((v) => !v)}
                   style={{ ...menuItemStyle, color: theme.text_secondary, justifyContent: 'space-between' }}
@@ -479,9 +504,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 )}
               </div>
 
-              {github?.connected && (
-                <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={() => void logout()} />
-              )}
+              <GithubStatusBar
+                github={github}
+                connecting={connecting}
+                startConnect={startConnect}
+                cancelConnect={cancelConnect}
+                checkGithub={checkGithub}
+                onLogout={() => void logout()}
+              />
             </>
           )}
         </div>,
@@ -490,6 +520,44 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     </>
   );
 };
+
+// What a designer gets out of GitHub, before any of it exists for this project.
+// Our users don't know what a repo, a commit or a remote is — so lead with the
+// outcome (team, feedback, safety) and never make them learn the vocabulary.
+const IntroRow: React.FC<{ icon: React.ReactNode; title: string; body: string }> = ({ icon, title, body }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+    <span style={{ color: theme.accent_default, display: 'flex', flexShrink: 0, marginTop: 2 }}>{icon}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+      <span style={{ color: theme.text_default, fontSize: 12, fontWeight: 600 }}>{title}</span>
+      <span style={{ color: theme.text_tertiary, fontSize: 11.5, lineHeight: 1.45 }}>{body}</span>
+    </div>
+  </div>
+);
+
+const GithubIntro: React.FC = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
+      GitHub is a free service that keeps your project online — think of it as a shared drive made for design and code.
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <IntroRow
+        icon={<Users size={13} />}
+        title="Work with your team"
+        body="Invite people to open this project and design alongside you."
+      />
+      <IntroRow
+        icon={<MessageSquare size={13} />}
+        title="Get feedback"
+        body="Your team can leave comments right on the screens you built."
+      />
+      <IntroRow
+        icon={<Cloud size={13} />}
+        title="Kept safe in the cloud"
+        body="Sync your changes with one click — nothing gets lost, and you can carry on from any computer."
+      />
+    </div>
+  </div>
+);
 
 // Who's connected + Log out. Logging out forgets the machine-wide token, so
 // the Protovibe app and every other project disconnect too.
@@ -512,6 +580,84 @@ const AccountRow: React.FC<{ login: string | null; avatarUrl: string | null; onL
   </div>
 );
 
+// Always-present bottom bar in the normal sync panel. When connected it's the
+// account row; when not, it's a small, plain-language "Connect to GitHub" bar so
+// backing up your work is always one click away. Connecting happens in the
+// Protovibe app, so we mirror the same states as the backup panel, compacted.
+const GithubStatusBar: React.FC<{
+  github: UseGitSync['github'];
+  connecting: boolean;
+  startConnect: () => void;
+  cancelConnect: () => void;
+  checkGithub: (probe?: boolean) => Promise<void> | void;
+  onLogout: () => void;
+}> = ({ github, connecting, startConnect, cancelConnect, checkGithub, onLogout }) => {
+  if (github?.connected) {
+    return <AccountRow login={github.login} avatarUrl={github.avatarUrl} onLogout={onLogout} />;
+  }
+
+  const barStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '8px 12px', borderTop: `1px solid ${theme.border_default}`,
+  };
+  const icon = <span style={{ color: theme.text_tertiary, display: 'flex', flexShrink: 0 }}><GithubMark size={14} /></span>;
+  const label = (text: string) => (
+    <span style={{ flex: 1, color: theme.text_secondary, fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
+  );
+  const linkBtn = (text: string, onClick: () => void, color = theme.accent_default) => (
+    <button
+      onClick={onClick}
+      style={{ border: 'none', background: 'transparent', color, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', padding: 0, flexShrink: 0 }}
+      onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+      onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+    >
+      {text}
+    </button>
+  );
+
+  // still figuring out where the Protovibe app is
+  if (!github || github.managerReachable === undefined) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: theme.text_tertiary, fontSize: 11.5 }}>
+          <RotateCw size={12} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Checking your GitHub connection…
+        </span>
+      </div>
+    );
+  }
+
+  if (connecting) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: theme.text_secondary, fontSize: 11.5, overflow: 'hidden' }}>
+          <RotateCw size={12} style={{ flexShrink: 0, animation: 'pv-git-spin 1s linear infinite' }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Finish connecting in the Protovibe app…</span>
+        </span>
+        {linkBtn('Cancel', cancelConnect, theme.text_tertiary)}
+      </div>
+    );
+  }
+
+  if (!github.managerReachable) {
+    return (
+      <div style={barStyle}>
+        {icon}
+        {label('Open the Protovibe app to connect')}
+        {linkBtn('Check again', () => void checkGithub(true), theme.text_tertiary)}
+      </div>
+    );
+  }
+
+  return (
+    <div style={barStyle}>
+      {icon}
+      {linkBtn('Connect to GitHub', startConnect)}
+    </div>
+  );
+};
+
 // "Give Protovibe access on GitHub" guidance — used when the app installation
 // doesn't cover the repo (backup push and sync both land here).
 const InstallAccessPanel: React.FC<{
@@ -524,7 +670,7 @@ const InstallAccessPanel: React.FC<{
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
     <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>{body}</div>
     <button
-      onClick={() => window.open(installUrl, '_blank')}
+      onClick={() => openInBrowser(installUrl)}
       {...primarySolidHover(true)}
       style={primaryButtonStyle(true)}
     >
@@ -543,27 +689,86 @@ const InstallAccessPanel: React.FC<{
 );
 
 // A titled setup panel: plain explanation + agent prompt + a "check again" action.
-const SetupPanel: React.FC<{
-  title: string;
-  body: string;
-  prompt: string;
-  onRecheck: () => void;
-  recheckLabel: string;
-}> = ({ title, body, prompt, onRecheck, recheckLabel }) => (
-  <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-    <div style={{ color: theme.text_default, fontSize: 13, fontWeight: 700 }}>{title}</div>
-    <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>{body}</div>
-    <AgentPrompt prompt={prompt} />
-    <button
-      onClick={onRecheck}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 12, cursor: 'pointer' }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
-      onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
-    >
-      <RefreshCw size={12} /> {recheckLabel}
-    </button>
-  </div>
-);
+// GitHub connect states for the git-provisioning panel — same flow as the
+// backup panel: connect happens in the manager app, we poll until it lands.
+const ConnectBlock: React.FC<{
+  github: UseGitSync['github'];
+  connecting: boolean;
+  startConnect: () => void;
+  cancelConnect: () => void;
+  checkGithub: (probeManager?: boolean) => Promise<void> | void;
+}> = ({ github, connecting, startConnect, cancelConnect, checkGithub }) => {
+  const spinRow = (label: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
+      <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> {label}
+    </div>
+  );
+  if (!github) return spinRow('Checking your GitHub connection…');
+  if (github.connected) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.success_default, fontSize: 12 }}>
+        <Check size={13} /> GitHub connected{github.login ? ` as ${github.login}` : ''}
+      </div>
+    );
+  }
+  if (connecting) {
+    return (
+      <>
+        {spinRow('Waiting for you to finish connecting in the Protovibe app…')}
+        <button
+          onClick={cancelConnect}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 12, cursor: 'pointer' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
+        >
+          Cancel
+        </button>
+      </>
+    );
+  }
+  if (github.managerReachable === undefined) return spinRow('Looking for the Protovibe app…');
+  if (github.managerReachable) {
+    return (
+      <button onClick={startConnect} {...primarySolidHover(true)} style={primaryButtonStyle(true)}>
+        <GithubMark size={14} /> Connect GitHub
+      </button>
+    );
+  }
+  return (
+    <>
+      <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
+        Open the Protovibe app first — that’s where you connect your GitHub account. Then come back here.
+      </div>
+      <button
+        onClick={() => void checkGithub()}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 12, cursor: 'pointer' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
+        onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
+      >
+        <RefreshCw size={12} /> I’ve opened it — check again
+      </button>
+    </>
+  );
+};
+
+// Last-resort escape hatch while git provisioning drags on: collapsed by
+// default so designers aren't greeted with an agent prompt.
+const TroubleFallback: React.FC<{ prompt: string }> = ({ prompt }) => {
+  const [expanded, setExpanded] = useState(false);
+  if (!expanded) {
+    return (
+      <button
+        onClick={() => setExpanded(true)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 11.5, cursor: 'pointer' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
+        onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
+      >
+        Taking too long? Get help
+      </button>
+    );
+  }
+  return <AgentPrompt prompt={prompt} />;
+};
 
 // A ready-to-paste prompt for the user's coding agent, with a Copy button.
 const AgentPrompt: React.FC<{ prompt: string }> = ({ prompt }) => {

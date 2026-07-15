@@ -5,6 +5,7 @@
 import {
   readStoredAuth,
   clearStoredAuth,
+  clearInstallRequested,
   GITHUB_APP_SLUG,
 } from './github-auth.js'
 
@@ -92,10 +93,15 @@ export async function handleListRepos(_req, res, sendJson) {
     const repoLists = await Promise.all(installations.map((i) => listInstallationRepos(i.id)))
     const repos = repoLists.flat().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
 
+    // An org owner approving the request is the only signal we get that a
+    // pending request is resolved — an installation simply shows up.
+    if (installations.length > 0) clearInstallRequested()
+
     sendJson(res, 200, {
       installations,
       repos,
       installUrl: `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new`,
+      installRequestedAt: installations.length === 0 ? (auth?.installRequestedAt ?? null) : null,
       login: auth?.login ?? null,
       avatarUrl: auth?.avatarUrl ?? null,
     })

@@ -858,3 +858,6 @@ the live canvas DOM (never touching source). If the user asks you to *apply* a
 suggestion, make the real edit in the JSX (respecting the pv-block rules above) and
 leave the `suggestions` entry as the record of what was requested — do not treat the
 presence of a suggestion as an automatic code change.
+
+### Rule: don't edit PROTOVIBE_AGENTS.md
+This file will be overriden by future Protovibe updates. If user wants to store some info for AI agents, store it in the root AGENTS.md file, not PROTOVIBE_AGENTS.md

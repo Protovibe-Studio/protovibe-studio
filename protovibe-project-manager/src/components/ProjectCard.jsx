@@ -152,7 +152,7 @@ export default function ProjectCard({ project, onOpen, onDuplicate, onDelete, on
                 label="Open Protovibe editor"
                 onClick={(e) => {
                   e.stopPropagation()
-                  window.open(`http://localhost:${port}/protovibe.html`, '_blank')
+                  window.location.assign(`http://localhost:${port}/protovibe.html`)
                   setMenuOpen(false)
                 }}
                 icon={<ExternalLink size={14} className="shrink-0" />}

@@ -1,13 +1,19 @@
 // plugins/protovibe/src/ui/components/FloatingToolbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, BringToFront, SendToBack } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, Ungroup, BringToFront, SendToBack, MoreVertical, PenTool, Copy, CopyPlus, Clipboard, ClipboardPaste } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { addBlock, takeSnapshot, deleteBlocks } from '../api/client';
-import { executeBlockAction } from '../utils/executeBlockAction';
+import { addBlock, takeSnapshot, deleteBlocks, unwrapBlock } from '../api/client';
+import { collectChildPositions } from '../utils/unwrapGeometry';
+import { executeBlockAction, executeClipboardBlockAction } from '../utils/executeBlockAction';
+import { snapshotElement, DomSnapshot } from '../utils/domSnapshot';
+import { ConvertToSketchpadDialog } from './ConvertToSketchpadDialog';
 import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { emitToast } from '../events/toast';
+import { openNotEditableDialog } from './NotEditableDialog';
+
+const NOT_EDITABLE_TOOLTIP = "Element isn't editable yet — click to see how to fix it";
 
 export const FloatingToolbar: React.FC = () => {
   const {
@@ -24,6 +30,8 @@ export const FloatingToolbar: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [convertSnapshot, setConvertSnapshot] = useState<DomSnapshot | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const addSearchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -51,7 +59,10 @@ export const FloatingToolbar: React.FC = () => {
   // Open add dialog via keyboard shortcut (Cmd+E)
   useEffect(() => {
     const handler = () => {
-      if (!canAdd) return;
+      if (!canAdd) {
+        if (currentBaseTarget) openNotEditableDialog();
+        return;
+      }
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -59,12 +70,15 @@ export const FloatingToolbar: React.FC = () => {
     };
     window.addEventListener('pv:open-add-dialog', handler);
     return () => window.removeEventListener('pv:open-add-dialog', handler);
-  }, [canAdd, refreshComponents]);
+  }, [canAdd, currentBaseTarget, refreshComponents]);
 
   // Open "add after" dialog via keyboard shortcut (Cmd+Shift+E)
   useEffect(() => {
     const handler = () => {
-      if (!canBlockAction) return;
+      if (!canBlockAction) {
+        if (currentBaseTarget) openNotEditableDialog();
+        return;
+      }
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -72,7 +86,7 @@ export const FloatingToolbar: React.FC = () => {
     };
     window.addEventListener('pv:open-add-after-dialog', handler);
     return () => window.removeEventListener('pv:open-add-after-dialog', handler);
-  }, [canBlockAction, refreshComponents]);
+  }, [canBlockAction, currentBaseTarget, refreshComponents]);
 
   // Focus search input after dialog opens (after React re-renders the input into the DOM)
   useEffect(() => {
@@ -98,7 +112,43 @@ export const FloatingToolbar: React.FC = () => {
     };
   }, [showAddDialog]);
 
-  if (!inspectorOpen || (!canAdd && !canBlockAction)) return null;
+  // Close the "more" menu on outside click or Escape
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleMouse = (e: MouseEvent) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', handleMouse);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleMouse);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [moreOpen]);
+
+  // Keep the toolbar visible for any selected element — even ones that are not
+  // pv blocks. Actions that need a block open the "not editable" dialog instead.
+  if (!inspectorOpen || (!currentBaseTarget && !canAdd && !canBlockAction)) return null;
+
+  const handleOpenConvertDialog = () => {
+    setMoreOpen(false);
+    setAddMode(null);
+    // Conversion is DOM-based, so it works for any selected element — prefer
+    // the enclosing pv-block (matches copy/cut semantics) when there is one.
+    const target = (canBlockAction && closestBlock ? closestBlock : currentBaseTarget) as HTMLElement | null;
+    if (!target) return;
+    const snapshot = snapshotElement(target);
+    if (!snapshot) {
+      emitToast({ message: 'Nothing to convert in this selection', variant: 'error' });
+      return;
+    }
+    setConvertSnapshot(snapshot);
+  };
 
   const handleBlockAction = async (action: string) => {
     setAddMode(null);
@@ -115,8 +165,86 @@ export const FloatingToolbar: React.FC = () => {
     });
   };
 
+  // Resolve the pv-block ids for the current selection (or the single focused
+  // element), mirroring the copy/cut/paste logic in useKeyboardShortcuts.
+  const getActionBlockIds = () => {
+    const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
+    return [...new Set(
+      targets
+        .map(t => t.closest('[data-pv-block]')?.getAttribute('data-pv-block'))
+        .filter(Boolean) as string[]
+    )];
+  };
+
+  const handleClipboardAction = async (action: 'copy' | 'duplicate') => {
+    setMoreOpen(false);
+    const blockIds = getActionBlockIds();
+    if (blockIds.length === 0 || !isBlockInCurrentFile || !activeData?.file) {
+      openNotEditableDialog();
+      return;
+    }
+    await runLockedMutation(async () => {
+      await executeClipboardBlockAction({
+        action,
+        blockId: blockIds,
+        file: activeData.file,
+        activeSourceId: activeSourceId!,
+        focusElement,
+        refreshActiveData,
+      });
+    });
+    emitToast({ message: action === 'copy' ? 'Block copied to clipboard' : 'Block duplicated', variant: 'info' });
+  };
+
+  const handlePasteBlock = async (isPasteAfter: boolean) => {
+    setMoreOpen(false);
+    if (!activeData?.file || !currentBaseTarget) return;
+
+    const targetZone = zones[0];
+    const targetBlockId = getActionBlockIds()[0];
+
+    if (isPasteAfter && (!targetBlockId || !isBlockInCurrentFile)) {
+      emitToast({ message: "Can't paste after this element", variant: 'error' });
+      return;
+    }
+    if (!isPasteAfter && !targetZone) {
+      emitToast({ message: "Can't paste inside this element", variant: 'error' });
+      return;
+    }
+
+    const targetContainer = isPasteAfter ? currentBaseTarget?.parentElement : currentBaseTarget;
+    const targetLayoutMode = targetContainer?.getAttribute('data-layout-mode') || 'flow';
+
+    await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'paste');
+      const res = await addBlock({
+        file: activeData.file,
+        zoneId: isPasteAfter ? undefined : targetZone.id,
+        afterBlockId: isPasteAfter ? targetBlockId! : undefined,
+        isPristine: isPasteAfter ? false : targetZone.isPristine,
+        elementType: 'paste',
+        targetStartLine: activeData.startLine,
+        targetEndLine: activeData.endLine,
+        targetLayoutMode,
+        pasteX: 100,
+        pasteY: 100,
+      });
+      const focusIds: string[] = res?.newBlockIds?.length ? res.newBlockIds : (res?.blockId ? [res.blockId] : []);
+      if (focusIds.length > 0) {
+        emitToast({ message: 'Pasted successfully', variant: 'info' });
+        focusNewBlock(focusIds);
+      }
+    }).catch((err: any) => {
+      emitToast({ message: err.message || 'Failed to paste block', variant: 'error' });
+    });
+  };
+
   const handleWrapBlocks = async () => {
-    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+    if (uniqueSelectedBlockIds.length === 0) {
+      openNotEditableDialog();
+      return;
+    }
+    if (!activeData?.file) return;
 
     // Check if any selected element is an ancestor/descendant of another selected element
     const isNested = selectedTargets.some(t1 =>
@@ -143,8 +271,39 @@ export const FloatingToolbar: React.FC = () => {
     if (res?.wrapperId) focusNewBlock(res.wrapperId, { maxAttempts: 20 });
   };
 
+  const handleUnwrapBlock = async () => {
+    setAddMode(null);
+    if (!closestBlockId || !closestBlock || !activeData?.file) return;
+
+    const childPositions = collectChildPositions(closestBlock as HTMLElement);
+    if (Object.keys(childPositions).length === 0) {
+      emitToast({ message: 'Nothing to unwrap', variant: 'error' });
+      return;
+    }
+
+    const targetLayoutMode = (closestBlock.parentElement?.closest('[data-layout-mode]')?.getAttribute('data-layout-mode') || 'flow') as 'flow' | 'absolute';
+
+    const res = await runLockedMutation(async () => {
+      await takeSnapshot(activeData.file, activeSourceId!, undefined, 'unwrap block');
+      return unwrapBlock({
+        file: activeData.file,
+        blockId: closestBlockId,
+        targetLayoutMode,
+        childPositions: targetLayoutMode === 'absolute' ? childPositions : undefined,
+      });
+    }).catch((err: any) => {
+      emitToast({ message: err.message || 'Failed to unwrap block', variant: 'error' });
+    });
+
+    if (res?.blockIds?.length) focusNewBlock(res.blockIds, { maxAttempts: 20 });
+  };
+
   const handleDeleteBlocks = async () => {
-    if (!activeData?.file || uniqueSelectedBlockIds.length === 0) return;
+    if (uniqueSelectedBlockIds.length === 0) {
+      openNotEditableDialog();
+      return;
+    }
+    if (!activeData?.file) return;
 
     const isNested = selectedTargets.some(t1 =>
       selectedTargets.some(t2 => t1 !== t2 && t1.contains(t2))
@@ -355,6 +514,91 @@ export const FloatingToolbar: React.FC = () => {
     );
   };
 
+  const renderMoreMenuItem = (
+    icon: React.ReactNode,
+    label: string,
+    onClick: () => void,
+    opts?: { shortcut?: string; testId?: string },
+  ) => (
+    <button
+      data-testid={opts?.testId}
+      disabled={locked}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        background: 'transparent',
+        border: 'none',
+        color: theme.text_default,
+        fontSize: '11px',
+        fontFamily: theme.font_ui,
+        padding: '9px 12px',
+        textAlign: 'left',
+        cursor: locked ? 'progress' : 'pointer',
+        opacity: locked ? 0.6 : 1,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+    >
+      {icon}
+      <span style={{ flex: 1 }}>{label}</span>
+      {opts?.shortcut && (
+        <span style={{ color: theme.text_tertiary, fontSize: '10px', letterSpacing: '0.5px' }}>{opts.shortcut}</span>
+      )}
+    </button>
+  );
+
+  const renderMoreMenu = () => (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 'calc(100% + 8px)',
+        right: 0,
+        minWidth: '220px',
+        background: theme.bg_secondary,
+        border: `1px solid ${theme.border_default}`,
+        borderRadius: '8px',
+        boxShadow: '0 8px 28px rgba(0,0,0,0.55)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {renderMoreMenuItem(
+        <Copy size={13} strokeWidth={2} />,
+        'Copy',
+        () => handleClipboardAction('copy'),
+        { shortcut: '⌘C', testId: 'item-copy' },
+      )}
+      {renderMoreMenuItem(
+        <CopyPlus size={13} strokeWidth={2} />,
+        'Duplicate',
+        () => handleClipboardAction('duplicate'),
+        { shortcut: '⌘D', testId: 'item-duplicate' },
+      )}
+      {renderMoreMenuItem(
+        <Clipboard size={13} strokeWidth={2} />,
+        'Paste',
+        () => handlePasteBlock(false),
+        { shortcut: '⌘V', testId: 'item-paste' },
+      )}
+      {renderMoreMenuItem(
+        <ClipboardPaste size={13} strokeWidth={2} />,
+        'Paste after',
+        () => handlePasteBlock(true),
+        { shortcut: '⌘⇧V', testId: 'item-paste-after' },
+      )}
+      <div style={{ height: '1px', background: theme.border_secondary, margin: '4px 0' }} />
+      {renderMoreMenuItem(
+        <PenTool size={13} strokeWidth={2} />,
+        'Convert to Sketchpad…',
+        handleOpenConvertDialog,
+        { testId: 'item-convert-to-sketchpad' },
+      )}
+    </div>
+  );
+
   const toolbar = (
     <div
       ref={toolbarRef}
@@ -373,6 +617,7 @@ export const FloatingToolbar: React.FC = () => {
       }}
     >
       {showAddDialog && renderAddDialog()}
+      {moreOpen && renderMoreMenu()}
 
       <div
         style={{
@@ -420,116 +665,150 @@ export const FloatingToolbar: React.FC = () => {
           </>
           ) : (
             <>
-              {canAdd && (
+              <button
+                disabled={locked}
+                onClick={() => {
+                  if (!canAdd) {
+                    openNotEditableDialog();
+                    return;
+                  }
+                  if (addMode !== 'child') {
+                    refreshComponents();
+                    setAddSearch('');
+                    setActiveIndex(0);
+                  }
+                  setAddMode(prev => prev === 'child' ? null : 'child');
+                }}
+                onMouseEnter={() => setHoveredBtn('add-child')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('add-child', {
+                  minWidth: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '5px',
+                  color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                  background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                })}
+                data-tooltip={canAdd ? 'Add child element' : NOT_EDITABLE_TOOLTIP}
+                data-testid="btn-add-child"
+              >
+                <Plus size={13} strokeWidth={2.5} />
+                Add child
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => {
+                  if (!canBlockAction) {
+                    openNotEditableDialog();
+                    return;
+                  }
+                  if (addMode !== 'after') {
+                    refreshComponents();
+                    setAddSearch('');
+                    setActiveIndex(0);
+                  }
+                  setAddMode(prev => prev === 'after' ? null : 'after');
+                }}
+                onMouseEnter={() => setHoveredBtn('add-after')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('add-after', {
+                  minWidth: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '5px',
+                  color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                  background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                })}
+                data-tooltip={canBlockAction ? 'Add element after' : NOT_EDITABLE_TOOLTIP}
+              >
+                <Plus size={13} strokeWidth={2.5} />
+                Add after
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleWrapBlocks() : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('wrap')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
+                data-tooltip={canBlockAction ? 'Wrap in div' : NOT_EDITABLE_TOOLTIP}
+              >
+                <SquareDashed size={13} strokeWidth={2.5} />
+                Wrap
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleUnwrapBlock() : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('unwrap')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('unwrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
+                data-tooltip={canBlockAction ? 'Unwrap children' : NOT_EDITABLE_TOOLTIP}
+                data-testid="btn-unwrap"
+              >
+                <Ungroup size={13} strokeWidth={2.5} />
+                Unwrap
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('up')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('up')}
+                data-tooltip={canBlockAction ? (isSketchpadAbsolute ? 'Bring to front' : 'Move up') : NOT_EDITABLE_TOOLTIP}
+              >
+                {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
+                {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('down')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('down')}
+                data-tooltip={canBlockAction ? (isSketchpadAbsolute ? 'Send backward' : 'Move down') : NOT_EDITABLE_TOOLTIP}
+              >
+                {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
+                {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
+              </button>
+              {divider}
+              <button
+                disabled={locked}
+                onClick={() => canBlockAction ? handleBlockAction('delete') : openNotEditableDialog()}
+                onMouseEnter={() => setHoveredBtn('del')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={mkBtnStyle('del', {
+                  padding: '0 14px',
+                  color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
+                })}
+                data-tooltip={canBlockAction ? 'Delete block' : NOT_EDITABLE_TOOLTIP}
+              >
+                <Trash2 size={13} strokeWidth={2} />
+              </button>
+              {!isSketchpadAbsolute && (
                 <>
+                  {divider}
                   <button
                     disabled={locked}
                     onClick={() => {
-                      if (addMode !== 'child') {
-                        refreshComponents();
-                        setAddSearch('');
-                        setActiveIndex(0);
-                      }
-                      setAddMode(prev => prev === 'child' ? null : 'child');
+                      setAddMode(null);
+                      setMoreOpen(prev => !prev);
                     }}
-                    onMouseEnter={() => setHoveredBtn('add-child')}
+                    onMouseEnter={() => setHoveredBtn('more')}
                     onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('add-child', {
-                      minWidth: canBlockAction ? '120px' : '180px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                      background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                    style={mkBtnStyle('more', {
+                      color: moreOpen ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                      background: moreOpen ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'more' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                     })}
-                    data-tooltip="Add child element"
-                    data-testid="btn-add-child"
+                    data-tooltip="More actions"
+                    data-testid="btn-more-menu"
                   >
-                    <Plus size={13} strokeWidth={2.5} />
-                    Add child
-                  </button>
-                  {canBlockAction && divider}
-                </>
-              )}
-
-              {canBlockAction && (
-                <>
-                  <button
-                    disabled={locked}
-                    onClick={() => {
-                      if (addMode !== 'after') {
-                        refreshComponents();
-                        setAddSearch('');
-                        setActiveIndex(0);
-                      }
-                      setAddMode(prev => prev === 'after' ? null : 'after');
-                    }}
-                    onMouseEnter={() => setHoveredBtn('add-after')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('add-after', {
-                      minWidth: '120px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                      background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-                    })}
-                    data-tooltip="Add element after"
-                  >
-                    <Plus size={13} strokeWidth={2.5} />
-                    Add after
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={handleWrapBlocks}
-                    onMouseEnter={() => setHoveredBtn('wrap')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('wrap', { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' })}
-                    data-tooltip="Wrap in div"
-                  >
-                    <SquareDashed size={13} strokeWidth={2.5} />
-                    Wrap
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up')}
-                    onMouseEnter={() => setHoveredBtn('up')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('up')}
-                    data-tooltip={isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
-                  >
-                    {isSketchpadAbsolute ? <BringToFront size={13} strokeWidth={2.5} /> : <ChevronUp size={13} strokeWidth={2.5} />}
-                    {isSketchpadAbsolute ? 'Bring to front' : 'Move up'}
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down')}
-                    onMouseEnter={() => setHoveredBtn('down')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('down')}
-                    data-tooltip={isSketchpadAbsolute ? 'Send backward' : 'Move down'}
-                  >
-                    {isSketchpadAbsolute ? <SendToBack size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
-                    {isSketchpadAbsolute ? 'Send backward' : 'Move down'}
-                  </button>
-                  {divider}
-                  <button
-                    disabled={locked}
-                    onClick={() => handleBlockAction('delete')}
-                    onMouseEnter={() => setHoveredBtn('del')}
-                    onMouseLeave={() => setHoveredBtn(null)}
-                    style={mkBtnStyle('del', {
-                      padding: '0 14px',
-                      color: hoveredBtn === 'del' && !locked ? 'rgba(255, 90, 90, 1)' : 'rgba(255, 110, 110, 0.75)',
-                    })}
-                    data-tooltip="Delete block"
-                  >
-                    <Trash2 size={13} strokeWidth={2} />
+                    <MoreVertical size={13} strokeWidth={2.5} />
                   </button>
                 </>
               )}
@@ -539,5 +818,16 @@ export const FloatingToolbar: React.FC = () => {
     </div>
   );
 
-  return createPortal(toolbar, document.body);
+  return (
+    <>
+      {createPortal(toolbar, document.body)}
+      {convertSnapshot && (
+        <ConvertToSketchpadDialog
+          file={activeData?.file || ''}
+          snapshot={convertSnapshot}
+          onClose={() => setConvertSnapshot(null)}
+        />
+      )}
+    </>
+  );
 };

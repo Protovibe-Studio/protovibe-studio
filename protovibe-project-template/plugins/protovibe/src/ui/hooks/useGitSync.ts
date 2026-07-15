@@ -17,6 +17,7 @@ import {
   type GithubRepoAccess,
 } from '../api/client';
 import { emitToast } from '../events/toast';
+import { openLocalWindow } from '../utils/openExternal';
 
 const POLL_INTERVAL_MS = 120_000; // background remote check — every 2 minutes
 const OP_POLL_MS = 1_000;
@@ -137,7 +138,7 @@ export function useGitSync(): UseGitSync {
   const startConnect = useCallback(() => {
     const managerUrl = github?.managerUrl;
     if (!managerUrl || connectTimer.current) return;
-    window.open(`${managerUrl}/?connect-github=1`, '_blank');
+    openLocalWindow(`${managerUrl}/?connect-github=1`);
     setConnecting(true);
     connectDeadline.current = Date.now() + CONNECT_TIMEOUT_MS;
     connectTimer.current = setInterval(async () => {

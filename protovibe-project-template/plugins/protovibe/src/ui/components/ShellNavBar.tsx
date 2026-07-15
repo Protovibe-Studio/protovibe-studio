@@ -109,7 +109,6 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
 }) => {
   const [projectName, setProjectName] = useState('');
   const [pluginVersion, setPluginVersion] = useState('');
-  const [pluginLastUpdated, setPluginLastUpdated] = useState('');
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [logoHovered, setLogoHovered] = useState(false);
   const [inspectorHovered, setInspectorHovered] = useState(false);
@@ -125,8 +124,6 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
         if (typeof n === 'string' && n.trim()) setProjectName(n.trim());
         const v = d?.['plugin-version'];
         if (typeof v === 'string' && v.trim()) setPluginVersion(v.trim());
-        const lu = d?.['plugin-last-updated'];
-        if (typeof lu === 'string' && lu.trim()) setPluginLastUpdated(lu.trim());
       })
       .catch(() => {});
   }, []);
@@ -276,11 +273,6 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
                 }}
               >
                 Protovibe v{pluginVersion}
-                {pluginLastUpdated && (
-                  <span style={{ marginLeft: '8px', opacity: 0.7 }}>
-                    synced {pluginLastUpdated}
-                  </span>
-                )}
               </div>
             )}
             {projectManagerAvailable && (
@@ -375,7 +367,7 @@ export const ShellNavBar: React.FC<ShellNavBarProps> = ({
             border: 'none',
             cursor: 'pointer',
             backgroundColor: !inspectorOpen ? theme.bg_tertiary : inspectorHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-            color: !inspectorOpen ? theme.text_default : theme.text_tertiary,
+            color: !inspectorOpen ? theme.text_default : theme.text_secondary,
             transition: 'background-color 0.15s ease, color 0.15s ease',
           }}
         >

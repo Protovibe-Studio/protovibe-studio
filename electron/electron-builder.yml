@@ -1,0 +1,41 @@
+appId: com.protovibe.studio
+productName: Protovibe
+directories:
+  buildResources: build
+  output: dist
+files:
+  - src/**
+  - splash/**
+  - package.json
+asar: true
+# NOTE: never disable the runAsNode fuse — the node/pnpm toolchain shims
+# depend on ELECTRON_RUN_AS_NODE working in the packaged binary.
+extraResources:
+  - from: bundle-staging
+    to: bundle
+  - from: pnpm-staging
+    to: pnpm
+protocols:
+  - name: Protovibe
+    schemes:
+      - protovibe
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - target: dmg
+      arch: [arm64]
+    - target: zip # required by electron-updater on macOS
+      arch: [arm64]
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true
+# Version-less DMG names give the landing page permanent
+# /releases/latest/download/ URLs. The updater uses the zips (which keep
+# their versioned names), so this only affects human downloads.
+dmg:
+  artifactName: ${productName}-${arch}.${ext}
+publish:
+  - provider: github
+    owner: Protovibe-Studio
+    repo: protovibe-studio
