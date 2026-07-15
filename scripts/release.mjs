@@ -6,6 +6,7 @@
 //   npm run release -- source-v1.2.3
 //   npm run release -- --bump all       # bump+commit+push, then tag & release
 //   npm run release -- --bump template  # (manager|template|all)
+//   npm run release -- --no-push # create the tag (and bump commit) locally, push nothing
 //   npm run release -- --dry-run # show what would happen, create/push nothing
 //
 // This creates and pushes a `source-v*` git tag, which triggers
@@ -26,6 +27,7 @@ const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const bumpIdx = args.indexOf('--bump')
 const bumpTarget = bumpIdx !== -1 ? args[bumpIdx + 1] : null
+const noPush = args.includes('--no-push')
 const explicit = args.find((a) => !a.startsWith('--') && a !== bumpTarget)
 
 function die(msg) { console.error(`\n✖ ${msg}\n`); process.exit(1) }
@@ -63,8 +65,12 @@ if (bumpTarget) {
     const t = pkgVersion('protovibe-project-template/package.json')
     git('add', '-A')
     git('commit', '-m', `Release: bump ${bumpTarget} (manager ${m}, template ${t})`)
-    console.log(`Pushing ${branch} ...`)
-    git('push', 'origin', branch)
+    if (noPush) {
+      console.log(`Committed bump locally (not pushed — --no-push).`)
+    } else {
+      console.log(`Pushing ${branch} ...`)
+      git('push', 'origin', branch)
+    }
   }
 }
 
@@ -104,8 +110,18 @@ if (dryRun) {
   process.exit(0)
 }
 
-// ── Create + push the tag ────────────────────────────────────────────────────
+// ── Create the tag ───────────────────────────────────────────────────────────
 git('tag', '-a', tag, '-m', message)
+
+if (noPush) {
+  console.log(`\n✔ Created tag ${tag} locally (not pushed — --no-push).`)
+  console.log('   Push it yourself when ready to trigger the signing workflow:')
+  if (bumpTarget) console.log(`     git push origin ${branch}`)
+  console.log(`     git push origin ${tag}`)
+  process.exit(0)
+}
+
+// ── Push the tag ─────────────────────────────────────────────────────────────
 try {
   git('push', 'origin', tag)
 } catch (e) {
