@@ -13,8 +13,12 @@ interface ConvertToSketchpadDialogProps {
 }
 
 export function ConvertToSketchpadDialog({ file, snapshot, onClose }: ConvertToSketchpadDialogProps) {
-  const [layoutMode, setLayoutMode] = useState<'flex' | 'absolute' | 'flat'>('flex');
-  const [flattened, setFlattened] = useState<Set<string>>(new Set());
+  // Defaults: absolute (non-flat) with every component flattened to HTML —
+  // the most reliable conversion.
+  const [layoutMode, setLayoutMode] = useState<'flex' | 'absolute' | 'flat'>('absolute');
+  const [flattened, setFlattened] = useState<Set<string>>(
+    () => new Set(snapshot.foundComponents.map(c => c.componentId)),
+  );
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -159,15 +163,15 @@ export function ConvertToSketchpadDialog({ file, snapshot, onClose }: ConvertToS
         )}
 
         <div style={sectionTitleStyle}>Layout</div>
-        <label style={labelStyle}>
-          <input type="radio" name="pv-convert-layout" checked={layoutMode === 'flex'} onChange={() => setLayoutMode('flex')} />
-          <span style={{ color: theme.text_default }}>Keep flex layout</span>
-          <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.text_tertiary }}>structure stays fluid</span>
-        </label>
         <label style={labelStyle} data-testid="convert-layout-absolute">
           <input type="radio" name="pv-convert-layout" checked={layoutMode === 'absolute'} onChange={() => setLayoutMode('absolute')} />
           <span style={{ color: theme.text_default }}>Convert to absolute positions</span>
           <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.text_tertiary }}>freeze measured layout</span>
+        </label>
+        <label style={labelStyle}>
+          <input type="radio" name="pv-convert-layout" checked={layoutMode === 'flex'} onChange={() => setLayoutMode('flex')} />
+          <span style={{ color: theme.text_default }}>Keep flex layout</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.text_tertiary }}>structure stays fluid</span>
         </label>
         <label style={labelStyle} data-testid="convert-layout-flat">
           <input type="radio" name="pv-convert-layout" checked={layoutMode === 'flat'} onChange={() => setLayoutMode('flat')} />

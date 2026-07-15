@@ -317,7 +317,15 @@ function flattenForUngrouped(root: SnapshotNode, keep: Set<string>): SnapshotNod
         : node.hasChildrenProp
           ? (node.children || []).filter(c => c.kind === 'element')
           : [];
-      items.push({ ...node, children: [], hasChildrenProp: false, flatShell: content.length > 0 });
+      // When nothing is lifted out, keep the rendered subtree on the shell so
+      // text-bearing components (allowTextInChildren) still recover their text
+      // via subtreeText at emit time.
+      items.push({
+        ...node,
+        children: content.length > 0 ? [] : node.children,
+        hasChildrenProp: false,
+        flatShell: content.length > 0,
+      });
       content.forEach(handle);
       return;
     }
