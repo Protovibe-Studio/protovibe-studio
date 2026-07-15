@@ -13,7 +13,7 @@ interface ConvertToSketchpadDialogProps {
 }
 
 export function ConvertToSketchpadDialog({ file, snapshot, onClose }: ConvertToSketchpadDialogProps) {
-  const [layoutMode, setLayoutMode] = useState<'flex' | 'absolute'>('flex');
+  const [layoutMode, setLayoutMode] = useState<'flex' | 'absolute' | 'flat'>('flex');
   const [flattened, setFlattened] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
 
@@ -168,6 +168,11 @@ export function ConvertToSketchpadDialog({ file, snapshot, onClose }: ConvertToS
           <input type="radio" name="pv-convert-layout" checked={layoutMode === 'absolute'} onChange={() => setLayoutMode('absolute')} />
           <span style={{ color: theme.text_default }}>Convert to absolute positions</span>
           <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.text_tertiary }}>freeze measured layout</span>
+        </label>
+        <label style={labelStyle} data-testid="convert-layout-flat">
+          <input type="radio" name="pv-convert-layout" checked={layoutMode === 'flat'} onChange={() => setLayoutMode('flat')} />
+          <span style={{ color: theme.text_default }}>Absolute, ungrouped (flat)</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.text_tertiary }}>one parent, flat children</span>
         </label>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>

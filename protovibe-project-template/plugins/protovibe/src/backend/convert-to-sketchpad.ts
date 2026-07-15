@@ -27,6 +27,8 @@ interface SnapshotNode {
   pvBlockId?: string;
   props?: Record<string, string | number | boolean>;
   hasChildrenProp?: boolean;
+  /** Flat mode: kept component emptied of its content — freeze its height too. */
+  flatShell?: boolean;
   locId?: string;
   isSvg?: boolean;
   rect?: SnapshotRect;
@@ -34,7 +36,7 @@ interface SnapshotNode {
 }
 
 interface ConvertOptions {
-  layoutMode: 'flex' | 'absolute';
+  layoutMode: 'flex' | 'absolute' | 'flat';
   keepComponents: string[];
 }
 
@@ -259,7 +261,7 @@ function recoverPropsFromDom(node: SnapshotNode, propsSchema: Record<string, any
 
 interface ConvertContext {
   keep: Set<string>;
-  layoutMode: 'flex' | 'absolute';
+  layoutMode: 'flex' | 'absolute' | 'flat';
   configs: Map<string, any>;
   imports: Map<string, string>; // name -> importPath
   warnings: string[];
@@ -287,6 +289,56 @@ function findPvBlockDescendants(node: SnapshotNode): SnapshotNode[] {
 function subtreeText(node: SnapshotNode): string {
   if (node.kind === 'text') return node.text || '';
   return (node.children || []).map(subtreeText).filter(Boolean).join(' ');
+}
+
+// Flat / ungrouped mode: rebuild the snapshot as one parent with ALL
+// descendants as direct children, each positioned absolutely relative to the
+// root. Containers become empty background shells (their classes paint the
+// box, children follow later so they stack on top); leaves keep their text;
+// kept components self-close and their content children are lifted next to
+// them. Emission order = document order, which is exactly the right paint
+// order for overlapping absolute layers.
+function flattenForUngrouped(root: SnapshotNode, keep: Set<string>): SnapshotNode {
+  const items: SnapshotNode[] = [];
+
+  const handle = (node: SnapshotNode) => {
+    if (node.kind === 'text') {
+      items.push(node);
+      return;
+    }
+    if (node.isSvg || node.tag === 'img') {
+      items.push(node);
+      return;
+    }
+    if (node.componentId && keep.has(node.componentId)) {
+      const contentChildren = findPvBlockDescendants(node);
+      const content = contentChildren.length > 0
+        ? contentChildren
+        : node.hasChildrenProp
+          ? (node.children || []).filter(c => c.kind === 'element')
+          : [];
+      items.push({ ...node, children: [], hasChildrenProp: false, flatShell: content.length > 0 });
+      content.forEach(handle);
+      return;
+    }
+    const elementChildren = (node.children || []).filter(c => c.kind === 'element');
+    if (elementChildren.length === 0) {
+      items.push(node);
+      return;
+    }
+    // Container: keep it as a childless shell (with any inline text), then
+    // lift every child to the top level.
+    items.push({ ...node, children: (node.children || []).filter(c => c.kind === 'text') });
+    for (const child of node.children || []) {
+      if (child.kind === 'element') handle(child);
+    }
+  };
+
+  for (const child of root.children || []) handle(child);
+
+  // The root itself always becomes a plain container so the flat list nests
+  // exactly one level deep — even when the selection was a component.
+  return { ...root, componentId: undefined, hasChildrenProp: false, children: items };
 }
 
 // A wrapper whose content is fixed/absolute-positioned measures 0x0 because
@@ -411,6 +463,18 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
   // data-pv bookkeeping and className are re-emitted separately or dropped.
   props = props.filter(p => !p.name.startsWith('data-pv-') && p.name !== 'children');
 
+  // Positioning classes in a className override (fixed/sticky, and everything
+  // positional in absolute mode) would fight the sketchpad placement.
+  props = props.flatMap(p => {
+    if (p.name !== 'className') return [p];
+    const m = p.code.match(/^className="(.*)"$/);
+    if (!m) return [p];
+    const cleaned = state.absolute
+      ? stripLayoutClasses(m[1])
+      : stripPositioningClasses(m[1], state.isRoot);
+    return cleaned ? [{ name: 'className', code: `className="${cleaned}"` }] : [];
+  });
+
   const id = genId();
   const sketchpadEl = state.absolute ? ` data-pv-sketchpad-el="${id}"` : '';
   const propsStr = props.length > 0 ? ' ' + props.map(p => p.code).join(' ') : '';
@@ -442,7 +506,8 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
     }
   }
   // Leaf component: hardcode only the width — height stays content-driven.
-  const style = state.absolute ? absoluteStyle(node, state.parentRect, { width: true }) : '';
+  // (Flat-mode shells emptied of their content also freeze the height.)
+  const style = state.absolute ? absoluteStyle(node, state.parentRect, { width: true, height: !!node.flatShell }) : '';
   const open = `<${name} data-pv-block="${id}"${sketchpadEl}${style}${propsStr}`;
 
   if (cfg.allowTextInChildren) {
@@ -581,9 +646,12 @@ export const handleConvertToSketchpad = (req: any, res: any, server: import('vit
         }
       }
 
+      const layoutMode: ConvertOptions['layoutMode'] =
+        options?.layoutMode === 'absolute' || options?.layoutMode === 'flat' ? options.layoutMode : 'flex';
+
       const ctx: ConvertContext = {
         keep,
-        layoutMode: options?.layoutMode === 'absolute' ? 'absolute' : 'flex',
+        layoutMode,
         configs,
         imports: new Map(),
         warnings: [],
@@ -594,12 +662,13 @@ export const handleConvertToSketchpad = (req: any, res: any, server: import('vit
 
       const rootState: EmitState = {
         parentRect: null,
-        absolute: ctx.layoutMode === 'absolute',
+        absolute: layoutMode !== 'flex',
         isRoot: true,
         indent: '',
       };
 
-      const block = emitBlock(snapshot, ctx, rootState);
+      const emittedRoot = layoutMode === 'flat' ? flattenForUngrouped(snapshot, keep) : snapshot;
+      const block = emitBlock(emittedRoot, ctx, rootState);
       if (!block) {
         res.statusCode = 400;
         return res.end(JSON.stringify({ error: 'Selected element produced no content' }));

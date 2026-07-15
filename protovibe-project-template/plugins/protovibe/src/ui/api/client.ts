@@ -49,7 +49,7 @@ export async function blockAction(action: string, blockId: string | string[], fi
 export async function convertToSketchpad(params: {
   file: string;
   snapshot: unknown;
-  options: { layoutMode: 'flex' | 'absolute'; keepComponents: string[] };
+  options: { layoutMode: 'flex' | 'absolute' | 'flat'; keepComponents: string[] };
 }): Promise<{ success: boolean; blockCount: number; imports: Array<{ name: string; path: string }>; warnings: string[] }> {
   const res = await fetch('/__convert-to-sketchpad', {
     method: 'POST',
