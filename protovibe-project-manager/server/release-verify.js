@@ -22,7 +22,7 @@ MCowBQYDK2VwAyEAH9iClqAqlT8xZimC1wzotbmoEMpC/iGeFxO4IpadVlk=
 -----END PUBLIC KEY-----`
 
 // ── Replace this constant with your generated public key ─────────────────────
-export const PUBLIC_KEY_PEM = PLACEHOLDER_PUBLIC_KEY_PEM
+export const PUBLIC_KEY_PEM = 'MCowBQYDK2VwAyEA/5wyGoSAdk+4lEwoMbzIVjQDMSfURl4dAr3g7ZqB56c='
 
 // True once a real signing key has been installed. Callers must refuse updates
 // (fail closed) while this is false rather than silently reporting "up to date".
