@@ -143,6 +143,24 @@ function stripLayoutClasses(className: string): string {
     .join(' ');
 }
 
+// Viewport-anchored positioning makes no sense inside a sketchpad frame —
+// a fixed/sticky element would escape the frame entirely. Stripped from every
+// converted element (flex mode; absolute mode strips these via
+// LAYOUT_CLASS_RE already).
+const FIXED_POS_CLASS_RE = /^(?:[a-z-]+:)?(?:fixed|sticky)$/;
+
+// The pasted root gets its own inline position:absolute from the paste
+// handler, so any positioning classes on it (absolute, fixed, inset/offsets)
+// would fight that placement.
+const ROOT_POS_CLASS_RE = /^(?:[a-z-]+:)?(?:absolute$|fixed$|sticky$|inset|top-|bottom-|left-|right-|-top-|-bottom-|-left-|-right-)/;
+
+function stripPositioningClasses(className: string, isRoot: boolean): string {
+  return className
+    .split(/\s+/)
+    .filter(c => c && !FIXED_POS_CLASS_RE.test(c) && !(isRoot && ROOT_POS_CLASS_RE.test(c)))
+    .join(' ');
+}
+
 // ---------------------------------------------------------------------------
 // Source-AST prop recovery for kept components
 // ---------------------------------------------------------------------------
@@ -289,6 +307,9 @@ interface EmitState {
   // components get a hardcoded width (height stays content-driven), flattened
   // elements get hardcoded width + height.
   absolute: boolean;
+  // True only for the converted root — its positioning classes are stripped
+  // because the paste handler injects its own inline absolute position.
+  isRoot: boolean;
   indent: string;
 }
 
@@ -314,7 +335,7 @@ function emitBlock(node: SnapshotNode, ctx: ConvertContext, state: EmitState): s
 
 function emitChildrenZone(children: SnapshotNode[], ctx: ConvertContext, state: EmitState): string | null {
   const childBlocks = children
-    .map(child => emitBlock(child, ctx, { ...state, indent: state.indent + '  ' }))
+    .map(child => emitBlock(child, ctx, { ...state, isRoot: false, indent: state.indent + '  ' }))
     .filter(Boolean) as string[];
   if (childBlocks.length === 0) return null;
   const zoneId = genId();
@@ -372,7 +393,7 @@ function emitKeptComponent(node: SnapshotNode, ctx: ConvertContext, state: EmitS
 
   // Absolute conversion continues inside kept components: their JSX children
   // are positioned from measured DOM rects relative to the component root.
-  const childState: EmitState = { parentRect: node.rect || state.parentRect, absolute: state.absolute, indent: i + '  ' };
+  const childState: EmitState = { parentRect: node.rect || state.parentRect, absolute: state.absolute, isRoot: false, indent: i + '  ' };
 
   const childBlocks = findPvBlockDescendants(node);
   if (childBlocks.length > 0) {
@@ -451,6 +472,7 @@ function emitHtmlElement(node: SnapshotNode, ctx: ConvertContext, state: EmitSta
   const tag = KNOWN_HTML_TAGS.has(node.tag || '') ? node.tag! : 'div';
   let className = dedupeClasses(node.className);
   if (state.absolute) className = stripLayoutClasses(className);
+  else className = stripPositioningClasses(className, state.isRoot);
 
   const children = node.children || [];
   const elementChildren = children.filter(c => c.kind === 'element');
@@ -482,6 +504,7 @@ function emitHtmlElement(node: SnapshotNode, ctx: ConvertContext, state: EmitSta
   const childState: EmitState = {
     parentRect: node.rect || state.parentRect,
     absolute: state.absolute,
+    isRoot: false,
     indent: i + '  ',
   };
   const zone = emitChildrenZone(children, ctx, childState);
@@ -536,6 +559,7 @@ export const handleConvertToSketchpad = (req: any, res: any, server: import('vit
       const rootState: EmitState = {
         parentRect: null,
         absolute: ctx.layoutMode === 'absolute',
+        isRoot: true,
         indent: '',
       };
 
