@@ -564,6 +564,24 @@ function handleParentMessage(e: MessageEvent) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+// A document that loads while the server has a compile error gets no
+// vite-error-overlay (the overlay only accompanies HMR-pushed errors) — the
+// entry module request just 500s and the page stays blank. Catch failing
+// same-origin script loads so a refresh mid-crash is still reported as one.
+// Registered at module scope: the entry module's error event fires before
+// DOMContentLoaded, so waiting for init() would miss it.
+let sawModuleLoadError = false;
+window.addEventListener('error', (e) => {
+  const target = e.target as HTMLElement | null;
+  if (target?.tagName !== 'SCRIPT') return;
+  const src = (target as HTMLScriptElement).src || '';
+  if (!src.startsWith(window.location.origin)) return;
+  sawModuleLoadError = true;
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
+  }
+}, true);
+
 function init() {
   // Skip entirely when the app is opened as a standalone page (not embedded in the
   // Protovibe shell iframe). In that case window.parent === window.
@@ -582,10 +600,14 @@ function init() {
   // covers nested scroll containers as well as the root document.
   window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
 
-  // Check initial state in case the error is already there
-  if (document.querySelector('vite-error-overlay')) {
-    window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
-  }
+  // Report the initial error state either way. A document that unloads mid-error
+  // (full reload, manual refresh) can never post ERROR_CLEARED for the overlay it
+  // took with it, so a fresh healthy load must explicitly clear the shell's state.
+  const hasError = sawModuleLoadError || !!document.querySelector('vite-error-overlay');
+  window.parent.postMessage(
+    { type: hasError ? 'PV_VITE_ERROR' : 'PV_VITE_ERROR_CLEARED' },
+    '*'
+  );
 
   // Observe DOM for added/removed error overlays
   const observer = new MutationObserver((mutations) => {

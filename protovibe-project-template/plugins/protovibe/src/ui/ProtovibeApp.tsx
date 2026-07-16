@@ -13,6 +13,7 @@ import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
+import { CrashLoadingOverlay } from './components/CrashLoadingOverlay';
 import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -25,6 +26,16 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+
+// How long a Vite crash may sit behind the loading cover before the full
+// error state is shown. AI agents editing code routinely leave the app broken
+// for a few seconds between writes; the next HMR update clears the overlay
+// and the user never needs to see a crash.
+const VITE_ERROR_GRACE_MS = 10_000;
+
+// none: healthy · pending: crash inside the grace period (canvas covered by a
+// loading state) · error: crash outlived the grace period (full error shown).
+type ViteErrorPhase = 'none' | 'pending' | 'error';
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -42,7 +53,23 @@ export const ProtovibeApp: React.FC = () => {
     () => parseTabParam(window.location.search)
   );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
-  const [showErrorBanner, setShowErrorBanner] = useState(false);
+  const [viteErrorPhase, setViteErrorPhase] = useState<ViteErrorPhase>('none');
+  // Ref mirror so the (once-registered) message handler and the grace timer
+  // can read the current phase without re-subscribing on every change.
+  const viteErrorPhaseRef = useRef<ViteErrorPhase>('none');
+  const viteErrorTimerRef = useRef<number | null>(null);
+
+  const clearViteErrorTimer = useCallback(() => {
+    if (viteErrorTimerRef.current !== null) {
+      window.clearTimeout(viteErrorTimerRef.current);
+      viteErrorTimerRef.current = null;
+    }
+  }, []);
+
+  const setViteError = useCallback((phase: ViteErrorPhase) => {
+    viteErrorPhaseRef.current = phase;
+    setViteErrorPhase(phase);
+  }, []);
   // Unread-thread count broadcast by the (always-mounted) CommentsTab, surfaced
   // as a dot on the Comments nav tab even while that panel is hidden.
   const [unreadComments, setUnreadComments] = useState(0);
@@ -270,15 +297,31 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [activeIframeTab]);
 
-  // Listen for Vite error overlay detection from iframe bridge
+  // Listen for Vite error overlay detection from the iframe bridge. A crash is
+  // often just a transient state while an AI agent edits code, so don't alarm
+  // the user right away: cover the canvas with a loading state first, and only
+  // surface the full error if no HMR update clears it within the grace period.
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'PV_VITE_ERROR') setShowErrorBanner(true);
-      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') setShowErrorBanner(false);
+      if (e.data?.type === 'PV_VITE_ERROR' && viteErrorPhaseRef.current === 'none') {
+        setViteError('pending');
+        clearViteErrorTimer();
+        viteErrorTimerRef.current = window.setTimeout(() => {
+          viteErrorTimerRef.current = null;
+          if (viteErrorPhaseRef.current === 'pending') setViteError('error');
+        }, VITE_ERROR_GRACE_MS);
+      }
+      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') {
+        clearViteErrorTimer();
+        setViteError('none');
+      }
     };
     window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
+    return () => {
+      window.removeEventListener('message', handler);
+      clearViteErrorTimer();
+    };
+  }, [setViteError, clearViteErrorTimer]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
@@ -363,7 +406,8 @@ export const ProtovibeApp: React.FC = () => {
   const handleRestart = async () => {
     try {
       await restartServer();
-      setShowErrorBanner(false);
+      clearViteErrorTimer();
+      setViteError('none');
     } catch (e) {
       console.error('Restart failed', e);
     }
@@ -420,7 +464,7 @@ export const ProtovibeApp: React.FC = () => {
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => toggleInspector()}
       />
-      {showErrorBanner && (
+      {viteErrorPhase === 'error' && (
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '16px 20px', background: theme.destructive_low,
@@ -448,7 +492,7 @@ export const ProtovibeApp: React.FC = () => {
               Restart
             </button>
           </div>
-          <button onClick={() => setShowErrorBanner(false)} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={() => setViteError('none')} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <X size={16} />
           </button>
         </div>
@@ -581,7 +625,7 @@ export const ProtovibeApp: React.FC = () => {
                 <Smartphone size={16} />
               </button>
             </div>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, position: 'relative', background: mobileWidth ? theme.bg_strong : 'transparent' }}>
               <iframe
                 ref={appIframeRef}
                 src={initialAppSrc}
@@ -593,23 +637,26 @@ export const ProtovibeApp: React.FC = () => {
                 }}
                 onLoad={() => handleIframeLoad(appIframeRef)}
               />
+              {viteErrorPhase === 'pending' && <CrashLoadingOverlay onUndo={handleUndo} />}
             </div>
           </div>
-          <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0 }}>
+          <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={sketchpadIframeRef}
               src="/sketchpad.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               onLoad={() => handleIframeLoad(sketchpadIframeRef)}
             />
+            {viteErrorPhase === 'pending' && <CrashLoadingOverlay onUndo={handleUndo} />}
           </div>
-          <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0 }}>
+          <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={componentsIframeRef}
               src="/components.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               onLoad={() => handleIframeLoad(componentsIframeRef)}
             />
+            {viteErrorPhase === 'pending' && <CrashLoadingOverlay onUndo={handleUndo} />}
           </div>
           <div
             style={{
