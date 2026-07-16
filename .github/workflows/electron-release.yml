@@ -5,6 +5,9 @@ on:
     tags:
       - 'shell-v*'
 
+permissions:
+  contents: write
+
 jobs:
   mac:
     runs-on: macos-14
