@@ -3,3 +3,4 @@ dist/
 bundle-staging/
 pnpm-staging/
 pnpm-lock.yaml
+.certs/
