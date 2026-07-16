@@ -570,6 +570,8 @@ function handleParentMessage(e: MessageEvent) {
 // same-origin script loads so a refresh mid-crash is still reported as one.
 // Registered at module scope: the entry module's error event fires before
 // DOMContentLoaded, so waiting for init() would miss it.
+// `moduleLoadError: true` tells the shell the canvas is blank (no overlay to
+// see through to), so it must render the error itself once the grace elapses.
 let sawModuleLoadError = false;
 window.addEventListener('error', (e) => {
   const target = e.target as HTMLElement | null;
@@ -578,7 +580,7 @@ window.addEventListener('error', (e) => {
   if (!src.startsWith(window.location.origin)) return;
   sawModuleLoadError = true;
   if (window.parent !== window) {
-    window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
+    window.parent.postMessage({ type: 'PV_VITE_ERROR', moduleLoadError: true }, '*');
   }
 }, true);
 
@@ -603,9 +605,12 @@ function init() {
   // Report the initial error state either way. A document that unloads mid-error
   // (full reload, manual refresh) can never post ERROR_CLEARED for the overlay it
   // took with it, so a fresh healthy load must explicitly clear the shell's state.
-  const hasError = sawModuleLoadError || !!document.querySelector('vite-error-overlay');
+  const hasOverlay = !!document.querySelector('vite-error-overlay');
+  const hasError = sawModuleLoadError || hasOverlay;
   window.parent.postMessage(
-    { type: hasError ? 'PV_VITE_ERROR' : 'PV_VITE_ERROR_CLEARED' },
+    hasError
+      ? { type: 'PV_VITE_ERROR', moduleLoadError: sawModuleLoadError && !hasOverlay }
+      : { type: 'PV_VITE_ERROR_CLEARED' },
     '*'
   );
 
@@ -614,7 +619,7 @@ function init() {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeName && (node as HTMLElement).nodeName.toLowerCase() === 'vite-error-overlay') {
-          window.parent.postMessage({ type: 'PV_VITE_ERROR' }, '*');
+          window.parent.postMessage({ type: 'PV_VITE_ERROR', moduleLoadError: false }, '*');
         }
       }
       for (const node of mutation.removedNodes) {

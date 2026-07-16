@@ -40,6 +40,10 @@ pnpm dev              # vite on http://localhost:3000
 
 - Simulate an app crash: append `\nconst broken = {;\n` to `src/App.tsx`
   (HMR pushes the compile error within ~1–2s); restore the file to recover.
+  Rarely — especially right after a plugin-rebuild-triggered server restart —
+  the client receives the `hmr update` but never re-fetches the module, so the
+  app silently keeps running the last good code and no overlay appears; retry
+  the break rather than chasing it.
 - Fresh page load while broken shows NO `vite-error-overlay` — the entry
   module request just 500s and the canvas stays blank (bridge.ts detects this
   via failing same-origin script loads).
