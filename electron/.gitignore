@@ -2,5 +2,6 @@ node_modules/
 dist/
 bundle-staging/
 pnpm-staging/
+git-staging/
 pnpm-lock.yaml
 .certs/

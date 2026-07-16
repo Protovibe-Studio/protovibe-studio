@@ -1,14 +1,14 @@
 {
   "name": "protovibe-shell",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Protovibe desktop shell",
   "type": "commonjs",
   "main": "src/main.js",
   "scripts": {
     "dev": "electron . --protovibe-repo=..",
     "test": "node test/shim-argv.test.cjs",
-    "prepare-bundle": "node scripts/prepare-bundle.js",
+    "prepare-bundle": "node scripts/prepare-bundle.js && node scripts/fetch-git.js",
     "dist": "npm run prepare-bundle && electron-builder --mac",
     "dist:unsigned": "npm run prepare-bundle && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --config.mac.notarize=false"
   },

@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { SHIM_DIR, pnpmCjsPath } = require('./paths');
+const { SHIM_DIR, pnpmCjsPath, bundledGitRoot } = require('./paths');
 const PRELOAD_SOURCE = require('./preload-source');
 
 const PRELOAD_PATH = path.join(SHIM_DIR, 'pv-node-preload.cjs');
@@ -55,6 +55,11 @@ function buildChildEnv(extra = {}) {
   // Lets the manager adapt when running under the desktop shell (e.g. the
   // OAuth callback page offers a protovibe:// link back to the app).
   env.PROTOVIBE_SHELL = '1';
+  // Point the manager's git resolver at the bundled, signed+notarized git tree
+  // so it never downloads git at runtime or falls back to the Xcode CLT stub.
+  // Only set in the packaged app; dev has no bundled tree and uses system git.
+  const gitRoot = bundledGitRoot();
+  if (gitRoot) env.PROTOVIBE_BUNDLED_GIT_ROOT = gitRoot;
   // Weak-network defaults for every pnpm in the tree (incl. the manager's own
   // `pnpm install` when creating projects): fewer parallel tarball downloads,
   // more retries. pnpm reads npm_config_* from the environment.

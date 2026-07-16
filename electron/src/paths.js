@@ -28,6 +28,13 @@ function bundleDir() {
   return path.join(process.resourcesPath, 'bundle');
 }
 
+// Bundled dugite-native git tree (Resources/git), signed + notarized as part
+// of the app. Only present in the packaged app; dev falls back to system git.
+function bundledGitRoot() {
+  if (app.isPackaged) return path.join(process.resourcesPath, 'git');
+  return null;
+}
+
 // The whole pnpm package is bundled (dist/pnpm.cjs is NOT standalone — it
 // needs its sibling vendor files and reflink natives). require.resolve can't
 // reach it: pnpm's package exports map blocks subpath resolution.
@@ -58,6 +65,7 @@ module.exports = {
   devRepoRoot,
   defaultInstallRoot,
   bundleDir,
+  bundledGitRoot,
   pnpmCjsPath,
   readProjectPath,
   writeProjectPath,

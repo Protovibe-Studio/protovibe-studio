@@ -49,16 +49,21 @@ const GIT_MANIFEST = {
 const EMBEDDED_GIT_ROOT = path.join(os.homedir(), '.protovibe', 'git', EMBEDDED_GIT_VERSION)
 const READY_MARKER = path.join(EMBEDDED_GIT_ROOT, '.ready')
 
-function embeddedGitBinary() {
+function gitBinaryIn(root) {
   return process.platform === 'win32'
-    ? path.join(EMBEDDED_GIT_ROOT, 'cmd', 'git.exe')
-    : path.join(EMBEDDED_GIT_ROOT, 'bin', 'git')
+    ? path.join(root, 'cmd', 'git.exe')
+    : path.join(root, 'bin', 'git')
 }
 
-// Env for a git child process using the embedded distribution — mirrors what
-// dugite sets so hooks, templates, and TLS work outside a system install.
-function embeddedGitEnv() {
-  const root = EMBEDDED_GIT_ROOT
+function embeddedGitBinary() {
+  return gitBinaryIn(EMBEDDED_GIT_ROOT)
+}
+
+// Env for a git child process using a dugite-native distribution rooted at
+// `root` — mirrors what dugite sets so hooks, templates, and TLS work outside a
+// system install. Shared by the runtime-downloaded tree (~/.protovibe/git) and
+// the shell's bundled tree (PROTOVIBE_BUNDLED_GIT_ROOT).
+function gitEnvFor(root) {
   const env = {}
   if (process.platform === 'win32') {
     env.PATH = `${path.join(root, 'cmd')};${path.join(root, 'mingw64', 'bin')};${process.env.PATH ?? ''}`
@@ -73,6 +78,10 @@ function embeddedGitEnv() {
     }
   }
   return env
+}
+
+function embeddedGitEnv() {
+  return gitEnvFor(EMBEDDED_GIT_ROOT)
 }
 
 function probeGit(binary) {
@@ -91,6 +100,16 @@ export function resolveGit() {
   const override = process.env.PROTOVIBE_GIT_PATH
   if (override && probeGit(override)) {
     return { binary: override, env: {}, source: 'env' }
+  }
+  // Bundled git (shell packages a signed+notarized dugite tree and points here)
+  // is preferred over system git so a fresh Mac uses a known-good binary and
+  // never triggers the Xcode CLT install dialog that its `git` stub would.
+  const bundledRoot = process.env.PROTOVIBE_BUNDLED_GIT_ROOT
+  if (bundledRoot) {
+    const bundledBinary = gitBinaryIn(bundledRoot)
+    if (probeGit(bundledBinary)) {
+      return { binary: bundledBinary, env: gitEnvFor(bundledRoot), source: 'bundled' }
+    }
   }
   if (!override && probeGit('git')) {
     return { binary: 'git', env: {}, source: 'system' }
