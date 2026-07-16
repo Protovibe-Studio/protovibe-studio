@@ -41,3 +41,4 @@ publish:
   - provider: github
     owner: Protovibe-Studio
     repo: protovibe-studio
+    releaseType: release

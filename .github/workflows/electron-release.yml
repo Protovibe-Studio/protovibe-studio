@@ -14,6 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#shell-v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "tag=$TAG_VERSION package.json=$PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME (version $TAG_VERSION) does not match electron/package.json version $PKG_VERSION. electron-builder publishes releases under the package.json version, so these must match."
+            exit 1
+          fi
+        working-directory: electron
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
