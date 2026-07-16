@@ -605,6 +605,9 @@ function init() {
   // Report the initial error state either way. A document that unloads mid-error
   // (full reload, manual refresh) can never post ERROR_CLEARED for the overlay it
   // took with it, so a fresh healthy load must explicitly clear the shell's state.
+  // Note for the shell: no CLEARED is definitive — vite removes and re-adds the
+  // overlay on every update cycle when a broken JS update rides along with a
+  // successful CSS one — so recovery must always be confirmed with a delay.
   const hasOverlay = !!document.querySelector('vite-error-overlay');
   const hasError = sawModuleLoadError || hasOverlay;
   window.parent.postMessage(

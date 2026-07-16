@@ -117,6 +117,25 @@ export function protovibeSourcePlugin(): Plugin {
         }
       });
 
+      // Timestamp of the last watched-source change. The shell polls this
+      // during a crash episode to keep the loading cover up while an agent is
+      // still editing (see ProtovibeApp's crash-episode machine).
+      let lastSourceChangeAt = 0;
+      server.watcher.on('change', (changedFile) => {
+        if (changedFile === inspectorPath || changedFile === bridgePath || changedFile === pluginIndexPath) return;
+        // The sketchpad registry is rewritten by the plugin itself on ordinary
+        // requests — it is not a code edit and must not prolong a crash episode.
+        if (changedFile.endsWith(path.join('sketchpads', '_registry.json'))) return;
+        lastSourceChangeAt = Date.now();
+      });
+      server.middlewares.use('/__hmr-activity', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({
+          msSinceLastChange: lastSourceChangeAt ? Date.now() - lastSourceChangeAt : null,
+        }));
+      });
+
       const srcPath = path.resolve(process.cwd(), 'src');
 
       // When a new component file is added, invalidate its SSR cache entry so
