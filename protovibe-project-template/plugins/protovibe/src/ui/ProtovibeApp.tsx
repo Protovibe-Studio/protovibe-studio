@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -13,6 +13,7 @@ import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
+import { CrashLoadingOverlay, CrashErrorOverlay } from './components/CrashLoadingOverlay';
 import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -25,6 +26,48 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+
+// A Vite crash is often a transient state while an AI agent edits code, so the
+// shell runs each crash as an "episode" behind a loading cover instead of
+// alarming the user immediately:
+//   t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
+//                  auto-reload out of a broken state; a refresh sometimes does)
+//   t+15s        — show the full error state, but only once watched source
+//                  files have stopped changing — an agent mid-task keeps the
+//                  loading cover up for as long as it keeps writing.
+// The episode clock is retained across those refreshes: a reloading document
+// re-reports its error state (see bridge.ts), which must not reset the counter.
+const CRASH_AUTO_REFRESH_AT_MS = [5_000, 10_000];
+const CRASH_FINAL_ERROR_AT_MS = 15_000;
+// A source change within this window counts as "agent still working" and
+// postpones the final error until the writes stop.
+const CRASH_ACTIVITY_EXTEND_MS = 10_000;
+// How long after an ambiguous "no error yet" report (a freshly loaded document
+// that may still crash — see bridge.ts) before the episode counts as recovered.
+const CRASH_RECOVERY_CONFIRM_MS = 2_500;
+const CRASH_TICK_MS = 1_000;
+
+// none: healthy · pending: crash inside the grace period (canvas covered by a
+// loading state) · error: crash outlived the grace period (full error shown).
+type ViteErrorPhase = 'none' | 'pending' | 'error';
+
+// The shell itself is a Vite client, so error payloads pushed over the HMR
+// websocket create a vite-error-overlay in this document too (hidden by
+// shell.css). Read it to recover the error text for the blank-canvas case,
+// where the app iframe has no overlay of its own to show.
+function readOwnViteOverlayError(): string | null {
+  try {
+    const root = (document.querySelector('vite-error-overlay') as HTMLElement & { shadowRoot?: ShadowRoot | null })?.shadowRoot;
+    if (!root) return null;
+    const part = (sel: string) => root.querySelector(sel)?.textContent?.trim() || '';
+    const text = [part('.plugin'), part('.message-body'), part('.file'), part('.frame')]
+      .filter(Boolean)
+      .join('\n\n');
+    return text || null;
+  } catch {
+    return null;
+  }
+}
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -42,7 +85,53 @@ export const ProtovibeApp: React.FC = () => {
     () => parseTabParam(window.location.search)
   );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
-  const [showErrorBanner, setShowErrorBanner] = useState(false);
+  const [viteErrorPhase, setViteErrorPhase] = useState<ViteErrorPhase>('none');
+  // A crash that leaves the canvas blank (failed module load on a fresh page,
+  // no vite-error-overlay in the iframe) — the shell must render the final
+  // error itself, using whatever detail it can recover.
+  const [moduleLoadError, setModuleLoadError] = useState(false);
+  const [viteErrorDetail, setViteErrorDetail] = useState<string | null>(null);
+  // Ref mirror so the (once-registered) message handler and the episode tick
+  // can read the current phase without re-subscribing on every change.
+  const viteErrorPhaseRef = useRef<ViteErrorPhase>('none');
+  // The active crash episode. It survives auto/manual refreshes so the
+  // countdown to the final error isn't reset by a reloading document.
+  // canvasBlanked: the app iframe was reloaded into a failed module load at
+  // some point, so it may need one more reload to come back after recovery.
+  const crashEpisodeRef = useRef<{ start: number; refreshesDone: number; canvasBlanked: boolean } | null>(null);
+  const crashTickRef = useRef<number | null>(null);
+  const crashRecoveryTimerRef = useRef<number | null>(null);
+  // Freshness of the last watched-source change, polled from the dev server
+  // during an episode (Infinity until a poll lands or when polling fails).
+  const crashActivityMsAgoRef = useRef<number>(Infinity);
+
+  const setViteError = useCallback((phase: ViteErrorPhase) => {
+    viteErrorPhaseRef.current = phase;
+    setViteErrorPhase(phase);
+  }, []);
+
+  const clearCrashRecoveryTimer = useCallback(() => {
+    if (crashRecoveryTimerRef.current !== null) {
+      window.clearTimeout(crashRecoveryTimerRef.current);
+      crashRecoveryTimerRef.current = null;
+    }
+  }, []);
+
+  const clearCrashTick = useCallback(() => {
+    if (crashTickRef.current !== null) {
+      window.clearInterval(crashTickRef.current);
+      crashTickRef.current = null;
+    }
+  }, []);
+
+  const endCrashEpisode = useCallback(() => {
+    crashEpisodeRef.current = null;
+    clearCrashTick();
+    clearCrashRecoveryTimer();
+    setViteError('none');
+    setModuleLoadError(false);
+    setViteErrorDetail(null);
+  }, [clearCrashTick, clearCrashRecoveryTimer, setViteError]);
   // Unread-thread count broadcast by the (always-mounted) CommentsTab, surfaced
   // as a dot on the Comments nav tab even while that panel is hidden.
   const [unreadComments, setUnreadComments] = useState(0);
@@ -66,6 +155,50 @@ export const ProtovibeApp: React.FC = () => {
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
   const appScrollPositionsRef = useRef<Array<{ el: Element; top: number; left: number }>>([]);
+
+  // Reload one canvas iframe (used by the crash covers, the crash banner, and
+  // the episode's auto-refresh schedule).
+  const reloadIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    try {
+      ref.current?.contentWindow?.location.reload();
+    } catch {
+      if (ref.current) ref.current.src = ref.current.src; // eslint-disable-line no-self-assign
+    }
+  }, []);
+
+  // Begin a crash episode: cover the canvas and drive the auto-refresh /
+  // final-error schedule off one retained clock.
+  const startCrashEpisode = useCallback(() => {
+    crashEpisodeRef.current = { start: Date.now(), refreshesDone: 0, canvasBlanked: false };
+    crashActivityMsAgoRef.current = Infinity;
+    setViteError('pending');
+    clearCrashTick();
+    crashTickRef.current = window.setInterval(() => {
+      const ep = crashEpisodeRef.current;
+      if (!ep || viteErrorPhaseRef.current !== 'pending') return;
+
+      // Refresh the dev server's view of agent activity. A stale result is
+      // fine — the deadline check just uses the latest poll that has landed.
+      fetch('/__hmr-activity')
+        .then(r => r.json())
+        .then(d => {
+          crashActivityMsAgoRef.current = typeof d?.msSinceLastChange === 'number' ? d.msSinceLastChange : Infinity;
+        })
+        .catch(() => { crashActivityMsAgoRef.current = Infinity; });
+
+      const elapsed = Date.now() - ep.start;
+      if (ep.refreshesDone < CRASH_AUTO_REFRESH_AT_MS.length && elapsed >= CRASH_AUTO_REFRESH_AT_MS[ep.refreshesDone]) {
+        ep.refreshesDone += 1;
+        reloadIframe(appIframeRef);
+        return;
+      }
+      if (elapsed >= CRASH_FINAL_ERROR_AT_MS && crashActivityMsAgoRef.current >= CRASH_ACTIVITY_EXTEND_MS) {
+        clearCrashTick();
+        setViteErrorDetail(readOwnViteOverlayError());
+        setViteError('error');
+      }
+    }, CRASH_TICK_MS);
+  }, [setViteError, clearCrashTick, reloadIframe]);
 
   const captureAppScrollPositions = useCallback(() => {
     const doc = appIframeRef.current?.contentDocument;
@@ -270,15 +403,49 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [activeIframeTab]);
 
-  // Listen for Vite error overlay detection from iframe bridge
+  // Listen for Vite error reports from the iframe bridges. A crash is often
+  // just a transient state while an AI agent edits code, so it runs as an
+  // episode (see the CRASH_* constants) instead of alarming the user right away.
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'PV_VITE_ERROR') setShowErrorBanner(true);
-      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') setShowErrorBanner(false);
+      if (e.data?.type === 'PV_VITE_ERROR') {
+        // Last write wins: an overlay appearing in the iframe means the canvas
+        // is no longer blank, a failed module load means it is.
+        if (typeof e.data.moduleLoadError === 'boolean') setModuleLoadError(e.data.moduleLoadError);
+        if (e.data.moduleLoadError && crashEpisodeRef.current) crashEpisodeRef.current.canvasBlanked = true;
+        // An error during recovery confirmation means the app is still broken
+        // — keep the episode (and its clock).
+        clearCrashRecoveryTimer();
+        if (!crashEpisodeRef.current) startCrashEpisode();
+      }
+      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') {
+        if (!crashEpisodeRef.current) return;
+        // No CLEARED is definitive: vite removes and re-adds the overlay on
+        // every update cycle when a broken JS update rides along with a
+        // successful CSS one, and a freshly loaded document merely hasn't
+        // errored *yet*. Confirm recovery with a delay — a quick re-error
+        // cancels it, retaining the episode clock.
+        const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
+        if (crashRecoveryTimerRef.current === null) {
+          crashRecoveryTimerRef.current = window.setTimeout(() => {
+            crashRecoveryTimerRef.current = null;
+            // A canvas left blank by a mid-crash reload can't apply HMR
+            // updates, so the fix that other iframes just confirmed never
+            // reaches it — revive it with one more reload.
+            const revive = !!crashEpisodeRef.current?.canvasBlanked && !fromAppIframe;
+            endCrashEpisode();
+            if (revive) reloadIframe(appIframeRef);
+          }, CRASH_RECOVERY_CONFIRM_MS);
+        }
+      }
     };
     window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
+    return () => {
+      window.removeEventListener('message', handler);
+      clearCrashTick();
+      clearCrashRecoveryTimer();
+    };
+  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
@@ -352,6 +519,11 @@ export const ProtovibeApp: React.FC = () => {
     });
   }, [runLockedMutation]);
 
+  const activeIframeRef =
+    activeIframeTab === 'sketchpad' ? sketchpadIframeRef :
+    activeIframeTab === 'components' ? componentsIframeRef :
+    appIframeRef;
+
   // Wipe the prototype's persisted state. The clear runs inside the app iframe
   // (see PV_CLEAR_STORAGE in bridge.ts), which then reloads itself.
   const handleClearStorage = () => {
@@ -363,7 +535,7 @@ export const ProtovibeApp: React.FC = () => {
   const handleRestart = async () => {
     try {
       await restartServer();
-      setShowErrorBanner(false);
+      endCrashEpisode();
     } catch (e) {
       console.error('Restart failed', e);
     }
@@ -388,6 +560,20 @@ export const ProtovibeApp: React.FC = () => {
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, []);
+
+  // Crash covers rendered over each canvas iframe: the loading state during the
+  // grace period, and the shell-rendered final error when the canvas is blank
+  // (a failed module load leaves no vite-error-overlay to show through to).
+  const renderCrashCover = (ref: React.RefObject<HTMLIFrameElement | null>) => (
+    <>
+      {viteErrorPhase === 'pending' && (
+        <CrashLoadingOverlay onRefresh={() => reloadIframe(ref)} onUndo={handleUndo} />
+      )}
+      {viteErrorPhase === 'error' && moduleLoadError && (
+        <CrashErrorOverlay detail={viteErrorDetail} onRefresh={() => reloadIframe(ref)} onUndo={handleUndo} />
+      )}
+    </>
+  );
 
   // Broadcast theme to all iframes whenever it changes
   useEffect(() => {
@@ -420,7 +606,7 @@ export const ProtovibeApp: React.FC = () => {
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => toggleInspector()}
       />
-      {showErrorBanner && (
+      {viteErrorPhase === 'error' && (
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '16px 20px', background: theme.destructive_low,
@@ -439,6 +625,10 @@ export const ProtovibeApp: React.FC = () => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+            <button onClick={() => reloadIframe(activeIframeRef)} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <RefreshCw size={16} />
+              Refresh
+            </button>
             <button onClick={handleUndo} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Undo2 size={16} />
               Undo
@@ -448,7 +638,7 @@ export const ProtovibeApp: React.FC = () => {
               Restart
             </button>
           </div>
-          <button onClick={() => setShowErrorBanner(false)} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={endCrashEpisode} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <X size={16} />
           </button>
         </div>
@@ -581,7 +771,7 @@ export const ProtovibeApp: React.FC = () => {
                 <Smartphone size={16} />
               </button>
             </div>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, background: mobileWidth ? theme.bg_strong : 'transparent' }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, position: 'relative', background: mobileWidth ? theme.bg_strong : 'transparent' }}>
               <iframe
                 ref={appIframeRef}
                 src={initialAppSrc}
@@ -593,23 +783,26 @@ export const ProtovibeApp: React.FC = () => {
                 }}
                 onLoad={() => handleIframeLoad(appIframeRef)}
               />
+              {renderCrashCover(appIframeRef)}
             </div>
           </div>
-          <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0 }}>
+          <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={sketchpadIframeRef}
               src="/sketchpad.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               onLoad={() => handleIframeLoad(sketchpadIframeRef)}
             />
+            {renderCrashCover(sketchpadIframeRef)}
           </div>
-          <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0 }}>
+          <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={componentsIframeRef}
               src="/components.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               onLoad={() => handleIframeLoad(componentsIframeRef)}
             />
+            {renderCrashCover(componentsIframeRef)}
           </div>
           <div
             style={{
