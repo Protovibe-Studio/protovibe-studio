@@ -114,7 +114,7 @@ export interface CommentItem {
   seenBy?: string[];
 }
 
-/** One thread === one `comment-{id}.json` file === one `data-pv-comment-{id}` attribute. */
+/** One thread === one `src/comments/{id}/` directory === one `data-pv-comment-{id}` attribute. */
 export interface CommentThread {
   /** Anchored on its element as a valueless `data-pv-comment-{id}` attribute. */
   id: string;
@@ -168,13 +168,31 @@ export function readCommentIds(attrNames: readonly string[]): string[] {
   return ids;
 }
 
-/** Directory (relative to project root) where thread files are committed. */
+/**
+ * Storage layout. Each thread is a directory, `src/comments/{threadId}/`,
+ * holding `thread.json` (metadata only — id, status, context, createdAt,
+ * anchorFile; no messages) plus one `{commentId}.json` file per message.
+ * Messages are split into their own files so that two people replying to the
+ * same thread on different machines produce two *new* files — git sync then
+ * merges them cleanly instead of a same-file conflict dropping one reply.
+ *
+ * Legacy layout (still read, never written): a single `comment-{threadId}.json`
+ * file holding the whole thread with an inline `comments` array.
+ */
 export const COMMENTS_DIR_REL = 'src/comments';
 
 /** Subdirectory (relative to project root) where comment image attachments live. */
 export const COMMENT_ATTACHMENTS_DIR_REL = 'src/comments/attachments';
 
-/** Filename for a given thread id. */
+/** Metadata filename inside a thread's directory (split layout). */
+export const THREAD_META_FILE = 'thread.json';
+
+/** Filename for a single message inside a thread's directory (split layout). */
+export function commentFileName(commentId: string): string {
+  return `${commentId}.json`;
+}
+
+/** Filename of a legacy single-file thread (read-compat only). */
 export function threadFileName(id: string): string {
   return `comment-${id}.json`;
 }

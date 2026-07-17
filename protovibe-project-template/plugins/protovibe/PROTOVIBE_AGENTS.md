@@ -827,31 +827,53 @@ programmatically.
 
 ### Rule: Where comments live
 
-Each comment thread is a standalone JSON file at `src/comments/comment-{id}.json`.
-One file == one thread == one anchored element. These files are normal source
-files and **should be committed to Git** (they are not gitignored). Threads carry
-their own metadata: a triage `status`, the authoring `context` (App / Components /
-Sketchpad, plus the app URL, component name, or sketchpad frame + coordinates),
-and an array of `comments` (each with author name/email, content, and timestamps,
-Git-commit style).
+Each comment thread is a directory at `src/comments/{threadId}/`. One directory
+== one thread == one anchored element. It contains:
+
+* `thread.json` — thread metadata **only** (never any messages): the triage
+  `status`, the authoring `context` (App / Components / Sketchpad, plus the app
+  URL, component name, or sketchpad frame + coordinates), `createdAt`, and
+  `anchorFile`.
+* `{commentId}.json` — **one file per message**, Git-commit style (author
+  name/email, content, timestamps).
+
+Messages are split into their own files on purpose: two people replying to the
+same thread on different machines create two *different new files*, so Git sync
+merges them cleanly instead of a same-file conflict silently dropping one reply.
+These files are normal source files and **should be committed to Git** (they are
+not gitignored).
 
 ```jsonc
+// src/comments/ab12cd34ef/thread.json
 {
   "id": "ab12cd34ef",
   "status": "review",              // optional status id — "minor" | "todo" | "review" | "closed"; omitted while untriaged (labels/colours live in the UI's STATUS_CONFIG)
   "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
-  "comments": [
-    { "id": "c-...", "author": { "name": "Jane", "email": "jane@x.com" },
-      "content": "Tighten this spacing", "createdAt": "2026-06-27T10:00:00.000Z",
-      "seenBy": ["Jane", "Alex"],    // optional read receipts — names that have seen this message; omitted/[] = unseen
-      "suggestions": [               // optional UX-writing suggestions: swap an exact string for a proposed one
-        { "original": "Sign up", "suggested": "Create account" }
-      ] }
-  ],
   "createdAt": "2026-06-27T10:00:00.000Z",
   "anchorFile": "src/pages/DashboardPage.tsx"
 }
+
+// src/comments/ab12cd34ef/c-x7y8z9.json — one message
+{
+  "id": "c-x7y8z9",
+  "author": { "name": "Jane", "email": "jane@x.com" },
+  "content": "Tighten this spacing",
+  "createdAt": "2026-06-27T10:00:00.000Z",
+  "seenBy": ["Jane", "Alex"],      // optional read receipts — names that have seen this message; omitted/[] = unseen
+  "suggestions": [                 // optional UX-writing suggestions: swap an exact string for a proposed one
+    { "original": "Sign up", "suggested": "Create account" }
+  ]
+}
 ```
+
+> **Legacy format.** Older projects store a whole thread as one file,
+> `src/comments/comment-{threadId}.json`, with an inline `comments` array.
+> These are still read (and merged with any split-layout files for the same
+> thread id — a `{threadId}/{commentId}.json` file shadows the inline message
+> with the same id). Never create new threads in this format, and **never
+> append to an inline `comments` array** — that reintroduces the sync conflict.
+> Add new messages as separate `src/comments/{threadId}/{commentId}.json` files
+> even when the thread itself is a legacy file.
 
 ### Rule: The `data-pv-comment-{id}` attribute
 
@@ -865,19 +887,31 @@ collide. Match one with the CSS selector `[data-pv-comment-{id}]`.
 > attribute (which could collide into duplicate attributes). Never write that form.
 
 * **Never remove these attributes** during refactors unless you are deleting the
-  element itself (in which case also delete the matching `src/comments/comment-{id}.json`
-  for every `data-pv-comment-{id}` it carries).
+  element itself (in which case also delete the matching `src/comments/{id}/`
+  directory — and the legacy `src/comments/comment-{id}.json` if present — for
+  every `data-pv-comment-{id}` it carries).
 * When extracting an element into a new component, **preserve every
   `data-pv-comment-{id}` attribute** on the new root element so the comments stay
   anchored.
 
 ### Rule: Editing comments programmatically
 
-To add or resolve comments on the user's behalf, edit the
-`src/comments/comment-{id}.json` files directly (append to `comments`, change
-`status`, etc.). To anchor a brand-new thread, both create the JSON file **and**
-add the valueless `data-pv-comment-{id}` attribute to the target element so the two
-stay in sync. Do not edit these files unless the user asks you to.
+To add or resolve comments on the user's behalf, work file-per-message:
+
+* **Add a message / reply**: create a new `src/comments/{threadId}/{commentId}.json`
+  file (random id, e.g. `c-` + 8 lowercase alphanumerics). Never rewrite an
+  existing message file to append, and never append to a legacy file's inline
+  `comments` array.
+* **Change a thread's status**: edit `src/comments/{threadId}/thread.json`. For
+  a legacy thread that has no directory yet, create the directory and write a
+  `thread.json` (copying `id`, `context`, `createdAt`, `anchorFile` from the
+  legacy file) with the new `status` — once `thread.json` exists it is
+  authoritative for metadata.
+* **Anchor a brand-new thread**: create `src/comments/{threadId}/` with
+  `thread.json` + the first message file, **and** add the valueless
+  `data-pv-comment-{id}` attribute to the target element so the two stay in sync.
+
+Do not edit these files unless the user asks you to.
 
 ### Rule: Wording suggestions are advisory, not source edits
 
