@@ -11,8 +11,11 @@
     "test:e2e:ui": "playwright test --ui",
     "bump:manager": "node scripts/bump-version.mjs manager",
     "bump:template": "node scripts/bump-version.mjs template",
+    "bump:manager-and-template": "node scripts/bump-version.mjs manager-and-template",
+    "bump:shell": "node scripts/bump-version.mjs shell",
     "bump:all": "node scripts/bump-version.mjs all",
-    "release": "node scripts/release.mjs"
+    "release": "node scripts/release.mjs",
+    "release:all": "node scripts/release.mjs --shell --bump all"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

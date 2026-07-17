@@ -92,5 +92,9 @@ verified, so they can never get their key adopted. To rotate:
   the key fully off GitHub (sign locally / on a hardware key) instead of storing
   it as an environment secret.
 - The Electron shell binary updates through a separate path
-  (`electron/src/updater.js` + `electron-release.yml`) already protected by Apple
-  Developer ID code-signing and notarization.
+  (`electron/src/updater.js` + `electron-release.yml`), protected by Apple
+  Developer ID code-signing and notarization **and** the same `release-signing`
+  approval gate as source releases — its build job runs in that environment, so an
+  accidental or malicious `shell-v*` tag cannot ship a build without your approval.
+  The shell is never released on its own: `npm run release -- --shell` always cuts
+  a matching source release too (see "Cutting a release" above).
