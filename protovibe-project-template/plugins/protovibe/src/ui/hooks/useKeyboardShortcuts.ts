@@ -13,6 +13,7 @@ import { openNotEditableDialog } from '../components/NotEditableDialog';
 import {
   getAllowedParent,
   getAllowedChild,
+  getAllowedChildren,
   getAllowedSibling,
 } from '../utils/traversal';
 import { isTypingInput } from '../utils/elementType';
@@ -429,6 +430,21 @@ export function useKeyboardShortcuts() {
       // WASD traversal is bare-key only. When Cmd/Ctrl is held these letters mean
       // something else (e.g. Cmd+S opens the Git sync popover), so don't traverse.
       if (e.metaKey || e.ctrlKey) return;
+
+      // Enter selects all immediate children (multi-select). Shift+Enter
+      // traverses up to the parent, mirroring the "W" key.
+      if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          handleNavigate(getAllowedParent(currentBaseTarget));
+        } else {
+          const children = getAllowedChildren(currentBaseTarget);
+          if (children.length > 0) {
+            e.preventDefault();
+            focusElement(children);
+          }
+        }
+        return;
+      }
 
       const navKey = e.key.toLowerCase();
       if (navKey === 'w') handleNavigate(getAllowedParent(currentBaseTarget));

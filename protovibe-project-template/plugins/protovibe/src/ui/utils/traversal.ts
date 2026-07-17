@@ -109,6 +109,28 @@ export function getAllowedChild(el: HTMLElement): HTMLElement | null {
 }
 
 /**
+ * Collect every immediate allowed child of `el`. Like `getAllowedChild` but
+ * returns all of them instead of the first: for each branch it descends past
+ * non-allowed wrappers and stops at the first allowed element, so a component
+ * root nested inside plain markup is still reached. Descendants below an
+ * already-collected element are not included.
+ */
+export function getAllowedChildren(el: HTMLElement): HTMLElement[] {
+  const results: HTMLElement[] = [];
+  const queue = Array.from(el.children) as HTMLElement[];
+  while (queue.length > 0) {
+    const child = queue.shift()!;
+    if (isElementAllowed(child)) {
+      results.push(child);
+    } else {
+      // Child is not directly allowed — keep searching its subtree
+      queue.push(...(Array.from(child.children) as HTMLElement[]));
+    }
+  }
+  return results;
+}
+
+/**
  * Walk up from `el` (inclusive) and return the first element that satisfies
  * `isElementAllowed`. Equivalent to `el` itself when already allowed, or
  * `getAllowedParent(el)` when not.
