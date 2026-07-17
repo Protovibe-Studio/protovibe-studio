@@ -29,4 +29,12 @@ Deep-link testing in dev: macOS requires `app.setAsDefaultProtocolClient('protov
 
 ## Release
 
-Tag `shell-v*` triggers `.github/workflows/electron-release.yml`: builds mac arm64+x64 dmg+zip, signs (Developer ID), notarizes, publishes to GitHub Releases for electron-updater. The shell's version is independent of manager/template versions — those still update via the in-app zipball updater.
+Tag `shell-v*` triggers `.github/workflows/electron-release.yml`: builds mac arm64+x64 dmg+zip, signs (Developer ID), notarizes, publishes to GitHub Releases for electron-updater. The build job runs in the `release-signing` environment, so it PAUSES for the maintainer's approval before signing/publishing (same gate as source releases). The shell's version is independent of manager/template versions — those still update via the in-app zipball updater.
+
+Cut a shell release from the **repo root** (not here), because the shell never ships alone — it always drags a full source release along:
+
+- `npm run bump:shell` — bump only `electron/package.json` (patch).
+- `npm run release:shell` — bump manager+template+shell, then tag `source-v*` **and** `shell-v*` (both gated by your approval). Equivalent to `npm run release -- --shell --bump all`.
+- `npm run release -- --shell --bump shell` — shell-only fix: bump just the shell, re-cut the source unchanged.
+
+The `shell-v*` tag must equal `electron/package.json` exactly (electron-builder publishes under that version), so it can't auto-suffix like source tags — bump the shell to get a fresh tag.

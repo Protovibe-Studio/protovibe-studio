@@ -12,7 +12,9 @@
     "bump:manager": "node scripts/bump-version.mjs manager",
     "bump:template": "node scripts/bump-version.mjs template",
     "bump:all": "node scripts/bump-version.mjs all",
-    "release": "node scripts/release.mjs"
+    "bump:shell": "node scripts/bump-version.mjs shell",
+    "release": "node scripts/release.mjs",
+    "release:shell": "node scripts/release.mjs --shell --bump all"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

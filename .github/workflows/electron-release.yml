@@ -1,5 +1,13 @@
 name: Release Electron shell
 
+# Builds, signs (Developer ID), notarizes and publishes the desktop shell.
+# Triggered by pushing a `shell-v*` tag (see scripts/release.mjs --shell).
+#
+# Like the source-release workflow, the build job runs in the protected
+# `release-signing` environment, which has a required reviewer. GitHub therefore
+# PAUSES this job until you approve it in the UI — so an accidental or malicious
+# tag push cannot ship a signed, notarized build without your explicit approval.
+
 on:
   push:
     tags:
@@ -11,6 +19,8 @@ permissions:
 jobs:
   mac:
     runs-on: macos-14
+    # ── Approval gate: same required reviewer that gates source releases ──
+    environment: release-signing
     steps:
       - uses: actions/checkout@v4
 
