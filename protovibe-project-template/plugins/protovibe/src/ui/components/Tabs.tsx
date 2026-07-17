@@ -52,17 +52,26 @@ const SourceFileButton: React.FC<{
 };
 
 export const Tabs: React.FC = () => {
-  const { sourceDataList, activeSourceId, setActiveSourceId, setActiveModifiers, activeData } = useProtovibe();
+  const { sourceDataList, activeSourceId, setActiveSourceId, setActiveModifiers, activeData, availableComponents } = useProtovibe();
 
   const normalizePath = (filePath: string) => filePath.replace(/\\/g, '/');
-  const isComponentsFolderSource = (filePath: string) => {
-    const normalized = normalizePath(filePath);
-    return /(^|\/)src\/components(\/|$)/.test(normalized);
+  // Reduce a file path or a pvConfig importPath to a comparable stem:
+  // forward slashes, no leading slash, `@/` mapped to `src/`, no extension.
+  const toStem = (p: string) =>
+    normalizePath(p).replace(/^\//, '').replace(/^@\//, 'src/').replace(/\.[^./]+$/, '');
+  // A source is a navigable "Component" only when it is registered in pvConfig
+  // (present in availableComponents), not merely because it lives under
+  // src/components. A file dropped in the components folder without a pvConfig
+  // has no entry in the Components playground, so navigating there would land on
+  // nothing — treat it as a plain source File instead.
+  const isRegisteredComponentSource = (filePath: string) => {
+    if (!filePath) return false;
+    const stem = toStem(filePath);
+    return availableComponents.some((c: any) => c?.importPath && toStem(c.importPath) === stem);
   };
-  const getFileStem = (fileName: string) => fileName.replace(/\.[^.]+$/, '');
-  const hasComponentsFolderSource = sourceDataList.some((source) => isComponentsFolderSource(source.data?.file || ''));
+  const hasComponentSource = sourceDataList.some((source) => isRegisteredComponentSource(source.data?.file || ''));
 
-  if (sourceDataList.length <= 1 && !hasComponentsFolderSource) return null;
+  if (sourceDataList.length <= 1 && !hasComponentSource) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', background: theme.bg_strong, flexShrink: 0 }}>
@@ -79,7 +88,7 @@ export const Tabs: React.FC = () => {
         const parts = normalizePath(filePath).split('/');
         const fileName = parts.pop() || 'Unknown';
         
-        const isCompFolder = isComponentsFolderSource(filePath);
+        const isCompFolder = isRegisteredComponentSource(filePath);
         const locationText = isCompFolder ? 'Component' : 'File';
         const displayName = fileName;
 

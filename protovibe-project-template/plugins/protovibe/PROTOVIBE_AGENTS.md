@@ -211,6 +211,36 @@ Never create custom HTML elements (`<button>`, `<input>`) when an existing compo
 
 When creating or editing reusable components in `src/components/ui/`, they must be registered via `pvConfig`.
 
+### Rule: `src/components/ui/` Is Only for Registered "Dumb" Components
+
+`src/components/ui/` is exclusively for presentational ("dumb") components that export a `pvConfig`. Every file you add here MUST export a `pvConfig` — that is how the visual builder discovers it, lists it in the Components playground, and lets the inspector's "Source files" panel jump to it. A file placed here **without** a `pvConfig` has no playground entry, so clicking through to it goes nowhere.
+
+Anything that is not a registered visual-builder component — stateful containers, data-fetching wrappers, layout/page shells, hooks, context providers, or other logic-heavy helpers — MUST live in a different folder (e.g. `src/components/` outside `ui/`, or a feature folder). Never drop unregistered or "smart" components into `src/components/ui/`.
+
+* **❌ BAD: A smart/unregistered component inside `src/components/ui/`**
+
+  ```tsx
+  // src/components/ui/user-dashboard.tsx  ← wrong folder, no pvConfig
+  export function UserDashboard() {
+    const { data } = useUsers();
+    return <div>{/* fetches + renders app data */}</div>;
+  }
+  ```
+
+* **✅ GOOD: Dumb + registered in `ui/`, smart component elsewhere**
+
+  ```tsx
+  // src/components/ui/stat-card.tsx  ← presentational, exports pvConfig
+  export function StatCard({ ...props }) { return <div {...props} data-pv-component-id="StatCard" />; }
+  export const pvConfig = { name: 'StatCard', /* ... */ };
+
+  // src/components/user-dashboard.tsx  ← smart component, outside ui/
+  export function UserDashboard() {
+    const { data } = useUsers();
+    return <StatCard /* ... */ />;
+  }
+  ```
+
 ### Rule: One `pvConfig` Per File
 
 The scanner strictly looks for `export const pvConfig`. You cannot rename it or have multiple configurations in a single file.
