@@ -23,7 +23,7 @@ import { CommentAvatar } from './comments/CommentAvatar';
 import { SuggestionComposerSection, SuggestionToggleButton, SuggestionPreviewBlock, changedSuggestions, clearSuggestionPreviews } from './comments/WordingSuggestions';
 import { getCopySuggestionPreview } from '../utils/copySuggestionPreview';
 import {
-  COMMENT_STATUSES, threadFileName, makeCommentId, readCommentIds, commentAttachmentUrl,
+  COMMENT_STATUSES, makeCommentId, readCommentIds, commentAttachmentUrl,
 } from '../../shared/comments';
 import type {
   CommentThread, CommentItem, CommentAuthor, CommentContext, CommentStatus, WordingSuggestion,
@@ -458,14 +458,14 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       createdAt: nowIso,
       anchorFile: activeData.file,
     };
-    const commentFile = `src/comments/${threadFileName(id)}`;
 
     setBusy(true);
     setError(null);
     runLockedMutation(async () => {
-      // Snapshot the source file AND the not-yet-created thread file (captured
-      // as empty) so a single Cmd+Z removes both the attribute and the file.
-      await takeSnapshot(activeData.file, activeSourceId || '', [commentFile], 'add comment');
+      // Snapshot only the source file (the attribute injection) — the thread
+      // file is intentionally excluded so undoing a code change never deletes
+      // a comment. Undo removes the attribute; the thread just goes orphaned.
+      await takeSnapshot(activeData.file, activeSourceId || '', undefined, 'add comment');
       // Upload staged images now (on submit), folding their stored names onto the
       // comment before it's written to disk.
       if (pending.length) comment.attachments = await uploadPendingAttachments(pending);
@@ -493,13 +493,15 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh]);
 
   // Comment-file-only mutation helper (reply / edit / delete reply / status).
+  // Intentionally NOT snapshotted — like read receipts (see setCommentSeen),
+  // comment mutations are excluded from undo/redo so stepping through source
+  // code history never rewrites or drops a reply, edit, or status change.
   const mutateThreadFile = useCallback(async (
-    threadId: string, note: string, fn: () => Promise<CommentThread | void>,
+    fn: () => Promise<CommentThread | void>,
   ) => {
     setBusy(true);
     setError(null);
     try {
-      await takeSnapshot(`src/comments/${threadFileName(threadId)}`, activeSourceId || '', undefined, note);
       await fn();
       await refresh();
     } catch (e) {
@@ -507,10 +509,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     } finally {
       setBusy(false);
     }
-  }, [activeSourceId, refresh]);
+  }, [refresh]);
 
   const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) =>
-    mutateThreadFile(thread.id, 'reply to comment', async () => {
+    mutateThreadFile(async () => {
       const attachments = pending.length ? await uploadPendingAttachments(pending) : undefined;
       const changedSugg = changedSuggestions(suggestions);
       return replyToThread(thread.id, {
@@ -521,11 +523,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     }).then(() => { revokeAttachments(pending); setReplyDraft(''); setReplyAttachments([]); setReplySuggestions([]); });
 
   const handleStatus = (thread: CommentThread, status: CommentStatus | null) =>
-    mutateThreadFile(thread.id, status ? `comment status: ${status}` : 'clear comment status',
-      () => updateThreadStatus(thread.id, status));
+    mutateThreadFile(() => updateThreadStatus(thread.id, status));
 
   const handleEditSave = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(thread.id, 'edit comment', () =>
+    mutateThreadFile(() =>
       editComment(thread.id, commentId, editingText.trim(), changedSuggestions(editingSuggestions)))
       .then(() => { setEditingId(null); setEditingText(''); setEditingSuggestions([]); });
 
@@ -537,7 +538,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   };
 
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(thread.id, 'delete comment', () => deleteComment(thread.id, commentId))
+    mutateThreadFile(() => deleteComment(thread.id, commentId))
       .then(() => dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions));
 
   const handleDeleteThread = (thread: CommentThread) => {
@@ -545,11 +546,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     setError(null);
     thread.comments.forEach((c) => dropPreviews(thread.id, c.suggestions));
     const anchor = thread.anchorFile || thread.context?.file;
-    const commentFile = `src/comments/${threadFileName(thread.id)}`;
     runLockedMutation(async () => {
-      // Snapshot the source (attribute removal) and the thread file (deletion)
-      // together so one Cmd+Z restores both.
-      await takeSnapshot(anchor || commentFile, activeSourceId || '', anchor ? [commentFile] : undefined, 'delete comment thread');
+      // Snapshot only the source file's attribute removal — the thread file
+      // itself is intentionally excluded from undo (see mutateThreadFile above),
+      // so deleting a thread can't be resurrected by undoing unrelated source edits.
+      if (anchor) await takeSnapshot(anchor, activeSourceId || '', undefined, 'delete comment thread');
       await deleteThreadApi(thread.id);
     }).then(async () => {
       await refresh();
