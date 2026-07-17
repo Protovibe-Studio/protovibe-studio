@@ -47,9 +47,12 @@ const PORT_RE = /Local:\s+http:\/\/localhost:(\d+)/
 const processes = new Map() // id → { proc, logs: [], port: null, status }
 
 // Extra env for spawned project dev servers: point them at the git binary the
-// manager resolved (env override or embedded download) so a project's own git
-// integration works even on machines without a system git. System git needs
-// no hint — it's already on the child's PATH.
+// manager resolved (env override, bundled tree, or embedded download) so a
+// project's own git integration works even on machines without a system git.
+// git.env carries that distribution's GIT_EXEC_PATH/GIT_TEMPLATE_DIR — without
+// it the binary can't find its own helpers and fails on push with
+// "remote-https is not a git command". System git needs no hint at all: it's
+// already on the child's PATH, with the user's credential helpers attached.
 let cachedProjectGitEnv = null
 function projectGitEnv() {
   if (cachedProjectGitEnv === null) {
@@ -59,7 +62,8 @@ function projectGitEnv() {
       // running at boot, and caching the miss would starve every later
       // project of PROTOVIBE_GIT_PATH.
       if (git) {
-        cachedProjectGitEnv = git.source !== 'system' ? { PROTOVIBE_GIT_PATH: git.binary } : {}
+        cachedProjectGitEnv =
+          git.source !== 'system' ? { PROTOVIBE_GIT_PATH: git.binary, ...git.env } : {}
       } else {
         return { PROTOVIBE_MANAGER_URL: managerUrl }
       }

@@ -1,9 +1,10 @@
 // Git resolution + embedded git download + authenticated clone.
 //
-// Resolution order: PROTOVIBE_GIT_PATH env → system git on PATH → embedded
-// dugite-native binaries in ~/.protovibe/git/<version>/ (downloaded on first
-// use). The home-dir location is a machine-global cache shared with other
-// Protovibe tooling (project git sync), so it needs no per-repo gitignore.
+// Resolution order: PROTOVIBE_GIT_PATH env → system git on PATH → the shell's
+// bundled git tree (PROTOVIBE_BUNDLED_GIT_ROOT) → embedded dugite-native
+// binaries in ~/.protovibe/git/<version>/ (downloaded on first use). The
+// home-dir location is a machine-global cache shared with other Protovibe
+// tooling (project git sync), so it needs no per-repo gitignore.
 
 import fs from 'node:fs'
 import os from 'node:os'
@@ -93,6 +94,31 @@ function probeGit(binary) {
   }
 }
 
+// Absolute path of the `git` on PATH, or null when there is none.
+function whichGit() {
+  const finder = process.platform === 'win32' ? 'where' : 'which'
+  try {
+    const out = execFileSync(finder, ['git'], { stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 })
+    return out.toString().split(/\r?\n/)[0].trim() || null
+  } catch {
+    return null
+  }
+}
+
+// macOS ships a /usr/bin/git stub that pops the Xcode Command Line Tools
+// installer when the tools aren't present. `xcode-select -p` answers whether
+// they are without triggering that dialog, and only the stub needs the check —
+// a Homebrew or system-installed git elsewhere on PATH is always fine.
+function systemGitIsSafeToProbe(binary) {
+  if (process.platform !== 'darwin' || binary !== '/usr/bin/git') return true
+  try {
+    execFileSync('xcode-select', ['-p'], { stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 })
+    return true
+  } catch {
+    return false
+  }
+}
+
 // Returns { binary, env, source } or null when git isn't available yet.
 // `env` contains only the git-specific extras — the caller merges it over
 // process.env for the child.
@@ -101,18 +127,23 @@ export function resolveGit() {
   if (override && probeGit(override)) {
     return { binary: override, env: {}, source: 'env' }
   }
-  // Bundled git (shell packages a signed+notarized dugite tree and points here)
-  // is preferred over system git so a fresh Mac uses a known-good binary and
-  // never triggers the Xcode CLT install dialog that its `git` stub would.
+  // System git wins over our own trees: it carries the user's credential
+  // helpers and keychain logins, so pushing works with the account they're
+  // already signed into. Ours are the fallback for machines without one.
+  if (!override) {
+    const systemBinary = whichGit()
+    if (systemBinary && systemGitIsSafeToProbe(systemBinary) && probeGit(systemBinary)) {
+      return { binary: systemBinary, env: {}, source: 'system' }
+    }
+  }
+  // Bundled git — the shell packages a signed+notarized dugite tree and points
+  // here, so a fresh Mac with no git still works and never sees the CLT dialog.
   const bundledRoot = process.env.PROTOVIBE_BUNDLED_GIT_ROOT
   if (bundledRoot) {
     const bundledBinary = gitBinaryIn(bundledRoot)
     if (probeGit(bundledBinary)) {
       return { binary: bundledBinary, env: gitEnvFor(bundledRoot), source: 'bundled' }
     }
-  }
-  if (!override && probeGit('git')) {
-    return { binary: 'git', env: {}, source: 'system' }
   }
   if (fs.existsSync(READY_MARKER) && probeGit(embeddedGitBinary())) {
     return { binary: embeddedGitBinary(), env: embeddedGitEnv(), source: 'embedded' }
