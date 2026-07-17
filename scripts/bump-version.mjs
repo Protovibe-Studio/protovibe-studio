@@ -14,9 +14,11 @@ const TARGETS = {
   // The Electron shell versions independently of the source (manager/template).
   shell: ['electron/package.json'],
 };
-// `all` is the source-only bundle (manager + template). The shell stays separate
-// because it can be released on its own cadence — see scripts/release.mjs --shell.
-TARGETS.all = [...TARGETS.manager, ...TARGETS.template];
+// `manager-and-template` is the source-only bundle; `all` is everything, the shell
+// included. The shell can still be bumped on its own (`shell`) when it ships a fix
+// without a source change — see scripts/release.mjs.
+TARGETS['manager-and-template'] = [...TARGETS.manager, ...TARGETS.template];
+TARGETS.all = [...TARGETS['manager-and-template'], ...TARGETS.shell];
 
 // Accept one or more targets, e.g. `bump-version.mjs all shell`.
 const requested = process.argv.slice(2);

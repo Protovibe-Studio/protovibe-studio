@@ -34,7 +34,7 @@ Tag `shell-v*` triggers `.github/workflows/electron-release.yml`: builds mac arm
 Cut a shell release from the **repo root** (not here), because the shell never ships alone — it always drags a full source release along:
 
 - `npm run bump:shell` — bump only `electron/package.json` (patch).
-- `npm run release:shell` — bump manager+template+shell, then tag `source-v*` **and** `shell-v*` (both gated by your approval). Equivalent to `npm run release -- --shell --bump all`.
+- `npm run release:all` — bump manager+template+shell, then tag `source-v*` **and** `shell-v*` (both gated by your approval). Equivalent to `npm run release -- --shell --bump all` (here `all` means everything, shell included).
 - `npm run release -- --shell --bump shell` — shell-only fix: bump just the shell, re-cut the source unchanged.
 
 The `shell-v*` tag must equal `electron/package.json` exactly (electron-builder publishes under that version), so it can't auto-suffix like source tags — bump the shell to get a fresh tag.

@@ -4,13 +4,14 @@
 //   npm run release              # tag source-v<managerVersion> (auto-suffixed if taken)
 //   npm run release -- 1.2.3     # tag source-v1.2.3
 //   npm run release -- source-v1.2.3
-//   npm run release -- --bump all       # bump+commit+push, then tag & release
-//   npm run release -- --bump template  # (manager|template|all)
+//   npm run release -- --bump manager-and-template  # bump+commit+push, then tag & release
+//   npm run release -- --bump template  # (manager|template|manager-and-template)
 //   npm run release -- --no-push # do everything locally, push nothing (you push later)
 //   npm run release -- --message "fix: x"  # override the auto commit message
 //   npm run release -- --dry-run # show what would happen, create/push nothing
 //
-//   # ── Electron shell ──────────────────────────────────────────────────────────
+//   # ── Electron shell (bump targets that touch the shell need --shell) ─────────
+//   npm run release:all                      # = release.mjs --shell --bump all
 //   npm run release -- --shell               # bump the shell, re-cut source, release both
 //   npm run release -- --shell --bump all    # bump manager+template+shell, release both
 //   npm run release -- --shell --bump shell  # same as bare --shell: bump only the shell
@@ -18,8 +19,9 @@
 // The shell never ships alone: `--shell` always also cuts the source release, so a
 // user who takes a new shell also gets a matching, signed source bundle. It also
 // always bumps the shell (the shell tag must equal electron/package.json and so
-// can't auto-suffix like source tags). Source can still be released on its own
-// (omit --shell) — that skips the costly macOS build, saving Actions minutes.
+// can't auto-suffix like source tags). Source alone (`npm run release`, or --bump
+// manager-and-template) omits --shell and skips the costly macOS build, saving
+// Actions minutes.
 //
 // A dirty working tree (or a --bump) is committed automatically with a
 // "Release <tag> (manager X, template Y)" message — override it with --message.
@@ -57,17 +59,18 @@ const explicit = args.find((a, i) => !a.startsWith('--') && !consumed.has(i))
 
 function die(msg) { console.error(`\n✖ ${msg}\n`); process.exit(1) }
 
-if (bumpTarget && !['manager', 'template', 'all', 'shell'].includes(bumpTarget)) {
-  die('--bump must be one of: manager, template, all, shell')
+if (bumpTarget && !['manager', 'template', 'manager-and-template', 'shell', 'all'].includes(bumpTarget)) {
+  die('--bump must be one of: manager, template, manager-and-template, shell, all')
 }
 if (bumpTarget && explicit) die('Use either --bump <target> or an explicit version, not both.')
 if (msgIdx !== -1 && !commitMessage) die('--message/-m requires a message, e.g. --message "fix: ..."')
-// The shell versions independently and its release piggybacks on the source one.
-if (bumpTarget === 'shell' && !shell) {
-  die('--bump shell only makes sense with --shell (the shell release drags the source one along).')
+// `shell` and `all` both bump the shell version, which is only honest when we are
+// actually cutting a shell release — so those require --shell.
+if ((bumpTarget === 'shell' || bumpTarget === 'all') && !shell) {
+  die(`--bump ${bumpTarget} releases the shell too — pass --shell (or run npm run release:all).`)
 }
 // The shell always ships with a *full* source release, so a shell bump must pair
-// with an `all` source bump (or a shell-only bump that re-cuts source unchanged).
+// with `all` (everything) or `shell` (shell-only fix, source re-cut unchanged).
 if (shell && bumpTarget && !['all', 'shell'].includes(bumpTarget)) {
   die('With --shell the bump target must be "all" or "shell" — the shell always ships alongside a full source release.')
 }
@@ -91,7 +94,8 @@ let unpushedCommit = false // a local release commit that --no-push left for you
 // equal electron/package.json), so a shell release needs a fresh version.
 const bumpFiles = []
 if (bumpTarget) bumpFiles.push(bumpTarget)
-if (shell && !bumpFiles.includes('shell')) bumpFiles.push('shell')
+// --shell guarantees a shell bump; skip if the target (`all`/`shell`) already covers it.
+if (shell && !['all', 'shell'].includes(bumpTarget)) bumpFiles.push('shell')
 
 // A bump always creates changes; a dirty tree is swept into the release commit.
 // CI builds from the tagged commit, so anything left uncommitted would be invisible.
@@ -125,9 +129,9 @@ const readVersion = (rel, ...targets) => {
   const v = pkgVersion(rel)
   return dryRun && targets.some((t) => bumped.has(t)) ? nextPatch(v) : v
 }
-const managerVersion = readVersion('protovibe-project-manager/package.json', 'manager', 'all')
-const templateVersion = readVersion('protovibe-project-template/package.json', 'template', 'all')
-const shellVersion = shell ? readVersion('electron/package.json', 'shell') : null
+const managerVersion = readVersion('protovibe-project-manager/package.json', 'manager', 'manager-and-template', 'all')
+const templateVersion = readVersion('protovibe-project-template/package.json', 'template', 'manager-and-template', 'all')
+const shellVersion = shell ? readVersion('electron/package.json', 'shell', 'all') : null
 
 // ── Resolve the source tag ────────────────────────────────────────────────────
 function normalizeTag(v) {
