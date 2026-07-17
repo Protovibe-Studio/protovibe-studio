@@ -1,3 +1,4 @@
 export const INSPECTOR_WIDTH_PX = 292;
 export const INSPECTOR_TRANSITION_MS = 400;
 export const INSPECTOR_TRANSITION_EASING = 'ease';
+export const ELEMENTS_PANEL_WIDTH_PX = 260;

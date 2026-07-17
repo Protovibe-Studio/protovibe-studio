@@ -527,6 +527,20 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_CLEAR_SELECTION':
       clearSelectionOutline();
       break;
+    case 'PV_TREE_HOVER': {
+      // Hover highlight driven by the shell's elements tree panel. Reuses the
+      // same hover overlay as canvas mousemove — the pointer is over the panel
+      // while these arrive, so the two sources never fight.
+      const { runtimeId } = e.data;
+      if (!runtimeId) {
+        clearHoverOutline();
+        break;
+      }
+      const el = document.querySelector(`[data-pv-runtime-id="${runtimeId}"]`) as HTMLElement | null;
+      if (el) setHoverOutline(el);
+      else clearHoverOutline();
+      break;
+    }
     case 'PV_SET_INSPECTOR_ACTIVE': {
       const active = !!e.data.active;
       isInspectorActive = active;

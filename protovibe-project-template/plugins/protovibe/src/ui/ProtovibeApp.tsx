@@ -1,13 +1,14 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { PromptsTab } from './components/PromptsTab';
 import { CommentsTab } from './components/CommentsTab';
 import { Sidebar } from './components/Sidebar';
+import { ElementsPanel } from './components/ElementsPanel';
 import { FloatingToolbar } from './components/FloatingToolbar';
 import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
@@ -151,6 +152,15 @@ export const ProtovibeApp: React.FC = () => {
   useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [elementsPanelOpen, setElementsPanelOpen] = useState(() => {
+    try { return localStorage.getItem('pv-elements-panel-open') === 'true'; } catch { return false; }
+  });
+  const toggleElementsPanel = useCallback(() => {
+    setElementsPanelOpen(v => {
+      try { localStorage.setItem('pv-elements-panel-open', String(!v)); } catch {}
+      return !v;
+    });
+  }, []);
   const appIframeRef = useRef<HTMLIFrameElement>(null);
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
@@ -644,6 +654,12 @@ export const ProtovibeApp: React.FC = () => {
         </div>
       )}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+        {elementsPanelOpen && (
+          <ElementsPanel
+            activeIframeTab={activeIframeTab}
+            iframeRef={activeIframeRef}
+          />
+        )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ flex: 1, display: activeIframeTab === 'app' ? 'flex' : 'none', minHeight: 0, flexDirection: 'column' }}>
             <div
@@ -846,6 +862,28 @@ export const ProtovibeApp: React.FC = () => {
                   </button>
                 );
               })}
+              <div style={{ width: 1, height: 16, background: theme.border_default, margin: '4px 4px' }} />
+              <button
+                onClick={toggleElementsPanel}
+                data-tooltip="Elements panel"
+                style={{
+                  width: 26,
+                  height: 24,
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: elementsPanelOpen ? theme.bg_tertiary : 'transparent',
+                  color: elementsPanelOpen ? theme.text_default : theme.text_tertiary,
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
+                onMouseLeave={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
+              >
+                <ListTree size={15} />
+              </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <GitMenu git={git} />
