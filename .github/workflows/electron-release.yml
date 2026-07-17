@@ -80,7 +80,7 @@ jobs:
       # draft) because this repo uses immutable releases — publishing freezes the
       # asset list, so we may only flip the draft live once every asset is up.
       - name: Publish release (freezes it as immutable)
-        run: gh release edit "v$(node -p "require('./package.json').version")" --draft=false --repo Protovibe-Studio/protovibe-studio
+        run: gh release edit "v$(node -p "require('./package.json').version")" --draft=false --latest --repo Protovibe-Studio/protovibe-studio
         working-directory: electron
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

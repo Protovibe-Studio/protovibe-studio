@@ -55,5 +55,6 @@ jobs:
             dist-release/protovibe-source.zip \
             dist-release/manifest.json \
             dist-release/manifest.json.sig \
+            --latest=false \
             --title "Protovibe source ${{ steps.tag.outputs.tag }}" \
             --notes "Signed auto-update release. The in-app updater verifies manifest.json.sig against the embedded Ed25519 public key before applying."
