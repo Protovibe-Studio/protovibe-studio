@@ -5,7 +5,7 @@ import ProjectPage from './components/ProjectPage.jsx'
 import CreateProjectModal from './components/CreateProjectModal.jsx'
 import ImportProjectModal from './components/ImportProjectModal.jsx'
 import CloneFromGitModal from './components/CloneFromGitModal.jsx'
-import GithubConnectModal from './components/GithubConnectModal.jsx'
+import GithubConnectView from './components/GithubConnectView.jsx'
 import AddProjectMenu from './components/AddProjectMenu.jsx'
 import DeleteProjectModal from './components/DeleteProjectModal.jsx'
 import SetupScreen from './components/SetupScreen.jsx'
@@ -30,15 +30,29 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Navigation: 'list' | 'project' | 'setup'
-  const [view, setView] = useState('list')
+  // Deeplink from a project window: /?connect-github=1 opens the GitHub flow.
+  // The param is also how we know the window isn't ours — a project opened it
+  // via window.open, so Done closes it rather than falling back to home. Read
+  // once at first render (not in an effect): the effect stripped the param, so
+  // StrictMode's second effect pass couldn't see it and reset the view to home.
+  const [openedFromProject] = useState(
+    () => new URLSearchParams(window.location.search).get('connect-github') === '1',
+  )
+
+  // Navigation: 'list' | 'project' | 'setup' | 'github'
+  const [view, setView] = useState(openedFromProject ? 'github' : 'list')
   const [activeProjectId, setActiveProjectId] = useState(null)
+
+  // GitHub flow: 'clone' goes on to the repo list once connected, 'connect'
+  // stops at the success screen. `githubFromProject` marks a window opened by a
+  // project's Connect GitHub button — that one closes itself when done.
+  const [githubIntent, setGithubIntent] = useState('connect')
+  const [githubFromProject, setGithubFromProject] = useState(openedFromProject)
 
   // Modals
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [cloneGitOpen, setCloneGitOpen] = useState(false)
-  const [githubOpen, setGithubOpen] = useState(false)
   const [deleteConfirmProject, setDeleteConfirmProject] = useState(null)
   const [setupStage, setSetupStage] = useState(null)
   const [pendingName, setPendingName] = useState('')
@@ -64,34 +78,34 @@ export default function App() {
         setActiveProjectId(null)
       }
     }
-    handlePopState()
+    // The deeplink already chose the github view — don't clobber it with the
+    // path-based route on mount. Real popstate events still navigate.
+    if (!openedFromProject) handlePopState()
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
+  }, [openedFromProject])
 
-  // Deeplink from projects/tooling: /?connect-github=1 opens the GitHub modal.
+  // Strip the deeplink param. replaceState (not push) keeps this the only
+  // history entry, which browsers require before script may close the window.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('connect-github') === '1') {
-      setGithubOpen(true)
-      window.history.replaceState(null, '', window.location.pathname)
-    }
-  }, [])
+    if (openedFromProject) window.history.replaceState(null, '', window.location.pathname)
+  }, [openedFromProject])
 
   // Connected GitHub account for the header chip. Refreshed when the GitHub
-  // modal closes (connect and log-out both happen inside it).
+  // flow exits (connect and log-out both happen inside it). null = status not
+  // known yet (render neither chip nor connect prompt), false = not connected.
   const [githubAccount, setGithubAccount] = useState(null)
   useEffect(() => {
-    if (githubOpen) return
+    if (view === 'github') return
     let cancelled = false
     fetch('/api/github/status')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!cancelled) setGithubAccount(data?.connected ? { login: data.login, avatarUrl: data.avatarUrl } : null)
+        if (!cancelled) setGithubAccount(data?.connected ? { login: data.login, avatarUrl: data.avatarUrl } : false)
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [githubOpen])
+  }, [view])
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -124,6 +138,13 @@ export default function App() {
   const openSetup = (id) => {
     setActiveProjectId(id)
     setView('setup')
+  }
+
+  const openGithub = (intent) => {
+    setGithubIntent(intent)
+    setGithubFromProject(false)
+    setActiveProjectId(null)
+    setView('github')
   }
 
   const goHome = () => {
@@ -174,7 +195,6 @@ export default function App() {
   // cloning). Phase B on done: for a Protovibe project, hand over to the
   // regular /api/projects/:id/setup flow (install → dev → ready).
   const handleCloneStart = ({ name, sseUrl }) => {
-    setGithubOpen(false)
     setError('')
     setPendingName(name)
     setCloneJob({ name, sseUrl })
@@ -312,7 +332,7 @@ export default function App() {
               compact
               onCreateNew={() => setCreateOpen(true)}
               onImportZip={() => setImportOpen(true)}
-              onConnectGithub={() => setGithubOpen(true)}
+              onConnectGithub={() => openGithub('clone')}
               onCloneGit={() => setCloneGitOpen(true)}
             />
           </div>
@@ -324,7 +344,7 @@ export default function App() {
                 <AddProjectMenu
                   onCreateNew={() => setCreateOpen(true)}
                   onImportZip={() => setImportOpen(true)}
-                  onConnectGithub={() => setGithubOpen(true)}
+                  onConnectGithub={() => openGithub('clone')}
                   onCloneGit={() => setCloneGitOpen(true)}
                 />
               </div>
@@ -376,9 +396,9 @@ export default function App() {
             <Logo className="w-auto text-foreground-default" style={{ height: '20px' }} />
           </button>
           <div className="flex items-center gap-4">
-            {githubAccount && (
+            {githubAccount ? (
               <button
-                onClick={() => setGithubOpen(true)}
+                onClick={() => openGithub('connect')}
                 title="Connected to GitHub — click to manage"
                 className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground-default transition-colors cursor-pointer"
               >
@@ -386,6 +406,14 @@ export default function App() {
                   ? <img src={githubAccount.avatarUrl} alt="" className="w-5 h-5 rounded-full" />
                   : <GithubMark className="w-4 h-4" />}
                 <span className="max-w-40 truncate">{githubAccount.login}</span>
+              </button>
+            ) : githubAccount === false && (
+              <button
+                onClick={() => openGithub('connect')}
+                className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground-default transition-colors cursor-pointer"
+              >
+                <GithubMark className="w-4 h-4" />
+                <span>Connect to GitHub</span>
               </button>
             )}
             <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
@@ -429,9 +457,11 @@ export default function App() {
         <CloneFromGitModal onClose={() => setCloneGitOpen(false)} />
       )}
 
-      {githubOpen && (
-        <GithubConnectModal
-          onClose={() => setGithubOpen(false)}
+      {view === 'github' && (
+        <GithubConnectView
+          intent={githubIntent}
+          fromProject={githubFromProject}
+          onExit={goHome}
           onClone={handleCloneStart}
         />
       )}

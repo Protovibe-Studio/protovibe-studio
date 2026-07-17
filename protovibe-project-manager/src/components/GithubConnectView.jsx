@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft, Clock } from 'lucide-react'
+import { Search, Lock, RefreshCw, ExternalLink, AlertTriangle, ArrowLeft, Clock, Check } from 'lucide-react'
 import GithubMark from '../assets/GithubMark.jsx'
 
 const NAME_RE = /^[a-zA-Z0-9_-]+$/
@@ -20,8 +20,25 @@ function timeAgo(iso) {
   return `${Math.floor(months / 12)} y ago`
 }
 
-// Steps: connect → repos (covers the "install app" empty state) → confirm
-export default function GithubConnectModal({ onClose, onClone }) {
+function Spinner() {
+  return <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
+}
+
+/**
+ * Fullscreen GitHub flow.
+ *
+ * Steps: loading → connect → success, or loading → repos → confirm when the
+ * caller wants to clone and the account is already connected. Connecting always
+ * lands on `success` rather than dropping the user straight into a repo list —
+ * the flow is most often opened from a project window, where "am I connected?"
+ * is the only question being asked.
+ *
+ * `intent` is 'clone' only for the add-project menu; everything else is
+ * 'connect'. `onExit` returns to wherever the caller came from — the Done and
+ * Cancel buttons route through `finish()` so an externally opened window closes
+ * itself instead.
+ */
+export default function GithubConnectView({ intent = 'connect', fromProject = false, onExit, onClone }) {
   const [step, setStep] = useState('loading')
   const [account, setAccount] = useState(null) // { login, avatarUrl }
   const [connectError, setConnectError] = useState('')
@@ -47,11 +64,24 @@ export default function GithubConnectModal({ onClose, onClone }) {
     return () => { closedRef.current = true }
   }, [])
 
+  // Leaving the flow. A window opened by the project's "Connect GitHub" button
+  // is script-opened, so it may close itself; when the browser refuses,
+  // window.close() is a silent no-op, so fall back to the manager rather than
+  // strand the user on a dead screen.
+  const finish = useCallback(() => {
+    if (fromProject) {
+      window.close()
+      setTimeout(() => { if (!window.closed) onExit() }, 300)
+      return
+    }
+    onExit()
+  }, [fromProject, onExit])
+
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape' && !busy) onClose() }
+    const handler = (e) => { if (e.key === 'Escape' && !busy) finish() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose, busy])
+  }, [finish, busy])
 
   const dropToConnect = (message = '') => {
     setStep('connect')
@@ -78,7 +108,7 @@ export default function GithubConnectModal({ onClose, onClone }) {
     } catch (err) {
       if (!closedRef.current && !quiet) {
         // The error text only renders on the connect step — never strand the
-        // modal on the "Checking connection" spinner with an invisible error.
+        // view on the "Checking connection" spinner with an invisible error.
         setConnectError(err.message || 'Failed to load repositories.')
         setStep('connect')
       }
@@ -87,7 +117,8 @@ export default function GithubConnectModal({ onClose, onClone }) {
     }
   }, [])
 
-  // Initial: check whether we're already connected.
+  // Initial: check whether we're already connected. Only the clone intent goes
+  // on to the repo list; the rest stop at the success screen.
   useEffect(() => {
     let cancelled = false
     fetch('/api/github/status')
@@ -96,14 +127,15 @@ export default function GithubConnectModal({ onClose, onClone }) {
         if (cancelled) return
         if (data.connected) {
           setAccount({ login: data.login, avatarUrl: data.avatarUrl })
-          fetchRepos()
+          if (intent === 'clone') fetchRepos()
+          else setStep('success')
         } else {
           setStep('connect')
         }
       })
       .catch(() => { if (!cancelled) setStep('connect') })
     return () => { cancelled = true }
-  }, [fetchRepos])
+  }, [fetchRepos, intent])
 
   // Connect step: open the OAuth page, then poll status until connected.
   const startConnect = async () => {
@@ -134,12 +166,12 @@ export default function GithubConnectModal({ onClose, onClone }) {
         if (data.connected) {
           setWaitingForAuth(false)
           setAccount({ login: data.login, avatarUrl: data.avatarUrl })
-          fetchRepos()
+          setStep('success')
         }
       } catch {}
     }, 1500)
     return () => clearInterval(interval)
-  }, [waitingForAuth, fetchRepos])
+  }, [waitingForAuth])
 
   // "Install app" empty state: auto-refetch while the user installs in the
   // other tab.
@@ -230,20 +262,54 @@ export default function GithubConnectModal({ onClose, onClone }) {
     </div>
   )
 
+  // The success screen owns the whole viewport: no heading rail, no repo list.
+  if (step === 'success') {
+    return (
+      <div className="fixed inset-0 z-50 bg-background-default flex flex-col items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-6 max-w-md w-full text-center">
+          <div className="w-12 h-12 rounded-full bg-background-success-subtle flex items-center justify-center text-foreground-success">
+            <Check size={24} strokeWidth={2.5} />
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground-default">You're connected to GitHub</h2>
+            {account?.login && (
+              <div className="flex items-center gap-2">
+                {account.avatarUrl
+                  ? <img src={account.avatarUrl} alt="" className="w-5 h-5 rounded-full" />
+                  : <GithubMark size={14} />}
+                <span className="text-sm text-foreground-secondary">{account.login}</span>
+              </div>
+            )}
+            <p className="text-sm text-foreground-tertiary">
+              {fromProject
+                ? 'You can head back to your project and sync with Git.'
+                : 'Protovibe can now reach the repositories you granted it access to.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            autoFocus
+            onClick={finish}
+            className="px-5 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary-hover text-foreground-on-primary transition-colors cursor-pointer"
+          >
+            Done
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="text-xs text-foreground-tertiary hover:text-foreground-default underline transition-colors cursor-pointer"
+          >
+            Log out
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose() }}
-    >
-      <div className="relative bg-background-elevated border border-border-default rounded-2xl shadow-xl w-full max-w-lg p-6 flex flex-col gap-5 max-h-[85vh]">
-        <button
-          onClick={onClose}
-          disabled={busy}
-          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg text-foreground-tertiary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50 cursor-pointer"
-        >
-          <X size={14} />
-        </button>
-        <div className="flex items-center justify-between gap-3 pr-9">
+    <div className="fixed inset-0 z-50 bg-background-default flex flex-col items-center overflow-y-auto p-6">
+      <div className="w-full max-w-lg my-auto flex flex-col gap-5">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-foreground-default flex items-center gap-2">
             <GithubMark size={16} />
             Connect to GitHub
@@ -252,20 +318,23 @@ export default function GithubConnectModal({ onClose, onClone }) {
         </div>
 
         {step === 'loading' && (
-          <p className="text-sm text-foreground-tertiary py-8 text-center">Checking GitHub connection...</p>
+          <div className="flex flex-col items-center gap-4 py-12">
+            <Spinner />
+            <p className="text-sm text-foreground-tertiary">Checking GitHub connection...</p>
+          </div>
         )}
 
         {step === 'connect' && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-foreground-secondary">
-              Connect your GitHub account to clone one of your repositories into Protovibe.
+              Connect your GitHub account so Protovibe can sync your projects with your repositories.
               A browser tab will open so you can authorize Protovibe.
             </p>
             {connectError && <p className="text-xs text-foreground-destructive">{connectError}</p>}
             <div className="flex items-center gap-2 justify-end">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={finish}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
               >
                 Cancel
@@ -330,6 +399,13 @@ export default function GithubConnectModal({ onClose, onClone }) {
             <p className="text-xs text-foreground-tertiary text-center">
               This screen refreshes automatically.
             </p>
+            <button
+              type="button"
+              onClick={finish}
+              className="self-center px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
           </div>
         )}
 
@@ -347,7 +423,7 @@ export default function GithubConnectModal({ onClose, onClone }) {
               />
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5 -mx-1 px-1">
+            <div className="flex-1 min-h-0 max-h-[50vh] overflow-y-auto flex flex-col gap-0.5 -mx-1 px-1">
               {reposLoading ? (
                 <p className="text-sm text-foreground-tertiary py-8 text-center">Loading repositories...</p>
               ) : filteredRepos.length === 0 ? (
@@ -393,6 +469,14 @@ export default function GithubConnectModal({ onClose, onClone }) {
                 Refresh
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={finish}
+              className="self-center px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
           </div>
         )}
 
@@ -466,7 +550,7 @@ export default function GithubConnectModal({ onClose, onClone }) {
             <div className="flex items-center gap-2 justify-end">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={finish}
                 disabled={busy}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-foreground-secondary hover:text-foreground-default hover:bg-background-secondary transition-colors disabled:opacity-50 cursor-pointer"
               >
