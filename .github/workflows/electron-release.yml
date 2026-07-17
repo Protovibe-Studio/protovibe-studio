@@ -75,3 +75,12 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # electron-builder uploads to a DRAFT (electron-builder.yml releaseType:
+      # draft) because this repo uses immutable releases — publishing freezes the
+      # asset list, so we may only flip the draft live once every asset is up.
+      - name: Publish release (freezes it as immutable)
+        run: gh release edit "v$(node -p "require('./package.json').version")" --draft=false --repo Protovibe-Studio/protovibe-studio
+        working-directory: electron
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

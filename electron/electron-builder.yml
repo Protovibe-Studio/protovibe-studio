@@ -37,8 +37,10 @@ mac:
 # their versioned names), so this only affects human downloads.
 dmg:
   artifactName: ${productName}-${arch}.${ext}
+# Draft first, publish after all assets are uploaded (workflow step) — the repo
+# uses immutable releases, which freeze assets the moment a release is published.
 publish:
   - provider: github
     owner: Protovibe-Studio
     repo: protovibe-studio
-    releaseType: release
+    releaseType: draft
