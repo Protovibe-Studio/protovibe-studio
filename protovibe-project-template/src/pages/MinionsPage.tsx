@@ -673,7 +673,7 @@ export function MinionsPage() {
 
       {selectedMinion && createPortal(
         <DialogContext.Provider value={{ isOpen: true, close: () => setSelectedMinionId(null) }}>
-          <DialogOverlay customDistanceFromTopEdge="15">
+          <DialogOverlay customDistanceFromTopEdge={15}>
             <MinionDetailsDialog minion={selectedMinion} onClose={() => setSelectedMinionId(null)} />
           </DialogOverlay>
         </DialogContext.Provider>,
