@@ -24,6 +24,7 @@ const mockSurveillanceTargets = [
 
 export function SurveillancePage() {
   const [globalMonitoring, setGlobalMonitoring] = useState(true);
+  const [, setDrawerOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-8">
