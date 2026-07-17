@@ -834,6 +834,28 @@ export const ProtovibeApp: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', gap: 2 }}>
+              <button
+                onClick={toggleElementsPanel}
+                data-tooltip="Elements panel"
+                style={{
+                  width: 28,
+                  height: 24,
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: elementsPanelOpen ? theme.bg_tertiary : 'transparent',
+                  color: elementsPanelOpen ? theme.text_default : theme.text_secondary,
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_default; } }}
+                onMouseLeave={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_secondary; } }}
+              >
+                <ListTree size={16} />
+              </button>
+              <div style={{ width: 1, height: 16, background: theme.border_default, margin: '4px 4px' }} />
               {(['light', 'dark'] as const).map(t => {
                 const active = iframeTheme === t;
                 return (
@@ -862,28 +884,6 @@ export const ProtovibeApp: React.FC = () => {
                   </button>
                 );
               })}
-              <div style={{ width: 1, height: 16, background: theme.border_default, margin: '4px 4px' }} />
-              <button
-                onClick={toggleElementsPanel}
-                data-tooltip="Elements panel"
-                style={{
-                  width: 26,
-                  height: 24,
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: elementsPanelOpen ? theme.bg_tertiary : 'transparent',
-                  color: elementsPanelOpen ? theme.text_default : theme.text_tertiary,
-                  transition: 'background 0.15s, color 0.15s',
-                }}
-                onMouseEnter={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
-                onMouseLeave={e => { if (!elementsPanelOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
-              >
-                <ListTree size={15} />
-              </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <GitMenu git={git} />

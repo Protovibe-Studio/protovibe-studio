@@ -470,7 +470,7 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, i
                     paddingRight: 12,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
-                    background: isSelected ? theme.accent_low : isHovered ? theme.bg_low : 'transparent',
+                    background: isSelected ? theme.accent_tertiary : isHovered ? theme.bg_low : 'transparent',
                     boxShadow: isSelected ? `inset 2px 0 0 ${theme.accent_default}` : 'none',
                   }}
                 >
@@ -501,7 +501,7 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, i
                   )}
                   {node.componentName ? (
                     <>
-                      <span style={{ color: node.editable ? theme.accent_default : theme.text_secondary, fontWeight: 500 }}>
+                      <span style={{ color: node.editable ? theme.text_default : theme.text_secondary, fontWeight: 500 }}>
                         {node.componentName}
                       </span>
                       <span style={{ color: theme.text_low, marginLeft: 6 }}>{node.tag}</span>
