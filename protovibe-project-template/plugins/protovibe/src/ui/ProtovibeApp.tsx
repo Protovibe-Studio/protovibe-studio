@@ -654,13 +654,18 @@ export const ProtovibeApp: React.FC = () => {
         </div>
       )}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
-        {elementsPanelOpen && (
-          <ElementsPanel
-            activeIframeTab={activeIframeTab}
-            iframeRef={activeIframeRef}
-          />
-        )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+          {/* Row holding the elements panel next to the canvas. The panel only
+              squeezes the iframe here — the bottom bar below spans full width. */}
+          <div style={{ flex: 1, display: 'flex', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+            {elementsPanelOpen && (
+              <ElementsPanel
+                activeIframeTab={activeIframeTab}
+                iframeRef={activeIframeRef}
+                onClose={toggleElementsPanel}
+              />
+            )}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
           <div style={{ flex: 1, display: activeIframeTab === 'app' ? 'flex' : 'none', minHeight: 0, flexDirection: 'column' }}>
             <div
               style={{
@@ -819,6 +824,8 @@ export const ProtovibeApp: React.FC = () => {
               onLoad={() => handleIframeLoad(componentsIframeRef)}
             />
             {renderCrashCover(componentsIframeRef)}
+          </div>
+            </div>
           </div>
           <div
             style={{
