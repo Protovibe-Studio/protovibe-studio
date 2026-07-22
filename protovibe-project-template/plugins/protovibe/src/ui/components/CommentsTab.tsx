@@ -245,20 +245,18 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [profileOpen, setProfileOpen] = useState(false);
   const pendingActionRef = React.useRef<((author: CommentAuthor) => void) | null>(null);
 
-  // Previews the user had switched on survive a page refresh (the service mirrors
-  // them into localStorage), so the first load reconciles them against what's
-  // actually on disk — a suggestion whose comment was deleted or reworded in the
-  // meantime must not keep rewriting the canvas with no UI to switch it off.
-  const reconciledRef = useRef(false);
-
   const refresh = useCallback(async () => {
     try {
       const next = await fetchCommentThreads();
       setThreads(next);
-      if (!reconciledRef.current) {
-        reconciledRef.current = true;
-        getCopySuggestionPreview().reconcile(savedSuggestionRefs(next));
-      }
+      // Reconcile the live previews against what's now on disk on EVERY refresh,
+      // not just the first. This fires on the initial load, on undo/redo, and —
+      // crucially — after a git sync/pull (via the pv-comments-refresh event) and
+      // after a local edit. A synced or edited suggestion can be added, reworded,
+      // or removed, and the canvas iframe may have reloaded; reconcile prunes gone
+      // previews, follows reworded ones to the new copy, and re-applies them to
+      // the current canvas so the preview never lags behind the saved comment.
+      getCopySuggestionPreview().reconcile(savedSuggestionRefs(next));
     } catch (e) {
       setError(String(e));
     }
