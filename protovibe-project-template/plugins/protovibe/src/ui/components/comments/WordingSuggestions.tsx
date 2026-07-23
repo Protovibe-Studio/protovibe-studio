@@ -23,7 +23,7 @@
 // the canvas keeps showing the proposed copy once the comment lands) and is only
 // dropped on an explicit cancel — the toolbar toggle, the section's X, or the
 // parent discarding the draft via clearSuggestionPreviews().
-import React, { useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Check, Plus, RotateCcw, TextCursorInput, Trash2, X } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -74,6 +74,38 @@ export function clearSuggestionPreviews(rows: WordingSuggestion[], threadId?: st
 
 const labelStyle: React.CSSProperties = {
   fontSize: 10, color: theme.text_tertiary, fontFamily: theme.font_ui, marginBottom: 2,
+};
+
+/**
+ * A single-line-looking field that grows to fit its content instead of clipping
+ * or scrolling, so a long suggestion (or a wrapped original string) stays fully
+ * visible while it's being written. Re-measures on every value change — including
+ * the initial mount when editing a saved comment seeds the field with existing
+ * copy — mirroring the composer's own auto-growing message box.
+ */
+const AutoGrowTextarea: React.FC<{
+  value: string;
+  onChange: (next: string) => void;
+  placeholder: string;
+  style: React.CSSProperties;
+}> = ({ value, onChange, placeholder, style }) => {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={1}
+      style={{ resize: 'none', overflow: 'hidden', display: 'block', ...style }}
+    />
+  );
 };
 
 // ── Composer editor ───────────────────────────────────────────────────────────
@@ -240,9 +272,9 @@ export const SuggestionComposerSection: React.FC<{
                 <Trash2 size={11} />
               </button>
             </div>
-            <input
+            <AutoGrowTextarea
               value={row.original}
-              onChange={(e) => updateOriginal(idx, e.target.value)}
+              onChange={(v) => updateOriginal(idx, v)}
               placeholder="Original wording…"
               style={{
                 width: '100%', boxSizing: 'border-box', fontSize: 12, fontFamily: theme.font_ui, color: theme.text_secondary,
@@ -251,14 +283,14 @@ export const SuggestionComposerSection: React.FC<{
               }}
             />
             <div style={{ ...labelStyle, marginTop: 4 }}>Suggested wording</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <input
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+              <AutoGrowTextarea
                 value={row.suggested}
-                onChange={(e) => updateOne(idx, e.target.value)}
+                onChange={(v) => updateOne(idx, v)}
                 placeholder="Suggested wording…"
                 style={{
-                  flex: 1, minWidth: 0, fontSize: 12, fontFamily: theme.font_ui, color: theme.text_default,
-                  padding: '5px 7px', borderRadius: 4, outline: 'none',
+                  flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: 12, fontFamily: theme.font_ui, color: theme.text_default,
+                  padding: '5px 7px', borderRadius: 4, outline: 'none', lineHeight: 1.4,
                   background: theme.bg_strong,
                   border: `1px solid ${dirty ? theme.accent_default : theme.border_default}`,
                 }}
