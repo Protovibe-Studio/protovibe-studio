@@ -92,8 +92,11 @@ export interface CopySuggestionPreview {
   /** Drop every composer-draft preview (entries with no thread id). */
   clearDrafts(): void;
   /**
-   * Drop persisted previews that no longer match a saved suggestion (its comment
-   * was deleted, or its wording was edited). Call once threads are loaded.
+   * Bring the live previews back in step with what's saved on disk, then re-apply
+   * them to the canvas. Drops previews whose suggestion was deleted, follows one
+   * whose wording was edited to the new copy, and re-applies everything (so a
+   * canvas the git sync / HMR just reloaded gets the previews stamped back on).
+   * Call after every threads load, not only the first.
    */
   reconcile(saved: SavedSuggestionRef[]): void;
   /** Subscribe to registry changes; returns an unsubscribe fn. */
@@ -405,17 +408,42 @@ function createService(): CopySuggestionPreview {
   };
 
   const reconcile = (saved: SavedSuggestionRef[]) => {
-    const valid = new Set(saved.map((s) =>
-      [s.threadId, s.original.trim(), s.suggested, !!s.replaceAll].join(SEP)));
-    let changed = false;
+    // Nothing is previewed → nothing to prune, follow, or re-apply.
+    if (registry.size === 0) return;
+    // Group saved suggestions by the (thread, original) that keys a preview. A
+    // thread can carry several suggestions for the same original (different
+    // comments), so keep the whole list: an existing preview should match one
+    // exactly before we assume it was reworded.
+    const byKey = new Map<string, SavedSuggestionRef[]>();
+    for (const s of saved) {
+      const k = `${s.threadId}${SEP}${s.original.trim()}`;
+      const list = byKey.get(k);
+      if (list) list.push(s); else byKey.set(k, [s]);
+    }
     for (const [key, entry] of Array.from(registry)) {
       if (!entry.threadId) continue;
-      if (!valid.has([entry.threadId, entry.original, entry.suggested, entry.replaceAll].join(SEP))) {
+      const candidates = byKey.get(`${entry.threadId}${SEP}${entry.original}`);
+      if (!candidates) {
+        // The suggestion this preview tracked is gone (its comment or the
+        // suggestion itself was deleted) → drop the stale preview.
         registry.delete(key);
-        changed = true;
+        continue;
+      }
+      // Follow an edit: if no saved suggestion still matches exactly, adopt the
+      // latest saved copy for this original so a reworded suggestion's live
+      // preview updates to the new wording instead of lingering on the old one.
+      const exact = candidates.some((s) => s.suggested === entry.suggested && !!s.replaceAll === entry.replaceAll);
+      if (!exact) {
+        const next = candidates[candidates.length - 1];
+        entry.suggested = next.suggested;
+        entry.replaceAll = !!next.replaceAll;
       }
     }
-    if (changed) refreshCanvas();
+    // Always re-apply, even when the registry itself didn't change: callers run
+    // reconcile after a git sync / undo / edit, any of which can reload the
+    // canvas iframe or leave a recycled text node holding a stale preview, and
+    // rely on this to bring the DOM back in step with the active previews.
+    refreshCanvas();
   };
 
   hydrate();
