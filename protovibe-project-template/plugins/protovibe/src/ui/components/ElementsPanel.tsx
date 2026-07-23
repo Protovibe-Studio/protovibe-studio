@@ -3,7 +3,7 @@
 // canvas hover outline (via PV_TREE_HOVER — see bridge.ts), clicking selects
 // the element through the same focusElement path a canvas click uses.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, ListTree } from 'lucide-react';
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, X } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
 import { isElementAllowed } from '../utils/traversal';
@@ -91,9 +91,10 @@ function ensureRuntimeId(el: HTMLElement): string {
 type ElementsPanelProps = {
   activeIframeTab: IframeTab;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  onClose: () => void;
 };
 
-export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, iframeRef }) => {
+export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, iframeRef, onClose }) => {
   const { focusElement, currentBaseTarget } = useProtovibe();
 
   const [roots, setRoots] = useState<TreeNode[]>([]);
@@ -372,7 +373,6 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, i
         }}
       >
         <span style={{ fontWeight: 600, fontSize: 12, color: theme.text_secondary, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <ListTree size={14} />
           Elements
         </span>
         <div style={{ display: 'flex', gap: 2 }}>
@@ -395,6 +395,16 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, i
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
           >
             <ChevronsDownUp size={14} />
+          </button>
+          <div style={{ width: 1, height: 16, background: theme.border_default, margin: '0 2px', alignSelf: 'center' }} />
+          <button
+            onClick={onClose}
+            data-tooltip="Close panel"
+            style={headerButtonStyle(true)}
+            onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+          >
+            <X size={14} />
           </button>
         </div>
       </div>
