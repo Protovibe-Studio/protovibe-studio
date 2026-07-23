@@ -3,7 +3,7 @@
 // canvas hover outline (via PV_TREE_HOVER — see bridge.ts), clicking selects
 // the element through the same focusElement path a canvas click uses.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, ListTree, X } from 'lucide-react';
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, X } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
 import { isElementAllowed } from '../utils/traversal';
@@ -373,7 +373,6 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ activeIframeTab, i
         }}
       >
         <span style={{ fontWeight: 600, fontSize: 12, color: theme.text_secondary, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <ListTree size={14} />
           Elements
         </span>
         <div style={{ display: 'flex', gap: 2 }}>
