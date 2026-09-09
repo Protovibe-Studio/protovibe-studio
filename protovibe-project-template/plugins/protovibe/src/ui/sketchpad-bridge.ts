@@ -4,6 +4,7 @@
 // Supports selecting, dragging, and focusing them in the inspector.
 
 import { isTypingInput } from './utils/elementType';
+import { installCanvasLinkInterceptor } from './utils/canvasLinks';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
@@ -1874,6 +1875,11 @@ function init() {
     ::-webkit-scrollbar-corner { background: #222222; }
   `;
   document.head.appendChild(scrollbarStyle);
+
+  // Frames render the same components as the app canvas, so their links get the
+  // same treatment — but navigating this document would tear down the sketchpad,
+  // so the shell opens the page in the app canvas instead.
+  installCanvasLinkInterceptor({ destination: 'shell' });
 
   document.addEventListener('pointerdown', handlePointerDown, true);
   document.addEventListener('pointermove', handlePointerMove, true);

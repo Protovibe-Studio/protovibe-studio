@@ -4,6 +4,7 @@
 
 import { isElementAllowed } from './utils/traversal';
 import { isTypingInput } from './utils/elementType';
+import { installCanvasLinkInterceptor } from './utils/canvasLinks';
 
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
@@ -604,6 +605,13 @@ function init() {
   if (window.parent === window) return;
 
   setEditingStylesheet(isInspectorActive);
+  // Keep `target="_blank"` links and `window.open()` from popping a second
+  // Electron window — a prototype page belongs on the app canvas. This bundle
+  // also runs in components.html, which only hosts component previews, so from
+  // there the shell opens the page in the app canvas instead.
+  installCanvasLinkInterceptor({
+    destination: window.location.pathname.endsWith('/components.html') ? 'shell' : 'self',
+  });
   document.addEventListener('pointerdown', handlePointerDown, true);
   document.addEventListener('click', handleClick, true);
   document.addEventListener('mousemove', handleMouseMove, true);
