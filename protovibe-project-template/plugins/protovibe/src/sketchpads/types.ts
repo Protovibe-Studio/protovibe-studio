@@ -12,12 +12,12 @@ export interface Sketchpad {
   name: string;
   createdAt: string;
   frames: SketchpadFrame[];
-  viewState?: CanvasTransform;
 }
 
+// Shared design data only. The camera (pan/zoom, last-active sketchpad) is
+// per-user and lives in localStorage — see ./local-view-state.ts.
 export interface Registry {
   sketchpads: Sketchpad[];
-  lastActiveSketchpadId?: string;
 }
 
 export interface CanvasTransform {
