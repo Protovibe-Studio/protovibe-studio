@@ -326,11 +326,14 @@ export function SketchpadApp() {
     localViewState.setLastActiveSketchpadId(activeSketchpadId);
   }, [activeSketchpadId]);
 
-  // Debounced persistence of pan/zoom for the active sketchpad. localStorage is
-  // synchronous, so this only debounces to keep a pan drag from writing on every
-  // animation frame. Skips the very first transform value after switching
-  // sketchpads (set programmatically from saved state or from auto-centering) to
-  // avoid a redundant write back.
+  // Debounced persistence of pan/zoom for the active sketchpad. The timer is
+  // trailing — every transform change clears the pending one — so a continuous
+  // pan or zoom writes nothing until the camera has been still for a second,
+  // keeping synchronous localStorage off the main thread during a gesture.
+  // Skips the very first transform value after switching sketchpads (set
+  // programmatically from saved state or from auto-centering) to avoid a
+  // redundant write back. The unload flush below covers a move that never
+  // reaches the timer.
   const lastSavedTransformRef = useRef<{ id: string; transform: CanvasTransform } | null>(null);
   useEffect(() => {
     if (!activeSketchpadId) return;
@@ -344,7 +347,7 @@ export function SketchpadApp() {
     const handle = setTimeout(() => {
       lastSavedTransformRef.current = { id: activeSketchpadId, transform };
       localViewState.saveViewState(activeSketchpadId, transform);
-    }, 300);
+    }, 1000);
     return () => clearTimeout(handle);
   }, [activeSketchpadId, transform]);
 
