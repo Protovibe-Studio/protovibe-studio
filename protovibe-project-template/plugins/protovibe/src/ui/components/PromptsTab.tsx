@@ -567,7 +567,7 @@ export const PromptsTab: React.FC = () => {
             storageKey="pv-prompts-open-action-v2"
             disabled={step < 3 || !projectRoot}
             options={[
-              { id: 'reveal', label: 'Show project folder in Finder', icon: <FolderOpen size={13} />, onClick: revealFolder },
+              { id: 'reveal', label: 'Show project folder', icon: <FolderOpen size={13} />, onClick: revealFolder },
               { id: 'vscode', label: 'Open project in VS Code', icon: <ExternalLink size={14} />, onClick: openInVsCode },
               { id: 'cd', label: 'Copy terminal cd path', icon: <Terminal size={13} />, onClick: copyCdPath, successLabel: 'Copied!' },
             ]}
