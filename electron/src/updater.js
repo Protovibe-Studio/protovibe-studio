@@ -1,6 +1,11 @@
-const { app, dialog } = require('electron');
+const { app, dialog, shell, autoUpdater: nativeUpdater } = require('electron');
+const { createInstallGate } = require('./install-gate');
 
 const CHECK_INTERVAL = 6 * 60 * 60 * 1000;
+// Squirrel.Mac fetches the zip from a localhost proxy and verifies it; that is
+// seconds, so anything near this is a failure it never reported.
+const INSTALL_READY_TIMEOUT = 3 * 60 * 1000;
+const RELEASES_URL = 'https://github.com/Protovibe-Studio/protovibe-studio/releases/latest';
 
 // Shell self-update via GitHub Releases (latest-mac.yml + dmg/zip published by
 // CI on shell-v* tags). Independent of the in-app zipball updater, which keeps
@@ -17,7 +22,39 @@ function initUpdater({ requestQuitAndInstall, log }) {
   autoUpdater.logger = { info: log, warn: log, error: log, debug: () => {} };
   autoUpdater.autoDownload = true;
 
+  const gate = createInstallGate({ nativeUpdater, log });
+  const reportedFailures = new Set();
+
+  function reportInstallFailure(version, err) {
+    log(`update ${version} downloaded but cannot be installed: ${err.message}`);
+    // Once per version per run — the periodic re-check would otherwise nag.
+    if (reportedFailures.has(version)) return;
+    reportedFailures.add(version);
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Protovibe update',
+      message: `Protovibe ${version} was downloaded but could not be installed.`,
+      detail: `${err.message}\n\nYou can download the new version manually from the releases page.`,
+      buttons: ['Open releases page', 'Close'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then(({ response }) => {
+      if (response === 0) shell.openExternal(RELEASES_URL);
+    });
+  }
+
   autoUpdater.on('update-downloaded', async (info) => {
+    // Only offer the restart once the install can really happen (see
+    // install-gate.js): accepting the prompt stops the dev server, and a
+    // quitAndInstall() that then does nothing would strand the user on a
+    // dead page.
+    gate.reset();
+    try {
+      await gate.whenInstallable(INSTALL_READY_TIMEOUT);
+    } catch (err) {
+      reportInstallFailure(info.version, err);
+      return;
+    }
     const { response } = await dialog.showMessageBox({
       type: 'info',
       title: 'Protovibe update',

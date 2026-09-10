@@ -21,6 +21,10 @@ Shims live in `~/.protovibe/toolchain/bin` and are rewritten on every boot (`src
 - `../protovibe-project-manager/scripts/create-shortcut.js` — `~/.protovibe/project-path` convention and the `.pending → live` swap ported into `src/staged-update.js`.
 - Electron major must ship Node major 22 (see repo `.nvmrc`); pin exact electron version.
 
+## Shell self-update (`src/updater.js`)
+
+electron-updater downloads the zip, but on macOS the install is done by Squirrel.Mac (Electron's native `autoUpdater`), which fetches that zip from electron-updater's local proxy and verifies its signature *after* electron-updater's `update-downloaded` fires. `src/install-gate.js` waits for Squirrel's own `update-downloaded` (or error) and only then does the shell offer "Restart now", because accepting it stops the dev server and a `quitAndInstall()` Squirrel can't act on is a silent no-op. Once the install starts, `window-all-closed` must not call `app.quit()` — Squirrel closes the windows and relaunches by itself; `main.js` guards that with `installingUpdate` and exits with an error box if the relaunch never comes.
+
 ## Dev mode
 
 `pnpm dev` runs `electron . --protovibe-repo=..` — uses the checked-out repo as the install root, skips first-run extraction, resolves `pnpm.cjs` from `electron/node_modules`, but still writes shims and applies pending swaps, so the spawn chain matches production.
