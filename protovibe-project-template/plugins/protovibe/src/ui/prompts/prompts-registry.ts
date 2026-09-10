@@ -18,6 +18,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 import {
+  AtSign,
   LayoutTemplate,
   Wand,
   Rocket,
@@ -65,6 +66,13 @@ export interface PromptDef {
    * textarea is just for tweaks.
    */
   inputOptional?: boolean;
+  /**
+   * Text substituted for {{input}} when the user leaves the textarea empty.
+   * Only meaningful together with `inputOptional`. Defaults to a readable
+   * "(no extra instructions)" note; set it to '' for prompts that should
+   * render as a bare payload when nothing is typed.
+   */
+  emptyInputFallback?: string;
   /**
    * Final prompt template. Supports the placeholders listed at the top of
    * this file. Indentation inside the backticks is preserved verbatim.
@@ -146,6 +154,29 @@ export const PROMPTS: PromptDef[] = [
   - Everything should be editable in Protovibe - add supergranular pv-block and pv-editable-zone tags if needed
   
   {{agentsRules}}`,
+  },
+  {
+    id: 'reference-element',
+    title: 'Reference element',
+    description: 'Copy just the references to the selected element — file, line range, block id, and source — to paste into your own prompt.',
+    icon: AtSign,
+    inputLabel: 'Extra instructions (optional)…',
+    inputPlaceholder: 'this is the card I keep talking about',
+    inputOptional: true,
+    emptyInputFallback: '',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Here is the element I'm referring to:
+
+  File: \`{{file}}\`
+  Lines: {{startLine}}–{{endLine}}
+  Protovibe block id: {{blockId}}
+
+  Source:
+  \`\`\`tsx
+  {{code}}
+  \`\`\`
+
+  {{input}}`,
   },
   {
     id: 'enrich-with-blocks',
@@ -435,7 +466,11 @@ export function renderPrompt(
   userInput: string,
 ): string {
   const map: Record<string, string> = {
-    input: userInput.trim() || (def.inputOptional ? '(no extra instructions)' : '(user input missing)'),
+    input:
+      userInput.trim() ||
+      (def.inputOptional
+        ? def.emptyInputFallback ?? '(no extra instructions)'
+        : '(user input missing)'),
     file: fallback(ctx.file, 'file selected'),
     startLine: fallback(ctx.startLine, 'start line'),
     endLine: fallback(ctx.endLine, 'end line'),
@@ -443,7 +478,7 @@ export function renderPrompt(
     code: ctx.code?.trim() || '(no code captured)',
     agentsRules: AGENTS_RULES_SUFFIX,
   };
-  return def.template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
-    key in map ? map[key] : `{{${key}}}`,
-  );
+  return def.template
+    .replace(/\{\{(\w+)\}\}/g, (_, key) => (key in map ? map[key] : `{{${key}}}`))
+    .trimEnd();
 }
