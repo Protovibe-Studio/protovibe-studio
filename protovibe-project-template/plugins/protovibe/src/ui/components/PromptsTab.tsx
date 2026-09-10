@@ -129,7 +129,7 @@ function AttachmentItem({ att, onRemove }: { att: PromptAttachment; onRemove: ()
   const isImage = !!att.previewUrl && !previewFailed;
   return (
     <div
-      data-tooltip={att.absolutePath}
+      data-tooltip={att.name}
       style={{
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: 6,
@@ -212,9 +212,6 @@ function DropOverlay() {
       <Paperclip size={22} color={theme.accent_default} />
       <div style={{ fontFamily: theme.font_ui, fontSize: 13, fontWeight: 600, color: theme.text_default }}>
         Drop to attach
-      </div>
-      <div style={{ fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary, textAlign: 'center', maxWidth: 220, lineHeight: 1.4 }}>
-        Files are copied into the project and referenced by path in the copied prompt. Kept for 7 days.
       </div>
     </div>
   );
@@ -657,9 +654,6 @@ export const PromptsTab: React.FC = () => {
                 </button>
               </div>
               <AttachmentTray items={attachments} saving={savingCount} onRemove={removeAttachment} />
-              <div style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, lineHeight: 1.4 }}>
-                Referenced by file path in every prompt you copy. Copies are kept in the project for 7 days.
-              </div>
             </div>
           )}
         </div>
