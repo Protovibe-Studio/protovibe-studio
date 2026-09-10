@@ -2,12 +2,32 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 // Big trees (node_modules is ~100k files) intermittently fail to delete on
-// macOS with ENOTEMPTY/EBUSY as the filesystem catches up; Node retries those
-// exact errors when asked to. Every recursive delete in the shell goes
-// through here.
-const RM_OPTS = { recursive: true, force: true, maxRetries: 5, retryDelay: 200 };
-function rmTree(p) {
-  fs.rmSync(p, RM_OPTS);
+// macOS with ENOTEMPTY/EBUSY as the filesystem catches up. Node's own
+// maxRetries only re-issues the final rmdir() of a directory — it never
+// re-walks the children — so when a child is still lingering (or Finder /
+// Spotlight dropped a .DS_Store back in) every one of those retries fails
+// the same way and the update dies with "ENOTEMPTY: rmdir '.../plugins'".
+// The outer loop here restarts the whole recursive delete, which re-scans
+// and removes whatever is left, with backoff between attempts (~6s total).
+// Every recursive delete in the shell goes through here.
+const RM_OPTS = { recursive: true, force: true, maxRetries: 3, retryDelay: 100 };
+const RM_RETRY_CODES = new Set(['ENOTEMPTY', 'EBUSY', 'EPERM', 'EMFILE', 'ENFILE']);
+const RM_ATTEMPTS = 7;
+const RM_BASE_DELAY_MS = 100;
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function rmTree(p, { attempt = (target) => fs.rmSync(target, RM_OPTS), sleep = sleepSync } = {}) {
+  for (let i = 1; ; i++) {
+    try {
+      return attempt(p);
+    } catch (err) {
+      if (i >= RM_ATTEMPTS || !RM_RETRY_CODES.has(err.code)) throw err;
+      sleep(RM_BASE_DELAY_MS * 2 ** (i - 1));
+    }
+  }
 }
 
 // Where a workspace's node_modules is parked while its sources are replaced.
