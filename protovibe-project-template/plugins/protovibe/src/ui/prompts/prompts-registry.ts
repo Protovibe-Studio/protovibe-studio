@@ -160,12 +160,12 @@ export const PROMPTS: PromptDef[] = [
   {
     id: 'reference-element',
     title: 'Reference element',
-    description: 'Copy just the references to the selected element — file, line range, block id, and source — to paste into your own prompt.',
+    description: 'Copy the references to the selected element — file, line range, block id, and source — plus any instructions you want to add.',
     icon: AtSign,
-    inputLabel: 'Extra instructions (optional)…',
-    inputPlaceholder: 'this is the card I keep talking about',
+    inputLabel: 'Additional instructions (optional)…',
+    inputPlaceholder: 'tighten the spacing between the avatar and the name',
     inputOptional: true,
-    emptyInputFallback: '',
+    emptyInputFallback: '(none — this is just a reference to the element)',
     references: ['file', 'blockId', 'lineRange', 'code'],
     template: `Here is the element I'm referring to:
 
@@ -178,6 +178,7 @@ export const PROMPTS: PromptDef[] = [
   {{code}}
   \`\`\`
 
+  Additional instructions:
   {{input}}
 
   {{agentsRules}}`,
