@@ -1,7 +1,7 @@
 {
   "name": "protovibe-shell",
   "private": true,
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Protovibe desktop shell",
   "type": "commonjs",
   "main": "src/main.js",
