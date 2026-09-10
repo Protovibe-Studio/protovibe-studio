@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 
-export default function UpdateAppModal({ onClose, updatePluginsInProjects = false }) {
+export default function UpdateAppModal({ onClose }) {
   const [logs, setLogs] = useState([])
-  // running-template | updating-plugins | running-manager | restart-required | done | failed
+  // running-template | running-manager | restart-required | done | failed
   const [status, setStatus] = useState('running-template')
   const [error, setError] = useState('')
   const [summary, setSummary] = useState({
@@ -11,9 +11,6 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
     templateVersion: null,
     managerUpdated: false,
     managerVersion: null,
-    pluginsTotal: 0,
-    pluginsDone: 0,
-    pluginFailures: [],
   })
   const logRef = useRef(null)
   const startedRef = useRef(false)
@@ -66,47 +63,6 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
     })()
   })
 
-  const updatePluginsForAllProjects = async () => {
-    appendLog('--- updating Protovibe shell in all projects ---')
-    let projects
-    try {
-      const res = await fetch('/api/projects', { cache: 'no-store' })
-      if (!res.ok) throw new Error(`GET /api/projects failed (${res.status})`)
-      projects = await res.json()
-    } catch (e) {
-      appendLog(`failed to list projects: ${e.message}`)
-      throw e
-    }
-
-    setSummary((s) => ({ ...s, pluginsTotal: projects.length, pluginsDone: 0, pluginFailures: [] }))
-    if (projects.length === 0) {
-      appendLog('no projects to update.')
-      return
-    }
-
-    const failures = []
-    for (let i = 0; i < projects.length; i++) {
-      const p = projects[i]
-      appendLog(`[${i + 1}/${projects.length}] updating ${p.name} ...`)
-      try {
-        const res = await fetch(`/api/projects/${p.id}/update-plugin`, { method: 'POST' })
-        const data = await res.json().catch(() => ({}))
-        if (res.ok) {
-          appendLog(`[${i + 1}/${projects.length}] ${p.name} → v${data.pluginVersion ?? '?'}`)
-        } else {
-          const msg = data?.error || `HTTP ${res.status}`
-          appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${msg}`)
-          failures.push({ name: p.name, error: msg })
-        }
-      } catch (e) {
-        appendLog(`[${i + 1}/${projects.length}] ${p.name} FAILED: ${e.message}`)
-        failures.push({ name: p.name, error: e.message })
-      }
-      setSummary((s) => ({ ...s, pluginsDone: i + 1, pluginFailures: [...failures] }))
-    }
-    appendLog('--- finished updating projects ---')
-  }
-
   useEffect(() => {
     if (startedRef.current) return
     startedRef.current = true
@@ -133,33 +89,20 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
         return
       }
 
-      // 1) Template (do first so the project plugin sweep uses fresh source).
-      let templateActuallyUpdated = false
+      // 1) Template first. Projects are not swept here: each one syncs its
+      //    editor from the refreshed template on its next run, so the app
+      //    update stays as short as the download itself however many projects
+      //    the user has.
       if (tplOutdated) {
         setStatus('running-template')
         const r = await streamUpdate('template')
         if (!r.ok) { setError(r.error); setStatus('failed'); return }
         if (r.data?.templateUpdated) {
-          templateActuallyUpdated = true
           setSummary((s) => ({ ...s, templateUpdated: true, templateVersion: r.data.templateVersion }))
         }
       }
 
-      // 2) Project plugin sweep — only meaningful if template was actually
-      //    refreshed and the user opted in. Use the local flag rather than
-      //    summaryRef, which lags behind setSummary by one render.
-      if (templateActuallyUpdated && updatePluginsInProjects) {
-        setStatus('updating-plugins')
-        try {
-          await updatePluginsForAllProjects()
-        } catch (e) {
-          setError(e.message || 'Failed to update project plugins.')
-          setStatus('failed')
-          return
-        }
-      }
-
-      // 3) Manager last — its files get staged to a sibling .pending dir,
+      // 2) Manager last — its files get staged to a sibling .pending dir,
       //    which the launcher swaps in on next start. Nothing in the running
       //    process is overwritten, so vite stays happy.
       if (mgrOutdated) {
@@ -190,7 +133,6 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
   const title = (() => {
     switch (status) {
       case 'running-template':  return 'Updating project template…'
-      case 'updating-plugins':  return 'Updating projects…'
       case 'running-manager':   return 'Updating project manager…'
       case 'restart-required':  return 'Restart required'
       case 'done':              return 'Update complete'
@@ -199,7 +141,7 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
     }
   })()
 
-  const inFlight = status === 'running-template' || status === 'updating-plugins' || status === 'running-manager'
+  const inFlight = status === 'running-template' || status === 'running-manager'
 
   return (
     <div
@@ -233,9 +175,6 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
           <div className="flex items-center gap-2 text-sm text-foreground-secondary">
             <Loader2 size={14} className="animate-spin" />
             {status === 'running-template' && 'Downloading and installing latest project template…'}
-            {status === 'updating-plugins' && (
-              <span>Updating Protovibe shell in projects ({summary.pluginsDone}/{summary.pluginsTotal})…</span>
-            )}
             {status === 'running-manager' && 'Downloading and staging latest project manager…'}
           </div>
         )}
@@ -263,14 +202,9 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
               {summary.templateUpdated && <span>Project template updated to <span className="font-mono">{summary.templateVersion}</span>.</span>}
               {summary.managerUpdated && <span>Project manager updated to <span className="font-mono">{summary.managerVersion}</span>.</span>}
               {!summary.templateUpdated && !summary.managerUpdated && <span>Already up to date.</span>}
-              {summary.pluginsTotal > 0 && (
-                <span>
-                  Updated Protovibe shell in {summary.pluginsDone - summary.pluginFailures.length}/{summary.pluginsTotal} project{summary.pluginsTotal === 1 ? '' : 's'}.
-                </span>
-              )}
-              {summary.pluginFailures.length > 0 && (
-                <span className="text-foreground-destructive">
-                  Failed: {summary.pluginFailures.map((f) => f.name).join(', ')}
+              {summary.templateUpdated && (
+                <span className="text-foreground-secondary">
+                  Each project updates its Protovibe editor the next time you run it.
                 </span>
               )}
             </div>
