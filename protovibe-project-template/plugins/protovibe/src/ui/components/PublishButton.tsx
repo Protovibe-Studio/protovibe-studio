@@ -760,8 +760,7 @@ export function PublishButton() {
                 data-tooltip="Copy link"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: '20px', height: '20px', flexShrink: 0,
-                  height: '15px',
+                  width: '20px', height: '15px', flexShrink: 0,
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                   color: copied ? '#34c759' : theme.text_secondary,
                 }}

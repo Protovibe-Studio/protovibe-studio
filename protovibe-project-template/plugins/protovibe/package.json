@@ -11,6 +11,7 @@
     }
   },
   "scripts": {
+    "lint": "tsc --noEmit",
     "dev": "concurrently \"pnpm run watch:node\" \"pnpm run watch:ui\"",
     "build": "tsup src/index.ts --format esm --dts && esbuild src/ui/inspector.tsx --bundle --minify --outfile=dist/ui/inspector.js && esbuild src/ui/bridge.ts --bundle --minify --outfile=dist/ui/bridge.js && esbuild src/ui/sketchpad-bridge.ts --bundle --minify --outfile=dist/ui/sketchpad-bridge.js && node scripts/write-build-info.js",
     "watch:node": "tsup src/index.ts --format esm --dts --watch",
