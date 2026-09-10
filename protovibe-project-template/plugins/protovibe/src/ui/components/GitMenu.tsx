@@ -6,8 +6,16 @@
 // When Git isn't ready we explain the situation in plain language. Projects
 // without a repo/remote get an intro to GitHub (what it is, why a designer would
 // want it) and a one-click flow: connect via the Protovibe manager app, then
-// init + private repo + push. The old paste-to-your-coding-agent prompts remain
-// as a collapsed escape hatch.
+// init + private repo + push.
+//
+// Every failure ends in the same place: a paste-to-your-coding-agent prompt
+// (see utils/gitAgentPrompts.ts), open, after *any* failed op. Our own one-click
+// remedies don't reach the real causes — a machine that GitHub refuses, or a
+// project whose online copy has gone missing, needs a terminal and
+// `gh auth login`, which our users can't do unaided. We deliberately do NOT send
+// them to GitHub's app-installation page from here either: finding the right
+// repository in that list defeats someone who has never used GitHub, and on a
+// company repository they're usually not allowed to grant it anyway.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -15,6 +23,17 @@ import { GitBranch, RotateCw, ChevronDown, Download, Upload, GitCommit, RefreshC
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme, primarySolidHover } from '../theme';
 import { openInBrowser } from '../utils/openExternal';
+import { PV_GIT_MENU_OPEN_EVENT } from '../events/gitMenu';
+import {
+  detectOs,
+  classifyGitFailure,
+  isGithubAccessFailure,
+  syncFailurePrompt,
+  installGitPrompt,
+  setupRepoPrompt,
+  connectRemotePrompt,
+  type GitFailureKind,
+} from '../utils/gitAgentPrompts';
 import type { UseGitSync } from '../hooks/useGitSync';
 
 const SPIN_KEYFRAMES = '@keyframes pv-git-spin { to { transform: rotate(360deg); } }';
@@ -26,45 +45,32 @@ const GithubMark: React.FC<{ size?: number }> = ({ size = 14 }) => (
   </svg>
 );
 
-function osName(): string {
-  const ua = navigator.userAgent;
-  if (/Mac/i.test(ua)) return 'macOS';
-  if (/Win/i.test(ua)) return 'Windows';
-  return 'Linux';
+// Plain-language headline for a failed sync, matched to why it failed. Both the
+// "GitHub said no" and the "we can't find the project online" cases come down to
+// the same thing for a designer — this computer was never signed in to GitHub —
+// so both point at the same coding-agent prompt.
+function failureHeadline(kind: GitFailureKind, needsInstall: boolean): string {
+  // Their account is connected and fine — GitHub just hasn't been told this
+  // particular project is one Protovibe may touch. Saying "not signed in" here
+  // contradicts the account row at the bottom of the very same panel. Granting
+  // it may not even be theirs to do, so don't imply it's a setting they can go
+  // and flip; the prompt below handles both cases.
+  if (needsInstall) {
+    return 'Your GitHub account is connected, but GitHub hasn’t given Protovibe permission for this project — and on a company project that may not be yours to change.';
+  }
+  if (kind === 'auth') {
+    return 'GitHub wouldn’t accept your work from this computer — it isn’t signed in to GitHub yet.';
+  }
+  if (kind === 'remote-missing') {
+    return 'Protovibe couldn’t find your project’s online copy on GitHub — usually because this computer isn’t signed in to GitHub yet.';
+  }
+  return 'This isn’t something Protovibe can sort out on its own.';
 }
 
-// --- Prompts the user can paste into their coding agent (Claude Code, etc.) ---
-
-const projectLine = (root: string) => (root ? `\n\nThe project folder is at: ${root}` : '');
-
-const installPrompt = (root: string) =>
-  `I'm using Protovibe to design an app on ${osName()}, and Git isn't installed on this computer. ` +
-  `Please install Git, verify it works by running \`git --version\`, and let me know when it's ready so I can sync my work with my team.` +
-  projectLine(root);
-
-const setupRepoPrompt = (root: string) =>
-  `I'm using Protovibe and want to sync my work with my team, but this project isn't set up with Git version control yet. ` +
-  `Please set it up: initialize a Git repository here, connect it to a remote (create a new GitHub repository if I don't have one), ` +
-  `make an initial commit, set the upstream for my branch, and push. Then tell me I can sync from Protovibe.` +
-  projectLine(root);
-
-const connectRemotePrompt = (root: string) =>
-  `I'm using Protovibe. This project has Git, but my current branch isn't connected to a shared remote yet, so I can't sync with my team. ` +
-  `Please connect it to a remote (create or use a GitHub repository), set the upstream tracking branch for my current branch, and push. ` +
-  `Then confirm I can sync from Protovibe.` +
-  projectLine(root);
-
-const authPrompt = (root: string, error?: string) =>
-  `I'm using Protovibe and tried to sync my work with Git, but it failed. ` +
-  `I think Git access isn't set up on this computer. Please fix my Git authentication for this project's remote ` +
-  `(set up an SSH key or a credential helper / sign me in), verify it works by running \`git push\`, and confirm I can sync from Protovibe.` +
-  projectLine(root) +
-  (error ? `\n\nThe exact error was:\n${error.trim()}` : '');
-
-// git failures that mean "access/credentials aren't set up" rather than a real problem.
-function isAuthOrAccessError(text: string): boolean {
-  return /permission denied|authentication failed|could not read (username|password|from remote)|terminal prompts disabled|invalid username or password|support for password authentication|publickey|access denied|access rights|repository not found|unable to access|host key verification failed|forbidden|please tell me who you are/i.test(text);
-}
+// The one line every failed sync ends on, whatever went wrong: someone can fix
+// this for you, and here is the exact thing to send them.
+const AGENT_HELP_LINE =
+  'Your coding agent can fix this for you. Copy the message below, paste it to your coding agent, and it will walk you through it one small step at a time.';
 
 // Plain-language description of the working state, aimed at non-technical users.
 function plainStatus(s: { changedCount: number; ahead: number; behind: number }): string {
@@ -121,9 +127,16 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const os = detectOs();
   const gitMissing = !!status && !status.gitInstalled;
   const needsBackupPanel = !!status?.gitInstalled && (!status.isRepo || !status.hasUpstream);
-  const authIssue = op.status === 'error' && isAuthOrAccessError(`${op.error ?? ''} ${op.message ?? ''}`);
+
+  // Any failed sync/pull/push earns an explanation and a way out — not just the
+  // ones we can classify. `failureKind` only decides how confident the wording is.
+  const opFailed = op.status === 'error';
+  const failureText = `${op.error ?? ''} ${op.message ?? ''}`;
+  const failureKind = opFailed ? classifyGitFailure(failureText) : 'other';
+  const authIssue = opFailed && isGithubAccessFailure(failureText);
   const githubAuthIssue = authIssue && status?.remoteKind === 'github-https';
 
   const { style: menuStyle } = useFloatingDropdownPosition({
@@ -178,6 +191,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
     return () => window.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  // A git op that failed anywhere (the bottom-right banner, say) asks for the
+  // menu so the user always lands on the explanation instead of a lone toast.
+  useEffect(() => {
+    const onOpenRequest = () => setOpen(true);
+    window.addEventListener(PV_GIT_MENU_OPEN_EVENT, onOpenRequest);
+    return () => window.removeEventListener(PV_GIT_MENU_OPEN_EVENT, onOpenRequest);
+  }, []);
+
   // Cmd+S (macOS) / Ctrl+S (Windows/Linux) opens the Sync with Git popover
   // instead of the browser's Save dialog.
   useEffect(() => {
@@ -198,8 +219,19 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
 
   const backupBusy = busy && op.op === 'backup';
   const backupNeedsInstall = op.status === 'error' && op.op === 'backup' && !!op.needsInstall;
+  // GitHub knows this account but won't let Protovibe near this repository.
+  // We don't send the user to the install page for it: picking the right repo
+  // out of GitHub's list is beyond someone who has never used GitHub, and on a
+  // company repo they usually aren't allowed to grant it at all. It only shapes
+  // what we tell them and what the agent prompt says.
   const syncNeedsInstall = githubAuthIssue && !!github?.connected && (repoAccess?.state === 'not-covered' || repoAccess?.state === 'no-push');
   const installUrl = op.installUrl || repoAccess?.installUrl || github?.installUrl || '';
+  const helpPrompt = syncFailurePrompt(failureKind, os, status.root, op.error, syncNeedsInstall);
+
+  const backupFailed = opFailed && op.op === 'backup';
+  const backupHelpPrompt = !status.isRepo
+    ? setupRepoPrompt(os, status.root, backupFailed ? op.error : undefined)
+    : connectRemotePrompt(os, status.root, backupFailed ? op.error : undefined);
 
   return (
     <>
@@ -245,7 +277,12 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
             padding: 0,
             zIndex: 9999,
             width: 288,
-            overflow: 'hidden',
+            // The hook caps our height to the space above the bottom bar. An
+            // error panel plus the agent prompt can outgrow that on a short
+            // screen, and clipping would hide the Sync button below it — so
+            // scroll instead of cutting the panel off.
+            overflowX: 'hidden',
+            overflowY: 'auto',
           }}
         >
           <style>{SPIN_KEYFRAMES}</style>
@@ -266,7 +303,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 cancelConnect={cancelConnect}
                 checkGithub={checkGithub}
               />
-              <TroubleFallback prompt={installPrompt(status.root)} />
+              <AgentHelp prompt={installGitPrompt(os, status.root)} linkLabel="Taking too long? Get help" />
             </div>
           ) : needsBackupPanel ? (
             /* --- no repo / no remote: intro + one-click connect to GitHub --- */
@@ -300,8 +337,9 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                       {backupBusy
                         ? <RotateCw size={14} style={{ animation: 'pv-git-spin 1s linear infinite' }} />
                         : <GithubMark size={14} />}
-                      {backupBusy ? (op.message || 'Setting up…') : op.status === 'error' && op.op === 'backup' ? 'Try again' : 'Add project to GitHub'}
+                      {backupBusy ? (op.message || 'Setting up…') : backupFailed ? 'Try again' : 'Add project to GitHub'}
                     </button>
+                    {backupFailed && <AgentHelp prompt={backupHelpPrompt} startExpanded />}
                   </>
                 )
               ) : connecting ? (
@@ -367,7 +405,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 </button>
                 {otherOptionsOpen && (
                   <div style={{ padding: '4px 12px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <AgentPrompt prompt={!status.isRepo ? setupRepoPrompt(status.root) : connectRemotePrompt(status.root)} />
+                    <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>{AGENT_HELP_LINE}</div>
+                    <AgentPrompt prompt={backupHelpPrompt} />
                     <button
                       onClick={() => void refresh(true)}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0', border: 'none', background: 'transparent', color: theme.text_tertiary, fontSize: 12, cursor: 'pointer' }}
@@ -393,62 +432,46 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                 </div>
               </div>
 
-              {/* auth / access problem */}
-              {authIssue && (
-                <div style={{ padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 8, borderBottom: `1px solid ${theme.border_default}` }}>
-                  {githubAuthIssue ? (
-                    !github ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
-                        <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Checking your GitHub connection…
+              {/* something went wrong — explain it, then always offer the agent */}
+              {opFailed && (
+                <div style={{ padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}` }}>
+                  <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
+                    {failureHeadline(failureKind, syncNeedsInstall)}
+                  </div>
+
+                  {/* One-click remedies we can offer ourselves, when they apply. */}
+                  {githubAuthIssue && !github && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
+                      <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Checking your GitHub connection…
+                    </div>
+                  )}
+                  {githubAuthIssue && !!github && !github.connected && (
+                    connecting ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
+                        <RotateCw size={13} style={{ flexShrink: 0, animation: 'pv-git-spin 1s linear infinite' }} />
+                        Waiting for you to finish connecting in the Protovibe app…
                       </div>
-                    ) : !github.connected ? (
-                      connecting ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12, lineHeight: 1.5 }}>
-                          <RotateCw size={13} style={{ flexShrink: 0, animation: 'pv-git-spin 1s linear infinite' }} />
-                          Waiting for you to finish connecting in the Protovibe app…
-                        </div>
-                      ) : github.managerReachable === undefined ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
-                          <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Looking for the Protovibe app…
-                        </div>
-                      ) : github.managerReachable ? (
-                        <>
-                          <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                            Syncing needs your GitHub account. Connect it and try again.
-                          </div>
-                          <button onClick={startConnect} {...primarySolidHover(true)} style={primaryButtonStyle(true)}>
-                            <GithubMark size={14} /> Connect GitHub
-                          </button>
-                        </>
-                      ) : (
-                        <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                          Syncing needs your GitHub account. Open the Protovibe app to connect it, then try sync again.
-                        </div>
-                      )
-                    ) : syncNeedsInstall ? (
-                      <InstallAccessPanel
-                        installUrl={installUrl}
-                        body="GitHub needs your permission before Protovibe can use this repository. Open GitHub, give Protovibe access to it, then sync again."
-                        retryLabel="I’ve done it — sync again"
-                        onRetry={() => void runOp('sync')}
-                        disabled={busy}
-                      />
-                    ) : (
+                    ) : github.managerReachable === undefined ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 12 }}>
+                        <RotateCw size={13} style={{ animation: 'pv-git-spin 1s linear infinite' }} /> Looking for the Protovibe app…
+                      </div>
+                    ) : github.managerReachable ? (
                       <>
                         <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                          Syncing failed even though your GitHub account is connected. Try again — if it keeps failing, your coding agent can help.
+                          The quickest fix is to connect your GitHub account here, then try again.
                         </div>
-                        <AgentPrompt prompt={authPrompt(status.root, op.error)} />
+                        <button onClick={startConnect} {...primarySolidHover(true)} style={primaryButtonStyle(true)}>
+                          <GithubMark size={14} /> Connect GitHub
+                        </button>
                       </>
-                    )
-                  ) : (
-                    <>
+                    ) : (
                       <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                        Syncing failed because Git access isn’t set up on this computer. Your coding agent can fix this for you.
+                        The quickest fix is to open the Protovibe app and connect your GitHub account there, then try again.
                       </div>
-                      <AgentPrompt prompt={authPrompt(status.root, op.error)} />
-                    </>
+                    )
                   )}
+                  {/* The way out of every failed sync, always open. */}
+                  <AgentHelp prompt={helpPrompt} startExpanded />
                 </div>
               )}
 
@@ -463,7 +486,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   {busy
                     ? <RotateCw size={14} style={{ animation: 'pv-git-spin 1s linear infinite' }} />
                     : <RefreshCw size={14} />}
-                  {busy ? (op.message || 'Syncing…') : authIssue ? 'Try sync again' : 'Sync changes'}
+                  {busy ? (op.message || 'Syncing…') : opFailed ? 'Try sync again' : 'Sync changes'}
                 </button>
                 <div style={{ color: theme.text_secondary, fontSize: 12, textAlign: 'left' }}>
                   You’re on Git branch: <span style={{ color: theme.text_default, fontWeight: 600 }}>{status.branch || 'unknown'}</span>
@@ -751,10 +774,21 @@ const ConnectBlock: React.FC<{
   );
 };
 
-// Last-resort escape hatch while git provisioning drags on: collapsed by
-// default so designers aren't greeted with an agent prompt.
-const TroubleFallback: React.FC<{ prompt: string }> = ({ prompt }) => {
-  const [expanded, setExpanded] = useState(false);
+// "Ask your coding agent" — the way out of every Git problem we can't fix from
+// here, since the real fix (signing this computer in to GitHub) needs a terminal.
+// Expanded when there's nothing else on offer; a quiet one-line link when we've
+// already put a first-line fix on screen — but never absent after a failure.
+const AgentHelp: React.FC<{ prompt: string; startExpanded?: boolean; linkLabel?: string }> = ({
+  prompt,
+  startExpanded = false,
+  linkLabel = 'Ask your coding agent to fix this',
+}) => {
+  const [expanded, setExpanded] = useState(startExpanded);
+
+  // A quick fix disappearing (the user connected GitHub, say, and it still fails)
+  // should open the prompt rather than leave them staring at a link.
+  useEffect(() => { if (startExpanded) setExpanded(true); }, [startExpanded]);
+
   if (!expanded) {
     return (
       <button
@@ -763,11 +797,17 @@ const TroubleFallback: React.FC<{ prompt: string }> = ({ prompt }) => {
         onMouseEnter={(e) => (e.currentTarget.style.color = theme.text_secondary)}
         onMouseLeave={(e) => (e.currentTarget.style.color = theme.text_tertiary)}
       >
-        Taking too long? Get help
+        {linkLabel}
       </button>
     );
   }
-  return <AgentPrompt prompt={prompt} />;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>{AGENT_HELP_LINE}</div>
+      <AgentPrompt prompt={prompt} />
+    </div>
+  );
 };
 
 // A ready-to-paste prompt for the user's coding agent, with a Copy button.
