@@ -87,6 +87,10 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     minHeight: '24px'
   };
 
+  // A text row pins the slot to the first line, so it needs an explicit height
+  // for the button's `height: 100%` to resolve against — without one the button
+  // collapses to the icon and the X rides ~6px above where it sits on the other
+  // row types, which stretch to a full-height row.
   const actionSlotStyle: React.CSSProperties = {
     width: '20px',
     flexShrink: 0,
@@ -94,6 +98,7 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     justifyContent: 'center',
     alignItems: 'stretch',
     alignSelf: type === 'text' ? 'flex-start' : 'stretch',
+    height: type === 'text' ? '24px' : undefined,
     minHeight: '24px'
   };
 
