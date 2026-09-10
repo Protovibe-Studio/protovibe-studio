@@ -8,12 +8,14 @@ export default function VersionInfoMenu({ onUpdateClick }) {
   const [error, setError] = useState('')
   const ref = useRef(null)
 
-  const check = useCallback(async () => {
+  // `force` drives ?refresh=1, which bypasses the server's result cache. Without
+  // it "Try again" replayed the cached failure and looked like a dead button.
+  const check = useCallback(async (force = false) => {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/version')
-      if (!res.ok) throw new Error('Request failed')
+      const res = await fetch(`/api/version${force ? '?refresh=1' : ''}`, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`Version check failed (${res.status})`)
       const data = await res.json()
       setInfo(data)
       return data
@@ -24,6 +26,8 @@ export default function VersionInfoMenu({ onUpdateClick }) {
       setLoading(false)
     }
   }, [])
+
+  const retry = useCallback(() => check(true), [check])
 
   useEffect(() => {
     let cancelled = false
@@ -57,24 +61,31 @@ export default function VersionInfoMenu({ onUpdateClick }) {
     })
   }
 
-  const outdated = info && (info.manager?.outdated || info.template?.outdated)
-  const fetchFailed = info && (info.manager?.error || info.template?.error)
-  const allUpToDate = info && !fetchFailed && !outdated
+  // Only the source (manager/template) drives the download button — the shell
+  // installs its own updates through electron-updater.
+  const sourceOutdated = info && (info.manager?.outdated || info.template?.outdated)
+  const shellOutdated = info?.shell?.outdated
+  const anyOutdated = sourceOutdated || shellOutdated
+  // Distinct reasons, deduped: the manager and template share one source error.
+  const failures = info
+    ? [...new Set([info.manager?.error, info.template?.error, info.shell?.error].filter(Boolean))]
+    : []
+  const allUpToDate = info && failures.length === 0 && !anyOutdated
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={handleToggle}
         className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-          outdated
+          anyOutdated
             ? 'bg-primary text-foreground-on-primary hover:bg-primary-hover'
             : 'bg-background-secondary text-foreground-default hover:bg-background-tertiary'
         }`}
       >
-        {outdated ? <Download size={14} /> : null}
-        {outdated ? 'Update available' : 'Version info'}
+        {anyOutdated ? <Download size={14} /> : null}
+        {anyOutdated ? 'Update available' : 'Version info'}
         <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
-        {outdated && (
+        {anyOutdated && (
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-foreground-destructive border-2 border-background-elevated" />
         )}
       </button>
@@ -91,24 +102,25 @@ export default function VersionInfoMenu({ onUpdateClick }) {
           {!loading && error && (
             <div className="flex flex-col gap-2">
               <p className="text-xs text-foreground-destructive">{error}</p>
-              <button
-                onClick={check}
-                className="text-xs text-foreground-secondary hover:text-foreground-default self-start cursor-pointer"
-              >
-                Try again
-              </button>
+              <RetryButton onClick={retry} />
             </div>
           )}
 
           {!loading && !error && info && (
             <>
+              {info.shell && (
+                <>
+                  <VersionRow label="Protovibe app" data={info.shell} />
+                  <div className="h-px bg-border-default" />
+                </>
+              )}
               <VersionRow label="Project manager" data={info.manager} />
               <div className="h-px bg-border-default" />
               <VersionRow label="Project template" data={info.template} />
 
               <div className="h-px bg-border-default" />
 
-              {outdated && (
+              {sourceOutdated && (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs text-foreground-secondary">
                     Each of your projects picks up the new Protovibe editor the next time you run it.
@@ -123,25 +135,36 @@ export default function VersionInfoMenu({ onUpdateClick }) {
                 </div>
               )}
 
-              {!outdated && allUpToDate && (
+              {/* The shell has no button of its own: electron-updater downloads it
+                  in the background and prompts to restart when it's ready. */}
+              {shellOutdated && (
+                <p className="text-xs text-foreground-secondary">
+                  Protovibe {info.shell.latest} is available. The app downloads it on its
+                  own and will ask you to restart when it's ready to install.
+                </p>
+              )}
+
+              {allUpToDate && (
                 <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
                   <Check size={12} />
                   You have the newest version
                 </div>
               )}
 
-              {!outdated && fetchFailed && (
+              {failures.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-start gap-1.5 text-xs text-foreground-destructive">
                     <AlertCircle size={12} className="mt-0.5 shrink-0" />
-                    <span>Couldn't reach GitHub to check for updates.</span>
+                    <div className="flex flex-col gap-1">
+                      <span>Couldn't check for updates.</span>
+                      {/* Verbatim so a rate limit, a TLS failure and a 404 are
+                          told apart instead of all reading "couldn't reach GitHub". */}
+                      {failures.map((f) => (
+                        <span key={f} className="font-mono text-[10px] leading-snug break-words text-foreground-tertiary">{f}</span>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    onClick={check}
-                    className="text-xs text-foreground-secondary hover:text-foreground-default self-start cursor-pointer"
-                  >
-                    Try again
-                  </button>
+                  <RetryButton onClick={retry} />
                 </div>
               )}
             </>
@@ -149,6 +172,17 @@ export default function VersionInfoMenu({ onUpdateClick }) {
         </div>
       )}
     </div>
+  )
+}
+
+function RetryButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-xs text-foreground-secondary hover:text-foreground-default self-start cursor-pointer"
+    >
+      Try again
+    </button>
   )
 }
 
