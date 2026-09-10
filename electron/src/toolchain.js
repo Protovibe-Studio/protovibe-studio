@@ -55,6 +55,10 @@ function buildChildEnv(extra = {}) {
   // Lets the manager adapt when running under the desktop shell (e.g. the
   // OAuth callback page offers a protovibe:// link back to the app).
   env.PROTOVIBE_SHELL = '1';
+  // The shell's own version, so the manager's version popover can show it
+  // alongside the manager/template versions. Absent outside the shell, which is
+  // how the popover knows to hide that row.
+  env.PROTOVIBE_SHELL_VERSION = require('../package.json').version;
   // Point the manager's git resolver at the bundled, signed+notarized git tree
   // so it never downloads git at runtime or falls back to the Xcode CLT stub.
   // Only set in the packaged app; dev has no bundled tree and uses system git.

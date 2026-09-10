@@ -13,7 +13,6 @@ import {
   handleStatus as handleGithubStatus,
   handleLogout as handleGithubLogout,
   readStoredAuth,
-  storedGithubToken,
 } from './server/github-auth.js'
 import { handleListRepos, handleValidateRepo } from './server/github-api.js'
 import { resolveGit, ensureEmbeddedGit, handleClone } from './server/git-engine.js'
@@ -346,6 +345,8 @@ function sendJson(res, status, data) {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
     'Access-Control-Allow-Origin': '*',
+    // These are all live state; a cached 200 made "Try again" a no-op.
+    'Cache-Control': 'no-store',
   })
   res.end(body)
 }
@@ -1222,161 +1223,238 @@ function semverGt(a, b) {
   return false
 }
 
-// Cache so we only shell out to `gh` once per dev-server lifetime.
-let cachedGhToken = null
-function githubToken() {
-  const env = process.env.PROTOVIBE_GITHUB_TOKEN || process.env.GITHUB_TOKEN
-  if (env) return env
-  // Token stored by the "Connect to GitHub" flow.
-  const stored = storedGithubToken()
-  if (stored) return stored
-  if (cachedGhToken !== null) return cachedGhToken
-  try {
-    // shell:true on Windows so `gh.cmd` / `gh.exe` resolves via PATHEXT.
-    const out = execFileSync('gh', ['auth', 'token'], {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      shell: process.platform === 'win32',
-    }).trim()
-    cachedGhToken = out || ''
-  } catch {
-    cachedGhToken = ''
-  }
-  return cachedGhToken
-}
-
 // ── Signed release fetch/verify ──────────────────────────────────────────────
 // Auto-updates come from a GitHub Release (tag `source-v*`) carrying three
 // assets: the source bundle zip, `manifest.json`, and `manifest.json.sig`. The
 // manifest is verified against the embedded Ed25519 public key before ANY of its
 // contents (versions, artifact name, artifact hash) are trusted. A compromise of
 // the git repo alone cannot forge a release without the offline signing key.
+//
+// Everything here goes over plain `github.com` — never `api.github.com`. The API
+// costs 60 requests/hour/IP unauthenticated (a budget a shared VPN exit IP has
+// usually already spent) and needed a token to raise, which meant a stale stored
+// token could 401 the check permanently. The endpoints below need no token and
+// are not on that budget — they are the same ones electron-updater already uses
+// successfully. The trade-off is that they require the repo to stay public.
 
-function githubApiHeaders(accept = 'application/vnd.github+json') {
-  const headers = { Accept: accept, 'User-Agent': 'protovibe-project-manager' }
-  const token = githubToken()
-  if (token) headers.Authorization = `Bearer ${token}`
-  return headers
+const GITHUB_HEADERS = { 'User-Agent': 'protovibe-project-manager' }
+
+function releaseDownloadUrl(tag, name) {
+  return `https://github.com/${REMOTE_REPO}/releases/download/${encodeURIComponent(tag)}/${encodeURIComponent(name)}`
 }
 
-// Fetch a release asset's raw bytes. The API asset URL + octet-stream Accept
-// works for both public and private repos (with a token).
-async function fetchAssetBytes(asset, timeoutMs = 15000) {
-  if (!asset?.url) throw new Error('Release asset is missing its download URL.')
-  const res = await fetch(asset.url, {
-    headers: githubApiHeaders('application/octet-stream'),
+// Fetch one published release asset. Returns null on 404 so callers can walk
+// down to an older tag: `scripts/release.mjs` pushes a tag BEFORE the signing
+// workflow is approved, so the newest tag may have no assets yet.
+async function fetchReleaseAsset(tag, name, timeoutMs = 15000) {
+  const res = await fetch(releaseDownloadUrl(tag, name), {
+    headers: GITHUB_HEADERS,
     redirect: 'follow',
     signal: AbortSignal.timeout(timeoutMs),
   })
-  if (!res.ok) throw new Error(`Failed to download ${asset.name}: GitHub returned ${res.status}`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`Failed to download ${name} from ${tag}: GitHub returned ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
 }
 
-// Parse the semver out of a `source-vX.Y.Z` tag. Returns null for tags that are
-// not strictly `source-v` + a three-part numeric version (e.g. the malformed
-// `source-vtemplate`), so junk releases can never be selected as "latest".
-function releaseTagVersion(tagName) {
+// Parse the version out of a `source-vX.Y.Z` tag, optionally with the `-rN`
+// re-release suffix that scripts/release.mjs appends when a tag is re-cut
+// without a version bump — which is what a template-only release produces.
+// Returns null for anything else (e.g. the malformed `source-v` tag in this
+// repo's history) so junk tags can never be selected as "latest".
+function parseSourceTag(tagName) {
   if (typeof tagName !== 'string' || !tagName.startsWith(RELEASE_TAG_PREFIX)) return null
-  const rest = tagName.slice(RELEASE_TAG_PREFIX.length)
-  return /^\d+\.\d+\.\d+$/.test(rest) ? rest : null
+  const m = tagName.slice(RELEASE_TAG_PREFIX.length).match(/^(\d+)\.(\d+)\.(\d+)(?:-r(\d+))?$/)
+  if (!m) return null
+  return {
+    tag: tagName,
+    version: `${m[1]}.${m[2]}.${m[3]}`,
+    // An unsuffixed tag is revision 1; `-r2` is the second cut of that version.
+    parts: [Number(m[1]), Number(m[2]), Number(m[3]), m[4] ? Number(m[4]) : 1],
+  }
 }
 
-// Locate the newest signed source release and verify its manifest. Returns
-// { manifest, release, assetsByName } on success. Throws on network failure, a
-// missing/invalid signature, or when no signed source release exists — callers
-// must let that error surface so an unverified update is never applied.
-async function fetchSignedRelease() {
-  const res = await fetch(`https://api.github.com/repos/${REMOTE_REPO}/releases?per_page=30`, {
-    headers: githubApiHeaders(),
+function compareParts(a, b) {
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0, y = b[i] || 0
+    if (x !== y) return x < y ? -1 : 1
+  }
+  return 0
+}
+
+// List every `source-v*` tag via git's unauthenticated smart-HTTP ref
+// advertisement. This is how we find the newest release without the API: one
+// ~10KB request, no token, no rate-limit budget. The tag list is only a hint
+// about where to look — nothing from it is trusted until the manifest fetched
+// at that tag passes signature verification below.
+async function fetchSourceTags() {
+  const res = await fetch(`https://github.com/${REMOTE_REPO}.git/info/refs?service=git-upload-pack`, {
+    headers: GITHUB_HEADERS,
     signal: AbortSignal.timeout(10000),
   })
-  if (!res.ok) {
-    // Distinguish GitHub's rate limit (very common when the app checks
-    // unauthenticated — 60 req/hr/IP) from a generic failure so the UI can tell
-    // the user to retry later rather than implying the network is down.
-    const remaining = res.headers.get('x-ratelimit-remaining')
-    if ((res.status === 403 || res.status === 429) && remaining === '0') {
-      throw new Error('GitHub API rate limit reached — connect GitHub or try again later.')
-    }
-    throw new Error(`GitHub returned ${res.status} listing releases`)
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} listing tags`)
+  const body = await res.text()
+  // `refs/tags/<name>` and the peeled `refs/tags/<name>^{}` both appear; the Map
+  // dedupes them since only the name matters here.
+  const seen = new Map()
+  for (const m of body.matchAll(/refs\/tags\/(\S+?)(?:\^\{\})?[\s\0]/g)) {
+    const parsed = parseSourceTag(m[1])
+    if (parsed) seen.set(parsed.tag, parsed)
   }
-  const releases = await res.json()
-  // Consider only published (non-draft, non-prerelease) source releases whose
-  // tag is a strict `source-vX.Y.Z` and that carry both manifest assets, then
-  // pick the HIGHEST version — never rely on GitHub's list order, and never let
-  // a malformed tag like `source-vtemplate` win.
-  const release = (Array.isArray(releases) ? releases : [])
-    .filter((r) =>
-      !r.draft && !r.prerelease &&
-      releaseTagVersion(r.tag_name) &&
-      (r.assets || []).some((a) => a.name === 'manifest.json') &&
-      (r.assets || []).some((a) => a.name === 'manifest.json.sig'),
-    )
-    .sort((a, b) => (semverGt(releaseTagVersion(a.tag_name), releaseTagVersion(b.tag_name)) ? -1 : 1))[0]
-  if (!release) throw new Error('No signed source release found.')
+  return [...seen.values()].sort((a, b) => compareParts(b.parts, a.parts))
+}
 
-  const assetsByName = new Map((release.assets || []).map((a) => [a.name, a]))
-  const [manifestBuf, sigBuf] = await Promise.all([
-    fetchAssetBytes(assetsByName.get('manifest.json')),
-    fetchAssetBytes(assetsByName.get('manifest.json.sig')),
-  ])
-  // Throws unless the signature verifies against the embedded public key.
-  const manifest = verifyManifest(manifestBuf, sigBuf.toString('utf-8'))
-  return { manifest, release, assetsByName }
+// How many tags deep to look for a published release before giving up. Covers
+// the normal case of a tag or two pushed but not yet approved for signing.
+const RELEASE_LOOKBACK = 3
+
+// Locate the newest signed source release and verify its manifest. Returns
+// { manifest, tag } on success. Throws on network failure, a missing/invalid
+// signature, or when no signed source release exists — callers must let that
+// error surface so an unverified update is never applied.
+async function fetchSignedRelease() {
+  const tags = await fetchSourceTags()
+  if (tags.length === 0) throw new Error('No signed source release found.')
+
+  for (const candidate of tags.slice(0, RELEASE_LOOKBACK)) {
+    const [manifestBuf, sigBuf] = await Promise.all([
+      fetchReleaseAsset(candidate.tag, 'manifest.json'),
+      fetchReleaseAsset(candidate.tag, 'manifest.json.sig'),
+    ])
+    // Tag exists but its release isn't published (or isn't signed) yet — the
+    // expected state between `npm run release` and approving the workflow.
+    if (!manifestBuf || !sigBuf) continue
+    // A tag whose signature does NOT verify must throw rather than fall through
+    // to an older tag: silently preferring an older release would let a bad one
+    // hide a good one.
+    const manifest = verifyManifest(manifestBuf, sigBuf.toString('utf-8'))
+    return { manifest, tag: candidate.tag }
+  }
+  throw new Error('No signed source release found.')
+}
+
+// ── Electron shell version ───────────────────────────────────────────────────
+// The shell updates itself via electron-updater, independently of the source
+// tree above. We only *report* its version here so the popover can show all
+// three side by side; the "Download new version" button never touches it.
+// `latest-mac.yml` on the `latest` release is exactly what electron-updater
+// reads, so what we display is what it would actually install.
+
+const SHELL_CHANNEL_FILE = 'latest-mac.yml'
+
+// PROTOVIBE_SHELL has been set by the shell for far longer than
+// PROTOVIBE_SHELL_VERSION has, so it — not the version — decides whether there
+// is a shell to report at all. Keying off the version would hide the row on any
+// shell built before that variable existed, which is exactly the shell this code
+// reaches first: the in-app updater ships the manager independently of the shell.
+function runningInShell() {
+  return process.env.PROTOVIBE_SHELL === '1'
+}
+
+// Injected by electron/src/toolchain.js. Null on a shell predating that, where
+// we can still report what the latest release is but not what is installed.
+function installedShellVersion() {
+  return process.env.PROTOVIBE_SHELL_VERSION || null
+}
+
+async function fetchLatestShellVersion() {
+  const res = await fetch(
+    `https://github.com/${REMOTE_REPO}/releases/latest/download/${SHELL_CHANNEL_FILE}`,
+    { headers: GITHUB_HEADERS, redirect: 'follow', signal: AbortSignal.timeout(10000) },
+  )
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} fetching ${SHELL_CHANNEL_FILE}`)
+  // Minimal YAML read: the channel file's `version:` is a plain top-level
+  // scalar, so a full parser would be dead weight here.
+  const m = (await res.text()).match(/^version:\s*(.+?)\s*$/m)
+  if (!m) throw new Error(`${SHELL_CHANNEL_FILE} has no version field`)
+  return m[1].replace(/^['"]|['"]$/g, '')
 }
 
 // Cache the verified remote manifest so repeatedly opening the version menu
-// doesn't hit GitHub every time. Unauthenticated checks share a 60 req/hr/IP
-// budget and each check costs several calls, so without this the UI quickly
-// rate-limits itself into "Couldn't reach GitHub". A successful result is
-// cached longer than a failure so transient errors clear quickly.
+// doesn't refetch from GitHub every time. A successful result is cached longer
+// than a failure so transient errors clear quickly. An explicit "Try again"
+// (?refresh=1) bypasses this entirely — without that, the retry button silently
+// replayed the cached error and looked broken.
 let versionCache = { manifest: null, error: null, at: 0 }
+let shellCache = { latest: null, error: null, at: 0 }
 const VERSION_CACHE_OK_MS = 10 * 60 * 1000
-const VERSION_CACHE_ERR_MS = 60 * 1000
+const VERSION_CACHE_ERR_MS = 10 * 1000
 
-async function handleGetVersion(_req, res) {
+function cacheIsFresh(cache) {
+  const ttl = cache.error ? VERSION_CACHE_ERR_MS : VERSION_CACHE_OK_MS
+  return cache.at > 0 && Date.now() - cache.at < ttl
+}
+
+// Errors are reported to the UI verbatim (see below) and logged here too — a
+// generic "couldn't reach GitHub" left no way to tell a rate limit from a dead
+// token from a TLS failure, which made this impossible to diagnose remotely.
+function logVersionError(what, e) {
+  console.error(`[protovibe-version] ${what} check failed: ${e?.message || e}`)
+}
+
+async function refreshSourceVersions(force) {
+  if (!force && cacheIsFresh(versionCache)) return
+  try {
+    const { manifest } = await fetchSignedRelease()
+    versionCache = { manifest, error: null, at: Date.now() }
+  } catch (e) {
+    // Fail closed: on any verification/network problem we report the error and
+    // never mark anything "outdated", so the UI never offers an unverified update.
+    logVersionError('source', e)
+    versionCache = { manifest: null, error: e?.message || 'Could not verify latest release', at: Date.now() }
+  }
+}
+
+async function refreshShellVersion(force) {
+  if (!force && cacheIsFresh(shellCache)) return
+  try {
+    shellCache = { latest: await fetchLatestShellVersion(), error: null, at: Date.now() }
+  } catch (e) {
+    logVersionError('shell', e)
+    shellCache = { latest: null, error: e?.message || 'Could not read the latest shell release', at: Date.now() }
+  }
+}
+
+async function handleGetVersion(req, res, url) {
   const managerCurrent = readLocalVersion(path.join(ROOT, 'package.json'))
   const templateCurrent = readLocalVersion(path.join(TEMPLATE_DIR, 'package.json'))
+  const shellCurrent = installedShellVersion()
 
-  let managerLatest = null
-  let templateLatest = null
-  let error = null
+  const force = url?.searchParams.get('refresh') === '1'
+  // The shell check is independent of the source check, so one failing must not
+  // hide the other's result.
+  await Promise.all([refreshSourceVersions(force), refreshShellVersion(force)])
 
-  const age = Date.now() - versionCache.at
-  const ttl = versionCache.error ? VERSION_CACHE_ERR_MS : VERSION_CACHE_OK_MS
-  const fresh = versionCache.at > 0 && age < ttl
-
-  if (!fresh) {
-    try {
-      const { manifest } = await fetchSignedRelease()
-      versionCache = { manifest, error: null, at: Date.now() }
-    } catch (e) {
-      // Fail closed: on any verification/network problem we report the error and
-      // never mark anything "outdated", so the UI never offers an unverified update.
-      versionCache = { manifest: null, error: e?.message || 'Could not verify latest release', at: Date.now() }
-    }
-  }
-
-  if (versionCache.manifest) {
-    const manifest = versionCache.manifest
-    managerLatest = typeof manifest.managerVersion === 'string' ? manifest.managerVersion : null
-    templateLatest = typeof manifest.templateVersion === 'string' ? manifest.templateVersion : null
-  } else {
-    error = versionCache.error
-  }
+  const manifest = versionCache.manifest
+  const sourceError = manifest ? null : versionCache.error
+  const managerLatest = typeof manifest?.managerVersion === 'string' ? manifest.managerVersion : null
+  const templateLatest = typeof manifest?.templateVersion === 'string' ? manifest.templateVersion : null
 
   sendJson(res, 200, {
     manager: {
       current: managerCurrent,
       latest: managerLatest,
-      error,
+      error: sourceError,
       outdated: semverGt(managerLatest, managerCurrent),
     },
     template: {
       current: templateCurrent,
       latest: templateLatest,
-      error,
+      error: sourceError,
       outdated: semverGt(templateLatest, templateCurrent),
+    },
+    // null when not running under the desktop shell — the UI hides the row.
+    shell: !runningInShell() ? null : {
+      // null on a shell too old to report itself; the UI shows "unknown" rather
+      // than dropping the row, so the latest release is still visible.
+      current: shellCurrent,
+      latest: shellCache.latest,
+      error: shellCache.latest ? null : shellCache.error,
+      // Reported only. The shell installs its own updates via electron-updater,
+      // so this never drives the "Download new version" button. semverGt is
+      // false for a null current, so an unknown version never claims outdated.
+      outdated: semverGt(shellCache.latest, shellCurrent),
+      selfUpdating: true,
     },
   })
 }
@@ -1391,9 +1469,10 @@ let updateInProgress = false
 // Download a release asset to disk and verify its SHA-256 against the value from
 // the (already signature-verified) manifest. Throws before writing nothing usable
 // if the digest does not match, so tampered/corrupt artifacts never get extracted.
-async function downloadVerifiedArtifact(asset, destPath, expectedSha256, log) {
-  log(`Downloading verified release artifact ${asset.name} ...`)
-  const buf = await fetchAssetBytes(asset, 120000)
+async function downloadVerifiedArtifact(tag, name, destPath, expectedSha256, log) {
+  log(`Downloading verified release artifact ${name} ...`)
+  const buf = await fetchReleaseAsset(tag, name, 120000)
+  if (!buf) throw new Error(`Release ${tag} has no asset named "${name}".`)
   const got = sha256Hex(buf)
   const want = String(expectedSha256 || '').toLowerCase()
   if (!want || got.toLowerCase() !== want) {
@@ -1517,7 +1596,7 @@ async function runUpdate(which, log) {
 
   // Verify the signed release manifest BEFORE downloading or touching anything.
   // Throws (aborting the update) if the key is unconfigured or the signature is bad.
-  const { manifest, assetsByName } = await fetchSignedRelease()
+  const { manifest, tag: releaseTag } = await fetchSignedRelease()
   const remotePmVer = typeof manifest.managerVersion === 'string' ? manifest.managerVersion : null
   const remoteTplVer = typeof manifest.templateVersion === 'string' ? manifest.templateVersion : null
 
@@ -1540,10 +1619,9 @@ async function runUpdate(which, log) {
 
     // Download + hash-verify the artifact named in the (signed) manifest.
     const artifactName = typeof manifest.artifact === 'string' ? manifest.artifact : null
-    const artifactAsset = artifactName ? assetsByName.get(artifactName) : null
-    if (!artifactAsset) throw new Error(`Signed manifest references missing artifact "${artifactName}".`)
+    if (!artifactName) throw new Error('Signed manifest does not name an artifact.')
     const zipPath = path.join(tmp, 'source.zip')
-    await downloadVerifiedArtifact(artifactAsset, zipPath, manifest.artifactSha256, log)
+    await downloadVerifiedArtifact(releaseTag, artifactName, zipPath, manifest.artifactSha256, log)
 
     const extractDir = path.join(tmp, 'extract')
     fs.mkdirSync(extractDir, { recursive: true })
@@ -1858,7 +1936,7 @@ function projectManagerPlugin() {
             return await handleCreateProject(req, res)
           }
           if (method === 'GET' && pathname === '/version') {
-            return await handleGetVersion(req, res)
+            return await handleGetVersion(req, res, url)
           }
           if (method === 'POST' && pathname === '/projects/import') {
             return await handleImportProject(req, res, url)
