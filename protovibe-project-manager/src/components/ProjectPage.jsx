@@ -27,7 +27,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const [nameDraft, setNameDraft] = useState('')
   const bottomRef = useRef(null)
 
-  const { id, name, status, port, pluginVersion, sourcePluginVersion } = project
+  const { id, name, status, port, pluginVersion, sourcePluginVersion, pluginSyncPending } = project
   const isRunning = status === 'running'
   const isStopped = status === 'stopped'
   // isBusy is the trigger for SetupScreen, so 'updating-plugin' deliberately
@@ -167,6 +167,10 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
     return 0
   }
   const pluginOutdated = comparePluginVersions(pluginVersion, sourcePluginVersion) < 0
+  // The server decides whether the next run syncs the editor, and it sees more
+  // than the versions do: an update whose build never finished leaves current
+  // source running on the previous build, which is also pending a sync.
+  const syncPending = pluginSyncPending ?? pluginOutdated
 
   const startRename = () => { setNameDraft(name); setEditingName(true) }
   const submitRename = async () => {
@@ -408,7 +412,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
 
             {/* Plugin update notice — informational only: the editor is synced
                 automatically the next time the project runs. */}
-            {!isBusy && pluginOutdated && (
+            {!isBusy && syncPending && (
               <div
                 data-testid="plugin-outdated-notice"
                 className="flex items-start gap-3 px-7 py-4 bg-background-info-subtle border-t border-border-default"
@@ -416,11 +420,22 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 <RefreshCw size={14} className="text-foreground-info shrink-0 mt-0.5" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-medium text-foreground-info">
-                    This project uses an older version of Protovibe editor
+                    {pluginOutdated
+                      ? 'This project uses an older version of Protovibe editor'
+                      : 'This project’s Protovibe editor update didn’t finish'}
                   </span>
                   <span className="text-xs text-foreground-secondary">
-                    Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion} — it will be
-                    updated automatically the next time you run this project.
+                    {pluginOutdated ? (
+                      <>
+                        Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion} — it will be
+                        updated automatically the next time you run this project.
+                      </>
+                    ) : (
+                      <>
+                        It is still running the editor it had before, and the update will be retried
+                        automatically the next time you run this project.
+                      </>
+                    )}
                   </span>
                 </div>
               </div>

@@ -111,7 +111,7 @@ export default function VersionInfoMenu({ onUpdateClick }) {
               {outdated && (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs text-foreground-secondary">
-                    All your projects will be updated to the new Protovibe editor version.
+                    Each of your projects picks up the new Protovibe editor the next time you run it.
                   </p>
                   <button
                     onClick={() => { setOpen(false); onUpdateClick() }}
