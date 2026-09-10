@@ -232,9 +232,15 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // When the user clicks inside any iframe, dispatch a synthetic mousedown on the
   // shell document so all click-outside handlers (dropdowns, menus, etc.) close automatically.
+  // Also clear any text selection in the shell: the canvas bridge calls
+  // preventDefault on pointerdown, so the iframe never takes focus and the
+  // browser does not collapse the shell's selection on its own. Without this,
+  // text highlighted in the shell (e.g. a comment) would keep hijacking
+  // Cmd+C / Cmd+X after the user clicked a block on the canvas.
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === 'PV_IFRAME_POINTER_DOWN') {
+        try { window.getSelection()?.removeAllRanges(); } catch {}
         document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
       }
     };
