@@ -64,7 +64,6 @@ export default function App() {
 
   // Version / self-update
   const [updateModalOpen, setUpdateModalOpen] = useState(false)
-  const [updateOptions, setUpdateOptions] = useState({ updatePluginsInProjects: false })
 
   useEffect(() => {
     const handlePopState = () => {
@@ -416,7 +415,7 @@ export default function App() {
                 <span>Connect to GitHub</span>
               </button>
             )}
-            <VersionInfoMenu onUpdateClick={(opts) => { setUpdateOptions(opts || {}); setUpdateModalOpen(true) }} />
+            <VersionInfoMenu onUpdateClick={() => setUpdateModalOpen(true)} />
           </div>
         </div>
       </header>
@@ -478,7 +477,6 @@ export default function App() {
 
       {updateModalOpen && (
         <UpdateAppModal
-          updatePluginsInProjects={!!updateOptions.updatePluginsInProjects}
           onClose={() => setUpdateModalOpen(false)}
         />
       )}

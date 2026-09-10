@@ -6,7 +6,6 @@ export default function VersionInfoMenu({ onUpdateClick }) {
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [updatePluginsInProjects, setUpdatePluginsInProjects] = useState(true)
   const ref = useRef(null)
 
   const check = useCallback(async () => {
@@ -111,17 +110,11 @@ export default function VersionInfoMenu({ onUpdateClick }) {
 
               {outdated && (
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-start gap-2 text-xs text-foreground-secondary cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={updatePluginsInProjects}
-                      onChange={(e) => setUpdatePluginsInProjects(e.target.checked)}
-                      className="mt-0.5 cursor-pointer"
-                    />
-                    <span>Update Protovibe shell in all projects</span>
-                  </label>
+                  <p className="text-xs text-foreground-secondary">
+                    All your projects will be updated to the new Protovibe editor version.
+                  </p>
                   <button
-                    onClick={() => { setOpen(false); onUpdateClick({ updatePluginsInProjects }) }}
+                    onClick={() => { setOpen(false); onUpdateClick() }}
                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary-hover text-foreground-on-primary text-sm font-medium rounded-lg transition-colors cursor-pointer"
                   >
                     <Download size={14} />

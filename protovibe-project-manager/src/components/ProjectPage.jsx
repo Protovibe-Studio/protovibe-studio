@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import SetupScreen from './SetupScreen.jsx'
 import ProjectMoreMenu from './ProjectMoreMenu.jsx'
 import PathDisplay from './PathDisplay.jsx'
-import { showToast } from './ToastViewport.jsx'
 import {
   ArrowLeft,
   X,
@@ -26,7 +25,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   const [restartAfterStop, setRestartAfterStop] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
-  const [updatingPlugin, setUpdatingPlugin] = useState(false)
   const bottomRef = useRef(null)
 
   const { id, name, status, port, pluginVersion, sourcePluginVersion } = project
@@ -36,8 +34,9 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   // stays out of it — we render an inline indicator instead of hijacking the
   // page with the setup overlay.
   const isBusy = status === 'installing' || status === 'starting'
-  const isUpdatingPluginServer = status === 'updating-plugin'
-  const isUpdating = updatingPlugin || isUpdatingPluginServer
+  // The server updates an outdated editor by itself before a project starts;
+  // this only reflects that back into the UI.
+  const isUpdating = status === 'updating-plugin'
 
   // Auto-enter setup mode when project is busy (e.g. navigated to mid-start)
   useEffect(() => {
@@ -169,33 +168,6 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
   }
   const pluginOutdated = comparePluginVersions(pluginVersion, sourcePluginVersion) < 0
 
-  const handleUpdatePlugin = async () => {
-    if (updatingPlugin) return
-    if (isBusy) {
-      setError('Wait for setup to finish before updating the editor.')
-      return
-    }
-    setError('')
-    setUpdatingPlugin(true)
-    try {
-      const res = await fetch(`/api/projects/${id}/update-plugin`, { method: 'POST' })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setError(data.error || 'Failed to update editor.')
-        showToast('Editor update failed', 'error')
-      } else {
-        const v = data.pluginVersion ? ` v${data.pluginVersion}` : ''
-        showToast(`Editor${v} synced from template`, 'success')
-        onRenamed && onRenamed()
-      }
-    } catch {
-      setError('Network error. Make sure the dev server is running.')
-      showToast('Editor update failed', 'error')
-    } finally {
-      setUpdatingPlugin(false)
-    }
-  }
-
   const startRename = () => { setNameDraft(name); setEditingName(true) }
   const submitRename = async () => {
     const newName = nameDraft.trim()
@@ -316,7 +288,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   </span>
                 </button>
               )}
-              {isUpdatingPluginServer && (
+              {isUpdating && (
                 <span className="flex items-center gap-1.5 text-xs font-medium text-foreground-info">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground-info opacity-60" />
@@ -405,7 +377,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
               </>
             )}
 
-            {(isStopped || isUpdatingPluginServer) && (
+            {(isStopped || isUpdating) && (
               <>
                 <button
                   data-testid="btn-run"
@@ -434,27 +406,23 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             )}
             </div>
 
-            {/* Plugin update banner — only when project plugin is older than source */}
+            {/* Plugin update notice — informational only: the editor is synced
+                automatically the next time the project runs. */}
             {!isBusy && pluginOutdated && (
-              <div className="flex items-center justify-between gap-4 px-7 py-4 bg-background-info-subtle border-t border-border-default">
+              <div
+                data-testid="plugin-outdated-notice"
+                className="flex items-start gap-3 px-7 py-4 bg-background-info-subtle border-t border-border-default"
+              >
+                <RefreshCw size={14} className="text-foreground-info shrink-0 mt-0.5" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-medium text-foreground-info">
                     This project uses an older version of Protovibe editor
                   </span>
-                  <span className="text-xs text-foreground-secondary truncate">
-                    Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion}
+                  <span className="text-xs text-foreground-secondary">
+                    Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion} — it will be
+                    updated automatically the next time you run this project.
                   </span>
                 </div>
-                <button
-                  data-testid="btn-update-plugin"
-                  onClick={handleUpdatePlugin}
-                  disabled={isUpdating || isBusy}
-                  title="Sync Protovibe editor from protovibe-project-template"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground-secondary bg-background-elevated hover:bg-background-tertiary border border-border-default transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                >
-                  <RefreshCw size={12} className={isUpdating ? 'animate-spin' : ''} />
-                  {isUpdating ? 'Updating…' : 'Update editor'}
-                </button>
               </div>
             )}
           </div>

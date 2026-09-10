@@ -312,6 +312,16 @@ function readPluginInfo(projectPath) {
   }
 }
 
+// True when the project's copy of the Protovibe plugin is older than the one
+// shipped with the current template. Projects are never left behind on an old
+// plugin: an outdated project is synced from the template on its next run.
+function isPluginOutdated(projectPath) {
+  const { pluginVersion } = readPluginInfo(projectPath)
+  const sourceVersion = readSourcePluginVersion()
+  if (!pluginVersion || !sourceVersion) return false
+  return semverGt(sourceVersion, pluginVersion)
+}
+
 function writePluginMetadata(projectPath, version) {
   const dataPath = path.join(projectPath, 'protovibe-data.json')
   let data = {}
@@ -533,7 +543,7 @@ async function handleDeleteProject(_req, res, id) {
   sendJson(res, 200, { ok: true })
 }
 
-function handleStart(_req, res, id) {
+async function handleStart(_req, res, id) {
   const projects = readProjects()
   const project = projects.find((p) => p.id === id)
   if (!project) return sendJson(res, 404, { error: 'Project not found.' })
@@ -550,6 +560,19 @@ function handleStart(_req, res, id) {
     return sendJson(res, 409, { error: 'Plugin update is in progress.' })
   }
 
+  // Same automatic editor update as the setup flow — no project ever runs on
+  // an older plugin version. A failure only logs; the next run retries.
+  if (isPluginOutdated(project.path)) {
+    const syncState = existing ?? { proc: null, logs: [], port: null, status: 'stopped' }
+    processes.set(id, syncState)
+    try {
+      await syncProjectPlugin(id, project, syncState)
+    } catch (err) {
+      syncState.logs.push(`--- editor auto-update failed: ${err.message} ---`)
+      syncState.logs.push('--- continuing with the current editor version ---')
+    }
+  }
+
   const proc = spawn('pnpm', ['run', 'dev'], {
     cwd: project.path,
     stdio: 'pipe',
@@ -557,7 +580,8 @@ function handleStart(_req, res, id) {
     env: { ...process.env, ...projectGitEnv(), FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
-  const state = { proc, logs: existing?.logs ?? [], port: null, status: 'starting' }
+  // Re-read the slot: the auto-update above may have created or filled it.
+  const state = { proc, logs: processes.get(id)?.logs ?? existing?.logs ?? [], port: null, status: 'starting' }
   state.logs.push(`--- starting pnpm run dev ---`)
   processes.set(id, state)
 
@@ -648,6 +672,111 @@ function handleStop(_req, res, id) {
 // concurrent button clicks don't race on the same files.
 const updatingPlugins = new Set()
 
+// Copies the template's plugin into the project, reinstalls + rebuilds it and
+// stamps the new version into protovibe-data.json. Shared by the explicit
+// update endpoint and by the automatic update that runs before a project
+// starts. Throws with a user-facing message on failure; the caller decides
+// whether that is fatal.
+//
+// The caller owns stopping any running dev server first — Vite holds open file
+// handles on plugins/protovibe/dist and would otherwise serve stale modules.
+async function syncProjectPlugin(id, project, state, onLog = () => {}) {
+  if (!fs.existsSync(SOURCE_PLUGIN_DIR)) {
+    throw new Error(`Source plugin not found at ${SOURCE_PLUGIN_DIR}`)
+  }
+  if (updatingPlugins.has(id)) {
+    throw new Error('Plugin update already in progress.')
+  }
+
+  updatingPlugins.add(id)
+  state.status = 'updating-plugin'
+
+  const log = (line) => {
+    state.logs.push(line)
+    onLog(line)
+  }
+
+  try {
+    log('--- updating protovibe plugin ---')
+
+    const targetPluginDir = path.join(project.path, PLUGIN_REL_DIR)
+
+    // 1) Sync source → target. cleanPluginDir removes files that no longer
+    //    exist in the source (renames, deletions) before copyPluginDir writes
+    //    the fresh tree. Both helpers preserve node_modules / dist / *.lock.
+    try {
+      cleanPluginDir(SOURCE_PLUGIN_DIR, targetPluginDir)
+      copyPluginDir(SOURCE_PLUGIN_DIR, targetPluginDir)
+    } catch (err) {
+      log(`--- copy failed: ${err.message} ---`)
+      throw new Error(`Failed to copy plugin files: ${err.message}`)
+    }
+
+    // 2) pnpm install + rebuild dist inside plugins/protovibe. The project's
+    //    own postinstall does this for whole-project installs, but a targeted
+    //    plugin update has to repeat the steps so the runtime sees fresh dist.
+    const runStep = (label, command, cwd = targetPluginDir) => new Promise((resolve, reject) => {
+      log(`--- ${label} ---`)
+      const proc = spawn(command, {
+        cwd,
+        stdio: 'pipe',
+        shell: true,
+        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+      })
+      const onData = (chunk) => {
+        chunk.toString().split('\n').forEach((line) => {
+          if (line.trim()) log(line)
+        })
+      }
+      proc.stdout.on('data', onData)
+      proc.stderr.on('data', onData)
+      proc.on('exit', (code) => {
+        log(`--- ${label} exited with code ${code} ---`)
+        if (code === 0) resolve()
+        else reject(new Error(`${label} failed (exit code ${code})`))
+      })
+      proc.on('error', reject)
+    })
+
+    try {
+      // If the project was never installed (no root node_modules), a targeted
+      // plugin install/build would fail — e.g. the plugin build's `tsup --dts`
+      // resolves `typescript` hoisted from the root install. Run a full root
+      // install first; its postinstall installs + builds the plugin too.
+      if (!fs.existsSync(path.join(project.path, 'node_modules'))) {
+        await runStep('pnpm install (project)', 'pnpm install', project.path)
+      }
+      await runStep('pnpm install (plugins/protovibe)', 'pnpm install')
+      // Force a clean rebuild so stale dist artefacts can never shadow the
+      // freshly copied source — same recipe as the project's postinstall.
+      try { fs.rmSync(path.join(targetPluginDir, 'dist'), { recursive: true, force: true }) } catch {}
+      await runStep('pnpm run build (plugins/protovibe)', 'pnpm run build')
+    } catch (err) {
+      log(`--- update failed: ${err.message} ---`)
+      throw err
+    }
+
+    // 3) Stamp plugin-version + plugin-last-updated in protovibe-data.json.
+    let info
+    try {
+      info = writePluginMetadata(project.path, readSourcePluginVersion())
+    } catch (err) {
+      throw new Error(`Failed to write protovibe-data.json: ${err.message}`)
+    }
+
+    log('--- protovibe plugin updated successfully ---')
+    return info
+  } finally {
+    updatingPlugins.delete(id)
+    // The sync never leaves a running process behind — the caller stopped the
+    // dev server before it ran — so hand the slot back as plainly stopped.
+    // Callers that go on to start the project set their own status next.
+    state.proc = null
+    state.port = null
+    state.status = 'stopped'
+  }
+}
+
 async function handleUpdatePlugin(_req, res, id) {
   const projects = readProjects()
   const project = projects.find((p) => p.id === id)
@@ -669,30 +798,7 @@ async function handleUpdatePlugin(_req, res, id) {
     return sendJson(res, 409, { error: 'Wait for setup to finish before updating the plugin.' })
   }
 
-  // Stop the dev server before swapping plugin files — Vite holds open file
-  // handles on plugins/protovibe/dist and would otherwise serve stale modules.
-  if (existing?.proc?.pid && existing.status === 'running') {
-    const pid = existing.proc.pid
-    existing.logs.push('--- stopping project before plugin update ---')
-    try {
-      await new Promise((resolve) => {
-        let settled = false
-        const finish = () => { if (!settled) { settled = true; resolve() } }
-        existing.proc.once('exit', finish)
-        treeKill(pid, 'SIGTERM', (err) => {
-          if (err) console.error('[protovibe-home] tree-kill error:', err)
-        })
-        // Safety net: if 'exit' never fires (already-dead proc), unblock after 5s.
-        setTimeout(finish, 5000)
-      })
-    } catch (err) {
-      console.error('[protovibe-home] stop-before-update error:', err)
-    }
-    existing.status = 'stopped'
-    existing.port = null
-  }
-
-  updatingPlugins.add(id)
+  await stopProjectForPluginUpdate(existing)
 
   // Reuse / create a state slot so the existing /api/projects/:id/logs SSE
   // streams build output to the UI.
@@ -703,77 +809,7 @@ async function handleUpdatePlugin(_req, res, id) {
   }
 
   try {
-    state.logs.push('--- updating protovibe plugin ---')
-
-    const targetPluginDir = path.join(project.path, PLUGIN_REL_DIR)
-
-    // 2) Sync source → target. cleanPluginDir removes files that no longer
-    //    exist in the source (renames, deletions) before copyPluginDir writes
-    //    the fresh tree. Both helpers preserve node_modules / dist / *.lock.
-    try {
-      cleanPluginDir(SOURCE_PLUGIN_DIR, targetPluginDir)
-      copyPluginDir(SOURCE_PLUGIN_DIR, targetPluginDir)
-    } catch (err) {
-      state.status = 'stopped'
-      state.proc = null
-      state.logs.push(`--- copy failed: ${err.message} ---`)
-      return sendJson(res, 500, { error: `Failed to copy plugin files: ${err.message}` })
-    }
-
-    // 3) pnpm install + rebuild dist inside plugins/protovibe. The project's
-    //    own postinstall does this for whole-project installs, but a targeted
-    //    plugin update has to repeat the steps so the runtime sees fresh dist.
-    const runStep = (label, command, cwd = targetPluginDir) => new Promise((resolve, reject) => {
-      state.logs.push(`--- ${label} ---`)
-      const proc = spawn(command, {
-        cwd,
-        stdio: 'pipe',
-        shell: true,
-        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-      })
-      const onData = (chunk) => {
-        chunk.toString().split('\n').forEach((line) => {
-          if (line.trim()) state.logs.push(line)
-        })
-      }
-      proc.stdout.on('data', onData)
-      proc.stderr.on('data', onData)
-      proc.on('exit', (code) => {
-        state.logs.push(`--- ${label} exited with code ${code} ---`)
-        if (code === 0) resolve()
-        else reject(new Error(`${label} failed (exit code ${code})`))
-      })
-      proc.on('error', reject)
-    })
-
-    try {
-      // If the project was never installed (no root node_modules), a targeted
-      // plugin install/build would fail — e.g. the plugin build's `tsup --dts`
-      // resolves `typescript` hoisted from the root install. Run a full root
-      // install first; its postinstall installs + builds the plugin too.
-      if (!fs.existsSync(path.join(project.path, 'node_modules'))) {
-        await runStep('pnpm install (project)', 'pnpm install', project.path)
-      }
-      await runStep('pnpm install (plugins/protovibe)', 'pnpm install')
-      // Force a clean rebuild so stale dist artefacts can never shadow the
-      // freshly copied source — same recipe as the project's postinstall.
-      try { fs.rmSync(path.join(targetPluginDir, 'dist'), { recursive: true, force: true }) } catch {}
-      await runStep('pnpm run build (plugins/protovibe)', 'pnpm run build')
-    } catch (err) {
-      state.logs.push(`--- update failed: ${err.message} ---`)
-      return sendJson(res, 500, { error: err.message || 'Plugin install/build failed.' })
-    }
-
-    // 4) Stamp plugin-version + plugin-last-updated in protovibe-data.json.
-    let info
-    try {
-      info = writePluginMetadata(project.path, readSourcePluginVersion())
-    } catch (err) {
-      return sendJson(res, 500, { error: `Failed to write protovibe-data.json: ${err.message}` })
-    }
-
-    state.logs.push('--- protovibe plugin updated successfully ---')
-
+    const info = await syncProjectPlugin(id, project, state)
     sendJson(res, 200, {
       ok: true,
       pluginVersion: info.pluginVersion,
@@ -782,9 +818,31 @@ async function handleUpdatePlugin(_req, res, id) {
   } catch (err) {
     console.error('[protovibe-home] update-plugin error:', err)
     if (!res.headersSent) sendJson(res, 500, { error: err.message || 'Failed to update plugin.' })
-  } finally {
-    updatingPlugins.delete(id)
   }
+}
+
+// Stops a running dev server so its file handles on plugins/protovibe/dist are
+// released before the plugin tree is swapped.
+async function stopProjectForPluginUpdate(existing) {
+  if (!(existing?.proc?.pid && existing.status === 'running')) return
+  const pid = existing.proc.pid
+  existing.logs.push('--- stopping project before plugin update ---')
+  try {
+    await new Promise((resolve) => {
+      let settled = false
+      const finish = () => { if (!settled) { settled = true; resolve() } }
+      existing.proc.once('exit', finish)
+      treeKill(pid, 'SIGTERM', (err) => {
+        if (err) console.error('[protovibe-home] tree-kill error:', err)
+      })
+      // Safety net: if 'exit' never fires (already-dead proc), unblock after 5s.
+      setTimeout(finish, 5000)
+    })
+  } catch (err) {
+    console.error('[protovibe-home] stop-before-update error:', err)
+  }
+  existing.status = 'stopped'
+  existing.port = null
 }
 
 function handleInstall(_req, res, id) {
@@ -873,7 +931,7 @@ function handleLogs(req, res, id) {
   })
 }
 
-function handleSetup(req, res, id) {
+async function handleSetup(req, res, id) {
   const projects = readProjects()
   const project = projects.find((p) => p.id === id)
   if (!project) return sendJson(res, 404, { error: 'Project not found.' })
@@ -965,6 +1023,28 @@ function handleSetup(req, res, id) {
     if (!aborted) { try { res.end() } catch {} }
   }
 
+  // Phase 0: bring the project's Protovibe editor up to date. Projects are
+  // never run on an older plugin version — an outdated project is synced from
+  // the template here, without asking. A failure is logged and the run
+  // continues: the version stamp stays old, so the next run simply retries
+  // instead of locking the user out of their project.
+  let carriedLogs = []
+  if (!updatingPlugins.has(id) && isPluginOutdated(project.path)) {
+    send('stage', { stage: 'updating-plugin' })
+    const syncState = processes.get(id) ?? { proc: null, logs: [], port: null, status: 'stopped' }
+    processes.set(id, syncState)
+    try {
+      await syncProjectPlugin(id, project, syncState, (line) => send('log', { text: line }))
+    } catch (err) {
+      const message = `--- editor auto-update failed: ${err.message} ---`
+      syncState.logs.push(message)
+      send('log', { text: message })
+      send('log', { text: '--- continuing with the current editor version ---' })
+    }
+    carriedLogs = syncState.logs
+    if (aborted) return
+  }
+
   // Phase 1: pnpm install
   send('stage', { stage: 'installing' })
 
@@ -975,7 +1055,8 @@ function handleSetup(req, res, id) {
     env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
   })
 
-  const state = { proc: install, logs: [], port: null, status: 'installing' }
+  // Keep any log lines the auto-update above produced.
+  const state = { proc: install, logs: carriedLogs, port: null, status: 'installing' }
   state.logs.push('--- starting pnpm install ---')
   processes.set(id, state)
 
@@ -1770,7 +1851,7 @@ function projectManagerPlugin() {
             if (method === 'DELETE' && !action) return await handleDeleteProject(req, res, id)
             if (method === 'POST' && action === 'duplicate') return await handleDuplicate(req, res, id)
             if (method === 'POST' && action === 'rename') return await handleRename(req, res, id)
-            if (method === 'POST' && action === 'start') return handleStart(req, res, id)
+            if (method === 'POST' && action === 'start') return await handleStart(req, res, id)
             if (method === 'POST' && action === 'stop') return handleStop(req, res, id)
             if (method === 'POST' && action === 'install') return handleInstall(req, res, id)
             if (method === 'POST' && action === 'update-plugin') return await handleUpdatePlugin(req, res, id)
@@ -1778,7 +1859,7 @@ function projectManagerPlugin() {
             if (method === 'POST' && action === 'open-vscode') return handleOpenVSCode(req, res, id)
             if (method === 'GET' && action === 'export') return handleExportProject(req, res, id)
             if (method === 'GET' && action === 'logs') return handleLogs(req, res, id)
-            if (method === 'GET' && action === 'setup') return handleSetup(req, res, id)
+            if (method === 'GET' && action === 'setup') return await handleSetup(req, res, id)
           }
 
           next()

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 
-export default function UpdateAppModal({ onClose, updatePluginsInProjects = false }) {
+export default function UpdateAppModal({ onClose }) {
   const [logs, setLogs] = useState([])
   // running-template | updating-plugins | running-manager | restart-required | done | failed
   const [status, setStatus] = useState('running-template')
@@ -67,7 +67,7 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
   })
 
   const updatePluginsForAllProjects = async () => {
-    appendLog('--- updating Protovibe shell in all projects ---')
+    appendLog('--- updating Protovibe editor in all projects ---')
     let projects
     try {
       const res = await fetch('/api/projects', { cache: 'no-store' })
@@ -145,10 +145,11 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
         }
       }
 
-      // 2) Project plugin sweep — only meaningful if template was actually
-      //    refreshed and the user opted in. Use the local flag rather than
-      //    summaryRef, which lags behind setSummary by one render.
-      if (templateActuallyUpdated && updatePluginsInProjects) {
+      // 2) Project plugin sweep — every project is brought to the new editor
+      //    version, there is no opt-out. Only meaningful if the template was
+      //    actually refreshed; use the local flag rather than summaryRef,
+      //    which lags behind setSummary by one render.
+      if (templateActuallyUpdated) {
         setStatus('updating-plugins')
         try {
           await updatePluginsForAllProjects()
@@ -234,7 +235,7 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
             <Loader2 size={14} className="animate-spin" />
             {status === 'running-template' && 'Downloading and installing latest project template…'}
             {status === 'updating-plugins' && (
-              <span>Updating Protovibe shell in projects ({summary.pluginsDone}/{summary.pluginsTotal})…</span>
+              <span>Updating Protovibe editor in projects ({summary.pluginsDone}/{summary.pluginsTotal})…</span>
             )}
             {status === 'running-manager' && 'Downloading and staging latest project manager…'}
           </div>
@@ -265,12 +266,13 @@ export default function UpdateAppModal({ onClose, updatePluginsInProjects = fals
               {!summary.templateUpdated && !summary.managerUpdated && <span>Already up to date.</span>}
               {summary.pluginsTotal > 0 && (
                 <span>
-                  Updated Protovibe shell in {summary.pluginsDone - summary.pluginFailures.length}/{summary.pluginsTotal} project{summary.pluginsTotal === 1 ? '' : 's'}.
+                  Updated Protovibe editor in {summary.pluginsDone - summary.pluginFailures.length}/{summary.pluginsTotal} project{summary.pluginsTotal === 1 ? '' : 's'}.
                 </span>
               )}
               {summary.pluginFailures.length > 0 && (
                 <span className="text-foreground-destructive">
-                  Failed: {summary.pluginFailures.map((f) => f.name).join(', ')}
+                  Failed: {summary.pluginFailures.map((f) => f.name).join(', ')} — these will be updated
+                  automatically the next time you run them.
                 </span>
               )}
             </div>
