@@ -79,3 +79,53 @@ test('node_modules is put back even when the copy fails', (t) => {
   assert.ok(fs.existsSync(path.join(wsDir, 'node_modules', 'left-pad', 'index.js')));
   assert.ok(!fs.existsSync(stashPath(root, WS)));
 });
+
+// Node's rmSync retries only the final rmdir(); a child that is still there
+// (or reappeared) makes every retry fail the same way. rmTree must restart
+// the whole recursive delete until it goes through.
+test('rmTree restarts the recursive delete on ENOTEMPTY', (t) => {
+  const { tmp, wsDir } = setup();
+  t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  const { rmTree } = require('../src/refresh-workspace');
+  const delays = [];
+  let calls = 0;
+  const attempt = (target) => {
+    calls++;
+    if (calls <= 2) {
+      const err = new Error(`ENOTEMPTY: directory not empty, rmdir '${target}'`);
+      err.code = 'ENOTEMPTY';
+      throw err;
+    }
+    fs.rmSync(target, { recursive: true, force: true });
+  };
+  rmTree(wsDir, { attempt, sleep: (ms) => delays.push(ms) });
+  assert.equal(calls, 3);
+  assert.deepEqual(delays, [100, 200], 'backs off between attempts');
+  assert.ok(!fs.existsSync(wsDir));
+});
+
+test('rmTree gives up on errors that will not go away', () => {
+  const { rmTree } = require('../src/refresh-workspace');
+  let calls = 0;
+  const attempt = () => {
+    calls++;
+    const err = new Error('EACCES');
+    err.code = 'EACCES';
+    throw err;
+  };
+  assert.throws(() => rmTree('/nope', { attempt, sleep: () => {} }), { code: 'EACCES' });
+  assert.equal(calls, 1);
+});
+
+test('rmTree rethrows after the retry budget is spent', () => {
+  const { rmTree } = require('../src/refresh-workspace');
+  const delays = [];
+  const attempt = () => {
+    const err = new Error('ENOTEMPTY');
+    err.code = 'ENOTEMPTY';
+    throw err;
+  };
+  assert.throws(() => rmTree('/nope', { attempt, sleep: (ms) => delays.push(ms) }), { code: 'ENOTEMPTY' });
+  assert.equal(delays.length, 6);
+  assert.equal(delays.reduce((a, b) => a + b, 0), 6300);
+});
