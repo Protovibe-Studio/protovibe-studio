@@ -142,6 +142,15 @@ export function PublishButton() {
   // Set when the user starts a login as part of publishing, so the flow can
   // continue automatically once OAuth completes.
   const pendingPublishRef = useRef(false);
+  const openRef = useRef(open);
+  useEffect(() => { openRef.current = open; }, [open]);
+  // The "Your app is published" screen is a hand-off for someone who is
+  // watching the publish finish. Publishing keeps running in the background
+  // when the popover is closed, but then reopening should land on the home
+  // view — ready to start a new publish — rather than on a stale "Copy link"
+  // screen. Armed when a publish starts with the popover open, dropped the
+  // moment the popover closes.
+  const successViewEligibleRef = useRef(false);
 
   const applyMetadata = (data: { projectName: string; url: string; lastPublishedAt: string; deployHistory: CloudflareDeployHistoryEntry[] }) => {
     setSavedProjectName(data.projectName);
@@ -175,9 +184,14 @@ export function PublishButton() {
   // Re-check auth whenever the popover opens (served from a backend cache, so cheap)
   useEffect(() => {
     if (open) refreshAuth();
-    // Closing the popover dismisses a finished publish — reopening should land
-    // on the default "Published to" view, ready to publish an update.
-    if (!open && statusRef.current === 'success') handleReset();
+    if (!open) {
+      // Closing the popover dismisses a finished publish — reopening should land
+      // on the default "Published to" view, ready to publish an update.
+      if (statusRef.current === 'success') handleReset();
+      // A publish still running in the background loses its claim on the
+      // success view too: the user walked away from it.
+      successViewEligibleRef.current = false;
+    }
   }, [open]);
 
   // Called when the OAuth login completes: refresh the connection badge and,
@@ -210,8 +224,16 @@ export function PublishButton() {
       try {
         const s = await fetchCloudflarePublishStatus();
         const wasWaitingForLogin = statusRef.current === 'waiting-for-browser-approval';
-        setStatus(s.status);
-        setStatusMessage(s.message ?? '');
+        // Deploy finished, but the popover was closed at some point while it ran
+        // — drop straight back to the home view instead of parking on the
+        // "Copy link" screen the user is no longer waiting on.
+        const skipSuccessView = s.status === 'success' && !successViewEligibleRef.current;
+        if (skipSuccessView) {
+          handleReset();
+        } else {
+          setStatus(s.status);
+          setStatusMessage(s.message ?? '');
+        }
         if (s.accounts) { setAccounts(s.accounts); setSelectedAccount(s.accounts[0]?.id ?? ''); }
         if (s.url) setPublishedUrl(s.url);
         if (s.authUrl) setAuthUrl(s.authUrl);
@@ -221,6 +243,7 @@ export function PublishButton() {
         }
         // Deploy finished — refresh metadata; the success view stays up until dismissed
         if (s.status === 'success') {
+          successViewEligibleRef.current = false;
           setAuthUrl('');
           setApiToken('');
           fetchCloudflarePublishMetadata().then(applyMetadata).catch(() => {});
@@ -324,6 +347,7 @@ export function PublishButton() {
   };
 
   const handlePublish = async (accountId?: string, token?: string) => {
+    successViewEligibleRef.current = openRef.current;
     setErrorText('');
     setStatus('publishing');
     setStatusMessage('Starting…');
