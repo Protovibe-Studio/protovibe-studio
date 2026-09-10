@@ -28,6 +28,11 @@ const FUNNY_MESSAGES = {
     'Adjusting the lighting...',
     'Polishing the pixels...',
   ],
+  'updating-plugin': [
+    'Fitting the new Protovibe editor...',
+    'Swapping in fresh brushes...',
+    'Bringing your project up to date...',
+  ],
   'installing-git': [
     'Building your time machine...',
     'Setting up infinite undo...',
@@ -43,6 +48,7 @@ const FUNNY_MESSAGES = {
 const STAGE_LABELS = {
   creating: 'Creating project',
   duplicating: 'Duplicating project',
+  'updating-plugin': 'Updating the Protovibe editor',
   installing: 'Setting up your project',
   starting: 'Starting the preview',
   'installing-git': 'Getting Git ready',
