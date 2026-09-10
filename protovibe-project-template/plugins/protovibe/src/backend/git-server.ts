@@ -219,6 +219,13 @@ export interface GitOpState {
   repoUrl?: string;
 }
 
+// Plain-language failure messages, one per step, so the headline the user reads
+// matches what actually went wrong. The UI adds the "here's what to do about it"
+// half (see ui/components/GitMenu.tsx), so these only have to name the step.
+const FETCH_FAILED_MESSAGE = 'Couldn’t reach your project on GitHub.';
+const MERGE_FAILED_MESSAGE = 'Couldn’t combine your team’s changes with yours.';
+const PUSH_FAILED_MESSAGE = 'Couldn’t send your work to GitHub.';
+
 let gitOpState: GitOpState = { status: 'idle', message: '' };
 let gitOpTimestamp = 0;
 
@@ -275,7 +282,7 @@ async function stageAndCommit(message: string): Promise<boolean> {
 }
 
 /**
- * Fetch remote work and rebase our local commits on top of it, with last-write-wins
+ * Rebase our local commits onto the already-fetched upstream, with last-write-wins
  * on true same-line conflicts. Returns whether a conflict was auto-resolved.
  *
  * Two-phase so we can detect conflicts deterministically (a `-X theirs` rebase
@@ -285,10 +292,13 @@ async function stageAndCommit(message: string): Promise<boolean> {
  *      "theirs" = the commits being replayed = our local edits), so the syncer wins.
  *      Success here means we overrode a conflicting edit → true.
  * A rebase that even `-X theirs` can't settle (e.g. rename/delete) aborts and rethrows.
+ *
+ * The fetch is deliberately NOT part of this: a fetch that fails because the
+ * machine isn't signed in to GitHub is the single most common sync failure our
+ * users hit, and reporting it as "couldn't merge" sends them looking for a
+ * conflict that doesn't exist. Callers fetch first and say so themselves.
  */
-async function fetchAndRebase(): Promise<boolean> {
-  await gitNet(['fetch'], 90_000);
-
+async function rebaseOntoUpstream(): Promise<boolean> {
   // Fast path: clean rebase (no overlapping edits, or nothing to integrate).
   try {
     await git(['rebase', '@{u}'], 60_000);
@@ -313,21 +323,28 @@ async function runGitSync(): Promise<void> {
     await stageAndCommit(autoCommitMessage());
 
     setGitOpState({ status: 'pulling', message: 'Getting the latest…', op: 'sync' });
+    try {
+      await gitNet(['fetch'], 90_000);
+    } catch (err) {
+      setGitOpState({ status: 'error', message: FETCH_FAILED_MESSAGE, op: 'sync', error: String(err) });
+      return;
+    }
+
     let resolvedConflict = false;
     try {
-      resolvedConflict = await fetchAndRebase();
+      resolvedConflict = await rebaseOntoUpstream();
     } catch (err) {
-      setGitOpState({
-        status: 'error',
-        message: 'Could not merge remote changes automatically. Ask your coding agent for help.',
-        op: 'sync',
-        error: String(err),
-      });
+      setGitOpState({ status: 'error', message: MERGE_FAILED_MESSAGE, op: 'sync', error: String(err) });
       return;
     }
 
     setGitOpState({ status: 'pushing', message: 'Publishing…', op: 'sync' });
-    await gitNet(['push'], 90_000);
+    try {
+      await gitNet(['push'], 90_000);
+    } catch (err) {
+      setGitOpState({ status: 'error', message: PUSH_FAILED_MESSAGE, op: 'sync', error: String(err) });
+      return;
+    }
 
     setGitOpState({
       status: 'success',
@@ -336,7 +353,7 @@ async function runGitSync(): Promise<void> {
       resolvedConflict,
     });
   } catch (err) {
-    setGitOpState({ status: 'error', message: 'Sync failed.', op: 'sync', error: String(err) });
+    setGitOpState({ status: 'error', message: 'Syncing didn’t work.', op: 'sync', error: String(err) });
   }
 }
 
@@ -441,11 +458,17 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     }
     if (op === 'pull') {
       setGitOpState({ status: 'pulling', message: 'Getting the latest…', op });
+      try {
+        await gitNet(['fetch'], 90_000);
+      } catch (err) {
+        setGitOpState({ status: 'error', message: FETCH_FAILED_MESSAGE, op, error: String(err) });
+        return;
+      }
       let resolvedConflict = false;
       try {
-        resolvedConflict = await fetchAndRebase();
+        resolvedConflict = await rebaseOntoUpstream();
       } catch (err) {
-        setGitOpState({ status: 'error', message: 'Could not merge remote changes automatically.', op, error: String(err) });
+        setGitOpState({ status: 'error', message: MERGE_FAILED_MESSAGE, op, error: String(err) });
         return;
       }
       setGitOpState({ status: 'success', message: resolvedConflict ? 'Pulled — resolved a conflicting edit' : 'Pulled', op, resolvedConflict });
@@ -453,7 +476,12 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     }
     if (op === 'push') {
       setGitOpState({ status: 'pushing', message: 'Publishing…', op });
-      await gitNet(['push'], 90_000);
+      try {
+        await gitNet(['push'], 90_000);
+      } catch (err) {
+        setGitOpState({ status: 'error', message: PUSH_FAILED_MESSAGE, op, error: String(err) });
+        return;
+      }
       setGitOpState({ status: 'success', message: 'Pushed', op });
       return;
     }
@@ -464,7 +492,7 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     // op === 'sync'
     await runGitSync();
   } catch (err) {
-    setGitOpState({ status: 'error', message: `${op} failed.`, op, error: String(err) });
+    setGitOpState({ status: 'error', message: 'That didn’t work.', op, error: String(err) });
   }
 }
 

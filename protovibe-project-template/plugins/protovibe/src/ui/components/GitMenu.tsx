@@ -47,7 +47,13 @@ const GithubMark: React.FC<{ size?: number }> = ({ size = 14 }) => (
 // "GitHub said no" and the "we can't find the project online" cases come down to
 // the same thing for a designer — this computer was never signed in to GitHub —
 // so both point at the same coding-agent prompt.
-function failureHeadline(kind: GitFailureKind): string {
+function failureHeadline(kind: GitFailureKind, needsInstall: boolean): string {
+  // Their account is connected and fine — GitHub just hasn't been told this
+  // particular project is one Protovibe may touch. Saying "not signed in" here
+  // contradicts the account row at the bottom of the very same panel.
+  if (needsInstall) {
+    return 'Your GitHub account is connected, but GitHub hasn’t given Protovibe permission for this project yet.';
+  }
   if (kind === 'auth') {
     return 'GitHub wouldn’t accept your work from this computer — it isn’t signed in to GitHub yet.';
   }
@@ -212,10 +218,12 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const backupNeedsInstall = op.status === 'error' && op.op === 'backup' && !!op.needsInstall;
   const syncNeedsInstall = githubAuthIssue && !!github?.connected && (repoAccess?.state === 'not-covered' || repoAccess?.state === 'no-push');
   const installUrl = op.installUrl || repoAccess?.installUrl || github?.installUrl || '';
-  // Is there a first-line fix of our own on screen? If so the coding-agent prompt
-  // sits collapsed underneath it rather than shouting over it — but it is always
-  // there, because our own remedies don't cover a machine that was never signed in.
-  const hasQuickFix = (githubAuthIssue && !!github && !github.connected) || syncNeedsInstall;
+  // The coding-agent prompt collapses to a link only when we have a remedy we
+  // *know* fixes the failure — the GitHub install page for a repo the app doesn't
+  // cover. "Connect your GitHub account" doesn't qualify: connecting doesn't help
+  // a machine git itself can't authenticate, which is the usual cause here, so
+  // that case keeps the prompt open underneath the connect button.
+  const hasQuickFix = syncNeedsInstall;
 
   const backupFailed = opFailed && op.op === 'backup';
   const backupHelpPrompt = !status.isRepo
@@ -425,7 +433,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               {opFailed && (
                 <div style={{ padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}` }}>
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                    {failureHeadline(failureKind)}
+                    {failureHeadline(failureKind, syncNeedsInstall)}
                   </div>
 
                   {/* One-click remedies we can offer ourselves, when they apply. */}
@@ -462,7 +470,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                   {syncNeedsInstall && (
                     <InstallAccessPanel
                       installUrl={installUrl}
-                      body="GitHub also needs your permission before Protovibe can use this project. Open GitHub, tick this project, then sync again."
+                      body="Open GitHub, tick this project in the list, then come back and sync again."
                       retryLabel="I’ve done it — sync again"
                       onRetry={() => void runOp('sync')}
                       disabled={busy}
