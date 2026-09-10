@@ -640,6 +640,14 @@ Dialog visibility and active tab selection must be driven by URL query-string pa
 * Give each dialog its own key set to `true` when open (`employeeDialog=true`); when closed, **remove the key** from the URL instead of setting it to `false`.
 * Give each tab group its own key holding the active tab id (`settingsTab=billing`); omit the key when the default tab is active.
 
+## Deep-linkable UI state
+
+Any UI state that *can* be represented in the URL query string MUST be handled via the query string (through the store's `state.queryParams` / `setQueryParams`), not `useState`, so every state is deep-linkable and back/forward safe. This covers dialogs, active tabs/sub-tabs, and toggles/checkboxes (e.g. "Show gender pay gap"), etc. — not just tabs.
+
+- Derive the value from `state.queryParams` and validate it; fall back to the default when the param is missing or invalid.
+- Drop the key from the URL when the state is at its default (e.g. a checkbox that is off, or the default tab) so a clean URL means the default — set the param only for non-default values.
+- Booleans use `'true'` when on and `null` (omitted) when off. See `genderPayGap` / `country` / `protoState` in [src/pages/hr/compensation-bands.tsx](./src/pages/hr/compensation-bands.tsx) for the reference pattern.
+
 ### Rule: Compound Components (Context State)
 
 Certain parent-child component pairs manage item state implicitly via React Context (e.g., `Tabs`, `RadioGroup`).
@@ -769,6 +777,9 @@ Never add custom Tailwind classes for text styling. Instead, use the `TextBlock`
   ```tsx
   <TextBlock typography="all-caps">Section Title</TextBlock>
   ```
+
+## Rule: no manual text styles for text components
+Components already have font sizes baked in their props. Do not manually add font size or weight unless user clearly asks. By default never use text-paragraph component and add font-size override. 
 
 ### Rule: Avoid Rarely-Used Inline HTML Tags
 
