@@ -415,8 +415,8 @@ export const PromptsTab: React.FC = () => {
   const [userInput, setUserInput] = useState('');
   const [step, setStep] = useState<Step>(1);
   const [toast, setToast] = useState<string | null>(null);
-  // Attachments belong to the tab, not to one prompt, so they survive going back
-  // to the list and picking a different prompt.
+  // Attachments belong to the draft, alongside the text: leaving a prompt or
+  // opening another one clears both.
   const [attachments, setAttachments] = useState<PromptAttachment[]>([]);
   const [savingCount, setSavingCount] = useState(0);
   const [dragOver, setDragOver] = useState(false);
@@ -548,12 +548,14 @@ export const PromptsTab: React.FC = () => {
   const handleSelect = (id: string) => {
     setSelectedId(id);
     setUserInput('');
+    clearAttachments();
     setStep(1);
   };
 
   const handleBack = () => {
     setSelectedId(null);
     setUserInput('');
+    clearAttachments();
     setStep(1);
   };
 
@@ -599,10 +601,7 @@ export const PromptsTab: React.FC = () => {
   // ─── List view ───────────────────────────────────────────────────────
   if (!selectedPrompt) {
     return (
-      <div
-        {...dropZoneProps}
-        style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}
-      >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}>
         <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontFamily: theme.font_ui, fontSize: 14, fontWeight: 600, color: theme.text_default }}>
@@ -621,26 +620,6 @@ export const PromptsTab: React.FC = () => {
               fontFamily: theme.font_ui, fontSize: 12, padding: '6px 10px', outline: 'none',
             }}
           />
-          {(attachments.length > 0 || savingCount > 0) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontFamily: theme.font_ui, fontSize: 11, fontWeight: 600, color: theme.text_tertiary }}>
-                  Attachments
-                </span>
-                <div style={{ flex: 1 }} />
-                <button
-                  onClick={clearAttachments}
-                  style={{
-                    background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-                    fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary,
-                  }}
-                >
-                  Clear
-                </button>
-              </div>
-              <AttachmentTray items={attachments} saving={savingCount} onRemove={removeAttachment} />
-            </div>
-          )}
         </div>
         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 16 }}>
           <div style={{
@@ -697,7 +676,6 @@ export const PromptsTab: React.FC = () => {
             </button>
           ))}
         </div>
-        {dragOver && <DropOverlay />}
         {toast && <ToastOverlay message={toast} />}
       </div>
     );
