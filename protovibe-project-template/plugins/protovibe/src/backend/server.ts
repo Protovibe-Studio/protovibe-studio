@@ -2436,6 +2436,136 @@ export const handleUploadImage: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+// ─── Prompt attachments ───────────────────────────────────────────────────────
+// Screenshots and files the user attaches in the Prompts tab. Nothing is ever
+// uploaded anywhere: the bytes are copied into a gitignored folder inside the
+// project so the copied prompt can point a coding agent at a real absolute path
+// on disk. Paths stay inside the project, so an agent running with the project
+// as its working directory can read them without extra permissions.
+const PROMPT_ATTACHMENTS_DIR = '.protovibe/prompts-attachments';
+
+// Base64 travels through the dev server in one request body, so cap the size.
+const MAX_PROMPT_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+
+// Attachments are disposable: once a copied prompt has been pasted into a
+// coding agent, the copy has done its job. Anything older than this is swept so
+// the folder can't grow without bound. Keep it comfortably longer than a work
+// session — a prompt copied on Friday must still resolve on Monday.
+const PROMPT_ATTACHMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// The sweep also runs opportunistically on save, so an editor left open for
+// weeks still gets cleaned. Throttled — it is a readdir + stat per file.
+const PROMPT_ATTACHMENT_SWEEP_INTERVAL_MS = 60 * 60 * 1000;
+let lastPromptAttachmentSweep = 0;
+
+// Create the attachments folder and make it ignore itself. A `.gitignore`
+// holding `*` inside the folder covers the folder's whole contents (including
+// the .gitignore), so projects generated from older templates need no edit to
+// their own root .gitignore.
+function ensurePromptAttachmentsDir(): string {
+  const dir = path.resolve(process.cwd(), PROMPT_ATTACHMENTS_DIR);
+  fs.mkdirSync(dir, { recursive: true });
+  const ignoreFile = path.join(dir, '.gitignore');
+  if (!fs.existsSync(ignoreFile)) fs.writeFileSync(ignoreFile, '*\n');
+  return dir;
+}
+
+// Kebab-case the name, keep the extension, and suffix a counter until the name
+// is free — attaching the same screenshot twice keeps both copies.
+function uniquePromptAttachmentName(dir: string, filename: string): string {
+  const ext = path.extname(filename).toLowerCase();
+  const sanitized = path.basename(filename, path.extname(filename))
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'attachment';
+  let finalName = `${sanitized}${ext}`;
+  let counter = 1;
+  while (fs.existsSync(path.join(dir, finalName))) {
+    finalName = `${sanitized}-${counter}${ext}`;
+    counter++;
+  }
+  return finalName;
+}
+
+/**
+ * Delete prompt attachments past the TTL.
+ *
+ * Never removes the folder's `.gitignore` — losing that would expose every
+ * future attachment to git. Never removes the folder itself either, so an
+ * in-flight save can't land in a directory that just disappeared.
+ *
+ * Deleting these files is invisible to Vite: they are not in the module graph,
+ * so no HMR update is broadcast and no editor state is lost.
+ */
+export function sweepPromptAttachments(force = false): void {
+  const now = Date.now();
+  if (!force && now - lastPromptAttachmentSweep < PROMPT_ATTACHMENT_SWEEP_INTERVAL_MS) return;
+  lastPromptAttachmentSweep = now;
+
+  const dir = path.resolve(process.cwd(), PROMPT_ATTACHMENTS_DIR);
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return; // Nothing attached yet.
+  }
+
+  let removed = 0;
+  for (const entry of entries) {
+    if (!entry.isFile() || entry.name === '.gitignore') continue;
+    const file = path.join(dir, entry.name);
+    try {
+      if (now - fs.statSync(file).mtimeMs < PROMPT_ATTACHMENT_TTL_MS) continue;
+      fs.unlinkSync(file);
+      removed++;
+    } catch {
+      // Raced with another sweep or a manual delete — nothing to do.
+    }
+  }
+  if (removed > 0) {
+    console.log(`[protovibe] Removed ${removed} prompt attachment(s) older than 7 days`);
+  }
+}
+
+// POST { filename, base64Data } → { ok, name, absolutePath }
+// Deliberately not image-only and deliberately uncompressed: a screenshot the
+// agent is asked to read should stay pixel-exact.
+export const handleSavePromptAttachment: Connect.NextHandleFunction = (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      const { filename, base64Data } = JSON.parse(body);
+      if (!filename || !base64Data) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ ok: false, error: 'Missing filename or base64Data' }));
+      }
+      const raw = String(base64Data).replace(/^data:[^;,]*;base64,/, '');
+      const buffer = Buffer.from(raw, 'base64');
+      if (buffer.length === 0) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ ok: false, error: 'File is empty' }));
+      }
+      if (buffer.length > MAX_PROMPT_ATTACHMENT_BYTES) {
+        res.statusCode = 413;
+        return res.end(JSON.stringify({ ok: false, error: 'File is larger than 20 MB' }));
+      }
+      sweepPromptAttachments();
+      const dir = ensurePromptAttachmentsDir();
+      const name = uniquePromptAttachmentName(dir, filename);
+      const absolutePath = path.join(dir, name);
+      fs.writeFileSync(absolutePath, buffer);
+      res.end(JSON.stringify({ ok: true, name, absolutePath }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ ok: false, error: String(err) }));
+    }
+  });
+};
+
 export const handleUpdateThemeToken: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });

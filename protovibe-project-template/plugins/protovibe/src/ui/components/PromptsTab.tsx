@@ -8,15 +8,38 @@ import {
   Check,
   Copy,
   ExternalLink,
+  FileText,
   FolderOpen,
+  ImagePlus,
+  Paperclip,
   Terminal,
   MousePointer2,
+  X,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
+import { savePromptAttachment } from '../api/client';
 import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/prompts-registry';
 
 type Step = 1 | 2 | 3;
+
+/**
+ * A file the user attached to the prompt. By the time one of these exists the
+ * bytes have already been copied into the project's gitignored
+ * `.protovibe/prompts-attachments/` folder, so `absolutePath` is a real path on
+ * the user's disk that a coding agent can open. Nothing leaves the machine.
+ *
+ * `previewUrl` is a local object URL, images only — the thumbnail is rendered
+ * straight from the File the browser already holds, never from the server.
+ */
+interface PromptAttachment {
+  id: string;
+  name: string;
+  absolutePath: string;
+  previewUrl: string | null;
+}
+
+let attachmentSeq = 0;
 
 
 function useProjectRoot() {
@@ -58,6 +81,138 @@ function RefChip({ label, value }: { label: string; value: string | null }) {
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {present ? value : '—'}
       </span>
+    </div>
+  );
+}
+
+// Icon button that opens the native file picker, mirroring the Comments tab's
+// composer button. Unlike comments, any file type is accepted — a spec, a log,
+// or a screenshot are all just paths handed to the coding agent.
+function AttachButton({ onFiles }: { onFiles: (files: File[]) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        hidden
+        onChange={e => {
+          if (e.target.files) onFiles(Array.from(e.target.files));
+          e.target.value = '';
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        data-tooltip="Attach a screenshot or file"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent',
+          color: theme.text_tertiary, cursor: 'pointer', padding: 0,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = theme.text_secondary; e.currentTarget.style.background = theme.bg_tertiary; }}
+        onMouseLeave={e => { e.currentTarget.style.color = theme.text_tertiary; e.currentTarget.style.background = 'transparent'; }}
+      >
+        <ImagePlus size={16} />
+      </button>
+    </>
+  );
+}
+
+// One attached file. Images get a thumbnail; everything else gets a name chip.
+// Either way the tooltip shows the absolute path that will land in the prompt.
+function AttachmentItem({ att, onRemove }: { att: PromptAttachment; onRemove: () => void }) {
+  // An image the browser can't decode falls back to the name chip rather than
+  // rendering a broken-image glyph.
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const isImage = !!att.previewUrl && !previewFailed;
+  return (
+    <div
+      data-tooltip={att.name}
+      style={{
+        position: 'relative',
+        display: 'flex', alignItems: 'center', gap: 6,
+        width: isImage ? 56 : undefined, maxWidth: 150, height: 56,
+        padding: isImage ? 0 : '0 20px 0 8px',
+        borderRadius: 6, overflow: 'hidden', flexShrink: 0,
+        border: `1px solid ${theme.border_default}`,
+        background: theme.bg_strong,
+      }}
+    >
+      {isImage ? (
+        <img
+          src={att.previewUrl!}
+          alt={att.name}
+          onError={() => setPreviewFailed(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <>
+          <FileText size={14} color={theme.text_tertiary} style={{ flexShrink: 0 }} />
+          <span style={{
+            fontFamily: theme.font_ui, fontSize: 10, color: theme.text_secondary,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {att.name}
+          </span>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={onRemove}
+        data-tooltip="Remove attachment"
+        style={{
+          position: 'absolute', top: 2, right: 2,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 16, height: 16, borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0,
+          background: 'rgba(0,0,0,0.6)', color: '#fff',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.85)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; }}
+      >
+        <X size={11} />
+      </button>
+    </div>
+  );
+}
+
+function AttachmentTray({
+  items, saving, onRemove,
+}: { items: PromptAttachment[]; saving: number; onRemove: (id: string) => void }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {items.map(a => <AttachmentItem key={a.id} att={a} onRemove={() => onRemove(a.id)} />)}
+      {saving > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 56, height: 56, borderRadius: 6, flexShrink: 0,
+          border: `1px dashed ${theme.border_default}`,
+          fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary,
+        }}>
+          Saving…
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Covers the whole panel while files are dragged over it, so the drop target is
+// the entire Prompts tab rather than just the text field.
+function DropOverlay() {
+  return (
+    <div style={{
+      position: 'absolute', top: 8, right: 8, bottom: 8, left: 8, zIndex: 20,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+      background: 'rgba(27,27,27,0.94)',
+      border: `2px dashed ${theme.accent_default}`,
+      borderRadius: 10,
+      pointerEvents: 'none',
+    }}>
+      <Paperclip size={22} color={theme.accent_default} />
+      <div style={{ fontFamily: theme.font_ui, fontSize: 13, fontWeight: 600, color: theme.text_default }}>
+        Drop to attach
+      </div>
     </div>
   );
 }
@@ -260,6 +415,14 @@ export const PromptsTab: React.FC = () => {
   const [userInput, setUserInput] = useState('');
   const [step, setStep] = useState<Step>(1);
   const [toast, setToast] = useState<string | null>(null);
+  // Attachments belong to the draft, alongside the text: leaving a prompt or
+  // opening another one clears both.
+  const [attachments, setAttachments] = useState<PromptAttachment[]>([]);
+  const [savingCount, setSavingCount] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  // dragenter/dragleave fire for every child element the pointer crosses; count
+  // the nesting so the overlay doesn't flicker on the way in.
+  const dragDepth = useRef(0);
 
   const selectedPrompt = useMemo(
     () => PROMPTS.find(p => p.id === selectedId) ?? null,
@@ -293,21 +456,112 @@ export const PromptsTab: React.FC = () => {
     window.setTimeout(() => setToast(null), 1800);
   }, []);
 
+  const addFiles = useCallback(async (files: File[]) => {
+    if (files.length === 0) return;
+    setSavingCount(n => n + files.length);
+    for (const file of files) {
+      try {
+        const saved = await savePromptAttachment(file);
+        attachmentSeq += 1;
+        setAttachments(prev => [...prev, {
+          id: `att-${attachmentSeq}`,
+          name: saved.name,
+          absolutePath: saved.absolutePath,
+          previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+        }]);
+      } catch (err) {
+        showToast((err as Error)?.message || `Could not attach ${file.name}`);
+      } finally {
+        setSavingCount(n => n - 1);
+      }
+    }
+  }, [showToast]);
+
+  // Removing only drops the reference. The copy stays in the gitignored folder,
+  // which is harmless and keeps removal instant.
+  const removeAttachment = useCallback((id: string) => {
+    const gone = attachments.find(a => a.id === id);
+    if (gone?.previewUrl) URL.revokeObjectURL(gone.previewUrl);
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  }, [attachments]);
+
+  const clearAttachments = useCallback(() => {
+    attachments.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
+    setAttachments([]);
+  }, [attachments]);
+
+  // Release every object URL if the tab is ever unmounted.
+  const attachmentsRef = useRef(attachments);
+  attachmentsRef.current = attachments;
+  useEffect(() => () => {
+    attachmentsRef.current.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
+  }, []);
+
+  const dragCarriesFiles = (e: React.DragEvent) =>
+    Array.from(e.dataTransfer?.types ?? []).includes('Files');
+
+  // Spread onto both the list and detail roots so the whole right panel is one
+  // drop target.
+  const dropZoneProps = {
+    onDragEnter: (e: React.DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
+      e.preventDefault();
+      dragDepth.current += 1;
+      setDragOver(true);
+    },
+    onDragOver: (e: React.DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
+      dragDepth.current = Math.max(0, dragDepth.current - 1);
+      if (dragDepth.current === 0) setDragOver(false);
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
+      // The canvas installs window-level drop handlers that insert dropped
+      // images onto the page. Keep this drop local, or it lands in two places.
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      dragDepth.current = 0;
+      setDragOver(false);
+      void addFiles(Array.from(e.dataTransfer.files));
+    },
+  };
+
+  // Same reasoning as the drop handler: the canvas also listens for paste.
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const files = Array.from(e.clipboardData.items)
+      .filter(i => i.kind === 'file')
+      .map(i => i.getAsFile())
+      .filter((f): f is File => !!f);
+    if (files.length === 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    void addFiles(files);
+  };
+
   const handleSelect = (id: string) => {
     setSelectedId(id);
     setUserInput('');
+    clearAttachments();
     setStep(1);
   };
 
   const handleBack = () => {
     setSelectedId(null);
     setUserInput('');
+    clearAttachments();
     setStep(1);
   };
 
   const handleCopy = useCallback(async () => {
     if (!selectedPrompt) return;
-    const text = renderPrompt(selectedPrompt, ctx, userInput);
+    const text = renderPrompt(selectedPrompt, ctx, userInput, attachments.map(a => a.absolutePath));
     try {
       await navigator.clipboard.writeText(text);
       showToast('Prompt copied to clipboard');
@@ -315,7 +569,7 @@ export const PromptsTab: React.FC = () => {
     } catch {
       showToast('Failed to copy prompt');
     }
-  }, [selectedPrompt, ctx, userInput, showToast]);
+  }, [selectedPrompt, ctx, userInput, attachments, showToast]);
 
   const openInVsCode = useCallback(() => {
     if (!projectRoot) return;
@@ -442,7 +696,10 @@ export const PromptsTab: React.FC = () => {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}>
+    <div
+      {...dropZoneProps}
+      style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.bg_strong }}
+    >
       <div style={{ padding: '16px 20px 20px', borderBottom: `1px solid ${theme.border_default}`, backgroundColor: theme.bg_strong, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
@@ -468,26 +725,59 @@ export const PromptsTab: React.FC = () => {
           <label style={{ fontFamily: theme.font_ui, fontSize: 12, fontWeight: 500, color: theme.text_secondary }}>
             {selectedPrompt.inputLabel}
           </label>
-          <textarea
-            value={userInput}
-            onChange={e => { setUserInput(e.target.value); if (step !== 1) setStep(1); }}
-            placeholder={
-              selectedPrompt.inputOptional
-                ? selectedPrompt.inputPlaceholder
-                  ? `Optional — ${selectedPrompt.inputPlaceholder}`
-                  : 'Optional'
-                : selectedPrompt.inputPlaceholder
-            }
-            rows={5}
+          <div
+            onPaste={handlePaste}
             style={{
-              width: '100%', boxSizing: 'border-box',
-              background: theme.bg_secondary, border: `1px solid ${theme.border_default}`,
-              borderRadius: 6, color: theme.text_default,
-              fontFamily: theme.font_ui, fontSize: 12,
-              padding: '8px 10px', outline: 'none', resize: 'vertical',
-              lineHeight: 1.4,
+              display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              background: theme.bg_secondary,
+              border: `1px solid ${dragOver ? theme.accent_default : theme.border_default}`,
+              borderRadius: 6,
             }}
-          />
+          >
+            <textarea
+              value={userInput}
+              onChange={e => { setUserInput(e.target.value); if (step !== 1) setStep(1); }}
+              placeholder={
+                selectedPrompt.inputOptional
+                  ? selectedPrompt.inputPlaceholder
+                    ? `Optional — ${selectedPrompt.inputPlaceholder}`
+                    : 'Optional'
+                  : selectedPrompt.inputPlaceholder
+              }
+              rows={5}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: 'transparent', border: 'none',
+                color: theme.text_default,
+                fontFamily: theme.font_ui, fontSize: 12,
+                padding: '8px 10px 2px', outline: 'none', resize: 'vertical',
+                lineHeight: 1.4,
+              }}
+            />
+            {(attachments.length > 0 || savingCount > 0) && (
+              <div style={{ padding: '4px 10px 0' }}>
+                <AttachmentTray items={attachments} saving={savingCount} onRemove={removeAttachment} />
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px 5px 6px' }}>
+              <AttachButton onFiles={addFiles} />
+              {attachments.length > 0 && (
+                <button
+                  onClick={clearAttachments}
+                  style={{
+                    background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                    fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary,
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+              <div style={{ flex: 1 }} />
+              <span style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary }}>
+                or drop files anywhere here
+              </span>
+            </div>
+          </div>
           {selectedPrompt.requiresSelection !== false && !ctx.file ? (
             <div
               style={{
@@ -525,6 +815,9 @@ export const PromptsTab: React.FC = () => {
                   <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
                 ))}
                 <RefChip label="rules" value="PROTOVIBE_AGENTS.md" />
+                {attachments.length > 0 && (
+                  <RefChip label="files" value={`${attachments.length} attached`} />
+                )}
               </div>
             </div>
           )}
@@ -532,11 +825,11 @@ export const PromptsTab: React.FC = () => {
 
         {/* Step 2 — copy */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <SectionHeading n={2} state={step < 2 && !userInput.trim() && !selectedPrompt.inputOptional ? 'pending' : step >= 3 ? 'done' : 'active'}>
+          <SectionHeading n={2} state={step < 2 && !userInput.trim() && attachments.length === 0 && !selectedPrompt.inputOptional ? 'pending' : step >= 3 ? 'done' : 'active'}>
             Copy prompt
           </SectionHeading>
           {(() => {
-            const canCopy = selectedPrompt.inputOptional || !!userInput.trim();
+            const canCopy = selectedPrompt.inputOptional || !!userInput.trim() || attachments.length > 0;
             return (
           <button
             onClick={handleCopy}
@@ -580,6 +873,7 @@ export const PromptsTab: React.FC = () => {
         </section>
       </div>
 
+      {dragOver && <DropOverlay />}
       {toast && <ToastOverlay message={toast} />}
     </div>
   );
