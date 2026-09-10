@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleSavePromptAttachment, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
 import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
@@ -223,6 +223,7 @@ export function protovibeSourcePlugin(): Plugin {
       server.middlewares.use('/__update-theme-token', handleUpdateThemeToken);
       server.middlewares.use('/__update-font-family', handleUpdateFontFamily);
       server.middlewares.use('/__upload-image', handleUploadImage);
+      server.middlewares.use('/__save-prompt-attachment', handleSavePromptAttachment);
       server.middlewares.use('/__cloudflare-publish-metadata', handleCloudflarePublishMetadata);
       server.middlewares.use('/__cloudflare-publish-save-name', handleCloudflarePublishSaveName);
       server.middlewares.use('/__cloudflare-publish-start', handleCloudflarePublishStart);

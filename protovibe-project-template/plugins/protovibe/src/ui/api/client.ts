@@ -254,6 +254,37 @@ export async function uploadImage(file: File): Promise<string> {
   return data.url;
 }
 
+/** A file the user attached in the Prompts tab, after it landed on disk. */
+export interface SavedPromptAttachment {
+  /** Sanitized file name inside .protovibe/prompts-attachments/. */
+  name: string;
+  /** Absolute path on the user's disk — this is what goes into the prompt. */
+  absolutePath: string;
+}
+
+/**
+ * Copy an attached file into the project's gitignored prompt-attachments folder
+ * and return where it landed. Nothing leaves the machine: the bytes go to the
+ * dev server, which writes them next to the project.
+ */
+export async function savePromptAttachment(file: File): Promise<SavedPromptAttachment> {
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch('/__save-prompt-attachment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name || 'attachment', base64Data }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to attach file');
+  return { name: data.name, absolutePath: data.absolutePath };
+}
+
 export async function fetchThemeColors(): Promise<ThemeColor[]> {
   const res = await fetch('/__get-theme-colors', {
     method: 'POST',

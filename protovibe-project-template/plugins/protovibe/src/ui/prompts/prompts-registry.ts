@@ -12,6 +12,10 @@
 //   {{blockId}}     — nearest `data-pv-block` id to the current selection
 //   {{code}}        — source code of the currently selected block
 //   {{agentsRules}} — standard reminder to follow plugins/protovibe/PROTOVIBE_AGENTS.md rules
+//   {{attachments}} — absolute paths of the files attached in the Prompts tab.
+//                     Templates do NOT need this placeholder: when attachments
+//                     exist and a template omits it, the block is appended at
+//                     the end of the rendered prompt.
 //
 // When a reference is missing (e.g. no selection), the placeholder is
 // replaced with a readable fallback like "(no file selected)".
@@ -71,6 +75,8 @@ export interface PromptDef {
    */
   template: string;
 }
+
+const ATTACHMENTS_HEADING = 'See these screenshots or files:';
 
 const AGENTS_RULES_SUFFIX =
   'Follow all architectural rules from plugins/protovibe/PROTOVIBE_AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
@@ -429,11 +435,22 @@ function fallback(value: string | number | null, label: string): string {
   return String(value);
 }
 
+/**
+ * The block that points the coding agent at the attached files. Empty when
+ * nothing is attached, so prompts render exactly as before.
+ */
+function renderAttachments(absolutePaths: string[]): string {
+  if (absolutePaths.length === 0) return '';
+  return `${ATTACHMENTS_HEADING}\n${absolutePaths.map(p => `- ${p}`).join('\n')}`;
+}
+
 export function renderPrompt(
   def: PromptDef,
   ctx: PromptRenderContext,
   userInput: string,
+  attachments: string[] = [],
 ): string {
+  const attachmentBlock = renderAttachments(attachments);
   const map: Record<string, string> = {
     input: userInput.trim() || (def.inputOptional ? '(no extra instructions)' : '(user input missing)'),
     file: fallback(ctx.file, 'file selected'),
@@ -442,8 +459,13 @@ export function renderPrompt(
     blockId: fallback(ctx.blockId, 'block id'),
     code: ctx.code?.trim() || '(no code captured)',
     agentsRules: AGENTS_RULES_SUFFIX,
+    attachments: attachmentBlock,
   };
-  return def.template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
+  const rendered = def.template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     key in map ? map[key] : `{{${key}}}`,
   );
+  // Templates that place {{attachments}} themselves own the placement; every
+  // other prompt gets the block appended so no template needs editing.
+  if (!attachmentBlock || def.template.includes('{{attachments}}')) return rendered;
+  return `${rendered}\n\n${attachmentBlock}`;
 }
