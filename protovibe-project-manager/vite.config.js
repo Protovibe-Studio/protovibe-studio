@@ -1342,8 +1342,17 @@ async function fetchSignedRelease() {
 
 const SHELL_CHANNEL_FILE = 'latest-mac.yml'
 
-// Injected by electron/src/toolchain.js. Absent when the manager runs outside
-// the desktop shell (plain `pnpm dev`), where there is no shell to report.
+// PROTOVIBE_SHELL has been set by the shell for far longer than
+// PROTOVIBE_SHELL_VERSION has, so it — not the version — decides whether there
+// is a shell to report at all. Keying off the version would hide the row on any
+// shell built before that variable existed, which is exactly the shell this code
+// reaches first: the in-app updater ships the manager independently of the shell.
+function runningInShell() {
+  return process.env.PROTOVIBE_SHELL === '1'
+}
+
+// Injected by electron/src/toolchain.js. Null on a shell predating that, where
+// we can still report what the latest release is but not what is installed.
 function installedShellVersion() {
   return process.env.PROTOVIBE_SHELL_VERSION || null
 }
@@ -1435,12 +1444,15 @@ async function handleGetVersion(req, res, url) {
       outdated: semverGt(templateLatest, templateCurrent),
     },
     // null when not running under the desktop shell — the UI hides the row.
-    shell: shellCurrent === null ? null : {
+    shell: !runningInShell() ? null : {
+      // null on a shell too old to report itself; the UI shows "unknown" rather
+      // than dropping the row, so the latest release is still visible.
       current: shellCurrent,
       latest: shellCache.latest,
       error: shellCache.latest ? null : shellCache.error,
       // Reported only. The shell installs its own updates via electron-updater,
-      // so this never drives the "Download new version" button.
+      // so this never drives the "Download new version" button. semverGt is
+      // false for a null current, so an unknown version never claims outdated.
       outdated: semverGt(shellCache.latest, shellCurrent),
       selfUpdating: true,
     },

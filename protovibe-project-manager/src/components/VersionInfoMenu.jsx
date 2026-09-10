@@ -187,7 +187,9 @@ function RetryButton({ onClick }) {
 }
 
 function VersionRow({ label, data }) {
-  const current = data?.current ?? '—'
+  // A null `current` means "running, but this build can't report its version"
+  // (an Electron shell older than PROTOVIBE_SHELL_VERSION) — not "not installed".
+  const current = data?.current ?? null
   const latest = data?.latest
   const error = data?.error
   const sameVersion = latest && current && latest === current
@@ -205,7 +207,11 @@ function VersionRow({ label, data }) {
         <>
           <div className="flex items-center justify-between text-xs text-foreground-secondary">
             <span>Installed</span>
-            <span className="font-mono text-foreground-default">{current}</span>
+            {current ? (
+              <span className="font-mono text-foreground-default">{current}</span>
+            ) : (
+              <span className="text-foreground-tertiary italic" title="This build is too old to report its version.">unknown</span>
+            )}
           </div>
           <div className="flex items-center justify-between text-xs text-foreground-secondary">
             <span>Latest in repo</span>
