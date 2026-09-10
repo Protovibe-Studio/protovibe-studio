@@ -16,6 +16,7 @@ let mainWindow = null;
 let splashWindow = null;
 let supervisor = null;
 let quitting = false;
+let installingUpdate = false;
 
 // App-wide navigation policy, applied to every window (including local popups
 // the manager/editor open, e.g. the "?connect-github=1" connect flow):
@@ -158,12 +159,35 @@ function startSupervisor(root) {
   });
 }
 
-function requestQuitAndInstall(autoUpdater) {
-  const stop = supervisor ? supervisor.stop() : Promise.resolve();
-  stop.then(() => {
-    quitting = true;
-    autoUpdater.quitAndInstall();
-  });
+// Called only once the updater knows the install can proceed (see
+// src/install-gate.js) — from here on the dev server is gone, so the app has
+// to end up either relaunched into the new version or exited with an error.
+async function requestQuitAndInstall(autoUpdater) {
+  if (installingUpdate) return;
+  installingUpdate = true;
+  logger.line('installing shell update: stopping the manager');
+  await (supervisor ? supervisor.stop() : Promise.resolve());
+  quitting = true;
+
+  // If the native installer fails after this point there is no window left
+  // to show it in and no server to go back to: report it and exit.
+  const bail = (reason) => {
+    logger.line(`update install failed: ${reason}`);
+    dialog.showErrorBox(
+      'Protovibe update failed',
+      `${reason}\n\nProtovibe will close. Relaunch it to keep working, or download the new version from the releases page.`,
+    );
+    app.exit(1);
+  };
+  autoUpdater.once('error', (err) => bail(err.message));
+  // Belt and braces: quitAndInstall() must close the window and terminate the
+  // app within moments; if neither happens, don't sit on a dead page forever.
+  const watchdog = setTimeout(() => bail('the installer never restarted the app'), 60_000);
+  app.once('will-quit', () => clearTimeout(watchdog));
+
+  // On macOS this closes every window, then Squirrel.Mac launches ShipIt and
+  // terminates the app itself (which fires before-quit/will-quit as usual).
+  autoUpdater.quitAndInstall();
 }
 
 app.on('before-quit', (event) => {
@@ -178,6 +202,9 @@ app.on('before-quit', (event) => {
 // on every platform, mac included — a hidden headless server would keep
 // project dev servers running with no way to see them.
 app.on('window-all-closed', () => {
+  // Except mid-update: Electron's native updater closes the windows itself and
+  // relaunches once they are gone; a quit here would race that relaunch.
+  if (installingUpdate) return;
   app.quit();
 });
 
