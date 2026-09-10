@@ -152,15 +152,30 @@ Protovibe couldn't find my project's online copy on GitHub. That usually means e
 I don't understand the error message. Please look at it, fix whatever is wrong with Git or GitHub on this computer, and get my work synced. If it turns out this computer simply isn't signed in to GitHub, please set that up for me as well — that's the most common reason.`;
 }
 
+// Protovibe's GitHub connection exists but isn't allowed near this repository.
+// The obvious remedy — tick the repo on GitHub's app-installation page — is one
+// our users often can't carry out: on a company repository an owner or admin has
+// to approve it. So the prompt asks the agent to find whichever route works,
+// including the one that skips the Protovibe connection entirely (this machine
+// pushing as the user, via gh), rather than assuming a setting they can flip.
+const APP_NOT_PERMITTED = `ONE MORE THING PROTOVIBE TOLD ME
+My GitHub account is connected to Protovibe, but GitHub hasn't given Protovibe permission for this particular project. I don't know how to change that, and I may not even be allowed to — the project might belong to my company, where someone else decides these things. Please don't just tell me to go and tick a box on GitHub; I won't know which one, and it may refuse me.
+Instead, please work out which of these actually applies and take me through it:
+- If it's my own project and I can grant the permission myself, walk me through it click by click.
+- If someone else has to approve it, tell me exactly who to ask and give me the short message to send them, written so I can copy and paste it.
+- Best of all: set this computer up to upload as ME (the gh sign-in below), which doesn't depend on that permission at all. If that's enough to get my work synced, just do that and tell me it's sorted.`;
+
 /** The main "sync failed" prompt: sign this computer in to GitHub, end to end. */
 export function syncFailurePrompt(
   kind: GitFailureKind,
   os: OsKind,
   root: string,
   error?: string,
+  appNotPermitted = false,
 ): string {
   return [
     openingFor(kind, os),
+    ...(appNotPermitted ? [APP_NOT_PERMITTED] : []),
     TONE,
     'WHAT I NEED YOU TO DO, IN ORDER',
     installGhSection(os),

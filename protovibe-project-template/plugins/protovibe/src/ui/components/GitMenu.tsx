@@ -9,11 +9,13 @@
 // init + private repo + push.
 //
 // Every failure ends in the same place: a paste-to-your-coding-agent prompt
-// (see utils/gitAgentPrompts.ts). Our own one-click remedies only cover the
-// Protovibe-managed token — a machine that GitHub refuses, or a project whose
-// online copy has gone missing, needs a terminal and `gh auth login`, which our
-// users can't do unaided. So the prompt is present after *any* failed op:
-// expanded when we have nothing better to offer, a quiet link when we do.
+// (see utils/gitAgentPrompts.ts), open, after *any* failed op. Our own one-click
+// remedies don't reach the real causes — a machine that GitHub refuses, or a
+// project whose online copy has gone missing, needs a terminal and
+// `gh auth login`, which our users can't do unaided. We deliberately do NOT send
+// them to GitHub's app-installation page from here either: finding the right
+// repository in that list defeats someone who has never used GitHub, and on a
+// company repository they're usually not allowed to grant it anyway.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -50,9 +52,11 @@ const GithubMark: React.FC<{ size?: number }> = ({ size = 14 }) => (
 function failureHeadline(kind: GitFailureKind, needsInstall: boolean): string {
   // Their account is connected and fine — GitHub just hasn't been told this
   // particular project is one Protovibe may touch. Saying "not signed in" here
-  // contradicts the account row at the bottom of the very same panel.
+  // contradicts the account row at the bottom of the very same panel. Granting
+  // it may not even be theirs to do, so don't imply it's a setting they can go
+  // and flip; the prompt below handles both cases.
   if (needsInstall) {
-    return 'Your GitHub account is connected, but GitHub hasn’t given Protovibe permission for this project yet.';
+    return 'Your GitHub account is connected, but GitHub hasn’t given Protovibe permission for this project — and on a company project that may not be yours to change.';
   }
   if (kind === 'auth') {
     return 'GitHub wouldn’t accept your work from this computer — it isn’t signed in to GitHub yet.';
@@ -134,7 +138,6 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   const failureKind = opFailed ? classifyGitFailure(failureText) : 'other';
   const authIssue = opFailed && isGithubAccessFailure(failureText);
   const githubAuthIssue = authIssue && status?.remoteKind === 'github-https';
-  const helpPrompt = syncFailurePrompt(failureKind, os, status?.root ?? '', op.error);
 
   const { style: menuStyle } = useFloatingDropdownPosition({
     isOpen: open,
@@ -216,14 +219,14 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
 
   const backupBusy = busy && op.op === 'backup';
   const backupNeedsInstall = op.status === 'error' && op.op === 'backup' && !!op.needsInstall;
+  // GitHub knows this account but won't let Protovibe near this repository.
+  // We don't send the user to the install page for it: picking the right repo
+  // out of GitHub's list is beyond someone who has never used GitHub, and on a
+  // company repo they usually aren't allowed to grant it at all. It only shapes
+  // what we tell them and what the agent prompt says.
   const syncNeedsInstall = githubAuthIssue && !!github?.connected && (repoAccess?.state === 'not-covered' || repoAccess?.state === 'no-push');
   const installUrl = op.installUrl || repoAccess?.installUrl || github?.installUrl || '';
-  // The coding-agent prompt collapses to a link only when we have a remedy we
-  // *know* fixes the failure — the GitHub install page for a repo the app doesn't
-  // cover. "Connect your GitHub account" doesn't qualify: connecting doesn't help
-  // a machine git itself can't authenticate, which is the usual cause here, so
-  // that case keeps the prompt open underneath the connect button.
-  const hasQuickFix = syncNeedsInstall;
+  const helpPrompt = syncFailurePrompt(failureKind, os, status.root, op.error, syncNeedsInstall);
 
   const backupFailed = opFailed && op.op === 'backup';
   const backupHelpPrompt = !status.isRepo
@@ -467,18 +470,8 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                       </div>
                     )
                   )}
-                  {syncNeedsInstall && (
-                    <InstallAccessPanel
-                      installUrl={installUrl}
-                      body="Open GitHub, tick this project in the list, then come back and sync again."
-                      retryLabel="I’ve done it — sync again"
-                      onRetry={() => void runOp('sync')}
-                      disabled={busy}
-                    />
-                  )}
-
-                  {/* Always here, whatever went wrong and whatever else we offered. */}
-                  <AgentHelp prompt={helpPrompt} startExpanded={!hasQuickFix} />
+                  {/* The way out of every failed sync, always open. */}
+                  <AgentHelp prompt={helpPrompt} startExpanded />
                 </div>
               )}
 
