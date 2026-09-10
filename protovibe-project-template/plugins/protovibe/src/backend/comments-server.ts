@@ -585,7 +585,7 @@ export const handleCommentUploadAttachment: Connect.NextHandleFunction = async (
     const raw = String(base64Data).replace(/^data:[^;]+;base64,/, '');
     const input = Buffer.from(raw, 'base64');
 
-    let buffer = input;
+    let buffer: Buffer = input;
     let outExt = '.webp';
     if (ext === '.svg') {
       outExt = '.svg';
