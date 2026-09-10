@@ -65,9 +65,11 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
 
   const selectBorder = `1px solid ${selectFocused ? theme.accent_default : selectHovered ? theme.border_strong : theme.border_default}`;
 
+  // Text rows grow with their content, so pin the label and the remove button
+  // to the first line instead of centring them against a tall field.
   const rowStyle: React.CSSProperties = {
     display: 'flex',
-    alignItems: 'stretch',
+    alignItems: type === 'text' ? 'flex-start' : 'stretch',
     gap: '4px',
     minHeight: '24px'
   };
@@ -81,16 +83,23 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    minHeight: '24px'
   };
 
+  // A text row pins the slot to the first line, so it needs an explicit height
+  // for the button's `height: 100%` to resolve against — without one the button
+  // collapses to the icon and the X rides ~6px above where it sits on the other
+  // row types, which stretch to a full-height row.
   const actionSlotStyle: React.CSSProperties = {
     width: '20px',
     flexShrink: 0,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'stretch',
-    alignSelf: 'stretch'
+    alignSelf: type === 'text' ? 'flex-start' : 'stretch',
+    height: type === 'text' ? '24px' : undefined,
+    minHeight: '24px'
   };
 
   const removeButtonStyle: React.CSSProperties = {
@@ -164,6 +173,7 @@ export const InspectorKeyValueInput: React.FC<InspectorKeyValueInputProps> = ({
     inputElement = (
       <InspectorInput
         type="text"
+        autoGrow
         value={textValue}
         disabled={disabled}
         onChange={(e) => setTextValue(e.target.value)}

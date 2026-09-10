@@ -39,28 +39,6 @@ export async function readFrame(sketchpadId: string, frameId: string): Promise<{
   return post('/__frame-read', { sketchpadId, frameId });
 }
 
-export async function updateSketchpadView(
-  sketchpadId: string,
-  opts: { viewState?: { zoom: number; panX: number; panY: number }; makeActive?: boolean },
-  options: { keepalive?: boolean } = {},
-): Promise<void> {
-  const url = '/__sketchpad-update-view';
-  const body = JSON.stringify({ sketchpadId, ...opts });
-  if (options.keepalive && typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-    try {
-      const blob = new Blob([body], { type: 'application/json' });
-      navigator.sendBeacon(url, blob);
-      return;
-    } catch {}
-  }
-  await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-    keepalive: options.keepalive,
-  });
-}
-
 export async function pasteFrames(
   targetSketchpadId: string,
   frames: Array<{
