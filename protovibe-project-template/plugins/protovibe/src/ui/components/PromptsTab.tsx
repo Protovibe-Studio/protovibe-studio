@@ -522,9 +522,7 @@ export const PromptsTab: React.FC = () => {
                 {selectedPrompt.references.map(r => (
                   <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
                 ))}
-                {selectedPrompt.template.includes('{{agentsRules}}') && (
-                  <RefChip label="rules" value="PROTOVIBE_AGENTS.md" />
-                )}
+                <RefChip label="rules" value="PROTOVIBE_AGENTS.md" />
               </div>
             </div>
           )}
