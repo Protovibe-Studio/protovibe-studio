@@ -27,6 +27,7 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+import { PV_OPEN_IN_CANVAS } from './utils/canvasLinks';
 
 // A Vite crash is often a transient state while an AI agent edits code, so the
 // shell runs each crash as an "episode" behind a loading cover instead of
@@ -550,6 +551,23 @@ export const ProtovibeApp: React.FC = () => {
       console.error('Restart failed', e);
     }
   };
+
+  // A link clicked inside the sketchpad or the components preview: those
+  // documents host prototype components but aren't the prototype, so they hand
+  // the page over here instead of navigating themselves out of existence.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== PV_OPEN_IN_CANVAS) return;
+      const path = typeof e.data.path === 'string' ? e.data.path : '';
+      if (!path.startsWith('/')) return;
+      handleIframeTabChange('app');
+      const win = appIframeRef.current?.contentWindow;
+      if (win) win.location.href = path;
+      persistAppPath(path);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [handleIframeTabChange]);
 
   // Track app iframe URL changes (client-side navigation via postMessage)
   useEffect(() => {
