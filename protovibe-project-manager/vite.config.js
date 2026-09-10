@@ -259,43 +259,6 @@ function copyPluginDir(src, dest) {
   }
 }
 
-// Wait for the project's running process to exit. Caller decides which signal
-// to send first; we escalate to SIGKILL if it's still alive after the grace
-// period so we never block plugin updates on a stuck dev server.
-function stopProjectProcess(id, { timeoutMs = 4000 } = {}) {
-  const state = processes.get(id)
-  if (!state?.proc?.pid || state.status === 'stopped') return Promise.resolve(false)
-
-  return new Promise((resolve) => {
-    let settled = false
-    const finish = (killed) => {
-      if (settled) return
-      settled = true
-      state.status = 'stopped'
-      state.port = null
-      resolve(killed)
-    }
-
-    const onExit = () => finish(true)
-    state.proc.once('exit', onExit)
-
-    treeKill(state.proc.pid, 'SIGTERM', () => {})
-
-    const escalate = setTimeout(() => {
-      if (!settled && state.proc?.pid) {
-        treeKill(state.proc.pid, 'SIGKILL', () => {})
-      }
-    }, Math.max(500, timeoutMs - 1000))
-
-    setTimeout(() => {
-      clearTimeout(escalate)
-      // Even if the process never reported exit, give up so we can proceed.
-      // Files held open after SIGKILL are extremely unusual on macOS/Linux.
-      finish(true)
-    }, timeoutMs)
-  })
-}
-
 function readPluginInfo(projectPath) {
   const data = readProtovibeData(projectPath)
   let pluginVersion = data?.['plugin-version'] ?? null
