@@ -2447,6 +2447,17 @@ const PROMPT_ATTACHMENTS_DIR = '.protovibe/prompts-attachments';
 // Base64 travels through the dev server in one request body, so cap the size.
 const MAX_PROMPT_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 
+// Attachments are disposable: once a copied prompt has been pasted into a
+// coding agent, the copy has done its job. Anything older than this is swept so
+// the folder can't grow without bound. Keep it comfortably longer than a work
+// session — a prompt copied on Friday must still resolve on Monday.
+const PROMPT_ATTACHMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// The sweep also runs opportunistically on save, so an editor left open for
+// weeks still gets cleaned. Throttled — it is a readdir + stat per file.
+const PROMPT_ATTACHMENT_SWEEP_INTERVAL_MS = 60 * 60 * 1000;
+let lastPromptAttachmentSweep = 0;
+
 // Create the attachments folder and make it ignore itself. A `.gitignore`
 // holding `*` inside the folder covers the folder's whole contents (including
 // the .gitignore), so projects generated from older templates need no edit to
@@ -2478,6 +2489,46 @@ function uniquePromptAttachmentName(dir: string, filename: string): string {
   return finalName;
 }
 
+/**
+ * Delete prompt attachments past the TTL.
+ *
+ * Never removes the folder's `.gitignore` — losing that would expose every
+ * future attachment to git. Never removes the folder itself either, so an
+ * in-flight save can't land in a directory that just disappeared.
+ *
+ * Deleting these files is invisible to Vite: they are not in the module graph,
+ * so no HMR update is broadcast and no editor state is lost.
+ */
+export function sweepPromptAttachments(force = false): void {
+  const now = Date.now();
+  if (!force && now - lastPromptAttachmentSweep < PROMPT_ATTACHMENT_SWEEP_INTERVAL_MS) return;
+  lastPromptAttachmentSweep = now;
+
+  const dir = path.resolve(process.cwd(), PROMPT_ATTACHMENTS_DIR);
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return; // Nothing attached yet.
+  }
+
+  let removed = 0;
+  for (const entry of entries) {
+    if (!entry.isFile() || entry.name === '.gitignore') continue;
+    const file = path.join(dir, entry.name);
+    try {
+      if (now - fs.statSync(file).mtimeMs < PROMPT_ATTACHMENT_TTL_MS) continue;
+      fs.unlinkSync(file);
+      removed++;
+    } catch {
+      // Raced with another sweep or a manual delete — nothing to do.
+    }
+  }
+  if (removed > 0) {
+    console.log(`[protovibe] Removed ${removed} prompt attachment(s) older than 7 days`);
+  }
+}
+
 // POST { filename, base64Data } → { ok, name, absolutePath }
 // Deliberately not image-only and deliberately uncompressed: a screenshot the
 // agent is asked to read should stay pixel-exact.
@@ -2502,6 +2553,7 @@ export const handleSavePromptAttachment: Connect.NextHandleFunction = (req, res)
         res.statusCode = 413;
         return res.end(JSON.stringify({ ok: false, error: 'File is larger than 20 MB' }));
       }
+      sweepPromptAttachments();
       const dir = ensurePromptAttachmentsDir();
       const name = uniquePromptAttachmentName(dir, filename);
       const absolutePath = path.join(dir, name);

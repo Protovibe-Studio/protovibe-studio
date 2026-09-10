@@ -214,7 +214,7 @@ function DropOverlay() {
         Drop to attach
       </div>
       <div style={{ fontFamily: theme.font_ui, fontSize: 11, color: theme.text_tertiary, textAlign: 'center', maxWidth: 220, lineHeight: 1.4 }}>
-        Files are copied into the project and referenced by path in the copied prompt.
+        Files are copied into the project and referenced by path in the copied prompt. Kept for 7 days.
       </div>
     </div>
   );
@@ -658,7 +658,7 @@ export const PromptsTab: React.FC = () => {
               </div>
               <AttachmentTray items={attachments} saving={savingCount} onRemove={removeAttachment} />
               <div style={{ fontFamily: theme.font_ui, fontSize: 10, color: theme.text_tertiary, lineHeight: 1.4 }}>
-                Referenced by file path in every prompt you copy.
+                Referenced by file path in every prompt you copy. Copies are kept in the project for 7 days.
               </div>
             </div>
           )}
