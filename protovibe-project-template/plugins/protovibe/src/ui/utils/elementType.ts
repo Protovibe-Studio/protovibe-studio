@@ -54,3 +54,29 @@ export function isTypingInput(element: HTMLElement | null): boolean {
   }
   return element.tagName === 'TEXTAREA' || element.tagName === 'SELECT' || element.isContentEditable;
 }
+
+/**
+ * Returns true when the document that currently has keyboard focus (the shell
+ * document, or a same-origin iframe if it is the active element) has a
+ * non-empty text selection. Used to let native Cmd+C / Cmd+X copy selected
+ * text instead of being hijacked by the block copy/cut shortcut.
+ *
+ * Only the focused document is inspected: clicking inside the canvas iframe
+ * does not clear the parent document's selection, so a stale shell selection
+ * must not override a block copy after the user clicked a block.
+ */
+export function hasTextSelectionInFocusedDocument(): boolean {
+  try {
+    const active = document.activeElement;
+    let selection: Selection | null = null;
+    if (active && active.tagName === 'IFRAME') {
+      selection = (active as HTMLIFrameElement).contentWindow?.getSelection() ?? null;
+    } else {
+      selection = window.getSelection();
+    }
+    if (!selection || selection.isCollapsed) return false;
+    return selection.toString().trim().length > 0;
+  } catch {
+    return false;
+  }
+}

@@ -16,7 +16,7 @@ import {
   getAllowedChildren,
   getAllowedSibling,
 } from '../utils/traversal';
-import { isTypingInput } from '../utils/elementType';
+import { isTypingInput, hasTextSelectionInFocusedDocument } from '../utils/elementType';
 
 export function useKeyboardShortcuts() {
   const { 
@@ -184,6 +184,13 @@ export function useKeyboardShortcuts() {
         return;
       }
       if ((e.metaKey || e.ctrlKey) && (key === 'c' || key === 'x' || key === 'd')) {
+        // If the user has text selected (e.g. a comment or a code reference in
+        // the shell UI), let the browser perform its native copy/cut instead
+        // of copying the focused block. Only when nothing is selected does
+        // Cmd+C / Cmd+X act on the block.
+        if (key !== 'd' && hasTextSelectionInFocusedDocument()) {
+          return;
+        }
         e.preventDefault();
         const targets = selectedTargets?.length > 0 ? selectedTargets : (currentBaseTarget ? [currentBaseTarget] : []);
         const blockIds = [...new Set(
