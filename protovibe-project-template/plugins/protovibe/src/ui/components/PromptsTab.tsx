@@ -123,9 +123,6 @@ function SplitButton({
     } catch {}
     return options[0]?.id;
   });
-  useEffect(() => {
-    try { localStorage.setItem(storageKey, activeId); } catch {}
-  }, [activeId, storageKey]);
 
   const rawPrimary = options.find(o => o.id === activeId) ?? options[0];
   const primary: SplitButtonAction = sectionDisabled
@@ -223,7 +220,12 @@ function SplitButton({
           {alternates.map(a => (
             <button
               key={a.id}
-              onClick={() => { setOpen(false); setActiveId(a.id); handlePrimaryClick(a); }}
+              onClick={() => {
+                setOpen(false);
+                setActiveId(a.id);
+                try { localStorage.setItem(storageKey, a.id); } catch {}
+                handlePrimaryClick(a);
+              }}
               disabled={a.disabled}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
@@ -258,9 +260,6 @@ export const PromptsTab: React.FC = () => {
   const [userInput, setUserInput] = useState('');
   const [step, setStep] = useState<Step>(1);
   const [toast, setToast] = useState<string | null>(null);
-  const [includeRules, setIncludeRules] = useState<boolean>(() => {
-    try { return localStorage.getItem('pv-prompts-include-rules') === 'true'; } catch { return false; }
-  });
 
   const selectedPrompt = useMemo(
     () => PROMPTS.find(p => p.id === selectedId) ?? null,
@@ -306,23 +305,9 @@ export const PromptsTab: React.FC = () => {
     setStep(1);
   };
 
-  const handleIncludeRulesChange = useCallback((checked: boolean) => {
-    setIncludeRules(checked);
-    try { localStorage.setItem('pv-prompts-include-rules', String(checked)); } catch {}
-  }, []);
-
   const handleCopy = useCallback(async () => {
     if (!selectedPrompt) return;
-    let text = renderPrompt(selectedPrompt, ctx, userInput);
-    if (includeRules) {
-      try {
-        const res = await fetch('/__read-project-file?file=plugins/protovibe/PROTOVIBE_AGENTS.md');
-        const data = await res.json();
-        if (data.ok && data.content) {
-          text += `\n\nHere's the full file with Protovibe rules you need to follow:\n${data.content}`;
-        }
-      } catch {}
-    }
+    const text = renderPrompt(selectedPrompt, ctx, userInput);
     try {
       await navigator.clipboard.writeText(text);
       showToast('Prompt copied to clipboard');
@@ -330,7 +315,7 @@ export const PromptsTab: React.FC = () => {
     } catch {
       showToast('Failed to copy prompt');
     }
-  }, [selectedPrompt, ctx, userInput, includeRules, showToast]);
+  }, [selectedPrompt, ctx, userInput, showToast]);
 
   const openInVsCode = useCallback(() => {
     if (!projectRoot) return;
@@ -503,17 +488,6 @@ export const PromptsTab: React.FC = () => {
               lineHeight: 1.4,
             }}
           />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
-            <input
-              type="checkbox"
-              checked={includeRules}
-              onChange={e => handleIncludeRulesChange(e.target.checked)}
-              style={{ accentColor: theme.text_default, cursor: 'pointer', width: 13, height: 13 }}
-            />
-            <span style={{ fontFamily: theme.font_ui, fontSize: 12, color: theme.text_secondary }}>
-              Include full Protovibe rules
-            </span>
-          </label>
           {selectedPrompt.requiresSelection !== false && !ctx.file ? (
             <div
               style={{
@@ -584,18 +558,18 @@ export const PromptsTab: React.FC = () => {
           })()}
         </section>
 
-        {/* Step 3 — open project */}
+        {/* Step 3 — hand the prompt to the agent */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SectionHeading n={3} state={step >= 3 ? 'active' : 'pending'}>
-            Open project folder in your coding agent
+            Paste the prompt in your coding agent
           </SectionHeading>
           <SplitButton
-            storageKey="pv-prompts-open-action"
+            storageKey="pv-prompts-open-action-v2"
             disabled={step < 3 || !projectRoot}
             options={[
+              { id: 'reveal', label: 'Show project folder', icon: <FolderOpen size={13} />, onClick: revealFolder },
               { id: 'vscode', label: 'Open project in VS Code', icon: <ExternalLink size={14} />, onClick: openInVsCode },
               { id: 'cd', label: 'Copy terminal cd path', icon: <Terminal size={13} />, onClick: copyCdPath, successLabel: 'Copied!' },
-              { id: 'reveal', label: 'Reveal folder in Finder', icon: <FolderOpen size={13} />, onClick: revealFolder },
             ]}
           />
           {projectRoot && (

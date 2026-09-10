@@ -12,12 +12,15 @@
 //   {{blockId}}     — nearest `data-pv-block` id to the current selection
 //   {{code}}        — source code of the currently selected block
 //   {{agentsRules}} — standard reminder to follow plugins/protovibe/PROTOVIBE_AGENTS.md rules
+//                     (every prompt gets this — if a template omits the
+//                      placeholder, it is appended at the end automatically)
 //
 // When a reference is missing (e.g. no selection), the placeholder is
 // replaced with a readable fallback like "(no file selected)".
 
 import type { LucideIcon } from 'lucide-react';
 import {
+  AtSign,
   LayoutTemplate,
   Wand,
   Rocket,
@@ -65,6 +68,13 @@ export interface PromptDef {
    * textarea is just for tweaks.
    */
   inputOptional?: boolean;
+  /**
+   * Text substituted for {{input}} when the user leaves the textarea empty.
+   * Only meaningful together with `inputOptional`. Defaults to a readable
+   * "(no extra instructions)" note; set it to '' for prompts that should
+   * render as a bare payload when nothing is typed.
+   */
+  emptyInputFallback?: string;
   /**
    * Final prompt template. Supports the placeholders listed at the top of
    * this file. Indentation inside the backticks is preserved verbatim.
@@ -145,6 +155,32 @@ export const PROMPTS: PromptDef[] = [
   - Reuse existing components from \`@/components/ui/\` wherever possible.
   - Everything should be editable in Protovibe - add supergranular pv-block and pv-editable-zone tags if needed
   
+  {{agentsRules}}`,
+  },
+  {
+    id: 'reference-element',
+    title: 'Reference element',
+    description: 'Copy the references to the selected element — file, line range, block id, and source — plus any instructions you want to add.',
+    icon: AtSign,
+    inputLabel: 'Additional instructions (optional)…',
+    inputPlaceholder: 'tighten the spacing between the avatar and the name',
+    inputOptional: true,
+    emptyInputFallback: '(none — this is just a reference to the element)',
+    references: ['file', 'blockId', 'lineRange', 'code'],
+    template: `Here is the element I'm referring to:
+
+  File: \`{{file}}\`
+  Lines: {{startLine}}–{{endLine}}
+  Protovibe block id: {{blockId}}
+
+  Source:
+  \`\`\`tsx
+  {{code}}
+  \`\`\`
+
+  Additional instructions:
+  {{input}}
+
   {{agentsRules}}`,
   },
   {
@@ -412,7 +448,9 @@ export const PROMPTS: PromptDef[] = [
   - Use the exact color value the user provided. Do not convert it to another format.
   - When changing a base color (e.g. \`--background-primary\`), update its \`-hover\`, \`-pressed\`, \`-subtle\`, \`-subtle-hover\`, and \`-subtle-pressed\` variants proportionally: hover = base lightness +5–8%, pressed = base lightness −10–15%, subtle = very high lightness low chroma version of the hue.
   - If the user provides a specific color value without mentioning which theme it targets, assume it is for **light mode**. Derive a matching dark-mode equivalent automatically (typically: invert the lightness curve — light-mode light backgrounds become dark-mode dark backgrounds, and vice versa — while preserving chroma and hue). Then **inform the user** at the start of your response that you assumed light mode for the provided value and auto-generated the dark-mode counterpart, and show both values so they can adjust if needed.
-  - If the user explicitly mentions only one theme, apply changes only to that theme and leave the other untouched.`,
+  - If the user explicitly mentions only one theme, apply changes only to that theme and leave the other untouched.
+  
+  {{agentsRules}}`,
   }
 ];
 
@@ -435,7 +473,11 @@ export function renderPrompt(
   userInput: string,
 ): string {
   const map: Record<string, string> = {
-    input: userInput.trim() || (def.inputOptional ? '(no extra instructions)' : '(user input missing)'),
+    input:
+      userInput.trim() ||
+      (def.inputOptional
+        ? def.emptyInputFallback ?? '(no extra instructions)'
+        : '(user input missing)'),
     file: fallback(ctx.file, 'file selected'),
     startLine: fallback(ctx.startLine, 'start line'),
     endLine: fallback(ctx.endLine, 'end line'),
@@ -443,7 +485,11 @@ export function renderPrompt(
     code: ctx.code?.trim() || '(no code captured)',
     agentsRules: AGENTS_RULES_SUFFIX,
   };
-  return def.template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
-    key in map ? map[key] : `{{${key}}}`,
-  );
+  const rendered = def.template
+    .replace(/\{\{(\w+)\}\}/g, (_, key) => (key in map ? map[key] : `{{${key}}}`))
+    .trimEnd();
+  // Every prompt must point the coding agent at the rules file. Templates
+  // normally place {{agentsRules}} themselves; if one forgets, append it.
+  if (rendered.includes(AGENTS_RULES_SUFFIX)) return rendered;
+  return `${rendered}\n\n${AGENTS_RULES_SUFFIX}`;
 }
