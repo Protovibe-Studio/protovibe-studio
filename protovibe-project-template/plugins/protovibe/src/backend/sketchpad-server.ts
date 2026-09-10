@@ -74,23 +74,29 @@ interface Frame {
   canvasY: number;
 }
 
-interface ViewState {
-  zoom: number;
-  panX: number;
-  panY: number;
-}
-
 interface SketchpadEntry {
   id: string;
   name: string;
   createdAt: string;
   frames: Frame[];
-  viewState?: ViewState;
 }
 
+// The registry holds shared design data only — it is committed, so anything
+// per-user in it conflicts the moment two people work on the same project. The
+// camera (pan/zoom, last-active sketchpad) therefore lives in the browser's
+// localStorage instead; see ../sketchpads/local-view-state.ts.
 interface Registry {
   sketchpads: SketchpadEntry[];
-  lastActiveSketchpadId?: string;
+}
+
+// Registries written before the camera moved to localStorage carry `viewState`
+// on each sketchpad and a top-level `lastActiveSketchpadId`. Drop them on read
+// so the next write cleans the committed file for everyone.
+function stripLegacyViewState(reg: any): Registry {
+  const sketchpads = Array.isArray(reg?.sketchpads) ? reg.sketchpads : [];
+  return {
+    sketchpads: sketchpads.map(({ viewState, ...entry }: any) => entry as SketchpadEntry),
+  };
 }
 
 function readRegistry(): Registry {
@@ -100,11 +106,11 @@ function readRegistry(): Registry {
     fs.writeFileSync(REGISTRY_PATH, JSON.stringify(initial, null, 2));
     return initial;
   }
-  return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
+  return stripLegacyViewState(JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf-8')));
 }
 
 function writeRegistry(reg: Registry): void {
-  fs.writeFileSync(REGISTRY_PATH, JSON.stringify(reg, null, 2));
+  fs.writeFileSync(REGISTRY_PATH, JSON.stringify(stripLegacyViewState(reg), null, 2));
 }
 
 function slugify(name: string): string {
@@ -327,11 +333,7 @@ export const handleSketchpadDelete: Connect.NextHandleFunction = async (req, res
     );
     snapshotFiles(null, '?tab=sketchpad', `delete ${sp?.name ?? 'sketchpad'}`, 'src/sketchpads/_registry.json', ...framePaths);
 
-    const wasActive = reg.lastActiveSketchpadId === id;
     reg.sketchpads = reg.sketchpads.filter((s) => s.id !== id);
-    if (wasActive) {
-      reg.lastActiveSketchpadId = reg.sketchpads[0]?.id;
-    }
     writeRegistry(reg);
 
     const dirPath = path.join(SKETCHPADS_DIR, id);
@@ -865,38 +867,6 @@ export const handleFrameRead: Connect.NextHandleFunction = async (req, res) => {
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
     const content = fs.readFileSync(filePath, 'utf-8');
     sendJson(res, { content });
-  } catch (err) {
-    sendError(res, String(err), 500);
-  }
-};
-
-// Persist per-sketchpad view state (pan/zoom) and last-active id. Does NOT snapshot
-// for undo — view state is ambient and shouldn't generate undo entries.
-export const handleSketchpadUpdateView: Connect.NextHandleFunction = async (req, res) => {
-  try {
-    const { sketchpadId, viewState, makeActive } = await parseBody(req);
-    if (!sketchpadId) return sendError(res, 'sketchpadId required');
-
-    const reg = readRegistry();
-    const sp = reg.sketchpads.find((s) => s.id === sketchpadId);
-    if (!sp) return sendError(res, 'Sketchpad not found', 404);
-
-    if (viewState && typeof viewState === 'object') {
-      const { zoom, panX, panY } = viewState as ViewState;
-      if (
-        typeof zoom === 'number' && isFinite(zoom) &&
-        typeof panX === 'number' && isFinite(panX) &&
-        typeof panY === 'number' && isFinite(panY)
-      ) {
-        sp.viewState = { zoom, panX, panY };
-      }
-    }
-    if (makeActive) {
-      reg.lastActiveSketchpadId = sketchpadId;
-    }
-
-    writeRegistry(reg);
-    sendJson(res, { success: true });
   } catch (err) {
     sendError(res, String(err), 500);
   }
