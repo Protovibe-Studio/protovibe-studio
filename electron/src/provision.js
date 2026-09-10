@@ -11,6 +11,7 @@ const {
   writeProjectPath,
 } = require('./paths');
 const { buildChildEnv } = require('./toolchain');
+const { refreshWorkspace } = require('./refresh-workspace');
 
 const WORKSPACES = [MANAGER_DIR_NAME, TEMPLATE_DIR_NAME];
 
@@ -95,11 +96,6 @@ function writeStamp(wsDir) {
   } catch {}
 }
 
-function copyWorkspace(fromDir, toDir) {
-  fs.rmSync(toDir, { recursive: true, force: true });
-  fs.cpSync(fromDir, toDir, { recursive: true });
-}
-
 // Returns the install root, provisioning it if needed. `progress({step, line})`
 // feeds the splash window.
 async function ensureProvisioned(progress) {
@@ -133,15 +129,9 @@ async function ensureProvisioned(progress) {
       const bundled = manifest[ws] || '0.0.0';
       if (forceReinstall || semverGt(bundled, installed)) {
         progress({ step: 'Updating Protovibe Studio…' });
-        const nodeModules = path.join(root, ws, 'node_modules');
-        const keepModules = fs.existsSync(nodeModules) && !forceReinstall;
-        const stash = `${nodeModules}.keep`;
-        if (keepModules) fs.renameSync(nodeModules, stash);
-        try {
-          copyWorkspace(path.join(bundle, ws), path.join(root, ws));
-        } finally {
-          if (keepModules && fs.existsSync(stash)) fs.renameSync(stash, nodeModules);
-        }
+        // node_modules survives the swap (see refresh-workspace.js); the
+        // install below only reconciles what the new version changed.
+        refreshWorkspace({ root, ws, fromDir: path.join(bundle, ws), keepModules: !forceReinstall });
         refreshed.add(ws);
       }
     }
