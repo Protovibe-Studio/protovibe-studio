@@ -29,6 +29,8 @@ interface ProtovibeContextType {
   sourceDataList: SourceData[];
   activeData: any | null;
   isLoading: boolean;
+  /** True from the moment a selection changes until its editable zones have been fetched. */
+  isZonesLoading: boolean;
   refreshActiveData: () => Promise<void>;
   toggleInspector: (forceState?: boolean) => void;
   highlightedElement: HTMLElement | null;
@@ -65,6 +67,8 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedElement, _setHighlightedElement] = useState<HTMLElement | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [isZonesLoading, setIsZonesLoading] = useState(false);
+  const zonesRequestIdRef = useRef(0);
   const [isMutationLocked, setIsMutationLocked] = useState(false);
   const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
   const [themeTokens, setThemeTokens] = useState<ThemeToken[]>([]);
@@ -122,10 +126,16 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setSourceDataList([]);
       setZones([]);
       setIsLoading(false);
+      setIsZonesLoading(false);
       return;
     }
 
     setIsLoading(true);
+    // Zones are fetched in a second round trip once the source info lands
+    // (effect below). Flag them as loading now so consumers see one
+    // continuous "selection not ready" window instead of a gap between the
+    // two fetches during which `zones` still belongs to the previous source.
+    setIsZonesLoading(true);
     const results: SourceData[] = [];
     for (const id of currentSources) {
       try {
@@ -180,15 +190,24 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Refetch zones whenever the active tab (source) changes
   useEffect(() => {
     const active = sourceDataList.find(s => s.id === activeSourceId) || sourceDataList[0];
+    const requestId = ++zonesRequestIdRef.current;
     if (active?.data?.file) {
+      setIsZonesLoading(true);
       fetchZones(active.data.file, active.data.startLine, active.data.startCol, active.data.endLine)
         .then(zData => {
+          if (requestId !== zonesRequestIdRef.current) return;
           if (zData.zones) setZones(zData.zones);
           else setZones([]);
+          setIsZonesLoading(false);
         })
-        .catch(() => setZones([]));
+        .catch(() => {
+          if (requestId !== zonesRequestIdRef.current) return;
+          setZones([]);
+          setIsZonesLoading(false);
+        });
     } else {
       setZones([]);
+      setIsZonesLoading(false);
     }
   }, [activeSourceId, sourceDataList]);
 
@@ -403,6 +422,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       sourceDataList,
       activeData,
       isLoading,
+      isZonesLoading,
       refreshActiveData,
       toggleInspector,
       highlightedElement, setHighlightedElement,
