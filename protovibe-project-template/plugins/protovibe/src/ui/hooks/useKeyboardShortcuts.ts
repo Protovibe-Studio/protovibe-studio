@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { undo, redo, takeSnapshot, addBlock, deleteBlocks, unwrapBlock, uploadImage } from '../api/client';
 import { collectChildPositions } from '../utils/unwrapGeometry';
@@ -31,8 +31,18 @@ export function useKeyboardShortcuts() {
     clearFocus,
     focusNewBlock,
     isMutationLocked,
-    runLockedMutation
+    runLockedMutation,
+    isLoading,
   } = useProtovibe();
+
+  // Selecting elements (click or marquee) kicks off an async fetch of the
+  // source file info; `activeData` is null (or still points at the previous
+  // source) until it lands. A Delete pressed in that window used to be
+  // silently dropped, so the user had to press it a second time. Instead we
+  // park the key here and replay it once the load settles.
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
+  const pendingDeleteKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!inspectorOpen) return;
@@ -95,6 +105,19 @@ export function useKeyboardShortcuts() {
       if (e.key === 'Escape') {
         e.preventDefault();
         clearFocus();
+        return;
+      }
+
+      // 1.6. Defer Delete while the selection's source info is still loading.
+      // Replayed by the effect below once `isLoading` flips back to false.
+      if (
+        (e.key === 'Backspace' || e.key === 'Delete') &&
+        !e.metaKey && !e.ctrlKey && !e.altKey &&
+        isLoadingRef.current &&
+        currentBaseTarget
+      ) {
+        e.preventDefault();
+        pendingDeleteKeyRef.current = e.key;
         return;
       }
 
@@ -673,4 +696,21 @@ export function useKeyboardShortcuts() {
       });
     };
   }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
+
+  // A new selection supersedes any Delete parked for the previous one.
+  useEffect(() => {
+    pendingDeleteKeyRef.current = null;
+  }, [currentBaseTarget, selectedTargets]);
+
+  // Replay a deferred Delete once source info has loaded. Declared after the
+  // listener effect above so the re-dispatched event reaches the handler that
+  // already sees the fresh `activeData`.
+  useEffect(() => {
+    if (isLoading) return;
+    const key = pendingDeleteKeyRef.current;
+    if (!key) return;
+    pendingDeleteKeyRef.current = null;
+    if (!inspectorOpen || !currentBaseTarget) return;
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  }, [isLoading, inspectorOpen, currentBaseTarget]);
 }

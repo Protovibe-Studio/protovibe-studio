@@ -121,6 +121,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (currentSources.length === 0) {
       setSourceDataList([]);
       setZones([]);
+      setIsLoading(false);
       return;
     }
 
