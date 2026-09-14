@@ -128,6 +128,14 @@ export function protovibeSourcePlugin(): Plugin {
         if (changedFile.endsWith(path.join('sketchpads', '_registry.json'))) return;
         lastSourceChangeAt = Date.now();
       });
+      // Round-trip liveness check for the canvas iframes' HMR sockets. Vite's
+      // own keepalive ping is fire-and-forget, so a half-open socket is never
+      // noticed; ui/hmr-liveness.ts pings here and reloads its iframe if the
+      // pong never arrives while HTTP still works.
+      server.ws.on('protovibe:ping', (data, client) => {
+        client.send('protovibe:pong', data);
+      });
+
       server.middlewares.use('/__hmr-activity', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cache-Control', 'no-store');
@@ -328,6 +336,14 @@ export function protovibeSourcePlugin(): Plugin {
         const isComponentsHtml = filename.endsWith('components.html');
         const isSketchpadHtml = filename.endsWith('sketchpad.html');
 
+        // Every canvas iframe watches its own HMR socket and reloads itself if
+        // the socket goes half-open (see ui/hmr-liveness.ts).
+        const hmrLivenessTag: HtmlTagDescriptor = {
+          tag: 'script',
+          attrs: { type: 'module', src: '/@fs/' + normalizePath(path.resolve(PLUGIN_DIR, 'src/ui/hmr-liveness.ts')) },
+          injectTo: 'body',
+        };
+
         // Inject bridge.js into the user app (index.html) and components.html
         if (isIndexHtml || isComponentsHtml) {
           const bridgePath = path.resolve(__dirname, 'ui/bridge.js');
@@ -343,6 +359,7 @@ export function protovibeSourcePlugin(): Plugin {
               children: fs.readFileSync(bridgePath, 'utf-8'),
               injectTo: 'body',
             },
+            hmrLivenessTag,
           ];
         }
 
@@ -375,6 +392,7 @@ export function protovibeSourcePlugin(): Plugin {
             children: fs.readFileSync(sketchpadBridgePath, 'utf-8'),
             injectTo: 'body',
           });
+          tags.push(hmrLivenessTag);
 
           return tags;
         }
