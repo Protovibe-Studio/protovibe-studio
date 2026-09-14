@@ -283,6 +283,9 @@ export const TokensTab: React.FC = () => {
     try {
       await updateFontFamily(tokenName, value, googleFontName);
       refreshThemeTokens();
+      // Webfont <link>s are injected when a canvas page is served, so the
+      // iframes must reload to pick up a newly selected Google Font.
+      window.dispatchEvent(new CustomEvent('pv-reload-canvases'));
     } catch (err) {
       console.error('[protovibe] Failed to update font family:', err);
     }

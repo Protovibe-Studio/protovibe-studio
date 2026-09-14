@@ -65,41 +65,12 @@ function getWebfontHrefs(): string[] {
  * win over the links' already-loaded faces. So in dev we also strip the remote
  * `@import` from index.css (see the `transform` hook) and serve the fonts
  * exclusively through the links, keeping them out of the HMR cycle entirely.
- * Font changes made through the picker are pushed to open pages via the
- * `pv:webfonts` HMR event so the links follow the new selection.
+ * The links are computed when a page is served, so the shell reloads the
+ * canvas iframes after a font change made through the picker.
  */
 function stripWebfontImports(css: string): string {
   return css.replace(WEBFONT_IMPORT_RE, '');
 }
-
-const WEBFONT_LINK_ATTR = 'data-pv-webfont';
-
-/** Inline script that keeps the persistent webfont links in sync with index.css. */
-const WEBFONT_SYNC_SCRIPT = `
-(function () {
-  var ATTR = '${WEBFONT_LINK_ATTR}';
-  function sync(hrefs) {
-    var existing = Array.prototype.slice.call(document.querySelectorAll('link[' + ATTR + ']'));
-    var keep = {};
-    hrefs.forEach(function (href) {
-      keep[href] = true;
-      if (existing.some(function (l) { return l.getAttribute('href') === href; })) return;
-      var link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = href;
-      link.setAttribute(ATTR, '');
-      document.head.appendChild(link);
-    });
-    existing.forEach(function (l) { if (!keep[l.getAttribute('href')]) l.remove(); });
-  }
-  import('/@vite/client').then(function (m) {
-    var hot = m.createHotContext('/__pv-webfonts');
-    hot.on('pv:webfonts', function (data) {
-      if (data && Array.isArray(data.hrefs)) sync(data.hrefs);
-    });
-  }).catch(function () {});
-})();
-`;
 
 /** `<head>` tags that register the app's webfonts independently of index.css. */
 function webfontHeadTags(): HtmlTagDescriptor[] {
@@ -111,10 +82,9 @@ function webfontHeadTags(): HtmlTagDescriptor[] {
       { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }, injectTo: 'head-prepend' },
     );
     for (const href of hrefs) {
-      tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href, [WEBFONT_LINK_ATTR]: '' }, injectTo: 'head-prepend' });
+      tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href }, injectTo: 'head-prepend' });
     }
   }
-  tags.push({ tag: 'script', attrs: {}, children: WEBFONT_SYNC_SCRIPT, injectTo: 'head' });
   return tags;
 }
 
@@ -454,12 +424,7 @@ export function protovibeSourcePlugin(): Plugin {
     // Suppress full-page reloads for non-HMR-able sketchpad data files
     // (e.g. _registry.json) while letting frame .tsx files hot-reload normally.
     // Use normalizePath so the forward-slash form from Vite matches on Windows too.
-    handleHotUpdate({ file, server }) {
-      // The font picker rewrites index.css; tell open pages which webfont
-      // links they should now hold, since the @import no longer reaches them.
-      if (normalizePath(file) === INDEX_CSS_PATH) {
-        server.ws.send({ type: 'custom', event: 'pv:webfonts', data: { hrefs: getWebfontHrefs() } });
-      }
+    handleHotUpdate({ file }) {
       const sketchpadsDir = normalizePath(path.resolve(process.cwd(), 'src/sketchpads'));
       if (file.startsWith(sketchpadsDir) && !file.endsWith('.tsx') && !file.endsWith('.jsx')) {
         return [];
