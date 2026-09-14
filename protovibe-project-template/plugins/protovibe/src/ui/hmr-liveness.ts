@@ -13,9 +13,14 @@
 // answers over HTTP, the socket is dead and the iframe reloads itself. A server
 // that is down or busy answers neither, and that case is left to the shell's
 // crash handling.
+//
+// Checks run on a timer and also on every user action, so a dead socket is
+// caught within seconds of the user noticing: any message the shell posts into
+// this iframe and any request this iframe makes to a plugin `/__…` endpoint.
 
-const CHECK_INTERVAL_MS = 15_000;
-const PONG_TIMEOUT_MS = 4_000;
+const CHECK_INTERVAL_MS = 10_000;
+const ACTION_CHECK_COOLDOWN_MS = 2_000;
+const PONG_TIMEOUT_MS = 2_000;
 const HTTP_PROBE_URL = '/__hmr-activity';
 
 const hot = import.meta.hot;
@@ -24,6 +29,8 @@ if (hot) {
   let pending: { resolve: (alive: boolean) => void; timer: number } | null = null;
   let checking = false;
   let reloading = false;
+  let lastActionCheckAt = 0;
+  const nativeFetch = window.fetch.bind(window);
 
   hot.on('protovibe:pong', () => {
     if (!pending) return;
@@ -45,7 +52,7 @@ if (hot) {
 
   const serverReachable = async () => {
     try {
-      const res = await fetch(HTTP_PROBE_URL, { cache: 'no-store' });
+      const res = await nativeFetch(HTTP_PROBE_URL, { cache: 'no-store' });
       return res.ok;
     } catch {
       return false;
@@ -70,10 +77,32 @@ if (hot) {
     }
   };
 
+  // Actions can fire in bursts (drag moves, hover messages); one check per
+  // cooldown window is enough since a dead socket stays dead.
+  const checkOnAction = () => {
+    const now = Date.now();
+    if (now - lastActionCheckAt < ACTION_CHECK_COOLDOWN_MS) return;
+    lastActionCheckAt = now;
+    void check();
+  };
+
   window.setInterval(check, CHECK_INTERVAL_MS);
   // Sleep/wake and tab switches are when half-open sockets typically appear.
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) void check();
   });
   window.addEventListener('focus', () => void check());
+
+  // Every command the shell sends into this iframe.
+  window.addEventListener('message', (e) => {
+    if (window.parent !== window && e.source === window.parent) checkOnAction();
+  });
+
+  // Every plugin API call this iframe makes (bridge postApi, sketchpad api).
+  window.fetch = (input, init) => {
+    const url =
+      typeof input === 'string' ? input : input instanceof URL ? input.pathname : input.url;
+    if (url.startsWith('/__') && url !== HTTP_PROBE_URL) checkOnAction();
+    return nativeFetch(input, init);
+  };
 }
