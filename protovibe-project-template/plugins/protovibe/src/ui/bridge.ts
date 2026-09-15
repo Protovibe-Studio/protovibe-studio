@@ -603,6 +603,9 @@ function init() {
   // Skip entirely when the app is opened as a standalone page (not embedded in the
   // Protovibe shell iframe). In that case window.parent === window.
   if (window.parent === window) return;
+  // Also skip inside the Specs feature's frames: list thumbnails and the
+  // read-only viewer embed the app but are not the editing canvas.
+  if (window.name.startsWith('pv-spec-')) return;
 
   setEditingStylesheet(isInspectorActive);
   // Keep `target="_blank"` links and `window.open()` from popping a second

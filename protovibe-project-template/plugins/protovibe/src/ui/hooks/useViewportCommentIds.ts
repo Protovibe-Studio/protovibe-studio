@@ -25,7 +25,7 @@ function sameSet(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  * app iframe navigates internally, so it's identified as "neither of the others".
  */
 function findIframeForTab(tab: IframeTab): { doc: Document; win: Window & typeof globalThis } | null {
-  const iframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+  const iframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
   for (const f of iframes) {
     const src = f.src || '';
     const isSketch = src.includes('sketchpad');
