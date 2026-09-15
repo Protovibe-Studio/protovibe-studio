@@ -89,7 +89,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Set<SpecStatus>>(new Set());
-  const [editingSpecId, setEditingSpecId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [autoEditTextId, setAutoEditTextId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -416,11 +415,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           specs={specs}
           publishedUrl={publishedUrl}
           busy={busy}
-          editingId={editingSpecId}
-          onEditingDone={() => setEditingSpecId(null)}
           onOpen={(id) => { setQuery(''); setStatusFilter(new Set()); setView({ level: 'doc', specId: id }); }}
           onCreate={handleCreateSpec}
-          onRename={handleRenameSpec}
           onDelete={(id) => setConfirm({ kind: 'spec', specId: id })}
           onExport={handleExport}
         />
