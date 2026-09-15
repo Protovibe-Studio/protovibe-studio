@@ -59,13 +59,6 @@ export const SpecAnnotationView: React.FC<{
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
         <InlineEditable
-          value={item.title || ''}
-          placeholder="Add a title"
-          onSave={(t) => p.onUpdate({ title: t }, 'edit annotation title')}
-          style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary }}
-        />
-
-        <InlineEditable
           value={item.text}
           placeholder="Write the annotation…"
           multiline

@@ -277,7 +277,6 @@ export const SpecsViewerApp: React.FC = () => {
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
-                    {it.title && <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{it.title}</span>}
                     {body && (
                       <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
                     )}
@@ -297,9 +296,6 @@ export const SpecsViewerApp: React.FC = () => {
               </>
             ))}
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
-              {current.title && (
-                <div style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary, wordBreak: 'break-word' }}>{current.title}</div>
-              )}
               <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: theme.text_default }}>
                 {current.text || <span style={{ color: theme.text_tertiary }}>No description</span>}
               </div>

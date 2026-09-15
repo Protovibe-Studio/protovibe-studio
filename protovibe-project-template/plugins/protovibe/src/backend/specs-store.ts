@@ -75,7 +75,6 @@ function hydrateItem(raw: any, id: string): SpecItem | null {
     const a: SpecAnnotation = {
       ...base,
       type: 'annotation',
-      ...(typeof raw.title === 'string' && raw.title.trim() ? { title: raw.title } : {}),
       text: String(raw.text ?? ''),
       ...(status ? { status } : {}),
       state: { tab: 'app', path: typeof raw.state?.path === 'string' ? raw.state.path : '/' },

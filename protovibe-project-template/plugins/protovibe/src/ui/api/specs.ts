@@ -42,7 +42,7 @@ export async function deleteSpec(specId: string): Promise<void> {
 export type NewSpecItem =
   | { type: 'heading'; id: string; rank: string; title: string; level: SpecHeadingLevel }
   | {
-      type: 'annotation'; id: string; rank: string; title?: string; text: string;
+      type: 'annotation'; id: string; rank: string; text: string;
       status?: SpecStatus | null; state: { tab: 'app'; path: string };
       author: { name: string; email: string };
     };
@@ -58,6 +58,7 @@ export async function createSpecItem(params: {
 }
 
 export interface SpecItemPatch {
+  /** Headings only. */
   title?: string;
   text?: string;
   /** null clears the status. */

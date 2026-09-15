@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
-import { SPEC_STATUSES, annotationTitle, isAnnotation } from '../../../shared/specs';
+import { SPEC_STATUSES, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusBadge, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, primaryBtn, hoverBg, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
@@ -345,7 +345,6 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = highlighted ? `${theme.accent_default}14` : 'transparent';
-  // Untitled annotations show the whole note as body text (no derived title).
   const body = item.text.trim();
   return (
     <div
@@ -362,11 +361,6 @@ const AnnotationRow: React.FC<{
       <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} />
-        {item.title && (
-          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {item.title}
-          </span>
-        )}
         {body && (
           <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {body}
@@ -446,6 +440,6 @@ export function annotationMatches(a: SpecAnnotation, query: string, statusFilter
   if (statusFilter.size > 0 && !(a.status && statusFilter.has(a.status))) return false;
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const hay = [annotationTitle(a), a.text, a.state.path, a.status ? SPEC_STATUS_CONFIG[a.status].label : ''].join('\n').toLowerCase();
+  const hay = [a.text, a.state.path, a.status ? SPEC_STATUS_CONFIG[a.status].label : ''].join('\n').toLowerCase();
   return hay.includes(q);
 }

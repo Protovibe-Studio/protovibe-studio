@@ -965,7 +965,6 @@ Each spec is a directory at `src/specs/{specId}/`:
   "id": "a-9z8y7x6w",
   "type": "annotation",
   "rank": "s",
-  "title": "Recruit dialog, empty form",              // optional
   "text": "Division defaults to Field Operations.",
   "status": "discuss",                                 // "todo" | "discuss" | "verified"; omitted = no status
   "state": { "tab": "app", "path": "/?page=minions&recruitDialog=true" },

@@ -74,8 +74,6 @@ export interface SpecHeading extends SpecItemBase {
 
 export interface SpecAnnotation extends SpecItemBase {
   type: 'annotation';
-  /** Optional short title; the UI falls back to the first line of `text`. */
-  title?: string;
   text: string;
   status?: SpecStatus;
   state: SpecState;
@@ -233,14 +231,6 @@ export function isAnnotation(item: SpecItem): item is SpecAnnotation {
 
 export function isHeading(item: SpecItem): item is SpecHeading {
   return item.type === 'heading';
-}
-
-/** Display title for an annotation: explicit title, else first line of text. */
-export function annotationTitle(a: SpecAnnotation): string {
-  const t = (a.title || '').trim();
-  if (t) return t;
-  const first = (a.text || '').split('\n').find((l) => l.trim())?.trim() || '';
-  return first || 'Untitled annotation';
 }
 
 /** Only annotations, in document order — what Next / Prev and numbering walk. */

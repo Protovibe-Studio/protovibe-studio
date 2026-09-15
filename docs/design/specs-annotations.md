@@ -125,7 +125,7 @@ export interface SpecAuthor { name: string; email: string }
 interface SpecItemBase { id: string; rank: string; createdAt: string; updatedAt?: string }
 export interface SpecHeading extends SpecItemBase { type: 'heading'; title: string }
 export interface SpecAnnotation extends SpecItemBase {
-  type: 'annotation'; title?: string; text: string; status?: SpecStatus;
+  type: 'annotation'; text: string; status?: SpecStatus;
   state: SpecState; anchor?: SpecAnchor; author: SpecAuthor;
 }
 export type SpecItem = SpecHeading | SpecAnnotation;
@@ -613,6 +613,9 @@ the design review:
   fresh at export time (the main `<project>.pages.dev` domain, falling back to
   the newest deploy in the history) so the copied rich text carries real
   "Open in prototype" / "Open in specs viewer" links.
+- **Annotations have a single text field.** The optional `title` was dropped
+  (no migration: an old `title` in a file is ignored). Exports print a counter
+  before the text and one "View in prototype" link into the published viewer.
 
 ## 12. Decisions to confirm
 

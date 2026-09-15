@@ -199,7 +199,6 @@ export const handleSpecsItemCreate: Connect.NextHandleFunction = async (req, res
         id: safeSpecId(raw.id) || makeAnnotationId(),
         type: 'annotation',
         rank,
-        ...(typeof raw.title === 'string' && raw.title.trim() ? { title: raw.title.trim() } : {}),
         text: String(raw.text ?? ''),
         ...(status ? { status } : {}),
         state: { tab: 'app', path: typeof raw.state?.path === 'string' && raw.state.path.startsWith('/') ? raw.state.path : '/' },
@@ -224,7 +223,7 @@ export const handleSpecsItemCreate: Connect.NextHandleFunction = async (req, res
 };
 
 // POST { specId, itemId, patch } → bundle
-// patch: { title?, text?, status? (null clears), level?, rank?, state? }.
+// patch: { title? (headings), text?, status? (null clears), level?, rank?, state? }.
 // Only the fields present are changed; the item's own file is the only write.
 export const handleSpecsItemUpdate: Connect.NextHandleFunction = async (req, res) => {
   try {
@@ -242,10 +241,6 @@ export const handleSpecsItemUpdate: Connect.NextHandleFunction = async (req, res
       if ('title' in patch) item.title = String(patch.title ?? '');
       if ('level' in patch) item.level = normalizeHeadingLevel(patch.level);
     } else {
-      if ('title' in patch) {
-        const t = String(patch.title ?? '').trim();
-        if (t) item.title = t; else delete item.title;
-      }
       if ('text' in patch) item.text = String(patch.text ?? '');
       if ('status' in patch) {
         const s: SpecStatus | undefined = normalizeSpecStatus(patch.status);
