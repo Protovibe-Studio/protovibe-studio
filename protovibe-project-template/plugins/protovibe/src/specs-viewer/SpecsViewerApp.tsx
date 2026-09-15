@@ -1,13 +1,17 @@
 // plugins/protovibe/src/specs-viewer/SpecsViewerApp.tsx
-// Read-only viewer for published specs. Loads ./specs-data.json, shows the
-// prototype in an iframe and walks through annotations with Prev / Next.
-// Routes as specs.html?spec={id}&item={id} so every annotation is shareable.
+// Read-only viewer for published specs. Loads ./specs-data.json and shows the
+// prototype in an iframe next to a sidebar that mirrors the editor's Specs
+// panel: a list of annotation cards (lazy iframe thumbnails, full text), and
+// a single-annotation view with Prev / Next. There is no top bar.
+// Routes as specs.html?spec={id}&item={id} so every annotation is shareable;
+// without `item` the sidebar shows the list.
 // Same-origin with the prototype, so pinned elements are highlighted by
 // touching the iframe document directly — the published app has no bridge.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
 import { annotationTitle, annotationsOf, isAnnotation, specIdSelector } from '../shared/specs';
+import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 
 const STATUS: Record<SpecStatus, { label: string; color: string }> = {
   todo:     { label: 'Todo',       color: '#A78BFA' },
@@ -15,7 +19,7 @@ const STATUS: Record<SpecStatus, { label: string; color: string }> = {
   verified: { label: 'Verified',   color: theme.success_default },
 };
 
-const SIDEBAR_W = 340;
+const SIDEBAR_W = 360;
 const HIGHLIGHT_ID = 'pv-spec-highlight';
 
 function readRoute(): { spec: string | null; item: string | null } {
@@ -63,16 +67,19 @@ export const SpecsViewerApp: React.FC = () => {
     [specs, route.spec],
   );
   const annotations = useMemo(() => (bundle ? annotationsOf(bundle.items) : []), [bundle]);
+  // No item in the URL ⇒ the sidebar shows the card list; an unknown item
+  // falls back to the list as well.
   const current: SpecAnnotation | undefined = useMemo(
-    () => annotations.find((a) => a.id === route.item) ?? annotations[0],
+    () => (route.item ? annotations.find((a) => a.id === route.item) : undefined),
     [annotations, route.item],
   );
   const index = current ? annotations.findIndex((a) => a.id === current.id) : -1;
+  const [listScrollEl, setListScrollEl] = useState<HTMLDivElement | null>(null);
 
   // Normalise the URL to the resolved spec / item once data is in.
   useEffect(() => {
     if (!bundle) return;
-    if (route.spec !== bundle.spec.id || (current && route.item !== current.id)) {
+    if (route.spec !== bundle.spec.id || (route.item && !current)) {
       writeRoute(bundle.spec.id, current?.id ?? null, true);
       setRoute(readRoute());
     }
@@ -91,13 +98,14 @@ export const SpecsViewerApp: React.FC = () => {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || index < 0) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      if (e.key === 'Escape' && bundle) { e.preventDefault(); select(bundle.spec.id, null); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step]);
+  }, [step, index, bundle, select]);
 
   // Navigate the iframe only when the state actually differs, then highlight
   // the pinned element once it renders.
@@ -151,98 +159,117 @@ export const SpecsViewerApp: React.FC = () => {
   if (!data) return <Center>Loading…</Center>;
   if (!bundle) return <Center>No specs have been published yet.</Center>;
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, height: 44, padding: '0 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-        {specs.length > 1 ? (
-          <select
-            value={bundle.spec.id}
-            onChange={(e) => select(e.target.value, null)}
-            style={{ background: theme.bg_secondary, color: theme.text_default, border: `1px solid ${theme.border_default}`, borderRadius: 6, padding: '4px 8px', fontSize: 13, fontWeight: 600, fontFamily: theme.font_ui }}
-          >
-            {specs.map((b) => <option key={b.spec.id} value={b.spec.id}>{b.spec.title}</option>)}
-          </select>
-        ) : (
-          <span style={{ fontSize: 14, fontWeight: 600 }}>{bundle.spec.title}</span>
-        )}
-        <div style={{ flex: 1 }} />
-        {current && <span style={{ fontSize: 12, color: theme.text_tertiary }}>{index + 1} / {annotations.length}</span>}
-        <NavButton label="‹ Prev" disabled={index <= 0} onClick={() => step(-1)} />
-        <NavButton label="Next ›" disabled={index < 0 || index >= annotations.length - 1} onClick={() => step(1)} />
-        <a
-          href={current ? appUrl(current.state.path) : appUrl('/')}
-          target="_blank"
-          rel="noreferrer"
-          style={{ ...navBtn, textDecoration: 'none', color: theme.accent_default, borderColor: theme.border_default }}
-        >
-          Open app ↗
-        </a>
-      </div>
+  const statusBadge = (status: SpecStatus | undefined) => status && (
+    <span style={{ alignSelf: 'flex-start', padding: '1px 6px', borderRadius: 6, background: `${STATUS[status].color}22`, color: STATUS[status].color, fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>
+      {STATUS[status].label}
+    </span>
+  );
 
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* sidebar */}
-        <div style={{ width: SIDEBAR_W, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0 }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-            {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
-            {bundle.items.map((it) => {
-              if (!isAnnotation(it)) {
-                const big = it.level === 'big';
+  return (
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
+      {/* sidebar */}
+      <div style={{ width: SIDEBAR_W, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0 }}>
+        {!current ? (
+          <>
+            {/* list header: spec title (or a switcher when several specs are published) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+              {specs.length > 1 ? (
+                <select
+                  value={bundle.spec.id}
+                  onChange={(e) => select(e.target.value, null)}
+                  style={{ flex: 1, minWidth: 0, background: theme.bg_secondary, color: theme.text_default, border: `1px solid ${theme.border_default}`, borderRadius: 6, padding: '4px 8px', fontSize: 13, fontWeight: 600, fontFamily: theme.font_ui }}
+                >
+                  {specs.map((b) => <option key={b.spec.id} value={b.spec.id}>{b.spec.title}</option>)}
+                </select>
+              ) : (
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
+              )}
+              <span style={{ fontSize: 11, color: theme.text_tertiary, flexShrink: 0 }}>{annotations.length}</span>
+            </div>
+
+            {/* cards */}
+            <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
+              {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
+              {bundle.items.map((it) => {
+                if (!isAnnotation(it)) {
+                  const big = it.level === 'big';
+                  return (
+                    <div key={it.id} style={{ padding: big ? '16px 16px 4px' : '10px 16px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em' }}>
+                      {it.title}
+                    </div>
+                  );
+                }
+                const n = annotations.findIndex((a) => a.id === it.id) + 1;
+                const body = it.title ? it.text.trim() : it.text.trim().split('\n').slice(1).join('\n').trim();
                 return (
-                  <div key={it.id} style={{ padding: big ? '14px 16px 4px' : '10px 16px 2px', fontSize: big ? 13 : 11, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.03em', textTransform: big ? 'none' : 'uppercase' }}>
-                    {it.title}
+                  <div
+                    key={it.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => select(bundle.spec.id, it.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(bundle.spec.id, it.id); } }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 16px 10px', cursor: 'pointer', outline: 'none' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{n}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{annotationTitle(it)}</span>
+                    </div>
+                    {body && (
+                      <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
+                    )}
+                    {statusBadge(it.status)}
                   </div>
                 );
-              }
-              const n = annotations.findIndex((a) => a.id === it.id) + 1;
-              const active = current?.id === it.id;
-              return (
-                <button
-                  key={it.id}
-                  onClick={() => select(bundle.spec.id, it.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '7px 16px', border: 'none',
-                    background: active ? `${theme.accent_default}22` : 'transparent', color: active ? theme.text_default : theme.text_secondary,
-                    cursor: 'pointer', fontFamily: theme.font_ui, fontSize: 12, borderLeft: `2px solid ${active ? theme.accent_default : 'transparent'}`,
-                  }}
-                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
-                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span style={{ width: 18, fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{n}</span>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{annotationTitle(it)}</span>
-                  {it.status && <span style={{ width: 8, height: 8, borderRadius: 2, background: STATUS[it.status].color, flexShrink: 0 }} title={STATUS[it.status].label} />}
-                </button>
-              );
-            })}
-          </div>
-
-          {current && (
-            <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '14px 16px', maxHeight: '45%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, background: theme.bg_default }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>
-                {index + 1}. {current.title ? current.title : <span style={{ color: theme.text_tertiary, fontWeight: 500 }}>Annotation</span>}
-              </div>
-              {current.status && (
-                <span style={{ alignSelf: 'flex-start', padding: '2px 7px', borderRadius: 6, background: `${STATUS[current.status].color}22`, color: STATUS[current.status].color, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                  {STATUS[current.status].label}
-                </span>
-              )}
-              <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: theme.text_default }}>
-                {current.text || <span style={{ color: theme.text_tertiary, fontStyle: 'italic' }}>No description</span>}
-              </div>
+              })}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            {/* single annotation */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+              <button onClick={() => select(bundle.spec.id, null)} title="Back to list" style={{ ...navBtn, padding: '4px 8px' }}>‹</button>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: theme.text_secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
+              <span style={{ fontSize: 11, color: theme.text_tertiary, whiteSpace: 'nowrap' }}>{index + 1} / {annotations.length}</span>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <NavButton label="‹ Prev" disabled={index <= 0} onClick={() => step(-1)} />
+                <NavButton label="Next ›" disabled={index >= annotations.length - 1} onClick={() => step(1)} />
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary }}>
+                {current.title || 'Annotation'}
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: theme.text_default }}>
+                {current.text || <span style={{ color: theme.text_tertiary }}>No description</span>}
+              </div>
+              {statusBadge(current.status)}
+              <a
+                href={appUrl(current.state.path)}
+                target="_blank"
+                rel="noreferrer"
+                style={{ alignSelf: 'flex-start', fontSize: 11, color: theme.accent_default, textDecoration: 'none' }}
+                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+              >
+                Open app ↗
+              </a>
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* prototype */}
-        <div style={{ flex: 1, minWidth: 0, background: '#fff' }}>
-          <iframe
-            ref={iframeRef}
-            name="pv-spec-viewer"
-            src={iframeSrc}
-            title="Prototype"
-            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-          />
-        </div>
+      {/* prototype */}
+      <div style={{ flex: 1, minWidth: 0, background: '#fff' }}>
+        <iframe
+          ref={iframeRef}
+          name="pv-spec-viewer"
+          src={iframeSrc}
+          title="Prototype"
+          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+        />
       </div>
     </div>
   );
