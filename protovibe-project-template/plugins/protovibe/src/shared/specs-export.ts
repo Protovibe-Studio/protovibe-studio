@@ -4,7 +4,7 @@
 // (clipboard), so the two never drift.
 
 import type { SpecBundle, SpecAnnotation } from './specs';
-import { isAnnotation } from './specs';
+import { isAnnotation, SPEC_STATUS_CONFIG } from './specs';
 
 export type SpecExportFormat = 'markdown' | 'html';
 
@@ -13,12 +13,6 @@ export interface SpecExportOptions {
   /** Published site root (e.g. https://x.pages.dev). Empty ⇒ no links. */
   publishedUrl?: string;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  todo: 'Todo',
-  discuss: 'To discuss',
-  verified: 'Verified',
-};
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -50,7 +44,7 @@ export function renderMarkdown(bundle: SpecBundle, publishedUrl: string): string
     // Counter before the text; continuation lines indented so Markdown keeps the paragraph.
     out.push(`**${n}.** ${text.replace(/\n/g, '\n   ')}`);
     const meta: string[] = [];
-    if (item.status) meta.push(`Status: ${STATUS_LABELS[item.status] ?? item.status}`);
+    if (item.status) meta.push(`Status: ${SPEC_STATUS_CONFIG[item.status].label}`);
     if (publishedUrl) meta.push(`[View in prototype](${viewerLink(publishedUrl, bundle.spec.id, item.id)})`);
     else meta.push(`State: \`${item.state.path}\``);
     out.push(`   ${meta.join(' · ')}`, '');
@@ -74,7 +68,7 @@ export function renderHtml(bundle: SpecBundle, publishedUrl: string): string {
       parts.push(i === 0 ? `<p><strong>${n}.</strong> ${body}</p>` : `<p>${body}</p>`);
     });
     const meta: string[] = [];
-    if (item.status) meta.push(`<em>Status:</em> ${escapeHtml(STATUS_LABELS[item.status] ?? item.status)}`);
+    if (item.status) meta.push(`<em>Status:</em> ${escapeHtml(SPEC_STATUS_CONFIG[item.status].label)}`);
     if (publishedUrl) meta.push(`<a href="${escapeHtml(viewerLink(publishedUrl, bundle.spec.id, item.id))}">View in prototype</a>`);
     else meta.push(`<em>State:</em> <code>${escapeHtml(item.state.path)}</code>`);
     parts.push(`<p>${meta.join(' · ')}</p>`);

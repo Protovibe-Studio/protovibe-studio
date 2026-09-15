@@ -22,7 +22,7 @@ import {
   safeSpecId, readSpec, readItem, listSpecSummaries, writeSpecMeta, writeItem,
   deleteItemFile, deleteSpecDir, buildViewerData,
 } from './specs-store';
-import { injectValuelessAttr, removeValuelessAttr, hasValuelessAttr } from './source-attr';
+import { injectValuelessAttr, removeValuelessAttr, removeValuelessAttrExcept } from './source-attr';
 
 // ─── small http helpers (mirrors comments-server.ts) ─────────────────────────
 
@@ -53,27 +53,44 @@ function sendError(res: any, msg: string, status = 400): void {
 function resolveProjectFile(file: string): string | null {
   const root = process.cwd();
   const absolute = path.resolve(root, file);
-  if (!absolute.startsWith(root)) return null;
+  // Containment, not a string prefix: `../FooBar/x` must not pass for root `.../Foo`.
+  const rel = path.relative(root, absolute);
+  if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) return null;
   return absolute;
 }
 
-/** Inject `data-pv-spec-{id}` at nameEnd in `file` (idempotent). */
+/**
+ * Inject `data-pv-spec-{id}` at nameEnd in `file`. Idempotent for the same
+ * spot only: an older copy of the attribute elsewhere in the file (re-pinning
+ * within one file) must not suppress the injection — the caller removes it.
+ */
 function injectAnchor(file: string, nameEnd: [number, number], itemId: string): void {
   const absolute = resolveProjectFile(file);
   if (!absolute || !fs.existsSync(absolute)) throw new Error(`File not found: ${file}`);
   const original = fs.readFileSync(absolute, 'utf-8');
   const attr = specIdAttr(itemId);
-  if (hasValuelessAttr(original, attr)) return;
+  const line = original.split('\n')[nameEnd[0] - 1] ?? '';
+  const marker = ` ${attr}`;
+  const alreadyHere = line.startsWith(marker, nameEnd[1]) && !/[\w-]/.test(line[nameEnd[1] + marker.length] ?? '');
+  if (alreadyHere) return;
   fs.writeFileSync(absolute, injectValuelessAttr(original, nameEnd, attr), 'utf-8');
 }
 
-/** Best-effort removal of an annotation's anchor attribute from its file. */
-function removeAnchor(item: SpecItem): void {
+/**
+ * Best-effort removal of an annotation's anchor attribute from its file. When
+ * the attribute was just re-injected elsewhere (`keepFile` + `keepAt`), only
+ * the older occurrence is removed.
+ */
+function removeAnchor(item: SpecItem, keepFile?: string, keepAt?: [number, number]): void {
   if (!isAnnotation(item) || !item.anchor?.file) return;
   const absolute = resolveProjectFile(item.anchor.file);
   if (!absolute || !fs.existsSync(absolute)) return;
   const original = fs.readFileSync(absolute, 'utf-8');
-  const stripped = removeValuelessAttr(original, specIdAttr(item.id));
+  const attr = specIdAttr(item.id);
+  const keepAbsolute = keepFile ? resolveProjectFile(keepFile) : null;
+  const stripped = keepAbsolute === absolute && keepAt
+    ? removeValuelessAttrExcept(original, attr, keepAt)
+    : removeValuelessAttr(original, attr);
   if (stripped !== original) fs.writeFileSync(absolute, stripped, 'utf-8');
 }
 
@@ -274,11 +291,16 @@ export const handleSpecsItemReanchor: Connect.NextHandleFunction = async (req, r
     const pinned = !!body.file && validNameEnd(body.nameEnd);
     if (body.file && !pinned) return sendError(res, 'Missing element location (nameEnd)');
 
-    removeAnchor(item);
+    // Inject first, then strip the old attribute by its id-specific regex: the
+    // client measured nameEnd on the current source, so removing first would
+    // shift any target that sits after the old anchor on the same line.
     if (pinned) {
-      item.anchor = { file: String(body.file) };
-      injectAnchor(item.anchor.file, body.nameEnd, item.id);
+      const newFile = String(body.file);
+      injectAnchor(newFile, body.nameEnd, item.id);
+      removeAnchor(item, newFile, body.nameEnd);
+      item.anchor = { file: newFile };
     } else {
+      removeAnchor(item);
       delete item.anchor;
     }
     item.updatedAt = new Date().toISOString();

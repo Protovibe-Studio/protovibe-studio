@@ -39,3 +39,31 @@ export function hasValuelessAttr(source: string, attrName: string): boolean {
 export function removeValuelessAttr(source: string, attrName: string): string {
   return source.replace(valuelessAttrRegex(attrName), '');
 }
+
+/**
+ * Remove every occurrence of a valueless attribute except the one injected at
+ * `injectedAt` (line, column of the injection point on the pre-injection
+ * source — the attribute now starts right there).
+ */
+export function removeValuelessAttrExcept(source: string, attrName: string, injectedAt: [number, number]): string {
+  const lines = source.split('\n');
+  const keepLine = injectedAt[0] - 1;
+  return lines.map((line, i) => {
+    if (i !== keepLine) return removeValuelessAttr(line, attrName);
+    // The kept attribute is the one whose leading space starts at the
+    // injection column; strip the others on this line.
+    const marker = ` ${attrName}`;
+    let out = '';
+    let pos = 0;
+    while (pos < line.length) {
+      const idx = line.indexOf(marker, pos);
+      if (idx < 0) { out += line.slice(pos); break; }
+      const end = idx + marker.length;
+      const boundary = end >= line.length || !/[\w-]/.test(line[end]);
+      if (idx === injectedAt[1] || !boundary) { out += line.slice(pos, end); pos = end; continue; }
+      out += line.slice(pos, idx);
+      pos = end;
+    }
+    return out;
+  }).join('\n');
+}

@@ -10,15 +10,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
-import { annotationsOf, isAnnotation, specIdSelector } from '../shared/specs';
+import { annotationsOf, isAnnotation, specIdSelector, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 import { PROTOVIBE_LOGO_DATA_URL } from '../ui/protovibeLogo';
-
-const STATUS: Record<SpecStatus, { label: string; color: string }> = {
-  todo:     { label: 'Todo',       color: '#A78BFA' },
-  discuss:  { label: 'To discuss', color: theme.warning_primary },
-  verified: { label: 'Verified',   color: theme.success_default },
-};
 
 const SIDEBAR_DEFAULT_W = 260;
 const SIDEBAR_MIN_W = 240;
@@ -62,6 +56,8 @@ export const SpecsViewerApp: React.FC = () => {
   const [route, setRoute] = useState(readRoute);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [iframeSrc, setIframeSrc] = useState<string>(() => appUrl('/'));
+  // Set when the src changes; the highlight then waits for the new document.
+  const loadPendingRef = useRef(false);
 
   useEffect(() => {
     fetch('./specs-data.json', { cache: 'no-store' })
@@ -153,9 +149,16 @@ export const SpecsViewerApp: React.FC = () => {
       return;
     }
     const target = appUrl(current.state.path);
-    if (target !== iframeSrc) setIframeSrc(target);
+    if (target !== iframeSrc) {
+      // The effect re-runs once the new src is committed (iframeSrc dep).
+      loadPendingRef.current = true;
+      setIframeSrc(target);
+      return;
+    }
+    const frame = iframeRef.current;
     let attempts = 0;
     let timer = 0;
+    let cleanupListeners: (() => void) | null = null;
     const tryHighlight = () => {
       const doc = iframeRef.current?.contentDocument;
       const win = iframeRef.current?.contentWindow;
@@ -190,9 +193,23 @@ export const SpecsViewerApp: React.FC = () => {
       doc.body.appendChild(box);
       win.addEventListener('scroll', place, { capture: true, passive: true });
       win.addEventListener('resize', place);
+      cleanupListeners = () => {
+        win.removeEventListener('scroll', place, { capture: true });
+        win.removeEventListener('resize', place);
+        box.remove();
+      };
     };
-    timer = window.setTimeout(tryHighlight, 150);
-    return () => clearTimeout(timer);
+    // After a src change the old document is still reachable until the new
+    // one arrives: wait for the load event instead of decorating the outgoing
+    // page (whose highlight would vanish with it).
+    const onLoad = () => { loadPendingRef.current = false; timer = window.setTimeout(tryHighlight, 50); };
+    if (loadPendingRef.current && frame) frame.addEventListener('load', onLoad);
+    else timer = window.setTimeout(tryHighlight, 150);
+    return () => {
+      clearTimeout(timer);
+      frame?.removeEventListener('load', onLoad);
+      try { cleanupListeners?.(); } catch { /* document may be gone */ }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id, iframeSrc]);
 

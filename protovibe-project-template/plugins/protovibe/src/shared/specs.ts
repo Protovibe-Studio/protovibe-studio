@@ -16,6 +16,18 @@ export type SpecStatus = 'todo' | 'discuss' | 'verified';
 /** Display order of the statuses (also the order they appear in pickers). */
 export const SPEC_STATUSES: SpecStatus[] = ['todo', 'discuss', 'verified'];
 
+/**
+ * Presentation for each stable status id, shared by the editor, the published
+ * viewer and the exports. The persisted value is the id, so a label can change
+ * without touching saved files. Colors are literal hex so this file stays free
+ * of UI imports (the backend uses it too).
+ */
+export const SPEC_STATUS_CONFIG: Record<SpecStatus, { label: string; color: string }> = {
+  todo:     { label: 'Todo',       color: '#A78BFA' },
+  discuss:  { label: 'To discuss', color: '#F2C94C' },
+  verified: { label: 'Verified',   color: '#1ABC9C' },
+};
+
 export function normalizeSpecStatus(raw: unknown): SpecStatus | undefined {
   if (typeof raw !== 'string') return undefined;
   return (SPEC_STATUSES as string[]).includes(raw) ? (raw as SpecStatus) : undefined;

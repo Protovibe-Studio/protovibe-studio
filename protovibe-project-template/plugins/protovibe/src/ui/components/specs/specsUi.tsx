@@ -7,15 +7,9 @@ import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecStatus } from '../../../shared/specs';
-import { SPEC_STATUSES } from '../../../shared/specs';
+import { SPEC_STATUSES, SPEC_STATUS_CONFIG } from '../../../shared/specs';
 
-// Presentation for each stable status id. The persisted value is the id (see
-// SpecStatus in shared/specs), so renaming a label never breaks saved files.
-export const SPEC_STATUS_CONFIG: Record<SpecStatus, { label: string; color: string }> = {
-  todo:     { label: 'Todo',       color: '#A78BFA' },
-  discuss:  { label: 'To discuss', color: theme.warning_primary },
-  verified: { label: 'Verified',   color: theme.success_default },
-};
+export { SPEC_STATUS_CONFIG };
 
 export const iconBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24,
