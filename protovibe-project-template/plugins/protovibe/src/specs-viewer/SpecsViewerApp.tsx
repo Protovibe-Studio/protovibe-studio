@@ -271,7 +271,7 @@ export const SpecsViewerApp: React.FC = () => {
                     <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
                     {it.title && <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{it.title}</span>}
                     {body && (
-                      <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
+                      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
                     )}
                     {statusBadge(it.status)}
                   </div>

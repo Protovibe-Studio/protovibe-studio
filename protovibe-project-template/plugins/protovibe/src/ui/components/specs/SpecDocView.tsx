@@ -356,7 +356,7 @@ const AnnotationRow: React.FC<{
           </span>
         )}
         {body && (
-          <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {body}
           </span>
         )}
