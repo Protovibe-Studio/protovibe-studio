@@ -19,7 +19,7 @@ export function createColorLivePreview(): LivePreviewHandle {
   const apply = (tokenName: string, themeMode: 'light' | 'dark', oklchValue: string) => {
     const css = `[data-theme="${themeMode}"] { --${tokenName}: ${oklchValue} !important; }`;
     if (styles.length === 0) {
-      const iframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+      const iframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
       for (const iframe of iframes) {
         const doc = iframe.contentDocument;
         if (!doc) continue;

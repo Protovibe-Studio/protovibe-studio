@@ -25,7 +25,9 @@ const HTTP_PROBE_URL = '/__hmr-activity';
 
 const hot = import.meta.hot;
 
-if (hot) {
+// Spec thumbnails / the specs viewer embed many copies of the app; they reload
+// with the page and never need their own liveness loop.
+if (hot && !window.name.startsWith('pv-spec-')) {
   let pending: { resolve: (alive: boolean) => void; timer: number } | null = null;
   let checking = false;
   let reloading = false;

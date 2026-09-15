@@ -14,6 +14,7 @@ import {
   type CloudflareDeployHistoryEntry,
 } from '../api/client';
 import { getCurrentAppPath } from '../utils/appPath';
+import { fetchSpecsList } from '../api/specs';
 
 // Inject spin keyframes once
 if (typeof document !== 'undefined' && !document.querySelector('#pv-spin-style')) {
@@ -53,6 +54,24 @@ function formatPublishDate(iso?: string): string {
   const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) });
   const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   return `${date}, ${time}`;
+}
+
+/** Small "Specs are also published at …/specs.html" line for the popover. */
+function specsViewerNote(publishedUrl: string) {
+  if (!publishedUrl) return null;
+  const url = `${publishedUrl.replace(/\/+$/, '')}/specs.html`;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '10px' }}>
+      <span style={{ fontSize: '12px', color: theme.text_tertiary }}>Specs are also published at</span>
+      <a href={url} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
+        style={{ fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', textDecoration: 'none' }}
+        onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
+        onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
+      >
+        {url}
+      </a>
+    </div>
+  );
 }
 
 function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployHistoryEntry[]; open: boolean; onToggle: () => void }) {
@@ -108,6 +127,9 @@ export function PublishButton() {
   const [lastPublishedAt, setLastPublishedAt] = useState('');
   const [deployHistory, setDeployHistory] = useState<CloudflareDeployHistoryEntry[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // Whether the project has any specs — the popover then also points at the
+  // published read-only viewer (see backend/specs-publish.ts).
+  const [hasSpecs, setHasSpecs] = useState(false);
 
   // Cloudflare connection state — known up-front so the popover can explain
   // the flow to logged-out users before anything is deployed.
@@ -183,7 +205,10 @@ export function PublishButton() {
 
   // Re-check auth whenever the popover opens (served from a backend cache, so cheap)
   useEffect(() => {
-    if (open) refreshAuth();
+    if (open) {
+      refreshAuth();
+      fetchSpecsList().then((list) => setHasSpecs(list.length > 0)).catch(() => {});
+    }
     if (!open) {
       // Closing the popover dismisses a finished publish — reopening should land
       // on the default "Published to" view, ready to publish an update.
@@ -666,6 +691,7 @@ export function PublishButton() {
             {copied ? <Check size={14} /> : <Copy size={14} />}
             {copied ? 'Copied!' : 'Copy link'}
           </button>
+          {hasSpecs && specsViewerNote(publishedUrl)}
           <button style={{ ...ghostBtnStyle, marginTop: '8px' }} onClick={handleReset}>
             Done
           </button>
@@ -773,6 +799,7 @@ export function PublishButton() {
             {lastPublishedAt && (
               <span style={{ fontSize: '12px', color: theme.text_tertiary }}>Last published {formatPublishDate(lastPublishedAt)}</span>
             )}
+            {hasSpecs && specsViewerNote(publishedUrl)}
             {deployHistory.length > 0 && (
               <DeployHistory history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
             )}

@@ -29,6 +29,7 @@ import path from 'path';
 import sharp from 'sharp';
 import { Connect, ViteDevServer } from 'vite';
 import type { CommentThread, CommentItem } from '../shared/comments';
+import { injectValuelessAttr, removeValuelessAttr, valuelessAttrRegex } from './source-attr';
 import {
   normalizeStatus, threadFileName, commentFileName, THREAD_META_FILE,
   COMMENTS_DIR_REL, COMMENT_ATTACHMENTS_DIR_REL, commentIdAttr,
@@ -260,34 +261,19 @@ function enrichSketchpadContext(thread: CommentThread): void {
 }
 
 // ─── source attribute injection / removal ────────────────────────────────────
+// The string surgery lives in source-attr.ts (shared with the specs feature,
+// which anchors the same way under its own attribute prefix).
 
-// Insert a valueless ` data-pv-comment-<id>` attribute right after the element's
-// tag name, mirroring handleUpdateProp's 'add' branch (insert at nameEnd column).
-// Every thread gets its OWN uniquely-named attribute, so a second thread on the
-// same element can never collide into a duplicate attribute.
 function injectAttribute(source: string, nameEnd: [number, number], id: string): string {
-  const lines = source.split('\n');
-  const lineIdx = nameEnd[0] - 1;
-  const colIdx = nameEnd[1];
-  if (lineIdx < 0 || lineIdx >= lines.length) {
-    throw new Error('nameEnd is out of range for the current file');
-  }
-  const line = lines[lineIdx];
-  lines[lineIdx] = line.substring(0, colIdx) + ` ${commentIdAttr(id)}` + line.substring(colIdx);
-  return lines.join('\n');
+  return injectValuelessAttr(source, nameEnd, commentIdAttr(id));
 }
 
-// Build a boundary-safe matcher for a single ` data-pv-comment-<id>` attribute,
-// optionally with an empty value (`=""` / `={...}`). Thread ids are [a-z0-9], so
-// the lookahead stops a short id from matching inside a longer one.
 function idAttrRegex(id: string): RegExp {
-  return new RegExp(`\\s*${commentIdAttr(id)}(?:=(?:""|'')|=\\{[^}]*\\})?(?![\\w-])`, 'g');
+  return valuelessAttrRegex(commentIdAttr(id));
 }
 
-// Remove a thread's `data-pv-comment-<id>` attribute (with its leading space).
-// Other elements' attributes — and other ids on the same element — are untouched.
 function removeAttribute(source: string, id: string): string {
-  return source.replace(idAttrRegex(id), '');
+  return removeValuelessAttr(source, commentIdAttr(id));
 }
 
 // Coerce a client-supplied suggestions payload into clean {original, suggested}
