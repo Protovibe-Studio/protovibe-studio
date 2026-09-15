@@ -323,6 +323,18 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-open-component-preview', handler);
   }, [handleIframeTabChange]);
 
+  // Reload every canvas iframe (e.g. after a font-family change, whose webfont
+  // <link>s are only injected when the page is served).
+  useEffect(() => {
+    const handler = () => {
+      reloadIframe(appIframeRef);
+      reloadIframe(sketchpadIframeRef);
+      reloadIframe(componentsIframeRef);
+    };
+    window.addEventListener('pv-reload-canvases', handler);
+    return () => window.removeEventListener('pv-reload-canvases', handler);
+  }, [reloadIframe]);
+
   // Bring a comment's anchored element into view. Retries across iframes because
   // the element may only appear after a tab switch or an app-iframe navigation.
   const focusThreadElement = useCallback((threadId: string) => {

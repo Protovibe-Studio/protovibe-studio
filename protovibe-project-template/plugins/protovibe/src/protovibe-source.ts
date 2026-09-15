@@ -18,33 +18,74 @@ const __dirname = path.dirname(__filename);
 const PLUGIN_DIR = path.resolve(__dirname, '..');
 const PLUGIN_VERSION = JSON.parse(fs.readFileSync(path.join(PLUGIN_DIR, 'package.json'), 'utf-8')).version as string;
 
+const INDEX_CSS_PATH = normalizePath(path.resolve(process.cwd(), 'src/index.css'));
+
+// Matches the managed Google Fonts import written to src/index.css by the font
+// picker, in either `@import url('https://...')` or `@import "https://..."` form.
+// Group 2 / group 4 hold the href depending on which form matched.
+const WEBFONT_IMPORT_RE =
+  /@import\s+(?:url\(\s*(['"]?)(https:\/\/fonts\.googleapis\.com\/[^'")]+)\1\s*\)|(['"])(https:\/\/fonts\.googleapis\.com\/[^'"]+)\3)[^;]*;?/g;
+
+/** Webfont stylesheet URLs imported by the given CSS source. */
+function extractWebfontHrefs(css: string): string[] {
+  const hrefs: string[] = [];
+  let m: RegExpExecArray | null;
+  const re = new RegExp(WEBFONT_IMPORT_RE.source, 'g');
+  while ((m = re.exec(css)) !== null) {
+    hrefs.push(m[2] ?? m[4]);
+  }
+  return hrefs;
+}
+
 /**
- * Extract the webfont stylesheet URLs the user's app depends on by reading the
- * `@import url('https://fonts.googleapis.com/...')` (and `@import url("...")`)
- * lines from src/index.css.
- *
- * These same fonts are pulled in by index.css inside the sketchpad iframe, but
- * that stylesheet is owned by Tailwind's Vite plugin and gets torn down and
- * re-injected on every mutation's HMR update. With `display=swap` that momentary
- * removal of the `@font-face` makes text flash the fallback font on each move.
- * Injecting the same font stylesheets as plain <link>s in the iframe <head>
- * keeps the @font-face continuously registered (the browser owns these links,
- * not HMR), so the glyphs never fall back between updates.
+ * Webfont stylesheet URLs the user's app depends on, read from the
+ * `@import url('https://fonts.googleapis.com/...')` lines in src/index.css.
  */
 function getWebfontHrefs(): string[] {
   try {
-    const cssPath = path.resolve(process.cwd(), 'src/index.css');
-    const css = fs.readFileSync(cssPath, 'utf-8');
-    const hrefs: string[] = [];
-    const importRegex = /@import\s+url\(\s*(['"]?)(https:\/\/fonts\.googleapis\.com\/[^'")]+)\1\s*\)/g;
-    let m: RegExpExecArray | null;
-    while ((m = importRegex.exec(css)) !== null) {
-      hrefs.push(m[2]);
-    }
-    return hrefs;
+    return extractWebfontHrefs(fs.readFileSync(INDEX_CSS_PATH, 'utf-8'));
   } catch {
     return [];
   }
+}
+
+/**
+ * Why webfonts are handled outside index.css in dev:
+ *
+ * index.css is owned by Tailwind's Vite plugin. Because it declares
+ * `@source "./sketchpads/**"` (and scans the app's modules), every canvas or
+ * sketchpad mutation that rewrites a .tsx file regenerates the stylesheet and
+ * Vite hot-swaps the `<style>` tag's contents. Re-parsing that sheet re-resolves
+ * the Google Fonts `@import`, which re-creates its `@font-face` rules in an
+ * unloaded state; with `display=swap` the fallback font paints for a frame or
+ * two on every move.
+ *
+ * Injecting the same stylesheets as persistent `<link>`s in `<head>` alone is
+ * not enough: the re-injected `@font-face` rules come later in the cascade and
+ * win over the links' already-loaded faces. So in dev we also strip the remote
+ * `@import` from index.css (see the `transform` hook) and serve the fonts
+ * exclusively through the links, keeping them out of the HMR cycle entirely.
+ * The links are computed when a page is served, so the shell reloads the
+ * canvas iframes after a font change made through the picker.
+ */
+function stripWebfontImports(css: string): string {
+  return css.replace(WEBFONT_IMPORT_RE, '');
+}
+
+/** `<head>` tags that register the app's webfonts independently of index.css. */
+function webfontHeadTags(): HtmlTagDescriptor[] {
+  const hrefs = getWebfontHrefs();
+  const tags: HtmlTagDescriptor[] = [];
+  if (hrefs.length > 0) {
+    tags.push(
+      { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' }, injectTo: 'head-prepend' },
+      { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }, injectTo: 'head-prepend' },
+    );
+    for (const href of hrefs) {
+      tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href }, injectTo: 'head-prepend' });
+    }
+  }
+  return tags;
 }
 
 export function protovibeSourcePlugin(): Plugin {
@@ -337,6 +378,7 @@ export function protovibeSourcePlugin(): Plugin {
           }
 
           return [
+            ...webfontHeadTags(),
             {
               tag: 'script',
               attrs: {},
@@ -354,20 +396,7 @@ export function protovibeSourcePlugin(): Plugin {
             return [];
           }
 
-          const tags: HtmlTagDescriptor[] = [];
-
-          // Persistent webfont links so the custom font never flashes to a
-          // fallback during the CSS HMR swap that follows each canvas mutation.
-          const webfontHrefs = getWebfontHrefs();
-          if (webfontHrefs.length > 0) {
-            tags.push(
-              { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' }, injectTo: 'head-prepend' },
-              { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }, injectTo: 'head-prepend' },
-            );
-            for (const href of webfontHrefs) {
-              tags.push({ tag: 'link', attrs: { rel: 'stylesheet', href }, injectTo: 'head-prepend' });
-            }
-          }
+          const tags: HtmlTagDescriptor[] = [...webfontHeadTags()];
 
           tags.push({
             tag: 'script',
@@ -381,6 +410,15 @@ export function protovibeSourcePlugin(): Plugin {
 
         return [];
       },
+    },
+
+    // Dev only (the plugin is `apply: 'serve'`): keep the Google Fonts
+    // @import out of the hot-swapped stylesheet. The fonts are served through
+    // the persistent <link>s injected by webfontHeadTags() instead.
+    transform(code, id) {
+      if (normalizePath(id.split('?')[0]) !== INDEX_CSS_PATH) return null;
+      const stripped = stripWebfontImports(code);
+      return stripped === code ? null : { code: stripped, map: null };
     },
 
     // Suppress full-page reloads for non-HMR-able sketchpad data files
