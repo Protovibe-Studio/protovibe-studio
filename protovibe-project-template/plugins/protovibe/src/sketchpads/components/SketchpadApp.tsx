@@ -144,6 +144,22 @@ type SketchpadDropDetail = {
   fallbackPositions?: Array<{ blockId: string; x: number; y: number }>;
 };
 
+/**
+ * The frame's root content div: the first child of the `data-sketchpad-frame`
+ * container carrying `data-pv-loc-*` (mirrors `findFrameRoot` in the bridge).
+ * Null while the frame module has not rendered yet.
+ */
+function findFrameRootEl(frameId: string): HTMLElement | null {
+  const frameEl = document.querySelector(`[data-sketchpad-frame="${frameId}"]`);
+  if (!frameEl) return null;
+  for (const child of Array.from(frameEl.children)) {
+    if (Array.from(child.attributes).some((a) => a.name.startsWith('data-pv-loc-'))) {
+      return child as HTMLElement;
+    }
+  }
+  return null;
+}
+
 export function SketchpadApp() {
   const [sketchpads, setSketchpads] = useState<Sketchpad[]>([]);
   const [activeSketchpadId, setActiveSketchpadId] = useState<string>('');
@@ -1119,15 +1135,34 @@ export function SketchpadApp() {
     }
   }, [activeSketchpadId, activeSketchpad, loadFrameModule, loadAllFrameModules]);
 
-  // One-shot flag: set when the user clicks a frame's title bar so we both keep the
-  // frame selected AND focus the frame root in the inspector. The bridge → parent
-  // shell → us round-trip would otherwise echo PV_SET_SELECTION and clear frame focus.
-  const suppressFrameClearOnceRef = useRef(false);
+  // Whenever a frame becomes the primary canvas selection — title-bar click,
+  // create, duplicate, paste, marquee, navigation from another tab — focus its
+  // root content div in the inspector so paste / Enter / insert shortcuts act on
+  // that frame. Right after create/duplicate the frame module is still loading,
+  // so the root may not be in the DOM yet: poll briefly until it appears. A
+  // selection change while polling cancels the stale attempt.
   useEffect(() => {
-    const onFrameRootSelected = () => { suppressFrameClearOnceRef.current = true; };
-    window.addEventListener('pv-frame-root-selected', onFrameRootSelected);
-    return () => window.removeEventListener('pv-frame-root-selected', onFrameRootSelected);
-  }, []);
+    if (!selectedFrameId) return;
+    let cancelled = false;
+    let attempts = 0;
+    const tryFocus = () => {
+      if (cancelled) return;
+      if (findFrameRootEl(selectedFrameId)) {
+        window.dispatchEvent(new CustomEvent('pv-select-frame-root', { detail: { frameId: selectedFrameId } }));
+        // Mirror the title-bar click: keep keyboard focus on the frame element
+        // (inside this iframe) so frame-level shortcuts keep working. Never
+        // pull focus away from the shell or from a text field.
+        if (document.hasFocus() && !isTypingInput(document.activeElement as HTMLElement | null)) {
+          const frameEl = document.querySelector(`[data-sketchpad-frame-root="${selectedFrameId}"]`) as HTMLElement | null;
+          frameEl?.focus({ preventScroll: true });
+        }
+        return;
+      }
+      if (attempts++ < 100) setTimeout(tryFocus, 50);
+    };
+    tryFocus();
+    return () => { cancelled = true; };
+  }, [selectedFrameId]);
 
   // Listen for undo/redo completion and element selection events from the parent shell
   useEffect(() => {
@@ -1135,12 +1170,22 @@ export function SketchpadApp() {
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
         reloadRegistry();
       }
-      if (e.data?.type === 'PV_SET_SELECTION' && e.data.runtimeIds && e.data.runtimeIds.length > 0) {
-        if (suppressFrameClearOnceRef.current) {
-          suppressFrameClearOnceRef.current = false;
-        } else {
-          setSelectedFrameIds([]);
-        }
+      if (e.data?.type === 'PV_SET_SELECTION' && Array.isArray(e.data.runtimeIds) && e.data.runtimeIds.length > 0) {
+        // The shell echoes every inspector selection back to us. Keep the canvas
+        // frame selection while the focused element is the root of a selected
+        // frame (that is the echo of our own pv-select-frame-root); any other
+        // selection — a child block, another frame's root — means the user
+        // drilled out of frame mode.
+        const runtimeIds: string[] = e.data.runtimeIds;
+        setSelectedFrameIds((prev) => {
+          if (prev.length === 0) return prev;
+          const onlySelectedFrameRoots = runtimeIds.every((id) => {
+            const el = document.querySelector(`[data-pv-runtime-id="${id}"]`);
+            const frameId = el?.parentElement?.getAttribute('data-sketchpad-frame');
+            return !!frameId && prev.includes(frameId);
+          });
+          return onlySelectedFrameRoots ? prev : [];
+        });
       }
       if (e.data?.type === 'PV_SKETCHPAD_ZOOM') {
         const code: string = e.data.code;

@@ -1919,8 +1919,8 @@ function init() {
   }) as EventListener);
 
   // Select a frame's root content div (the wrapper that has data-pv-loc-* but no
-  // data-pv-block). Used when a frame is selected via its title bar so the inspector
-  // shows the root, not the first child block.
+  // data-pv-block). Dispatched by SketchpadApp whenever a frame becomes the canvas
+  // selection so the inspector shows the root, not the first child block.
   window.addEventListener('pv-select-frame-root', ((e: CustomEvent<{ frameId?: string }>) => {
     const frameId = e.detail.frameId;
     if (!frameId) return;
@@ -1932,9 +1932,6 @@ function init() {
     clearSelection();
     setSelection(root, false);
     notifyInspector(root, true);
-    // Tell SketchpadApp we actually selected — used to one-shot suppress the
-    // PV_SET_SELECTION echo that would otherwise clear frame focus.
-    window.dispatchEvent(new CustomEvent('pv-frame-root-selected', { detail: { frameId } }));
   }) as EventListener);
 
   // Allow SketchpadApp to programmatically clear element selection (e.g. when frames are marquee-selected)
