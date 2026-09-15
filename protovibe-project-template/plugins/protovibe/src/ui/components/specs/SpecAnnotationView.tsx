@@ -65,6 +65,7 @@ export const SpecAnnotationView: React.FC<{
           editing={p.autoEditText || textEditing}
           onEditingChange={(v) => { setTextEditing(v); if (!v) p.onAutoEditDone(); }}
           onSave={(t) => p.onUpdate({ text: t }, 'edit annotation')}
+          framed
           style={{ fontSize: 13, minHeight: 160 }}
         />
 

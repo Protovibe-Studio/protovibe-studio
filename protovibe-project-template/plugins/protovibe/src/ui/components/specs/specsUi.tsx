@@ -196,7 +196,9 @@ export const InlineEditable: React.FC<{
   stopClickPropagation?: boolean;
   /** Select the whole value when the editor opens (typing replaces it). */
   selectAllOnEdit?: boolean;
-}> = ({ value, onSave, placeholder, multiline, style, editing: editingProp, onEditingChange, disabled, stopClickPropagation, selectAllOnEdit }) => {
+  /** Look like a regular text field: always-visible border, real padding, no negative margin. */
+  framed?: boolean;
+}> = ({ value, onSave, placeholder, multiline, style, editing: editingProp, onEditingChange, disabled, stopClickPropagation, selectAllOnEdit, framed }) => {
   const [editingState, setEditingState] = useState(false);
   const editing = editingProp ?? editingState;
   const setEditing = (v: boolean) => { setEditingState(v); onEditingChange?.(v); };
@@ -241,7 +243,10 @@ export const InlineEditable: React.FC<{
 
   const baseStyle: React.CSSProperties = {
     fontFamily: theme.font_ui, fontSize: 12, lineHeight: 1.45, color: theme.text_default, width: '100%', boxSizing: 'border-box',
-    padding: '4px 6px', margin: '-4px -6px', borderRadius: 4, ...style,
+    ...(framed
+      ? { padding: '8px 10px', borderRadius: 6, background: theme.bg_secondary }
+      : { padding: '4px 6px', margin: '-4px -6px', borderRadius: 4 }),
+    ...style,
   };
 
   if (editing) {
@@ -281,7 +286,7 @@ export const InlineEditable: React.FC<{
       title={disabled ? undefined : 'Click to edit'}
       style={{
         ...baseStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: disabled ? 'default' : 'text',
-        border: `1px solid ${hover && !disabled ? theme.border_strong : 'transparent'}`,
+        border: `1px solid ${hover && !disabled ? theme.border_strong : framed ? theme.border_default : 'transparent'}`,
         color: empty ? theme.text_tertiary : baseStyle.color,
         transition: 'border-color 0.12s',
       }}
