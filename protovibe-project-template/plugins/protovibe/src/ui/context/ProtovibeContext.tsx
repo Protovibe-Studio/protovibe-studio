@@ -277,12 +277,21 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     }
 
-    (document.activeElement as HTMLElement | null)?.blur?.();
-
     const els = Array.isArray(inputEl) ? inputEl : [inputEl];
     if (els.length === 0) return;
 
     const primaryEl = els[els.length - 1];
+
+    // Move keyboard focus out of whatever shell control had it so shortcuts
+    // reach the window listeners. Exception: a sketchpad frame root selected
+    // while the sketchpad iframe itself holds focus. Keep focus there so the
+    // sketchpad's own frame-level shortcuts (Delete, Cmd+C/X/V on frames) keep
+    // working — its bridge forwards every key to the shell anyway.
+    const active = document.activeElement as HTMLElement | null;
+    const isFrameRoot = !!primaryEl.parentElement?.hasAttribute('data-sketchpad-frame');
+    const focusInOwnerIframe = active instanceof HTMLIFrameElement && active.contentDocument === primaryEl.ownerDocument;
+    if (!(isFrameRoot && focusInOwnerIframe)) active?.blur?.();
+
     let t: HTMLElement | null = primaryEl;
     let matchedIds = new Set<string>();
     const docRoot = primaryEl.ownerDocument?.documentElement ?? document.documentElement;

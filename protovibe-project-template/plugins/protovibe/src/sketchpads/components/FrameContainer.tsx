@@ -105,11 +105,12 @@ export function FrameContainer({
         onSelect(frameId, false);
       }
 
-      // Also focus the frame's root content div in the inspector so paste/insert
-      // shortcuts have an anchor — mirrors what clicking the bare frame background
-      // does via the builder bridge. One-way: selecting a child block does not
-      // select the frame.
-      if (!additive) {
+      // A changed selection focuses the frame's root content div in the inspector
+      // via SketchpadApp's selection effect. Re-clicking an already-selected frame
+      // does not change the selection, so re-anchor the root explicitly here (the
+      // inspector focus may have moved, e.g. after Escape). One-way: selecting a
+      // child block does not select the frame.
+      if (!additive && isAlreadySelected) {
         window.dispatchEvent(new CustomEvent('pv-select-frame-root', { detail: { frameId } }));
       }
 

@@ -691,14 +691,19 @@ export function useKeyboardShortcuts() {
       }
     }
 
-    // Mirror drag/drop listeners onto same-origin iframe documents so users can
-    // drop image files onto the canvas (which lives inside an iframe).
+    // Mirror drag/drop and paste listeners onto same-origin iframe documents so
+    // users can drop image files onto the canvas (which lives inside an iframe)
+    // and so Cmd+V works while a canvas iframe holds keyboard focus — the native
+    // `paste` event fires in the focused document and never reaches the shell
+    // window. (The sketchpad, for instance, keeps focus after a frame is
+    // selected on the canvas.)
     const attachedDocs = new WeakSet<Document>();
     const attachToIframeDoc = (doc: Document | null | undefined) => {
       if (!doc || attachedDocs.has(doc)) return;
       attachedDocs.add(doc);
       doc.addEventListener('dragover', handleDragOver as unknown as EventListener);
       doc.addEventListener('drop', handleDrop as unknown as EventListener);
+      doc.addEventListener('paste', handlePaste as unknown as EventListener);
     };
     const iframeLoadHandlers = new Map<HTMLIFrameElement, () => void>();
     const wireIframes = () => {
@@ -730,6 +735,7 @@ export function useKeyboardShortcuts() {
           if (doc) {
             doc.removeEventListener('dragover', handleDragOver as unknown as EventListener);
             doc.removeEventListener('drop', handleDrop as unknown as EventListener);
+            doc.removeEventListener('paste', handlePaste as unknown as EventListener);
           }
         } catch {}
       });
