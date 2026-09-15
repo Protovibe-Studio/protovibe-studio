@@ -198,7 +198,9 @@ export const InlineEditable: React.FC<{
   disabled?: boolean;
   /** Stop the click that opens the editor from reaching the row (e.g. a row that navigates). */
   stopClickPropagation?: boolean;
-}> = ({ value, onSave, placeholder, multiline, style, editing: editingProp, onEditingChange, disabled, stopClickPropagation }) => {
+  /** Select the whole value when the editor opens (typing replaces it). */
+  selectAllOnEdit?: boolean;
+}> = ({ value, onSave, placeholder, multiline, style, editing: editingProp, onEditingChange, disabled, stopClickPropagation, selectAllOnEdit }) => {
   const [editingState, setEditingState] = useState(false);
   const editing = editingProp ?? editingState;
   const setEditing = (v: boolean) => { setEditingState(v); onEditingChange?.(v); };
@@ -216,7 +218,9 @@ export const InlineEditable: React.FC<{
     const el = ref.current;
     if (!el) return;
     el.focus();
-    try { el.setSelectionRange(el.value.length, el.value.length); } catch { /* ignore */ }
+    try {
+      if (selectAllOnEdit) el.select(); else el.setSelectionRange(el.value.length, el.value.length);
+    } catch { /* ignore */ }
     if (multiline) autoGrow(el as HTMLTextAreaElement);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);

@@ -90,6 +90,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Set<SpecStatus>>(new Set());
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  // Spec whose title opens selected for typing (just created).
+  const [editingTitleSpecId, setEditingTitleSpecId] = useState<string | null>(null);
   const [autoEditTextId, setAutoEditTextId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [anchorFound, setAnchorFound] = useState<boolean | null>(null);
@@ -194,6 +196,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     const b = await createSpec(id, 'Untitled spec');
     await refreshList();
     setBundle(b);
+    setEditingTitleSpecId(id);
     setView({ level: 'doc', specId: id });
   });
 
@@ -432,6 +435,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           setStatusFilter={setStatusFilter}
           editingItemId={editingItemId}
           onEditingDone={() => setEditingItemId(null)}
+          editingTitle={editingTitleSpecId === bundle.spec.id}
+          onTitleEditingDone={() => setEditingTitleSpecId(null)}
           highlightId={highlightId}
           onBack={() => setView({ level: 'docs' })}
           onRename={(t) => handleRenameSpec(bundle.spec.id, t)}

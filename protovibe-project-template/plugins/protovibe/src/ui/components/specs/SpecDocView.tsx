@@ -26,6 +26,9 @@ export interface SpecDocViewProps {
   /** Heading whose title should open in edit mode (just created). */
   editingItemId: string | null;
   onEditingDone: () => void;
+  /** Open the spec title in edit mode with its text selected (just created). */
+  editingTitle: boolean;
+  onTitleEditingDone: () => void;
   /** Most recently opened annotation, faintly highlighted. */
   highlightId: string | null;
   onBack: () => void;
@@ -47,6 +50,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const { bundle } = p;
   const items = bundle.items;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [titleEditing, setTitleEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
@@ -115,7 +119,15 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px 8px 8px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         <button data-testid="specs-back" style={iconBtn} data-tooltip="Back to specs" onClick={p.onBack}><ArrowLeft size={15} /></button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <InlineEditable value={bundle.spec.title} placeholder="Untitled spec" onSave={(t) => p.onRename(t.trim() || 'Untitled spec')} style={{ fontSize: 13, fontWeight: 600 }} />
+          <InlineEditable
+            value={bundle.spec.title}
+            placeholder="Untitled spec"
+            editing={p.editingTitle || titleEditing}
+            onEditingChange={(v) => { setTitleEditing(v); if (!v) p.onTitleEditingDone(); }}
+            selectAllOnEdit={p.editingTitle}
+            onSave={(t) => p.onRename(t.trim() || 'Untitled spec')}
+            style={{ fontSize: 13, fontWeight: 600 }}
+          />
         </div>
         <button ref={menuRef} style={iconBtn} data-tooltip="More" onClick={() => setMenuOpen(true)}><MoreHorizontal size={15} /></button>
         <Menu
