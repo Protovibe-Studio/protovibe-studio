@@ -144,6 +144,7 @@ function updateGhost(isAltHeld: boolean) {
       ghost.style.top = `${t.origOffsetTop}px`;
       ghost.style.width = `${t.origWidth}px`;
       ghost.style.height = `${t.origHeight}px`;
+      ghost.style.boxSizing = 'border-box';
       ghost.style.margin = '0';
       
       const stripIdentifiers = (el: Element) => {
@@ -1295,6 +1296,7 @@ function handlePointerDown(e: PointerEvent) {
   });
   const frameForDragSnap = findFrameContainer(nextTarget);
   const dragAllAbsolute = dragTargets.every(t => t.hasAttribute('data-pv-sketchpad-el'));
+  const zoom = getCanvasZoom();
   dragState = {
     pointerId: e.pointerId,
     startX: e.clientX,
@@ -1302,14 +1304,18 @@ function handlePointerDown(e: PointerEvent) {
     moved: false,
     targets: dragTargets.map(t => {
       const pos = getComputedPos(t);
+      // offsetWidth/offsetHeight are rounded to integers; a content-sized text
+      // element can be fractionally wider, so a ghost sized from them would be
+      // up to 1px narrower and re-wrap its last word. Use the exact rect.
+      const rect = t.getBoundingClientRect();
       return {
         el: t,
         origLeft: pos.left,
         origTop: pos.top,
         origOffsetLeft: t.offsetLeft,
         origOffsetTop: t.offsetTop,
-        origWidth: t.offsetWidth,
-        origHeight: t.offsetHeight,
+        origWidth: rect.width / zoom,
+        origHeight: rect.height / zoom,
         origZIndex: t.style.zIndex,
         isFlow: !t.hasAttribute('data-pv-sketchpad-el'),
         origTransform: t.style.transform
