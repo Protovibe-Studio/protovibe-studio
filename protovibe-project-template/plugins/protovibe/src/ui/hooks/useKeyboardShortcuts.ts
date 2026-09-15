@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { undo, redo, takeSnapshot, addBlock, deleteBlocks, unwrapBlock, uploadImage } from '../api/client';
 import { collectChildPositions } from '../utils/unwrapGeometry';
@@ -31,8 +31,27 @@ export function useKeyboardShortcuts() {
     clearFocus,
     focusNewBlock,
     isMutationLocked,
-    runLockedMutation
+    runLockedMutation,
+    isLoading,
+    isZonesLoading,
   } = useProtovibe();
+
+  // Selecting elements (click, marquee, empty frame root) kicks off async
+  // fetches of the source file info and then its editable zones. Until both
+  // land, `activeData` and `zones` are null/stale, so Delete or Paste pressed
+  // in that window used to be silently dropped (or refused with a toast) and
+  // the user had to click and retry. Instead we park the action here and
+  // replay it once the selection is ready.
+  const isSelectionLoading = isLoading || isZonesLoading;
+  const isSelectionLoadingRef = useRef(isSelectionLoading);
+  isSelectionLoadingRef.current = isSelectionLoading;
+  const pendingActionRef = useRef<PendingAction | null>(null);
+
+  // A new selection supersedes any action parked for the previous one.
+  // Declared before the listener effect so it runs first in the same commit.
+  useEffect(() => {
+    pendingActionRef.current = null;
+  }, [currentBaseTarget, selectedTargets]);
 
   useEffect(() => {
     if (!inspectorOpen) return;
@@ -95,6 +114,19 @@ export function useKeyboardShortcuts() {
       if (e.key === 'Escape') {
         e.preventDefault();
         clearFocus();
+        return;
+      }
+
+      // 1.6. Defer Delete while the selection is still loading. Replayed at
+      // the end of this effect once the selection is ready.
+      if (
+        (e.key === 'Backspace' || e.key === 'Delete') &&
+        !e.metaKey && !e.ctrlKey && !e.altKey &&
+        isSelectionLoadingRef.current &&
+        currentBaseTarget
+      ) {
+        e.preventDefault();
+        pendingActionRef.current = { type: 'delete', key: e.key };
         return;
       }
 
@@ -175,6 +207,10 @@ export function useKeyboardShortcuts() {
           // in a server-side clipboard, so no browser clipboard data is needed
           // — perform the paste-after directly here.
           e.preventDefault();
+          if (isSelectionLoadingRef.current) {
+            pendingActionRef.current = { type: 'paste', after: true, imageFile: null };
+            return;
+          }
           await pasteBlock(true);
           return;
         }
@@ -582,14 +618,22 @@ export function useKeyboardShortcuts() {
     const handlePaste = async (e: ClipboardEvent) => {
       if (isMutationLocked) return;
       if (isTypingInput(e.target as HTMLElement)) return;
-      if (!activeData?.file) return;
       if (!currentBaseTarget) return;
 
+      // Clipboard items are only readable synchronously during the event, so
+      // extract the image (if any) before deciding whether to defer.
       const items = e.clipboardData?.items;
       const imageItem = items
         ? Array.from(items).find(it => it.kind === 'file' && it.type.startsWith('image/'))
         : null;
       const imageFile = imageItem?.getAsFile() || null;
+
+      if (isSelectionLoadingRef.current) {
+        e.preventDefault();
+        pendingActionRef.current = { type: 'paste', after: false, imageFile };
+        return;
+      }
+      if (!activeData?.file) return;
 
       if (imageFile) {
         e.preventDefault();
@@ -628,6 +672,24 @@ export function useKeyboardShortcuts() {
     window.addEventListener('paste', handlePaste);
     window.addEventListener('dragover', handleDragOver);
     window.addEventListener('drop', handleDrop);
+
+    // Replay an action parked while the selection was loading. This effect
+    // re-runs with fresh `activeData` / `zones` once both fetches settle, and
+    // the listeners above are already registered, so a re-dispatched Delete
+    // reaches a handler that can act on it.
+    if (!isSelectionLoading && pendingActionRef.current) {
+      const action = pendingActionRef.current;
+      pendingActionRef.current = null;
+      if (currentBaseTarget) {
+        if (action.type === 'delete') {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: action.key, bubbles: true, cancelable: true }));
+        } else if (action.imageFile) {
+          void insertImageFile(action.imageFile);
+        } else {
+          void pasteBlock(action.after);
+        }
+      }
+    }
 
     // Mirror drag/drop listeners onto same-origin iframe documents so users can
     // drop image files onto the canvas (which lives inside an iframe).
@@ -672,5 +734,9 @@ export function useKeyboardShortcuts() {
         } catch {}
       });
     };
-  }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation]);
+  }, [inspectorOpen, currentBaseTarget, activeSourceId, activeData, focusElement, refreshActiveData, zones, focusNewBlock, isMutationLocked, runLockedMutation, isSelectionLoading]);
 }
+
+type PendingAction =
+  | { type: 'delete'; key: string }
+  | { type: 'paste'; after: boolean; imageFile: File | null };
