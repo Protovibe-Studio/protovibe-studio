@@ -133,8 +133,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         />
       </div>
 
-      {/* search + filters */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      {/* search + filters (only once there is something to search) */}
+      {numbers.size > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
           <input
@@ -169,7 +169,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {/* list */}
       <div
@@ -212,7 +212,6 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
               {isAnnotation(it) ? (
                 <AnnotationRow
                   item={it}
-                  number={numbers.get(it.id) || 0}
                   highlighted={p.highlightId === it.id}
                   dragging={dragId === it.id}
                   scrollRoot={scrollEl}
@@ -323,7 +322,6 @@ const InsertLine: React.FC<{
 
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
-  number: number;
   highlighted: boolean;
   dragging: boolean;
   scrollRoot: HTMLElement | null;
@@ -331,7 +329,7 @@ const AnnotationRow: React.FC<{
   onOpen: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, number, highlighted, dragging, scrollRoot, thumbReload, onOpen, onDelete, rowProps }) => {
+}> = ({ item, highlighted, dragging, scrollRoot, thumbReload, onOpen, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = highlighted ? `${theme.accent_default}14` : 'transparent';
@@ -352,14 +350,11 @@ const AnnotationRow: React.FC<{
       <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} />
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{number}</span>
-          {item.title && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-              {item.title}
-            </span>
-          )}
-        </div>
+        {item.title && (
+          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {item.title}
+          </span>
+        )}
         {body && (
           <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {body}

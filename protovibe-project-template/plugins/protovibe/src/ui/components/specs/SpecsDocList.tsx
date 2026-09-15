@@ -33,22 +33,6 @@ export const SpecsDocList: React.FC<{
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, padding: '10px 16px', fontSize: 11, lineHeight: 1.4, color: theme.text_secondary, background: theme.bg_low, borderBottom: `1px solid ${theme.border_default}` }}>
-        <Info size={13} style={{ flexShrink: 0, marginTop: 1, color: theme.accent_default }} />
-        <span>
-          {viewerUrl ? (
-            <>Specs are published with your prototype at{' '}
-              <a href={viewerUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none', wordBreak: 'break-all' }}>{viewerUrl}</a>.
-            </>
-          ) : (
-            <>When you publish the prototype, specs are included as a read-only viewer at <span style={{ color: theme.text_default }}>/specs.html</span>.</>
-          )}{' '}
-          <a href="/specs.html" target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            Preview viewer <ExternalLink size={10} style={{ verticalAlign: '-1px' }} />
-          </a>
-        </span>
-      </div>
-
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {specs.length === 0 ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: theme.text_tertiary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
@@ -68,6 +52,23 @@ export const SpecsDocList: React.FC<{
           />
         ))}
       </div>
+
+      <div style={{ display: 'flex', gap: 8, padding: '10px 16px', fontSize: 11, lineHeight: 1.4, color: theme.text_secondary, background: theme.bg_low, borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+        <Info size={13} style={{ flexShrink: 0, marginTop: 1, color: theme.accent_default }} />
+        <span>
+          {viewerUrl ? (
+            <>Specs are published with your prototype at{' '}
+              <a href={viewerUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none', wordBreak: 'break-all' }}>{viewerUrl}</a>.
+            </>
+          ) : (
+            <>When you publish the prototype, specs are included as a read-only viewer at <span style={{ color: theme.text_default }}>/specs.html</span>.</>
+          )}{' '}
+          <a href="/specs.html" target="_blank" rel="noreferrer" onClick={handleExternalLinkClick} style={{ color: theme.accent_default, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Preview viewer <ExternalLink size={10} style={{ verticalAlign: '-1px' }} />
+          </a>
+        </span>
+      </div>
+
     </>
   );
 };

@@ -19,7 +19,18 @@ const STATUS: Record<SpecStatus, { label: string; color: string }> = {
   verified: { label: 'Verified',   color: theme.success_default },
 };
 
-const SIDEBAR_W = 360;
+const SIDEBAR_DEFAULT_W = 260;
+const SIDEBAR_MIN_W = 240;
+const SIDEBAR_MAX_W = 400;
+const SIDEBAR_STORAGE_KEY = 'pv-specs-viewer-sidebar-w';
+
+function loadSidebarWidth(): number {
+  try {
+    const v = Number(localStorage.getItem(SIDEBAR_STORAGE_KEY));
+    if (v >= SIDEBAR_MIN_W && v <= SIDEBAR_MAX_W) return v;
+  } catch { /* ignore */ }
+  return SIDEBAR_DEFAULT_W;
+}
 const HIGHLIGHT_ID = 'pv-spec-highlight';
 
 function readRoute(): { spec: string | null; item: string | null } {
@@ -27,9 +38,9 @@ function readRoute(): { spec: string | null; item: string | null } {
   return { spec: p.get('spec'), item: p.get('item') };
 }
 
-function writeRoute(spec: string, item: string | null, replace = false) {
+function writeRoute(spec: string | null, item: string | null, replace = false) {
   const url = new URL(window.location.href);
-  url.searchParams.set('spec', spec);
+  if (spec) url.searchParams.set('spec', spec); else url.searchParams.delete('spec');
   if (item) url.searchParams.set('item', item); else url.searchParams.delete('item');
   if (replace) window.history.replaceState({}, '', url.toString());
   else window.history.pushState({}, '', url.toString());
@@ -62,8 +73,10 @@ export const SpecsViewerApp: React.FC = () => {
   }, []);
 
   const specs = data?.specs ?? [];
+  // No spec in the URL ⇒ the sidebar lists the specs (a single published spec
+  // opens directly). An unknown spec falls back to the list.
   const bundle: SpecBundle | undefined = useMemo(
-    () => specs.find((b) => b.spec.id === route.spec) ?? specs[0],
+    () => (route.spec ? specs.find((b) => b.spec.id === route.spec) : specs.length === 1 ? specs[0] : undefined),
     [specs, route.spec],
   );
   const annotations = useMemo(() => (bundle ? annotationsOf(bundle.items) : []), [bundle]);
@@ -78,14 +91,37 @@ export const SpecsViewerApp: React.FC = () => {
 
   // Normalise the URL to the resolved spec / item once data is in.
   useEffect(() => {
-    if (!bundle) return;
-    if (route.spec !== bundle.spec.id || (route.item && !current)) {
-      writeRoute(bundle.spec.id, current?.id ?? null, true);
+    if (!data) return;
+    const specId = bundle?.spec.id ?? null;
+    if (route.spec !== specId || (route.item && !current)) {
+      writeRoute(specId, current?.id ?? null, true);
       setRoute(readRoute());
     }
-  }, [bundle, current, route.spec, route.item]);
+  }, [data, bundle, current, route.spec, route.item]);
 
-  const select = useCallback((specId: string, itemId: string | null) => {
+  // Resizable sidebar.
+  const [sidebarW, setSidebarW] = useState(loadSidebarWidth);
+  const startResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebarW;
+    const onMove = (ev: MouseEvent) => {
+      setSidebarW(Math.min(SIDEBAR_MAX_W, Math.max(SIDEBAR_MIN_W, startW + ev.clientX - startX)));
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      setSidebarW((w) => { try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(w)); } catch { /* ignore */ } return w; });
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [sidebarW]);
+
+  const select = useCallback((specId: string | null, itemId: string | null) => {
     writeRoute(specId, itemId);
     setRoute(readRoute());
   }, []);
@@ -101,7 +137,7 @@ export const SpecsViewerApp: React.FC = () => {
       if (e.metaKey || e.ctrlKey || e.altKey || index < 0) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-      if (e.key === 'Escape' && bundle) { e.preventDefault(); select(bundle.spec.id, null); }
+      if (e.key === 'Escape') { e.preventDefault(); select(bundle?.spec.id ?? null, null); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -110,7 +146,11 @@ export const SpecsViewerApp: React.FC = () => {
   // Navigate the iframe only when the state actually differs, then highlight
   // the pinned element once it renders.
   useEffect(() => {
-    if (!current) return;
+    if (!current) {
+      // Back on a list: drop the highlight but keep the prototype where it is.
+      iframeRef.current?.contentDocument?.getElementById(HIGHLIGHT_ID)?.remove();
+      return;
+    }
     const target = appUrl(current.state.path);
     if (target !== iframeSrc) setIframeSrc(target);
     let attempts = 0;
@@ -157,7 +197,14 @@ export const SpecsViewerApp: React.FC = () => {
 
   if (error) return <Center>{error}</Center>;
   if (!data) return <Center>Loading…</Center>;
-  if (!bundle) return <Center>No specs have been published yet.</Center>;
+  if (specs.length === 0) return <Center>No specs have been published yet.</Center>;
+
+  const sidebarHeader = (title: string, onBack: (() => void) | null) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', minHeight: 40, boxSizing: 'border-box', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      {onBack && <button onClick={onBack} title="Back" style={{ ...navBtn, padding: '4px 8px' }}>‹</button>}
+      <span style={{ flex: 1, minWidth: 0, padding: onBack ? 0 : '0 4px', fontSize: 12, fontWeight: 600, color: onBack ? theme.text_secondary : theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</span>
+    </div>
+  );
 
   const statusBadge = (status: SpecStatus | undefined) => status && (
     <span style={{ alignSelf: 'flex-start', padding: '1px 6px', borderRadius: 6, background: `${STATUS[status].color}22`, color: STATUS[status].color, fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -168,25 +215,36 @@ export const SpecsViewerApp: React.FC = () => {
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
-      <div style={{ width: SIDEBAR_W, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0 }}>
-        {!current ? (
+      <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
+        {!bundle ? (
           <>
-            {/* list header: spec title (or a switcher when several specs are published) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-              {specs.length > 1 ? (
-                <select
-                  value={bundle.spec.id}
-                  onChange={(e) => select(e.target.value, null)}
-                  style={{ flex: 1, minWidth: 0, background: theme.bg_secondary, color: theme.text_default, border: `1px solid ${theme.border_default}`, borderRadius: 6, padding: '4px 8px', fontSize: 13, fontWeight: 600, fontFamily: theme.font_ui }}
-                >
-                  {specs.map((b) => <option key={b.spec.id} value={b.spec.id}>{b.spec.title}</option>)}
-                </select>
-              ) : (
-                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
-              )}
+            {/* level 1: specs */}
+            {sidebarHeader('Specs', null)}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {specs.map((b) => {
+                const count = annotationsOf(b.items).length;
+                return (
+                  <div
+                    key={b.spec.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => select(b.spec.id, null)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(b.spec.id, null); } }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '10px 16px', borderBottom: `1px solid ${theme.border_default}`, cursor: 'pointer', outline: 'none' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default, wordBreak: 'break-word' }}>{b.spec.title}</span>
+                    <span style={{ fontSize: 11, color: theme.text_tertiary }}>{count === 0 ? 'No annotations' : count === 1 ? '1 annotation' : `${count} annotations`}</span>
+                  </div>
+                );
+              })}
             </div>
-
-            {/* cards */}
+          </>
+        ) : !current ? (
+          <>
+            {/* level 2: one spec's headings + annotation cards */}
+            {sidebarHeader(bundle.spec.title, specs.length > 1 ? () => select(null, null) : null)}
             <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
               {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
               {bundle.items.map((it) => {
@@ -198,7 +256,6 @@ export const SpecsViewerApp: React.FC = () => {
                     </div>
                   );
                 }
-                const n = annotations.findIndex((a) => a.id === it.id) + 1;
                 const body = it.text.trim();
                 return (
                   <div
@@ -212,10 +269,7 @@ export const SpecsViewerApp: React.FC = () => {
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{n}</span>
-                      {it.title && <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{it.title}</span>}
-                    </div>
+                    {it.title && <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{it.title}</span>}
                     {body && (
                       <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
                     )}
@@ -227,19 +281,12 @@ export const SpecsViewerApp: React.FC = () => {
           </>
         ) : (
           <>
-            {/* single annotation */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-              <button onClick={() => select(bundle.spec.id, null)} title="Back to list" style={{ ...navBtn, padding: '4px 8px' }}>‹</button>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: theme.text_secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
-            </div>
+            {/* level 3: single annotation */}
+            {sidebarHeader('Annotation', () => select(bundle.spec.id, null))}
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <NavButton label="‹ Prev" disabled={index <= 0} onClick={() => step(-1)} />
-                <NavButton label="Next ›" disabled={index >= annotations.length - 1} onClick={() => step(1)} />
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary }}>
-                {current.title || 'Annotation'}
-              </div>
+              {current.title && (
+                <div style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary, wordBreak: 'break-word' }}>{current.title}</div>
+              )}
               <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: theme.text_default }}>
                 {current.text || <span style={{ color: theme.text_tertiary }}>No description</span>}
               </div>
@@ -255,8 +302,19 @@ export const SpecsViewerApp: React.FC = () => {
                 Open app ↗
               </a>
             </div>
+            <div style={{ display: 'flex', gap: 6, padding: '10px 12px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+              <NavButton label="‹ Prev" disabled={index <= 0} onClick={() => step(-1)} grow />
+              <NavButton label="Next ›" disabled={index >= annotations.length - 1} onClick={() => step(1)} grow />
+            </div>
           </>
         )}
+
+        {/* resize handle */}
+        <div
+          onMouseDown={startResize}
+          title="Resize sidebar"
+          style={{ position: 'absolute', top: 0, right: -3, width: 6, height: '100%', cursor: 'col-resize', zIndex: 2 }}
+        />
       </div>
 
       {/* prototype */}
@@ -278,8 +336,8 @@ const navBtn: React.CSSProperties = {
   background: 'transparent', color: theme.text_default, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
 };
 
-const NavButton: React.FC<{ label: string; disabled: boolean; onClick: () => void }> = ({ label, disabled, onClick }) => (
-  <button onClick={onClick} disabled={disabled} style={{ ...navBtn, opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer' }}>
+const NavButton: React.FC<{ label: string; disabled: boolean; onClick: () => void; grow?: boolean }> = ({ label, disabled, onClick, grow }) => (
+  <button onClick={onClick} disabled={disabled} style={{ ...navBtn, justifyContent: 'center', flex: grow ? 1 : undefined, opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer' }}>
     {label}
   </button>
 );

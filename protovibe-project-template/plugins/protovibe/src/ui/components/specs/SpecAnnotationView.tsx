@@ -2,7 +2,7 @@
 // Level 3 of the Specs panel: one annotation, edited in place, with Prev / Next
 // stepping through the (filtered) annotation list.
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, RefreshCw, PinOff, Link2, ChevronRight as Chevron } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, MoreHorizontal, Trash2, RefreshCw, PinOff, Link2 } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
@@ -40,7 +40,7 @@ export const SpecAnnotationView: React.FC<{
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 8px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         <button data-testid="spec-annotation-back" style={iconBtn} data-tooltip="Back to spec" onClick={p.onBack}><ArrowLeft size={15} /></button>
         <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: theme.text_secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {p.bundle.spec.title}
+          Annotation
         </span>
         <button style={{ ...iconBtn, opacity: p.onPrev ? 1 : 0.35 }} disabled={!p.onPrev} data-testid="spec-annotation-prev" data-tooltip="Previous (←)" onClick={p.onPrev}><ChevronLeft size={16} /></button>
         <button style={{ ...iconBtn, opacity: p.onNext ? 1 : 0.35 }} disabled={!p.onNext} data-testid="spec-annotation-next" data-tooltip="Next (→)" onClick={p.onNext}><ChevronRight size={16} /></button>
@@ -88,11 +88,11 @@ export const SpecAnnotationView: React.FC<{
               color: theme.text_secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui, textAlign: 'left',
             }}
           >
-            <Chevron size={12} style={{ flexShrink: 0, transform: refsOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }} />
-            References & links
+            <span style={{ flex: 1 }}>References & links</span>
+            <ChevronDown size={13} style={{ flexShrink: 0, transform: refsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.12s' }} />
           </button>
           {refsOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 0 8px 18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 0 8px 0' }}>
               <a
                 href={item.state.path}
                 data-tooltip="Show on canvas"
