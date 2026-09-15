@@ -272,7 +272,7 @@ export const SpecsViewerApp: React.FC = () => {
                     tabIndex={0}
                     onClick={() => select(bundle.spec.id, it.id)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(bundle.spec.id, it.id); } }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 16px 10px', cursor: 'pointer', outline: 'none' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px 10px', cursor: 'pointer', outline: 'none' }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
