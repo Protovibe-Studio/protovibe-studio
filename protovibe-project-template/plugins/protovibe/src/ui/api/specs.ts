@@ -84,13 +84,21 @@ export async function exportSpec(specId: string, format: SpecExportFormat, publi
   return postJson('/__specs-export', { specId, format, publishedUrl });
 }
 
-/** Published site root from protovibe-data.json (empty when never published). */
+/**
+ * Root of the most recent publish, from protovibe-data.json: the project's main
+ * domain (https://<project>.pages.dev) written by the last successful deploy,
+ * falling back to the newest per-deploy URL in the history. Empty when the
+ * project was never published.
+ */
 export async function fetchPublishedUrl(): Promise<string> {
   try {
-    const res = await fetch('/__cloudflare-publish-metadata');
+    const res = await fetch('/__cloudflare-publish-metadata', { cache: 'no-store' });
     if (!res.ok) return '';
     const data = await res.json();
-    return typeof data.url === 'string' ? data.url : '';
+    if (typeof data.url === 'string' && data.url.trim()) return data.url.trim().replace(/\/+$/, '');
+    const history = Array.isArray(data.deployHistory) ? data.deployHistory : [];
+    const latest = history.find((h: unknown) => h && typeof (h as { url?: unknown }).url === 'string' && (h as { url: string }).url.trim());
+    return latest ? (latest as { url: string }).url.trim().replace(/\/+$/, '') : '';
   } catch {
     return '';
   }

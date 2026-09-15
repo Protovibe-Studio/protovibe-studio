@@ -56,7 +56,7 @@ export function renderMarkdown(bundle: SpecBundle, publishedUrl: string): string
     else out.push('');
     if (item.text.trim()) out.push(item.text.trim(), '');
     if (publishedUrl) {
-      out.push(`[Open state](${stateLink(publishedUrl, item)}) · [Open in viewer](${viewerLink(publishedUrl, bundle.spec.id, item.id)})`, '');
+      out.push(`[Open in prototype](${stateLink(publishedUrl, item)}) · [Open in specs viewer](${viewerLink(publishedUrl, bundle.spec.id, item.id)})`, '');
     } else {
       out.push(`State: \`${item.state.path}\``, '');
     }
@@ -80,8 +80,8 @@ export function renderHtml(bundle: SpecBundle, publishedUrl: string): string {
     }
     if (publishedUrl) {
       parts.push(
-        `<p><a href="${escapeHtml(stateLink(publishedUrl, item))}">Open state</a> · ` +
-        `<a href="${escapeHtml(viewerLink(publishedUrl, bundle.spec.id, item.id))}">Open in viewer</a></p>`,
+        `<p><a href="${escapeHtml(stateLink(publishedUrl, item))}">Open in prototype</a> · ` +
+        `<a href="${escapeHtml(viewerLink(publishedUrl, bundle.spec.id, item.id))}">Open in specs viewer</a></p>`,
       );
     } else {
       parts.push(`<p><em>State:</em> <code>${escapeHtml(item.state.path)}</code></p>`);

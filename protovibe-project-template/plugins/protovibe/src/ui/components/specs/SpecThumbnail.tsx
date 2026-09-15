@@ -18,13 +18,31 @@ export const SpecThumbnail: React.FC<{
   src: string;
   width?: number;
   height?: number;
+  /** Fill the container's width; height follows the viewport aspect ratio. */
+  fullWidth?: boolean;
   /** Scroll container used as the observer root (null ⇒ viewport). */
   scrollRoot?: HTMLElement | null;
   /** Bump to force a reload of a mounted thumbnail. */
   reloadKey?: number;
-}> = ({ src, width = 112, height = 70, scrollRoot = null, reloadKey = 0 }) => {
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0 }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [near, setNear] = useState(false);
+  const [measured, setMeasured] = useState(0);
+
+  // Full-width mode: follow the host's width (the panel can be resized).
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el || !fullWidth) return;
+    const update = () => setMeasured(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fullWidth]);
+
+  const width = fullWidth ? measured : widthProp;
+  // +2 for the border (box-sizing: border-box) so the scaled frame is not clipped.
+  const height = fullWidth ? Math.round(measured * THUMB_VIEWPORT.height / THUMB_VIEWPORT.width) + 2 : heightProp;
 
   useEffect(() => {
     const el = hostRef.current;
@@ -43,11 +61,11 @@ export const SpecThumbnail: React.FC<{
     <div
       ref={hostRef}
       style={{
-        width, height, flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
+        width: fullWidth ? '100%' : width, height, boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
         background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
       }}
     >
-      {near && (
+      {near && width > 0 && (
         <iframe
           key={`${src}#${reloadKey}`}
           name={THUMB_IFRAME_NAME}

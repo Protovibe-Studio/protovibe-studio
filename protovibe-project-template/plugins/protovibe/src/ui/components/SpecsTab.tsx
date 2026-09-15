@@ -294,28 +294,50 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     }, !!anchorFile);
   };
 
-  const handleReanchor = (itemId: string, pin: boolean) => {
+  const handleUnpin = (itemId: string) => {
+    if (!bundle) return;
+    const specId = bundle.spec.id;
+    const oldFile = anchorFileOf(bundle.items.find((it) => it.id === itemId));
+    void run(async () => {
+      await snapshot([specItemFileRel(specId, itemId), oldFile], 'unpin annotation');
+      setBundle(await reanchorSpecItem(specId, itemId));
+    }, true);
+  };
+
+  // Re-capture the canvas path and, when an element is selected, re-pin to it —
+  // one undo step, one "Update reference link and element" action.
+  const handleUpdateReference = (itemId: string) => {
     if (!bundle) return;
     const specId = bundle.spec.id;
     const item = bundle.items.find((it) => it.id === itemId);
     const oldFile = anchorFileOf(item);
-    const newFile = pin && activeIframeTab === 'app' && activeData?.file && activeData?.nameEnd ? activeData.file : '';
-    if (pin && !newFile) { setError('Select an element on the App canvas first.'); return; }
+    const repin = activeIframeTab === 'app' && !!currentBaseTarget && !!activeData?.file && !!activeData?.nameEnd;
+    const newFile = repin ? activeData!.file : '';
     void run(async () => {
-      await snapshot([specItemFileRel(specId, itemId), oldFile, newFile], pin ? 'pin annotation' : 'unpin annotation');
-      setBundle(await reanchorSpecItem(specId, itemId, newFile || undefined, newFile ? activeData!.nameEnd : undefined));
-    }, true);
+      await snapshot([specItemFileRel(specId, itemId), repin ? oldFile : '', newFile], 'update annotation reference');
+      let b = await updateSpecItem(specId, itemId, { state: { tab: 'app', path: getCurrentAppPath() } });
+      if (repin) b = await reanchorSpecItem(specId, itemId, newFile, activeData!.nameEnd);
+      setBundle(b);
+      emitToast({ message: repin ? 'Reference link and element updated' : 'Reference link updated', variant: 'success', durationMs: 1500 });
+    }, repin);
   };
 
   // ── export ────────────────────────────────────────────────────────────────────
+  // Links point at the most recent publish (the project's main domain), read
+  // fresh so a publish made since the panel mounted is picked up.
   const handleExport = (specId: string, action: SpecExportAction) => run(async () => {
+    const url = (await fetchPublishedUrl()) || publishedUrl;
+    if (url !== publishedUrl) setPublishedUrl(url);
     if (action === 'copy') {
       const b = bundle && bundle.spec.id === specId ? bundle : await fetchSpec(specId);
-      await copySpecForDocs(b, publishedUrl);
-      emitToast({ message: 'Copied — paste into Notion or Google Docs', variant: 'success', durationMs: 2000 });
+      await copySpecForDocs(b, url);
+      emitToast({
+        message: url ? 'Copied with links to the published prototype — paste into Notion or Google Docs' : 'Copied — publish the project to include prototype links',
+        variant: 'success', durationMs: 2500,
+      });
       return;
     }
-    const { content, filename } = await exportSpec(specId, action, publishedUrl);
+    const { content, filename } = await exportSpec(specId, action, url);
     downloadText(content, filename, action === 'html' ? 'text/html' : 'text/markdown');
   });
 
@@ -381,8 +403,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   };
 
   // ── render ────────────────────────────────────────────────────────────────────
-  const canRepin = activeIframeTab === 'app' && !!currentBaseTarget && !!activeData?.file && !!activeData?.nameEnd;
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
       {error && (
@@ -439,16 +459,14 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           busy={busy}
           autoEditText={autoEditTextId === activeAnnotation.id}
           onAutoEditDone={() => setAutoEditTextId(null)}
-          canRepin={canRepin}
           anchorFound={anchorFound}
           onBack={() => setView({ level: 'doc', specId: bundle.spec.id })}
           onPrev={navIndex > 0 ? () => step(-1) : undefined}
           onNext={navIndex >= 0 && navIndex < navList.length - 1 ? () => step(1) : undefined}
           onUpdate={(patch, note) => handleUpdateItem(activeAnnotation.id, patch, note)}
           onLocate={() => navigateToAnnotation(activeAnnotation)}
-          onUpdateState={() => handleUpdateItem(activeAnnotation.id, { state: { tab: 'app', path: getCurrentAppPath() } }, 'update annotation state')}
-          onRepin={() => handleReanchor(activeAnnotation.id, true)}
-          onUnpin={() => handleReanchor(activeAnnotation.id, false)}
+          onUpdateReference={() => handleUpdateReference(activeAnnotation.id)}
+          onUnpin={() => handleUnpin(activeAnnotation.id)}
           onDelete={() => handleDeleteItem(activeAnnotation.id)}
         />
       )}

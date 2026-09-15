@@ -2,11 +2,11 @@
 // Level 3 of the Specs panel: one annotation, edited in place, with Prev / Next
 // stepping through the (filtered) annotation list.
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, MapPin, RefreshCw, Pin, PinOff, Link2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, RefreshCw, PinOff, Link2, ChevronRight as Chevron } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, iconBtn, ghostBtn, relativeTime } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, iconBtn, relativeTime } from './specsUi';
 
 export const SpecAnnotationView: React.FC<{
   bundle: SpecBundle;
@@ -17,17 +17,16 @@ export const SpecAnnotationView: React.FC<{
   /** Open the text editor immediately (a just-created annotation). */
   autoEditText: boolean;
   onAutoEditDone: () => void;
-  /** Whether an element is selected on the App canvas (enables re-pin). */
-  canRepin: boolean;
   /** Whether the pinned element is currently on the canvas. */
   anchorFound: boolean | null;
   onBack: () => void;
   onPrev?: () => void;
   onNext?: () => void;
   onUpdate: (patch: SpecItemPatch, note: string) => void;
+  /** Navigate the canvas to the annotation's state and highlight its element. */
   onLocate: () => void;
-  onUpdateState: () => void;
-  onRepin: () => void;
+  /** Re-capture the current canvas path and re-pin to the selected element in one go. */
+  onUpdateReference: () => void;
   onUnpin: () => void;
   onDelete: () => void;
 }> = (p) => {
@@ -35,6 +34,7 @@ export const SpecAnnotationView: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const [textEditing, setTextEditing] = useState(false);
+  const [refsOpen, setRefsOpen] = useState(false);
   const fileName = item.anchor?.file.split('/').pop();
 
   return (
@@ -56,25 +56,22 @@ export const SpecAnnotationView: React.FC<{
           open={menuOpen}
           anchorRef={menuRef}
           onClose={() => setMenuOpen(false)}
-          width={230}
+          width={250}
           items={[
-            { label: 'Update state to current view', icon: <RefreshCw size={13} />, onSelect: p.onUpdateState },
-            { label: 'Pin to selected element', icon: <Pin size={13} />, onSelect: p.onRepin, disabled: !p.canRepin },
+            { label: 'Update reference link and element', icon: <RefreshCw size={13} />, onSelect: p.onUpdateReference, disabled: p.busy },
             { label: 'Unpin element', icon: <PinOff size={13} />, onSelect: p.onUnpin, disabled: !item.anchor },
             { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: p.onDelete },
           ]}
         />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, padding: '14px 16px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
         <InlineEditable
           value={item.title || ''}
           placeholder="Add a title"
           onSave={(t) => p.onUpdate({ title: t }, 'edit annotation title')}
-          style={{ fontSize: 15, fontWeight: 600 }}
+          style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary }}
         />
-
-        <StatusPicker status={item.status} disabled={p.busy} onChange={(s) => p.onUpdate({ status: s }, 'change annotation status')} />
 
         <InlineEditable
           value={item.text}
@@ -83,29 +80,46 @@ export const SpecAnnotationView: React.FC<{
           editing={p.autoEditText || textEditing}
           onEditingChange={(v) => { setTextEditing(v); if (!v) p.onAutoEditDone(); }}
           onSave={(t) => p.onUpdate({ text: t }, 'edit annotation')}
-          style={{ fontSize: 13, minHeight: 60 }}
+          style={{ fontSize: 13, minHeight: 160 }}
         />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, borderRadius: 6, background: theme.bg_low, border: `1px solid ${theme.border_default}` }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11, color: theme.text_secondary }}>
-            <Link2 size={12} style={{ flexShrink: 0, marginTop: 2, color: theme.text_tertiary }} />
-            <span style={{ wordBreak: 'break-all', flex: 1 }}>{item.state.path}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: theme.text_secondary }}>
-            <MapPin size={12} style={{ flexShrink: 0, color: theme.text_tertiary }} />
-            {item.anchor ? (
-              <span>
-                Pinned to an element in <span style={{ color: theme.text_default }}>{fileName}</span>
-                {p.anchorFound === false && <span style={{ color: theme.warning_primary }}> · not found on this screen</span>}
-              </span>
-            ) : (
-              <span>Describes the whole screen</span>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <button style={ghostBtn} onClick={p.onLocate}><MapPin size={12} /> Show on canvas</button>
-            <button style={ghostBtn} onClick={p.onUpdateState} disabled={p.busy}><RefreshCw size={12} /> Update state</button>
-          </div>
+        <StatusPicker status={item.status} disabled={p.busy} onChange={(s) => p.onUpdate({ status: s }, 'change annotation status')} />
+
+        {/* references & links — collapsed by default */}
+        <div style={{ borderRadius: 6, background: theme.bg_low, border: `1px solid ${theme.border_default}` }}>
+          <button
+            onClick={() => setRefsOpen((v) => !v)}
+            aria-expanded={refsOpen}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px', border: 'none', background: 'transparent',
+              color: theme.text_secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui, textAlign: 'left',
+            }}
+          >
+            <Chevron size={12} style={{ flexShrink: 0, transform: refsOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }} />
+            References & links
+          </button>
+          {refsOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 10px 10px 10px' }}>
+              <a
+                href={item.state.path}
+                data-tooltip="Show on canvas"
+                onClick={(e) => { e.preventDefault(); p.onLocate(); }}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11, color: theme.accent_default, textDecoration: 'none', wordBreak: 'break-all' }}
+                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+              >
+                <Link2 size={12} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ flex: 1 }}>{item.state.path}</span>
+              </a>
+              {item.anchor && (
+                <span style={{ fontSize: 10, color: p.anchorFound === false ? theme.warning_primary : theme.text_tertiary }}>
+                  {p.anchorFound === false
+                    ? `Pinned element in ${fileName} not found on this screen`
+                    : `Element in ${fileName}`}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <span style={{ fontSize: 10, color: theme.text_tertiary }}>

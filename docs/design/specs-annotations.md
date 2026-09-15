@@ -601,6 +601,18 @@ the design review:
   focused, instead of a separate composer. Undo removes it.
 - **Thumbnails** have no hard mount cap; the observer's root margin keeps only
   rows near the viewport live. Add a cap if very long specs prove heavy.
+- **Second review round.** The doc view ends in a single **Add** button that
+  opens the same menu as the "+" between rows. Annotation rows show a
+  full-width thumbnail with the title and the whole note below it. The
+  annotation view puts a small title above a taller text editor, the status
+  below it, and a collapsed **References & links** box whose state link
+  navigates the canvas (the element is highlighted whenever the annotation is
+  opened). The ⋯ menu's Update state + Pin are one action, **Update reference
+  link and element**, which re-captures the path and re-pins to the selected
+  element (path only when nothing is selected). Exports read the published URL
+  fresh at export time (the main `<project>.pages.dev` domain, falling back to
+  the newest deploy in the history) so the copied rich text carries real
+  "Open in prototype" / "Open in specs viewer" links.
 
 ## 12. Decisions to confirm
 

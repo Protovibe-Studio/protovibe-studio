@@ -282,7 +282,7 @@ export const InlineEditable: React.FC<{
       style={{
         ...baseStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: disabled ? 'default' : 'text',
         border: `1px solid ${hover && !disabled ? theme.border_strong : 'transparent'}`,
-        color: empty ? theme.text_tertiary : baseStyle.color, fontStyle: empty ? 'italic' : 'normal',
+        color: empty ? theme.text_tertiary : baseStyle.color,
         transition: 'border-color 0.12s',
       }}
     >

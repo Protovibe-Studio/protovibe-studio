@@ -246,14 +246,32 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           );
         })}
 
-        {!filtering && (
-          <div style={{ display: 'flex', gap: 8, padding: '8px 16px' }}>
-            <button data-testid="specs-add-annotation" style={ghostBtn} disabled={p.busy} onClick={() => p.onInsert(items.length, 'annotation')}><Plus size={13} /> Add annotation</button>
-            <button data-testid="specs-add-heading" style={ghostBtn} disabled={p.busy} onClick={() => p.onInsert(items.length, 'big')}><Plus size={13} /> Add heading</button>
-          </div>
-        )}
+        {!filtering && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
       </div>
     </>
+  );
+};
+
+// ── insert menu ────────────────────────────────────────────────────────────────
+// The same three choices back the "+" between rows and the Add button at the end.
+function insertMenuItems(onInsert: (kind: InsertKind) => void): MenuItem[] {
+  return [
+    { label: 'Annotation', icon: <StickyNote size={13} />, onSelect: () => onInsert('annotation') },
+    { label: 'Big heading', icon: <Heading1 size={13} />, onSelect: () => onInsert('big') },
+    { label: 'Medium heading', icon: <Heading2 size={13} />, onSelect: () => onInsert('medium') },
+  ];
+}
+
+const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void }> = ({ busy, onInsert }) => {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  return (
+    <div style={{ display: 'flex', padding: '8px 16px' }}>
+      <button ref={btnRef} data-testid="specs-add" style={ghostBtn} disabled={busy} onClick={() => setOpen(true)}>
+        <Plus size={13} /> Add
+      </button>
+      <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width={170} />
+    </div>
   );
 };
 
@@ -273,11 +291,7 @@ const InsertLine: React.FC<{
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const show = hover || open || active;
   const color = active ? theme.accent_default : theme.border_strong;
-  const items: MenuItem[] = [
-    { label: 'Annotation', icon: <StickyNote size={13} />, onSelect: () => onInsert(index, 'annotation') },
-    { label: 'Big heading', icon: <Heading1 size={13} />, onSelect: () => onInsert(index, 'big') },
-    { label: 'Medium heading', icon: <Heading2 size={13} />, onSelect: () => onInsert(index, 'medium') },
-  ];
+  const items = insertMenuItems((kind) => onInsert(index, kind));
   return (
     <div
       onMouseEnter={() => setHover(true)}
@@ -321,31 +335,33 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = highlighted ? `${theme.accent_default}14` : 'transparent';
-  const excerpt = item.title ? item.text.trim().split('\n')[0] : item.text.trim().split('\n').slice(1).join(' ');
+  // Everything after the first line is the body when the first line stands in
+  // for a missing title; with a title the whole text is the body.
+  const body = item.title ? item.text.trim() : item.text.trim().split('\n').slice(1).join('\n').trim();
   return (
     <div
       {...rowProps}
       data-testid="spec-annotation-row"
       onClick={onOpen}
       style={{
-        display: 'flex', gap: 10, padding: '8px 8px 8px 12px', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
+        display: 'flex', gap: 6, padding: '8px 8px 10px 12px', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
         opacity: dragging ? 0.4 : 1, alignItems: 'flex-start',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = theme.bg_low)}
       onMouseLeave={(e) => (e.currentTarget.style.background = baseBg)}
     >
-      <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 28, cursor: 'grab' }} />
-      <SpecThumbnail src={item.state.path} scrollRoot={scrollRoot} reloadKey={thumbReload} />
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} />
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{number}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {annotationTitle(item)}
           </span>
         </div>
-        {excerpt && (
-          <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {excerpt}
+        {body && (
+          <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {body}
           </span>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
