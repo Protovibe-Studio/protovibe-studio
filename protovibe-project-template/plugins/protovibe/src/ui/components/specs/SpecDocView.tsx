@@ -177,7 +177,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         onScroll={(e) => p.onScrollChange((e.target as HTMLDivElement).scrollTop)}
         onDragOver={(e) => { if (dragId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }}
         onDrop={handleDrop}
-        style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', paddingBottom: 24 }}
+        style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', display: 'flex', flexDirection: 'column', paddingBottom: 24 }}
       >
         {items.length === 0 && (
           <div style={{ padding: '32px 24px 8px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>

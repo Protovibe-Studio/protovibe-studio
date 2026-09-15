@@ -245,7 +245,7 @@ export const SpecsViewerApp: React.FC = () => {
           <>
             {/* level 2: one spec's headings + annotation cards */}
             {sidebarHeader(bundle.spec.title, specs.length > 1 ? () => select(null, null) : null)}
-            <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
+            <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', paddingBottom: 24 }}>
               {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
               {bundle.items.map((it) => {
                 if (!isAnnotation(it)) {

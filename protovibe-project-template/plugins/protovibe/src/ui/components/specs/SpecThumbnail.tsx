@@ -33,16 +33,20 @@ export const SpecThumbnail: React.FC<{
   useEffect(() => {
     const el = hostRef.current;
     if (!el || !fullWidth) return;
-    const update = () => setMeasured(el.clientWidth);
+    const update = () => setMeasured((w) => (w === el.clientWidth ? w : el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, [fullWidth]);
 
+  // Full-width mode sizes the box purely in CSS (aspect-ratio), so its height
+  // never depends on a JS measurement or on whether the iframe is mounted.
+  // The measured width only feeds the iframe scale — otherwise a 0 → N
+  // measurement would shift the layout, re-trigger the observer, unmount
+  // the frame, and loop.
   const width = fullWidth ? measured : widthProp;
-  // +2 for the border (box-sizing: border-box) so the scaled frame is not clipped.
-  const height = fullWidth ? Math.round(measured * THUMB_VIEWPORT.height / THUMB_VIEWPORT.width) + 2 : heightProp;
+  const height = fullWidth ? undefined : heightProp;
 
   useEffect(() => {
     const el = hostRef.current;
@@ -55,13 +59,16 @@ export const SpecThumbnail: React.FC<{
     return () => io.disconnect();
   }, [scrollRoot]);
 
-  const scale = Math.min(width / THUMB_VIEWPORT.width, height / THUMB_VIEWPORT.height);
+  const scale = fullWidth || height === undefined
+    ? width / THUMB_VIEWPORT.width
+    : Math.min(width / THUMB_VIEWPORT.width, height / THUMB_VIEWPORT.height);
 
   return (
     <div
       ref={hostRef}
       style={{
-        width: fullWidth ? '100%' : width, height, boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
+        width: fullWidth ? '100%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
+        boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
         background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
       }}
     >
