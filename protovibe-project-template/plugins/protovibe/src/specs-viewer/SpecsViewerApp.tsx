@@ -184,7 +184,6 @@ export const SpecsViewerApp: React.FC = () => {
               ) : (
                 <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
               )}
-              <span style={{ fontSize: 11, color: theme.text_tertiary, flexShrink: 0 }}>{annotations.length}</span>
             </div>
 
             {/* cards */}
@@ -232,7 +231,6 @@ export const SpecsViewerApp: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
               <button onClick={() => select(bundle.spec.id, null)} title="Back to list" style={{ ...navBtn, padding: '4px 8px' }}>‹</button>
               <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: theme.text_secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bundle.spec.title}</span>
-              <span style={{ fontSize: 11, color: theme.text_tertiary, whiteSpace: 'nowrap' }}>{index + 1} / {annotations.length}</span>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
               <div style={{ display: 'flex', gap: 6 }}>

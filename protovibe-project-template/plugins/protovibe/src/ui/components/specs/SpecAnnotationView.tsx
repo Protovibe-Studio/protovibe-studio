@@ -11,8 +11,6 @@ import { Menu, InlineEditable, StatusPicker, iconBtn, relativeTime } from './spe
 export const SpecAnnotationView: React.FC<{
   bundle: SpecBundle;
   item: SpecAnnotation;
-  /** 1-based position among the annotations being stepped through, and their count. */
-  position: { index: number; total: number } | null;
   busy: boolean;
   /** Open the text editor immediately (a just-created annotation). */
   autoEditText: boolean;
@@ -44,11 +42,6 @@ export const SpecAnnotationView: React.FC<{
         <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: theme.text_secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {p.bundle.spec.title}
         </span>
-        {p.position && (
-          <span style={{ fontSize: 11, color: theme.text_tertiary, whiteSpace: 'nowrap', padding: '0 4px' }}>
-            {p.position.index} / {p.position.total}
-          </span>
-        )}
         <button style={{ ...iconBtn, opacity: p.onPrev ? 1 : 0.35 }} disabled={!p.onPrev} data-testid="spec-annotation-prev" data-tooltip="Previous (←)" onClick={p.onPrev}><ChevronLeft size={16} /></button>
         <button style={{ ...iconBtn, opacity: p.onNext ? 1 : 0.35 }} disabled={!p.onNext} data-testid="spec-annotation-next" data-tooltip="Next (→)" onClick={p.onNext}><ChevronRight size={16} /></button>
         <button ref={menuRef} style={iconBtn} data-tooltip="More" onClick={() => setMenuOpen(true)}><MoreHorizontal size={15} /></button>

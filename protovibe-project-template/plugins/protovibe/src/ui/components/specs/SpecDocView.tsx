@@ -365,10 +365,7 @@ const AnnotationRow: React.FC<{
             {body}
           </span>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <StatusBadge status={item.status} />
-          <span style={{ fontSize: 10, color: theme.text_tertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.state.path}</span>
-        </div>
+        {item.status && <div style={{ display: 'flex' }}><StatusBadge status={item.status} /></div>}
       </div>
       <button ref={menuRef} style={iconBtnSm} data-tooltip="More" onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}>
         <MoreHorizontal size={14} />

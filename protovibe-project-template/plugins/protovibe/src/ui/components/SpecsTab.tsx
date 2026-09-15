@@ -455,7 +455,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
         <SpecAnnotationView
           bundle={bundle}
           item={activeAnnotation}
-          position={navIndex >= 0 ? { index: navIndex + 1, total: navList.length } : null}
           busy={busy}
           autoEditText={autoEditTextId === activeAnnotation.id}
           onAutoEditDone={() => setAutoEditTextId(null)}
