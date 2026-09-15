@@ -934,5 +934,66 @@ suggestion, make the real edit in the JSX (respecting the pv-block rules above) 
 leave the `suggestions` entry as the record of what was requested — do not treat the
 presence of a suggestion as an automatic code change.
 
+## 6. Specs (annotated prototype states)
+
+Protovibe's **Specs** tab lets designers document a prototype as an ordered list
+of annotated states — deep links into the app with a note and a status, grouped
+under headings — and publishes them with the prototype as a read-only viewer at
+`/specs.html`. Specs are separate from comments: different storage, endpoints
+and UI.
+
+### Rule: Where specs live
+
+Each spec is a directory at `src/specs/{specId}/`:
+
+* `spec.json` — document metadata **only** (`id`, `title`, `createdAt`,
+  `updatedAt`). It never lists items.
+* `{itemId}.json` — **one file per item**: an annotation (`a-…`) or a heading
+  (`h-…`). Order comes from each item's fractional `rank` string (plain string
+  comparison, ties broken by `createdAt`), so reordering rewrites only the moved
+  item and two people adding items at once never touch the same file.
+
+```jsonc
+// src/specs/k3f9x2m1qa/spec.json
+{ "id": "k3f9x2m1qa", "title": "Minion onboarding", "createdAt": "2026-09-15T09:00:00.000Z" }
+
+// src/specs/k3f9x2m1qa/h-1a2b3c4d.json — heading ("big" or "medium")
+{ "id": "h-1a2b3c4d", "type": "heading", "rank": "n", "title": "Recruiting", "level": "big", "createdAt": "…" }
+
+// src/specs/k3f9x2m1qa/a-9z8y7x6w.json — annotation
+{
+  "id": "a-9z8y7x6w",
+  "type": "annotation",
+  "rank": "s",
+  "title": "Recruit dialog, empty form",              // optional
+  "text": "Division defaults to Field Operations.",
+  "status": "discuss",                                 // "todo" | "discuss" | "verified"; omitted = no status
+  "state": { "tab": "app", "path": "/?page=minions&recruitDialog=true" },
+  "anchor": { "file": "src/pages/MinionsPage.tsx" },  // omitted when it describes the whole screen
+  "author": { "name": "Jane", "email": "jane@x.com" },
+  "createdAt": "…"
+}
+```
+
+These files are normal source files and **should be committed to Git**.
+
+### Rule: The `data-pv-spec-{id}` attribute
+
+An annotation pinned to an element carries a valueless `data-pv-spec-{itemId}`
+attribute on that element's opening tag (exactly like `data-pv-comment-{id}`).
+It is a plain JSX attribute and survives the production build, which is how the
+published viewer highlights the element.
+
+* **Never remove these attributes** during refactors unless you are deleting the
+  element itself — then also remove the `anchor` field from the matching
+  `src/specs/{specId}/{itemId}.json` (the annotation keeps working, unpinned).
+* When extracting an element into a new component, **preserve every
+  `data-pv-spec-{id}` attribute** on the new root element.
+* Because annotations restore state through the URL, keep dialogs, tabs and
+  toggles in the query string (see "Deep-linkable UI state" above) — that is
+  what makes a saved state reproducible.
+
+Do not edit spec files unless the user asks you to.
+
 ### Rule: don't edit PROTOVIBE_AGENTS.md
 This file will be overriden by future Protovibe updates. If user wants to store some info for AI agents, store it in the root AGENTS.md file, not PROTOVIBE_AGENTS.md

@@ -8,6 +8,8 @@ import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock
 import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
+import { registerSpecsMiddleware } from './backend/specs-server';
+import { SPECS_VIEWER_HTML_PATH, SPECS_VIEWER_BUNDLE_PATH } from './backend/specs-publish';
 import { registerGitMiddleware } from './backend/git-server';
 import { registerProfileMiddleware } from './backend/profile-server';
 
@@ -214,7 +216,17 @@ export function protovibeSourcePlugin(): Plugin {
         '/protovibe.html': path.resolve(PLUGIN_DIR, 'src/ui/protovibe.html'),
         '/components.html': path.resolve(PLUGIN_DIR, 'src/ui/components.html'),
         '/sketchpad.html': path.resolve(PLUGIN_DIR, 'src/ui/sketchpad.html'),
+        // Dev preview of the published specs viewer (see backend/specs-publish.ts)
+        '/specs.html': SPECS_VIEWER_HTML_PATH,
       };
+
+      // The viewer's prebuilt bundle, served exactly as it will be in dist/.
+      server.middlewares.use('/specs-viewer.js', (_req, res) => {
+        if (!fs.existsSync(SPECS_VIEWER_BUNDLE_PATH)) { res.statusCode = 404; res.end('specs viewer bundle not built'); return; }
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(fs.readFileSync(SPECS_VIEWER_BUNDLE_PATH, 'utf-8'));
+      });
 
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || '';
@@ -352,6 +364,9 @@ export function protovibeSourcePlugin(): Plugin {
       // Comments & Notes endpoints
       registerCommentsMiddleware(server);
 
+      // Specs (annotated prototype states) endpoints
+      registerSpecsMiddleware(server);
+
       // Shared comment-author profile (~/.protovibe/profile.json)
       registerProfileMiddleware(server);
 
@@ -452,6 +467,11 @@ export function protovibeSourcePlugin(): Plugin {
       // hot-reload on its own).
       const commentsDir = normalizePath(path.resolve(process.cwd(), 'src/comments'));
       if (file.startsWith(commentsDir)) {
+        return [];
+      }
+      // Same for spec documents / annotations under src/specs.
+      const specsDir = normalizePath(path.resolve(process.cwd(), 'src/specs'));
+      if (file.startsWith(specsDir)) {
         return [];
       }
     },

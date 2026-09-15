@@ -318,7 +318,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setSources(Array.from(matchedIds));
     }
 
-    const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+    const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
     const iframeEl = allIframes.find(f => f.contentDocument === primaryEl.ownerDocument) ?? null;
     iframeEl?.contentWindow?.postMessage({ type: 'PV_SET_SELECTION', runtimeIds }, '*');
 
@@ -331,7 +331,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setActiveSourceId(null);
     setSources([]);
     // Clear outline in all iframes
-    (Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[]).forEach(iframe => {
+    (Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[]).forEach(iframe => {
       iframe.contentWindow?.postMessage({ type: 'PV_CLEAR_SELECTION' }, '*');
     });
   }, [setHighlightedElement]);
@@ -343,7 +343,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let attempts = 0;
 
     const findEl = (id: string): HTMLElement | null => {
-      const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+      const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
       for (const iframe of allIframes) {
         const t = iframe.contentDocument?.querySelector(`[data-pv-block="${id}"]`) as HTMLElement | null;
         if (t) return t;

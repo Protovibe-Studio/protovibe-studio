@@ -207,6 +207,7 @@ export function useGitSync(): UseGitSync {
         // Comments tab to re-read them so the list updates without a page reload.
         if (opName === 'sync' || opName === 'pull') {
           window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
+          window.dispatchEvent(new CustomEvent('pv-specs-refresh'));
         }
       } else if (latest.status === 'error') {
         if (!latest.needsInstall) {

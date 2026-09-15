@@ -69,7 +69,7 @@ export function useKeyboardShortcuts() {
 
         const tryFocus = () => {
           const selector = `[data-pv-loc-app-${sourceId}], [data-pv-loc-ui-${sourceId}]`;
-          const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+          const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
           let target: HTMLElement | null = null;
 
           for (const iframe of allIframes) {
@@ -146,11 +146,12 @@ export function useKeyboardShortcuts() {
               window.history.pushState({}, '', res.currentURLQueryString);
               window.dispatchEvent(new PopStateEvent('popstate'));
             }
-            Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+            Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
             // Refresh the comments panel so undone/redone threads & replies sync.
             window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
+            window.dispatchEvent(new CustomEvent('pv-specs-refresh'));
             emitToast({ message: formatUndoRedoMessage(isRedo ? 'Redo' : 'Undo', res), variant: 'info', durationMs: 1600 });
           } else {
             emitToast({ message: isRedo ? 'Nothing to redo' : 'Nothing to undo', variant: 'error', durationMs: 800 });
@@ -169,11 +170,12 @@ export function useKeyboardShortcuts() {
               window.history.pushState({}, '', res.currentURLQueryString);
               window.dispatchEvent(new PopStateEvent('popstate'));
             }
-            Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+            Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach((iframe) => {
               iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
             });
             // Refresh the comments panel so undone/redone threads & replies sync.
             window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
+            window.dispatchEvent(new CustomEvent('pv-specs-refresh'));
             emitToast({ message: formatUndoRedoMessage('Redo', res), variant: 'info', durationMs: 1600 });
           } else {
             emitToast({ message: 'Nothing to redo', variant: 'error', durationMs: 800 });
@@ -405,7 +407,7 @@ export function useKeyboardShortcuts() {
               : null;
           if (frameContainer) {
             e.preventDefault();
-            const iframeEl = (Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[])
+            const iframeEl = (Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[])
               .find(f => f.contentDocument === currentBaseTarget.ownerDocument) ?? null;
             iframeEl?.contentWindow?.postMessage({ type: 'PV_FRAME_DELETE_REQUEST' }, '*');
             return;
@@ -451,7 +453,7 @@ export function useKeyboardShortcuts() {
 
         if (isAbsolute && inAbsoluteContainer) {
           e.preventDefault();
-          Array.from(document.querySelectorAll('iframe')).forEach(iframe => {
+          Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach(iframe => {
             iframe.contentWindow?.postMessage({
               type: 'PV_NUDGE_KEYDOWN',
               key: e.key,
@@ -498,7 +500,7 @@ export function useKeyboardShortcuts() {
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        Array.from(document.querySelectorAll('iframe')).forEach(iframe => {
+        Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach(iframe => {
           iframe.contentWindow?.postMessage({
             type: 'PV_NUDGE_KEYUP',
             key: e.key
@@ -702,7 +704,7 @@ export function useKeyboardShortcuts() {
     };
     const iframeLoadHandlers = new Map<HTMLIFrameElement, () => void>();
     const wireIframes = () => {
-      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+      Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach((iframe) => {
         const el = iframe as HTMLIFrameElement;
         try { attachToIframeDoc(el.contentDocument); } catch {}
         if (!iframeLoadHandlers.has(el)) {
@@ -724,7 +726,7 @@ export function useKeyboardShortcuts() {
       window.removeEventListener('drop', handleDrop);
       iframeObserver.disconnect();
       iframeLoadHandlers.forEach((handler, el) => el.removeEventListener('load', handler));
-      Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+      Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach((iframe) => {
         try {
           const doc = (iframe as HTMLIFrameElement).contentDocument;
           if (doc) {

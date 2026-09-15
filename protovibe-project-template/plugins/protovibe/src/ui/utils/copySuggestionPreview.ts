@@ -54,7 +54,7 @@ export interface SavedSuggestionRef {
 /** Same-origin canvas iframe documents (app / components / sketchpad). */
 function canvasDocs(): Document[] {
   const docs: Document[] = [];
-  const iframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+  const iframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
   for (const f of iframes) {
     try {
       if (f.contentDocument?.body) docs.push(f.contentDocument);

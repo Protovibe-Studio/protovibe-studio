@@ -576,7 +576,33 @@ do not exist when `src/specs` is empty.
 
 ---
 
-## 11. Decisions to confirm
+## 11. Implementation notes (as built)
+
+The feature was implemented as designed, with these additions requested after
+the design review:
+
+- **Insert lines.** Hovering between two rows (and above the first / below the
+  last) reveals a line with a "+" button; clicking it opens a menu to insert an
+  annotation, a big heading or a medium heading at that position. The same slot
+  is the drop indicator while dragging.
+- **Two heading sizes.** Headings carry `level: "big" | "medium"`; the row's ⋯
+  menu switches between them. Exports map big → `<h2>` / `##`, medium → `<h3>` /
+  `###`.
+- **⋯ menu on every row.** Annotations: Delete. Headings: size switch + Delete.
+  The annotation view's ⋯ menu adds Update state, Pin to selection, Unpin.
+- **Everything is undoable.** Every spec mutation snapshots the exact files it
+  touches (the item's JSON, `spec.json`, the anchored source file) through the
+  generic `/__take-snapshot` endpoint before writing, so Cmd+Z / Cmd+Shift+Z
+  restore text edits, status changes, reorders, inserts, deletions and whole
+  spec deletions. The shell dispatches `pv-specs-refresh` after undo / redo /
+  git sync so the panel re-reads disk.
+- **Adding an annotation creates it immediately** with the captured state (and
+  the pinned element when one is selected) and opens it with the text editor
+  focused, instead of a separate composer. Undo removes it.
+- **Thumbnails** have no hard mount cap; the observer's root margin keeps only
+  rows near the viewport live. Add a cap if very long specs prove heavy.
+
+## 12. Decisions to confirm
 
 1. **Tab name "Specs" and item name "annotation"**. The alternative "Notes" is avoided to
    keep it distinct from Comments & Notes.

@@ -46,10 +46,20 @@ async function watch() {
     plugins: [makeWatchPlugin('sketchpad-bridge')],
   });
 
+  const specsViewerCtx = await esbuild.context({
+    entryPoints: ['src/specs-viewer/main.tsx'],
+    bundle: true,
+    minify: false,
+    outfile: 'dist/ui/specs-viewer.js',
+    define: { 'process.env.NODE_ENV': '"development"' },
+    plugins: [makeWatchPlugin('specs-viewer')],
+  });
+
   await inspectorCtx.watch();
   await bridgeCtx.watch();
   await sketchpadBridgeCtx.watch();
-  console.log('Watching for UI changes (inspector + bridge + sketchpad-bridge)...');
+  await specsViewerCtx.watch();
+  console.log('Watching for UI changes (inspector + bridge + sketchpad-bridge + specs-viewer)...');
 }
 
 watch().catch(err => {

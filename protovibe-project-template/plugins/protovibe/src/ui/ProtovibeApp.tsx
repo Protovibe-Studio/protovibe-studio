@@ -7,6 +7,7 @@ import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
 import { PromptsTab } from './components/PromptsTab';
 import { CommentsTab } from './components/CommentsTab';
+import { SpecsTab, PV_CANVAS_NAVIGATE_EVENT, PV_SPECS_REFRESH_EVENT } from './components/SpecsTab';
 import { Sidebar } from './components/Sidebar';
 import { ElementsPanel } from './components/ElementsPanel';
 import { FloatingToolbar } from './components/FloatingToolbar';
@@ -335,15 +336,14 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-reload-canvases', handler);
   }, [reloadIframe]);
 
-  // Bring a comment's anchored element into view. Retries across iframes because
-  // the element may only appear after a tab switch or an app-iframe navigation.
-  const focusThreadElement = useCallback((threadId: string) => {
-    // Each thread anchors its element via its own `data-pv-comment-{id}` attribute.
-    const sel = commentIdSelector(threadId);
+  // Bring an anchored element (a comment thread's or a spec annotation's) into
+  // view by CSS selector. Retries across iframes because the element may only
+  // appear after a tab switch or an app-iframe navigation.
+  const focusCanvasElement = useCallback((sel: string) => {
     let attempts = 0;
     const tryFind = () => {
       let el: HTMLElement | null = null;
-      for (const iframe of Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[]) {
+      for (const iframe of Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[]) {
         el = (iframe.contentDocument?.querySelector(sel) as HTMLElement | null) ?? null;
         if (el) break;
       }
@@ -387,7 +387,7 @@ export const ProtovibeApp: React.FC = () => {
             '*',
           );
         }
-        focusThreadElement(threadId);
+        focusCanvasElement(commentIdSelector(threadId));
         return;
       }
 
@@ -407,11 +407,33 @@ export const ProtovibeApp: React.FC = () => {
           win.location.href = targetPath;
         }
       }
-      focusThreadElement(threadId);
+      focusCanvasElement(commentIdSelector(threadId));
     };
     window.addEventListener('pv-comment-navigate', handler);
     return () => window.removeEventListener('pv-comment-navigate', handler);
-  }, [handleIframeTabChange, focusThreadElement]);
+  }, [handleIframeTabChange, focusCanvasElement]);
+
+  // The specs panel asks us to show an annotation's state: navigate the app
+  // iframe to the saved path when it differs, then select the pinned element.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { path, selector } = (e as CustomEvent<{ path?: string; selector?: string }>).detail || {};
+      if (!path || !path.startsWith('/') || path.startsWith('//')) return;
+      handleIframeTabChange('app');
+      const win = appIframeRef.current?.contentWindow;
+      if (win) {
+        try {
+          const current = win.location.pathname + win.location.search + win.location.hash;
+          if (current !== path) win.location.href = path;
+        } catch {
+          win.location.href = path;
+        }
+      }
+      if (selector) focusCanvasElement(selector);
+    };
+    window.addEventListener(PV_CANVAS_NAVIGATE_EVENT, handler);
+    return () => window.removeEventListener(PV_CANVAS_NAVIGATE_EVENT, handler);
+  }, [handleIframeTabChange, focusCanvasElement]);
 
   // Forward zoom shortcuts to the sketchpad iframe when it's the active tab
   useEffect(() => {
@@ -529,12 +551,13 @@ export const ProtovibeApp: React.FC = () => {
           window.history.pushState({}, '', res.currentURLQueryString);
           window.dispatchEvent(new PopStateEvent('popstate'));
         }
-        Array.from(document.querySelectorAll('iframe')).forEach((iframe) => {
+        Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach((iframe) => {
           iframe.contentWindow?.postMessage({ type: 'PV_UNDO_REDO_COMPLETE' }, '*');
         });
         // Keep the comments panel in sync — an undone thread/reply must drop out
         // of the list (and out of any open thread view).
         window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
+        window.dispatchEvent(new CustomEvent(PV_SPECS_REFRESH_EVENT));
         emitToast({ message: formatUndoRedoMessage('Undo', res), variant: 'info', durationMs: 1600 });
       } else {
         emitToast({ message: 'Nothing to undo', variant: 'error', durationMs: 800 });
@@ -1088,6 +1111,20 @@ export const ProtovibeApp: React.FC = () => {
             }}
           >
             <CommentsTab activeIframeTab={activeIframeTab} isActive={activeSidebarTab === 'comments'} />
+          </div>
+        )}
+
+        {inspectorOpen && (
+          <div
+            style={{
+              width: `${INSPECTOR_WIDTH_PX}px`,
+              flexShrink: 0,
+              borderLeft: `1px solid ${theme.border_default}`,
+              overflow: 'hidden',
+              display: activeSidebarTab === 'specs' ? 'flex' : 'none',
+            }}
+          >
+            <SpecsTab activeIframeTab={activeIframeTab} isActive={activeSidebarTab === 'specs'} />
           </div>
         )}
 

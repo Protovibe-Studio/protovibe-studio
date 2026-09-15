@@ -3,7 +3,7 @@ import { blockAction, takeSnapshot } from '../api/client';
 export type BlockMutationAction = 'delete' | 'move-up' | 'move-down';
 
 function findBlockElement(blockId: string): HTMLElement | null {
-  const allIframes = Array.from(document.querySelectorAll('iframe')) as HTMLIFrameElement[];
+  const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
   for (const iframe of allIframes) {
     const el = iframe.contentDocument?.querySelector(`[data-pv-block="${blockId}"]`) as HTMLElement | null;
     if (el) return el;
