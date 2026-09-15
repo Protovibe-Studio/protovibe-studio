@@ -281,7 +281,7 @@ const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void 
       <button ref={btnRef} data-testid="specs-add" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => setOpen(true)}>
         <Plus size={13} /> Add
       </button>
-      <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width={170} />
+      <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width="anchor" />
     </div>
   );
 };

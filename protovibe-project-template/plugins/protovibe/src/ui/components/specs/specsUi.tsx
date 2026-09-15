@@ -64,22 +64,24 @@ export const Menu: React.FC<{
   onClose: () => void;
   items: MenuItem[];
   align?: 'left' | 'right';
-  width?: number;
-}> = ({ open, anchorRef, onClose, items, align = 'right', width = 180 }) => {
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  /** Pixel width, or 'anchor' to match the trigger's width. */
+  width?: number | 'anchor';
+}> = ({ open, anchorRef, onClose, items, align = 'right', width: widthProp = 180 }) => {
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     if (!open) { setPos(null); return; }
     const r = anchorRef.current?.getBoundingClientRect();
     if (!r) return;
+    const width = widthProp === 'anchor' ? Math.round(r.width) : widthProp;
     const menuH = menuRef.current?.offsetHeight ?? items.length * 30 + 8;
     let top = r.bottom + 4;
     if (top + menuH > window.innerHeight - 8) top = Math.max(8, r.top - 4 - menuH);
     let left = align === 'right' ? r.right - width : r.left;
     left = Math.min(Math.max(8, left), window.innerWidth - width - 8);
-    setPos({ top, left });
-  }, [open, anchorRef, align, width, items.length]);
+    setPos({ top, left, width });
+  }, [open, anchorRef, align, widthProp, items.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,7 +99,7 @@ export const Menu: React.FC<{
         ref={menuRef}
         data-pv-ui="true"
         style={{
-          position: 'fixed', top: pos?.top ?? -9999, left: pos?.left ?? -9999, width, zIndex: 2147483647,
+          position: 'fixed', top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: pos?.width ?? (widthProp === 'anchor' ? 180 : widthProp), zIndex: 2147483647,
           background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
           boxShadow: '0 8px 24px rgba(0,0,0,0.28)', padding: 4,
           display: 'flex', flexDirection: 'column', gap: 2, fontFamily: theme.font_ui,
