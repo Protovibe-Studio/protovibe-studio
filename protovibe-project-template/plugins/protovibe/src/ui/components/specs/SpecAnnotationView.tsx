@@ -2,7 +2,7 @@
 // Level 3 of the Specs panel: one annotation, edited in place, with Prev / Next
 // stepping through the (filtered) annotation list.
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, MoreHorizontal, Trash2, RefreshCw, PinOff, Link2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, MoreHorizontal, Trash2, RefreshCw, PinOff, Link2 } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
@@ -32,7 +32,6 @@ export const SpecAnnotationView: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const [textEditing, setTextEditing] = useState(false);
-  const [refsOpen, setRefsOpen] = useState(false);
   const fileName = item.anchor?.file.split('/').pop();
 
   return (
@@ -78,21 +77,10 @@ export const SpecAnnotationView: React.FC<{
 
         <StatusPicker status={item.status} disabled={p.busy} onChange={(s) => p.onUpdate({ status: s }, 'change annotation status')} />
 
-        {/* references & links — collapsed by default, a divider and an expandable header */}
-        <div style={{ borderTop: `1px solid ${theme.border_default}`, marginTop: 4 }}>
-          <button
-            onClick={() => setRefsOpen((v) => !v)}
-            aria-expanded={refsOpen}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '10px 0', border: 'none', background: 'transparent',
-              color: theme.text_secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui, textAlign: 'left',
-            }}
-          >
-            <span style={{ flex: 1 }}>References & links</span>
-            <ChevronDown size={13} style={{ flexShrink: 0, transform: refsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.12s' }} />
-          </button>
-          {refsOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 0 8px 0' }}>
+        {/* prototype link — always visible, divider above */}
+        <div style={{ borderTop: `1px solid ${theme.border_default}`, marginTop: 4, paddingTop: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: theme.text_secondary, marginBottom: 6 }}>Prototype link</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <a
                 href={item.state.path}
                 data-tooltip="Show on canvas"
@@ -111,8 +99,7 @@ export const SpecAnnotationView: React.FC<{
                     : `Element in ${fileName}`}
                 </span>
               )}
-            </div>
-          )}
+          </div>
         </div>
 
         <span style={{ fontSize: 10, color: theme.text_tertiary }}>
