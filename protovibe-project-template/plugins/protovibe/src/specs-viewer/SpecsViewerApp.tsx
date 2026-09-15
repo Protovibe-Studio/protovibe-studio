@@ -12,6 +12,7 @@ import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
 import { annotationsOf, isAnnotation, specIdSelector } from '../shared/specs';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
+import { PROTOVIBE_LOGO_DATA_URL } from '../ui/protovibeLogo';
 
 const STATUS: Record<SpecStatus, { label: string; color: string }> = {
   todo:     { label: 'Todo',       color: '#A78BFA' },
@@ -199,10 +200,17 @@ export const SpecsViewerApp: React.FC = () => {
   if (!data) return <Center>Loading…</Center>;
   if (specs.length === 0) return <Center>No specs have been published yet.</Center>;
 
-  const sidebarHeader = (title: string, onBack: (() => void) | null) => (
+  const sidebarHeader = (title: string, onBack: (() => void) | null, trailing?: React.ReactNode) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', minHeight: 40, boxSizing: 'border-box', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
       {onBack && <button onClick={onBack} title="Back" style={{ ...navBtn, padding: '4px 8px' }}>‹</button>}
       <span style={{ flex: 1, minWidth: 0, padding: onBack ? 0 : '0 4px', fontSize: 12, fontWeight: 600, color: onBack ? theme.text_secondary : theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</span>
+      {trailing}
+    </div>
+  );
+
+  const sidebarFooter = (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      <img src={PROTOVIBE_LOGO_DATA_URL} alt="Protovibe" style={{ height: 11, opacity: 0.6 }} />
     </div>
   );
 
@@ -282,7 +290,12 @@ export const SpecsViewerApp: React.FC = () => {
         ) : (
           <>
             {/* level 3: single annotation */}
-            {sidebarHeader('Annotation', () => select(bundle.spec.id, null))}
+            {sidebarHeader('Annotation', () => select(bundle.spec.id, null), (
+              <>
+                <NavButton label="‹" title="Previous (←)" disabled={index <= 0} onClick={() => step(-1)} />
+                <NavButton label="›" title="Next (→)" disabled={index >= annotations.length - 1} onClick={() => step(1)} />
+              </>
+            ))}
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
               {current.title && (
                 <div style={{ fontSize: 12, fontWeight: 600, color: theme.text_secondary, wordBreak: 'break-word' }}>{current.title}</div>
@@ -302,12 +315,10 @@ export const SpecsViewerApp: React.FC = () => {
                 Open app ↗
               </a>
             </div>
-            <div style={{ display: 'flex', gap: 6, padding: '10px 12px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-              <NavButton label="‹ Prev" disabled={index <= 0} onClick={() => step(-1)} grow />
-              <NavButton label="Next ›" disabled={index >= annotations.length - 1} onClick={() => step(1)} grow />
-            </div>
           </>
         )}
+
+        {sidebarFooter}
 
         {/* resize handle */}
         <div
@@ -336,8 +347,8 @@ const navBtn: React.CSSProperties = {
   background: 'transparent', color: theme.text_default, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
 };
 
-const NavButton: React.FC<{ label: string; disabled: boolean; onClick: () => void; grow?: boolean }> = ({ label, disabled, onClick, grow }) => (
-  <button onClick={onClick} disabled={disabled} style={{ ...navBtn, justifyContent: 'center', flex: grow ? 1 : undefined, opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer' }}>
+const NavButton: React.FC<{ label: string; title?: string; disabled: boolean; onClick: () => void }> = ({ label, title, disabled, onClick }) => (
+  <button onClick={onClick} title={title} disabled={disabled} style={{ ...navBtn, justifyContent: 'center', minWidth: 28, padding: '4px 8px', opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer' }}>
     {label}
   </button>
 );
