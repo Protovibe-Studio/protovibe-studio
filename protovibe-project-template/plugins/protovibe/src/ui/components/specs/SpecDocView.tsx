@@ -10,7 +10,7 @@ import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, annotationTitle, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusBadge, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, ghostBtn, hoverBg, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusBadge, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, primaryBtn, hoverBg, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 
@@ -266,8 +266,8 @@ const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void 
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   return (
-    <div style={{ display: 'flex', padding: '8px 16px' }}>
-      <button ref={btnRef} data-testid="specs-add" style={ghostBtn} disabled={busy} onClick={() => setOpen(true)}>
+    <div style={{ display: 'flex', padding: '8px 12px' }}>
+      <button ref={btnRef} data-testid="specs-add" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => setOpen(true)}>
         <Plus size={13} /> Add
       </button>
       <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width={170} />
@@ -335,9 +335,8 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = highlighted ? `${theme.accent_default}14` : 'transparent';
-  // Everything after the first line is the body when the first line stands in
-  // for a missing title; with a title the whole text is the body.
-  const body = item.title ? item.text.trim() : item.text.trim().split('\n').slice(1).join('\n').trim();
+  // Untitled annotations show the whole note as body text (no derived title).
+  const body = item.text.trim();
   return (
     <div
       {...rowProps}
@@ -355,9 +354,11 @@ const AnnotationRow: React.FC<{
         <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} />
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{number}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {annotationTitle(item)}
-          </span>
+          {item.title && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {item.title}
+            </span>
+          )}
         </div>
         {body && (
           <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>

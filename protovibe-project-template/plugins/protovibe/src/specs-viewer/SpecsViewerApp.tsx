@@ -10,7 +10,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
-import { annotationTitle, annotationsOf, isAnnotation, specIdSelector } from '../shared/specs';
+import { annotationsOf, isAnnotation, specIdSelector } from '../shared/specs';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 
 const STATUS: Record<SpecStatus, { label: string; color: string }> = {
@@ -200,7 +200,7 @@ export const SpecsViewerApp: React.FC = () => {
                   );
                 }
                 const n = annotations.findIndex((a) => a.id === it.id) + 1;
-                const body = it.title ? it.text.trim() : it.text.trim().split('\n').slice(1).join('\n').trim();
+                const body = it.text.trim();
                 return (
                   <div
                     key={it.id}
@@ -215,7 +215,7 @@ export const SpecsViewerApp: React.FC = () => {
                     <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: theme.text_tertiary, flexShrink: 0 }}>{n}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{annotationTitle(it)}</span>
+                      {it.title && <span style={{ fontSize: 12, fontWeight: 600, color: theme.text_default, flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{it.title}</span>}
                     </div>
                     {body && (
                       <span style={{ fontSize: 11, color: theme.text_secondary, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>

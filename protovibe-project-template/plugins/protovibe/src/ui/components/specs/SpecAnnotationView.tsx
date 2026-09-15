@@ -85,13 +85,13 @@ export const SpecAnnotationView: React.FC<{
 
         <StatusPicker status={item.status} disabled={p.busy} onChange={(s) => p.onUpdate({ status: s }, 'change annotation status')} />
 
-        {/* references & links — collapsed by default */}
-        <div style={{ borderRadius: 6, background: theme.bg_low, border: `1px solid ${theme.border_default}` }}>
+        {/* references & links — collapsed by default, a divider and an expandable header */}
+        <div style={{ borderTop: `1px solid ${theme.border_default}`, marginTop: 4 }}>
           <button
             onClick={() => setRefsOpen((v) => !v)}
             aria-expanded={refsOpen}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px', border: 'none', background: 'transparent',
+              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '10px 0', border: 'none', background: 'transparent',
               color: theme.text_secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui, textAlign: 'left',
             }}
           >
@@ -99,7 +99,7 @@ export const SpecAnnotationView: React.FC<{
             References & links
           </button>
           {refsOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 10px 10px 10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 0 8px 18px' }}>
               <a
                 href={item.state.path}
                 data-tooltip="Show on canvas"
