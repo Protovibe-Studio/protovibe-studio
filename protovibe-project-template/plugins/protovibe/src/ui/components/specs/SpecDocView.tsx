@@ -14,7 +14,7 @@ import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, primaryBtn, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 
@@ -317,31 +317,52 @@ function insertMenuItems(onInsert: (kind: InsertKind) => void): MenuItem[] {
   ];
 }
 
+// Styled to match the split button in the Prompts tab (step 3): a white
+// primary action with black text, a full-width centred label, and a caret
+// section divided by a hairline.
 const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void }> = ({ busy, onInsert }) => {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
-  const half: React.CSSProperties = { ...primaryBtn, opacity: busy ? 0.6 : 1 };
+  const face: React.CSSProperties = {
+    background: busy ? theme.bg_tertiary : theme.text_default,
+    color: busy ? theme.text_tertiary : theme.bg_strong,
+    border: 'none',
+    cursor: busy ? 'not-allowed' : 'pointer',
+    fontFamily: theme.font_ui,
+    transition: 'background 0.15s ease',
+  };
   return (
     <div style={{ display: 'flex', padding: '8px 12px' }}>
       <div style={{ display: 'flex', width: '100%' }}>
         <button
           data-testid="specs-add"
-          style={{ ...half, flex: 1, minWidth: 0, justifyContent: 'flex-start', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
           disabled={busy}
           onClick={() => onInsert('annotation')}
+          style={{
+            ...face,
+            flex: 1, minWidth: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '10px 14px', fontSize: 12, fontWeight: 600,
+            borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
+          }}
         >
-          <Plus size={13} /> Add annotation
+          <Plus size={14} /> Add annotation
         </button>
-        <div style={{ width: 1, background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
         <button
           ref={btnRef}
           data-testid="specs-add-menu"
-          style={{ ...half, padding: '6px 7px', borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
           disabled={busy}
           data-tooltip="Add heading…"
           onClick={() => setOpen(true)}
+          style={{
+            ...face,
+            padding: '0 10px',
+            borderLeft: `1px solid ${busy ? theme.border_default : theme.bg_strong}`,
+            borderTopRightRadius: 6, borderBottomRightRadius: 6,
+            display: 'flex', alignItems: 'center',
+          }}
         >
-          <ChevronDown size={13} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+          <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
         </button>
       </div>
       <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} width={170} />
