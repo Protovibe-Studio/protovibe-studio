@@ -86,6 +86,9 @@ export const SpecsViewerApp: React.FC = () => {
   );
   const index = current ? annotations.findIndex((a) => a.id === current.id) : -1;
   const [listScrollEl, setListScrollEl] = useState<HTMLDivElement | null>(null);
+  // Bumped to redraw the highlight for the annotation that is already active
+  // (clicking its card again after dismissing the frame in the prototype).
+  const [highlightNonce, setHighlightNonce] = useState(0);
 
   // Normalise the URL to the resolved spec / item once data is in.
   useEffect(() => {
@@ -216,11 +219,18 @@ export const SpecsViewerApp: React.FC = () => {
       box.appendChild(badge);
       place();
       doc.body.appendChild(box);
+      // The frame points the annotation out; once the reader starts using the
+      // prototype it is just in the way, so the first press inside the iframe
+      // drops it. Capture phase so the app's own handlers cannot swallow it.
+      const dismiss = () => cleanupListeners?.();
       win.addEventListener('scroll', place, { capture: true, passive: true });
       win.addEventListener('resize', place);
+      doc.addEventListener('pointerdown', dismiss, true);
       cleanupListeners = () => {
         win.removeEventListener('scroll', place, { capture: true });
         win.removeEventListener('resize', place);
+        doc.removeEventListener('pointerdown', dismiss, true);
+        cleanupListeners = null;
         box.remove();
       };
     };
@@ -236,7 +246,7 @@ export const SpecsViewerApp: React.FC = () => {
       try { cleanupListeners?.(); } catch { /* document may be gone */ }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id, iframeSrc]);
+  }, [current?.id, iframeSrc, highlightNonce]);
 
   if (error) return <Center>{error}</Center>;
   if (!data) return <Center>Loading…</Center>;
@@ -337,8 +347,8 @@ export const SpecsViewerApp: React.FC = () => {
                     tabIndex={0}
                     data-spec-item={it.id}
                     data-active={active}
-                    onClick={() => select(bundle.spec.id, it.id)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(bundle.spec.id, it.id); } }}
+                    onClick={() => { if (active) setHighlightNonce((v) => v + 1); else select(bundle.spec.id, it.id); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (active) setHighlightNonce((v) => v + 1); else select(bundle.spec.id, it.id); } }}
                     style={{
                       display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px 10px', cursor: 'pointer', outline: 'none',
                       background: baseBg, boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
