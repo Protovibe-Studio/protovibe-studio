@@ -129,7 +129,7 @@ export const PROMPTS: PromptDef[] = [
     template: `Scope from the user:
   {{input}}
   
-  I'm a designer and this is a prototype. I want to share it with developers and send them links that open the prototype in one exact state — a dialog already open, a section expanded, a specific option selected in a dropdown or radio group, a dropdown open, or a conditional element already revealed. Make every one of those states deep-linkable through the URL query string.
+  I'm a designer and this is a prototype. I want any state of it to be reachable from a URL — a dialog already open, a section expanded, a specific option selected in a dropdown or radio group, a dropdown open, a conditional element already revealed, or a screen sitting in its loading, empty or error state. Make every one of those states deep-linkable through the URL query string, so each one can later be pinned as a state in Protovibe Specs and annotations and handed to developers.
   
   FIRST, before writing any code:
   - If the scope above does not clearly say WHERE to apply this, ASK ME whether you should do it across the whole prototype or only in one selected flow/view — and wait for my answer. Do not guess.
@@ -137,11 +137,15 @@ export const PROMPTS: PromptDef[] = [
   - Read \`src/store.tsx\` to see how \`state.queryParams\` and \`setQueryParams\` work, and read an existing page that already uses them so you follow the established pattern exactly. Do NOT introduce react-router or any other routing library, and do not invent a new state container.
   
   Then convert the UI state in scope from \`useState\` to the query string:
-  1. Inventory every shareable state first. Walk the files in scope and list each one: dialogs/drawers/sheets (open or closed), expandable/collapsible sections and accordions, tabs and sub-tabs, selected rows/cards/items, form control values (select, dropdown, radio, checkbox, toggle, segmented control), open/closed dropdown and popover menus, and anything rendered conditionally on another state. Show me that list as part of your summary.
+  1. Inventory every representable state first, then work through it. Walk the files in scope and cover each one: dialogs/drawers/sheets (open or closed), expandable/collapsible sections and accordions, tabs and sub-tabs, selected rows/cards/items, form control values (select, dropdown, radio, checkbox, toggle, segmented control), open/closed dropdown and popover menus, and anything rendered conditionally on another state. Include the states that are normally invisible or fleeting, because those are exactly the ones that are hard to demo otherwise: loading/skeleton states, empty states, error states, success confirmations, and transient UI like a visible toast or an inline "Saved" flash. If a state can be described, it should be reachable from a URL.
   2. Give each state its own query key, in camelCase, named after the thing it controls and scoped by its owner so keys can never collide across views (e.g. \`employeeDialog\`, \`employeeDialogTab\`, \`employeeDialogAddressSection\`, \`billingPlan\`).
   3. Derive the value from \`state.queryParams\` — never from \`useState\` — and always validate it against the allowed values, falling back to the default when the param is missing or invalid. A junk value in a shared link must render the default, not a broken screen.
   4. Write values with \`setQueryParams\`. Booleans use the string \`'true'\` when on and \`null\` (key removed) when off — never \`false\`. Enumerated values (tab, selected option, selected id) store the value itself.
   5. Keep clean URLs: only non-default values appear. Drop the key whenever the state returns to its default, so a bare URL always means "default state".
+  6. Decide, per param, whether the change belongs in browser history. A param can be deep-linkable without adding a history entry:
+     - Push a history entry for navigational changes the user would expect the Back button to undo — opening a dialog, switching a view or tab, selecting a record.
+     - Replace the current entry (\`history.replaceState\`) for transient or incidental params — a toast being shown, a loading/error state being simulated, an open dropdown, a scroll or hover-driven flag, a filter being retyped — so the URL still describes the screen and is still shareable, but the user does not have to press Back ten times to escape.
+     - \`setQueryParams\` in \`src/store.tsx\` currently always pushes. Extend it with an optional replace mode (e.g. \`setQueryParams(updates, { replace: true })\`) following its existing structure — same param-diffing, same \`PV_URL_CHANGE\` postMessage to the parent frame, only \`pushState\` swapped for \`replaceState\` — and keep the default behaviour unchanged so existing call sites are unaffected.
   
   Preventing stale params — this is the part that usually goes wrong:
   - Model the params as a tree: a dialog's params (its tab, its expanded sections, its dropdown selections, its open menus) are CHILDREN of the dialog's own param.
@@ -149,14 +153,16 @@ export const PROMPTS: PromptDef[] = [
   - Because of that, reopening the dialog starts fresh at its defaults — a section the user expanded last time must NOT come back expanded.
   - The same applies when the selected entity changes (switching to a different record clears that record's per-record sub-state) and when navigating to another view (view-scoped keys are cleared).
   - Centralise this: define the owned child keys for each parent once (e.g. a small constant listing them) and have one close/reset helper clear them, rather than repeating null-ing lists at every call site where it is easy to forget one.
-  - Transient states that must NOT go in the URL: toasts, in-flight loading flags, uncommitted text being typed, hover states, and anything with a secret or a huge value. Mention anything you deliberately left out.
+  - Transient states belong in the URL too — a loading flag, a visible toast, an error banner or an open menu is a state I need to be able to link to. Put them in the query string like everything else, just use the replace mode from step 6 so they do not clog history, and make sure they are cleaned up on the same rules as everything else: a simulated loading or error param must be dropped when the screen leaves that state, and a toast param must be dropped when the toast is dismissed or auto-hides, so a stale link never shows a toast that can never go away.
+  - The only things to leave out are values that cannot survive a URL: secrets, and anything too large to sit in a query string (raw file contents, large blobs). If you leave something out, say which and why.
   
   Also make sure that:
-  - Browser back/forward works — every state change goes through \`setQueryParams\`, so history stays consistent.
+  - Browser back/forward works and feels sane — every state change goes through \`setQueryParams\`, and the push/replace choice from step 6 keeps Back meaningful instead of stepping through every transient flicker.
+  - Every param survives a reload and a fresh paste of the URL into a new tab, including the loading, error and toast ones — state is read from the query string on mount, not just written to it.
   - Compound components (Tabs, RadioGroup, Select) keep using their context-driven API — feed them the value derived from the query param and write the new value back in their change handler. Do not hand-wire selected props onto individual children.
   - Existing behaviour and visuals are unchanged; this is a state-plumbing refactor, not a redesign.
   
-  Finish by giving me a copy-pasteable list of the deep links you created — one example URL per state, with a one-line description of what each opens — so I can hand them straight to developers.
+  Do not finish by compiling a list of example links for me — just make the states deep-linkable in the code. I will capture the ones I need by navigating the prototype and pinning them as states in Protovibe Specs and annotations, which is exactly why the URL has to describe the screen completely and never carry a stale param.
   
   {{agentsRules}}`,
   },
