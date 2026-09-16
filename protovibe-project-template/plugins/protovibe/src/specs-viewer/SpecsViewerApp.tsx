@@ -52,6 +52,31 @@ function appUrl(path: string): string {
   return base.pathname + (qi >= 0 ? rel.slice(qi) : '');
 }
 
+/** path + query + hash of a viewer URL, for comparing two app states. */
+function stateKey(href: string): string {
+  const u = new URL(href, window.location.href);
+  return u.pathname + u.search + u.hash;
+}
+
+/** Same minus the hash: two URLs sharing it navigate without a page load. */
+function docKey(href: string): string {
+  const u = new URL(href, window.location.href);
+  return u.pathname + u.search;
+}
+
+/**
+ * Where the prototype iframe actually is right now, which is not `iframeSrc`
+ * once the reader has navigated inside it. `null` when it cannot be read
+ * (cross-origin, or no document yet).
+ */
+function liveState(frame: HTMLIFrameElement | null): string | null {
+  try {
+    const href = frame?.contentWindow?.location.href;
+    if (!href || href === 'about:blank') return null;
+    return stateKey(href);
+  } catch { return null; }
+}
+
 export const SpecsViewerApp: React.FC = () => {
   const [data, setData] = useState<SpecsViewerData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -177,13 +202,28 @@ export const SpecsViewerApp: React.FC = () => {
       return;
     }
     const target = appUrl(current.state.path);
+    const frame = iframeRef.current;
     if (target !== iframeSrc) {
       // The effect re-runs once the new src is committed (iframeSrc dep).
       loadPendingRef.current = true;
       setIframeSrc(target);
       return;
     }
-    const frame = iframeRef.current;
+    // Same src as the annotation asks for, but the reader may have navigated
+    // the prototype elsewhere since (clicking through the app changes its
+    // query string, not our `src`). Activating an annotation always restores
+    // its own state, so drive the iframe back to it by hand — React will not
+    // re-render an unchanged `src`.
+    const live = liveState(frame);
+    if (frame && !loadPendingRef.current && live !== null && live !== stateKey(target)) {
+      // A hash-only move stays in the same document and fires no load event.
+      const reloads = docKey(live) !== docKey(target);
+      loadPendingRef.current = reloads;
+      const absolute = new URL(target, window.location.href).toString();
+      // `replace` keeps the reader's detour out of the iframe's history.
+      try { frame.contentWindow!.location.replace(absolute); }
+      catch { frame.src = target; loadPendingRef.current = true; }
+    }
     let attempts = 0;
     let timer = 0;
     let cleanupListeners: (() => void) | null = null;
@@ -237,11 +277,18 @@ export const SpecsViewerApp: React.FC = () => {
     // After a src change the old document is still reachable until the new
     // one arrives: wait for the load event instead of decorating the outgoing
     // page (whose highlight would vanish with it).
-    const onLoad = () => { loadPendingRef.current = false; timer = window.setTimeout(tryHighlight, 50); };
-    if (loadPendingRef.current && frame) frame.addEventListener('load', onLoad);
-    else timer = window.setTimeout(tryHighlight, 150);
+    let fallback = 0;
+    const onLoad = () => { loadPendingRef.current = false; clearTimeout(fallback); timer = window.setTimeout(tryHighlight, 50); };
+    if (loadPendingRef.current && frame) {
+      frame.addEventListener('load', onLoad);
+      // Should the load event never arrive, still draw the highlight.
+      fallback = window.setTimeout(() => { loadPendingRef.current = false; tryHighlight(); }, 2000);
+    } else {
+      timer = window.setTimeout(tryHighlight, 150);
+    }
     return () => {
       clearTimeout(timer);
+      clearTimeout(fallback);
       frame?.removeEventListener('load', onLoad);
       try { cleanupListeners?.(); } catch { /* document may be gone */ }
     };
