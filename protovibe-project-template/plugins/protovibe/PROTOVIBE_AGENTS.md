@@ -996,3 +996,16 @@ Do not edit spec files unless the user asks you to.
 
 ### Rule: don't edit PROTOVIBE_AGENTS.md
 This file will be overriden by future Protovibe updates. If user wants to store some info for AI agents, store it in the root AGENTS.md file, not PROTOVIBE_AGENTS.md
+
+## 7. Agent skills
+
+Deeper, task-specific instructions live next to this file in
+[agents-skills/](./agents-skills/). Read the relevant one in full before
+starting that kind of task — the summary above is not enough to do the work
+correctly.
+
+* **If you are asked to create, edit or assemble specs or annotations
+  programmatically, read [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
+  first.** It covers the file schema, id formats, the `rank` ordering scheme,
+  the `data-pv-spec-*` element attribute and the rules that keep spec files
+  safe to sync.
