@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleSavePromptAttachment, sweepPromptAttachments, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
+import { handleGetSourceInfo, handleUpdateSource, handleGetZones, handleAddBlock, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks, handleBlockAction, handleTakeSnapshot, handleUndo, handleRedo, handleUpdateProp, handleGetComponents, handleGetThemeColors, handleUpdateThemeColor, handleGetThemeTokens, handleUpdateThemeToken, handleUpdateFontFamily, handleUploadImage, handleSavePromptAttachment, sweepPromptAttachments, initPublishState, handleCloudflarePublishMetadata, handleCloudflarePublishSaveName, handleCloudflarePublishStart, handleCloudflarePublishStatus, handleCloudflareLoginStart, handleCloudflareLogout, handleCloudflareAuthStatus } from './backend/server';
 import { handleConvertToSketchpad } from './backend/convert-to-sketchpad';
 import { registerSketchpadMiddleware } from './sketchpad-source';
 import { registerCommentsMiddleware } from './backend/comments-server';
@@ -108,6 +108,7 @@ export function protovibeSourcePlugin(): Plugin {
           watch: {
             ignored: [
               '**/protovibe-data.json',
+              '**/.protovibe-local-data/**',
               `${root}/src/specs/**`,
               `${root}/src/comments/**`,
             ],
@@ -301,6 +302,13 @@ export function protovibeSourcePlugin(): Plugin {
       // the server runs). They are outside the module graph, so removing them
       // never triggers HMR.
       sweepPromptAttachments(true);
+
+      // Publish links and version history are per-user (everyone deploys to
+      // their own Cloudflare account), so they live in the gitignored
+      // .protovibe-local-data/. Run on boot so a project that is opened but
+      // never published still gets any committed leftovers moved across.
+      initPublishState();
+
       server.middlewares.use('/__cloudflare-publish-metadata', handleCloudflarePublishMetadata);
       server.middlewares.use('/__cloudflare-publish-save-name', handleCloudflarePublishSaveName);
       server.middlewares.use('/__cloudflare-publish-start', handleCloudflarePublishStart);
