@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/specs/specsUi.tsx
 // Small presentational building blocks shared by the Specs panel: status
-// config + badge + picker, a portal dropdown menu, hover-to-edit text, and the
+// config + badge + picker, a portal dropdown menu, in-place editable text, and the
 // common button styles. Nothing here talks to the backend.
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -209,8 +209,8 @@ export const SpecsInlineStyles: React.FC = () => (
 /**
  * Text that edits in place. The real input is **always** rendered rather than
  * swapped in on click, so a click lands the caret where the pointer is and the
- * list reads like a document. Focus adds no border or background; only hover
- * hints a frame. Blur commits when the value changed, Escape reverts,
+ * list reads like a document. No border or background in any state — hover and
+ * focus included. Blur commits when the value changed, Escape reverts,
  * Enter (Cmd/Ctrl+Enter when multiline) commits.
  *
  * `editing` is a request to focus — a parent sets it for a just-created item —
@@ -231,7 +231,6 @@ export const InlineEditable: React.FC<{
 }> = ({ value, onSave, placeholder, multiline, style, editing, onEditingChange, disabled, selectAllOnEdit }) => {
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
-  const [hover, setHover] = useState(false);
   const ref = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
   // Escape blurs synchronously, before React flushes setDraft, so the blur
   // handler cannot trust the rendered draft — it reads this instead.
@@ -284,18 +283,16 @@ export const InlineEditable: React.FC<{
       if (e.key === 'Escape') { e.preventDefault(); setBoth(value); ref.current?.blur(); }
       else if (e.key === 'Enter' && (!multiline || e.metaKey || e.ctrlKey)) { e.preventDefault(); ref.current?.blur(); }
     },
-    onMouseEnter: () => setHover(true),
-    onMouseLeave: () => setHover(false),
     style: {
       ...baseStyle,
       background: 'transparent',
-      border: `1px solid ${hover && !focused && !disabled ? theme.border_strong : 'transparent'}`,
+      // Transparent rather than none: keeps the box metrics stable.
+      border: '1px solid transparent',
       outline: 'none',
       resize: 'none' as const,
       overflow: 'hidden',
       display: 'block',
       cursor: disabled ? 'default' : 'text',
-      transition: 'border-color 0.12s',
     },
   };
 
