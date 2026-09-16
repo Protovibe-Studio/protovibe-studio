@@ -123,10 +123,15 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     }
   };
 
-  // Keep the active row visible when it changes from outside the list
-  // (Prev / Next, a just-created annotation, a restored session).
+  // Keep the active row visible when the active item *changes* (Prev / Next,
+  // a just-created annotation). Not on mount: the list restores its saved
+  // scroll offset then, and thumbnails are still loading so row heights are
+  // not settled — scrolling to the row would throw that offset away.
+  const seenActiveRef = useRef<string | null | undefined>(undefined);
   useEffect(() => {
-    if (!p.activeId || !scrollEl) return;
+    const first = seenActiveRef.current === undefined;
+    seenActiveRef.current = p.activeId;
+    if (first || !p.activeId || !scrollEl) return;
     const row = scrollEl.querySelector<HTMLElement>(`[data-spec-item="${p.activeId}"]`);
     try { row?.scrollIntoView({ block: 'nearest' }); } catch { /* ignore */ }
   }, [p.activeId, scrollEl]);

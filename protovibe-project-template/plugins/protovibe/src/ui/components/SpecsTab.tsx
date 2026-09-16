@@ -387,16 +387,24 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const canPrev = !!nextFrom(-1);
   const canNext = !!nextFrom(1);
 
+  // ← / → step the active annotation while the Specs panel is the visible
+  // tab. The shell's own keydown listener (useKeyboardShortcuts) also acts on
+  // arrows when a canvas element is selected — and one usually is, since
+  // activating an annotation selects its pinned element — so this listener
+  // runs in the capture phase and stops the event before the shell nudges or
+  // traverses the selection out from under the walkthrough.
   useEffect(() => {
     if (!isActive || view.level !== 'doc') return;
     const onKey = (e: KeyboardEvent) => {
       if (isTypingInput(e.target as HTMLElement | null)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      step(e.key === 'ArrowLeft' ? -1 : 1);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [isActive, view.level, step]);
 
   // Is the pinned element on the canvas right now? Polled briefly after opening

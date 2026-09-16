@@ -96,6 +96,10 @@ export const Menu: React.FC<{
       <div
         ref={menuRef}
         data-pv-ui="true"
+        // The menu is portaled but stays a React child of its trigger's row, so
+        // clicks on its padding, separators or info lines would bubble (in the
+        // React tree) to a row-level onClick and activate that row.
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'fixed', top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: pos?.width ?? (widthProp === 'anchor' ? 180 : widthProp), zIndex: 2147483647,
           background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 8,
