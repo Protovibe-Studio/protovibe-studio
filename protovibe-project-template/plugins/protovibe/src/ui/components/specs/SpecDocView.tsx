@@ -671,18 +671,14 @@ const AnnotationRow: React.FC<{
         <GripVertical size={13} />
       </span>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {/* Inset the thumbnail from the row's right edge. Only here: the
-            published viewer keeps its thumbnails full width. */}
-        <div style={{ width: '94%' }}>
-          <SpecThumbnail
-            src={item.state.path}
-            fullWidth
-            scrollRoot={scrollRoot}
-            reloadKey={thumbReload}
-            themeMode={thumbTheme}
-            revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
-          />
-        </div>
+        <SpecThumbnail
+          src={item.state.path}
+          fullWidth
+          scrollRoot={scrollRoot}
+          reloadKey={thumbReload}
+          themeMode={thumbTheme}
+          revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
+        />
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. A modifier
             click is a selection gesture instead: it must reach the row, and

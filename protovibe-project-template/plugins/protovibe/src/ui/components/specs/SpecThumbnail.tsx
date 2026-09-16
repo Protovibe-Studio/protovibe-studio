@@ -155,7 +155,7 @@ export const SpecThumbnail: React.FC<{
     <div
       ref={hostRef}
       style={{
-        width: fullWidth ? '100%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
+        width: fullWidth ? '94%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
         boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
         background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
       }}
