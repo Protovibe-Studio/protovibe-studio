@@ -96,11 +96,21 @@ export function protovibeSourcePlugin(): Plugin {
     apply: 'serve',
 
     config() {
-      // Prevent Vite from reloading the page when protovibe-data.json is written
+      // Keep Vite's watcher off files that are pure editor data, never app
+      // modules. handleHotUpdate below can only suppress *change* events —
+      // Vite never routes an add or an unlink through it, and a deleted file
+      // goes straight to a full page reload. Deleting an annotation (or undoing
+      // one into existence) removes a JSON file, so without this the canvas
+      // reloads every time.
+      const root = normalizePath(process.cwd());
       return {
         server: {
           watch: {
-            ignored: ['**/protovibe-data.json'],
+            ignored: [
+              '**/protovibe-data.json',
+              `${root}/src/specs/**`,
+              `${root}/src/comments/**`,
+            ],
           },
         },
       };

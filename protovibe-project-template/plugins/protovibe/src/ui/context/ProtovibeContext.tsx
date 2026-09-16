@@ -38,7 +38,8 @@ interface ProtovibeContextType {
   sources: string[];
   setSources: (ids: string[]) => void;
   zones: Zone[];
-  focusElement: (el: HTMLElement | HTMLElement[], skipSnapshot?: boolean) => void;
+  /** `keepShellFocus` leaves a focused shell control alone (e.g. a text editor whose click selects the element). */
+  focusElement: (el: HTMLElement | HTMLElement[], skipSnapshot?: boolean, keepShellFocus?: boolean) => void;
   clearFocus: () => void;
   focusNewBlock: (blockId: string | string[], options?: { maxAttempts?: number; initialDelay?: number; interval?: number }) => void;
   isMutationLocked: boolean;
@@ -268,7 +269,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const focusElement = useCallback((inputEl: HTMLElement | HTMLElement[], skipSnapshot = false) => {
+  const focusElement = useCallback((inputEl: HTMLElement | HTMLElement[], skipSnapshot = false, keepShellFocus = false) => {
     const prevSourceId = activeSourceIdRef.current;
     if (!skipSnapshot && prevSourceId) {
       const prevData = sourceDataListRef.current.find(s => s.id === prevSourceId)?.data;
@@ -290,7 +291,7 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const active = document.activeElement as HTMLElement | null;
     const isFrameRoot = !!primaryEl.parentElement?.hasAttribute('data-sketchpad-frame');
     const focusInOwnerIframe = active instanceof HTMLIFrameElement && active.contentDocument === primaryEl.ownerDocument;
-    if (!(isFrameRoot && focusInOwnerIframe)) active?.blur?.();
+    if (!keepShellFocus && !(isFrameRoot && focusInOwnerIframe)) active?.blur?.();
 
     let t: HTMLElement | null = primaryEl;
     let matchedIds = new Set<string>();

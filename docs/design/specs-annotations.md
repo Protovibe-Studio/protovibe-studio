@@ -212,7 +212,7 @@ src/ui/components/specs/
   SpecDocView.tsx                      # level 2: items of one spec (list + drag reorder + search)
   SpecItemRow.tsx                      # annotation row with lazy thumbnail
   SpecHeadingRow.tsx                   # inline-editable heading row
-  SpecAnnotationView.tsx               # level 3: one annotation, edit in place, Prev/Next
+  (SpecAnnotationView.tsx — the former level 3 — was removed; see §11)
   SpecThumbnail.tsx                    # lazy scaled iframe
   SpecStatusPicker.tsx                 # STATUS_CONFIG lives here (labels, colours)
   SpecExportMenu.tsx                   # copy / download actions
@@ -235,9 +235,10 @@ separate commit), `runLockedMutation` and `takeSnapshot` from `ProtovibeContext`
 ```ts
 type SpecsView =
   | { level: 'docs' }
-  | { level: 'doc'; specId: string }
-  | { level: 'item'; specId: string; itemId: string };
+  | { level: 'doc'; specId: string; itemId?: string };   // itemId = the active item
 ```
+
+(The original design had a third `item` level; it was removed, see §11.)
 
 Kept in `SpecsTab` state and mirrored to `sessionStorage` so a shell refresh reopens the
 same place (the same convenience `CommentsTab` gets through `listScrollTop`).
@@ -287,8 +288,8 @@ same place (the same convenience `CommentsTab` gets through `listScrollTop`).
   The pinned-element case snapshots only the anchor source file (`takeSnapshot`) so undo
   removes the attribute and never deletes the JSON, exactly like comments.
 - **Add heading**: inserts a heading row in edit mode at the end.
-- **Row click** on an annotation: opens level 3 *and* restores the state on the canvas.
-  Row click on a heading: edit in place.
+- **Row click** on an annotation: marks it active *and* restores the state on the canvas;
+  its text is edited in place. Row click on a heading: marks it active, edit in place.
 - **Reorder**: HTML5 drag and drop, same approach as `PromptsTab` (`draggable`,
   `onDragOver` computing the insertion index, `onDrop`). Headings and annotations share
   one list, so a heading can be dragged between annotations. Drop computes
@@ -301,7 +302,11 @@ same place (the same convenience `CommentsTab` gets through `listScrollTop`).
   presentation view shows as "3 of 12".
 - The `⋯` menu: Rename, Export…, Delete spec.
 
-### Level 3: annotation view (`SpecAnnotationView`)
+### Level 3: annotation view (`SpecAnnotationView`) — removed
+
+> Historical. This view was built and then replaced by in-place editing in the
+> level 2 list (§11, "No single-annotation view"). Kept for the record of what
+> the Prev / Next, status and reference actions were designed to do.
 
 ```
 ┌ ‹ Minion onboarding                    ‹ 3 / 12 › ┐
@@ -393,7 +398,7 @@ mechanical rename. The comments handler can migrate to the generic event later o
 
 Selecting the anchored element (rather than only outlining it) is intentional: it gives
 the Design tab context and makes "Re-pin to selection" a two-click operation. When the
-element is gone (deleted from source), the annotation view shows "Pinned element not
+element is gone (deleted from source), the active row shows "Pinned element not
 found on this screen" in muted text and still restores the URL.
 
 ---
@@ -590,6 +595,8 @@ the design review:
   `###`.
 - **⋯ menu on every row.** Annotations: Delete. Headings: size switch + Delete.
   The annotation view's ⋯ menu adds Update state, Pin to selection, Unpin.
+  (Since replaced: the annotation view is gone and its actions moved to the
+  row's ⋯ menu — see "No single-annotation view" below.)
 - **Everything is undoable.** Every spec mutation snapshots the exact files it
   touches (the item's JSON, `spec.json`, the anchored source file) through the
   generic `/__take-snapshot` endpoint before writing, so Cmd+Z / Cmd+Shift+Z
@@ -604,7 +611,7 @@ the design review:
 - **Second review round.** The doc view ends in a single **Add** button that
   opens the same menu as the "+" between rows. Annotation rows show a
   full-width thumbnail with the title and the whole note below it. The
-  annotation view puts a small title above a taller text editor, the status
+  annotation view (since removed, see below) put a small title above a taller text editor, the status
   below it, and a collapsed **References & links** box whose state link
   navigates the canvas (the element is highlighted whenever the annotation is
   opened). The ⋯ menu's Update state + Pin are one action, **Update reference
@@ -616,6 +623,18 @@ the design review:
 - **Annotations have a single text field.** The optional `title` was dropped
   (no migration: an old `title` in a file is ignored). Exports print a counter
   before the text and one "View in prototype" link into the published viewer.
+- **No single-annotation view.** Level 3 (`SpecAnnotationView`) was removed
+  in both the editor and the published viewer; the list is the document.
+  Annotation text is click-to-edit in its row (like headings) and the status
+  is a picker on the row. One annotation is *active*: clicking a row
+  highlights it and restores its state on the canvas (a click on the text
+  also opens the editor, and the canvas selection is told to keep the shell
+  focus so the editor is not blurred). Prev / Next moved to the doc header
+  and step the active annotation; `←` / `→` do the same. Adding an
+  annotation activates the new row with its text editor focused. The
+  prototype link, "Recapture link and element" and "Unpin" live in
+  the row's ⋯ menu. The viewer keeps `?spec=&item=` for deep links: opening
+  one activates the card and scrolls it into view.
 
 ## 12. Decisions to confirm
 

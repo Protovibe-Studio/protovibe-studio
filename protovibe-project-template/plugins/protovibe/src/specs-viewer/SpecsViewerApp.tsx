@@ -1,16 +1,18 @@
 // plugins/protovibe/src/specs-viewer/SpecsViewerApp.tsx
 // Read-only viewer for published specs. Loads ./specs-data.json and shows the
 // prototype in an iframe next to a sidebar that mirrors the editor's Specs
-// panel: a list of annotation cards (lazy iframe thumbnails, full text), and
-// a single-annotation view with Prev / Next. There is no top bar.
+// panel: a list of annotation cards (lazy iframe thumbnails, full text) of
+// which one is *active* — highlighted, its state shown in the prototype.
+// Clicking a card activates it; Prev / Next in the header step the active
+// one. There is no top bar.
 // Routes as specs.html?spec={id}&item={id} so every annotation is shareable;
-// without `item` the sidebar shows the list.
+// opening such a link activates the card and scrolls it into view.
 // Same-origin with the prototype, so pinned elements are highlighted by
 // touching the iframe document directly — the published app has no bridge.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
-import { annotationsOf, isAnnotation, specIdSelector, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
+import { annotationsOf, isAnnotation, specIdSelector, SPEC_ACTIVE_BG, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 import { PROTOVIBE_LOGO_DATA_URL } from '../ui/protovibeLogo';
 
@@ -77,14 +79,16 @@ export const SpecsViewerApp: React.FC = () => {
     [specs, route.spec],
   );
   const annotations = useMemo(() => (bundle ? annotationsOf(bundle.items) : []), [bundle]);
-  // No item in the URL ⇒ the sidebar shows the card list; an unknown item
-  // falls back to the list as well.
+  // `item` is the active annotation; none (or an unknown one) ⇒ nothing active.
   const current: SpecAnnotation | undefined = useMemo(
     () => (route.item ? annotations.find((a) => a.id === route.item) : undefined),
     [annotations, route.item],
   );
   const index = current ? annotations.findIndex((a) => a.id === current.id) : -1;
   const [listScrollEl, setListScrollEl] = useState<HTMLDivElement | null>(null);
+  // Bumped to redraw the highlight for the annotation that is already active
+  // (clicking its card again after dismissing the frame in the prototype).
+  const [highlightNonce, setHighlightNonce] = useState(0);
 
   // Normalise the URL to the resolved spec / item once data is in.
   useEffect(() => {
@@ -118,23 +122,47 @@ export const SpecsViewerApp: React.FC = () => {
     window.addEventListener('mouseup', onUp);
   }, [sidebarW]);
 
+  // "Close" the sidebar: leave the viewer for whatever the prototype iframe is
+  // showing right now, so the user lands on the state they were looking at
+  // (including any navigation they did inside the prototype).
+  const openPrototype = useCallback(() => {
+    let href = iframeSrc;
+    try {
+      const live = iframeRef.current?.contentWindow?.location.href;
+      if (live && live !== 'about:blank') href = live;
+    } catch { /* cross-origin guard */ }
+    window.location.href = href;
+  }, [iframeSrc]);
+
   const select = useCallback((specId: string | null, itemId: string | null) => {
+    const r = readRoute();
+    if (r.spec === specId && r.item === itemId) return; // already there: no duplicate history entry
     writeRoute(specId, itemId);
     setRoute(readRoute());
   }, []);
 
   const step = useCallback((delta: number) => {
     if (!bundle) return;
-    const next = annotations[index + delta];
+    // With nothing active, Next starts from the first annotation and Prev from the last.
+    const next = index >= 0 ? annotations[index + delta] : delta > 0 ? annotations[0] : annotations[annotations.length - 1];
     if (next) select(bundle.spec.id, next.id);
   }, [bundle, annotations, index, select]);
+  const canPrev = annotations.length > 0 && index !== 0;
+  const canNext = annotations.length > 0 && index !== annotations.length - 1;
+
+  // Keep the active card visible (deep links, Prev / Next, back / forward).
+  useEffect(() => {
+    if (!current || !listScrollEl) return;
+    const card = listScrollEl.querySelector<HTMLElement>(`[data-spec-item="${current.id}"]`);
+    try { card?.scrollIntoView({ block: 'nearest' }); } catch { /* ignore */ }
+  }, [current, listScrollEl]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || index < 0) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || !bundle) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-      if (e.key === 'Escape') { e.preventDefault(); select(bundle?.spec.id ?? null, null); }
+      if (e.key === 'Escape' && index >= 0) { e.preventDefault(); select(bundle.spec.id, null); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -144,7 +172,7 @@ export const SpecsViewerApp: React.FC = () => {
   // the pinned element once it renders.
   useEffect(() => {
     if (!current) {
-      // Back on a list: drop the highlight but keep the prototype where it is.
+      // Nothing active: drop the highlight but keep the prototype where it is.
       iframeRef.current?.contentDocument?.getElementById(HIGHLIGHT_ID)?.remove();
       return;
     }
@@ -191,11 +219,18 @@ export const SpecsViewerApp: React.FC = () => {
       box.appendChild(badge);
       place();
       doc.body.appendChild(box);
+      // The frame points the annotation out; once the reader starts using the
+      // prototype it is just in the way, so the first press inside the iframe
+      // drops it. Capture phase so the app's own handlers cannot swallow it.
+      const dismiss = () => cleanupListeners?.();
       win.addEventListener('scroll', place, { capture: true, passive: true });
       win.addEventListener('resize', place);
+      doc.addEventListener('pointerdown', dismiss, true);
       cleanupListeners = () => {
         win.removeEventListener('scroll', place, { capture: true });
         win.removeEventListener('resize', place);
+        doc.removeEventListener('pointerdown', dismiss, true);
+        cleanupListeners = null;
         box.remove();
       };
     };
@@ -211,7 +246,7 @@ export const SpecsViewerApp: React.FC = () => {
       try { cleanupListeners?.(); } catch { /* document may be gone */ }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id, iframeSrc]);
+  }, [current?.id, iframeSrc, highlightNonce]);
 
   if (error) return <Center>{error}</Center>;
   if (!data) return <Center>Loading…</Center>;
@@ -225,9 +260,24 @@ export const SpecsViewerApp: React.FC = () => {
     </div>
   );
 
-  const sidebarFooter = (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+  const sidebarBrand = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 14px', minHeight: 40, boxSizing: 'border-box', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
       <img src={PROTOVIBE_LOGO_DATA_URL} alt="Protovibe" style={{ height: 11, opacity: 0.6 }} />
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={openPrototype}
+        title="Close specs and open the prototype"
+        aria-label="Close specs"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, padding: 0,
+          border: 'none', borderRadius: 4, background: 'transparent', color: theme.text_tertiary,
+          fontSize: 14, lineHeight: 1, cursor: 'pointer', fontFamily: theme.font_ui, flexShrink: 0,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_default; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+      >
+        ✕
+      </button>
     </div>
   );
 
@@ -241,6 +291,7 @@ export const SpecsViewerApp: React.FC = () => {
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
       <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
+        {sidebarBrand}
         {!bundle ? (
           <>
             {/* level 1: specs */}
@@ -266,10 +317,15 @@ export const SpecsViewerApp: React.FC = () => {
               })}
             </div>
           </>
-        ) : !current ? (
+        ) : (
           <>
-            {/* level 2: one spec's headings + annotation cards */}
-            {sidebarHeader(bundle.spec.title, specs.length > 1 ? () => select(null, null) : null)}
+            {/* level 2: one spec's headings + annotation cards, one active */}
+            {sidebarHeader(bundle.spec.title, specs.length > 1 ? () => select(null, null) : null, annotations.length > 0 && (
+              <>
+                <NavButton label="‹" title="Previous annotation (←)" disabled={!canPrev} onClick={() => step(-1)} />
+                <NavButton label="›" title="Next annotation (→)" disabled={!canNext} onClick={() => step(1)} />
+              </>
+            ))}
             <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', paddingBottom: 24 }}>
               {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
               {bundle.items.map((it) => {
@@ -282,20 +338,29 @@ export const SpecsViewerApp: React.FC = () => {
                   );
                 }
                 const body = it.text.trim();
+                const active = current?.id === it.id;
+                const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
                 return (
                   <div
                     key={it.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => select(bundle.spec.id, it.id)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(bundle.spec.id, it.id); } }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px 10px', cursor: 'pointer', outline: 'none' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    data-spec-item={it.id}
+                    data-active={active}
+                    onClick={() => { if (active) setHighlightNonce((v) => v + 1); else select(bundle.spec.id, it.id); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (active) setHighlightNonce((v) => v + 1); else select(bundle.spec.id, it.id); } }}
+                    style={{
+                      display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px 10px', cursor: 'pointer', outline: 'none',
+                      background: baseBg, boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
+                    }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
                   >
                     <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
-                    {body && (
+                    {body ? (
                       <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
+                    ) : active && (
+                      <span style={{ fontSize: 12, color: theme.text_tertiary }}>No description</span>
                     )}
                     {statusBadge(it.status)}
                   </div>
@@ -303,35 +368,7 @@ export const SpecsViewerApp: React.FC = () => {
               })}
             </div>
           </>
-        ) : (
-          <>
-            {/* level 3: single annotation */}
-            {sidebarHeader('Annotation', () => select(bundle.spec.id, null), (
-              <>
-                <NavButton label="‹" title="Previous (←)" disabled={index <= 0} onClick={() => step(-1)} />
-                <NavButton label="›" title="Next (→)" disabled={index >= annotations.length - 1} onClick={() => step(1)} />
-              </>
-            ))}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px 24px' }}>
-              <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: theme.text_default }}>
-                {current.text || <span style={{ color: theme.text_tertiary }}>No description</span>}
-              </div>
-              {statusBadge(current.status)}
-              <a
-                href={appUrl(current.state.path)}
-                target="_blank"
-                rel="noreferrer"
-                style={{ alignSelf: 'flex-start', fontSize: 11, color: theme.accent_default, textDecoration: 'none' }}
-                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
-              >
-                Open app ↗
-              </a>
-            </div>
-          </>
         )}
-
-        {sidebarFooter}
 
         {/* resize handle */}
         <div

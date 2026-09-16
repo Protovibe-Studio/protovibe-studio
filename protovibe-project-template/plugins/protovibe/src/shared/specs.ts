@@ -28,6 +28,14 @@ export const SPEC_STATUS_CONFIG: Record<SpecStatus, { label: string; color: stri
   verified: { label: 'Verified',   color: '#1ABC9C' },
 };
 
+/**
+ * Background of the active annotation / heading row, shared by the editor
+ * panel and the published viewer so both highlight the same way. Literal
+ * colour for the same reason as SPEC_STATUS_CONFIG: this file stays free of
+ * UI imports.
+ */
+export const SPEC_ACTIVE_BG = 'rgb(0 141 253 / 25%)';
+
 export function normalizeSpecStatus(raw: unknown): SpecStatus | undefined {
   if (typeof raw !== 'string') return undefined;
   return (SPEC_STATUSES as string[]).includes(raw) ? (raw as SpecStatus) : undefined;
