@@ -616,6 +616,18 @@ the design review:
 - **Annotations have a single text field.** The optional `title` was dropped
   (no migration: an old `title` in a file is ignored). Exports print a counter
   before the text and one "View in prototype" link into the published viewer.
+- **No single-annotation view.** Level 3 (`SpecAnnotationView`) was removed
+  in both the editor and the published viewer; the list is the document.
+  Annotation text is click-to-edit in its row (like headings) and the status
+  is a picker on the row. One annotation is *active*: clicking a row
+  highlights it and restores its state on the canvas (a click on the text
+  also opens the editor, and the canvas selection is told to keep the shell
+  focus so the editor is not blurred). Prev / Next moved to the doc header
+  and step the active annotation; `←` / `→` do the same. Adding an
+  annotation activates the new row with its text editor focused. The
+  prototype link, "Update reference link and element" and "Unpin" live in
+  the row's ⋯ menu. The viewer keeps `?spec=&item=` for deep links: opening
+  one activates the card and scrolls it into view.
 
 ## 12. Decisions to confirm
 

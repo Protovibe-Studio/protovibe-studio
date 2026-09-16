@@ -1,8 +1,9 @@
 // plugins/protovibe/src/ui/components/SpecsTab.tsx
 // The Specs panel: spec documents made of annotated prototype states.
 //
-// Three levels — docs list → one spec's items → one annotation — all driven by
-// `view`. Every mutation snapshots the exact files it is about to change
+// Two levels — docs list → one spec's items — driven by `view`; annotations
+// are edited in place in the list and one of them is *active* (highlighted,
+// its state restored on the canvas). Every mutation snapshots the exact files it is about to change
 // (the item's JSON, the spec's spec.json, the anchored source file) through
 // the generic undo stack before calling the backend, so spec edits undo and
 // redo like any canvas edit. Comments deliberately do NOT do this; the two
@@ -29,13 +30,11 @@ import {
 } from '../api/specs';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
 import { SpecDocView, annotationMatches, type InsertKind } from './specs/SpecDocView';
-import { SpecAnnotationView } from './specs/SpecAnnotationView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
 
 type SpecsView =
   | { level: 'docs' }
-  | { level: 'doc'; specId: string }
-  | { level: 'item'; specId: string; itemId: string };
+  | { level: 'doc'; specId: string; /** active annotation */ itemId?: string };
 
 const VIEW_STORAGE_KEY = 'pv-specs-view';
 
@@ -44,7 +43,10 @@ function loadView(): SpecsView {
     const raw = sessionStorage.getItem(VIEW_STORAGE_KEY);
     if (raw) {
       const v = JSON.parse(raw);
-      if (v && (v.level === 'doc' || v.level === 'item') && typeof v.specId === 'string') return v;
+      // `item` is the pre-inline-editing level; it maps onto an active annotation.
+      if (v && (v.level === 'doc' || v.level === 'item') && typeof v.specId === 'string') {
+        return { level: 'doc', specId: v.specId, ...(typeof v.itemId === 'string' ? { itemId: v.itemId } : {}) };
+      }
     }
   } catch { /* ignore */ }
   return { level: 'docs' };
@@ -55,9 +57,10 @@ export const PV_CANVAS_NAVIGATE_EVENT = 'pv-canvas-navigate';
 /** Dispatched by the shell after undo / redo / git sync so the panel re-reads disk. */
 export const PV_SPECS_REFRESH_EVENT = 'pv-specs-refresh';
 
-function navigateToAnnotation(a: SpecAnnotation) {
+/** `keepFocus`: the click came from the annotation's text editor, which must stay focused. */
+function navigateToAnnotation(a: SpecAnnotation, keepFocus = false) {
   window.dispatchEvent(new CustomEvent(PV_CANVAS_NAVIGATE_EVENT, {
-    detail: { path: a.state.path, selector: a.anchor ? specIdSelector(a.id) : undefined },
+    detail: { path: a.state.path, selector: a.anchor ? specIdSelector(a.id) : undefined, keepFocus },
   }));
 }
 
@@ -93,7 +96,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   // Spec whose title opens selected for typing (just created).
   const [editingTitleSpecId, setEditingTitleSpecId] = useState<string | null>(null);
   const [autoEditTextId, setAutoEditTextId] = useState<string | null>(null);
-  const [highlightId, setHighlightId] = useState<string | null>(null);
   const [anchorFound, setAnchorFound] = useState<boolean | null>(null);
   const [confirm, setConfirm] = useState<{ kind: 'spec'; specId: string } | null>(null);
   const listScrollTop = useRef(0);
@@ -139,11 +141,16 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   }, [refreshList, refreshBundle, currentSpecId]);
   useEffect(() => { if (isActive) { void refreshList(); fetchPublishedUrl().then(setPublishedUrl); } }, [isActive, refreshList]);
 
-  // An open annotation whose file disappeared (undo, delete) drops back to the list.
+  // An active annotation whose file disappeared (undo, delete) is deactivated.
   useEffect(() => {
-    if (view.level !== 'item' || !bundle || bundle.spec.id !== view.specId) return;
+    if (view.level !== 'doc' || !view.itemId || !bundle || bundle.spec.id !== view.specId) return;
     if (!bundle.items.some((it) => it.id === view.itemId)) setView({ level: 'doc', specId: view.specId });
   }, [bundle, view, setView]);
+
+  const activeId = view.level === 'doc' ? view.itemId ?? null : null;
+  const setActiveId = useCallback((specId: string, itemId: string | null) => {
+    setView({ level: 'doc', specId, ...(itemId ? { itemId } : {}) });
+  }, [setView]);
 
   // ── undo-aware mutation helpers ───────────────────────────────────────────────
   const snapshot = useCallback((files: string[], note: string) => {
@@ -239,8 +246,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           await refreshList();
           setBundle(b);
           setAutoEditTextId(id);
-          setHighlightId(id);
-          setView({ level: 'item', specId, itemId: id });
+          setActiveId(specId, id);
         }, pinned);
       });
       return;
@@ -291,7 +297,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       await snapshot([specItemFileRel(specId, itemId), anchorFile], isAnnotation(item!) ? 'delete annotation' : 'delete heading');
       const b = await deleteSpecItem(specId, itemId);
       setBundle(b);
-      if (view.level === 'item' && view.itemId === itemId) setView({ level: 'doc', specId });
+      if (activeId === itemId) setActiveId(specId, null);
       void refreshList();
     }, !!anchorFile);
   };
@@ -344,14 +350,14 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   });
 
   // ── navigation ────────────────────────────────────────────────────────────────
-  const openAnnotation = useCallback((a: SpecAnnotation) => {
+  // Activate an annotation (highlight its row) and restore its state on the canvas.
+  const selectAnnotation = useCallback((a: SpecAnnotation, keepFocus = false) => {
     if (!bundle) return;
-    setHighlightId(a.id);
-    setView({ level: 'item', specId: bundle.spec.id, itemId: a.id });
-    navigateToAnnotation(a);
-  }, [bundle, setView]);
+    setActiveId(bundle.spec.id, a.id);
+    navigateToAnnotation(a, keepFocus);
+  }, [bundle, setActiveId]);
 
-  const activeItem = view.level === 'item' && bundle ? bundle.items.find((it) => it.id === view.itemId) : undefined;
+  const activeItem = activeId && bundle ? bundle.items.find((it) => it.id === activeId) : undefined;
   const activeAnnotation = activeItem && isAnnotation(activeItem) ? activeItem : undefined;
 
   // Prev / Next walk the annotations that pass the current search + filters.
@@ -360,13 +366,16 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     [bundle, query, statusFilter],
   );
   const navIndex = activeAnnotation ? navList.findIndex((a) => a.id === activeAnnotation.id) : -1;
+  // With nothing active, Next starts from the first annotation and Prev from the last.
   const step = useCallback((delta: number) => {
-    const next = navIndex >= 0 ? navList[navIndex + delta] : undefined;
-    if (next) openAnnotation(next);
-  }, [navIndex, navList, openAnnotation]);
+    const next = navIndex >= 0 ? navList[navIndex + delta] : delta > 0 ? navList[0] : navList[navList.length - 1];
+    if (next) selectAnnotation(next);
+  }, [navIndex, navList, selectAnnotation]);
+  const canPrev = navList.length > 0 && navIndex !== 0;
+  const canNext = navList.length > 0 && navIndex !== navList.length - 1;
 
   useEffect(() => {
-    if (!isActive || view.level !== 'item') return;
+    if (!isActive || view.level !== 'doc') return;
     const onKey = (e: KeyboardEvent) => {
       if (isTypingInput(e.target as HTMLElement | null)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -437,37 +446,25 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           onEditingDone={() => setEditingItemId(null)}
           editingTitle={editingTitleSpecId === bundle.spec.id}
           onTitleEditingDone={() => setEditingTitleSpecId(null)}
-          highlightId={highlightId}
+          activeId={activeId}
+          activeAnchorFound={anchorFound}
+          autoEditTextId={autoEditTextId}
+          onAutoEditDone={() => setAutoEditTextId(null)}
           onBack={() => setView({ level: 'docs' })}
           onRename={(t) => handleRenameSpec(bundle.spec.id, t)}
-          onOpenAnnotation={(id) => { const a = bundle.items.find((it) => it.id === id); if (a && isAnnotation(a)) openAnnotation(a); }}
+          onSelectAnnotation={(id, keepFocus) => { const a = bundle.items.find((it) => it.id === id); if (a && isAnnotation(a)) selectAnnotation(a, keepFocus); }}
+          onPrev={canPrev ? () => step(-1) : undefined}
+          onNext={canNext ? () => step(1) : undefined}
           onInsert={handleInsert}
           onMove={handleMove}
           onUpdateItem={handleUpdateItem}
+          onUpdateReference={handleUpdateReference}
+          onUnpin={handleUnpin}
           onDeleteItem={handleDeleteItem}
           onExport={(a) => handleExport(bundle.spec.id, a)}
           onDeleteSpec={() => setConfirm({ kind: 'spec', specId: bundle.spec.id })}
           initialScrollTop={listScrollTop.current}
           onScrollChange={(v) => { listScrollTop.current = v; }}
-        />
-      )}
-
-      {view.level === 'item' && bundle && activeAnnotation && (
-        <SpecAnnotationView
-          bundle={bundle}
-          item={activeAnnotation}
-          busy={busy}
-          autoEditText={autoEditTextId === activeAnnotation.id}
-          onAutoEditDone={() => setAutoEditTextId(null)}
-          anchorFound={anchorFound}
-          onBack={() => setView({ level: 'doc', specId: bundle.spec.id })}
-          onPrev={navIndex > 0 ? () => step(-1) : undefined}
-          onNext={navIndex >= 0 && navIndex < navList.length - 1 ? () => step(1) : undefined}
-          onUpdate={(patch, note) => handleUpdateItem(activeAnnotation.id, patch, note)}
-          onLocate={() => navigateToAnnotation(activeAnnotation)}
-          onUpdateReference={() => handleUpdateReference(activeAnnotation.id)}
-          onUnpin={() => handleUnpin(activeAnnotation.id)}
-          onDelete={() => handleDeleteItem(activeAnnotation.id)}
         />
       )}
 

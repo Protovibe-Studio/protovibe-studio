@@ -39,6 +39,8 @@ export const hoverBg = {
 
 export interface MenuItem {
   label: string;
+  /** Small secondary line under the label (e.g. the path an item acts on). */
+  hint?: string;
   icon?: React.ReactNode;
   onSelect: () => void;
   danger?: boolean;
@@ -107,7 +109,7 @@ export const Menu: React.FC<{
               disabled={it.disabled}
               onClick={(e) => { e.stopPropagation(); onClose(); it.onSelect(); }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 5, border: 'none',
+                display: 'flex', alignItems: it.hint ? 'flex-start' : 'center', gap: 8, padding: '6px 8px', borderRadius: 5, border: 'none',
                 background: it.selected ? theme.bg_tertiary : 'transparent',
                 color: it.danger ? theme.destructive_default : theme.text_default,
                 fontSize: 12, fontWeight: 500, cursor: it.disabled ? 'default' : 'pointer', fontFamily: theme.font_ui, textAlign: 'left',
@@ -116,8 +118,11 @@ export const Menu: React.FC<{
               onMouseEnter={(e) => { if (!it.selected && !it.disabled) e.currentTarget.style.background = theme.bg_low; }}
               onMouseLeave={(e) => { if (!it.selected) e.currentTarget.style.background = 'transparent'; }}
             >
-              {it.icon && <span style={{ display: 'flex', alignItems: 'center', width: 14, flexShrink: 0, opacity: 0.8 }}>{it.icon}</span>}
-              <span style={{ flex: 1 }}>{it.label}</span>
+              {it.icon && <span style={{ display: 'flex', alignItems: 'center', width: 14, flexShrink: 0, opacity: 0.8, marginTop: it.hint ? 2 : 0 }}>{it.icon}</span>}
+              <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span>{it.label}</span>
+                {it.hint && <span style={{ fontSize: 10, fontWeight: 400, color: theme.text_tertiary, wordBreak: 'break-all', lineHeight: 1.35 }}>{it.hint}</span>}
+              </span>
               {it.selected && <Check size={13} style={{ color: theme.accent_default }} />}
             </button>
           </React.Fragment>

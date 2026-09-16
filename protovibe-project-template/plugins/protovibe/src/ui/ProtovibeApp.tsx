@@ -339,7 +339,7 @@ export const ProtovibeApp: React.FC = () => {
   // Bring an anchored element (a comment thread's or a spec annotation's) into
   // view by CSS selector. Retries across iframes because the element may only
   // appear after a tab switch or an app-iframe navigation.
-  const focusCanvasElement = useCallback((sel: string) => {
+  const focusCanvasElement = useCallback((sel: string, keepShellFocus = false) => {
     let attempts = 0;
     const tryFind = () => {
       let el: HTMLElement | null = null;
@@ -349,7 +349,7 @@ export const ProtovibeApp: React.FC = () => {
       }
       if (!el) el = document.querySelector(sel) as HTMLElement | null;
       if (el) {
-        focusElement(el, true);
+        focusElement(el, true, keepShellFocus);
         try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); } catch {}
         return;
       }
@@ -415,9 +415,11 @@ export const ProtovibeApp: React.FC = () => {
 
   // The specs panel asks us to show an annotation's state: navigate the app
   // iframe to the saved path when it differs, then select the pinned element.
+  // `keepFocus` is set when the click came from the annotation's text editor,
+  // so selecting the element must not blur (and close) that editor.
   useEffect(() => {
     const handler = (e: Event) => {
-      const { path, selector } = (e as CustomEvent<{ path?: string; selector?: string }>).detail || {};
+      const { path, selector, keepFocus } = (e as CustomEvent<{ path?: string; selector?: string; keepFocus?: boolean }>).detail || {};
       if (!path || !path.startsWith('/') || path.startsWith('//')) return;
       handleIframeTabChange('app');
       const win = appIframeRef.current?.contentWindow;
@@ -429,7 +431,7 @@ export const ProtovibeApp: React.FC = () => {
           win.location.href = path;
         }
       }
-      if (selector) focusCanvasElement(selector);
+      if (selector) focusCanvasElement(selector, !!keepFocus);
     };
     window.addEventListener(PV_CANVAS_NAVIGATE_EVENT, handler);
     return () => window.removeEventListener(PV_CANVAS_NAVIGATE_EVENT, handler);
