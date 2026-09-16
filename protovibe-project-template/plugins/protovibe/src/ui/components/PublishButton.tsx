@@ -775,7 +775,8 @@ export function PublishButton() {
             {sectionHeader('Published to', <CircleCheck size={14} color="#34c759" />)}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <a href={publishedLink} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
-                style={{ display: 'block', flex: 1, fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
+                title={publishedLink}
+                style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', flex: 1, minWidth: 0, fontSize: '12px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                 onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
                 onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
               >
