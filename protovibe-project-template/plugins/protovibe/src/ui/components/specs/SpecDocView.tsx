@@ -317,9 +317,9 @@ const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void 
   const btnRef = useRef<HTMLButtonElement | null>(null);
   return (
     <div style={{ display: 'flex', padding: '8px 12px' }}>
-      <button ref={btnRef} data-testid="specs-add" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', position: 'relative', opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => setOpen(true)}>
+      <button ref={btnRef} data-testid="specs-add" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => setOpen(true)}>
         <Plus size={13} /> Add
-        <ChevronDown size={13} style={{ position: 'absolute', right: 10, opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        <ChevronDown size={13} style={{ opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
       <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width="anchor" />
     </div>
