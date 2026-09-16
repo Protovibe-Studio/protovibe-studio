@@ -12,7 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
-import { annotationsOf, isAnnotation, specIdSelector, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
+import { annotationsOf, isAnnotation, specIdSelector, SPEC_ACTIVE_BG, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 import { PROTOVIBE_LOGO_DATA_URL } from '../ui/protovibeLogo';
 
@@ -118,6 +118,18 @@ export const SpecsViewerApp: React.FC = () => {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }, [sidebarW]);
+
+  // "Close" the sidebar: leave the viewer for whatever the prototype iframe is
+  // showing right now, so the user lands on the state they were looking at
+  // (including any navigation they did inside the prototype).
+  const openPrototype = useCallback(() => {
+    let href = iframeSrc;
+    try {
+      const live = iframeRef.current?.contentWindow?.location.href;
+      if (live && live !== 'about:blank') href = live;
+    } catch { /* cross-origin guard */ }
+    window.location.href = href;
+  }, [iframeSrc]);
 
   const select = useCallback((specId: string | null, itemId: string | null) => {
     const r = readRoute();
@@ -238,9 +250,24 @@ export const SpecsViewerApp: React.FC = () => {
     </div>
   );
 
-  const sidebarFooter = (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderTop: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+  const sidebarBrand = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 14px', minHeight: 40, boxSizing: 'border-box', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
       <img src={PROTOVIBE_LOGO_DATA_URL} alt="Protovibe" style={{ height: 11, opacity: 0.6 }} />
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={openPrototype}
+        title="Close specs and open the prototype"
+        aria-label="Close specs"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, padding: 0,
+          border: 'none', borderRadius: 4, background: 'transparent', color: theme.text_tertiary,
+          fontSize: 14, lineHeight: 1, cursor: 'pointer', fontFamily: theme.font_ui, flexShrink: 0,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_default; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+      >
+        ✕
+      </button>
     </div>
   );
 
@@ -254,6 +281,7 @@ export const SpecsViewerApp: React.FC = () => {
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
       <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
+        {sidebarBrand}
         {!bundle ? (
           <>
             {/* level 1: specs */}
@@ -301,7 +329,7 @@ export const SpecsViewerApp: React.FC = () => {
                 }
                 const body = it.text.trim();
                 const active = current?.id === it.id;
-                const baseBg = active ? `${theme.accent_default}1a` : 'transparent';
+                const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
                 return (
                   <div
                     key={it.id}
@@ -324,30 +352,13 @@ export const SpecsViewerApp: React.FC = () => {
                     ) : active && (
                       <span style={{ fontSize: 12, color: theme.text_tertiary }}>No description</span>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      {statusBadge(it.status)}
-                      {active && (
-                        <a
-                          href={appUrl(it.state.path)}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ fontSize: 11, color: theme.accent_default, textDecoration: 'none' }}
-                          onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
-                        >
-                          Open app ↗
-                        </a>
-                      )}
-                    </div>
+                    {statusBadge(it.status)}
                   </div>
                 );
               })}
             </div>
           </>
         )}
-
-        {sidebarFooter}
 
         {/* resize handle */}
         <div

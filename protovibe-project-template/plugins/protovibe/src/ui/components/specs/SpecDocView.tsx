@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
-import { SPEC_STATUSES, isAnnotation } from '../../../shared/specs';
+import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
@@ -436,7 +436,7 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
-  const baseBg = active ? `${theme.accent_default}1a` : 'transparent';
+  const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
   const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   const menuItems: MenuItem[] = [
@@ -517,7 +517,7 @@ const HeadingRow: React.FC<{
   const [localEditing, setLocalEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const big = item.level === 'big';
-  const baseBg = active ? `${theme.accent_default}1a` : 'transparent';
+  const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
   return (
     <div
       {...rowProps}
