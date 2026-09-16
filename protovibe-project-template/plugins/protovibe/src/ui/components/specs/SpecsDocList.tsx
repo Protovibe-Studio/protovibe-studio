@@ -2,7 +2,7 @@
 // Level 1 of the Specs panel: every spec document, with create / export /
 // delete (titles are edited inside the spec), plus the note that specs publish alongside the prototype.
 import React, { useRef, useState } from 'react';
-import { BookOpen, Plus, MoreHorizontal, Trash2, Copy, Download, ExternalLink, Info } from 'lucide-react';
+import { BookOpen, Plus, MoreHorizontal, Trash2, Copy, Download, ExternalLink, Info, Search } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecSummary } from '../../../shared/specs';
 import { Menu, iconBtn, primaryBtn, hoverBg } from './specsUi';
@@ -20,6 +20,9 @@ export const SpecsDocList: React.FC<{
   onExport: (specId: string, action: SpecExportAction) => void;
 }> = ({ specs, publishedUrl, busy, onOpen, onCreate, onDelete, onExport }) => {
   const viewerUrl = publishedUrl ? `${publishedUrl.replace(/\/+$/, '')}/specs.html` : '';
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const visible = q ? specs.filter((s) => (s.title || 'Untitled spec').toLowerCase().includes(q)) : specs;
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
@@ -29,13 +32,38 @@ export const SpecsDocList: React.FC<{
         </button>
       </div>
 
+      {/* search (only once there is something to search) */}
+      {specs.length > 0 && (
+        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
+            <input
+              data-testid="specs-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape' && query) { e.preventDefault(); setQuery(''); } }}
+              placeholder="Search specs…"
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '5px 10px 5px 28px',
+                background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
+                color: theme.text_default, fontSize: 11, outline: 'none', fontFamily: theme.font_ui,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {specs.length === 0 ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: theme.text_tertiary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <BookOpen size={40} strokeWidth={1.5} style={{ opacity: 0.5 }} />
             <span style={{ fontSize: 13 }}>No specs yet. A spec is a walkthrough of annotated prototype states.</span>
           </div>
-        ) : specs.map((s) => (
+        ) : visible.length === 0 ? (
+          <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>
+            No specs match “{query.trim()}”.
+          </div>
+        ) : visible.map((s) => (
           <SpecRow
             key={s.id}
             spec={s}
