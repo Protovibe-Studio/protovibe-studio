@@ -625,7 +625,7 @@ the design review:
   focus so the editor is not blurred). Prev / Next moved to the doc header
   and step the active annotation; `←` / `→` do the same. Adding an
   annotation activates the new row with its text editor focused. The
-  prototype link, "Update reference link and element" and "Unpin" live in
+  prototype link, "Recapture link and element" and "Unpin" live in
   the row's ⋯ menu. The viewer keeps `?spec=&item=` for deep links: opening
   one activates the card and scrolls it into view.
 

@@ -314,7 +314,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   };
 
   // Re-capture the canvas path and, when an element is selected, re-pin to it —
-  // one undo step, one "Update reference link and element" action.
+  // one undo step, one "Recapture link and element" action.
   const handleUpdateReference = (itemId: string) => {
     if (!bundle) return;
     const specId = bundle.spec.id;

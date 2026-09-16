@@ -403,7 +403,7 @@ const AnnotationRow: React.FC<{
       disabled: busy, onSelect: () => onUpdate({ status: item.status === s ? null : s }, 'change annotation status'),
     })),
     { label: 'Show on canvas', hint: item.state.path, icon: <Link2 size={13} />, separator: true, onSelect: () => onSelect(false) },
-    { label: 'Update reference link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
+    { label: 'Recapture link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
     { label: 'Unpin element', hint: item.anchor ? `Element in ${fileName}` : undefined, icon: <PinOff size={13} />, onSelect: onUnpin, disabled: !item.anchor || busy },
     { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: onDelete },
   ];
