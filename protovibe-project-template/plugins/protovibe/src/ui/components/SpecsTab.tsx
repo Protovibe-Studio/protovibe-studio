@@ -174,13 +174,20 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
 
   const anchorFileOf = (it: SpecItem | undefined) => (it && isAnnotation(it) && it.anchor ? it.anchor.file : '');
 
-  // Rank strictly between two neighbours; when saved ranks collide (files
-  // written without ranks) renormalise the whole list first.
-  const rankFor = async (specId: string, items: SpecItem[], index: number): Promise<{ rank: string; items: SpecItem[] }> => {
-    const before = items[index - 1]?.rank ?? null;
-    const after = items[index]?.rank ?? null;
+  // `count` ranks that land, in order, in the gap before items[index]; when
+  // saved ranks collide (files written without ranks) renormalise the whole
+  // list first. Each rank is taken between the previous one and the item after
+  // the gap, so a block of items keeps its relative order.
+  const ranksFor = async (specId: string, items: SpecItem[], index: number, count = 1): Promise<string[]> => {
+    const build = (list: SpecItem[]): string[] => {
+      const after = list[index]?.rank ?? null;
+      let prev = list[index - 1]?.rank ?? null;
+      const out: string[] = [];
+      for (let i = 0; i < count; i++) { prev = rankBetween(prev, after); out.push(prev); }
+      return out;
+    };
     try {
-      return { rank: rankBetween(before, after), items };
+      return build(items);
     } catch {
       await snapshot(items.map((it) => specItemFileRel(specId, it.id)), 'reorder');
       let prev: string | null = null;
@@ -193,7 +200,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
         prev = r;
       }
       if (next) setBundle(next);
-      return { rank: rankBetween(renumbered[index - 1]?.rank ?? null, renumbered[index]?.rank ?? null), items: renumbered };
+      return build(renumbered);
     }
   };
 
@@ -236,7 +243,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       withAuthor((author) => {
         const pinned = activeIframeTab === 'app' && !!activeData?.file && !!activeData?.nameEnd;
         void run(async () => {
-          const { rank } = await rankFor(specId, bundle.items, index);
+          const [rank] = await ranksFor(specId, bundle.items, index);
           const id = makeAnnotationId();
           await snapshot([specItemFileRel(specId, id), pinned ? activeData!.file : ''], 'add annotation');
           const b = await createSpecItem({
@@ -253,7 +260,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       return;
     }
     void run(async () => {
-      const { rank } = await rankFor(specId, bundle.items, index);
+      const [rank] = await ranksFor(specId, bundle.items, index);
       const id = makeHeadingId();
       await snapshot([specItemFileRel(specId, id)], 'add heading');
       const b = await createSpecItem({ specId, item: { type: 'heading', id, rank, title: '', level: kind } });
@@ -273,20 +280,28 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     });
   };
 
-  const handleMove = (itemId: string, toIndex: number) => {
-    if (!bundle) return;
+  // One id for a plain drag, several when a multi-selection was dragged. The
+  // moved items keep their relative order and land as one contiguous block, in
+  // one undo step.
+  const handleMove = (itemIds: string[], toIndex: number) => {
+    if (!bundle || itemIds.length === 0) return;
     const items = bundle.items;
-    const from = items.findIndex((it) => it.id === itemId);
-    if (from < 0) return;
-    // Index in the list without the dragged item.
-    const idx = toIndex - (from < toIndex ? 1 : 0);
-    if (idx === from) return;
-    const without = items.filter((it) => it.id !== itemId);
+    const ids = new Set(itemIds);
+    const moving = items.filter((it) => ids.has(it.id));
+    if (moving.length === 0) return;
+    const without = items.filter((it) => !ids.has(it.id));
+    // `toIndex` counts the dragged rows; the gap in `without` does not.
+    const idx = toIndex - items.slice(0, toIndex).filter((it) => ids.has(it.id)).length;
+    // Nothing to do when the block already sits exactly there.
+    const target = [...without.slice(0, idx), ...moving, ...without.slice(idx)];
+    if (target.every((it, i) => it.id === items[i].id)) return;
     const specId = bundle.spec.id;
     void run(async () => {
-      const { rank } = await rankFor(specId, without, idx);
-      await snapshot([specItemFileRel(specId, itemId)], 'reorder');
-      setBundle(await updateSpecItem(specId, itemId, { rank }));
+      const ranks = await ranksFor(specId, without, idx, moving.length);
+      await snapshot(moving.map((it) => specItemFileRel(specId, it.id)), 'reorder');
+      let b: SpecBundle | null = null;
+      for (let i = 0; i < moving.length; i++) b = await updateSpecItem(specId, moving[i].id, { rank: ranks[i] });
+      if (b) setBundle(b);
     });
   };
 

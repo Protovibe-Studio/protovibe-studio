@@ -4,8 +4,10 @@
 // status is a picker on the row. One annotation is *active* (highlighted);
 // clicking a row activates it and restores its state on the canvas, Prev /
 // Next in the header step the active annotation. Also: search + status
-// filters, hover "+" insert lines between rows, drag reorder, per-row ⋯ menu.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+// filters, hover "+" insert lines between rows, drag reorder (one row, or a
+// ⌘/Shift-click multi-selection moved as a block, with edge auto-scroll so a
+// drag can cross the whole list), per-row ⋯ menu.
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
   ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User,
@@ -15,11 +17,25 @@ import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
+import { isTypingInput } from '../../utils/elementType';
 
 export type InsertKind = 'annotation' | 'big' | 'medium';
+
+/** How close to the top / bottom edge of the list a drag starts auto-scrolling. */
+const AUTOSCROLL_EDGE = 56;
+/** Scroll step (px per frame) right at the edge; it ramps up across the band. */
+const AUTOSCROLL_MAX_SPEED = 16;
+/**
+ * How stale the last reported cursor position may be before auto-scroll pauses.
+ * A held pointer still reports: the drag-and-drop event loop re-fires dragover
+ * on the current target every 350ms whether or not the mouse moved. This only
+ * catches the case where those reports dry up mid-drag, so a scroll cannot run
+ * away from a position the cursor left long ago.
+ */
+const AUTOSCROLL_STALE_MS = 600;
 
 export interface SpecDocViewProps {
   bundle: SpecBundle;
@@ -53,8 +69,12 @@ export interface SpecDocViewProps {
   onUnpin: (itemId: string) => void;
   /** Insert a new item before items[index] (index === items.length ⇒ append). */
   onInsert: (index: number, kind: InsertKind) => void;
-  /** Move an item so it lands before items[toIndex] (in the unfiltered list). */
-  onMove: (itemId: string, toIndex: number) => void;
+  /**
+   * Move items so they land before items[toIndex] (in the unfiltered list),
+   * keeping their relative order. One id for a plain drag, several when a
+   * multi-selection was dragged.
+   */
+  onMove: (itemIds: string[], toIndex: number) => void;
   onUpdateItem: (itemId: string, patch: SpecItemPatch, note: string) => void;
   onDeleteItem: (itemId: string) => void;
   onExport: (action: SpecExportAction) => void;
@@ -75,9 +95,21 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   // Thumbnails follow the editor's light/dark switch, exactly like the canvas.
   const { iframeTheme } = useProtovibe();
 
-  // Drag reorder state: the dragged item and the insertion slot under the cursor.
-  const [dragId, setDragId] = useState<string | null>(null);
+  // Drag reorder state: the dragged items (one row, or the whole
+  // multi-selection) and the insertion slot under the cursor.
+  const [dragIds, setDragIds] = useState<string[]>([]);
   const [dropAt, setDropAt] = useState<number | null>(null);
+  const dragging = dragIds.length > 0;
+  // Multi-selection: ⌘/Ctrl-click toggles a row, Shift-click extends a range,
+  // and dragging any row inside it moves the whole block.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Anchor for Shift-click ranges: the last row picked without Shift.
+  const selectionAnchor = useRef<string | null>(null);
+  // Last cursor position seen during a drag, and when it was seen. The
+  // auto-scroll loop keeps reading them, so holding the pointer still at an
+  // edge keeps scrolling.
+  const dragPointerY = useRef<number | null>(null);
+  const dragPointerAt = useRef(0);
 
   const filtering = p.query.trim().length > 0 || p.statusFilter.size > 0;
 
@@ -111,12 +143,130 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     return out;
   }, [items, filtering, p.query, p.statusFilter]);
 
-  const finishDrag = () => { setDragId(null); setDropAt(null); };
+  // ── selection ────────────────────────────────────────────────────────────────
+  // Rows that went away (deleted, undone, changed by a git sync) drop out of the
+  // selection, so a later drag can never try to move a ghost.
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const live = new Set(items.map((it) => it.id));
+      const next = new Set(Array.from(prev).filter((id) => live.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [items]);
+
+  const selectOnly = (id: string) => { selectionAnchor.current = id; setSelected(new Set([id])); };
+
+  const toggleSelected = (id: string) => {
+    selectionAnchor.current = id;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  // Shift-click takes everything between the anchor and `id` in list order. The
+  // anchor stays put, so repeated Shift-clicks grow and shrink the same range.
+  const selectRangeTo = (id: string) => {
+    const ids = visible.map((it) => it.id);
+    const to = ids.indexOf(id);
+    if (to < 0) return;
+    const from = selectionAnchor.current ? ids.indexOf(selectionAnchor.current) : -1;
+    if (from < 0) { selectOnly(id); return; }
+    const [lo, hi] = from <= to ? [from, to] : [to, from];
+    setSelected(new Set(ids.slice(lo, hi + 1)));
+  };
+
+  const clearSelection = () => { setSelected(new Set()); selectionAnchor.current = null; };
+
+  // Escape drops a multi-selection. Captured before the shell's own Escape
+  // handling so it does not also clear the canvas selection.
+  useEffect(() => {
+    if (selected.size < 2) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || isTypingInput(e.target as HTMLElement | null)) return;
+      e.stopImmediatePropagation();
+      setSelected(new Set());
+      selectionAnchor.current = null;
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [selected.size]);
+
+  // A plain click activates the row and collapses the selection onto it; a
+  // modifier click only edits the selection, leaving the canvas where it is.
+  const rowClick = (it: SpecItem) => (e: React.MouseEvent) => {
+    if (e.shiftKey) { e.preventDefault(); selectRangeTo(it.id); return; }
+    if (e.metaKey || e.ctrlKey) { e.preventDefault(); toggleSelected(it.id); return; }
+    selectOnly(it.id);
+    if (isAnnotation(it)) p.onSelectAnnotation(it.id, false); else p.onSelectHeading(it.id);
+  };
+
+  // ── drag reorder ─────────────────────────────────────────────────────────────
+  const finishDrag = () => { setDragIds([]); setDropAt(null); dragPointerY.current = null; };
+
+  const trackPointer = (clientY: number) => { dragPointerY.current = clientY; dragPointerAt.current = Date.now(); };
+
+  // The slot the cursor points at, as an index into the unfiltered list: the
+  // first row whose midpoint sits below the cursor, else the end of the list.
+  // Hit-testing the rendered rows — rather than trusting the row the dragover
+  // came from — is what keeps the indicator honest while the auto-scroll loop
+  // moves the content under a pointer that is not moving.
+  const dropIndexFor = useCallback((clientY: number): number => {
+    const el = scrollRef.current;
+    if (!el) return 0;
+    for (const row of Array.from(el.querySelectorAll<HTMLElement>('[data-spec-item]'))) {
+      const r = row.getBoundingClientRect();
+      if (clientY >= r.top + r.height / 2) continue;
+      const i = items.findIndex((it) => it.id === row.dataset.specItem);
+      return i < 0 ? 0 : i;
+    }
+    return items.length;
+  }, [items]);
+
+  // One handler on the scroll container: dragover bubbles from every row and
+  // insert line, so the whole list reads from the same hit test.
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!dragging) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    trackPointer(e.clientY);
+    setDropAt(dropIndexFor(e.clientY));
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (dragId && dropAt !== null) p.onMove(dragId, dropAt);
+    const at = dropAt ?? (dragPointerY.current === null ? null : dropIndexFor(dragPointerY.current));
+    const ids = dragIds;
     finishDrag();
+    if (ids.length > 0 && at !== null) p.onMove(ids, at);
   };
+
+  // Holding the cursor near the top or bottom edge scrolls the list, so items
+  // can be dragged far past the visible window. Driven by requestAnimationFrame
+  // rather than the dragover event: while the list scrolls under it the pointer
+  // is usually still, and a still pointer stops firing dragover.
+  useEffect(() => {
+    if (!dragging || !scrollEl) return;
+    let raf = 0;
+    const step = () => {
+      raf = requestAnimationFrame(step);
+      const y = dragPointerY.current;
+      if (y === null || Date.now() - dragPointerAt.current > AUTOSCROLL_STALE_MS) return;
+      const r = scrollEl.getBoundingClientRect();
+      // Negative above the top band, positive below the bottom one, 0 between.
+      const past = y < r.top + AUTOSCROLL_EDGE ? y - (r.top + AUTOSCROLL_EDGE) : Math.max(0, y - (r.bottom - AUTOSCROLL_EDGE));
+      if (past === 0) return;
+      const ratio = Math.min(1, Math.abs(past) / AUTOSCROLL_EDGE);
+      const before = scrollEl.scrollTop;
+      scrollEl.scrollTop = before + Math.sign(past) * Math.max(1, Math.round(ratio * AUTOSCROLL_MAX_SPEED));
+      // The rows moved: re-read the slot under the (unmoved) cursor.
+      if (scrollEl.scrollTop !== before) setDropAt(dropIndexFor(y));
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [dragging, scrollEl, dropIndexFor]);
 
   const setScroll = (el: HTMLDivElement | null) => {
     scrollRef.current = el;
@@ -221,11 +371,29 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         </div>
       </div>}
 
+      {/* multi-selection bar */}
+      {selected.size > 1 && (
+        <div
+          data-testid="specs-selection-bar"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px 6px 12px', flexShrink: 0,
+            borderBottom: `1px solid ${theme.border_default}`, background: SPEC_SELECTED_BG,
+            fontSize: 11, color: theme.text_secondary, fontFamily: theme.font_ui,
+          }}
+        >
+          <span style={{ fontWeight: 600, color: theme.text_default, flexShrink: 0 }}>{selected.size} selected</span>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Drag to move together
+          </span>
+          <button data-testid="specs-selection-clear" onClick={clearSelection} style={{ ...ghostBtn, padding: '2px 8px', fontSize: 11, flexShrink: 0 }}>Clear</button>
+        </div>
+      )}
+
       {/* list */}
       <div
         ref={setScroll}
         onScroll={(e) => p.onScrollChange((e.target as HTMLDivElement).scrollTop)}
-        onDragOver={(e) => { if (dragId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }}
+        onDragOver={handleDragOver}
         onDrop={handleDrop}
         style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', display: 'flex', flexDirection: 'column', paddingBottom: 24 }}
       >
@@ -238,24 +406,27 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12 }}>No annotations match.</div>
         )}
 
-        {!filtering && <InsertLine index={0} active={dropAt === 0} dragging={!!dragId} onInsert={p.onInsert} onDragOver={() => setDropAt(0)} />}
+        {!filtering && <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />}
 
         {visible.map((it) => {
           const index = items.indexOf(it);
           const rowProps = {
             draggable: !filtering,
+            onClick: rowClick(it),
             onDragStart: (e: React.DragEvent) => {
+              // Grabbing a row inside the selection drags the whole selection,
+              // in list order; grabbing anything else collapses onto that row.
+              const ids = selected.size > 1 && selected.has(it.id)
+                ? items.filter((x) => selected.has(x.id)).map((x) => x.id)
+                : [it.id];
+              if (ids.length === 1) selectOnly(it.id);
               e.dataTransfer.effectAllowed = 'move';
-              e.dataTransfer.setData('text/plain', it.id);
-              setDragId(it.id);
+              e.dataTransfer.setData('text/plain', ids.join(','));
+              trackPointer(e.clientY);
+              setDragIds(ids);
+              setDropAt(null);
             },
             onDragEnd: finishDrag,
-            onDragOver: (e: React.DragEvent) => {
-              if (!dragId || filtering) return;
-              e.preventDefault();
-              const r = e.currentTarget.getBoundingClientRect();
-              setDropAt(e.clientY < r.top + r.height / 2 ? index : index + 1);
-            },
           };
           return (
             <React.Fragment key={it.id}>
@@ -263,15 +434,16 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                 <AnnotationRow
                   item={it}
                   active={p.activeId === it.id}
+                  selected={selected.has(it.id)}
                   anchorFound={p.activeId === it.id ? p.activeAnchorFound : null}
                   autoEditText={p.autoEditTextId === it.id}
                   onAutoEditDone={p.onAutoEditDone}
                   busy={p.busy}
-                  dragging={dragId === it.id}
+                  dragging={dragIds.includes(it.id)}
                   scrollRoot={scrollEl}
                   thumbReload={thumbReload}
                   thumbTheme={iframeTheme}
-                  onSelect={(keepFocus) => p.onSelectAnnotation(it.id, keepFocus)}
+                  onSelect={(keepFocus) => { selectOnly(it.id); p.onSelectAnnotation(it.id, keepFocus); }}
                   onUpdate={(patch, note) => p.onUpdateItem(it.id, patch, note)}
                   onUpdateReference={() => p.onUpdateReference(it.id)}
                   onUnpin={() => p.onUnpin(it.id)}
@@ -282,10 +454,10 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                 <HeadingRow
                   item={it}
                   active={p.activeId === it.id}
-                  onSelect={() => p.onSelectHeading(it.id)}
+                  selected={selected.has(it.id)}
                   editing={p.editingItemId === it.id}
                   onEditingDone={p.onEditingDone}
-                  dragging={dragId === it.id}
+                  dragging={dragIds.includes(it.id)}
                   onSave={(title) => p.onUpdateItem(it.id, { title }, 'edit heading')}
                   onLevel={(level) => p.onUpdateItem(it.id, { level }, 'change heading size')}
                   onDelete={() => p.onDeleteItem(it.id)}
@@ -296,9 +468,9 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                 <InsertLine
                   index={index + 1}
                   active={dropAt === index + 1}
-                  dragging={!!dragId}
+                  dragging={dragging}
+                  dragCount={dragIds.length}
                   onInsert={p.onInsert}
-                  onDragOver={() => setDropAt(index + 1)}
                 />
               )}
             </React.Fragment>
@@ -377,42 +549,54 @@ const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void 
 // ── insert line ────────────────────────────────────────────────────────────────
 // A thin hover zone between rows. Hover reveals a line with a "+" in the
 // middle; clicking it asks whether to insert an annotation or a heading. The
-// same slot doubles as the drop indicator while dragging.
+// same slot doubles as the drop indicator while dragging — which slot is active
+// is decided by the list's own hit test, so there is no dragover handler here.
 const InsertLine: React.FC<{
   index: number;
   active: boolean;
   dragging: boolean;
+  /** Rows the current drag carries; shown on the active slot when more than one. */
+  dragCount: number;
   onInsert: (index: number, kind: InsertKind) => void;
-  onDragOver: () => void;
-}> = ({ index, active, dragging, onInsert, onDragOver }) => {
+}> = ({ index, active, dragging, dragCount, onInsert }) => {
   const [hover, setHover] = useState(false);
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const show = hover || open || active;
+  // The "+" stays mounted while dragging, only invisible: unmounting it would
+  // let each line collapse to its set height (an 18px button in a flex column
+  // holds the line open through min-height: auto), shifting every row up the
+  // moment a drag starts.
+  const showButton = show && !dragging;
   const color = active ? theme.accent_default : theme.border_strong;
   const items = insertMenuItems((kind) => onInsert(index, kind));
   return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onDragOver={(e) => { if (dragging) { e.preventDefault(); onDragOver(); } }}
       style={{ position: 'relative', height: active ? 10 : 8, margin: '-3px 0', zIndex: show ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}
     >
       <div style={{ position: 'absolute', left: 12, right: 12, top: '50%', height: 2, marginTop: -1, background: color, opacity: show ? 1 : 0, transition: 'opacity 0.12s', borderRadius: 1 }} />
-      {!dragging && (
-        <button
-          ref={btnRef}
-          onClick={(e) => { e.stopPropagation(); setOpen(true); }}
-          data-tooltip="Insert here"
-          style={{
-            position: 'relative', width: 18, height: 18, borderRadius: 9, border: `1px solid ${color}`, background: theme.bg_strong,
-            color, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0,
-            opacity: show ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: show ? 'auto' : 'none',
-          }}
-        >
-          <Plus size={12} />
-        </button>
+      {active && dragCount > 1 && (
+        <span data-testid="spec-drop-count" style={{
+          position: 'absolute', padding: '1px 6px', borderRadius: 999, background: theme.accent_default,
+          color: theme.bg_strong, fontSize: 9, fontWeight: 700, fontFamily: theme.font_ui, pointerEvents: 'none',
+        }}>
+          {dragCount}
+        </span>
       )}
+      <button
+        ref={btnRef}
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        data-tooltip="Insert here"
+        style={{
+          position: 'relative', width: 18, height: 18, borderRadius: 9, border: `1px solid ${color}`, background: theme.bg_strong,
+          color, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0,
+          opacity: showButton ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showButton ? 'auto' : 'none',
+        }}
+      >
+        <Plus size={12} />
+      </button>
       <Menu open={open} anchorRef={btnRef} onClose={() => { setOpen(false); setHover(false); }} items={items} align="left" width={170} />
     </div>
   );
@@ -420,9 +604,15 @@ const InsertLine: React.FC<{
 
 // ── rows ───────────────────────────────────────────────────────────────────────
 
+// The whole row is draggable; the grip is where that is advertised, together
+// with the modifier clicks that build a multi-selection.
+const GRIP_TOOLTIP = 'Drag to reorder · ⌘/Ctrl-click or Shift-click to select several';
+
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
   active: boolean;
+  /** Part of the current multi-selection. */
+  selected: boolean;
   anchorFound: boolean | null;
   autoEditText: boolean;
   onAutoEditDone: () => void;
@@ -437,11 +627,11 @@ const AnnotationRow: React.FC<{
   onUnpin: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
-  const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
+  const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
   const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   const menuItems: MenuItem[] = [
@@ -464,16 +654,18 @@ const AnnotationRow: React.FC<{
       data-testid="spec-annotation-row"
       data-spec-item={item.id}
       data-active={active}
-      onClick={() => onSelect(false)}
+      data-selected={selected}
       style={{
         display: 'flex', gap: 6, padding: '8px 8px 10px 12px', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
         opacity: dragging ? 0.4 : 1, alignItems: 'flex-start',
         boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseEnter={(e) => { if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
       onMouseLeave={(e) => (e.currentTarget.style.background = baseBg)}
     >
-      <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
+      <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, marginTop: 4, cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
+        <GripVertical size={13} />
+      </span>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <SpecThumbnail
           src={item.state.path}
@@ -484,8 +676,13 @@ const AnnotationRow: React.FC<{
           revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
         />
         {/* Clicking the text opens its editor and activates the row without
-            letting the canvas selection steal the editor's focus. */}
-        <div onClick={(e) => { e.stopPropagation(); onSelect(true); }}>
+            letting the canvas selection steal the editor's focus. A modifier
+            click is a selection gesture instead: it must reach the row, and
+            must not pull focus into the editor (which would block the drag). */}
+        <div
+          onMouseDown={(e) => { if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault(); }}
+          onClick={(e) => { if (e.shiftKey || e.metaKey || e.ctrlKey) return; e.stopPropagation(); onSelect(true); }}
+        >
           <InlineEditable
             value={item.text}
             placeholder="Write the annotation…"
@@ -516,7 +713,8 @@ const AnnotationRow: React.FC<{
 const HeadingRow: React.FC<{
   item: SpecHeading;
   active: boolean;
-  onSelect: () => void;
+  /** Part of the current multi-selection. */
+  selected: boolean;
   editing: boolean;
   onEditingDone: () => void;
   dragging: boolean;
@@ -524,12 +722,12 @@ const HeadingRow: React.FC<{
   onLevel: (level: SpecHeadingLevel) => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, onSelect, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
+}> = ({ item, active, selected, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [localEditing, setLocalEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const big = item.level === 'big';
-  const baseBg = active ? SPEC_ACTIVE_BG : 'transparent';
+  const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
   return (
     <div
       {...rowProps}
@@ -537,17 +735,24 @@ const HeadingRow: React.FC<{
       data-testid="spec-heading-row"
       data-spec-item={item.id}
       data-active={active}
-      onClick={onSelect}
+      data-selected={selected}
       style={{
         display: 'flex', alignItems: 'center', gap: 6, padding: big ? '14px 8px 4px 12px' : '8px 8px 2px 12px',
         opacity: dragging ? 0.4 : 1, fontFamily: theme.font_ui, background: baseBg,
         boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseEnter={(e) => { if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
     >
-      <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, cursor: 'grab' }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
+        <GripVertical size={13} />
+      </span>
+      {/* Same as the annotation text: a modifier click selects the row instead
+          of putting the caret in the title. */}
+      <div
+        onMouseDown={(e) => { if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault(); }}
+        style={{ flex: 1, minWidth: 0 }}
+      >
         <InlineEditable
           value={item.title}
           placeholder={big ? 'Big heading' : 'Medium heading'}

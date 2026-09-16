@@ -11,6 +11,13 @@ import { SPEC_STATUSES, SPEC_STATUS_CONFIG } from '../../../shared/specs';
 
 export { SPEC_STATUS_CONFIG };
 
+/**
+ * Background of a row that is part of a multi-selection. Deliberately dimmer
+ * than SPEC_ACTIVE_BG so the one *active* annotation — the state the canvas is
+ * showing — still stands out inside a selected block.
+ */
+export const SPEC_SELECTED_BG = 'rgb(0 141 253 / 12%)';
+
 export const iconBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24,
   borderRadius: 4, border: 'none', background: 'transparent', color: theme.text_tertiary, cursor: 'pointer', padding: 0,
