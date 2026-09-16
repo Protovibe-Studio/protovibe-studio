@@ -14,7 +14,7 @@ import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, primaryBtn, hoverBg, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, primaryBtn, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 
@@ -33,7 +33,7 @@ export interface SpecDocViewProps {
   /** Open the spec title in edit mode with its text selected (just created). */
   editingTitle: boolean;
   onTitleEditingDone: () => void;
-  /** The active annotation (highlighted row). */
+  /** The active item (highlighted row): an annotation or a heading. */
   activeId: string | null;
   /** Whether the active annotation's pinned element is on the canvas right now. */
   activeAnchorFound: boolean | null;
@@ -44,6 +44,8 @@ export interface SpecDocViewProps {
   onRename: (title: string) => void;
   /** Activate an annotation and restore its state on the canvas. `keepFocus` when the click opened its text editor. */
   onSelectAnnotation: (itemId: string, keepFocus: boolean) => void;
+  /** Activate a heading (highlight only; nothing to show on the canvas). */
+  onSelectHeading: (itemId: string) => void;
   onPrev?: () => void;
   onNext?: () => void;
   onUpdateReference: (itemId: string) => void;
@@ -270,6 +272,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
               ) : (
                 <HeadingRow
                   item={it}
+                  active={p.activeId === it.id}
+                  onSelect={() => p.onSelectHeading(it.id)}
                   editing={p.editingItemId === it.id}
                   onEditingDone={p.onEditingDone}
                   dragging={dragId === it.id}
@@ -448,6 +452,8 @@ const AnnotationRow: React.FC<{
 
 const HeadingRow: React.FC<{
   item: SpecHeading;
+  active: boolean;
+  onSelect: () => void;
   editing: boolean;
   onEditingDone: () => void;
   dragging: boolean;
@@ -455,20 +461,26 @@ const HeadingRow: React.FC<{
   onLevel: (level: SpecHeadingLevel) => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
+}> = ({ item, active, onSelect, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [localEditing, setLocalEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const big = item.level === 'big';
+  const baseBg = active ? `${theme.accent_default}1a` : 'transparent';
   return (
     <div
       {...rowProps}
       data-testid="spec-heading-row"
+      data-spec-item={item.id}
+      data-active={active}
+      onClick={onSelect}
       style={{
         display: 'flex', alignItems: 'center', gap: 6, padding: big ? '14px 8px 4px 12px' : '8px 8px 2px 12px',
-        opacity: dragging ? 0.4 : 1, fontFamily: theme.font_ui,
+        opacity: dragging ? 0.4 : 1, fontFamily: theme.font_ui, background: baseBg,
+        boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
-      {...hoverBg}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
     >
       <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, cursor: 'grab' }} />
       <div style={{ flex: 1, minWidth: 0 }}>

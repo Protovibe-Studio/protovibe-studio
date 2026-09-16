@@ -258,6 +258,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       const b = await createSpecItem({ specId, item: { type: 'heading', id, rank, title: '', level: kind } });
       setBundle(b);
       setEditingItemId(id);
+      setActiveId(specId, id);
     });
   };
 
@@ -366,13 +367,25 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     [bundle, query, statusFilter],
   );
   const navIndex = activeAnnotation ? navList.findIndex((a) => a.id === activeAnnotation.id) : -1;
-  // With nothing active, Next starts from the first annotation and Prev from the last.
+  // From an active heading, Next / Prev go to the nearest annotation after /
+  // before it in document order. With nothing active, Next starts from the
+  // first annotation and Prev from the last.
+  const nextFrom = useCallback((delta: number): SpecAnnotation | undefined => {
+    if (navIndex >= 0) return navList[navIndex + delta];
+    if (activeItem && bundle) {
+      const pos = bundle.items.indexOf(activeItem);
+      const after = navList.filter((a) => bundle.items.indexOf(a) > pos);
+      const before = navList.filter((a) => bundle.items.indexOf(a) < pos);
+      return delta > 0 ? after[0] : before[before.length - 1];
+    }
+    return delta > 0 ? navList[0] : navList[navList.length - 1];
+  }, [navIndex, navList, activeItem, bundle]);
   const step = useCallback((delta: number) => {
-    const next = navIndex >= 0 ? navList[navIndex + delta] : delta > 0 ? navList[0] : navList[navList.length - 1];
+    const next = nextFrom(delta);
     if (next) selectAnnotation(next);
-  }, [navIndex, navList, selectAnnotation]);
-  const canPrev = navList.length > 0 && navIndex !== 0;
-  const canNext = navList.length > 0 && navIndex !== navList.length - 1;
+  }, [nextFrom, selectAnnotation]);
+  const canPrev = !!nextFrom(-1);
+  const canNext = !!nextFrom(1);
 
   useEffect(() => {
     if (!isActive || view.level !== 'doc') return;
@@ -453,6 +466,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           onBack={() => setView({ level: 'docs' })}
           onRename={(t) => handleRenameSpec(bundle.spec.id, t)}
           onSelectAnnotation={(id, keepFocus) => { const a = bundle.items.find((it) => it.id === id); if (a && isAnnotation(a)) selectAnnotation(a, keepFocus); }}
+          onSelectHeading={(id) => setActiveId(bundle.spec.id, id)}
           onPrev={canPrev ? () => step(-1) : undefined}
           onNext={canNext ? () => step(1) : undefined}
           onInsert={handleInsert}
