@@ -832,65 +832,23 @@ When overriding a component's styles from the consumer file, match the specifici
 ## 5. Comments & Notes
 
 Protovibe supports element-level commenting so designers and developers can leave
-collaborative feedback directly on the canvas. As an AI agent you can read these
-comments for context and, when the user asks, create or resolve them
-programmatically.
+collaborative feedback directly on the canvas. As an AI agent you can **read these
+comments for context freely**; create, edit or resolve them only when the user asks.
 
-### Rule: Where comments live
+Each thread is a directory at `src/comments/{threadId}/` holding `thread.json`
+(metadata only) plus one `{commentId}.json` file per message. These files are
+committed to git.
 
-Each comment thread is a directory at `src/comments/{threadId}/`. One directory
-== one thread == one anchored element. It contains:
-
-* `thread.json` — thread metadata **only** (never any messages): the triage
-  `status`, the authoring `context` (App / Components / Sketchpad, plus the app
-  URL, component name, or sketchpad frame + coordinates), `createdAt`, and
-  `anchorFile`.
-* `{commentId}.json` — **one file per message**, Git-commit style (author
-  name/email, content, timestamps).
-
-Messages are split into their own files on purpose: two people replying to the
-same thread on different machines create two *different new files*, so Git sync
-merges them cleanly instead of a same-file conflict silently dropping one reply.
-These files are normal source files and **should be committed to Git** (they are
-not gitignored).
-
-```jsonc
-// src/comments/ab12cd34ef/thread.json
-{
-  "id": "ab12cd34ef",
-  "status": "review",              // optional status id — "minor" | "todo" | "review" | "closed"; omitted while untriaged (labels/colours live in the UI's STATUS_CONFIG)
-  "context": { "tab": "app", "file": "src/pages/DashboardPage.tsx", "pathname": "/dashboard" },
-  "createdAt": "2026-06-27T10:00:00.000Z",
-  "anchorFile": "src/pages/DashboardPage.tsx"
-}
-
-// src/comments/ab12cd34ef/c-x7y8z9.json — one message
-{
-  "id": "c-x7y8z9",
-  "author": { "name": "Jane", "email": "jane@x.com" },
-  "content": "Tighten this spacing",
-  "createdAt": "2026-06-27T10:00:00.000Z",
-  "seenBy": ["Jane", "Alex"],      // optional read receipts — names that have seen this message; omitted/[] = unseen
-  "suggestions": [                 // optional UX-writing suggestions: swap an exact string for a proposed one
-    { "original": "Sign up", "suggested": "Create account" }
-  ]
-}
-```
-
-> **Legacy format.** Older projects store a whole thread as one file,
-> `src/comments/comment-{threadId}.json`, with an inline `comments` array.
-> These are still read (and merged with any split-layout files for the same
-> thread id — a `{threadId}/{commentId}.json` file shadows the inline message
-> with the same id). Never create new threads in this format, and **never
-> append to an inline `comments` array** — that reintroduces the sync conflict.
-> Add new messages as separate `src/comments/{threadId}/{commentId}.json` files
-> even when the thread itself is a legacy file.
+> **Writing comments?** Read
+> [agents-skills/comments-notes.md](./agents-skills/comments-notes.md) first —
+> full schemas, status ids, the legacy format, attachments, wording suggestions
+> and the file-per-message rule that keeps git sync safe.
 
 ### Rule: The `data-pv-comment-{id}` attribute
 
 When a comment is added, Protovibe injects a valueless `data-pv-comment-{id}`
 attribute onto the opening tag of the anchored element. The `{id}` matches the
-thread's JSON filename. An element can anchor **several threads** — each gets its
+thread's directory name. An element can anchor **several threads** — each gets its
 **own** attribute (`data-pv-comment-id1 data-pv-comment-id2`), so the names never
 collide. Match one with the CSS selector `[data-pv-comment-{id}]`.
 
@@ -902,27 +860,7 @@ collide. Match one with the CSS selector `[data-pv-comment-{id}]`.
   directory — and the legacy `src/comments/comment-{id}.json` if present — for
   every `data-pv-comment-{id}` it carries).
 * When extracting an element into a new component, **preserve every
-  `data-pv-comment-{id}` attribute** on the new root element so the comments stay
-  anchored.
-
-### Rule: Editing comments programmatically
-
-To add or resolve comments on the user's behalf, work file-per-message:
-
-* **Add a message / reply**: create a new `src/comments/{threadId}/{commentId}.json`
-  file (random id, e.g. `c-` + 8 lowercase alphanumerics). Never rewrite an
-  existing message file to append, and never append to a legacy file's inline
-  `comments` array.
-* **Change a thread's status**: edit `src/comments/{threadId}/thread.json`. For
-  a legacy thread that has no directory yet, create the directory and write a
-  `thread.json` (copying `id`, `context`, `createdAt`, `anchorFile` from the
-  legacy file) with the new `status` — once `thread.json` exists it is
-  authoritative for metadata.
-* **Anchor a brand-new thread**: create `src/comments/{threadId}/` with
-  `thread.json` + the first message file, **and** add the valueless
-  `data-pv-comment-{id}` attribute to the target element so the two stay in sync.
-
-Do not edit these files unless the user asks you to.
+  `data-pv-comment-{id}` attribute** on the new root element.
 
 ### Rule: Wording suggestions are advisory, not source edits
 
@@ -942,39 +880,15 @@ under headings — and publishes them with the prototype as a read-only viewer a
 `/specs.html`. Specs are separate from comments: different storage, endpoints
 and UI.
 
-### Rule: Where specs live
+Each spec is a directory at `src/specs/{specId}/` holding `spec.json` (metadata
+only) plus one `{itemId}.json` file per annotation (`a-…`) or heading (`h-…`).
+Order comes from each item's fractional `rank` string. These files are committed
+to git. Do not edit them unless the user asks you to.
 
-Each spec is a directory at `src/specs/{specId}/`:
-
-* `spec.json` — document metadata **only** (`id`, `title`, `createdAt`,
-  `updatedAt`). It never lists items.
-* `{itemId}.json` — **one file per item**: an annotation (`a-…`) or a heading
-  (`h-…`). Order comes from each item's fractional `rank` string (plain string
-  comparison, ties broken by `createdAt`), so reordering rewrites only the moved
-  item and two people adding items at once never touch the same file.
-
-```jsonc
-// src/specs/k3f9x2m1qa/spec.json
-{ "id": "k3f9x2m1qa", "title": "Minion onboarding", "createdAt": "2026-09-15T09:00:00.000Z" }
-
-// src/specs/k3f9x2m1qa/h-1a2b3c4d.json — heading ("big" or "medium")
-{ "id": "h-1a2b3c4d", "type": "heading", "rank": "n", "title": "Recruiting", "level": "big", "createdAt": "…" }
-
-// src/specs/k3f9x2m1qa/a-9z8y7x6w.json — annotation
-{
-  "id": "a-9z8y7x6w",
-  "type": "annotation",
-  "rank": "s",
-  "text": "Division defaults to Field Operations.",
-  "status": "discuss",                                 // "todo" | "discuss" | "verified"; omitted = no status
-  "state": { "tab": "app", "path": "/?page=minions&recruitDialog=true" },
-  "anchor": { "file": "src/pages/MinionsPage.tsx" },  // omitted when it describes the whole screen
-  "author": { "name": "Jane", "email": "jane@x.com" },
-  "createdAt": "…"
-}
-```
-
-These files are normal source files and **should be committed to Git**.
+> **Writing specs or annotations?** Read
+> [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
+> first — full schemas, id formats, the `rank` ordering scheme and the rules for
+> pinning an annotation to an element.
 
 ### Rule: The `data-pv-spec-{id}` attribute
 
@@ -992,8 +906,6 @@ published viewer highlights the element.
   toggles in the query string (see "Deep-linkable UI state" above) — that is
   what makes a saved state reproducible.
 
-Do not edit spec files unless the user asks you to.
-
 ### Rule: don't edit PROTOVIBE_AGENTS.md
 This file will be overriden by future Protovibe updates. If user wants to store some info for AI agents, store it in the root AGENTS.md file, not PROTOVIBE_AGENTS.md
 
@@ -1001,11 +913,16 @@ This file will be overriden by future Protovibe updates. If user wants to store 
 
 Deeper, task-specific instructions live next to this file in
 [agents-skills/](./agents-skills/). Read the relevant one in full before
-starting that kind of task — the summary above is not enough to do the work
+starting that kind of task — the summaries above are not enough to do the work
 correctly.
 
-* **If you are asked to create, edit or assemble specs or annotations
-  programmatically, read [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
-  first.** It covers the file schema, id formats, the `rank` ordering scheme,
-  the `data-pv-spec-*` element attribute and the rules that keep spec files
-  safe to sync.
+* **Asked to create, edit or assemble specs or annotations programmatically?**
+  Read [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
+  first. It covers the file schema, id formats, the `rank` ordering scheme, the
+  `data-pv-spec-*` element attribute and the rules that keep spec files safe to
+  sync.
+* **Asked to write, reply to, triage or delete comments programmatically?**
+  Read [agents-skills/comments-notes.md](./agents-skills/comments-notes.md)
+  first. It covers the thread and message schemas, status ids, the legacy
+  single-file format, attachments, wording suggestions and the file-per-message
+  rule.
