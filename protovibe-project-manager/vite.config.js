@@ -186,14 +186,34 @@ function readProjectName(projectPath) {
   return path.basename(projectPath)
 }
 
+// Where a project's deploy landed — the live URL and the version history of
+// previous deploys. Per-user, because every user publishes to their own
+// Cloudflare account, so the editor keeps it in this gitignored file instead of
+// the committed protovibe-data.json.
+const LOCAL_PUBLISH_STATE_FILE = 'protovibe-local.json'
+
+// Legacy home of the same values, still present in projects that predate the
+// split. The editor migrates them into the local file on boot; here they only
+// need clearing when a project starts life as a copy of another one.
+const LEGACY_PUBLISH_KEYS = [
+  'cloudflare-pages-url',
+  'cloudflare-last-published-at',
+  'cloudflare-deploy-history',
+]
+
 function writeProtovibeData(projectPath, name, { resetCloudflare = false } = {}) {
   const existing = readProtovibeData(projectPath) ?? {}
   const data = {
     ...existing,
     'project-name': name,
     'cloudflare-wrangler-project-name': resetCloudflare ? name : (existing['cloudflare-wrangler-project-name'] ?? name),
-    'cloudflare-pages-url': resetCloudflare ? '' : (existing['cloudflare-pages-url'] ?? ''),
-    'cloudflare-deploy-history': resetCloudflare ? [] : (existing['cloudflare-deploy-history'] ?? []),
+  }
+  if (resetCloudflare) {
+    // A new, duplicated or imported project has never been published. Anything
+    // inherited from the project it was copied from points at someone else's
+    // deploy, so drop it from both files.
+    for (const key of LEGACY_PUBLISH_KEYS) delete data[key]
+    try { fs.rmSync(path.join(projectPath, LOCAL_PUBLISH_STATE_FILE), { force: true }) } catch {}
   }
   fs.writeFileSync(path.join(projectPath, 'protovibe-data.json'), JSON.stringify(data, null, 2), 'utf-8')
 }

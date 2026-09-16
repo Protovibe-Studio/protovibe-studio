@@ -1,8 +1,4 @@
 {
   "project-name": "Project template",
-  "cloudflare-wrangler-project-name": "protovibe-app",
-  "cloudflare-pages-url": "",
-  "cloudflare-deploy-history": [
-  ],
-  "cloudflare-last-published-at": "2026-07-13T07:29:07.363Z"
+  "cloudflare-wrangler-project-name": "protovibe-app"
 }
