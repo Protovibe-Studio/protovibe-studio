@@ -2728,12 +2728,14 @@ function writePublishMeta(data: Record<string, any>): void {
 // per-deploy version history — used to live in protovibe-data.json, which is
 // committed. Every user publishes to their own Cloudflare account, so those
 // values are personal: travelling through git, they made teammates overwrite
-// each other's links and surface URLs they cannot even reach. They now live
-// beside it in protovibe-local.json, which is gitignored. The legacy keys are
+// each other's links and surface URLs they cannot even reach. They now live in
+// .protovibe-local-data/, a hidden folder that is gitignored whole, so anything
+// else that turns out to be per-user has somewhere to go. The legacy keys are
 // migrated out of protovibe-data.json on read — see migrateLegacyPublishState.
 
-const PUBLISH_LOCAL_FILENAME = 'protovibe-local.json';
-const PUBLISH_LOCAL_PATH = path.resolve(process.cwd(), PUBLISH_LOCAL_FILENAME);
+const LOCAL_DATA_DIR_NAME = '.protovibe-local-data';
+const LOCAL_DATA_DIR = path.resolve(process.cwd(), LOCAL_DATA_DIR_NAME);
+const PUBLISH_HISTORY_PATH = path.join(LOCAL_DATA_DIR, 'publish-history.json');
 
 /** Keys that used to carry per-user publish state inside protovibe-data.json. */
 const LEGACY_PUBLISH_KEYS = [
@@ -2741,6 +2743,13 @@ const LEGACY_PUBLISH_KEYS = [
   'cloudflare-last-published-at',
   'cloudflare-deploy-history',
 ] as const;
+
+/**
+ * A short-lived intermediate layout that kept the same state in a single
+ * top-level file, before it moved into the folder. Absorbed and deleted like
+ * any other legacy source; safe to drop once no project can still have one.
+ */
+const LEGACY_LOCAL_FILE_PATH = path.resolve(process.cwd(), 'protovibe-local.json');
 
 /** How many previous deploy URLs the version history keeps. */
 const MAX_DEPLOY_HISTORY = 20;
@@ -2751,16 +2760,17 @@ interface CfLocalPublishState {
   deployHistory: CfDeployHistoryEntry[];
 }
 
-function readLocalPublishFile(): Record<string, any> {
-  if (!fs.existsSync(PUBLISH_LOCAL_PATH)) return {};
-  try { return JSON.parse(fs.readFileSync(PUBLISH_LOCAL_PATH, 'utf-8')); } catch { return {}; }
+function readJsonFile(filePath: string): Record<string, any> {
+  if (!fs.existsSync(filePath)) return {};
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return {}; }
 }
 
-function writeLocalPublishFile(data: Record<string, any>): void {
-  fs.writeFileSync(PUBLISH_LOCAL_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+function writePublishHistoryFile(data: Record<string, any>): void {
+  fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
+  fs.writeFileSync(PUBLISH_HISTORY_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
 }
 
-/** Reads the publish-state keys out of either file — both use the same names. */
+/** Reads the publish-state keys out of any of the files — all use the same names. */
 function toPublishState(raw: Record<string, any>): CfLocalPublishState {
   return {
     url: typeof raw['cloudflare-pages-url'] === 'string' ? raw['cloudflare-pages-url'] : '',
@@ -2769,11 +2779,15 @@ function toPublishState(raw: Record<string, any>): CfLocalPublishState {
   };
 }
 
+function hasPublishState(state: CfLocalPublishState): boolean {
+  return !!state.url || !!state.lastPublishedAt || state.deployHistory.length > 0;
+}
+
 /**
  * Union of two histories, deduped by URL: everything the user already has
- * locally, then anything the committed file still carried that is missing from
- * it. Both lists are newest-first, and on the migration that matters one of
- * them is empty, so the order is simply preserved.
+ * locally, then anything a legacy source still carried that is missing from it.
+ * Both lists are newest-first, and on the migration that matters one of them is
+ * empty, so the order is simply preserved.
  */
 function mergeDeployHistory(local: CfDeployHistoryEntry[], legacy: CfDeployHistoryEntry[]): CfDeployHistoryEntry[] {
   const merged: CfDeployHistoryEntry[] = [];
@@ -2787,87 +2801,108 @@ function mergeDeployHistory(local: CfDeployHistoryEntry[], legacy: CfDeployHisto
 }
 
 /**
- * Moves publish state out of the committed protovibe-data.json into the
- * gitignored protovibe-local.json and strips the legacy keys, so nobody loses
- * the history they had before this split.
+ * Moves publish state out of the committed protovibe-data.json (and out of the
+ * older single-file layout) into .protovibe-local-data/publish-history.json, so
+ * nobody loses the history they had before this split.
  *
  * Deliberately not guarded by a run-once flag: a pull can bring the legacy keys
  * back at any time — a teammate still on an older plugin, or a merge that
  * resurrects an old commit — so this runs on every read and absorbs whatever it
- * finds. Values already in the local file win, since they are this user's own
+ * finds. Values already in the local folder win, since they are this user's own
  * and the committed ones may well be someone else's; history entries are merged
  * rather than replaced so neither side is dropped.
  */
 function migrateLegacyPublishState(): void {
   const meta = readPublishMeta();
-  const present = LEGACY_PUBLISH_KEYS.filter((key) => key in meta);
-  if (present.length === 0) return;
+  const staleKeys = LEGACY_PUBLISH_KEYS.filter((key) => key in meta);
+  const legacyFileExists = fs.existsSync(LEGACY_LOCAL_FILE_PATH);
+  if (staleKeys.length === 0 && !legacyFileExists) return;
 
-  const legacy = toPublishState(meta);
-  const hasLegacyValue = !!legacy.url || !!legacy.lastPublishedAt || legacy.deployHistory.length > 0;
+  // Newest legacy source first: the single-file layout is this user's own
+  // state, while the committed keys may well be a teammate's.
+  const legacySources = [
+    ...(legacyFileExists ? [toPublishState(readJsonFile(LEGACY_LOCAL_FILE_PATH))] : []),
+    toPublishState(meta),
+  ];
 
   // Empty keys (a project created but never published) carry nothing to keep —
-  // they just get cleaned out of the committed file below.
-  if (hasLegacyValue) {
-    const local = readLocalPublishFile();
-    const current = toPublishState(local);
-    local['cloudflare-pages-url'] = current.url || legacy.url;
-    local['cloudflare-last-published-at'] = current.lastPublishedAt || legacy.lastPublishedAt;
-    local['cloudflare-deploy-history'] = mergeDeployHistory(current.deployHistory, legacy.deployHistory);
+  // the legacy sources just get cleaned up below.
+  if (legacySources.some(hasPublishState)) {
+    const local = readJsonFile(PUBLISH_HISTORY_PATH);
+    let merged = toPublishState(local);
+    for (const legacy of legacySources) {
+      merged = {
+        url: merged.url || legacy.url,
+        lastPublishedAt: merged.lastPublishedAt || legacy.lastPublishedAt,
+        deployHistory: mergeDeployHistory(merged.deployHistory, legacy.deployHistory),
+      };
+    }
+    local['cloudflare-pages-url'] = merged.url;
+    local['cloudflare-last-published-at'] = merged.lastPublishedAt;
+    local['cloudflare-deploy-history'] = merged.deployHistory;
     try {
-      writeLocalPublishFile(local);
+      writePublishHistoryFile(local);
     } catch (err) {
-      // protovibe-data.json is still intact, so the next read retries the whole
-      // migration. Bail out rather than strip keys whose values went nowhere.
-      cfLog(`Failed to migrate publish state into ${PUBLISH_LOCAL_FILENAME}:`, err);
+      // The legacy sources are still intact, so the next read retries the whole
+      // migration. Bail out rather than remove values that went nowhere.
+      cfLog(`Failed to migrate publish state into ${LOCAL_DATA_DIR_NAME}:`, err);
       return;
     }
-    cfLog(`Migrated publish state from protovibe-data.json into ${PUBLISH_LOCAL_FILENAME}.`);
+    cfLog(`Migrated publish state into ${LOCAL_DATA_DIR_NAME}/publish-history.json.`);
   }
 
-  for (const key of present) delete meta[key];
-  try {
-    writePublishMeta(meta);
-  } catch (err) {
-    cfLog('Failed to strip legacy publish keys from protovibe-data.json:', err);
+  if (legacyFileExists) {
+    try { fs.rmSync(LEGACY_LOCAL_FILE_PATH, { force: true }); } catch (err) {
+      cfLog('Failed to remove the superseded protovibe-local.json:', err);
+    }
+  }
+  if (staleKeys.length > 0) {
+    for (const key of staleKeys) delete meta[key];
+    try { writePublishMeta(meta); } catch (err) {
+      cfLog('Failed to strip legacy publish keys from protovibe-data.json:', err);
+    }
   }
 }
 
-/** This user's publish state, migrating any committed leftovers on the way. */
+/** This user's publish state, migrating any legacy leftovers on the way. */
 function readPublishState(): CfLocalPublishState {
   migrateLegacyPublishState();
-  return toPublishState(readLocalPublishFile());
+  return toPublishState(readJsonFile(PUBLISH_HISTORY_PATH));
 }
 
 function writePublishState(state: CfLocalPublishState): void {
-  const local = readLocalPublishFile();
+  const local = readJsonFile(PUBLISH_HISTORY_PATH);
   local['cloudflare-pages-url'] = state.url;
   local['cloudflare-last-published-at'] = state.lastPublishedAt;
   local['cloudflare-deploy-history'] = state.deployHistory;
-  writeLocalPublishFile(local);
+  writePublishHistoryFile(local);
 }
 
 /**
- * Keeps protovibe-local.json out of git for projects created before it existed.
- * A project's .gitignore is copied from the template when the project is
- * created and never re-synced — plugin updates only touch plugins/protovibe —
- * so the entry has to be added in place.
+ * Keeps the local-data folder out of git for projects created before it
+ * existed. A project's .gitignore is copied from the template when the project
+ * is created and never re-synced — plugin updates only touch plugins/protovibe
+ * — so the entry has to be added in place.
  */
-function ensurePublishStateGitignored(): void {
+function ensureLocalDataGitignored(): void {
   const gitignorePath = path.resolve(process.cwd(), '.gitignore');
   let contents = '';
   try { contents = fs.readFileSync(gitignorePath, 'utf-8'); } catch { contents = ''; }
-  // Tolerate a leading slash: `/protovibe-local.json` ignores the same file.
-  if (contents.split('\n').some((line) => line.trim().replace(/^\//, '') === PUBLISH_LOCAL_FILENAME)) return;
+  // Tolerate the equivalent spellings: a leading slash and a trailing slash
+  // both ignore the same folder.
+  const alreadyIgnored = contents
+    .split('\n')
+    .some((line) => line.trim().replace(/^\//, '').replace(/\/$/, '') === LOCAL_DATA_DIR_NAME);
+  if (alreadyIgnored) return;
   const separator = contents.length === 0 || contents.endsWith('\n') ? '' : '\n';
   try {
     fs.appendFileSync(
       gitignorePath,
-      `${separator}# Per-user publish state (Cloudflare links + version history) — never commit\n${PUBLISH_LOCAL_FILENAME}\n`,
+      `${separator}# Per-user local data (Cloudflare publish links + version history) — never commit\n${LOCAL_DATA_DIR_NAME}/\n`,
       'utf-8',
     );
   } catch (err) {
-    cfLog(`Could not add ${PUBLISH_LOCAL_FILENAME} to .gitignore:`, err);
+    cfLog(`Could not add ${LOCAL_DATA_DIR_NAME}/ to .gitignore:`, err);
   }
 }
 
@@ -2876,7 +2911,7 @@ function ensurePublishStateGitignored(): void {
  * published still gets its committed publish state moved out of git.
  */
 export function initPublishState(): void {
-  ensurePublishStateGitignored();
+  ensureLocalDataGitignored();
   migrateLegacyPublishState();
 }
 

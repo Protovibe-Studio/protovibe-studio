@@ -108,7 +108,7 @@ export function protovibeSourcePlugin(): Plugin {
           watch: {
             ignored: [
               '**/protovibe-data.json',
-              '**/protovibe-local.json',
+              '**/.protovibe-local-data/**',
               `${root}/src/specs/**`,
               `${root}/src/comments/**`,
             ],
@@ -305,8 +305,8 @@ export function protovibeSourcePlugin(): Plugin {
 
       // Publish links and version history are per-user (everyone deploys to
       // their own Cloudflare account), so they live in the gitignored
-      // protovibe-local.json. Run on boot so a project that is opened but never
-      // published still gets any committed leftovers moved across.
+      // .protovibe-local-data/. Run on boot so a project that is opened but
+      // never published still gets any committed leftovers moved across.
       initPublishState();
 
       server.middlewares.use('/__cloudflare-publish-metadata', handleCloudflarePublishMetadata);

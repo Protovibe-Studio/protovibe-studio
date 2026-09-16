@@ -9,5 +9,5 @@ coverage/
 package-lock.json
 pnpm-lock.yaml
 test-results/
-# Per-user publish state (Cloudflare links + version history) — never commit
-protovibe-local.json
+# Per-user local data (Cloudflare publish links + version history) — never commit
+.protovibe-local-data/
