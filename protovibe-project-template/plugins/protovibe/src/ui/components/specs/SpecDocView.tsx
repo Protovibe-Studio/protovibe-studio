@@ -11,6 +11,7 @@ import {
   ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User,
 } from 'lucide-react';
 import { theme } from '../../theme';
+import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
@@ -71,6 +72,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
   const [thumbReload, setThumbReload] = useState(0);
+  // Thumbnails follow the editor's light/dark switch, exactly like the canvas.
+  const { iframeTheme } = useProtovibe();
 
   // Drag reorder state: the dragged item and the insertion slot under the cursor.
   const [dragId, setDragId] = useState<string | null>(null);
@@ -267,6 +270,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   dragging={dragId === it.id}
                   scrollRoot={scrollEl}
                   thumbReload={thumbReload}
+                  thumbTheme={iframeTheme}
                   onSelect={(keepFocus) => p.onSelectAnnotation(it.id, keepFocus)}
                   onUpdate={(patch, note) => p.onUpdateItem(it.id, patch, note)}
                   onUpdateReference={() => p.onUpdateReference(it.id)}
@@ -426,13 +430,14 @@ const AnnotationRow: React.FC<{
   dragging: boolean;
   scrollRoot: HTMLElement | null;
   thumbReload: number;
+  thumbTheme: 'light' | 'dark';
   onSelect: (keepFocus: boolean) => void;
   onUpdate: (patch: SpecItemPatch, note: string) => void;
   onUpdateReference: () => void;
   onUnpin: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, active, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
@@ -470,7 +475,7 @@ const AnnotationRow: React.FC<{
     >
       <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} />
+        <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} themeMode={thumbTheme} />
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. */}
         <div onClick={(e) => { e.stopPropagation(); onSelect(true); }}>

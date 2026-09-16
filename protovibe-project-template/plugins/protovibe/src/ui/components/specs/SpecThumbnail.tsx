@@ -7,7 +7,7 @@
 // The iframe is named `pv-spec-thumbnail`: bridge.ts and hmr-liveness.ts skip
 // their setup in such frames, and the shell's iframe scans exclude
 // [data-pv-thumbnail] so a thumbnail never gets mistaken for the canvas.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { theme } from '../../theme';
 
 export const THUMB_VIEWPORT = { width: 1280, height: 800 };
@@ -24,8 +24,15 @@ export const SpecThumbnail: React.FC<{
   scrollRoot?: HTMLElement | null;
   /** Bump to force a reload of a mounted thumbnail. */
   reloadKey?: number;
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0 }) => {
+  /**
+   * Force the embedded app into this colour mode, matching the editor's
+   * light/dark switch for the main canvas. Omitted in the published viewer,
+   * which has no such switch and leaves the app's own theme alone.
+   */
+  themeMode?: 'light' | 'dark';
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
   const [measured, setMeasured] = useState(0);
 
@@ -59,6 +66,20 @@ export const SpecThumbnail: React.FC<{
     return () => io.disconnect();
   }, [scrollRoot]);
 
+  // The thumbnail is same-origin, but bridge.ts skips its message listener in
+  // `pv-spec-*` frames, so the shell's PV_SET_THEME broadcast never reaches it —
+  // write `data-theme` straight onto the frame's <html> instead. Runs on load
+  // and whenever the editor's theme switch flips while the frame stays mounted.
+  const applyTheme = useCallback(() => {
+    if (!themeMode) return;
+    try {
+      const doc = frameRef.current?.contentDocument;
+      if (doc?.documentElement) doc.documentElement.dataset.theme = themeMode;
+    } catch { /* cross-origin guard */ }
+  }, [themeMode]);
+
+  useEffect(() => { applyTheme(); }, [applyTheme, near, src, reloadKey]);
+
   const scale = fullWidth || height === undefined
     ? width / THUMB_VIEWPORT.width
     : Math.min(width / THUMB_VIEWPORT.width, height / THUMB_VIEWPORT.height);
@@ -75,6 +96,8 @@ export const SpecThumbnail: React.FC<{
       {near && width > 0 && (
         <iframe
           key={`${src}#${reloadKey}`}
+          ref={frameRef}
+          onLoad={applyTheme}
           name={THUMB_IFRAME_NAME}
           data-pv-thumbnail="true"
           src={src}
@@ -84,7 +107,7 @@ export const SpecThumbnail: React.FC<{
           style={{
             width: THUMB_VIEWPORT.width, height: THUMB_VIEWPORT.height, border: 'none',
             transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none',
-            position: 'absolute', top: 0, left: 0, background: '#fff',
+            position: 'absolute', top: 0, left: 0, background: themeMode === 'dark' ? '#111' : '#fff',
           }}
         />
       )}
