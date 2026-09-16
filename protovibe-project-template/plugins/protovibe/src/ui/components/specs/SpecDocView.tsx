@@ -629,9 +629,13 @@ const AnnotationRow: React.FC<{
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
 }> = ({ item, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
+  // The "More" button is a hover affordance; an open menu keeps it lit while the
+  // pointer sits in the popup instead of on the row.
+  const showMenuBtn = hover || menuOpen;
   const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   const menuItems: MenuItem[] = [
@@ -656,14 +660,14 @@ const AnnotationRow: React.FC<{
       data-active={active}
       data-selected={selected}
       style={{
-        display: 'flex', gap: 6, padding: '8px 8px 10px 12px', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
+        display: 'flex', gap: 4, padding: '10px 4px 10px 0', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
         opacity: dragging ? 0.4 : 1, alignItems: 'flex-start',
         boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
-      onMouseEnter={(e) => { if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
-      onMouseLeave={(e) => (e.currentTarget.style.background = baseBg)}
+      onMouseEnter={(e) => { setHover(true); if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseLeave={(e) => { setHover(false); e.currentTarget.style.background = baseBg; }}
     >
-      <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, marginTop: 4, cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
+      <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, marginTop: 4, padding: '4px 4px 4px 12px', cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
         <GripVertical size={13} />
       </span>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -702,7 +706,14 @@ const AnnotationRow: React.FC<{
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}
       </div>
-      <button ref={menuRef} style={iconBtnSm} data-tooltip="More" onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}>
+      {/* Kept mounted while hidden: unmounting it would reflow the row on every
+          pointer enter and leave. */}
+      <button
+        ref={menuRef}
+        style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
+        data-tooltip="More"
+        onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
+      >
         <MoreHorizontal size={14} />
       </button>
       <Menu open={menuOpen} anchorRef={menuRef} onClose={() => setMenuOpen(false)} items={menuItems} width={250} />
@@ -724,10 +735,12 @@ const HeadingRow: React.FC<{
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
 }> = ({ item, active, selected, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const [localEditing, setLocalEditing] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const big = item.level === 'big';
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
+  const showMenuBtn = hover || menuOpen;
   return (
     <div
       {...rowProps}
@@ -741,8 +754,8 @@ const HeadingRow: React.FC<{
         opacity: dragging ? 0.4 : 1, fontFamily: theme.font_ui, background: baseBg,
         boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
-      onMouseEnter={(e) => { if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
+      onMouseEnter={(e) => { setHover(true); if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
+      onMouseLeave={(e) => { setHover(false); e.currentTarget.style.background = baseBg; }}
     >
       <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
         <GripVertical size={13} />
@@ -764,7 +777,12 @@ const HeadingRow: React.FC<{
             : { fontSize: 12, fontWeight: 600, color: theme.text_secondary, letterSpacing: '0.02em' }}
         />
       </div>
-      <button ref={menuRef} style={iconBtnSm} data-tooltip="More" onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}>
+      <button
+        ref={menuRef}
+        style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
+        data-tooltip="More"
+        onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
+      >
         <MoreHorizontal size={14} />
       </button>
       <Menu
