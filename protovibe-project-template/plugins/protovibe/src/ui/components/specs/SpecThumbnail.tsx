@@ -4,6 +4,9 @@
 // while near the list viewport (IntersectionObserver) so the number of live
 // app instances stays small — each one is a full Vite client in dev.
 //
+// With `revealSelector` the frame is also scrolled to the annotation's pinned
+// element, mirroring what the canvas and the published viewer do for it.
+//
 // The iframe is named `pv-spec-thumbnail`: bridge.ts and hmr-liveness.ts skip
 // their setup in such frames, and the shell's iframe scans exclude
 // [data-pv-thumbnail] so a thumbnail never gets mistaken for the canvas.
@@ -12,6 +15,39 @@ import { theme } from '../../theme';
 
 export const THUMB_VIEWPORT = { width: 1280, height: 800 };
 export const THUMB_IFRAME_NAME = 'pv-spec-thumbnail';
+
+// How long to keep looking for the pinned element after the frame loads: the
+// app mounts (and lays out) well after the load event, and a deep-linked state
+// may render its dialog or tab a frame or two later still.
+const REVEAL_ATTEMPTS = 25;
+const REVEAL_INTERVAL_MS = 200;
+// Webfonts and images can shift the element back out of view after the first
+// successful reveal, so re-run at these delays once it has been found.
+const REVEAL_SETTLE_MS = [400, 1200];
+
+/**
+ * Scroll a thumbnail's frame so the pinned element is visible, the same way the
+ * canvas and the published viewer reveal one. Already fully in view ⇒ leave the
+ * scroll alone; taller than the frame's viewport ⇒ align its top; otherwise
+ * centre it. Returns false while the element is still missing or unlaid-out, so
+ * the caller knows to keep polling.
+ */
+function revealInFrame(frame: HTMLIFrameElement | null, selector: string): boolean {
+  try {
+    const doc = frame?.contentDocument;
+    const win = frame?.contentWindow;
+    if (!doc || !win) return false;
+    const el = doc.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return false; // not laid out (yet)
+    const vw = win.innerWidth || THUMB_VIEWPORT.width;
+    const vh = win.innerHeight || THUMB_VIEWPORT.height;
+    if (r.top >= 0 && r.left >= 0 && r.bottom <= vh && r.right <= vw) return true;
+    el.scrollIntoView({ behavior: 'auto', block: r.height > vh ? 'start' : 'center', inline: 'center' });
+    return true;
+  } catch { return false; } // cross-origin guard
+}
 
 export const SpecThumbnail: React.FC<{
   /** App path (pathname + search + hash) or a full URL base + path. */
@@ -30,11 +66,20 @@ export const SpecThumbnail: React.FC<{
    * which has no such switch and leaves the app's own theme alone.
    */
   themeMode?: 'light' | 'dark';
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode }) => {
+  /**
+   * CSS selector for the annotation's pinned element (`specIdSelector(id)`).
+   * When given, the frame is scrolled so that element is in view — otherwise a
+   * thumbnail of a state whose subject sits below the fold shows nothing of it.
+   */
+  revealSelector?: string;
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
   const [measured, setMeasured] = useState(0);
+  // Bumped on every frame load so the reveal poll restarts against the new
+  // document instead of whatever the previous one left behind.
+  const [loadNonce, setLoadNonce] = useState(0);
 
   // Full-width mode: follow the host's width (the panel can be resized).
   useEffect(() => {
@@ -80,6 +125,28 @@ export const SpecThumbnail: React.FC<{
 
   useEffect(() => { applyTheme(); }, [applyTheme, near, src, reloadKey]);
 
+  const handleLoad = useCallback(() => {
+    applyTheme();
+    setLoadNonce((n) => n + 1);
+  }, [applyTheme]);
+
+  // Reveal the pinned element. The thumbnail is same-origin and gets no bridge
+  // (bridge.ts skips `pv-spec-*` frames), so scroll its document directly.
+  useEffect(() => {
+    if (!revealSelector || !near || width <= 0) return;
+    let attempts = 0;
+    const timers: number[] = [];
+    const tick = () => {
+      if (revealInFrame(frameRef.current, revealSelector)) {
+        for (const ms of REVEAL_SETTLE_MS) timers.push(window.setTimeout(() => revealInFrame(frameRef.current, revealSelector), ms));
+        return;
+      }
+      if (++attempts < REVEAL_ATTEMPTS) timers.push(window.setTimeout(tick, REVEAL_INTERVAL_MS));
+    };
+    tick();
+    return () => { for (const t of timers) clearTimeout(t); };
+  }, [revealSelector, near, width, src, reloadKey, loadNonce]);
+
   const scale = fullWidth || height === undefined
     ? width / THUMB_VIEWPORT.width
     : Math.min(width / THUMB_VIEWPORT.width, height / THUMB_VIEWPORT.height);
@@ -97,7 +164,7 @@ export const SpecThumbnail: React.FC<{
         <iframe
           key={`${src}#${reloadKey}`}
           ref={frameRef}
-          onLoad={applyTheme}
+          onLoad={handleLoad}
           name={THUMB_IFRAME_NAME}
           data-pv-thumbnail="true"
           src={src}

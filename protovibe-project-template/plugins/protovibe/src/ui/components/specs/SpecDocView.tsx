@@ -13,7 +13,7 @@ import {
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
-import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation } from '../../../shared/specs';
+import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
@@ -475,7 +475,14 @@ const AnnotationRow: React.FC<{
     >
       <GripVertical size={13} style={{ color: theme.text_low, flexShrink: 0, marginTop: 4, cursor: 'grab' }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <SpecThumbnail src={item.state.path} fullWidth scrollRoot={scrollRoot} reloadKey={thumbReload} themeMode={thumbTheme} />
+        <SpecThumbnail
+          src={item.state.path}
+          fullWidth
+          scrollRoot={scrollRoot}
+          reloadKey={thumbReload}
+          themeMode={thumbTheme}
+          revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
+        />
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. */}
         <div onClick={(e) => { e.stopPropagation(); onSelect(true); }}>

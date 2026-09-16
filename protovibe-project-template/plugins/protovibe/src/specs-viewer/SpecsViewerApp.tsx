@@ -421,7 +421,12 @@ export const SpecsViewerApp: React.FC = () => {
                     onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = theme.bg_low; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
                   >
-                    <SpecThumbnail src={appUrl(it.state.path)} fullWidth scrollRoot={listScrollEl} />
+                    <SpecThumbnail
+                      src={appUrl(it.state.path)}
+                      fullWidth
+                      scrollRoot={listScrollEl}
+                      revealSelector={it.anchor ? specIdSelector(it.id) : undefined}
+                    />
                     {body ? (
                       <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
                     ) : active && (
