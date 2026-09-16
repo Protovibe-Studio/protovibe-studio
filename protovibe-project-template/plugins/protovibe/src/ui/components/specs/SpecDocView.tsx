@@ -320,13 +320,31 @@ function insertMenuItems(onInsert: (kind: InsertKind) => void): MenuItem[] {
 const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void }> = ({ busy, onInsert }) => {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
+  const half: React.CSSProperties = { ...primaryBtn, opacity: busy ? 0.6 : 1 };
   return (
     <div style={{ display: 'flex', padding: '8px 12px' }}>
-      <button ref={btnRef} data-testid="specs-add" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => setOpen(true)}>
-        <Plus size={13} /> Add
-        <ChevronDown size={13} style={{ opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-      </button>
-      <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} align="left" width="anchor" />
+      <div style={{ display: 'flex', width: '100%' }}>
+        <button
+          data-testid="specs-add"
+          style={{ ...half, flex: 1, minWidth: 0, justifyContent: 'flex-start', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+          disabled={busy}
+          onClick={() => onInsert('annotation')}
+        >
+          <Plus size={13} /> Add annotation
+        </button>
+        <div style={{ width: 1, background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+        <button
+          ref={btnRef}
+          data-testid="specs-add-menu"
+          style={{ ...half, padding: '6px 7px', borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+          disabled={busy}
+          data-tooltip="Add heading…"
+          onClick={() => setOpen(true)}
+        >
+          <ChevronDown size={13} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        </button>
+      </div>
+      <Menu open={open} anchorRef={btnRef} onClose={() => setOpen(false)} items={insertMenuItems(onInsert)} width={170} />
     </div>
   );
 };
@@ -416,6 +434,7 @@ const AnnotationRow: React.FC<{
   return (
     <div
       {...rowProps}
+      draggable={rowProps.draggable && !textEditing}
       data-testid="spec-annotation-row"
       data-spec-item={item.id}
       data-active={active}
@@ -481,6 +500,7 @@ const HeadingRow: React.FC<{
   return (
     <div
       {...rowProps}
+      draggable={rowProps.draggable && !localEditing}
       data-testid="spec-heading-row"
       data-spec-item={item.id}
       data-active={active}

@@ -28,6 +28,7 @@ import {
   fetchSpecsList, fetchSpec, createSpec, renameSpec, deleteSpec, createSpecItem, updateSpecItem,
   reanchorSpecItem, deleteSpecItem, exportSpec, fetchPublishedUrl, type SpecItemPatch,
 } from '../api/specs';
+import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
 import { SpecDocView, annotationMatches, type InsertKind } from './specs/SpecDocView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
@@ -437,6 +438,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   // ── render ────────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
+      <SpecsInlineStyles />
+
       {error && (
         <div style={{ padding: '8px 16px', fontSize: 12, color: theme.destructive_default, background: theme.destructive_low, flexShrink: 0 }}>
           {error}

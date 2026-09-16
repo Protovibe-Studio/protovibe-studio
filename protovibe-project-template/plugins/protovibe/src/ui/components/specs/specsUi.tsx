@@ -196,10 +196,25 @@ export const StatusPicker: React.FC<{ status?: SpecStatus; onChange: (s: SpecSta
 // ── inline editing ─────────────────────────────────────────────────────────────
 
 /**
- * Text that edits in place: hover shows a faint frame, click swaps in an input
- * (or auto-growing textarea), blur commits when the value changed, Escape
- * reverts. `editing` + `onEditingChange` let a parent open the editor for a
- * just-created item.
+ * Class carried by every inline field, so the native placeholder can be
+ * coloured — inline styles cannot target `::placeholder`.
+ */
+export const INLINE_EDITABLE_CLASS = 'pv-spec-inline';
+
+/** Mounted once by the Specs panel; see INLINE_EDITABLE_CLASS. */
+export const SpecsInlineStyles: React.FC = () => (
+  <style dangerouslySetInnerHTML={{ __html: `.${INLINE_EDITABLE_CLASS}::placeholder { color: ${theme.text_tertiary}; opacity: 1; }` }} />
+);
+
+/**
+ * Text that edits in place. The real input is **always** rendered rather than
+ * swapped in on click, so a click lands the caret where the pointer is and the
+ * list reads like a document. Focus adds no border or background; only hover
+ * hints a frame. Blur commits when the value changed, Escape reverts,
+ * Enter (Cmd/Ctrl+Enter when multiline) commits.
+ *
+ * `editing` is a request to focus — a parent sets it for a just-created item —
+ * and `onEditingChange` reports focus back so the parent can clear it.
  */
 export const InlineEditable: React.FC<{
   value: string;
@@ -207,110 +222,92 @@ export const InlineEditable: React.FC<{
   placeholder?: string;
   multiline?: boolean;
   style?: React.CSSProperties;
+  /** Focus the field (a just-created item). */
   editing?: boolean;
   onEditingChange?: (editing: boolean) => void;
   disabled?: boolean;
-  /** Stop the click that opens the editor from reaching the row (e.g. a row that navigates). */
-  stopClickPropagation?: boolean;
-  /** Select the whole value when the editor opens (typing replaces it). */
+  /** Select the whole value when focus is requested (typing replaces it). */
   selectAllOnEdit?: boolean;
-  /** Look like a regular text field: always-visible border, real padding, no negative margin. */
-  framed?: boolean;
-}> = ({ value, onSave, placeholder, multiline, style, editing: editingProp, onEditingChange, disabled, stopClickPropagation, selectAllOnEdit, framed }) => {
-  const [editingState, setEditingState] = useState(false);
-  const editing = editingProp ?? editingState;
-  const setEditing = (v: boolean) => { setEditingState(v); onEditingChange?.(v); };
+}> = ({ value, onSave, placeholder, multiline, style, editing, onEditingChange, disabled, selectAllOnEdit }) => {
   const [draft, setDraft] = useState(value);
+  const [focused, setFocused] = useState(false);
   const [hover, setHover] = useState(false);
   const ref = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
-  const committedRef = useRef(false);
+  // Escape blurs synchronously, before React flushes setDraft, so the blur
+  // handler cannot trust the rendered draft — it reads this instead.
+  const draftRef = useRef(value);
 
-  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
+  const setBoth = (next: string) => { draftRef.current = next; setDraft(next); };
+
+  // Outside edits (undo, redo, git sync) land while the field is idle.
+  useEffect(() => { if (!focused) setBoth(value); }, [value, focused]);
+
+  // The field is always visible, so it must grow instead of scrolling.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!multiline || !el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [draft, multiline]);
 
   useEffect(() => {
     if (!editing) return;
-    committedRef.current = false;
-    setDraft(value);
     const el = ref.current;
     if (!el) return;
     el.focus();
     try {
       if (selectAllOnEdit) el.select(); else el.setSelectionRange(el.value.length, el.value.length);
     } catch { /* ignore */ }
-    if (multiline) autoGrow(el as HTMLTextAreaElement);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);
 
-  const autoGrow = (el: HTMLTextAreaElement) => {
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight + 2}px`;
-  };
-
-  const commit = () => {
-    if (committedRef.current) return;
-    committedRef.current = true;
-    setEditing(false);
-    const next = draft;
-    if (next !== value) onSave(next);
-  };
-  const cancel = () => {
-    committedRef.current = true;
-    setDraft(value);
-    setEditing(false);
-  };
-
   const baseStyle: React.CSSProperties = {
-    fontFamily: theme.font_ui, fontSize: 12, lineHeight: 1.45, color: theme.text_default, width: '100%', boxSizing: 'border-box',
-    ...(framed
-      ? { padding: '8px 10px', borderRadius: 6, background: theme.bg_secondary }
-      : { padding: '4px 6px', margin: '-4px -6px', borderRadius: 4 }),
+    fontFamily: theme.font_ui, fontSize: 12, lineHeight: 1.45, color: theme.text_default, width: '100%',
+    boxSizing: 'border-box', padding: '4px 6px', margin: '-4px -6px', borderRadius: 4,
     ...style,
   };
 
-  if (editing) {
-    const shared = {
-      value: draft,
-      placeholder,
-      onBlur: commit,
-      onClick: (e: React.MouseEvent) => e.stopPropagation(),
-      onKeyDown: (e: React.KeyboardEvent) => {
-        e.stopPropagation();
-        if (e.key === 'Escape') { e.preventDefault(); cancel(); }
-        else if (e.key === 'Enter' && (!multiline || e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
-      },
-      style: {
-        ...baseStyle, background: theme.bg_secondary, border: `1px solid ${theme.border_accent}`, outline: 'none',
-        resize: 'none' as const, overflow: 'hidden', display: 'block',
-      },
-    };
-    return multiline ? (
-      <textarea
-        ref={ref as React.RefObject<HTMLTextAreaElement>}
-        {...shared}
-        rows={1}
-        onChange={(e) => { setDraft(e.target.value); autoGrow(e.target); }}
-      />
-    ) : (
-      <input ref={ref as React.RefObject<HTMLInputElement>} {...shared} onChange={(e) => setDraft(e.target.value)} />
-    );
-  }
+  const shared = {
+    className: INLINE_EDITABLE_CLASS,
+    value: draft,
+    placeholder,
+    readOnly: disabled,
+    onFocus: () => { setFocused(true); onEditingChange?.(true); },
+    onBlur: () => {
+      setFocused(false);
+      onEditingChange?.(false);
+      if (draftRef.current !== value) onSave(draftRef.current);
+    },
+    onKeyDown: (e: React.KeyboardEvent) => {
+      // The shell listens on window for single-key shortcuts; typing is not one.
+      e.stopPropagation();
+      if (e.key === 'Escape') { e.preventDefault(); setBoth(value); ref.current?.blur(); }
+      else if (e.key === 'Enter' && (!multiline || e.metaKey || e.ctrlKey)) { e.preventDefault(); ref.current?.blur(); }
+    },
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    style: {
+      ...baseStyle,
+      background: 'transparent',
+      border: `1px solid ${hover && !focused && !disabled ? theme.border_strong : 'transparent'}`,
+      outline: 'none',
+      resize: 'none' as const,
+      overflow: 'hidden',
+      display: 'block',
+      cursor: disabled ? 'default' : 'text',
+      transition: 'border-color 0.12s',
+    },
+  };
 
-  const empty = !value.trim();
-  return (
-    <div
-      onClick={(e) => { if (disabled) return; if (stopClickPropagation) e.stopPropagation(); setEditing(true); }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      title={disabled ? undefined : 'Click to edit'}
-      style={{
-        ...baseStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: disabled ? 'default' : 'text',
-        border: `1px solid ${hover && !disabled ? theme.border_strong : framed ? theme.border_default : 'transparent'}`,
-        color: empty ? theme.text_tertiary : baseStyle.color,
-        transition: 'border-color 0.12s',
-      }}
-    >
-      {empty ? (placeholder || '') : value}
-    </div>
+  return multiline ? (
+    <textarea
+      ref={ref as React.RefObject<HTMLTextAreaElement>}
+      {...shared}
+      rows={1}
+      onChange={(e) => setBoth(e.target.value)}
+    />
+  ) : (
+    <input ref={ref as React.RefObject<HTMLInputElement>} {...shared} onChange={(e) => setBoth(e.target.value)} />
   );
 };
 
