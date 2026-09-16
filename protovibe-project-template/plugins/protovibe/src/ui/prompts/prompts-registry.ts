@@ -36,6 +36,7 @@ import {
   Palette,
   MousePointerClick,
   Pipette,
+  Link2,
 } from 'lucide-react';
 
 export type PromptFieldRef =
@@ -111,6 +112,51 @@ export const PROMPTS: PromptDef[] = [
   2. This app uses querystring-based routing (e.g. \`?view=xxx\`). Add the new route by following the existing pattern exactly — do NOT introduce react-router or any other routing library. Consider using queryStrings for dialogs also (separate key for each dialog like employeeDialog=true (so that visible dialog layer gets it's own key set to true, but don't set the key to false for non visible dialogs, just remove the key from URL).
   3. Browse \`src/components/ui/\` and reuse existing components wherever possible. Only write custom HTML/Tailwind when no existing component fits the need.
   4. Use mock data held in React state (e.g. \`useState\` with a seeded default). The data should persist while navigating within the app but reset on full page refresh — do not write to localStorage, files, or any backend.
+  
+  {{agentsRules}}`,
+  },
+  {
+    id: 'deep-link-states',
+    title: 'Make states deep-linkable',
+    description: 'Expose every UI state — dialogs, expanded sections, selections, dropdowns — as query-string URL parameters you can share.',
+    icon: Link2,
+    inputLabel: 'Make states deep-linkable in…',
+    inputPlaceholder: 'the whole prototype — or name one flow, e.g. the employee onboarding flow',
+    requiresSelection: false,
+    inputOptional: true,
+    emptyInputFallback: '(scope not specified — ask me first)',
+    references: [],
+    template: `Scope from the user:
+  {{input}}
+  
+  I'm a designer and this is a prototype. I want to share it with developers and send them links that open the prototype in one exact state — a dialog already open, a section expanded, a specific option selected in a dropdown or radio group, a dropdown open, or a conditional element already revealed. Make every one of those states deep-linkable through the URL query string.
+  
+  FIRST, before writing any code:
+  - If the scope above does not clearly say WHERE to apply this, ASK ME whether you should do it across the whole prototype or only in one selected flow/view — and wait for my answer. Do not guess.
+  - Read the "Adding Interaction" and "Deep-linkable UI state" sections of plugins/protovibe/PROTOVIBE_AGENTS.md.
+  - Read \`src/store.tsx\` to see how \`state.queryParams\` and \`setQueryParams\` work, and read an existing page that already uses them so you follow the established pattern exactly. Do NOT introduce react-router or any other routing library, and do not invent a new state container.
+  
+  Then convert the UI state in scope from \`useState\` to the query string:
+  1. Inventory every shareable state first. Walk the files in scope and list each one: dialogs/drawers/sheets (open or closed), expandable/collapsible sections and accordions, tabs and sub-tabs, selected rows/cards/items, form control values (select, dropdown, radio, checkbox, toggle, segmented control), open/closed dropdown and popover menus, and anything rendered conditionally on another state. Show me that list as part of your summary.
+  2. Give each state its own query key, in camelCase, named after the thing it controls and scoped by its owner so keys can never collide across views (e.g. \`employeeDialog\`, \`employeeDialogTab\`, \`employeeDialogAddressSection\`, \`billingPlan\`).
+  3. Derive the value from \`state.queryParams\` — never from \`useState\` — and always validate it against the allowed values, falling back to the default when the param is missing or invalid. A junk value in a shared link must render the default, not a broken screen.
+  4. Write values with \`setQueryParams\`. Booleans use the string \`'true'\` when on and \`null\` (key removed) when off — never \`false\`. Enumerated values (tab, selected option, selected id) store the value itself.
+  5. Keep clean URLs: only non-default values appear. Drop the key whenever the state returns to its default, so a bare URL always means "default state".
+  
+  Preventing stale params — this is the part that usually goes wrong:
+  - Model the params as a tree: a dialog's params (its tab, its expanded sections, its dropdown selections, its open menus) are CHILDREN of the dialog's own param.
+  - When a parent closes or is deselected, remove the parent key AND every descendant key in the SAME \`setQueryParams\` call, so no intermediate URL ever exists. Example: closing \`employeeDialog\` must also null out \`employeeDialogTab\`, \`employeeDialogAddressSection\`, and any other key that only makes sense while that dialog is open.
+  - Because of that, reopening the dialog starts fresh at its defaults — a section the user expanded last time must NOT come back expanded.
+  - The same applies when the selected entity changes (switching to a different record clears that record's per-record sub-state) and when navigating to another view (view-scoped keys are cleared).
+  - Centralise this: define the owned child keys for each parent once (e.g. a small constant listing them) and have one close/reset helper clear them, rather than repeating null-ing lists at every call site where it is easy to forget one.
+  - Transient states that must NOT go in the URL: toasts, in-flight loading flags, uncommitted text being typed, hover states, and anything with a secret or a huge value. Mention anything you deliberately left out.
+  
+  Also make sure that:
+  - Browser back/forward works — every state change goes through \`setQueryParams\`, so history stays consistent.
+  - Compound components (Tabs, RadioGroup, Select) keep using their context-driven API — feed them the value derived from the query param and write the new value back in their change handler. Do not hand-wire selected props onto individual children.
+  - Existing behaviour and visuals are unchanged; this is a state-plumbing refactor, not a redesign.
+  
+  Finish by giving me a copy-pasteable list of the deep links you created — one example URL per state, with a one-line description of what each opens — so I can hand them straight to developers.
   
   {{agentsRules}}`,
   },
