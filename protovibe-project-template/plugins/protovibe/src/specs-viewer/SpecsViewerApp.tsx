@@ -125,26 +125,44 @@ export const SpecsViewerApp: React.FC = () => {
     }
   }, [data, bundle, current, route.spec, route.item]);
 
-  // Resizable sidebar.
+  // Resizable sidebar. The drag crosses the prototype iframe, which swallows
+  // mouse events (they go to *its* document, so the parent never sees the move
+  // or the release and the drag hangs). Pointer capture keeps the events here,
+  // and `resizing` makes the iframe transparent to the pointer for good measure.
   const [sidebarW, setSidebarW] = useState(loadSidebarWidth);
-  const startResize = useCallback((e: React.MouseEvent) => {
+  const [resizing, setResizing] = useState(false);
+  const startResize = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
     e.preventDefault();
+    const handle = e.currentTarget;
+    const pointerId = e.pointerId;
     const startX = e.clientX;
     const startW = sidebarW;
-    const onMove = (ev: MouseEvent) => {
-      setSidebarW(Math.min(SIDEBAR_MAX_W, Math.max(SIDEBAR_MIN_W, startW + ev.clientX - startX)));
+    let width = startW;
+    try { handle.setPointerCapture(pointerId); } catch { /* ignore */ }
+    const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      width = Math.min(SIDEBAR_MAX_W, Math.max(SIDEBAR_MIN_W, startW + ev.clientX - startX));
+      setSidebarW(width);
     };
-    const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+    const onUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+      try { handle.releasePointerCapture(pointerId); } catch { /* ignore */ }
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-      setSidebarW((w) => { try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(w)); } catch { /* ignore */ } return w; });
+      setResizing(false);
+      try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(width)); } catch { /* ignore */ }
     };
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    setResizing(true);
+    // Captured pointer events fire on the handle itself, not on window.
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   }, [sidebarW]);
 
   // "Close" the sidebar: leave the viewer for whatever the prototype iframe is
@@ -419,14 +437,14 @@ export const SpecsViewerApp: React.FC = () => {
 
         {/* resize handle */}
         <div
-          onMouseDown={startResize}
+          onPointerDown={startResize}
           title="Resize sidebar"
-          style={{ position: 'absolute', top: 0, right: -3, width: 6, height: '100%', cursor: 'col-resize', zIndex: 2 }}
+          style={{ position: 'absolute', top: 0, right: -3, width: 6, height: '100%', cursor: 'col-resize', zIndex: 2, touchAction: 'none' }}
         />
       </div>
 
       {/* prototype */}
-      <div style={{ flex: 1, minWidth: 0, background: '#fff' }}>
+      <div style={{ flex: 1, minWidth: 0, background: '#fff', pointerEvents: resizing ? 'none' : 'auto' }}>
         <iframe
           ref={iframeRef}
           name="pv-spec-viewer"
