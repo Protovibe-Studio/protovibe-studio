@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
-  ChevronLeft, ChevronRight, Link2, PinOff,
+  ChevronLeft, ChevronRight, Link2, PinOff, User,
 } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
@@ -393,8 +393,16 @@ const AnnotationRow: React.FC<{
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? `${theme.accent_default}1a` : 'transparent';
   const fileName = item.anchor?.file.split('/').pop();
+  const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   const menuItems: MenuItem[] = [
-    { label: 'Show on canvas', hint: item.state.path, icon: <Link2 size={13} />, onSelect: () => onSelect(false) },
+    { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, onSelect: () => {} },
+    // Status: the row only shows its picker once a status is set, so this is
+    // where a status is first chosen.
+    ...SPEC_STATUSES.map((s, i): MenuItem => ({
+      label: SPEC_STATUS_CONFIG[s].label, icon: statusDot(SPEC_STATUS_CONFIG[s].color), selected: item.status === s, separator: i === 0,
+      disabled: busy, onSelect: () => onUpdate({ status: item.status === s ? null : s }, 'change annotation status'),
+    })),
+    { label: 'Show on canvas', hint: item.state.path, icon: <Link2 size={13} />, separator: true, onSelect: () => onSelect(false) },
     { label: 'Update reference link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
     { label: 'Unpin element', hint: item.anchor ? `Element in ${fileName}` : undefined, icon: <PinOff size={13} />, onSelect: onUnpin, disabled: !item.anchor || busy },
     { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: onDelete },
@@ -430,14 +438,11 @@ const AnnotationRow: React.FC<{
             style={{ fontSize: 12 }}
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <StatusPicker status={item.status} disabled={busy} onChange={(s) => onUpdate({ status: s }, 'change annotation status')} />
-          {active && (
-            <span style={{ fontSize: 10, color: theme.text_tertiary }}>
-              {item.author.name}{item.updatedAt ? ` · edited ${relativeTime(item.updatedAt)}` : ` · ${relativeTime(item.createdAt)}`}
-            </span>
-          )}
-        </div>
+        {item.status && (
+          <div style={{ display: 'flex' }}>
+            <StatusPicker status={item.status} disabled={busy} onChange={(s) => onUpdate({ status: s }, 'change annotation status')} />
+          </div>
+        )}
         {active && item.anchor && anchorFound === false && (
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}

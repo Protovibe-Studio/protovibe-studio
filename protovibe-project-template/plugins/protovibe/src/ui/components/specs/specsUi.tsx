@@ -48,6 +48,8 @@ export interface MenuItem {
   disabled?: boolean;
   /** Renders a divider above this item. */
   separator?: boolean;
+  /** Read-only line (e.g. the author): rendered as muted text, not a button. */
+  info?: boolean;
 }
 
 /**
@@ -105,6 +107,12 @@ export const Menu: React.FC<{
         {items.map((it, i) => (
           <React.Fragment key={i}>
             {it.separator && <div style={{ height: 1, background: theme.border_default, margin: '3px 4px' }} />}
+            {it.info ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', fontSize: 11, color: theme.text_tertiary, fontFamily: theme.font_ui }}>
+                {it.icon && <span style={{ display: 'flex', alignItems: 'center', width: 14, flexShrink: 0, opacity: 0.8 }}>{it.icon}</span>}
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label}{it.hint ? ` · ${it.hint}` : ''}</span>
+              </div>
+            ) : (
             <button
               disabled={it.disabled}
               onClick={(e) => { e.stopPropagation(); onClose(); it.onSelect(); }}
@@ -125,6 +133,7 @@ export const Menu: React.FC<{
               </span>
               {it.selected && <Check size={13} style={{ color: theme.accent_default }} />}
             </button>
+            )}
           </React.Fragment>
         ))}
       </div>
