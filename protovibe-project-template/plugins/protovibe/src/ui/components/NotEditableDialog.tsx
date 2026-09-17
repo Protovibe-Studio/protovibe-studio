@@ -11,6 +11,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { emitToast } from '../events/toast';
 import { theme } from '../theme';
 import { PROMPTS, renderPrompt, type PromptRenderContext } from '../prompts/prompts-registry';
+import { useProjectRoot } from '../hooks/useProjectRoot';
 
 export const PV_NOT_EDITABLE_EVENT = 'pv:open-not-editable-dialog';
 
@@ -21,6 +22,7 @@ export function openNotEditableDialog() {
 
 export const NotEditableDialog: React.FC = () => {
   const { activeData, currentBaseTarget } = useProtovibe();
+  const projectRoot = useProjectRoot();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export const NotEditableDialog: React.FC = () => {
     if (!def) return;
     const closestBlock = currentBaseTarget?.closest('[data-pv-block]') as HTMLElement | null;
     const ctx: PromptRenderContext = {
+      projectRoot,
       file: activeData?.file ?? null,
       startLine: activeData?.startLine ?? null,
       endLine: activeData?.endLine ?? null,
@@ -47,7 +50,7 @@ export const NotEditableDialog: React.FC = () => {
     } catch {
       emitToast({ message: 'Failed to copy prompt', variant: 'error' });
     }
-  }, [activeData, currentBaseTarget]);
+  }, [activeData, currentBaseTarget, projectRoot]);
 
   return (
     <ConfirmDialog

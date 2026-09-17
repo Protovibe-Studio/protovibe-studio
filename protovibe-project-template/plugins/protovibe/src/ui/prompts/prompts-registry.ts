@@ -6,6 +6,11 @@
 //
 // Template placeholders resolved at copy-time:
 //   {{input}}       — free-text the user typed into the textarea
+//   {{projectFolder}} — absolute path of the project folder on disk, e.g.
+//                     "Project folder: /Users/protovibe/projects/MyProject".
+//                     Templates do NOT need this placeholder: when one omits
+//                     it, the line is prepended above the rest of the prompt so
+//                     the agent knows where the relative {{file}} path lives.
 //   {{file}}        — current file path, e.g. "src/pages/Dashboard.tsx"
 //   {{startLine}}   — starting line of the current selection
 //   {{endLine}}     — ending line of the current selection
@@ -88,6 +93,8 @@ export interface PromptDef {
 }
 
 const ATTACHMENTS_HEADING = 'See these screenshots or files:';
+
+const PROJECT_FOLDER_HEADING = 'Project folder:';
 
 const AGENTS_RULES_SUFFIX =
   'Follow all architectural rules from plugins/protovibe/PROTOVIBE_AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
@@ -513,6 +520,12 @@ export const PROMPTS: PromptDef[] = [
 ];
 
 export interface PromptRenderContext {
+  /**
+   * Absolute path of the project folder on the user's disk, as reported by the
+   * Vite dev server (`/__resolve-file-path?file=.`). Null until it answers —
+   * the project-folder line is then simply left out.
+   */
+  projectRoot: string | null;
   file: string | null;
   startLine: number | null;
   endLine: number | null;
@@ -534,6 +547,16 @@ function renderAttachments(absolutePaths: string[]): string {
   return `${ATTACHMENTS_HEADING}\n${absolutePaths.map(p => `- ${p}`).join('\n')}`;
 }
 
+/**
+ * The line that tells the coding agent which folder the project lives in, so
+ * the relative paths in the prompt (and the shell it runs commands in) resolve
+ * to the right place. Empty when the root is unknown.
+ */
+function renderProjectFolder(projectRoot: string | null): string {
+  if (!projectRoot) return '';
+  return `${PROJECT_FOLDER_HEADING} ${projectRoot}`;
+}
+
 export function renderPrompt(
   def: PromptDef,
   ctx: PromptRenderContext,
@@ -541,12 +564,14 @@ export function renderPrompt(
   attachments: string[] = [],
 ): string {
   const attachmentBlock = renderAttachments(attachments);
+  const projectFolderLine = renderProjectFolder(ctx.projectRoot);
   const map: Record<string, string> = {
     input:
       userInput.trim() ||
       (def.inputOptional
         ? def.emptyInputFallback ?? '(no extra instructions)'
         : '(user input missing)'),
+    projectFolder: projectFolderLine,
     file: fallback(ctx.file, 'file selected'),
     startLine: fallback(ctx.startLine, 'start line'),
     endLine: fallback(ctx.endLine, 'end line'),
@@ -568,6 +593,14 @@ export function renderPrompt(
   // Attached files land last, after the rules, so their position is the same
   // whether or not the template placed the rules itself. Templates that use
   // {{attachments}} own the placement instead.
-  if (!attachmentBlock || def.template.includes('{{attachments}}')) return withRules;
-  return `${withRules}\n\n${attachmentBlock}`;
+  const withAttachments =
+    !attachmentBlock || def.template.includes('{{attachments}}')
+      ? withRules
+      : `${withRules}\n\n${attachmentBlock}`;
+
+  // The project folder goes first, above everything else, so the agent reads
+  // where the project lives before any relative file path. Templates that use
+  // {{projectFolder}} own the placement instead.
+  if (!projectFolderLine || def.template.includes('{{projectFolder}}')) return withAttachments;
+  return `${projectFolderLine}\n\n${withAttachments}`;
 }
