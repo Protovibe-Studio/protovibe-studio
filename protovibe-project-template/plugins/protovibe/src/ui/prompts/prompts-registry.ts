@@ -6,6 +6,14 @@
 //
 // Template placeholders resolved at copy-time:
 //   {{input}}       — free-text the user typed into the textarea
+//   {{projectFolder}} — absolute path of the project folder on disk, e.g.
+//                     "Project folder: /Users/protovibe/projects/MyProject".
+//                     Templates do NOT need this placeholder: when one omits
+//                     it, the line is inserted directly above the template's
+//                     first {{file}} line, so the folder sits with the rest of
+//                     the context references and the relative path right below
+//                     it resolves. Templates with no {{file}} reference get it
+//                     appended after the rules reminder instead.
 //   {{file}}        — current file path, e.g. "src/pages/Dashboard.tsx"
 //   {{startLine}}   — starting line of the current selection
 //   {{endLine}}     — ending line of the current selection
@@ -88,6 +96,8 @@ export interface PromptDef {
 }
 
 const ATTACHMENTS_HEADING = 'See these screenshots or files:';
+
+const PROJECT_FOLDER_HEADING = 'Project folder:';
 
 const AGENTS_RULES_SUFFIX =
   'Follow all architectural rules from plugins/protovibe/PROTOVIBE_AGENTS.md — especially the pv-zone/pv-block ID conventions, component reuse, semantic color tokens, and static Tailwind class strings. Do not invent new patterns.';
@@ -513,6 +523,12 @@ export const PROMPTS: PromptDef[] = [
 ];
 
 export interface PromptRenderContext {
+  /**
+   * Absolute path of the project folder on the user's disk, as reported by the
+   * Vite dev server (`/__resolve-file-path?file=.`). Null until it answers —
+   * the project-folder line is then simply left out.
+   */
+  projectRoot: string | null;
   file: string | null;
   startLine: number | null;
   endLine: number | null;
@@ -534,6 +550,32 @@ function renderAttachments(absolutePaths: string[]): string {
   return `${ATTACHMENTS_HEADING}\n${absolutePaths.map(p => `- ${p}`).join('\n')}`;
 }
 
+/**
+ * The line that tells the coding agent which folder the project lives in, so
+ * the relative paths in the prompt (and the shell it runs commands in) resolve
+ * to the right place. Empty when the root is unknown.
+ */
+function renderProjectFolder(projectRoot: string | null): string {
+  if (!projectRoot) return '';
+  return `${PROJECT_FOLDER_HEADING} ${projectRoot}`;
+}
+
+/**
+ * Puts `{{projectFolder}}` into a template that does not place it itself: on
+ * its own line directly above the first `{{file}}` line, matching that line's
+ * indentation, so the folder reads as part of the context block the file path
+ * belongs to. Returns null when the template has no `{{file}}` reference —
+ * there is no context block to sit in, so the caller appends the line instead.
+ */
+function anchorProjectFolderAboveFile(template: string): string | null {
+  const lines = template.split('\n');
+  const at = lines.findIndex(line => line.includes('{{file}}'));
+  if (at === -1) return null;
+  const indent = /^\s*/.exec(lines[at])![0];
+  lines.splice(at, 0, `${indent}{{projectFolder}}`);
+  return lines.join('\n');
+}
+
 export function renderPrompt(
   def: PromptDef,
   ctx: PromptRenderContext,
@@ -541,12 +583,25 @@ export function renderPrompt(
   attachments: string[] = [],
 ): string {
   const attachmentBlock = renderAttachments(attachments);
+  const projectFolderLine = renderProjectFolder(ctx.projectRoot);
+
+  // The project folder belongs with the context references, immediately above
+  // the file path it makes sense of. Templates that place {{projectFolder}}
+  // themselves own its position; the rest get it anchored above their
+  // {{file}} line, or — when they reference no file at all — appended below.
+  const ownsPlacement = def.template.includes('{{projectFolder}}');
+  const anchored = ownsPlacement || !projectFolderLine
+    ? null
+    : anchorProjectFolderAboveFile(def.template);
+  const template = anchored ?? def.template;
+
   const map: Record<string, string> = {
     input:
       userInput.trim() ||
       (def.inputOptional
         ? def.emptyInputFallback ?? '(no extra instructions)'
         : '(user input missing)'),
+    projectFolder: projectFolderLine,
     file: fallback(ctx.file, 'file selected'),
     startLine: fallback(ctx.startLine, 'start line'),
     endLine: fallback(ctx.endLine, 'end line'),
@@ -555,7 +610,7 @@ export function renderPrompt(
     agentsRules: AGENTS_RULES_SUFFIX,
     attachments: attachmentBlock,
   };
-  const rendered = def.template
+  const rendered = template
     .replace(/\{\{(\w+)\}\}/g, (_, key) => (key in map ? map[key] : `{{${key}}}`))
     .trimEnd();
 
@@ -565,9 +620,16 @@ export function renderPrompt(
     ? rendered
     : `${rendered}\n\n${AGENTS_RULES_SUFFIX}`;
 
+  // Prompts with no file reference have no context block to anchor to, so the
+  // folder joins the other on-disk paths at the end, after the rules.
+  const withFolder =
+    projectFolderLine && !ownsPlacement && !anchored
+      ? `${withRules}\n\n${projectFolderLine}`
+      : withRules;
+
   // Attached files land last, after the rules, so their position is the same
   // whether or not the template placed the rules itself. Templates that use
   // {{attachments}} own the placement instead.
-  if (!attachmentBlock || def.template.includes('{{attachments}}')) return withRules;
-  return `${withRules}\n\n${attachmentBlock}`;
+  if (!attachmentBlock || def.template.includes('{{attachments}}')) return withFolder;
+  return `${withFolder}\n\n${attachmentBlock}`;
 }

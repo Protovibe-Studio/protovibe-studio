@@ -20,6 +20,7 @@ import { useProtovibe } from '../context/ProtovibeContext';
 import { theme } from '../theme';
 import { savePromptAttachment } from '../api/client';
 import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/prompts-registry';
+import { useProjectRoot } from '../hooks/useProjectRoot';
 
 type Step = 1 | 2 | 3;
 
@@ -41,19 +42,6 @@ interface PromptAttachment {
 
 let attachmentSeq = 0;
 
-
-function useProjectRoot() {
-  const [root, setRoot] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/__resolve-file-path?file=.')
-      .then(r => r.json())
-      .then(d => { if (!cancelled) setRoot(d.absolutePath ?? null); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-  return root;
-}
 
 function RefChip({ label, value }: { label: string; value: string | null }) {
   const present = !!value;
@@ -443,13 +431,14 @@ export const PromptsTab: React.FC = () => {
     const closestBlock = currentBaseTarget?.closest('[data-pv-block]') as HTMLElement | null;
     const blockId = closestBlock?.getAttribute('data-pv-block') || null;
     return {
+      projectRoot,
       file: activeData?.file ?? null,
       startLine: activeData?.startLine ?? null,
       endLine: activeData?.endLine ?? null,
       blockId,
       code: activeData?.code ?? null,
     };
-  }, [activeData, currentBaseTarget]);
+  }, [activeData, currentBaseTarget, projectRoot]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -811,6 +800,7 @@ export const PromptsTab: React.FC = () => {
                 Will be attached to the prompt
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <RefChip label="folder" value={projectRoot} />
                 {selectedPrompt.references.map(r => (
                   <RefChip key={r} label={refLabels[r]} value={refValues[r]} />
                 ))}
