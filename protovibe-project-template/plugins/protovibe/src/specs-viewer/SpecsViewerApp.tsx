@@ -428,7 +428,7 @@ export const SpecsViewerApp: React.FC = () => {
                       revealSelector={it.anchor ? specIdSelector(it.id) : undefined}
                     />
                     {body ? (
-                      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
+                      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
                     ) : active && (
                       <span style={{ fontSize: 12, color: theme.text_tertiary }}>No description</span>
                     )}
