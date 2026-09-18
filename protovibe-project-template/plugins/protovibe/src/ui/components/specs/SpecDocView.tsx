@@ -694,7 +694,7 @@ const AnnotationRow: React.FC<{
             editing={autoEditText || textEditing}
             onEditingChange={(v) => { setTextEditing(v); if (!v) onAutoEditDone(); }}
             onSave={(t) => onUpdate({ text: t }, 'edit annotation')}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, lineHeight: 1.4 }}
           />
         </div>
         {item.status && (
