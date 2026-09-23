@@ -29,12 +29,14 @@ const REVEAL_SETTLE_MS = [400, 1200];
 // element may stay absent before it counts as "not in this state". The check
 // keeps watching afterwards, so an element that renders late (slow route, HMR
 // re-render after a re-pin) flips the result back to found.
-const PRESENCE_GRACE_MS = 8000;
+const PRESENCE_GRACE_MS = 4500;
 const PRESENCE_POLL_MS = 1000;
 // Debounce for "missing": the element must stay absent this long without a
 // break before it is reported, so a re-render that briefly swaps it out (HMR,
-// an animated mount) never flips the result back and forth.
-const ABSENT_DEBOUNCE_MS = 2500;
+// an animated mount) rarely flips the result back and forth. Kept short so a
+// real problem shows up ~5s after load; the row fades its icon in, so an
+// occasional flip stays unobtrusive.
+const ABSENT_DEBOUNCE_MS = 1000;
 
 /**
  * Is the pinned element rendered in the frame? It must be in the DOM and

@@ -2,7 +2,7 @@
 // Small presentational building blocks shared by the Specs panel: status
 // config + badge + picker, a portal dropdown menu, in-place editable text, and the
 // common button styles. Nothing here talks to the backend.
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import { theme } from '../../theme';
@@ -209,8 +209,13 @@ export const StatusPicker: React.FC<{ status?: SpecStatus; onChange: (s: SpecSta
 export const INLINE_EDITABLE_CLASS = 'pv-spec-inline';
 
 /** Mounted once by the Specs panel; see INLINE_EDITABLE_CLASS. */
+/** Class for elements that fade in on mount (e.g. a row's warning icon). */
+export const SPECS_FADE_IN_CLASS = 'pv-specs-fade-in';
+
 export const SpecsInlineStyles: React.FC = () => (
-  <style dangerouslySetInnerHTML={{ __html: `.${INLINE_EDITABLE_CLASS}::placeholder { color: ${theme.text_tertiary}; opacity: 1; }` }} />
+  <style dangerouslySetInnerHTML={{ __html: `.${INLINE_EDITABLE_CLASS}::placeholder { color: ${theme.text_tertiary}; opacity: 1; }
+@keyframes pv-specs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.${SPECS_FADE_IN_CLASS} { animation: pv-specs-fade-in 0.3s ease-out; }` }} />
 );
 
 /**
@@ -248,13 +253,30 @@ export const InlineEditable: React.FC<{
   // Outside edits (undo, redo, git sync) land while the field is idle.
   useEffect(() => { if (!focused) setBoth(value); }, [value, focused]);
 
-  // The field is always visible, so it must grow instead of scrolling.
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!multiline || !el) return;
+  // The field is always visible, so it must grow instead of scrolling. A
+  // hidden panel (Specs stays mounted under display:none, e.g. straight after
+  // a reload) has nothing to measure, so skip it there and re-measure whenever
+  // the field's width changes — which includes being shown, and panel resizes.
+  const fitHeight = useCallback(() => {
+    const el = ref.current as HTMLTextAreaElement | null;
+    if (!multiline || !el || el.clientWidth === 0) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight + 2}px`;
-  }, [draft, multiline]);
+  }, [multiline]);
+  useLayoutEffect(() => { fitHeight(); }, [draft, fitHeight]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!multiline || !el || typeof ResizeObserver === 'undefined') return;
+    // Only width matters: reacting to height would re-fire on our own resize.
+    let lastWidth = el.clientWidth;
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth === lastWidth) return;
+      lastWidth = el.clientWidth;
+      fitHeight();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [multiline, fitHeight]);
 
   useEffect(() => {
     if (!editing) return;

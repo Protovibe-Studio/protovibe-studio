@@ -18,7 +18,7 @@ import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
@@ -819,6 +819,7 @@ const AnnotationRow: React.FC<{
         {pinMissingInState && (
           <button
             data-testid="spec-pin-missing-warning"
+            className={SPECS_FADE_IN_CLASS}
             style={{ ...iconBtnSm, color: theme.warning_primary }}
             data-tooltip={PIN_MISSING_TOOLTIP}
             onClick={(e) => { e.stopPropagation(); openPrompt('deep-link-states'); }}
