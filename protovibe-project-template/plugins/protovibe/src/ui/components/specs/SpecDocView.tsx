@@ -696,7 +696,7 @@ const GRIP_TOOLTIP = 'Drag to reorder · ⌘/Ctrl-click or Shift-click to select
 // The captured URL opens a state without the pinned element — typically the
 // element only appears after an interaction (a dialog, tab, dropdown…) the URL
 // doesn't record, so the link can't reproduce what was annotated.
-const PinMissingWarning: React.FC<{ fileName?: string }> = ({ fileName }) => (
+const PinMissingWarning: React.FC = () => (
   <div
     data-testid="spec-pin-missing-warning"
     style={{
@@ -707,18 +707,18 @@ const PinMissingWarning: React.FC<{ fileName?: string }> = ({ fileName }) => (
   >
     <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: 1, color: theme.warning_primary }} />
     <span>
-      The pinned element{fileName ? ` in ${fileName}` : ''} isn’t visible in this captured state — its URL doesn’t reproduce the
-      screen you annotated. Ask your coding agent to make this state deep-linkable, then recapture the link.{' '}
+      Pinned element isn’t in this link’s state. Make it deep-linkable with the{' '}
       <button
         data-testid="spec-open-deep-link-prompt"
         onClick={() => openPrompt('deep-link-states')}
         style={{
           padding: 0, border: 'none', background: 'none', cursor: 'pointer', font: 'inherit',
-          color: theme.accent_default, textDecoration: 'underline', textUnderlineOffset: 2,
+          color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2,
         }}
       >
-        Prompts › Make states deep-linkable
+        deep-link prompt
       </button>
+      , then recapture.
     </span>
   </div>
 );
@@ -826,7 +826,7 @@ const AnnotationRow: React.FC<{
         {active && item.anchor && anchorFound === false && !pinMissingInState && (
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}
-        {pinMissingInState && <PinMissingWarning fileName={fileName} />}
+        {pinMissingInState && <PinMissingWarning />}
       </div>
       {/* Kept mounted while hidden: unmounting it would reflow the row on every
           pointer enter and leave. */}

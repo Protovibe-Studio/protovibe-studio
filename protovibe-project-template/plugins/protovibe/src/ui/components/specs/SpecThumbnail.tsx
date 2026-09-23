@@ -25,6 +25,26 @@ const REVEAL_INTERVAL_MS = 200;
 // Webfonts and images can shift the element back out of view after the first
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
+// Presence check behind `onRevealResult`: how long after the frame loads the
+// element may stay absent before it counts as "not in this state". The check
+// keeps watching afterwards, so an element that renders late (slow route, HMR
+// re-render after a re-pin) flips the result back to found.
+const PRESENCE_GRACE_MS = 8000;
+const PRESENCE_POLL_MS = 1000;
+
+/**
+ * Is the pinned element rendered in the frame? It must be in the DOM and
+ * generate a box — or be `display: contents`, whose box is its children's.
+ */
+function presentInFrame(frame: HTMLIFrameElement | null, selector: string): boolean {
+  try {
+    const doc = frame?.contentDocument;
+    const el = doc?.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    if (el.getClientRects().length > 0) return true;
+    return doc!.defaultView?.getComputedStyle(el).display === 'contents';
+  } catch { return false; } // cross-origin guard
+}
 
 /**
  * Scroll a thumbnail's frame so the pinned element is visible, the same way the
@@ -74,8 +94,9 @@ export const SpecThumbnail: React.FC<{
    */
   revealSelector?: string;
   /**
-   * Called once per load with whether the `revealSelector` element was found
-   * (and laid out) in the frame — false after the whole reveal poll gave up.
+   * Reports whether the `revealSelector` element is rendered in the frame:
+   * true as soon as it is, false once it has stayed absent for a grace period
+   * after load. Keeps watching, so a later appearance reports true again.
    */
   onRevealResult?: (found: boolean) => void;
 }> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult }) => {
@@ -86,6 +107,11 @@ export const SpecThumbnail: React.FC<{
   // Bumped on every frame load so the reveal poll restarts against the new
   // document instead of whatever the previous one left behind.
   const [loadNonce, setLoadNonce] = useState(0);
+  // Whether the *current* frame has loaded. Reset whenever a new frame mounts
+  // (scrolled back into view, new src, reload), so a check never judges a
+  // blank, still-loading frame by an earlier frame's load.
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey]);
   // Read through a ref: a new callback identity must not restart the poll.
   const onRevealResultRef = useRef(onRevealResult);
   onRevealResultRef.current = onRevealResult;
@@ -136,6 +162,7 @@ export const SpecThumbnail: React.FC<{
 
   const handleLoad = useCallback(() => {
     applyTheme();
+    setFrameLoaded(true);
     setLoadNonce((n) => n + 1);
   }, [applyTheme]);
 
@@ -147,18 +174,47 @@ export const SpecThumbnail: React.FC<{
     const timers: number[] = [];
     const tick = () => {
       if (revealInFrame(frameRef.current, revealSelector)) {
-        onRevealResultRef.current?.(true);
         for (const ms of REVEAL_SETTLE_MS) timers.push(window.setTimeout(() => revealInFrame(frameRef.current, revealSelector), ms));
         return;
       }
       if (++attempts < REVEAL_ATTEMPTS) timers.push(window.setTimeout(tick, REVEAL_INTERVAL_MS));
-      // Only a loaded frame counts as "not in this state"; before the first
-      // load the frame is still blank.
-      else if (loadNonce > 0) onRevealResultRef.current?.(false);
     };
     tick();
     return () => { for (const t of timers) clearTimeout(t); };
   }, [revealSelector, near, width, src, reloadKey, loadNonce]);
+
+  // Presence for `onRevealResult`, separate from the reveal scroll: watch the
+  // loaded frame's DOM (plus a slow poll as a backstop) and report changes.
+  useEffect(() => {
+    if (!revealSelector || !near || !frameLoaded) return;
+    const frame = frameRef.current;
+    const doc = frame?.contentDocument;
+    const win = frame?.contentWindow;
+    if (!frame || !doc || !win) return;
+    const loadedAt = Date.now();
+    let last: boolean | null = null;
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const found = presentInFrame(frame, revealSelector);
+      // Absent only counts once the grace period is over.
+      if (!found && Date.now() - loadedAt < PRESENCE_GRACE_MS) return;
+      if (found !== last) { last = found; onRevealResultRef.current?.(found); }
+    };
+    const schedule = () => { if (!raf) raf = win.requestAnimationFrame(check); };
+    const MO = (win as Window & typeof globalThis).MutationObserver || MutationObserver;
+    const mo = new MO(schedule);
+    mo.observe(doc.documentElement, { childList: true, subtree: true, attributes: true });
+    const poll = window.setInterval(check, PRESENCE_POLL_MS);
+    const grace = window.setTimeout(check, PRESENCE_GRACE_MS + 50);
+    check();
+    return () => {
+      mo.disconnect();
+      clearInterval(poll);
+      clearTimeout(grace);
+      if (raf) win.cancelAnimationFrame(raf);
+    };
+  }, [revealSelector, near, frameLoaded, loadNonce]);
 
   const scale = fullWidth || height === undefined
     ? width / THUMB_VIEWPORT.width
