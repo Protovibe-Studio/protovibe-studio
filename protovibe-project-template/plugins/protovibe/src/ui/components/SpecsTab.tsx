@@ -473,13 +473,13 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   );
   useEffect(() => {
     // Re-sent on selection changes too: a reloaded iframe starts with no ids.
-    appIframeDocument()?.defaultView?.postMessage({ type: 'PV_SET_SPEC_BADGES', annotationIds: badgeIds, activeId }, '*');
+    appIframeDocument()?.defaultView?.postMessage({ type: 'PV_SET_CANVAS_BADGES', kind: 'spec', ids: badgeIds, activeId }, '*');
   }, [badgeIds, activeId, currentBaseTarget]);
   useEffect(() => {
     if (!docOpen || !bundle) return;
     const onMessage = (e: MessageEvent) => {
-      if (e.data?.type !== 'PV_SPEC_BADGE_CLICK' || typeof e.data.annotationId !== 'string') return;
-      const id: string = e.data.annotationId;
+      if (e.data?.type !== 'PV_CANVAS_BADGE_CLICK' || e.data.kind !== 'spec' || typeof e.data.id !== 'string') return;
+      const id: string = e.data.id;
       if (!bundle.items.some((it) => it.id === id && isAnnotation(it))) return;
       if (id !== activeId) { setActiveId(bundle.spec.id, id); return; }
       // Already active: the list won't scroll on its own, so bring the row back.
