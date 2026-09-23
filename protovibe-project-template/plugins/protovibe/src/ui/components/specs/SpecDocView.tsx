@@ -576,7 +576,7 @@ const AddButton: React.FC<{ busy: boolean; onInsert: (kind: InsertKind) => void 
 
 // ── insert line ────────────────────────────────────────────────────────────────
 // A thin hover zone between rows. Hover reveals a line with a "+" in the
-// middle; clicking it asks whether to insert an annotation or a heading. The
+// middle; clicking anywhere on the line (not just the "+") asks whether to insert an annotation or a heading. The
 // same slot doubles as the drop indicator while dragging — which slot is active
 // is decided by the list's own hit test, so there is no dragover handler here.
 const InsertLine: React.FC<{
@@ -600,9 +600,11 @@ const InsertLine: React.FC<{
   const items = insertMenuItems((kind) => onInsert(index, kind));
   return (
     <div
+      data-testid="spec-insert-line"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ position: 'relative', height: active ? 10 : 8, margin: '-3px 0', zIndex: show ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}
+      onClick={(e) => { if (dragging) return; e.stopPropagation(); setOpen(true); }}
+      style={{ position: 'relative', height: active ? 10 : 8, margin: '-3px 0', zIndex: show ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: dragging ? 'default' : 'pointer' }}
     >
       <div style={{ position: 'absolute', left: 12, right: 12, top: '50%', height: 2, marginTop: -1, background: color, opacity: show ? 1 : 0, transition: 'opacity 0.12s', borderRadius: 1 }} />
       {active && dragCount > 1 && (
