@@ -39,6 +39,11 @@ type SpecsView =
   | { level: 'doc'; specId: string; /** active annotation */ itemId?: string };
 
 const VIEW_STORAGE_KEY = 'pv-specs-view';
+// After an action writes an annotation's attribute into a source file, its
+// thumbnail waits this long before loading. A frame that loads before Vite has
+// seen the write gets the old module and can miss the HMR update that follows,
+// leaving a stale "pinned element missing" warning.
+const THUMB_HOLD_MS = 2000;
 // Remembered across sessions, like the Comments panel's scope filter.
 const SCOPE_STORAGE_KEY = 'pv-specs-filter-scope';
 
@@ -120,6 +125,11 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [editingTitleSpecId, setEditingTitleSpecId] = useState<string | null>(null);
   const [autoEditTextId, setAutoEditTextId] = useState<string | null>(null);
   const [anchorFound, setAnchorFound] = useState<boolean | null>(null);
+  // Annotation id → time its thumbnail may load (see THUMB_HOLD_MS).
+  const [thumbHolds, setThumbHolds] = useState<Record<string, number>>({});
+  const holdThumb = useCallback((itemId: string) => {
+    setThumbHolds((prev) => ({ ...prev, [itemId]: Date.now() + THUMB_HOLD_MS }));
+  }, []);
   const [confirm, setConfirm] = useState<{ kind: 'spec'; specId: string } | null>(null);
   const listScrollTop = useRef(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -275,6 +285,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
             ...(pinned ? { file: activeData!.file, nameEnd: activeData!.nameEnd } : {}),
           });
           await refreshList();
+          if (pinned) holdThumb(id);
           setBundle(b);
           setAutoEditTextId(id);
           setActiveId(specId, id);
@@ -365,6 +376,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       await snapshot([specItemFileRel(specId, itemId), repin ? oldFile : '', newFile], 'update annotation reference');
       let b = await updateSpecItem(specId, itemId, { state: { tab: 'app', path: getCurrentAppPath() } });
       if (repin) b = await reanchorSpecItem(specId, itemId, newFile, activeData!.nameEnd);
+      if (repin) holdThumb(itemId);
       setBundle(b);
       emitToast({ message: repin ? 'Reference link and element updated' : 'Reference link updated', variant: 'success', durationMs: 1500 });
     }, repin);
@@ -558,6 +570,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           activeId={activeId}
           activeAnchorFound={anchorFound}
           autoEditTextId={autoEditTextId}
+          thumbHolds={thumbHolds}
           onAutoEditDone={() => setAutoEditTextId(null)}
           onBack={() => setView({ level: 'docs' })}
           onRename={(t) => handleRenameSpec(bundle.spec.id, t)}

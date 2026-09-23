@@ -105,7 +105,12 @@ export const SpecThumbnail: React.FC<{
    * after load. Keeps watching, so a later appearance reports true again.
    */
   onRevealResult?: (found: boolean) => void;
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult }) => {
+  /**
+   * Don't load the frame before this time (ms since epoch). A new value also
+   * reloads a frame that is already showing, so a re-pin is picked up fresh.
+   */
+  holdUntil?: number;
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult, holdUntil }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
@@ -117,7 +122,15 @@ export const SpecThumbnail: React.FC<{
   // (scrolled back into view, new src, reload), so a check never judges a
   // blank, still-loading frame by an earlier frame's load.
   const [frameLoaded, setFrameLoaded] = useState(false);
-  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey]);
+  const [held, setHeld] = useState(() => !!holdUntil && holdUntil > Date.now());
+  useEffect(() => {
+    const wait = (holdUntil ?? 0) - Date.now();
+    if (wait <= 0) { setHeld(false); return; }
+    setHeld(true);
+    const t = window.setTimeout(() => setHeld(false), wait);
+    return () => clearTimeout(t);
+  }, [holdUntil]);
+  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey, held]);
   // Read through a ref: a new callback identity must not restart the poll.
   const onRevealResultRef = useRef(onRevealResult);
   onRevealResultRef.current = onRevealResult;
@@ -239,9 +252,9 @@ export const SpecThumbnail: React.FC<{
         background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
       }}
     >
-      {near && width > 0 && (
+      {near && width > 0 && !held && (
         <iframe
-          key={`${src}#${reloadKey}`}
+          key={`${src}#${reloadKey}#${holdUntil ?? 0}`}
           ref={frameRef}
           onLoad={handleLoad}
           name={THUMB_IFRAME_NAME}
