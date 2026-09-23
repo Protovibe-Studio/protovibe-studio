@@ -18,7 +18,7 @@ import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecWordingStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_WORDING_STATUSES, SPEC_WORDING_STATUS_CONFIG, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, SPECS_ROW_BTN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
@@ -688,8 +688,11 @@ const AnnotationRow: React.FC<{
   }));
   const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
+  // Order: actions, then the status tracks, then who wrote it, then Delete.
   const menuItems: MenuItem[] = [
-    { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, onSelect: () => {} },
+    { label: 'Recapture link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
+    { label: 'Show on canvas', icon: <Link2 size={13} />, onSelect: () => onSelect(false) },
+    { label: 'Unpin element', icon: <PinOff size={13} />, onSelect: onUnpin, disabled: !item.anchor || busy },
     // Status: the row only shows its picker once a status is set, so this is
     // where a status is first chosen.
     ...SPEC_STATUSES.map((s, i): MenuItem => ({
@@ -698,9 +701,7 @@ const AnnotationRow: React.FC<{
     })),
     // Wording check status: a separate track, shown as the icon under "More".
     ...wordingItems(true),
-    { label: 'Show on canvas', hint: item.state.path, icon: <Link2 size={13} />, separator: true, onSelect: () => onSelect(false) },
-    { label: 'Recapture link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
-    { label: 'Unpin element', hint: item.anchor ? `Element in ${fileName}` : undefined, icon: <PinOff size={13} />, onSelect: onUnpin, disabled: !item.anchor || busy },
+    { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, separator: true, onSelect: () => {} },
     { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: onDelete },
   ];
   return (
@@ -764,6 +765,8 @@ const AnnotationRow: React.FC<{
             pointer enter and leave. */}
         <button
           ref={menuRef}
+          className={SPECS_ROW_BTN_CLASS}
+          data-open={menuOpen}
           style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
           data-tooltip="More"
           onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
@@ -775,6 +778,8 @@ const AnnotationRow: React.FC<{
             ref={wordingRef}
             data-testid="spec-wording-status"
             data-wording-status={item.wordingStatus}
+            className={SPECS_ROW_BTN_CLASS}
+            data-open={wordingMenuOpen}
             style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
             data-tooltip={`Wording check: ${wording.label}\n${wording.hint}`}
             onClick={(e) => { e.stopPropagation(); setWordingMenuOpen(true); }}
@@ -858,6 +863,8 @@ const HeadingRow: React.FC<{
       </div>
       <button
         ref={menuRef}
+        className={SPECS_ROW_BTN_CLASS}
+        data-open={menuOpen}
         style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
         data-tooltip="More"
         onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
