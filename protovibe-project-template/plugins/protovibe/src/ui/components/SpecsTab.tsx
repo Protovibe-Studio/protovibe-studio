@@ -20,7 +20,7 @@ import { useViewportAnchorIds } from '../hooks/useViewportAnchorIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { IframeTab } from './ShellNavBar';
-import type { SpecAnnotation, SpecAuthor, SpecBundle, SpecItem, SpecStatus, SpecSummary } from '../../shared/specs';
+import type { SpecAnnotation, SpecAuthor, SpecBundle, SpecItem, SpecSummary } from '../../shared/specs';
 import {
   makeSpecId, makeAnnotationId, makeHeadingId, specMetaFileRel, specItemFileRel, specIdSelector, readSpecIds,
   rankBetween, INITIAL_RANK, isAnnotation, annotationsOf,
@@ -31,7 +31,7 @@ import {
 } from '../api/specs';
 import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
-import { SpecDocView, annotationMatches, type InsertKind, type SpecScope } from './specs/SpecDocView';
+import { SpecDocView, annotationMatches, type InsertKind, type SpecScope, type SpecStatusFilter } from './specs/SpecDocView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
 
 type SpecsView =
@@ -113,7 +113,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<Set<SpecStatus>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<SpecStatusFilter>('all');
   const [scope, setScope] = useState<SpecScope>(loadScope);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   // Spec whose title opens selected for typing (just created).
@@ -533,7 +533,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           specs={specs}
           publishedUrl={publishedUrl}
           busy={busy}
-          onOpen={(id) => { setQuery(''); setStatusFilter(new Set()); setView({ level: 'doc', specId: id }); }}
+          onOpen={(id) => { setQuery(''); setStatusFilter('all'); setView({ level: 'doc', specId: id }); }}
           onCreate={handleCreateSpec}
           onDelete={(id) => setConfirm({ kind: 'spec', specId: id })}
           onExport={handleExport}
