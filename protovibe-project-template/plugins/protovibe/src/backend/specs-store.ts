@@ -17,7 +17,7 @@ import type {
   SpecAnnotation, SpecBundle, SpecDoc, SpecHeading, SpecItem, SpecSummary, SpecsViewerData,
 } from '../shared/specs';
 import {
-  SPECS_DIR_REL, SPEC_META_FILE, normalizeHeadingLevel, normalizeSpecStatus,
+  SPECS_DIR_REL, SPEC_META_FILE, normalizeHeadingLevel, normalizeSpecStatus, normalizeSpecWordingStatus,
   sortSpecItems, isAnnotation,
 } from '../shared/specs';
 
@@ -72,11 +72,13 @@ function hydrateItem(raw: any, id: string): SpecItem | null {
   }
   if (raw.type === 'annotation') {
     const status = normalizeSpecStatus(raw.status);
+    const wordingStatus = normalizeSpecWordingStatus(raw.wordingStatus);
     const a: SpecAnnotation = {
       ...base,
       type: 'annotation',
       text: String(raw.text ?? ''),
       ...(status ? { status } : {}),
+      ...(wordingStatus ? { wordingStatus } : {}),
       state: { tab: 'app', path: typeof raw.state?.path === 'string' ? raw.state.path : '/' },
       ...(raw.anchor && typeof raw.anchor.file === 'string' ? { anchor: { file: raw.anchor.file } } : {}),
       author: { name: String(raw.author?.name ?? 'Anonymous'), email: String(raw.author?.email ?? '') },
@@ -166,7 +168,18 @@ export function deleteSpecDir(specId: string): void {
   fs.rmSync(specDir(specId), { recursive: true, force: true });
 }
 
-/** The JSON the published viewer loads (also served live in dev). */
+/**
+ * The JSON the published viewer loads (also served live in dev). The wording
+ * check status is an editor-only workflow field, so it is stripped here.
+ */
 export function buildViewerData(): SpecsViewerData {
-  return { generatedAt: new Date().toISOString(), specs: readAllSpecs() };
+  const specs = readAllSpecs().map((b) => ({
+    ...b,
+    items: b.items.map((it) => {
+      if (!isAnnotation(it) || !it.wordingStatus) return it;
+      const { wordingStatus: _omit, ...rest } = it;
+      return rest;
+    }),
+  }));
+  return { generatedAt: new Date().toISOString(), specs };
 }

@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/api/specs.ts
 // Fetch wrappers for the Specs endpoints (see backend/specs-server.ts).
-import type { SpecBundle, SpecItem, SpecSummary, SpecStatus, SpecHeadingLevel } from '../../shared/specs';
+import type { SpecBundle, SpecItem, SpecSummary, SpecStatus, SpecWordingStatus, SpecHeadingLevel } from '../../shared/specs';
 import type { SpecExportFormat } from '../../shared/specs-export';
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -43,7 +43,7 @@ export type NewSpecItem =
   | { type: 'heading'; id: string; rank: string; title: string; level: SpecHeadingLevel }
   | {
       type: 'annotation'; id: string; rank: string; text: string;
-      status?: SpecStatus | null; state: { tab: 'app'; path: string };
+      status?: SpecStatus | null; wordingStatus?: SpecWordingStatus | null; state: { tab: 'app'; path: string };
       author: { name: string; email: string };
     };
 
@@ -63,6 +63,8 @@ export interface SpecItemPatch {
   text?: string;
   /** null clears the status. */
   status?: SpecStatus | null;
+  /** null clears the wording check status. */
+  wordingStatus?: SpecWordingStatus | null;
   level?: SpecHeadingLevel;
   rank?: string;
   state?: { tab: 'app'; path: string };

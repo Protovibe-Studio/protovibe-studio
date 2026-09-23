@@ -99,6 +99,7 @@ A directory **without** `spec.json` is not a spec: its item files are ignored
   "rank": "s",
   "text": "Division defaults to Field Operations.\nName is required.",
   "status": "discuss",                     // "todo" | "discuss" | "verified"; OMIT for no status
+  "wordingStatus": "todo",                 // "todo" | "progress" | "done"; OMIT for no wording check status
   "state": { "tab": "app", "path": "/?page=minions&recruitDialog=true" },
   "anchor": { "file": "src/pages/MinionsPage.tsx" },  // OMIT when not pinned to an element
   "author": { "name": "Jane", "email": "jane@x.com" },
@@ -113,6 +114,10 @@ Field notes:
   rich text. An old `title` key in a file is ignored.
 - `status` is a stable id, never a label. Omit the key entirely for "no status";
   an unknown value reads as no status.
+- `wordingStatus` is the separate wording (copy) check track: `todo` = "To
+  check", `progress` = "Check in progress", `done` = "Wording check done".
+  Same rules as `status` (stable id, omit for none). It is editor-only — never
+  shown in the published viewer or the exports.
 - `state.path` is pathname + search + hash, relative to the app origin, and
   **must start with `/`**. A missing or non-string path falls back to `"/"`.
 - `author.name` is what the viewer shows (emails are never rendered). A missing

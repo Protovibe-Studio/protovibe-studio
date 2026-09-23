@@ -213,11 +213,18 @@ export const INLINE_EDITABLE_CLASS = 'pv-spec-inline';
 /** Mounted once by the Specs panel; see INLINE_EDITABLE_CLASS. */
 /** Class for elements that fade in on mount (e.g. a row's warning icon). */
 export const SPECS_FADE_IN_CLASS = 'pv-specs-fade-in';
+/**
+ * Hover state for the small icon buttons sitting on a row (⋯, wording check),
+ * so the button reads as its own click target against the row's hover
+ * background. !important because the buttons set their background inline.
+ */
+export const SPECS_ROW_BTN_CLASS = 'pv-specs-row-btn';
 
 export const SpecsInlineStyles: React.FC = () => (
   <style dangerouslySetInnerHTML={{ __html: `.${INLINE_EDITABLE_CLASS}::placeholder { color: ${theme.text_tertiary}; opacity: 1; }
 @keyframes pv-specs-fade-in { from { opacity: 0; } to { opacity: 1; } }
-.${SPECS_FADE_IN_CLASS} { animation: pv-specs-fade-in 0.3s ease-out; }` }} />
+.${SPECS_FADE_IN_CLASS} { animation: pv-specs-fade-in 0.3s ease-out; }
+.${SPECS_ROW_BTN_CLASS}:hover:not(:disabled), .${SPECS_ROW_BTN_CLASS}[data-open=true] { background: ${theme.bg_tertiary} !important; color: ${theme.text_default} !important; }` }} />
 );
 
 /**
