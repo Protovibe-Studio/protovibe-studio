@@ -25,8 +25,9 @@ const REVEAL_INTERVAL_MS = 200;
 // Webfonts and images can shift the element back out of view after the first
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
-// Skeleton shown until the frame has loaded (held, off-screen or loading): a
-// faint white box (0.2) with a band sweeping across it that peaks at 0.33
+// Skeleton shown only for a held thumbnail (`holdUntil`), from the hold until
+// the frame that follows it has loaded; ordinary lazy loads show the frame
+// straight away. A faint white box (0.2) with a band sweeping across it that peaks at 0.33
 // (0.16 layered over the 0.2 base), and no border. Self-contained because the
 // published viewer uses this component too.
 const SKELETON_CLASS = 'pv-spec-thumb-skeleton';
@@ -130,10 +131,13 @@ export const SpecThumbnail: React.FC<{
   // blank, still-loading frame by an earlier frame's load.
   const [frameLoaded, setFrameLoaded] = useState(false);
   const [held, setHeld] = useState(() => !!holdUntil && holdUntil > Date.now());
+  // Skeleton over the box: set when a hold starts, cleared by the next load.
+  const [skeleton, setSkeleton] = useState(held);
   useEffect(() => {
     const wait = (holdUntil ?? 0) - Date.now();
     if (wait <= 0) { setHeld(false); return; }
     setHeld(true);
+    setSkeleton(true);
     const t = window.setTimeout(() => setHeld(false), wait);
     return () => clearTimeout(t);
   }, [holdUntil]);
@@ -189,6 +193,7 @@ export const SpecThumbnail: React.FC<{
   const handleLoad = useCallback(() => {
     applyTheme();
     setFrameLoaded(true);
+    setSkeleton(false);
     setLoadNonce((n) => n + 1);
   }, [applyTheme]);
 
@@ -256,10 +261,11 @@ export const SpecThumbnail: React.FC<{
       style={{
         width: fullWidth ? '94%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
         boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
-        border: `1px solid ${frameLoaded ? theme.border_default : 'transparent'}`,
+        background: skeleton ? 'transparent' : theme.bg_sunken,
+        border: `1px solid ${skeleton ? 'transparent' : theme.border_default}`,
       }}
     >
-      {!frameLoaded && (
+      {skeleton && (
         <>
           <style>{SKELETON_CSS}</style>
           <div className={SKELETON_CLASS} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
@@ -280,8 +286,8 @@ export const SpecThumbnail: React.FC<{
             width: THUMB_VIEWPORT.width, height: THUMB_VIEWPORT.height, border: 'none',
             transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none',
             position: 'absolute', top: 0, left: 0, background: themeMode === 'dark' ? '#111' : '#fff',
-            // Hidden until loaded so the skeleton, not a blank page, shows meanwhile.
-            opacity: frameLoaded ? 1 : 0, transition: 'opacity 0.2s',
+            // After a hold, hidden until loaded so the skeleton shows meanwhile.
+            opacity: skeleton ? 0 : 1, transition: 'opacity 0.2s',
           }}
         />
       )}
