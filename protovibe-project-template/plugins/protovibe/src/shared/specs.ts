@@ -29,6 +29,27 @@ export const SPEC_STATUS_CONFIG: Record<SpecStatus, { label: string; color: stri
 };
 
 /**
+ * Per-annotation wording (copy) check status — a second, independent track
+ * next to SpecStatus for UX writers. Stable ids, same rules as SpecStatus;
+ * "No status" is the absent key. Editor-only: stripped from the published
+ * viewer data and left out of the exports.
+ */
+export type SpecWordingStatus = 'todo' | 'progress' | 'done';
+
+export const SPEC_WORDING_STATUSES: SpecWordingStatus[] = ['todo', 'progress', 'done'];
+
+export const SPEC_WORDING_STATUS_CONFIG: Record<SpecWordingStatus, { label: string; color: string; hint: string }> = {
+  todo:     { label: 'To check',           color: '#F2C94C', hint: 'The copy in this state still needs a wording check.' },
+  progress: { label: 'Check in progress',  color: '#39a9ff', hint: 'Someone is checking the copy in this state.' },
+  done:     { label: 'Wording check done', color: '#1ABC9C', hint: 'The copy in this state has been checked.' },
+};
+
+export function normalizeSpecWordingStatus(raw: unknown): SpecWordingStatus | undefined {
+  if (typeof raw !== 'string') return undefined;
+  return (SPEC_WORDING_STATUSES as string[]).includes(raw) ? (raw as SpecWordingStatus) : undefined;
+}
+
+/**
  * Background of the active annotation / heading row, shared by the editor
  * panel and the published viewer so both highlight the same way. Literal
  * colour for the same reason as SPEC_STATUS_CONFIG: this file stays free of
@@ -96,6 +117,8 @@ export interface SpecAnnotation extends SpecItemBase {
   type: 'annotation';
   text: string;
   status?: SpecStatus;
+  /** Editor-only; never present in the published viewer data. */
+  wordingStatus?: SpecWordingStatus;
   state: SpecState;
   anchor?: SpecAnchor;
   author: SpecAuthor;

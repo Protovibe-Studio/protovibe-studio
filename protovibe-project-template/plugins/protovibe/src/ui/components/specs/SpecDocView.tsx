@@ -11,12 +11,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
-  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, AlertTriangle,
+  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, AlertTriangle, TextCursorInput,
 } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
-import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
-import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
+import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecWordingStatus, SpecHeadingLevel } from '../../../shared/specs';
+import { SPEC_STATUSES, SPEC_WORDING_STATUSES, SPEC_WORDING_STATUS_CONFIG, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
@@ -33,8 +33,17 @@ export type InsertKind = 'annotation' | 'big' | 'medium';
  */
 export type SpecScope = 'all' | 'viewport' | 'selection';
 
-/** One status to show, or 'all' for no status filtering. */
-export type SpecStatusFilter = SpecStatus | 'all';
+/**
+ * One status to show, or 'all' for no status filtering. The same chip also
+ * filters by wording check status (`wording-{id}`), like the Comments chip
+ * mixes statuses with Unread / My threads.
+ */
+export type SpecStatusFilter = SpecStatus | `wording-${SpecWordingStatus}` | 'all';
+
+/** The wording check icon — the same glyph as Comments' "Suggest wording change". */
+const WordingIcon: React.FC<{ color: string; size?: number }> = ({ color, size = 13 }) => (
+  <TextCursorInput size={size} strokeWidth={2.5} style={{ color, flexShrink: 0 }} />
+);
 
 const SCOPE_OPTIONS: FilterChipOption<SpecScope>[] = [
   { value: 'all', label: 'All annotations', hint: 'Every annotation in this spec' },
@@ -45,6 +54,10 @@ const SCOPE_OPTIONS: FilterChipOption<SpecScope>[] = [
 const STATUS_OPTIONS: FilterChipOption<SpecStatusFilter>[] = [
   { value: 'all', label: 'All statuses' },
   ...SPEC_STATUSES.map((s) => ({ value: s, label: SPEC_STATUS_CONFIG[s].label, icon: <StatusDot color={SPEC_STATUS_CONFIG[s].color} /> })),
+  ...SPEC_WORDING_STATUSES.map((w, i): FilterChipOption<SpecStatusFilter> => ({
+    value: `wording-${w}`, label: SPEC_WORDING_STATUS_CONFIG[w].label, hint: SPEC_WORDING_STATUS_CONFIG[w].hint,
+    icon: <WordingIcon color={SPEC_WORDING_STATUS_CONFIG[w].color} size={11} />, separator: i === 0,
+  })),
 ];
 
 /** How close to the top / bottom edge of the list a drag starts auto-scrolling. */
@@ -652,6 +665,7 @@ const AnnotationRow: React.FC<{
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
 }> = ({ item, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [wordingMenuOpen, setWordingMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
   // Whether the pinned element showed up in the thumbnail's captured state
@@ -660,10 +674,18 @@ const AnnotationRow: React.FC<{
   useEffect(() => { setThumbPinFound(null); }, [item.state.path, item.anchor?.file]);
   const pinMissingInState = !!item.anchor && thumbPinFound === false;
   const menuRef = useRef<HTMLButtonElement | null>(null);
+  const wordingRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
-  // The "More" button is a hover affordance; an open menu keeps it lit while the
-  // pointer sits in the popup instead of on the row.
-  const showMenuBtn = hover || menuOpen;
+  // The "More" button (and the wording check icon under it) are hover
+  // affordances; an open menu keeps them lit while the pointer sits in the
+  // popup instead of on the row.
+  const showMenuBtn = hover || menuOpen || wordingMenuOpen;
+  const wording = item.wordingStatus ? SPEC_WORDING_STATUS_CONFIG[item.wordingStatus] : null;
+  const wordingItems = (separateFirst: boolean): MenuItem[] => SPEC_WORDING_STATUSES.map((w, i) => ({
+    label: SPEC_WORDING_STATUS_CONFIG[w].label, icon: <WordingIcon color={SPEC_WORDING_STATUS_CONFIG[w].color} />,
+    selected: item.wordingStatus === w, separator: separateFirst && i === 0, disabled: busy,
+    onSelect: () => onUpdate({ wordingStatus: item.wordingStatus === w ? null : w }, 'change wording check status'),
+  }));
   const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   const menuItems: MenuItem[] = [
@@ -674,6 +696,8 @@ const AnnotationRow: React.FC<{
       label: SPEC_STATUS_CONFIG[s].label, icon: statusDot(SPEC_STATUS_CONFIG[s].color), selected: item.status === s, separator: i === 0,
       disabled: busy, onSelect: () => onUpdate({ status: item.status === s ? null : s }, 'change annotation status'),
     })),
+    // Wording check status: a separate track, shown as the icon under "More".
+    ...wordingItems(true),
     { label: 'Show on canvas', hint: item.state.path, icon: <Link2 size={13} />, separator: true, onSelect: () => onSelect(false) },
     { label: 'Recapture link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
     { label: 'Unpin element', hint: item.anchor ? `Element in ${fileName}` : undefined, icon: <PinOff size={13} />, onSelect: onUnpin, disabled: !item.anchor || busy },
@@ -746,6 +770,18 @@ const AnnotationRow: React.FC<{
         >
           <MoreHorizontal size={14} />
         </button>
+        {wording && (
+          <button
+            ref={wordingRef}
+            data-testid="spec-wording-status"
+            data-wording-status={item.wordingStatus}
+            style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
+            data-tooltip={`Wording check: ${wording.label}\n${wording.hint}`}
+            onClick={(e) => { e.stopPropagation(); setWordingMenuOpen(true); }}
+          >
+            <WordingIcon color={wording.color} size={14} />
+          </button>
+        )}
         {pinMissingInState && (
           <button
             data-testid="spec-pin-missing-warning"
@@ -759,6 +795,7 @@ const AnnotationRow: React.FC<{
         )}
       </div>
       <Menu open={menuOpen} anchorRef={menuRef} onClose={() => setMenuOpen(false)} items={menuItems} width={250} />
+      <Menu open={wordingMenuOpen} anchorRef={wordingRef} onClose={() => setWordingMenuOpen(false)} items={wordingItems(false)} width={200} />
     </div>
   );
 };
@@ -846,7 +883,9 @@ export function annotationMatches(
   a: SpecAnnotation, query: string, statusFilter: SpecStatusFilter, scopeIds: ReadonlySet<string> | null = null,
 ): boolean {
   if (scopeIds && !scopeIds.has(a.id)) return false;
-  if (statusFilter !== 'all' && a.status !== statusFilter) return false;
+  if (statusFilter.startsWith('wording-')) {
+    if (`wording-${a.wordingStatus}` !== statusFilter) return false;
+  } else if (statusFilter !== 'all' && a.status !== statusFilter) return false;
   const q = query.trim().toLowerCase();
   if (!q) return true;
   const hay = [a.text, a.state.path, a.status ? SPEC_STATUS_CONFIG[a.status].label : ''].join('\n').toLowerCase();

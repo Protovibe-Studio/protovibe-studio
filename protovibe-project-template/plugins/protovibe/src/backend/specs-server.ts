@@ -12,9 +12,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Connect, ViteDevServer } from 'vite';
-import type { SpecAnnotation, SpecBundle, SpecDoc, SpecHeading, SpecItem, SpecStatus } from '../shared/specs';
+import type { SpecAnnotation, SpecBundle, SpecDoc, SpecHeading, SpecItem, SpecStatus, SpecWordingStatus } from '../shared/specs';
 import {
-  specIdAttr, normalizeSpecStatus, normalizeHeadingLevel, makeSpecId, makeAnnotationId, makeHeadingId,
+  specIdAttr, normalizeSpecStatus, normalizeSpecWordingStatus, normalizeHeadingLevel, makeSpecId, makeAnnotationId, makeHeadingId,
   isAnnotation, INITIAL_RANK,
 } from '../shared/specs';
 import { renderSpecExport, type SpecExportFormat } from '../shared/specs-export';
@@ -212,12 +212,14 @@ export const handleSpecsItemCreate: Connect.NextHandleFunction = async (req, res
       const pinned = !!body.file && validNameEnd(body.nameEnd);
       if (body.file && !pinned) return sendError(res, 'Missing element location (nameEnd)');
       const status = normalizeSpecStatus(raw.status);
+      const wordingStatus = normalizeSpecWordingStatus(raw.wordingStatus);
       const a: SpecAnnotation = {
         id: safeSpecId(raw.id) || makeAnnotationId(),
         type: 'annotation',
         rank,
         text: String(raw.text ?? ''),
         ...(status ? { status } : {}),
+        ...(wordingStatus ? { wordingStatus } : {}),
         state: { tab: 'app', path: typeof raw.state?.path === 'string' && raw.state.path.startsWith('/') ? raw.state.path : '/' },
         ...(pinned ? { anchor: { file: String(body.file) } } : {}),
         author: { name: String(raw.author?.name || 'Anonymous'), email: String(raw.author?.email || '') },
@@ -240,7 +242,7 @@ export const handleSpecsItemCreate: Connect.NextHandleFunction = async (req, res
 };
 
 // POST { specId, itemId, patch } → bundle
-// patch: { title? (headings), text?, status? (null clears), level?, rank?, state? }.
+// patch: { title? (headings), text?, status? / wordingStatus? (null clears), level?, rank?, state? }.
 // Only the fields present are changed; the item's own file is the only write.
 export const handleSpecsItemUpdate: Connect.NextHandleFunction = async (req, res) => {
   try {
@@ -262,6 +264,10 @@ export const handleSpecsItemUpdate: Connect.NextHandleFunction = async (req, res
       if ('status' in patch) {
         const s: SpecStatus | undefined = normalizeSpecStatus(patch.status);
         if (s) item.status = s; else delete item.status;
+      }
+      if ('wordingStatus' in patch) {
+        const w: SpecWordingStatus | undefined = normalizeSpecWordingStatus(patch.wordingStatus);
+        if (w) item.wordingStatus = w; else delete item.wordingStatus;
       }
       if (patch.state && typeof patch.state.path === 'string' && patch.state.path.startsWith('/')) {
         item.state = { tab: 'app', path: patch.state.path };
