@@ -16,6 +16,7 @@ import { emitToast } from '../events/toast';
 import { isTypingInput } from '../utils/elementType';
 import { getCurrentAppPath } from '../utils/appPath';
 import { useCommentUser } from '../hooks/useCommentUser';
+import { useViewportAnchorIds } from '../hooks/useViewportAnchorIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { IframeTab } from './ShellNavBar';
@@ -30,7 +31,7 @@ import {
 } from '../api/specs';
 import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
-import { SpecDocView, annotationMatches, type InsertKind } from './specs/SpecDocView';
+import { SpecDocView, annotationMatches, type InsertKind, type SpecScope } from './specs/SpecDocView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
 
 type SpecsView =
@@ -38,6 +39,26 @@ type SpecsView =
   | { level: 'doc'; specId: string; /** active annotation */ itemId?: string };
 
 const VIEW_STORAGE_KEY = 'pv-specs-view';
+// Remembered across sessions, like the Comments panel's scope filter.
+const SCOPE_STORAGE_KEY = 'pv-specs-filter-scope';
+
+function loadScope(): SpecScope {
+  try {
+    const raw = localStorage.getItem(SCOPE_STORAGE_KEY);
+    if (raw === 'all' || raw === 'viewport' || raw === 'selection') return raw;
+  } catch { /* ignore */ }
+  return 'all';
+}
+
+/** Ids of the annotations pinned to `el` or anything inside it. */
+function gatherSubtreeSpecIds(el: HTMLElement | null): Set<string> {
+  const ids = new Set<string>();
+  if (!el) return ids;
+  const collect = (node: Element) => { for (const id of readSpecIds(node.getAttributeNames())) ids.add(id); };
+  collect(el);
+  el.querySelectorAll('*').forEach(collect);
+  return ids;
+}
 
 function loadView(): SpecsView {
   try {
@@ -93,6 +114,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Set<SpecStatus>>(new Set());
+  const [scope, setScope] = useState<SpecScope>(loadScope);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   // Spec whose title opens selected for typing (just created).
   const [editingTitleSpecId, setEditingTitleSpecId] = useState<string | null>(null);
@@ -378,10 +400,33 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const activeItem = activeId && bundle ? bundle.items.find((it) => it.id === activeId) : undefined;
   const activeAnnotation = activeItem && isAnnotation(activeItem) ? activeItem : undefined;
 
+  // ── scope filter (All / In view / In selection) ──────────────────────────────
+  useEffect(() => {
+    try { localStorage.setItem(SCOPE_STORAGE_KEY, scope); } catch { /* ignore */ }
+  }, [scope]);
+  const scoping = isActive && view.level === 'doc';
+  // Annotations only pin to app-canvas elements, so both scopes read the app.
+  const pinnedIds = useMemo(
+    () => (bundle ? annotationsOf(bundle.items).filter((a) => a.anchor).map((a) => a.id) : []),
+    [bundle],
+  );
+  const viewportIds = useViewportAnchorIds(scoping && scope === 'viewport', 'app', pinnedIds, specIdSelector);
+  // The subtree walk only runs while "In selection" is showing; `bundle` is a
+  // dep so a freshly pinned annotation shows up without reselecting.
+  const selectionIds = useMemo(
+    () => (scoping && scope === 'selection' && activeIframeTab === 'app' && currentBaseTarget ? gatherSubtreeSpecIds(currentBaseTarget) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scoping, scope, activeIframeTab, currentBaseTarget, bundle],
+  );
+  // null ⇒ no scope restriction. "In selection" with nothing selected shows all,
+  // same as Comments.
+  const scopeIds: ReadonlySet<string> | null =
+    scope === 'viewport' ? viewportIds : scope === 'selection' ? selectionIds : null;
+
   // Prev / Next walk the annotations that pass the current search + filters.
   const navList = useMemo(
-    () => (bundle ? annotationsOf(bundle.items).filter((a) => annotationMatches(a, query, statusFilter)) : []),
-    [bundle, query, statusFilter],
+    () => (bundle ? annotationsOf(bundle.items).filter((a) => annotationMatches(a, query, statusFilter, scopeIds)) : []),
+    [bundle, query, statusFilter, scopeIds],
   );
   const navIndex = activeAnnotation ? navList.findIndex((a) => a.id === activeAnnotation.id) : -1;
   // From an active heading, Next / Prev go to the nearest annotation after /
@@ -503,6 +548,9 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           setQuery={setQuery}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
+          scope={scope}
+          setScope={setScope}
+          scopeIds={scopeIds}
           editingItemId={editingItemId}
           onEditingDone={() => setEditingItemId(null)}
           editingTitle={editingTitleSpecId === bundle.spec.id}
