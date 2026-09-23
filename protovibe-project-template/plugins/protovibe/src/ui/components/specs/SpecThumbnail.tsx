@@ -26,12 +26,12 @@ const REVEAL_INTERVAL_MS = 200;
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
 // Skeleton shown until the frame has loaded (held, off-screen or loading): a
-// faint white box (0.1) with a band sweeping across it that peaks at 0.3
-// (0.22 layered over the 0.1 base), and no border. Self-contained because the
+// faint white box (0.2) with a band sweeping across it that peaks at 0.33
+// (0.16 layered over the 0.2 base), and no border. Self-contained because the
 // published viewer uses this component too.
 const SKELETON_CLASS = 'pv-spec-thumb-skeleton';
 const SKELETON_CSS = `@keyframes pv-spec-thumb-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
-.${SKELETON_CLASS} { background: linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%) 0 0 / 200% 100% no-repeat, rgba(255, 255, 255, 0.1); animation: pv-spec-thumb-shimmer 1.4s ease-in-out infinite; }`;
+.${SKELETON_CLASS} { background: linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%) 0 0 / 200% 100% no-repeat, rgba(255, 255, 255, 0.2); animation: pv-spec-thumb-shimmer 1.4s ease-in-out infinite; }`;
 // Presence check behind `onRevealResult`: how long after the frame loads the
 // element may stay absent before it counts as "not in this state". The check
 // keeps watching afterwards, so an element that renders late (slow route, HMR
