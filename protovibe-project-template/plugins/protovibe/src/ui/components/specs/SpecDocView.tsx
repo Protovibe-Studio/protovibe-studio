@@ -3,26 +3,41 @@
 // place like a doc — headings and annotation text are click-to-edit, the
 // status is a picker on the row. One annotation is *active* (highlighted);
 // clicking a row activates it and restores its state on the canvas, Prev /
-// Next in the header step the active annotation. Also: search + status
-// filters, hover "+" insert lines between rows, drag reorder (one row, or a
-// ⌘/Shift-click multi-selection moved as a block, with edge auto-scroll so a
-// drag can cross the whole list), per-row ⋯ menu.
+// Next in the header step the active annotation. Also: search, a collapsible
+// scope (All / In view / In selection) + status filter, hover "+" insert lines
+// between rows, drag reorder (one row, or a ⌘/Shift-click multi-selection
+// moved as a block, with edge auto-scroll so a drag can cross the whole list),
+// per-row ⋯ menu.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
-  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User,
+  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, Filter, X, AlertTriangle,
 } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
 import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, SpecHeadingLevel } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
-import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
+import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
+import { Segmented } from '../Segmented';
+import { openPrompt } from '../../events/openPrompt';
 
 export type InsertKind = 'annotation' | 'big' | 'medium';
+
+/**
+ * Which annotations the list is scoped to: all of them, those whose pinned
+ * element is visible on the app canvas, or those pinned inside the selection.
+ */
+export type SpecScope = 'all' | 'viewport' | 'selection';
+
+const FILTERS_OPEN_KEY = 'pv-specs-filter-open';
+
+function loadFiltersOpen(): boolean {
+  try { return localStorage.getItem(FILTERS_OPEN_KEY) === '1'; } catch { return false; }
+}
 
 /** How close to the top / bottom edge of the list a drag starts auto-scrolling. */
 const AUTOSCROLL_EDGE = 56;
@@ -44,6 +59,10 @@ export interface SpecDocViewProps {
   setQuery: (q: string) => void;
   statusFilter: Set<SpecStatus>;
   setStatusFilter: (s: Set<SpecStatus>) => void;
+  scope: SpecScope;
+  setScope: (s: SpecScope) => void;
+  /** Annotation ids the scope allows; null when it doesn't restrict the list. */
+  scopeIds: ReadonlySet<string> | null;
   /** Heading whose title should open in edit mode (just created). */
   editingItemId: string | null;
   onEditingDone: () => void;
@@ -111,7 +130,13 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerY = useRef<number | null>(null);
   const dragPointerAt = useRef(0);
 
-  const filtering = p.query.trim().length > 0 || p.statusFilter.size > 0;
+  const filtering = p.query.trim().length > 0 || p.statusFilter.size > 0 || p.scopeIds !== null;
+  const [filtersOpen, setFiltersOpen] = useState(loadFiltersOpen);
+  useEffect(() => {
+    try { localStorage.setItem(FILTERS_OPEN_KEY, filtersOpen ? '1' : '0'); } catch { /* ignore */ }
+  }, [filtersOpen]);
+  // Non-default filters, counted on the collapsed "Filter annotations" header.
+  const activeFilters = p.statusFilter.size + (p.scope !== 'all' ? 1 : 0);
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -124,7 +149,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const visible = useMemo(() => {
     if (!filtering) return items;
     const q = p.query.trim().toLowerCase();
-    const matches = (a: SpecAnnotation) => annotationMatches(a, q, p.statusFilter);
+    const matches = (a: SpecAnnotation) => annotationMatches(a, q, p.statusFilter, p.scopeIds);
     // Keep a heading when any annotation under it (until the next heading of
     // the same or higher level) matches.
     const out: SpecItem[] = [];
@@ -132,7 +157,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       const it = items[i];
       if (isAnnotation(it)) { if (matches(it)) out.push(it); continue; }
       const h = it as SpecHeading;
-      let keep = !q && p.statusFilter.size === 0;
+      let keep = !q && p.statusFilter.size === 0 && !p.scopeIds;
       for (let j = i + 1; j < items.length; j++) {
         const n = items[j];
         if (!isAnnotation(n)) { if (n.level === 'big' || h.level === 'medium') break; continue; }
@@ -141,7 +166,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       if (keep || (q && h.title.toLowerCase().includes(q))) out.push(h);
     }
     return out;
-  }, [items, filtering, p.query, p.statusFilter]);
+  }, [items, filtering, p.query, p.statusFilter, p.scopeIds]);
 
   // ── selection ────────────────────────────────────────────────────────────────
   // Rows that went away (deleted, undone, changed by a git sync) drop out of the
@@ -285,6 +310,10 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     const first = seenActiveRef.current === undefined;
     seenActiveRef.current = p.activeId;
     if (first || !p.activeId || !scrollEl) return;
+    // A single-row selection follows the active row (Prev / Next, a canvas
+    // selection) instead of lingering on the old one; a multi-selection stays.
+    const activeId = p.activeId;
+    setSelected((prev) => (prev.size === 1 && !prev.has(activeId) ? new Set([activeId]) : prev));
     const row = scrollEl.querySelector<HTMLElement>(`[data-spec-item="${p.activeId}"]`);
     try { row?.scrollIntoView({ block: 'nearest' }); } catch { /* ignore */ }
   }, [p.activeId, scrollEl]);
@@ -333,8 +362,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         />
       </div>
 
-      {/* search + filters (only once there is something to search) */}
-      {numbers.size > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      {/* search, then the collapsible filters (only once there is something to search) */}
+      {numbers.size > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
           <input
@@ -349,26 +378,76 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             }}
           />
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {SPEC_STATUSES.map((s) => {
-            const active = p.statusFilter.has(s);
-            const { label, color } = SPEC_STATUS_CONFIG[s];
-            return (
-              <button
-                key={s}
-                onClick={() => toggleStatus(s)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 999,
-                  border: `1px solid ${active ? color : theme.border_default}`, background: active ? `${color}22` : 'transparent',
-                  color: active ? color : theme.text_secondary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: 2, background: color }} />
-                {label}
-              </button>
-            );
-          })}
-        </div>
+      </div>}
+      {numbers.size > 0 && <div style={{ borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+        <button
+          data-testid="specs-filters-toggle"
+          onClick={() => setFiltersOpen((o) => !o)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 34, boxSizing: 'border-box',
+            padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer',
+            color: theme.text_secondary, fontSize: 12, fontWeight: 600, fontFamily: theme.font_ui,
+          }}
+        >
+          <Filter size={14} />
+          <span>Filter annotations</span>
+          {activeFilters > 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+              background: theme.primary_solid, color: '#fff', fontSize: 9, fontWeight: 700,
+            }}>
+              {activeFilters}
+            </span>
+          )}
+          <div style={{ flex: 1 }} />
+          {activeFilters > 0 && (
+            <span
+              role="button"
+              data-tooltip="Clear filters"
+              onClick={(e) => { e.stopPropagation(); p.setStatusFilter(new Set()); p.setScope('all'); }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, color: theme.text_tertiary, cursor: 'pointer' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
+            >
+              <X size={13} />
+            </span>
+          )}
+          <ChevronDown size={15} style={{ transform: filtersOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: theme.text_tertiary }} />
+        </button>
+        {filtersOpen && (
+          <div style={{ padding: '0 12px 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Segmented
+              value={p.scope}
+              onChange={(v) => p.setScope(v as SpecScope)}
+              options={[
+                { val: 'all', label: 'All' },
+                { val: 'viewport', label: 'In view' },
+                { val: 'selection', label: 'In selection' },
+              ]}
+            />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {SPEC_STATUSES.map((s) => {
+                const active = p.statusFilter.has(s);
+                const { label, color } = SPEC_STATUS_CONFIG[s];
+                return (
+                  <button
+                    key={s}
+                    onClick={() => toggleStatus(s)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 999,
+                      border: `1px solid ${active ? color : theme.border_default}`, background: active ? `${color}22` : 'transparent',
+                      color: active ? color : theme.text_secondary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: 2, background: color }} />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>}
 
       {/* multi-selection bar */}
@@ -403,7 +482,13 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           </div>
         )}
         {filtering && visible.length === 0 && items.length > 0 && (
-          <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12 }}>No annotations match.</div>
+          <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>
+            {p.query.trim() || p.statusFilter.size > 0
+              ? 'No annotations match.'
+              : p.scope === 'selection'
+                ? 'No annotations are pinned to the selected element.'
+                : 'No pinned annotations are visible on the canvas. Scroll the canvas or switch to All.'}
+          </div>
         )}
 
         {!filtering && <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />}
@@ -608,6 +693,14 @@ const InsertLine: React.FC<{
 // with the modifier clicks that build a multi-selection.
 const GRIP_TOOLTIP = 'Drag to reorder · ⌘/Ctrl-click or Shift-click to select several';
 
+// The captured URL opens a state without the pinned element — typically the
+// element only appears after an interaction (a dialog, tab, dropdown…) the URL
+// doesn't record, so the link can't reproduce what was annotated. An icon (not
+// an inline banner) so a late flip never changes the row's height.
+const PIN_MISSING_TOOLTIP =
+  'The pinned element isn’t in this link’s state — the URL doesn’t reproduce the screen you annotated.\n' +
+  'Click to open the deep-link prompt for your coding agent, then recapture the link.';
+
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
   active: boolean;
@@ -631,6 +724,11 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
+  // Whether the pinned element showed up in the thumbnail's captured state
+  // (null until the thumbnail has loaded and looked).
+  const [thumbPinFound, setThumbPinFound] = useState<boolean | null>(null);
+  useEffect(() => { setThumbPinFound(null); }, [item.state.path, item.anchor?.file]);
+  const pinMissingInState = !!item.anchor && thumbPinFound === false;
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
   // The "More" button is a hover affordance; an open menu keeps it lit while the
@@ -678,6 +776,7 @@ const AnnotationRow: React.FC<{
           reloadKey={thumbReload}
           themeMode={thumbTheme}
           revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
+          onRevealResult={setThumbPinFound}
         />
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. A modifier
@@ -702,20 +801,33 @@ const AnnotationRow: React.FC<{
             <StatusPicker status={item.status} disabled={busy} onChange={(s) => onUpdate({ status: s }, 'change annotation status')} />
           </div>
         )}
-        {active && item.anchor && anchorFound === false && (
+        {active && item.anchor && anchorFound === false && !pinMissingInState && (
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}
       </div>
-      {/* Kept mounted while hidden: unmounting it would reflow the row on every
-          pointer enter and leave. */}
-      <button
-        ref={menuRef}
-        style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
-        data-tooltip="More"
-        onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
-      >
-        <MoreHorizontal size={14} />
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        {/* Kept mounted while hidden: unmounting it would reflow the row on every
+            pointer enter and leave. */}
+        <button
+          ref={menuRef}
+          style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
+          data-tooltip="More"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+        {pinMissingInState && (
+          <button
+            data-testid="spec-pin-missing-warning"
+            className={SPECS_FADE_IN_CLASS}
+            style={{ ...iconBtnSm, color: theme.warning_primary }}
+            data-tooltip={PIN_MISSING_TOOLTIP}
+            onClick={(e) => { e.stopPropagation(); openPrompt('deep-link-states'); }}
+          >
+            <AlertTriangle size={14} />
+          </button>
+        )}
+      </div>
       <Menu open={menuOpen} anchorRef={menuRef} onClose={() => setMenuOpen(false)} items={menuItems} width={250} />
     </div>
   );
@@ -800,7 +912,10 @@ const HeadingRow: React.FC<{
 };
 
 /** Shared filter predicate so Prev / Next in the annotation view walk the same list. */
-export function annotationMatches(a: SpecAnnotation, query: string, statusFilter: Set<SpecStatus>): boolean {
+export function annotationMatches(
+  a: SpecAnnotation, query: string, statusFilter: Set<SpecStatus>, scopeIds: ReadonlySet<string> | null = null,
+): boolean {
+  if (scopeIds && !scopeIds.has(a.id)) return false;
   if (statusFilter.size > 0 && !(a.status && statusFilter.has(a.status))) return false;
   const q = query.trim().toLowerCase();
   if (!q) return true;

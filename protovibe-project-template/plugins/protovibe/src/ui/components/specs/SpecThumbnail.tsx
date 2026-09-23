@@ -5,7 +5,8 @@
 // app instances stays small — each one is a full Vite client in dev.
 //
 // With `revealSelector` the frame is also scrolled to the annotation's pinned
-// element, mirroring what the canvas and the published viewer do for it.
+// element, mirroring what the canvas and the published viewer do for it, and
+// `onRevealResult` reports whether that element showed up in the state at all.
 //
 // The iframe is named `pv-spec-thumbnail`: bridge.ts and hmr-liveness.ts skip
 // their setup in such frames, and the shell's iframe scans exclude
@@ -24,6 +25,32 @@ const REVEAL_INTERVAL_MS = 200;
 // Webfonts and images can shift the element back out of view after the first
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
+// Presence check behind `onRevealResult`: how long after the frame loads the
+// element may stay absent before it counts as "not in this state". The check
+// keeps watching afterwards, so an element that renders late (slow route, HMR
+// re-render after a re-pin) flips the result back to found.
+const PRESENCE_GRACE_MS = 4500;
+const PRESENCE_POLL_MS = 1000;
+// Debounce for "missing": the element must stay absent this long without a
+// break before it is reported, so a re-render that briefly swaps it out (HMR,
+// an animated mount) rarely flips the result back and forth. Kept short so a
+// real problem shows up ~5s after load; the row fades its icon in, so an
+// occasional flip stays unobtrusive.
+const ABSENT_DEBOUNCE_MS = 1000;
+
+/**
+ * Is the pinned element rendered in the frame? It must be in the DOM and
+ * generate a box — or be `display: contents`, whose box is its children's.
+ */
+function presentInFrame(frame: HTMLIFrameElement | null, selector: string): boolean {
+  try {
+    const doc = frame?.contentDocument;
+    const el = doc?.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    if (el.getClientRects().length > 0) return true;
+    return doc!.defaultView?.getComputedStyle(el).display === 'contents';
+  } catch { return false; } // cross-origin guard
+}
 
 /**
  * Scroll a thumbnail's frame so the pinned element is visible, the same way the
@@ -72,7 +99,13 @@ export const SpecThumbnail: React.FC<{
    * thumbnail of a state whose subject sits below the fold shows nothing of it.
    */
   revealSelector?: string;
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector }) => {
+  /**
+   * Reports whether the `revealSelector` element is rendered in the frame:
+   * true as soon as it is, false once it has stayed absent for a grace period
+   * after load. Keeps watching, so a later appearance reports true again.
+   */
+  onRevealResult?: (found: boolean) => void;
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
@@ -80,6 +113,14 @@ export const SpecThumbnail: React.FC<{
   // Bumped on every frame load so the reveal poll restarts against the new
   // document instead of whatever the previous one left behind.
   const [loadNonce, setLoadNonce] = useState(0);
+  // Whether the *current* frame has loaded. Reset whenever a new frame mounts
+  // (scrolled back into view, new src, reload), so a check never judges a
+  // blank, still-loading frame by an earlier frame's load.
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey]);
+  // Read through a ref: a new callback identity must not restart the poll.
+  const onRevealResultRef = useRef(onRevealResult);
+  onRevealResultRef.current = onRevealResult;
 
   // Full-width mode: follow the host's width (the panel can be resized).
   useEffect(() => {
@@ -127,6 +168,7 @@ export const SpecThumbnail: React.FC<{
 
   const handleLoad = useCallback(() => {
     applyTheme();
+    setFrameLoaded(true);
     setLoadNonce((n) => n + 1);
   }, [applyTheme]);
 
@@ -146,6 +188,43 @@ export const SpecThumbnail: React.FC<{
     tick();
     return () => { for (const t of timers) clearTimeout(t); };
   }, [revealSelector, near, width, src, reloadKey, loadNonce]);
+
+  // Presence for `onRevealResult`, separate from the reveal scroll: watch the
+  // loaded frame's DOM (plus a slow poll as a backstop) and report changes.
+  useEffect(() => {
+    if (!revealSelector || !near || !frameLoaded) return;
+    const frame = frameRef.current;
+    const doc = frame?.contentDocument;
+    const win = frame?.contentWindow;
+    if (!frame || !doc || !win) return;
+    const loadedAt = Date.now();
+    let last: boolean | null = null;
+    let absentSince: number | null = null;
+    let raf = 0;
+    const report = (found: boolean) => { if (found !== last) { last = found; onRevealResultRef.current?.(found); } };
+    const check = () => {
+      raf = 0;
+      const now = Date.now();
+      if (presentInFrame(frame, revealSelector)) { absentSince = null; report(true); return; }
+      absentSince ??= now;
+      // Absent only counts after the grace period, and only once it has held
+      // without a break for the debounce window.
+      if (now - loadedAt >= PRESENCE_GRACE_MS && now - absentSince >= ABSENT_DEBOUNCE_MS) report(false);
+    };
+    const schedule = () => { if (!raf) raf = win.requestAnimationFrame(check); };
+    const MO = (win as Window & typeof globalThis).MutationObserver || MutationObserver;
+    const mo = new MO(schedule);
+    mo.observe(doc.documentElement, { childList: true, subtree: true, attributes: true });
+    const poll = window.setInterval(check, PRESENCE_POLL_MS);
+    const grace = window.setTimeout(check, PRESENCE_GRACE_MS + 50);
+    check();
+    return () => {
+      mo.disconnect();
+      clearInterval(poll);
+      clearTimeout(grace);
+      if (raf) win.cancelAnimationFrame(raf);
+    };
+  }, [revealSelector, near, frameLoaded, loadNonce]);
 
   const scale = fullWidth || height === undefined
     ? width / THUMB_VIEWPORT.width
