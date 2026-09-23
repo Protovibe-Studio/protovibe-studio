@@ -149,6 +149,9 @@ const badgeSets: Record<BadgeKind, { ids: string[]; activeId: string | null }> =
   comment: { ids: [], activeId: null },
 };
 let badgeBox: HTMLDivElement | null = null;
+// Own tooltip, drawn in the overlay layer: a native `title` would be picked up
+// by the app's own tooltip provider and rendered underneath the overlays.
+let badgeTip: HTMLDivElement | null = null;
 let badgeKey = '';
 
 // Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
@@ -327,14 +330,45 @@ function makeBadgeBox(): HTMLDivElement {
     const kind = badge?.getAttribute('data-pv-badge-kind');
     if (id && kind) window.parent.postMessage({ type: 'PV_CANVAS_BADGE_CLICK', kind, id }, '*');
   });
+  d.addEventListener('mouseover', (e) => {
+    const badge = (e.target as HTMLElement | null)?.closest('[data-pv-badge-tip]') as HTMLElement | null;
+    if (badge) showBadgeTip(badge); else hideBadgeTip();
+  });
+  d.addEventListener('mouseleave', hideBadgeTip);
   return d;
+}
+
+function showBadgeTip(badge: HTMLElement) {
+  if (!badgeTip) {
+    badgeTip = document.createElement('div');
+    badgeTip.style.cssText =
+      'position:absolute;pointer-events:none;white-space:nowrap;padding:4px 8px;border-radius:4px;' +
+      'background:#1f1f1f;color:#fff;font:500 11px/1.3 system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.3);';
+    ensureOverlayLayer().appendChild(badgeTip);
+  }
+  badgeTip.textContent = badge.getAttribute('data-pv-badge-tip') || '';
+  badgeTip.style.display = 'block';
+  // Centered under the badge; above it when there is no room below.
+  const r = badge.getBoundingClientRect();
+  const w = badgeTip.offsetWidth;
+  const h = badgeTip.offsetHeight;
+  const left = Math.max(4, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 4));
+  const top = r.bottom + 6 + h <= window.innerHeight ? r.bottom + 6 : Math.max(4, r.top - 6 - h);
+  badgeTip.style.left = `${left}px`;
+  badgeTip.style.top = `${top}px`;
+}
+
+function hideBadgeTip() {
+  if (badgeTip) badgeTip.style.display = 'none';
 }
 
 function makeBadge(kind: BadgeKind, id: string, title: string, filled: boolean): HTMLDivElement {
   const b = document.createElement('div');
   b.setAttribute('data-pv-badge-kind', kind);
   b.setAttribute('data-pv-badge-id', id);
-  b.title = title;
+  b.setAttribute('data-pv-badge-tip', title);
+  b.setAttribute('aria-label', title);
+  b.setAttribute('role', 'button');
   b.style.cssText =
     `min-width:${BADGE_SIZE}px;height:${BADGE_SIZE}px;box-sizing:border-box;border-radius:${BADGE_SIZE / 2}px;` +
     'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
@@ -381,6 +415,7 @@ function syncBadges(layer: HTMLDivElement) {
   }
   if (!el || total === 0) {
     if (badgeBox) badgeBox.style.display = 'none';
+    hideBadgeTip();
     return;
   }
   if (!badgeBox) {
@@ -390,6 +425,7 @@ function syncBadges(layer: HTMLDivElement) {
   const key = BADGE_KINDS.map(k => `${matched[k].join(' ')}|${badgeSets[k].activeId ?? ''}`).join('#');
   if (key !== badgeKey) {
     badgeKey = key;
+    hideBadgeTip();
     renderBadges(badgeBox, matched);
   }
   badgeBox.style.display = 'flex';
@@ -771,7 +807,7 @@ function init() {
   // Overlay rectangles use viewport-relative coords (getBoundingClientRect on a
   // fixed-position layer). Reposition them on any scroll in the iframe — capture
   // covers nested scroll containers as well as the root document.
-  window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
+  window.addEventListener('scroll', () => { hideBadgeTip(); syncOverlays(); }, { capture: true, passive: true });
 
   // Report the initial error state either way. A document that unloads mid-error
   // (full reload, manual refresh) can never post ERROR_CLEARED for the overlay it
