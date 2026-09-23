@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
-  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, Filter, X,
+  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, Filter, X, AlertTriangle,
 } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -23,6 +23,7 @@ import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
 import { Segmented } from '../Segmented';
+import { openPrompt } from '../../events/openPrompt';
 
 export type InsertKind = 'annotation' | 'big' | 'medium';
 
@@ -692,6 +693,36 @@ const InsertLine: React.FC<{
 // with the modifier clicks that build a multi-selection.
 const GRIP_TOOLTIP = 'Drag to reorder · ⌘/Ctrl-click or Shift-click to select several';
 
+// The captured URL opens a state without the pinned element — typically the
+// element only appears after an interaction (a dialog, tab, dropdown…) the URL
+// doesn't record, so the link can't reproduce what was annotated.
+const PinMissingWarning: React.FC<{ fileName?: string }> = ({ fileName }) => (
+  <div
+    data-testid="spec-pin-missing-warning"
+    style={{
+      display: 'flex', gap: 6, padding: '6px 8px', borderRadius: 4, background: theme.warning_low,
+      fontSize: 10, lineHeight: 1.45, color: theme.text_secondary, cursor: 'default',
+    }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: 1, color: theme.warning_primary }} />
+    <span>
+      The pinned element{fileName ? ` in ${fileName}` : ''} isn’t visible in this captured state — its URL doesn’t reproduce the
+      screen you annotated. Ask your coding agent to make this state deep-linkable, then recapture the link.{' '}
+      <button
+        data-testid="spec-open-deep-link-prompt"
+        onClick={() => openPrompt('deep-link-states')}
+        style={{
+          padding: 0, border: 'none', background: 'none', cursor: 'pointer', font: 'inherit',
+          color: theme.accent_default, textDecoration: 'underline', textUnderlineOffset: 2,
+        }}
+      >
+        Prompts › Make states deep-linkable
+      </button>
+    </span>
+  </div>
+);
+
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
   active: boolean;
@@ -715,6 +746,11 @@ const AnnotationRow: React.FC<{
   const [menuOpen, setMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [textEditing, setTextEditing] = useState(false);
+  // Whether the pinned element showed up in the thumbnail's captured state
+  // (null until the thumbnail has loaded and looked).
+  const [thumbPinFound, setThumbPinFound] = useState<boolean | null>(null);
+  useEffect(() => { setThumbPinFound(null); }, [item.state.path, item.anchor?.file]);
+  const pinMissingInState = !!item.anchor && thumbPinFound === false;
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
   // The "More" button is a hover affordance; an open menu keeps it lit while the
@@ -762,6 +798,7 @@ const AnnotationRow: React.FC<{
           reloadKey={thumbReload}
           themeMode={thumbTheme}
           revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
+          onRevealResult={setThumbPinFound}
         />
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. A modifier
@@ -786,9 +823,10 @@ const AnnotationRow: React.FC<{
             <StatusPicker status={item.status} disabled={busy} onChange={(s) => onUpdate({ status: s }, 'change annotation status')} />
           </div>
         )}
-        {active && item.anchor && anchorFound === false && (
+        {active && item.anchor && anchorFound === false && !pinMissingInState && (
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}
+        {pinMissingInState && <PinMissingWarning fileName={fileName} />}
       </div>
       {/* Kept mounted while hidden: unmounting it would reflow the row on every
           pointer enter and leave. */}

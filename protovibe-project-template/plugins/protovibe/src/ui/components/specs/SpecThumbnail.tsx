@@ -5,7 +5,8 @@
 // app instances stays small — each one is a full Vite client in dev.
 //
 // With `revealSelector` the frame is also scrolled to the annotation's pinned
-// element, mirroring what the canvas and the published viewer do for it.
+// element, mirroring what the canvas and the published viewer do for it, and
+// `onRevealResult` reports whether that element showed up in the state at all.
 //
 // The iframe is named `pv-spec-thumbnail`: bridge.ts and hmr-liveness.ts skip
 // their setup in such frames, and the shell's iframe scans exclude
@@ -72,7 +73,12 @@ export const SpecThumbnail: React.FC<{
    * thumbnail of a state whose subject sits below the fold shows nothing of it.
    */
   revealSelector?: string;
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector }) => {
+  /**
+   * Called once per load with whether the `revealSelector` element was found
+   * (and laid out) in the frame — false after the whole reveal poll gave up.
+   */
+  onRevealResult?: (found: boolean) => void;
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
@@ -80,6 +86,9 @@ export const SpecThumbnail: React.FC<{
   // Bumped on every frame load so the reveal poll restarts against the new
   // document instead of whatever the previous one left behind.
   const [loadNonce, setLoadNonce] = useState(0);
+  // Read through a ref: a new callback identity must not restart the poll.
+  const onRevealResultRef = useRef(onRevealResult);
+  onRevealResultRef.current = onRevealResult;
 
   // Full-width mode: follow the host's width (the panel can be resized).
   useEffect(() => {
@@ -138,10 +147,14 @@ export const SpecThumbnail: React.FC<{
     const timers: number[] = [];
     const tick = () => {
       if (revealInFrame(frameRef.current, revealSelector)) {
+        onRevealResultRef.current?.(true);
         for (const ms of REVEAL_SETTLE_MS) timers.push(window.setTimeout(() => revealInFrame(frameRef.current, revealSelector), ms));
         return;
       }
       if (++attempts < REVEAL_ATTEMPTS) timers.push(window.setTimeout(tick, REVEAL_INTERVAL_MS));
+      // Only a loaded frame counts as "not in this state"; before the first
+      // load the frame is still blank.
+      else if (loadNonce > 0) onRevealResultRef.current?.(false);
     };
     tick();
     return () => { for (const t of timers) clearTimeout(t); };

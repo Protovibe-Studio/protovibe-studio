@@ -21,6 +21,7 @@ import { theme } from '../theme';
 import { savePromptAttachment } from '../api/client';
 import { PROMPTS, renderPrompt, PromptRenderContext, PromptFieldRef } from '../prompts/prompts-registry';
 import { useProjectRoot } from '../hooks/useProjectRoot';
+import { PV_OPEN_PROMPT_EVENT, type OpenPromptDetail } from '../events/openPrompt';
 
 type Step = 1 | 2 | 3;
 
@@ -540,6 +541,20 @@ export const PromptsTab: React.FC = () => {
     clearAttachments();
     setStep(1);
   };
+
+  // Another panel linked to a prompt (see events/openPrompt) — open it as if
+  // picked from the list. The latest handleSelect is read through a ref so the
+  // listener is registered once.
+  const handleSelectRef = useRef(handleSelect);
+  handleSelectRef.current = handleSelect;
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { promptId } = (e as CustomEvent<OpenPromptDetail>).detail || {};
+      if (promptId && PROMPTS.some(p => p.id === promptId)) handleSelectRef.current(promptId);
+    };
+    window.addEventListener(PV_OPEN_PROMPT_EVENT, handler);
+    return () => window.removeEventListener(PV_OPEN_PROMPT_EVENT, handler);
+  }, []);
 
   const handleBack = () => {
     setSelectedId(null);

@@ -29,6 +29,7 @@ import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
 import { PV_OPEN_IN_CANVAS } from './utils/canvasLinks';
+import { PV_OPEN_PROMPT_EVENT } from './events/openPrompt';
 
 // A Vite crash is often a transient state while an AI agent edits code, so the
 // shell runs each crash as an "episode" behind a loading cover instead of
@@ -412,6 +413,13 @@ export const ProtovibeApp: React.FC = () => {
     window.addEventListener('pv-comment-navigate', handler);
     return () => window.removeEventListener('pv-comment-navigate', handler);
   }, [handleIframeTabChange, focusCanvasElement]);
+
+  // A panel links to a prompt (PromptsTab opens it): bring the Prompts tab up.
+  useEffect(() => {
+    const handler = () => setActiveSidebarTab('prompts');
+    window.addEventListener(PV_OPEN_PROMPT_EVENT, handler);
+    return () => window.removeEventListener(PV_OPEN_PROMPT_EVENT, handler);
+  }, []);
 
   // The specs panel asks us to show an annotation's state: navigate the app
   // iframe to the saved path when it differs, then select the pinned element.
