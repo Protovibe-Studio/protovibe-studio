@@ -48,6 +48,8 @@ export interface MenuItem {
   label: string;
   /** Small secondary line under the label (e.g. the path an item acts on). */
   hint?: string;
+  /** The hint is prose, not a path: wrap on word boundaries instead of anywhere. */
+  hintProse?: boolean;
   icon?: React.ReactNode;
   onSelect: () => void;
   danger?: boolean;
@@ -140,7 +142,7 @@ export const Menu: React.FC<{
               {it.icon && <span style={{ display: 'flex', alignItems: 'center', width: 14, flexShrink: 0, opacity: 0.8, marginTop: it.hint ? 2 : 0 }}>{it.icon}</span>}
               <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span>{it.label}</span>
-                {it.hint && <span title={it.hint} style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', fontSize: 10, fontWeight: 400, color: theme.text_tertiary, wordBreak: 'break-all', lineHeight: 1.35 }}>{it.hint}</span>}
+                {it.hint && <span title={it.hint} style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', fontSize: 10, fontWeight: 400, color: theme.text_tertiary, wordBreak: it.hintProse ? 'normal' : 'break-all', lineHeight: 1.35 }}>{it.hint}</span>}
               </span>
               {it.selected && <Check size={13} style={{ color: theme.accent_default }} />}
             </button>

@@ -3,15 +3,15 @@
 // place like a doc — headings and annotation text are click-to-edit, the
 // status is a picker on the row. One annotation is *active* (highlighted);
 // clicking a row activates it and restores its state on the canvas, Prev /
-// Next in the header step the active annotation. Also: search, a collapsible
-// scope (All / In view / In selection) + status filter, hover "+" insert lines
+// Next in the header step the active annotation. Also: search, scope (All /
+// In view / In selection) + status filter chips, hover "+" insert lines
 // between rows, drag reorder (one row, or a ⌘/Shift-click multi-selection
 // moved as a block, with edge auto-scroll so a drag can cross the whole list),
 // per-row ⋯ menu.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
-  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, Filter, X, AlertTriangle,
+  ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, AlertTriangle,
 } from 'lucide-react';
 import { theme } from '../../theme';
 import { useProtovibe } from '../../context/ProtovibeContext';
@@ -22,7 +22,7 @@ import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_B
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
-import { Segmented } from '../Segmented';
+import { FilterChip, StatusDot, type FilterChipOption } from '../FilterChip';
 import { openPrompt } from '../../events/openPrompt';
 
 export type InsertKind = 'annotation' | 'big' | 'medium';
@@ -33,11 +33,19 @@ export type InsertKind = 'annotation' | 'big' | 'medium';
  */
 export type SpecScope = 'all' | 'viewport' | 'selection';
 
-const FILTERS_OPEN_KEY = 'pv-specs-filter-open';
+/** One status to show, or 'all' for no status filtering. */
+export type SpecStatusFilter = SpecStatus | 'all';
 
-function loadFiltersOpen(): boolean {
-  try { return localStorage.getItem(FILTERS_OPEN_KEY) === '1'; } catch { return false; }
-}
+const SCOPE_OPTIONS: FilterChipOption<SpecScope>[] = [
+  { value: 'all', label: 'All annotations', hint: 'Every annotation in this spec' },
+  { value: 'viewport', label: 'In view', hint: 'Only annotations pinned to elements you can see on the canvas right now' },
+  { value: 'selection', label: 'In selection', hint: 'Only annotations pinned to the selected element and what’s inside it' },
+];
+
+const STATUS_OPTIONS: FilterChipOption<SpecStatusFilter>[] = [
+  { value: 'all', label: 'All statuses' },
+  ...SPEC_STATUSES.map((s) => ({ value: s, label: SPEC_STATUS_CONFIG[s].label, icon: <StatusDot color={SPEC_STATUS_CONFIG[s].color} /> })),
+];
 
 /** How close to the top / bottom edge of the list a drag starts auto-scrolling. */
 const AUTOSCROLL_EDGE = 56;
@@ -57,8 +65,8 @@ export interface SpecDocViewProps {
   busy: boolean;
   query: string;
   setQuery: (q: string) => void;
-  statusFilter: Set<SpecStatus>;
-  setStatusFilter: (s: Set<SpecStatus>) => void;
+  statusFilter: SpecStatusFilter;
+  setStatusFilter: (s: SpecStatusFilter) => void;
   scope: SpecScope;
   setScope: (s: SpecScope) => void;
   /** Annotation ids the scope allows; null when it doesn't restrict the list. */
@@ -130,13 +138,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerY = useRef<number | null>(null);
   const dragPointerAt = useRef(0);
 
-  const filtering = p.query.trim().length > 0 || p.statusFilter.size > 0 || p.scopeIds !== null;
-  const [filtersOpen, setFiltersOpen] = useState(loadFiltersOpen);
-  useEffect(() => {
-    try { localStorage.setItem(FILTERS_OPEN_KEY, filtersOpen ? '1' : '0'); } catch { /* ignore */ }
-  }, [filtersOpen]);
-  // Non-default filters, counted on the collapsed "Filter annotations" header.
-  const activeFilters = p.statusFilter.size + (p.scope !== 'all' ? 1 : 0);
+  const filtering = p.query.trim().length > 0 || p.statusFilter !== 'all' || p.scopeIds !== null;
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -157,7 +159,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       const it = items[i];
       if (isAnnotation(it)) { if (matches(it)) out.push(it); continue; }
       const h = it as SpecHeading;
-      let keep = !q && p.statusFilter.size === 0 && !p.scopeIds;
+      let keep = !q && p.statusFilter === 'all' && !p.scopeIds;
       for (let j = i + 1; j < items.length; j++) {
         const n = items[j];
         if (!isAnnotation(n)) { if (n.level === 'big' || h.level === 'medium') break; continue; }
@@ -318,12 +320,6 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     try { row?.scrollIntoView({ block: 'nearest' }); } catch { /* ignore */ }
   }, [p.activeId, scrollEl]);
 
-  const toggleStatus = (s: SpecStatus) => {
-    const next = new Set(p.statusFilter);
-    if (next.has(s)) next.delete(s); else next.add(s);
-    p.setStatusFilter(next);
-  };
-
   return (
     <>
       {/* header */}
@@ -362,8 +358,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         />
       </div>
 
-      {/* search, then the collapsible filters (only once there is something to search) */}
-      {numbers.size > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
+      {/* search, then the filter chips (only once there is something to search) */}
+      {numbers.size > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
           <input
@@ -378,76 +374,10 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             }}
           />
         </div>
-      </div>}
-      {numbers.size > 0 && <div style={{ borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-        <button
-          data-testid="specs-filters-toggle"
-          onClick={() => setFiltersOpen((o) => !o)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 34, boxSizing: 'border-box',
-            padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer',
-            color: theme.text_secondary, fontSize: 12, fontWeight: 600, fontFamily: theme.font_ui,
-          }}
-        >
-          <Filter size={14} />
-          <span>Filter annotations</span>
-          {activeFilters > 0 && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-              background: theme.primary_solid, color: '#fff', fontSize: 9, fontWeight: 700,
-            }}>
-              {activeFilters}
-            </span>
-          )}
-          <div style={{ flex: 1 }} />
-          {activeFilters > 0 && (
-            <span
-              role="button"
-              data-tooltip="Clear filters"
-              onClick={(e) => { e.stopPropagation(); p.setStatusFilter(new Set()); p.setScope('all'); }}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, color: theme.text_tertiary, cursor: 'pointer' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
-            >
-              <X size={13} />
-            </span>
-          )}
-          <ChevronDown size={15} style={{ transform: filtersOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: theme.text_tertiary }} />
-        </button>
-        {filtersOpen && (
-          <div style={{ padding: '0 12px 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Segmented
-              value={p.scope}
-              onChange={(v) => p.setScope(v as SpecScope)}
-              options={[
-                { val: 'all', label: 'All' },
-                { val: 'viewport', label: 'In view' },
-                { val: 'selection', label: 'In selection' },
-              ]}
-            />
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {SPEC_STATUSES.map((s) => {
-                const active = p.statusFilter.has(s);
-                const { label, color } = SPEC_STATUS_CONFIG[s];
-                return (
-                  <button
-                    key={s}
-                    onClick={() => toggleStatus(s)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 999,
-                      border: `1px solid ${active ? color : theme.border_default}`, background: active ? `${color}22` : 'transparent',
-                      color: active ? color : theme.text_secondary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
-                    }}
-                  >
-                    <span style={{ width: 6, height: 6, borderRadius: 2, background: color }} />
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <FilterChip value={p.scope} defaultValue="all" options={SCOPE_OPTIONS} onChange={p.setScope} menuWidth={240} testId="specs-filter-scope" />
+          <FilterChip value={p.statusFilter} defaultValue="all" options={STATUS_OPTIONS} onChange={p.setStatusFilter} menuWidth={180} testId="specs-filter-status" />
+        </div>
       </div>}
 
       {/* multi-selection bar */}
@@ -483,11 +413,11 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         )}
         {filtering && visible.length === 0 && items.length > 0 && (
           <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>
-            {p.query.trim() || p.statusFilter.size > 0
+            {p.query.trim() || p.statusFilter !== 'all'
               ? 'No annotations match.'
               : p.scope === 'selection'
                 ? 'No annotations are pinned to the selected element.'
-                : 'No pinned annotations are visible on the canvas. Scroll the canvas or switch to All.'}
+                : 'No pinned annotations are visible on the canvas. Scroll the canvas or switch to All annotations.'}
           </div>
         )}
 
@@ -913,10 +843,10 @@ const HeadingRow: React.FC<{
 
 /** Shared filter predicate so Prev / Next in the annotation view walk the same list. */
 export function annotationMatches(
-  a: SpecAnnotation, query: string, statusFilter: Set<SpecStatus>, scopeIds: ReadonlySet<string> | null = null,
+  a: SpecAnnotation, query: string, statusFilter: SpecStatusFilter, scopeIds: ReadonlySet<string> | null = null,
 ): boolean {
   if (scopeIds && !scopeIds.has(a.id)) return false;
-  if (statusFilter.size > 0 && !(a.status && statusFilter.has(a.status))) return false;
+  if (statusFilter !== 'all' && a.status !== statusFilter) return false;
   const q = query.trim().toLowerCase();
   if (!q) return true;
   const hay = [a.text, a.state.path, a.status ? SPEC_STATUS_CONFIG[a.status].label : ''].join('\n').toLowerCase();

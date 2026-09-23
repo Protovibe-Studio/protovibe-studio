@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
-  CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown, Filter,
+  CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown,
   ChevronLeft, ChevronRight,
   MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus,
 } from 'lucide-react';
@@ -19,7 +19,7 @@ import { emitToast } from '../events/toast';
 import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '../hooks/useCommentUser';
 import { useViewportCommentIds } from '../hooks/useViewportCommentIds';
 import { UserProfileDialog } from './comments/UserProfileDialog';
-import { Segmented } from './Segmented';
+import { FilterChip, StatusDot, type FilterChipOption } from './FilterChip';
 import { CommentAvatar } from './comments/CommentAvatar';
 import { SuggestionComposerSection, SuggestionToggleButton, SuggestionPreviewBlock, changedSuggestions, clearSuggestionPreviews } from './comments/WordingSuggestions';
 import { getCopySuggestionPreview } from '../utils/copySuggestionPreview';
@@ -140,10 +140,10 @@ function contextSummary(ctx: CommentContext | undefined): string {
   return ctx.pathname ? `App · ${ctx.pathname}` : 'App';
 }
 
-// A filter pill is either a status ('minor'…'closed'), 'none' (untriaged), or one
-// of the cross-cutting toggles. The active pills live in a Set; an empty Set means
-// "All". Status pills OR within their group; the toggles AND on top.
+// The status filter is one pick: a status ('minor'…'closed'), 'none'
+// (untriaged), one of the cross-cutting "Unread" / "Mine" picks, or 'all'.
 type FilterToken = CommentStatus | 'none' | 'unread' | 'mine';
+type StatusFilter = FilterToken | 'all';
 const VALID_TOKENS = new Set<string>([...COMMENT_STATUSES, 'none', 'unread', 'mine']);
 
 // Which elements the thread list is scoped to: every element ('all'), only those
@@ -151,20 +151,12 @@ const VALID_TOKENS = new Set<string>([...COMMENT_STATUSES, 'none', 'unread', 'mi
 // selection's subtree ('selection').
 type FilterScope = 'all' | 'viewport' | 'selection';
 
-// Persisted filter preferences (remembered across sessions). Scope defaults to
-// "Any element"; the pill set defaults to empty ("All").
+// Persisted filter preferences (remembered across sessions). Both default to
+// 'all' (no filtering).
 const FILTER_SCOPE_KEY = 'pv-comments-filter-scope';
 const FILTER_SELECTION_KEY = 'pv-comments-filter-selection'; // legacy boolean scope key (migrated)
 const FILTER_STATUS_KEY = 'pv-comments-filter-status'; // legacy single-status key (migrated)
 const FILTER_TOKENS_KEY = 'pv-comments-filter-tokens';
-const FILTER_OPEN_KEY = 'pv-comments-filter-open'; // remember whether the "Filter comments" panel is expanded
-
-function loadFiltersOpen(): boolean {
-  try {
-    return localStorage.getItem(FILTER_OPEN_KEY) === '1';
-  } catch { /* ignore */ }
-  return false;
-}
 
 function loadFilterScope(): FilterScope {
   try {
@@ -175,18 +167,34 @@ function loadFilterScope(): FilterScope {
   } catch { /* ignore */ }
   return 'all';
 }
-function loadFilterTokens(): Set<FilterToken> {
+function loadStatusFilter(): StatusFilter {
   try {
     const raw = localStorage.getItem(FILTER_TOKENS_KEY);
     if (raw !== null) {
-      return new Set(raw.split(',').filter((t) => VALID_TOKENS.has(t)) as FilterToken[]);
+      // Older builds stored a comma-separated multi-pick; keep its first token.
+      const first = raw.split(',').find((t) => VALID_TOKENS.has(t));
+      return (first as FilterToken | undefined) ?? 'all';
     }
-    // Migrate the old single-status preference into the new pill set.
+    // Migrate the old single-status preference.
     const old = localStorage.getItem(FILTER_STATUS_KEY);
-    if (old && (COMMENT_STATUSES as string[]).includes(old)) return new Set([old as FilterToken]);
+    if (old && (COMMENT_STATUSES as string[]).includes(old)) return old as FilterToken;
   } catch { /* ignore */ }
-  return new Set();
+  return 'all';
 }
+
+const SCOPE_OPTIONS: FilterChipOption<FilterScope>[] = [
+  { value: 'all', label: 'All comments', hint: 'Every comment in the project' },
+  { value: 'viewport', label: 'In view', hint: 'Only comments on elements you can see on the canvas right now' },
+  { value: 'selection', label: 'In selection', hint: 'Only comments on the selected element and what’s inside it' },
+];
+
+const STATUS_OPTIONS: FilterChipOption<StatusFilter>[] = [
+  { value: 'all', label: 'All statuses' },
+  ...COMMENT_STATUSES.map((st) => ({ value: st, label: STATUS_CONFIG[st].label, icon: <StatusDot color={STATUS_CONFIG[st].color} /> })),
+  { value: 'none', label: 'No status', icon: <StatusDot color={theme.text_tertiary} hollow /> },
+  { value: 'unread', label: 'Unread', hint: 'Threads with replies you haven’t read yet', icon: <StatusDot color={theme.accent_default} round />, separator: true },
+  { value: 'mine', label: 'My threads', hint: 'Threads you wrote in or where you’re mentioned', icon: <StatusDot color={theme.accent_default} round hollow /> },
+];
 
 // "My threads" = threads where I authored a comment or my name appears anywhere
 // in the conversation (author names + content), i.e. searching all comments for me.
@@ -228,7 +236,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [editingText, setEditingText] = useState('');
   const [editingSuggestions, setEditingSuggestions] = useState<WordingSuggestion[]>([]);
   const [filterScope, setFilterScope] = useState<FilterScope>(loadFilterScope);
-  const [filterTokens, setFilterTokens] = useState<Set<FilterToken>>(loadFilterTokens);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(loadStatusFilter);
   // Comment ids that were unread when the open thread was entered. Opening a
   // thread marks them all read immediately, so this is captured beforehand only
   // to drive the "scroll to the oldest unread" jump. Cleared when leaving.
@@ -278,8 +286,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     try { localStorage.setItem(FILTER_SCOPE_KEY, filterScope); } catch { /* ignore */ }
   }, [filterScope]);
   useEffect(() => {
-    try { localStorage.setItem(FILTER_TOKENS_KEY, Array.from(filterTokens).join(',')); } catch { /* ignore */ }
-  }, [filterTokens]);
+    try { localStorage.setItem(FILTER_TOKENS_KEY, statusFilter === 'all' ? '' : statusFilter); } catch { /* ignore */ }
+  }, [statusFilter]);
 
   // Keep in sync after undo/redo of comment files.
   useEffect(() => {
@@ -346,13 +354,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     } else if (filterScope === 'viewport') {
       base = base.filter((t) => viewportIds.has(t.id));
     }
-    // Status pills (incl. 'none' for untriaged) OR within their own group.
-    const statusSet = new Set([...filterTokens].filter((t) => t === 'none' || (COMMENT_STATUSES as string[]).includes(t)));
-    if (statusSet.size) base = base.filter((t) => statusSet.has(t.status ?? 'none'));
-    if (filterTokens.has('unread')) base = base.filter((t) => threadHasUnread(user, t));
-    if (filterTokens.has('mine')) base = base.filter((t) => threadMentionsMe(user, t));
+    if (statusFilter === 'unread') base = base.filter((t) => threadHasUnread(user, t));
+    else if (statusFilter === 'mine') base = base.filter((t) => threadMentionsMe(user, t));
+    else if (statusFilter !== 'all') base = base.filter((t) => (t.status ?? 'none') === statusFilter);
     return base;
-  }, [orderedThreads, filterScope, currentBaseTarget, subtreeIds, viewportIds, filterTokens, user]);
+  }, [orderedThreads, filterScope, currentBaseTarget, subtreeIds, viewportIds, statusFilter, user]);
 
   // Free-text search runs across every individual comment (not just threads),
   // newest first. A comment matches on its text, its author, or either side of any
@@ -752,8 +758,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           searchResults={searchResults}
           filterScope={filterScope}
           setFilterScope={setFilterScope}
-          filterTokens={filterTokens}
-          setFilterTokens={setFilterTokens}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
           highlightId={highlightId}
           initialScrollTop={listScrollTop.current}
           onScrollChange={(v) => { listScrollTop.current = v; }}
@@ -935,8 +941,8 @@ const ListView: React.FC<{
   searchResults: CommentSearchHit[];
   filterScope: FilterScope;
   setFilterScope: (v: FilterScope) => void;
-  filterTokens: Set<FilterToken>;
-  setFilterTokens: (s: Set<FilterToken>) => void;
+  statusFilter: StatusFilter;
+  setStatusFilter: (s: StatusFilter) => void;
   highlightId: string | null;
   initialScrollTop: number;
   onScrollChange: (top: number) => void;
@@ -946,12 +952,6 @@ const ListView: React.FC<{
   onOpenThread: (t: CommentThread) => void;
 }> = (p) => {
   const searching = p.query.trim().length > 0;
-  const [filtersOpen, setFiltersOpen] = useState(loadFiltersOpen);
-  useEffect(() => {
-    try { localStorage.setItem(FILTER_OPEN_KEY, filtersOpen ? '1' : '0'); } catch { /* ignore */ }
-  }, [filtersOpen]);
-  // Non-default filters worth surfacing on the collapsed "Filters" header.
-  const activeFilters = (searching ? 1 : 0) + p.filterTokens.size + (p.filterScope !== 'all' ? 1 : 0);
   // Restore the threads-list scroll position when coming back from a thread.
   const listRef = useRef<HTMLDivElement>(null);
   const { onScrollChange } = p;
@@ -1002,61 +1002,14 @@ const ListView: React.FC<{
         )}
       </div>
 
-      {/* Search + filters live in a collapsible panel below the Add-comment
-          divider. The status/selection filters are hidden while searching, since
-          search spans every comment regardless of selection or status. */}
-      <div style={{ borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-        <button
-          onClick={() => setFiltersOpen((o) => !o)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 36, boxSizing: 'border-box',
-            padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
-            color: theme.text_secondary, fontSize: 12, fontWeight: 600, fontFamily: theme.font_ui,
-          }}
-        >
-          <Filter size={14} />
-          <span>Filter comments</span>
-          {activeFilters > 0 && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-              background: theme.primary_solid, color: '#fff', fontSize: 9, fontWeight: 700,
-            }}>
-              {activeFilters}
-            </span>
-          )}
-          <div style={{ flex: 1 }} />
-          {activeFilters > 0 && (
-            <span
-              role="button"
-              data-tooltip="Clear filters"
-              onClick={(e) => { e.stopPropagation(); p.setFilterTokens(new Set()); p.setFilterScope('all'); p.setQuery(''); }}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, color: theme.text_tertiary, cursor: 'pointer' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; }}
-            >
-              <X size={13} />
-            </span>
-          )}
-          <ChevronDown size={15} style={{ transform: filtersOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: theme.text_tertiary }} />
-        </button>
-        {filtersOpen && (
-          <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <SearchField value={p.query} onChange={p.setQuery} />
-            {!searching && (
-              <>
-                <Segmented
-                  value={p.filterScope}
-                  onChange={(v) => p.setFilterScope(v as FilterScope)}
-                  options={[
-                    { val: 'all', label: 'All' },
-                    { val: 'viewport', label: 'In view' },
-                    { val: 'selection', label: 'In selection' },
-                  ]}
-                />
-                <FilterPills tokens={p.filterTokens} onChange={p.setFilterTokens} />
-              </>
-            )}
+      {/* Search, then one chip dropdown per filter. The chips are hidden while
+          searching, since search spans every comment regardless of scope or status. */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SearchField value={p.query} onChange={p.setQuery} />
+        {!searching && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <FilterChip value={p.filterScope} defaultValue="all" options={SCOPE_OPTIONS} onChange={p.setFilterScope} menuWidth={240} testId="comments-filter-scope" />
+            <FilterChip value={p.statusFilter} defaultValue="all" options={STATUS_OPTIONS} onChange={p.setStatusFilter} testId="comments-filter-status" />
           </div>
         )}
       </div>
@@ -1082,12 +1035,12 @@ const ListView: React.FC<{
           )
         ) : p.threads.length === 0 ? (
           <EmptyState text={
-            p.filterTokens.size > 0
+            p.statusFilter !== 'all'
               ? 'No comments match the active filters.'
               : p.filterScope === 'selection'
-                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to Any.')
+                ? (p.hasSelection ? 'No comments on this element yet.' : 'Select an element to see its comments, or switch to All comments.')
                 : p.filterScope === 'viewport'
-                  ? 'No comments are visible in the current view. Scroll the canvas or switch to Any.'
+                  ? 'No comments are visible in the current view. Scroll the canvas or switch to All comments.'
                   : 'No comments yet. Select an element and add the first one.'
           } />
         ) : (
@@ -1134,57 +1087,6 @@ const SearchField: React.FC<{ value: string; onChange: (s: string) => void }> = 
     )}
   </div>
 );
-
-// One toggle pill in the filter bar.
-const FilterPill: React.FC<{
-  active: boolean;
-  color: string;
-  dot?: boolean;
-  round?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}> = ({ active, color, dot, round, onClick, children }) => (
-  <button
-    onClick={onClick}
-    style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999,
-      border: `1px solid ${active ? color : 'transparent'}`,
-      background: active ? `${color}22` : theme.bg_secondary,
-      color: active ? theme.text_default : theme.text_tertiary,
-      fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: theme.font_ui,
-    }}
-  >
-    {dot && <span style={{ width: round ? 6 : 8, height: round ? 6 : 8, borderRadius: round ? '50%' : 2, background: color }} />}
-    {children}
-  </button>
-);
-
-// Multi-select filter bar: "All" (clears everything), the four statuses + "No
-// status", then the cross-cutting "Unread" / "My threads only" toggles. Pills are
-// independently togglable; an empty set is "All".
-const FilterPills: React.FC<{
-  tokens: Set<FilterToken>;
-  onChange: (next: Set<FilterToken>) => void;
-}> = ({ tokens, onChange }) => {
-  const toggle = (t: FilterToken) => {
-    const next = new Set(tokens);
-    if (next.has(t)) next.delete(t); else next.add(t);
-    onChange(next);
-  };
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      <FilterPill active={tokens.size === 0} color={theme.text_secondary} onClick={() => onChange(new Set())}>All</FilterPill>
-      {COMMENT_STATUSES.map((s) => (
-        <FilterPill key={s} active={tokens.has(s)} color={STATUS_CONFIG[s].color} dot onClick={() => toggle(s)}>
-          {STATUS_CONFIG[s].label}
-        </FilterPill>
-      ))}
-      <FilterPill active={tokens.has('none')} color={theme.text_tertiary} onClick={() => toggle('none')}>No status</FilterPill>
-      <FilterPill active={tokens.has('unread')} color={theme.accent_default} dot round onClick={() => toggle('unread')}>Unread</FilterPill>
-      <FilterPill active={tokens.has('mine')} color={theme.accent_default} onClick={() => toggle('mine')}>My threads only</FilterPill>
-    </div>
-  );
-};
 
 const SearchResultItem: React.FC<{
   hit: CommentSearchHit;
