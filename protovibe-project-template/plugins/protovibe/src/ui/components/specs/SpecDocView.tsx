@@ -328,7 +328,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     seenActiveRef.current = p.activeId;
     if (first || !p.activeId || !scrollEl) return;
     // A single-row selection follows the active row (Prev / Next, a canvas
-    // selection) instead of lingering on the old one; a multi-selection stays.
+    // spec badge) instead of lingering on the old one; a multi-selection stays.
     const activeId = p.activeId;
     setSelected((prev) => (prev.size === 1 && !prev.has(activeId) ? new Set([activeId]) : prev));
     const row = scrollEl.querySelector<HTMLElement>(`[data-spec-item="${p.activeId}"]`);

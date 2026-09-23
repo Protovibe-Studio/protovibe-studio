@@ -5,6 +5,7 @@
 import { isElementAllowed } from './utils/traversal';
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { SPEC_ATTR_PREFIX } from '../shared/specs';
 
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
@@ -134,6 +135,16 @@ let trackedElementObserver: ResizeObserver | null = null;
 let trackedMutationObserver: MutationObserver | null = null;
 const trackedElements: Set<HTMLElement> = new Set();
 let overlaySyncRafId: number | null = null;
+// Spec badges: one circle per annotation of the open spec pinned to the single
+// selected element, drawn at the selection box's bottom-right corner. Clicking
+// one asks the Specs panel to activate that annotation. The shell sends the
+// open spec's annotation ids (PV_SET_SPEC_BADGES) only while the Specs panel is
+// visible; the bridge matches them against the element's own attributes on
+// every sync, so a pin added by HMR shows up without a new message.
+let specBadgeIds: string[] = [];
+let specBadgeActiveId: string | null = null;
+let specBadgeBox: HTMLDivElement | null = null;
+let specBadgeKey = '';
 
 // Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
 // both fire many times per frame; this collapses them into one syncOverlays() call.
@@ -273,7 +284,100 @@ function syncOverlays() {
     hoverOverlay.style.display = 'none';
   }
 
+  syncSpecBadges(layer);
   syncTrackedElements();
+}
+
+const SPEC_BADGE_SIZE = 20;
+const SPEC_BADGE_GAP = 4;
+const SPEC_BADGE_MAX = 6;
+// Lucide `book-open` — the Specs panel's icon in the shell nav bar.
+const SPEC_BADGE_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" style="display:block">' +
+  '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>';
+
+function makeSpecBadgeBox(): HTMLDivElement {
+  const d = document.createElement('div');
+  d.setAttribute('data-pv-spec-badges', '');
+  d.style.cssText = `position:absolute;display:flex;gap:3px;pointer-events:auto;font-family:system-ui,sans-serif;`;
+  // Keep the app's own outside-click listeners (dropdowns, popovers) out of it,
+  // and keep focus where it was so the shell's keyboard shortcuts still work.
+  const swallow = (e: Event) => { e.preventDefault(); e.stopPropagation(); };
+  d.addEventListener('pointerdown', swallow);
+  d.addEventListener('mousedown', swallow);
+  d.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const badge = (e.target as HTMLElement | null)?.closest('[data-pv-spec-badge]') as HTMLElement | null;
+    const id = badge?.getAttribute('data-pv-spec-badge');
+    if (id) window.parent.postMessage({ type: 'PV_SPEC_BADGE_CLICK', annotationId: id }, '*');
+  });
+  return d;
+}
+
+function renderSpecBadges(box: HTMLDivElement, ids: string[]) {
+  box.textContent = '';
+  const shown = ids.length > SPEC_BADGE_MAX ? ids.slice(0, SPEC_BADGE_MAX - 1) : ids;
+  const activeIdx = specBadgeActiveId ? ids.indexOf(specBadgeActiveId) : -1;
+  shown.forEach((id, i) => {
+    const active = id === specBadgeActiveId;
+    const b = document.createElement('div');
+    b.setAttribute('data-pv-spec-badge', id);
+    b.title = ids.length > 1 ? `Annotation ${i + 1} of ${ids.length} — show in Specs` : 'Show annotation in Specs';
+    b.style.cssText =
+      `width:${SPEC_BADGE_SIZE}px;height:${SPEC_BADGE_SIZE}px;box-sizing:border-box;border-radius:50%;` +
+      'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+      'box-shadow:0 1px 3px rgba(0,0,0,0.25);border:1.5px solid #18a0fb;' +
+      (active ? 'background:#18a0fb;color:#fff;' : 'background:#fff;color:#18a0fb;');
+    b.innerHTML = SPEC_BADGE_ICON;
+    box.appendChild(b);
+  });
+  if (shown.length < ids.length) {
+    // Overflow: "+N" steps to the next annotation after the active one.
+    const next = ids[(activeIdx + 1) % ids.length];
+    const more = document.createElement('div');
+    more.setAttribute('data-pv-spec-badge', next);
+    more.title = `${ids.length} annotations — show the next in Specs`;
+    more.textContent = `+${ids.length - shown.length}`;
+    more.style.cssText =
+      `min-width:${SPEC_BADGE_SIZE}px;height:${SPEC_BADGE_SIZE}px;padding:0 5px;box-sizing:border-box;border-radius:${SPEC_BADGE_SIZE / 2}px;` +
+      'display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;font-weight:600;line-height:1;' +
+      'box-shadow:0 1px 3px rgba(0,0,0,0.25);border:1.5px solid #18a0fb;background:#fff;color:#18a0fb;';
+    box.appendChild(more);
+  }
+}
+
+function syncSpecBadges(layer: HTMLDivElement) {
+  const el = selectedEls.length === 1 && selectedEls[0].isConnected ? selectedEls[0] : null;
+  const ids = el && specBadgeIds.length > 0
+    ? specBadgeIds.filter(id => el.hasAttribute(SPEC_ATTR_PREFIX + id))
+    : [];
+  if (!el || ids.length === 0) {
+    if (specBadgeBox) specBadgeBox.style.display = 'none';
+    return;
+  }
+  if (!specBadgeBox) {
+    specBadgeBox = makeSpecBadgeBox();
+    layer.appendChild(specBadgeBox);
+  }
+  const key = `${ids.join(' ')}|${specBadgeActiveId ?? ''}`;
+  if (key !== specBadgeKey) {
+    specBadgeKey = key;
+    renderSpecBadges(specBadgeBox, ids);
+  }
+  specBadgeBox.style.display = 'flex';
+
+  // Right-aligned just below the selection box; flipped inside its bottom edge
+  // when that would leave the viewport.
+  const rect = el.getBoundingClientRect();
+  const width = specBadgeBox.offsetWidth;
+  const below = rect.bottom + 1 + SPEC_BADGE_GAP;
+  const top = below + SPEC_BADGE_SIZE <= window.innerHeight
+    ? below
+    : Math.max(0, rect.bottom - SPEC_BADGE_SIZE - SPEC_BADGE_GAP);
+  const left = Math.max(0, Math.min(rect.right + 1 - width, window.innerWidth - width));
+  specBadgeBox.style.left = `${left}px`;
+  specBadgeBox.style.top = `${top}px`;
 }
 
 function syncTrackedElements() {
@@ -315,7 +419,11 @@ function syncTrackedElements() {
   // so we disconnect-and-reattach; the set of tracked elements is small (≤ a handful).
   trackedMutationObserver.disconnect();
   for (const el of wanted) {
-    trackedMutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+    // Unfiltered on the selected element: a spec pin arrives as a new
+    // `data-pv-spec-*` attribute (after HMR), which the spec badges must pick up.
+    trackedMutationObserver.observe(el, selectedEls.includes(el)
+      ? { attributes: true }
+      : { attributes: true, attributeFilter: ['class', 'style'] });
   }
   for (const p of parents) {
     trackedMutationObserver.observe(p, {
@@ -528,6 +636,12 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_CLEAR_SELECTION':
       clearSelectionOutline();
       break;
+    case 'PV_SET_SPEC_BADGES': {
+      specBadgeIds = Array.isArray(e.data.annotationIds) ? e.data.annotationIds : [];
+      specBadgeActiveId = typeof e.data.activeId === 'string' ? e.data.activeId : null;
+      syncOverlays();
+      break;
+    }
     case 'PV_TREE_HOVER': {
       // Hover highlight driven by the shell's elements tree panel. Reuses the
       // same hover overlay as canvas mousemove — the pointer is over the panel

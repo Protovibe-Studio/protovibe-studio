@@ -461,26 +461,34 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const canPrev = !!nextFrom(-1);
   const canNext = !!nextFrom(1);
 
-  // Selecting a pinned element on the app canvas activates its annotation in
-  // the open spec — highlight + scroll only; the canvas already shows the
-  // element, so its saved URL state is NOT restored. Keyed on the element's
-  // spec ids so re-renders of the same selection (HMR after a source edit)
-  // don't yank the active row back. Skipped when the element already carries
-  // the active annotation (clicking a row selects its element), and while a
-  // Specs text field has focus so a selection change never interrupts typing.
-  const selectionSpecIdsRef = useRef('');
+  // Spec badges on the canvas: while the Specs panel shows a spec, the app
+  // canvas draws one badge per annotation pinned to the selected element (see
+  // bridge.ts). Selecting an element never moves the active annotation by
+  // itself; clicking a badge does — highlight + scroll only, since the canvas
+  // already shows the element, so its saved URL state is NOT restored.
+  const docOpen = isActive && view.level === 'doc' && !!bundle && bundle.spec.id === view.specId;
+  const badgeIds = useMemo(
+    () => (docOpen && activeIframeTab === 'app' ? pinnedIds : []),
+    [docOpen, activeIframeTab, pinnedIds],
+  );
   useEffect(() => {
-    const ids = activeIframeTab === 'app' && currentBaseTarget ? readSpecIds(currentBaseTarget.getAttributeNames()) : [];
-    const key = ids.join(' ');
-    if (key === selectionSpecIdsRef.current) return;
-    selectionSpecIdsRef.current = key;
-    if (!isActive || ids.length === 0 || view.level !== 'doc' || !bundle || bundle.spec.id !== view.specId) return;
-    if (activeId && ids.includes(activeId)) return;
-    const focused = document.activeElement as HTMLElement | null;
-    if (isTypingInput(focused) && rootRef.current?.contains(focused)) return;
-    const hit = bundle.items.find((it) => isAnnotation(it) && ids.includes(it.id));
-    if (hit) setActiveId(bundle.spec.id, hit.id);
-  }, [currentBaseTarget, activeIframeTab, isActive, view, bundle, activeId, setActiveId]);
+    // Re-sent on selection changes too: a reloaded iframe starts with no ids.
+    appIframeDocument()?.defaultView?.postMessage({ type: 'PV_SET_SPEC_BADGES', annotationIds: badgeIds, activeId }, '*');
+  }, [badgeIds, activeId, currentBaseTarget]);
+  useEffect(() => {
+    if (!docOpen || !bundle) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type !== 'PV_SPEC_BADGE_CLICK' || typeof e.data.annotationId !== 'string') return;
+      const id: string = e.data.annotationId;
+      if (!bundle.items.some((it) => it.id === id && isAnnotation(it))) return;
+      if (id !== activeId) { setActiveId(bundle.spec.id, id); return; }
+      // Already active: the list won't scroll on its own, so bring the row back.
+      const row = rootRef.current?.querySelector<HTMLElement>(`[data-spec-item="${id}"]`);
+      try { row?.scrollIntoView({ block: 'nearest' }); } catch { /* ignore */ }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [docOpen, bundle, activeId, setActiveId]);
 
   // ← / → step the active annotation while the Specs panel is the visible
   // tab. The shell's own keydown listener (useKeyboardShortcuts) also acts on
