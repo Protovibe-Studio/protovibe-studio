@@ -695,33 +695,11 @@ const GRIP_TOOLTIP = 'Drag to reorder · ⌘/Ctrl-click or Shift-click to select
 
 // The captured URL opens a state without the pinned element — typically the
 // element only appears after an interaction (a dialog, tab, dropdown…) the URL
-// doesn't record, so the link can't reproduce what was annotated.
-const PinMissingWarning: React.FC = () => (
-  <div
-    data-testid="spec-pin-missing-warning"
-    style={{
-      display: 'flex', gap: 6, padding: '6px 8px', borderRadius: 4, background: theme.warning_low,
-      fontSize: 10, lineHeight: 1.45, color: theme.text_secondary, cursor: 'default',
-    }}
-    onClick={(e) => e.stopPropagation()}
-  >
-    <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: 1, color: theme.warning_primary }} />
-    <span>
-      Pinned element isn’t in this link’s state. Make it deep-linkable with the{' '}
-      <button
-        data-testid="spec-open-deep-link-prompt"
-        onClick={() => openPrompt('deep-link-states')}
-        style={{
-          padding: 0, border: 'none', background: 'none', cursor: 'pointer', font: 'inherit',
-          color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2,
-        }}
-      >
-        deep-link prompt
-      </button>
-      , then recapture.
-    </span>
-  </div>
-);
+// doesn't record, so the link can't reproduce what was annotated. An icon (not
+// an inline banner) so a late flip never changes the row's height.
+const PIN_MISSING_TOOLTIP =
+  'The pinned element isn’t in this link’s state — the URL doesn’t reproduce the screen you annotated.\n' +
+  'Click to open the deep-link prompt for your coding agent, then recapture the link.';
 
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
@@ -826,18 +804,29 @@ const AnnotationRow: React.FC<{
         {active && item.anchor && anchorFound === false && !pinMissingInState && (
           <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
         )}
-        {pinMissingInState && <PinMissingWarning />}
       </div>
-      {/* Kept mounted while hidden: unmounting it would reflow the row on every
-          pointer enter and leave. */}
-      <button
-        ref={menuRef}
-        style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
-        data-tooltip="More"
-        onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
-      >
-        <MoreHorizontal size={14} />
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        {/* Kept mounted while hidden: unmounting it would reflow the row on every
+            pointer enter and leave. */}
+        <button
+          ref={menuRef}
+          style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
+          data-tooltip="More"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(true); }}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+        {pinMissingInState && (
+          <button
+            data-testid="spec-pin-missing-warning"
+            style={{ ...iconBtnSm, color: theme.warning_primary }}
+            data-tooltip={PIN_MISSING_TOOLTIP}
+            onClick={(e) => { e.stopPropagation(); openPrompt('deep-link-states'); }}
+          >
+            <AlertTriangle size={14} />
+          </button>
+        )}
+      </div>
       <Menu open={menuOpen} anchorRef={menuRef} onClose={() => setMenuOpen(false)} items={menuItems} width={250} />
     </div>
   );

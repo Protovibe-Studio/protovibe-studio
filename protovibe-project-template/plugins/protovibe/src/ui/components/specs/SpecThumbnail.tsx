@@ -31,6 +31,10 @@ const REVEAL_SETTLE_MS = [400, 1200];
 // re-render after a re-pin) flips the result back to found.
 const PRESENCE_GRACE_MS = 8000;
 const PRESENCE_POLL_MS = 1000;
+// Debounce for "missing": the element must stay absent this long without a
+// break before it is reported, so a re-render that briefly swaps it out (HMR,
+// an animated mount) never flips the result back and forth.
+const ABSENT_DEBOUNCE_MS = 2500;
 
 /**
  * Is the pinned element rendered in the frame? It must be in the DOM and
@@ -193,13 +197,17 @@ export const SpecThumbnail: React.FC<{
     if (!frame || !doc || !win) return;
     const loadedAt = Date.now();
     let last: boolean | null = null;
+    let absentSince: number | null = null;
     let raf = 0;
+    const report = (found: boolean) => { if (found !== last) { last = found; onRevealResultRef.current?.(found); } };
     const check = () => {
       raf = 0;
-      const found = presentInFrame(frame, revealSelector);
-      // Absent only counts once the grace period is over.
-      if (!found && Date.now() - loadedAt < PRESENCE_GRACE_MS) return;
-      if (found !== last) { last = found; onRevealResultRef.current?.(found); }
+      const now = Date.now();
+      if (presentInFrame(frame, revealSelector)) { absentSince = null; report(true); return; }
+      absentSince ??= now;
+      // Absent only counts after the grace period, and only once it has held
+      // without a break for the debounce window.
+      if (now - loadedAt >= PRESENCE_GRACE_MS && now - absentSince >= ABSENT_DEBOUNCE_MS) report(false);
     };
     const schedule = () => { if (!raf) raf = win.requestAnimationFrame(check); };
     const MO = (win as Window & typeof globalThis).MutationObserver || MutationObserver;
