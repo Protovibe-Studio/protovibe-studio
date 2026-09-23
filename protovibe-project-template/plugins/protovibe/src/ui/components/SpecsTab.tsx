@@ -21,7 +21,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import type { IframeTab } from './ShellNavBar';
 import type { SpecAnnotation, SpecAuthor, SpecBundle, SpecItem, SpecStatus, SpecSummary } from '../../shared/specs';
 import {
-  makeSpecId, makeAnnotationId, makeHeadingId, specMetaFileRel, specItemFileRel, specIdSelector,
+  makeSpecId, makeAnnotationId, makeHeadingId, specMetaFileRel, specItemFileRel, specIdSelector, readSpecIds,
   rankBetween, INITIAL_RANK, isAnnotation, annotationsOf,
 } from '../../shared/specs';
 import {
@@ -100,6 +100,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [anchorFound, setAnchorFound] = useState<boolean | null>(null);
   const [confirm, setConfirm] = useState<{ kind: 'spec'; specId: string } | null>(null);
   const listScrollTop = useRef(0);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   // Profile dialog + the action queued behind it (same gate as comments).
   const [profileOpen, setProfileOpen] = useState(false);
@@ -403,6 +404,27 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const canPrev = !!nextFrom(-1);
   const canNext = !!nextFrom(1);
 
+  // Selecting a pinned element on the app canvas activates its annotation in
+  // the open spec — highlight + scroll only; the canvas already shows the
+  // element, so its saved URL state is NOT restored. Keyed on the element's
+  // spec ids so re-renders of the same selection (HMR after a source edit)
+  // don't yank the active row back. Skipped when the element already carries
+  // the active annotation (clicking a row selects its element), and while a
+  // Specs text field has focus so a selection change never interrupts typing.
+  const selectionSpecIdsRef = useRef('');
+  useEffect(() => {
+    const ids = activeIframeTab === 'app' && currentBaseTarget ? readSpecIds(currentBaseTarget.getAttributeNames()) : [];
+    const key = ids.join(' ');
+    if (key === selectionSpecIdsRef.current) return;
+    selectionSpecIdsRef.current = key;
+    if (!isActive || ids.length === 0 || view.level !== 'doc' || !bundle || bundle.spec.id !== view.specId) return;
+    if (activeId && ids.includes(activeId)) return;
+    const focused = document.activeElement as HTMLElement | null;
+    if (isTypingInput(focused) && rootRef.current?.contains(focused)) return;
+    const hit = bundle.items.find((it) => isAnnotation(it) && ids.includes(it.id));
+    if (hit) setActiveId(bundle.spec.id, hit.id);
+  }, [currentBaseTarget, activeIframeTab, isActive, view, bundle, activeId, setActiveId]);
+
   // ← / → step the active annotation while the Specs panel is the visible
   // tab. The shell's own keydown listener (useKeyboardShortcuts) also acts on
   // arrows when a canvas element is selected — and one usually is, since
@@ -452,7 +474,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
 
   // ── render ────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
+    <div ref={rootRef} style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: theme.bg_strong, fontFamily: theme.font_ui }}>
       <SpecsInlineStyles />
 
       {error && (
