@@ -25,6 +25,14 @@ const REVEAL_INTERVAL_MS = 200;
 // Webfonts and images can shift the element back out of view after the first
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
+// Skeleton shown only for a held thumbnail (`holdUntil`), from the hold until
+// the frame that follows it has loaded; ordinary lazy loads show the frame
+// straight away. A faint white box (0.2) with a band sweeping across it that peaks at 0.33
+// (0.16 layered over the 0.2 base), and no border. Self-contained because the
+// published viewer uses this component too.
+const SKELETON_CLASS = 'pv-spec-thumb-skeleton';
+const SKELETON_CSS = `@keyframes pv-spec-thumb-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.${SKELETON_CLASS} { background: linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%) 0 0 / 200% 100% no-repeat, rgba(255, 255, 255, 0.2); animation: pv-spec-thumb-shimmer 1.4s ease-in-out infinite; }`;
 // Presence check behind `onRevealResult`: how long after the frame loads the
 // element may stay absent before it counts as "not in this state". The check
 // keeps watching afterwards, so an element that renders late (slow route, HMR
@@ -105,7 +113,12 @@ export const SpecThumbnail: React.FC<{
    * after load. Keeps watching, so a later appearance reports true again.
    */
   onRevealResult?: (found: boolean) => void;
-}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult }) => {
+  /**
+   * Don't load the frame before this time (ms since epoch). A new value also
+   * reloads a frame that is already showing, so a re-pin is picked up fresh.
+   */
+  holdUntil?: number;
+}> = ({ src, width: widthProp = 112, height: heightProp = 70, fullWidth = false, scrollRoot = null, reloadKey = 0, themeMode, revealSelector, onRevealResult, holdUntil }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [near, setNear] = useState(false);
@@ -117,7 +130,18 @@ export const SpecThumbnail: React.FC<{
   // (scrolled back into view, new src, reload), so a check never judges a
   // blank, still-loading frame by an earlier frame's load.
   const [frameLoaded, setFrameLoaded] = useState(false);
-  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey]);
+  const [held, setHeld] = useState(() => !!holdUntil && holdUntil > Date.now());
+  // Skeleton over the box: set when a hold starts, cleared by the next load.
+  const [skeleton, setSkeleton] = useState(held);
+  useEffect(() => {
+    const wait = (holdUntil ?? 0) - Date.now();
+    if (wait <= 0) { setHeld(false); return; }
+    setHeld(true);
+    setSkeleton(true);
+    const t = window.setTimeout(() => setHeld(false), wait);
+    return () => clearTimeout(t);
+  }, [holdUntil]);
+  useEffect(() => { setFrameLoaded(false); }, [near, src, reloadKey, held]);
   // Read through a ref: a new callback identity must not restart the poll.
   const onRevealResultRef = useRef(onRevealResult);
   onRevealResultRef.current = onRevealResult;
@@ -169,6 +193,7 @@ export const SpecThumbnail: React.FC<{
   const handleLoad = useCallback(() => {
     applyTheme();
     setFrameLoaded(true);
+    setSkeleton(false);
     setLoadNonce((n) => n + 1);
   }, [applyTheme]);
 
@@ -236,12 +261,19 @@ export const SpecThumbnail: React.FC<{
       style={{
         width: fullWidth ? '94%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
         boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
-        background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
+        background: skeleton ? 'transparent' : theme.bg_sunken,
+        border: `1px solid ${skeleton ? 'transparent' : theme.border_default}`,
       }}
     >
-      {near && width > 0 && (
+      {skeleton && (
+        <>
+          <style>{SKELETON_CSS}</style>
+          <div className={SKELETON_CLASS} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+        </>
+      )}
+      {near && width > 0 && !held && (
         <iframe
-          key={`${src}#${reloadKey}`}
+          key={`${src}#${reloadKey}#${holdUntil ?? 0}`}
           ref={frameRef}
           onLoad={handleLoad}
           name={THUMB_IFRAME_NAME}
@@ -254,6 +286,8 @@ export const SpecThumbnail: React.FC<{
             width: THUMB_VIEWPORT.width, height: THUMB_VIEWPORT.height, border: 'none',
             transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none',
             position: 'absolute', top: 0, left: 0, background: themeMode === 'dark' ? '#111' : '#fff',
+            // After a hold, hidden until loaded so the skeleton shows meanwhile.
+            opacity: skeleton ? 0 : 1, transition: 'opacity 0.2s',
           }}
         />
       )}

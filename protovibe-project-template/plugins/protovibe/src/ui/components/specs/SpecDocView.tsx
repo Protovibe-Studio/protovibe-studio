@@ -96,6 +96,8 @@ export interface SpecDocViewProps {
   activeAnchorFound: boolean | null;
   /** Annotation whose text editor should open focused (just created). */
   autoEditTextId: string | null;
+  /** Annotation id → time its thumbnail may load (just pinned / re-pinned). */
+  thumbHolds: Record<string, number>;
   onAutoEditDone: () => void;
   onBack: () => void;
   onRename: (title: string) => void;
@@ -470,6 +472,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   dragging={dragIds.includes(it.id)}
                   scrollRoot={scrollEl}
                   thumbReload={thumbReload}
+                  thumbHoldUntil={p.thumbHolds[it.id]}
                   thumbTheme={iframeTheme}
                   onSelect={(keepFocus) => { selectOnly(it.id); p.onSelectAnnotation(it.id, keepFocus); }}
                   onUpdate={(patch, note) => p.onUpdateItem(it.id, patch, note)}
@@ -658,6 +661,7 @@ const AnnotationRow: React.FC<{
   dragging: boolean;
   scrollRoot: HTMLElement | null;
   thumbReload: number;
+  thumbHoldUntil?: number;
   thumbTheme: 'light' | 'dark';
   onSelect: (keepFocus: boolean) => void;
   onUpdate: (patch: SpecItemPatch, note: string) => void;
@@ -665,7 +669,7 @@ const AnnotationRow: React.FC<{
   onUnpin: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordingMenuOpen, setWordingMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -673,7 +677,7 @@ const AnnotationRow: React.FC<{
   // Whether the pinned element showed up in the thumbnail's captured state
   // (null until the thumbnail has loaded and looked).
   const [thumbPinFound, setThumbPinFound] = useState<boolean | null>(null);
-  useEffect(() => { setThumbPinFound(null); }, [item.state.path, item.anchor?.file]);
+  useEffect(() => { setThumbPinFound(null); }, [item.state.path, item.anchor?.file, thumbHoldUntil]);
   const pinMissingInState = !!item.anchor && thumbPinFound === false;
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const wordingRef = useRef<HTMLButtonElement | null>(null);
@@ -731,6 +735,7 @@ const AnnotationRow: React.FC<{
           fullWidth
           scrollRoot={scrollRoot}
           reloadKey={thumbReload}
+          holdUntil={thumbHoldUntil}
           themeMode={thumbTheme}
           revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
           onRevealResult={setThumbPinFound}
