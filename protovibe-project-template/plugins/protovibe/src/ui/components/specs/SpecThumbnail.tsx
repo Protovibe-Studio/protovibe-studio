@@ -25,6 +25,12 @@ const REVEAL_INTERVAL_MS = 200;
 // Webfonts and images can shift the element back out of view after the first
 // successful reveal, so re-run at these delays once it has been found.
 const REVEAL_SETTLE_MS = [400, 1200];
+// Skeleton shown until the frame has loaded (held, off-screen or loading): a
+// highlight band sweeping across the box. Self-contained because the
+// published viewer uses this component too.
+const SKELETON_CLASS = 'pv-spec-thumb-skeleton';
+const SKELETON_CSS = `@keyframes pv-spec-thumb-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.${SKELETON_CLASS} { background: linear-gradient(90deg, transparent 30%, ${theme.bg_secondary} 50%, transparent 70%) 0 0 / 200% 100% no-repeat; animation: pv-spec-thumb-shimmer 1.4s ease-in-out infinite; }`;
 // Presence check behind `onRevealResult`: how long after the frame loads the
 // element may stay absent before it counts as "not in this state". The check
 // keeps watching afterwards, so an element that renders late (slow route, HMR
@@ -249,9 +255,15 @@ export const SpecThumbnail: React.FC<{
       style={{
         width: fullWidth ? '94%' : width, height, aspectRatio: fullWidth ? `${THUMB_VIEWPORT.width} / ${THUMB_VIEWPORT.height}` : undefined,
         boxSizing: 'border-box', flexShrink: 0, overflow: 'hidden', borderRadius: 4, position: 'relative',
-        background: theme.bg_sunken, border: `1px solid ${theme.border_default}`,
+        background: theme.bg_default, border: `1px solid ${theme.border_default}`,
       }}
     >
+      {!frameLoaded && (
+        <>
+          <style>{SKELETON_CSS}</style>
+          <div className={SKELETON_CLASS} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+        </>
+      )}
       {near && width > 0 && !held && (
         <iframe
           key={`${src}#${reloadKey}#${holdUntil ?? 0}`}
@@ -267,6 +279,8 @@ export const SpecThumbnail: React.FC<{
             width: THUMB_VIEWPORT.width, height: THUMB_VIEWPORT.height, border: 'none',
             transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none',
             position: 'absolute', top: 0, left: 0, background: themeMode === 'dark' ? '#111' : '#fff',
+            // Hidden until loaded so the skeleton, not a blank page, shows meanwhile.
+            opacity: frameLoaded ? 1 : 0, transition: 'opacity 0.2s',
           }}
         />
       )}
