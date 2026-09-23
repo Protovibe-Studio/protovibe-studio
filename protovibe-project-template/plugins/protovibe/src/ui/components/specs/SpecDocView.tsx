@@ -154,6 +154,10 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerAt = useRef(0);
 
   const filtering = p.query.trim().length > 0 || p.statusFilter !== 'all' || p.scopeIds !== null;
+  // Add (which appends to the end) stays available under a scope: pinning to
+  // the selected element is exactly what "In selection" / "In view" is for. A
+  // search or status filter would hide the new, empty annotation, so it goes.
+  const canAppend = p.query.trim().length === 0 && p.statusFilter === 'all';
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -328,7 +332,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
     seenActiveRef.current = p.activeId;
     if (first || !p.activeId || !scrollEl) return;
     // A single-row selection follows the active row (Prev / Next, a canvas
-    // selection) instead of lingering on the old one; a multi-selection stays.
+    // spec badge) instead of lingering on the old one; a multi-selection stays.
     const activeId = p.activeId;
     setSelected((prev) => (prev.size === 1 && !prev.has(activeId) ? new Set([activeId]) : prev));
     const row = scrollEl.querySelector<HTMLElement>(`[data-spec-item="${p.activeId}"]`);
@@ -508,7 +512,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           );
         })}
 
-        {!filtering && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
+        {canAppend && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
       </div>
     </>
   );

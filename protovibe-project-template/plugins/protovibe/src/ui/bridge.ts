@@ -5,6 +5,8 @@
 import { isElementAllowed } from './utils/traversal';
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { SPEC_ATTR_PREFIX } from '../shared/specs';
+import { COMMENT_ATTR_PREFIX } from '../shared/comments';
 
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
@@ -134,6 +136,23 @@ let trackedElementObserver: ResizeObserver | null = null;
 let trackedMutationObserver: MutationObserver | null = null;
 const trackedElements: Set<HTMLElement> = new Set();
 let overlaySyncRafId: number | null = null;
+// Canvas badges: one circle per spec annotation / comment thread pinned to the
+// single selected element, drawn at the selection box's bottom-right corner.
+// Clicking one asks the owning panel to show that annotation / thread. Each
+// panel sends its ids (PV_SET_CANVAS_BADGES) only while it is the visible
+// sidebar tab; the bridge matches them against the element's own attributes on
+// every sync, so a pin added by HMR shows up without a new message.
+type BadgeKind = 'spec' | 'comment';
+const BADGE_KINDS: BadgeKind[] = ['comment', 'spec'];
+const badgeSets: Record<BadgeKind, { ids: string[]; activeId: string | null }> = {
+  spec: { ids: [], activeId: null },
+  comment: { ids: [], activeId: null },
+};
+let badgeBox: HTMLDivElement | null = null;
+// Own tooltip, drawn in the overlay layer: a native `title` would be picked up
+// by the app's own tooltip provider and rendered underneath the overlays.
+let badgeTip: HTMLDivElement | null = null;
+let badgeKey = '';
 
 // Schedule a single rAF-coalesced re-sync. ResizeObserver and MutationObserver can
 // both fire many times per frame; this collapses them into one syncOverlays() call.
@@ -273,7 +292,155 @@ function syncOverlays() {
     hoverOverlay.style.display = 'none';
   }
 
+  syncBadges(layer);
   syncTrackedElements();
+}
+
+const BADGE_SIZE = 20;
+const BADGE_GAP = 4;
+const BADGE_MAX = 6;
+const BADGE_ATTR_PREFIX: Record<BadgeKind, string> = { spec: SPEC_ATTR_PREFIX, comment: COMMENT_ATTR_PREFIX };
+const BADGE_NOUN: Record<BadgeKind, { one: string; many: string; panel: string }> = {
+  spec: { one: 'Annotation', many: 'annotations', panel: 'Specs' },
+  comment: { one: 'Comment', many: 'comments', panel: 'Comments' },
+};
+// The panels' icons in the shell nav bar: Lucide `book-open` / `message-square`.
+const svg = (paths: string) =>
+  '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" style="display:block">' +
+  paths + '</svg>';
+const BADGE_ICON: Record<BadgeKind, string> = {
+  spec: svg('<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>'),
+  comment: svg('<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/>'),
+};
+
+function makeBadgeBox(): HTMLDivElement {
+  const d = document.createElement('div');
+  d.setAttribute('data-pv-canvas-badges', '');
+  d.style.cssText = 'position:absolute;display:flex;gap:3px;pointer-events:auto;font-family:system-ui,sans-serif;';
+  // Keep the app's own outside-click listeners (dropdowns, popovers) out of it,
+  // and keep focus where it was so the shell's keyboard shortcuts still work.
+  const swallow = (e: Event) => { e.preventDefault(); e.stopPropagation(); };
+  d.addEventListener('pointerdown', swallow);
+  d.addEventListener('mousedown', swallow);
+  d.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const badge = (e.target as HTMLElement | null)?.closest('[data-pv-badge-id]') as HTMLElement | null;
+    const id = badge?.getAttribute('data-pv-badge-id');
+    const kind = badge?.getAttribute('data-pv-badge-kind');
+    if (id && kind) window.parent.postMessage({ type: 'PV_CANVAS_BADGE_CLICK', kind, id }, '*');
+  });
+  d.addEventListener('mouseover', (e) => {
+    const badge = (e.target as HTMLElement | null)?.closest('[data-pv-badge-tip]') as HTMLElement | null;
+    if (badge) showBadgeTip(badge); else hideBadgeTip();
+  });
+  d.addEventListener('mouseleave', hideBadgeTip);
+  return d;
+}
+
+function showBadgeTip(badge: HTMLElement) {
+  if (!badgeTip) {
+    badgeTip = document.createElement('div');
+    badgeTip.style.cssText =
+      'position:absolute;pointer-events:none;white-space:nowrap;padding:4px 8px;border-radius:4px;' +
+      'background:#1f1f1f;color:#fff;font:500 11px/1.3 system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.3);';
+    ensureOverlayLayer().appendChild(badgeTip);
+  }
+  badgeTip.textContent = badge.getAttribute('data-pv-badge-tip') || '';
+  badgeTip.style.display = 'block';
+  // Centered under the badge; above it when there is no room below.
+  const r = badge.getBoundingClientRect();
+  const w = badgeTip.offsetWidth;
+  const h = badgeTip.offsetHeight;
+  const left = Math.max(4, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 4));
+  const top = r.bottom + 6 + h <= window.innerHeight ? r.bottom + 6 : Math.max(4, r.top - 6 - h);
+  badgeTip.style.left = `${left}px`;
+  badgeTip.style.top = `${top}px`;
+}
+
+function hideBadgeTip() {
+  if (badgeTip) badgeTip.style.display = 'none';
+}
+
+function makeBadge(kind: BadgeKind, id: string, title: string, filled: boolean): HTMLDivElement {
+  const b = document.createElement('div');
+  b.setAttribute('data-pv-badge-kind', kind);
+  b.setAttribute('data-pv-badge-id', id);
+  b.setAttribute('data-pv-badge-tip', title);
+  b.setAttribute('aria-label', title);
+  b.setAttribute('role', 'button');
+  b.style.cssText =
+    `min-width:${BADGE_SIZE}px;height:${BADGE_SIZE}px;box-sizing:border-box;border-radius:${BADGE_SIZE / 2}px;` +
+    'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+    'font-size:10px;font-weight:600;line-height:1;' +
+    'box-shadow:0 1px 3px rgba(0,0,0,0.25);border:1.5px solid #18a0fb;' +
+    (filled ? 'background:#18a0fb;color:#fff;' : 'background:#fff;color:#18a0fb;');
+  return b;
+}
+
+function renderBadges(box: HTMLDivElement, matched: Record<BadgeKind, string[]>) {
+  box.textContent = '';
+  for (const kind of BADGE_KINDS) {
+    const ids = matched[kind];
+    if (ids.length === 0) continue;
+    const { activeId } = badgeSets[kind];
+    const noun = BADGE_NOUN[kind];
+    const shown = ids.length > BADGE_MAX ? ids.slice(0, BADGE_MAX - 1) : ids;
+    shown.forEach((id, i) => {
+      const title = ids.length > 1 ? `${noun.one} ${i + 1} of ${ids.length} — show in ${noun.panel}` : `Show ${noun.one.toLowerCase()} in ${noun.panel}`;
+      const b = makeBadge(kind, id, title, id === activeId);
+      b.innerHTML = BADGE_ICON[kind];
+      box.appendChild(b);
+    });
+    if (shown.length < ids.length) {
+      // Overflow: "+N" steps to the next one after the active one.
+      const activeIdx = activeId ? ids.indexOf(activeId) : -1;
+      const more = makeBadge(kind, ids[(activeIdx + 1) % ids.length], `${ids.length} ${noun.many} — show the next in ${noun.panel}`, false);
+      more.style.padding = '0 5px';
+      more.textContent = `+${ids.length - shown.length}`;
+      box.appendChild(more);
+    }
+  }
+}
+
+function syncBadges(layer: HTMLDivElement) {
+  const el = selectedEls.length === 1 && selectedEls[0].isConnected ? selectedEls[0] : null;
+  const matched = { spec: [], comment: [] } as Record<BadgeKind, string[]>;
+  let total = 0;
+  if (el) {
+    for (const kind of BADGE_KINDS) {
+      matched[kind] = badgeSets[kind].ids.filter(id => el.hasAttribute(BADGE_ATTR_PREFIX[kind] + id));
+      total += matched[kind].length;
+    }
+  }
+  if (!el || total === 0) {
+    if (badgeBox) badgeBox.style.display = 'none';
+    hideBadgeTip();
+    return;
+  }
+  if (!badgeBox) {
+    badgeBox = makeBadgeBox();
+    layer.appendChild(badgeBox);
+  }
+  const key = BADGE_KINDS.map(k => `${matched[k].join(' ')}|${badgeSets[k].activeId ?? ''}`).join('#');
+  if (key !== badgeKey) {
+    badgeKey = key;
+    hideBadgeTip();
+    renderBadges(badgeBox, matched);
+  }
+  badgeBox.style.display = 'flex';
+
+  // Right-aligned just below the selection box; flipped inside its bottom edge
+  // when that would leave the viewport.
+  const rect = el.getBoundingClientRect();
+  const width = badgeBox.offsetWidth;
+  const below = rect.bottom + 1 + BADGE_GAP;
+  const top = below + BADGE_SIZE <= window.innerHeight
+    ? below
+    : Math.max(0, rect.bottom - BADGE_SIZE - BADGE_GAP);
+  const left = Math.max(0, Math.min(rect.right + 1 - width, window.innerWidth - width));
+  badgeBox.style.left = `${left}px`;
+  badgeBox.style.top = `${top}px`;
 }
 
 function syncTrackedElements() {
@@ -315,7 +482,12 @@ function syncTrackedElements() {
   // so we disconnect-and-reattach; the set of tracked elements is small (≤ a handful).
   trackedMutationObserver.disconnect();
   for (const el of wanted) {
-    trackedMutationObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+    // Unfiltered on the selected element: a spec pin arrives as a new
+    // `data-pv-spec-*` / `data-pv-comment-*` attribute (after HMR), which the
+    // canvas badges must pick up.
+    trackedMutationObserver.observe(el, selectedEls.includes(el)
+      ? { attributes: true }
+      : { attributes: true, attributeFilter: ['class', 'style'] });
   }
   for (const p of parents) {
     trackedMutationObserver.observe(p, {
@@ -528,6 +700,16 @@ function handleParentMessage(e: MessageEvent) {
     case 'PV_CLEAR_SELECTION':
       clearSelectionOutline();
       break;
+    case 'PV_SET_CANVAS_BADGES': {
+      const kind = e.data.kind as BadgeKind;
+      if (!BADGE_KINDS.includes(kind)) break;
+      badgeSets[kind] = {
+        ids: Array.isArray(e.data.ids) ? e.data.ids : [],
+        activeId: typeof e.data.activeId === 'string' ? e.data.activeId : null,
+      };
+      syncOverlays();
+      break;
+    }
     case 'PV_TREE_HOVER': {
       // Hover highlight driven by the shell's elements tree panel. Reuses the
       // same hover overlay as canvas mousemove — the pointer is over the panel
@@ -625,7 +807,7 @@ function init() {
   // Overlay rectangles use viewport-relative coords (getBoundingClientRect on a
   // fixed-position layer). Reposition them on any scroll in the iframe — capture
   // covers nested scroll containers as well as the root document.
-  window.addEventListener('scroll', () => syncOverlays(), { capture: true, passive: true });
+  window.addEventListener('scroll', () => { hideBadgeTip(); syncOverlays(); }, { capture: true, passive: true });
 
   // Report the initial error state either way. A document that unloads mid-error
   // (full reload, manual refresh) can never post ERROR_CLEARED for the overlay it

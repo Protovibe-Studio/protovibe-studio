@@ -609,7 +609,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [withAuthor, refresh]);
 
   // ── navigation ───────────────────────────────────────────────────────────────
-  const openThread = (thread: CommentThread) => {
+  // `navigate: false` when the thread's element is already on the canvas (a
+  // canvas badge click) — restoring its saved context would only reload it.
+  const openThread = (thread: CommentThread, navigate = true) => {
     // Capture what's unread now (before we mark it read) for the dots + scroll.
     const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
     setViewedUnread(new Set(unread));
@@ -625,9 +627,42 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     clearSuggestionPreviews(editingSuggestions, activeThreadId ?? undefined);
     setEditingSuggestions([]);
     setActiveThreadId(thread.id);
-    navigateToThread(thread);
+    if (navigate) navigateToThread(thread);
     if (unread.length && user) persistSeen(thread.id, null, true);
   };
+
+  // Canvas badges: while this panel is visible, the canvas draws one badge per
+  // thread pinned to the selected element (see bridge.ts); clicking one opens
+  // that thread. Sent to whichever iframe holds the selection (app or
+  // components); the previous one is cleared when that changes.
+  const badgeIds = useMemo(
+    () => (isActive
+      ? threads.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((t) => t.id)
+      : []),
+    [isActive, threads],
+  );
+  const badgeWinRef = useRef<Window | null>(null);
+  useEffect(() => {
+    const win = currentBaseTarget?.ownerDocument?.defaultView ?? null;
+    const prev = badgeWinRef.current;
+    if (prev && prev !== win) prev.postMessage({ type: 'PV_SET_CANVAS_BADGES', kind: 'comment', ids: [], activeId: null }, '*');
+    badgeWinRef.current = win;
+    // Re-sent on selection changes too: a reloaded iframe starts with no ids.
+    win?.postMessage({ type: 'PV_SET_CANVAS_BADGES', kind: 'comment', ids: badgeIds, activeId: activeThreadId }, '*');
+  }, [badgeIds, activeThreadId, currentBaseTarget]);
+  const openThreadRef = useRef(openThread);
+  openThreadRef.current = openThread;
+  useEffect(() => {
+    if (!isActive) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type !== 'PV_CANVAS_BADGE_CLICK' || e.data.kind !== 'comment') return;
+      if (e.data.id === activeThreadId) return;
+      const thread = threads.find((t) => t.id === e.data.id);
+      if (thread) openThreadRef.current(thread, false);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [isActive, threads, activeThreadId]);
 
   // What the thread view's ‹ › chevrons step through: whatever the list is
   // showing right now — the search hits (one entry per thread) while searching,
