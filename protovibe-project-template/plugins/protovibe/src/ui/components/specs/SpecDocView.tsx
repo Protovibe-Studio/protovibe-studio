@@ -154,12 +154,6 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerAt = useRef(0);
 
   const filtering = p.query.trim().length > 0 || p.statusFilter !== 'all' || p.scopeIds !== null;
-  // Adding (the Add button and the "+" between rows) stays available under a
-  // scope: pinning to the selected element is exactly what "In selection" /
-  // "In view" is for, and a "+" under a visible row still inserts right after
-  // it in the full list. A search or status filter would hide the new, empty
-  // annotation, so adding goes then.
-  const canInsert = p.query.trim().length === 0 && p.statusFilter === 'all';
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -442,7 +436,10 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           </div>
         )}
 
-        {canInsert && <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />}
+        {/* Adding stays available under any filter: the panel clears the filters
+            once the new item exists, so it never lands hidden. A "+" under a
+            visible row inserts right after it in the full list. */}
+        <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />
 
         {visible.map((it) => {
           const index = items.indexOf(it);
@@ -501,20 +498,18 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   rowProps={rowProps}
                 />
               )}
-              {canInsert && (
-                <InsertLine
-                  index={index + 1}
-                  active={dropAt === index + 1}
-                  dragging={dragging}
-                  dragCount={dragIds.length}
-                  onInsert={p.onInsert}
-                />
-              )}
+              <InsertLine
+                index={index + 1}
+                active={dropAt === index + 1}
+                dragging={dragging}
+                dragCount={dragIds.length}
+                onInsert={p.onInsert}
+              />
             </React.Fragment>
           );
         })}
 
-        {canInsert && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
+        <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />
       </div>
     </>
   );
