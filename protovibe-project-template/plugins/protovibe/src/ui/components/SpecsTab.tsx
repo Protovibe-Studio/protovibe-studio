@@ -269,6 +269,15 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   }, true);
 
   // ── item mutations ────────────────────────────────────────────────────────────
+  // A new item must never land hidden: adding clears search, status and scope
+  // in the same render that shows it, and the list then scrolls to it as the
+  // new active row.
+  const clearFilters = () => {
+    setQuery('');
+    setStatusFilter('all');
+    setScope('all');
+  };
+
   const handleInsert = (index: number, kind: InsertKind) => {
     if (!bundle) return;
     const specId = bundle.spec.id;
@@ -286,6 +295,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           });
           await refreshList();
           if (pinned) holdThumb(id);
+          clearFilters();
           setBundle(b);
           setAutoEditTextId(id);
           setActiveId(specId, id);
@@ -298,6 +308,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       const id = makeHeadingId();
       await snapshot([specItemFileRel(specId, id)], 'add heading');
       const b = await createSpecItem({ specId, item: { type: 'heading', id, rank, title: '', level: kind } });
+      clearFilters();
       setBundle(b);
       setEditingItemId(id);
       setActiveId(specId, id);
