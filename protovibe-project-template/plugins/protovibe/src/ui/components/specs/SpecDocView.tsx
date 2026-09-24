@@ -154,10 +154,12 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerAt = useRef(0);
 
   const filtering = p.query.trim().length > 0 || p.statusFilter !== 'all' || p.scopeIds !== null;
-  // Add (which appends to the end) stays available under a scope: pinning to
-  // the selected element is exactly what "In selection" / "In view" is for. A
-  // search or status filter would hide the new, empty annotation, so it goes.
-  const canAppend = p.query.trim().length === 0 && p.statusFilter === 'all';
+  // Adding (the Add button and the "+" between rows) stays available under a
+  // scope: pinning to the selected element is exactly what "In selection" /
+  // "In view" is for, and a "+" under a visible row still inserts right after
+  // it in the full list. A search or status filter would hide the new, empty
+  // annotation, so adding goes then.
+  const canInsert = p.query.trim().length === 0 && p.statusFilter === 'all';
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -440,7 +442,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           </div>
         )}
 
-        {!filtering && <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />}
+        {canInsert && <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />}
 
         {visible.map((it) => {
           const index = items.indexOf(it);
@@ -499,7 +501,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   rowProps={rowProps}
                 />
               )}
-              {!filtering && (
+              {canInsert && (
                 <InsertLine
                   index={index + 1}
                   active={dropAt === index + 1}
@@ -512,7 +514,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
           );
         })}
 
-        {canAppend && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
+        {canInsert && <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />}
       </div>
     </>
   );
