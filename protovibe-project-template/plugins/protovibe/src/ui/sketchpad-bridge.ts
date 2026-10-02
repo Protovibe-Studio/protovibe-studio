@@ -5,6 +5,7 @@
 
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { isCanvasMutationShortcut, PV_SET_CANVAS_EDIT_LOCKED, PV_CANVAS_EDIT_BLOCKED } from './utils/canvasEditGuard';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
@@ -109,6 +110,12 @@ let currentDropTarget: HTMLElement | null = null;
 let ghostEls: HTMLElement[] = [];
 let currentActiveSourceId: string | null = null;
 let spaceHeld = false;
+// Set by the shell while the Comments / Specs panel is open: elements can
+// still be selected, but drag, resize and delete are refused.
+let canvasEditLocked = false;
+// A press on an element while locked: if it turns into a drag, tell the shell
+// (once) so it can explain why nothing moves.
+let blockedDrag: { pointerId: number; startX: number; startY: number } | null = null;
 
 // Cmd/Ctrl+pointerdown on an element defers the deep-click selection to
 // pointerup, so a Cmd-drag can become a marquee (owned by SketchpadApp's
@@ -1156,7 +1163,7 @@ function handlePointerDown(e: PointerEvent) {
   // EARLY RESIZE INTERCEPT: Prioritize resizing the active selection over selecting background elements.
   // We check this BEFORE evaluating e.target, so clicking the 8px safe-margin works perfectly.
   const primarySel = selectedEls.length === 1 ? selectedEls[0] : null;
-  const selEdge = primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
+  const selEdge = !canvasEditLocked && primarySel?.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(primarySel, e.clientX, e.clientY) : null;
 
   if (primarySel && selEdge && !isMulti && !(e.metaKey || e.ctrlKey)) {
     e.preventDefault();
@@ -1265,6 +1272,11 @@ function handlePointerDown(e: PointerEvent) {
     notifyInspector(nextTarget);
   }
 
+  if (canvasEditLocked) {
+    blockedDrag = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY };
+    return;
+  }
+
   const targetEdge = !isMulti && nextTarget.hasAttribute('data-pv-sketchpad-el') ? getResizeEdge(nextTarget, e.clientX, e.clientY) : null;
   if (targetEdge) {
     const rect = nextTarget.getBoundingClientRect();
@@ -1340,6 +1352,15 @@ function handlePointerMove(e: PointerEvent) {
     if (dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD) pendingMetaClick = null;
   }
 
+  if (blockedDrag && e.pointerId === blockedDrag.pointerId) {
+    const dx = Math.abs(e.clientX - blockedDrag.startX);
+    const dy = Math.abs(e.clientY - blockedDrag.startY);
+    if (dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD) {
+      blockedDrag = null;
+      window.parent.postMessage({ type: PV_CANVAS_EDIT_BLOCKED }, '*');
+    }
+  }
+
   if ((resizeState && e.pointerId === resizeState.pointerId) ||
       (dragState && e.pointerId === dragState.pointerId)) {
     e.preventDefault();
@@ -1402,6 +1423,8 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function handlePointerUp(e: PointerEvent) {
+  if (blockedDrag && e.pointerId === blockedDrag.pointerId) blockedDrag = null;
+
   // Force final sync of coordinates if a frame is pending
   if (pointerMoveRafId !== null) {
     cancelAnimationFrame(pointerMoveRafId);
@@ -1710,6 +1733,16 @@ function handleKeyDown(e: KeyboardEvent) {
     altKey: e.altKey,
   }, '*');
 
+  // Comments / Specs mode: the shell answers the forwarded key with the
+  // "switch to design" toast. Stop it here so neither this bridge nor
+  // SketchpadApp's window listener deletes, cuts or pastes anything. Selected
+  // text keeps its native copy.
+  if (canvasEditLocked && isCanvasMutationShortcut(e)) {
+    e.stopPropagation();
+    if (window.getSelection()?.isCollapsed !== false) e.preventDefault();
+    return;
+  }
+
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEls.length > 0) {
     // Only intercept when at least one selected element is a sketchpad-el
     // (an absolute-positioned item managed by this bridge). Frame-root
@@ -1750,6 +1783,12 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function handleParentMessage(e: MessageEvent) {
   if (!e.data || typeof e.data !== 'object') return;
+
+  if (e.data.type === PV_SET_CANVAS_EDIT_LOCKED) {
+    canvasEditLocked = !!e.data.locked;
+    if (canvasEditLocked) blockedDrag = null;
+    return;
+  }
 
   if (e.data.type === 'PV_NUDGE_KEYDOWN') {
     if (selectedEls.length === 0) return;

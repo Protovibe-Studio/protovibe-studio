@@ -17,6 +17,12 @@ import {
   getAllowedSibling,
 } from '../utils/traversal';
 import { isTypingInput, hasTextSelectionInFocusedDocument } from '../utils/elementType';
+import {
+  isCanvasEditingLocked,
+  isCanvasMutationShortcut,
+  notifyCanvasEditBlocked,
+  blockCanvasEditIfLocked,
+} from '../utils/canvasEditGuard';
 
 export function useKeyboardShortcuts() {
   const { 
@@ -114,6 +120,21 @@ export function useKeyboardShortcuts() {
       if (e.key === 'Escape') {
         e.preventDefault();
         clearFocus();
+        return;
+      }
+
+      // 1.55. The Comments and Specs panels make the canvas read-only: a
+      // Backspace or Cmd+X meant for annotation text must never delete or cut
+      // the selected element. Block every editing shortcut with a toast.
+      if (isCanvasEditingLocked() && isCanvasMutationShortcut(e)) {
+        const key = e.key.toLowerCase();
+        const mod = e.metaKey || e.ctrlKey;
+        // Selected text keeps its native copy/cut.
+        if (mod && (key === 'c' || key === 'x') && hasTextSelectionInFocusedDocument()) return;
+        // Without a selection these keys don't touch the canvas (Cmd+E aside).
+        if (!currentBaseTarget && !(mod && key === 'e')) return;
+        e.preventDefault();
+        notifyCanvasEditBlocked();
         return;
       }
 
@@ -453,6 +474,7 @@ export function useKeyboardShortcuts() {
 
         if (isAbsolute && inAbsoluteContainer) {
           e.preventDefault();
+          if (blockCanvasEditIfLocked()) return;
           Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')).forEach(iframe => {
             iframe.contentWindow?.postMessage({
               type: 'PV_NUDGE_KEYDOWN',
@@ -621,6 +643,11 @@ export function useKeyboardShortcuts() {
       if (isMutationLocked) return;
       if (isTypingInput(e.target as HTMLElement)) return;
       if (!currentBaseTarget) return;
+      if (isCanvasEditingLocked()) {
+        e.preventDefault();
+        notifyCanvasEditBlocked();
+        return;
+      }
 
       // Clipboard items are only readable synchronously during the event, so
       // extract the image (if any) before deciding whether to defer.
@@ -666,6 +693,7 @@ export function useKeyboardShortcuts() {
       const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
       if (!imageFile) return;
       e.preventDefault();
+      if (blockCanvasEditIfLocked()) return;
       await insertImageFile(imageFile);
     };
 
@@ -682,7 +710,7 @@ export function useKeyboardShortcuts() {
     if (!isSelectionLoading && pendingActionRef.current) {
       const action = pendingActionRef.current;
       pendingActionRef.current = null;
-      if (currentBaseTarget) {
+      if (currentBaseTarget && !blockCanvasEditIfLocked()) {
         if (action.type === 'delete') {
           window.dispatchEvent(new KeyboardEvent('keydown', { key: action.key, bubbles: true, cancelable: true }));
         } else if (action.imageFile) {
