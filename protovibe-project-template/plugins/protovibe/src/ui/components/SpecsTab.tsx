@@ -27,7 +27,8 @@ import {
 } from '../../shared/specs';
 import {
   fetchSpecsList, fetchSpec, createSpec, renameSpec, deleteSpec, createSpecItem, updateSpecItem,
-  reanchorSpecItem, deleteSpecItem, exportSpec, fetchPublishedUrl, type SpecItemPatch,
+  reanchorSpecItem, deleteSpecItem, exportSpec, fetchPublishedUrl, readSpecsListSnapshot, readSpecSnapshot,
+  type SpecItemPatch,
 } from '../api/specs';
 import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
@@ -46,6 +47,31 @@ const VIEW_STORAGE_KEY = 'pv-specs-view';
 const THUMB_HOLD_MS = 2000;
 // Remembered across sessions, like the Comments panel's scope filter.
 const SCOPE_STORAGE_KEY = 'pv-specs-filter-scope';
+
+// Live refresh. Agents edit src/specs/ straight on disk, and Vite deliberately
+// doesn't watch it (a change would reload the app), so while the panel is the
+// visible tab it re-reads what it shows every POLL_MS. A read that caught a
+// file half-written (or the spec missing) is skipped rather than shown; only
+// when the same kind of read persists this many polls is it taken as the
+// real state on disk — a file genuinely left broken, a spec really deleted.
+const POLL_MS = 2000;
+const SUSPECT_READS_TO_ACCEPT = 3;
+
+const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * `next` with every unchanged part reusing `prev`'s object, so a poll that
+ * found nothing new is a no-op render and an edit elsewhere doesn't re-run
+ * effects keyed on an untouched item (anchor checks, thumbnails).
+ */
+function mergeBundle(prev: SpecBundle | null, next: SpecBundle): SpecBundle {
+  if (!prev || prev.spec.id !== next.spec.id) return next;
+  const old = new Map(prev.items.map((it) => [it.id, it]));
+  const items = next.items.map((it) => { const o = old.get(it.id); return o && sameJson(o, it) ? o : it; });
+  const spec = sameJson(prev.spec, next.spec) ? prev.spec : next.spec;
+  const unchanged = spec === prev.spec && items.length === prev.items.length && items.every((it, i) => it === prev.items[i]);
+  return unchanged ? prev : { spec, items };
+}
 
 function loadScope(): SpecScope {
   try {
@@ -133,6 +159,10 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const [confirm, setConfirm] = useState<{ kind: 'spec'; specId: string } | null>(null);
   const listScrollTop = useRef(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // Bumped whenever the panel writes or re-reads specs itself, so a poll
+  // that was already in flight doesn't land an older state over the result.
+  const readGenRef = useRef(0);
+  const busyRef = useRef(false);
 
   // Profile dialog + the action queued behind it (same gate as comments).
   const [profileOpen, setProfileOpen] = useState(false);
@@ -169,11 +199,46 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   useEffect(() => { void refreshList(); fetchPublishedUrl().then(setPublishedUrl); }, [refreshList]);
   useEffect(() => { void refreshBundle(currentSpecId); }, [currentSpecId, refreshBundle]);
   useEffect(() => {
-    const handler = () => { void refreshList(); void refreshBundle(currentSpecId); };
+    const handler = () => { readGenRef.current++; void refreshList(); void refreshBundle(currentSpecId); };
     window.addEventListener(PV_SPECS_REFRESH_EVENT, handler);
     return () => window.removeEventListener(PV_SPECS_REFRESH_EVENT, handler);
   }, [refreshList, refreshBundle, currentSpecId]);
   useEffect(() => { if (isActive) { void refreshList(); fetchPublishedUrl().then(setPublishedUrl); } }, [isActive, refreshList]);
+
+  // Poll what the panel shows — the docs list or the open spec — only while
+  // it is the visible tab and the browser tab is in front; never mid-mutation.
+  useEffect(() => {
+    if (!isActive) return;
+    let cancelled = false;
+    let timer = 0;
+    let suspect = 0;
+    const tick = async () => {
+      if (!document.hidden && !busyRef.current) {
+        const gen = readGenRef.current;
+        try {
+          if (currentSpecId) {
+            const { bundle: next, unreadable } = await readSpecSnapshot(currentSpecId);
+            const clean = !!next && unreadable.length === 0;
+            suspect = clean ? 0 : suspect + 1;
+            if (!cancelled && gen === readGenRef.current && !busyRef.current && (clean || suspect >= SUSPECT_READS_TO_ACCEPT)) {
+              if (next) setBundle((prev) => mergeBundle(prev, next));
+              else { setBundle(null); setView({ level: 'docs' }); }
+            }
+          } else {
+            const { specs: next, unreadable } = await readSpecsListSnapshot();
+            suspect = unreadable.length === 0 ? 0 : suspect + 1;
+            if (!cancelled && gen === readGenRef.current && !busyRef.current && (suspect === 0 || suspect >= SUSPECT_READS_TO_ACCEPT)) {
+              setSpecs((prev) => (sameJson(prev, next) ? prev : next));
+            }
+          }
+        } catch { /* dev server restarting or unreachable — keep what is shown */ }
+      }
+      if (!cancelled) timer = window.setTimeout(tick, POLL_MS);
+    };
+    // First read right away, so coming back to the panel shows current files.
+    timer = window.setTimeout(tick, 0);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [isActive, currentSpecId, setView]);
 
   // An active annotation whose file disappeared (undo, delete) is deactivated.
   useEffect(() => {
@@ -195,12 +260,16 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   // `lock` when the mutation rewrites a source file (anchor attribute).
   const run = useCallback(async (fn: () => Promise<void>, lock = false) => {
     setBusy(true);
+    busyRef.current = true;
+    readGenRef.current++;
     setError(null);
     try {
       if (lock) await runLockedMutation(fn); else await fn();
     } catch (e) {
       setError((e as Error).message || String(e));
     } finally {
+      readGenRef.current++;
+      busyRef.current = false;
       setBusy(false);
     }
   }, [runLockedMutation]);
@@ -392,6 +461,18 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
       emitToast({ message: repin ? 'Reference link and element updated' : 'Reference link updated', variant: 'success', durationMs: 1500 });
     }, repin);
   };
+
+  // The header's reload button: an explicit re-read that shows whatever is on
+  // disk, torn or not, and says when a file didn't parse.
+  const reloadSpec = (specId: string) => run(async () => {
+    const { bundle: next, unreadable } = await readSpecSnapshot(specId);
+    if (!next) { setBundle(null); setView({ level: 'docs' }); }
+    else setBundle((prev) => mergeBundle(prev, next));
+    await refreshList();
+    emitToast(unreadable.length
+      ? { message: `Couldn't read ${unreadable.map((f) => f.split('/').pop()).join(', ')} — the file may still be being written`, variant: 'error', durationMs: 4000 }
+      : { message: 'Spec reloaded', variant: 'success', durationMs: 1200 });
+  });
 
   // ── export ────────────────────────────────────────────────────────────────────
   // Links point at the most recent publish (the project's main domain), read
@@ -604,6 +685,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           onUnpin={handleUnpin}
           onDeleteItem={handleDeleteItem}
           onExport={(a) => handleExport(bundle.spec.id, a)}
+          onReload={() => reloadSpec(bundle.spec.id)}
           onDeleteSpec={() => setConfirm({ kind: 'spec', specId: bundle.spec.id })}
           initialScrollTop={listScrollTop.current}
           onScrollChange={(v) => { listScrollTop.current = v; }}
