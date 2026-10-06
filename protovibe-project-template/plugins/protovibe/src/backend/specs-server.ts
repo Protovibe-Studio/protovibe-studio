@@ -106,22 +106,32 @@ function bundleOr404(res: any, specId: string): SpecBundle | null {
 
 // ─── endpoint handlers ───────────────────────────────────────────────────────
 
-// POST {} → { specs: SpecSummary[] }
+// Torn reads are reported, not hidden: the panel polls these two endpoints
+// while an agent may be writing src/specs/, and skips a read whose
+// `unreadable` (files that failed to parse) is non-empty.
+
+// POST {} → { specs: SpecSummary[], unreadable?: string[] }
 export const handleSpecsList: Connect.NextHandleFunction = async (_req, res) => {
   try {
-    sendJson(res, { specs: listSpecSummaries() });
+    const unreadable: string[] = [];
+    const specs = listSpecSummaries(unreadable);
+    sendJson(res, { specs, ...(unreadable.length ? { unreadable } : {}) });
   } catch (err) {
     sendError(res, String(err), 500);
   }
 };
 
-// POST { specId } → { spec, items }
+// POST { specId } → { spec, items, unreadable?: string[] }
+// A 404 also carries `unreadable` when it is spec.json that failed to parse.
 export const handleSpecsGet: Connect.NextHandleFunction = async (req, res) => {
   try {
     const specId = safeSpecId((await parseBody(req)).specId);
     if (!specId) return sendError(res, 'specId required');
-    const bundle = bundleOr404(res, specId);
-    if (bundle) sendJson(res, bundle);
+    const unreadable: string[] = [];
+    const bundle = readSpec(specId, unreadable);
+    const extra = unreadable.length ? { unreadable } : {};
+    if (bundle) sendJson(res, { ...bundle, ...extra });
+    else sendJson(res, { error: 'Spec not found', ...extra }, 404);
   } catch (err) {
     sendError(res, String(err), 500);
   }

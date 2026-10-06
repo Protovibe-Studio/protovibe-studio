@@ -120,6 +120,8 @@ export interface SpecDocViewProps {
   onUpdateItem: (itemId: string, patch: SpecItemPatch, note: string) => void;
   onDeleteItem: (itemId: string) => void;
   onExport: (action: SpecExportAction) => void;
+  /** Re-read the spec from disk now (it also refreshes on its own while shown). */
+  onReload: () => void;
   onDeleteSpec: () => void;
   initialScrollTop: number;
   onScrollChange: (top: number) => void;
@@ -357,6 +359,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             <button style={{ ...iconBtn, opacity: p.onNext ? 1 : 0.35 }} disabled={!p.onNext} data-testid="spec-annotation-next" data-tooltip="Next annotation (→)" onClick={p.onNext}><ChevronRight size={16} /></button>
           </>
         )}
+        <button style={iconBtn} disabled={p.busy} data-testid="spec-reload" data-tooltip="Reload spec from disk" onClick={p.onReload}><RefreshCw size={14} /></button>
         <button ref={menuRef} style={iconBtn} data-tooltip="More" onClick={() => setMenuOpen(true)}><MoreHorizontal size={15} /></button>
         <Menu
           open={menuOpen}
