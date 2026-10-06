@@ -104,12 +104,12 @@ function hydrateSpec(raw: any, id: string): SpecDoc | null {
   };
 }
 
-export function readSpecMeta(specId: string): SpecDoc | null {
-  return hydrateSpec(readJson(specMetaPath(specId)), specId);
+export function readSpecMeta(specId: string, unreadable?: string[]): SpecDoc | null {
+  return hydrateSpec(readJson(specMetaPath(specId), unreadable), specId);
 }
 
 export function readSpec(specId: string, unreadable?: string[]): SpecBundle | null {
-  const spec = hydrateSpec(readJson(specMetaPath(specId), unreadable), specId);
+  const spec = readSpecMeta(specId, unreadable);
   // A directory without spec.json (e.g. the spec's creation was undone, or a
   // half-finished sync) is not a spec — its item files are left alone so a
   // redo can bring the document back intact.

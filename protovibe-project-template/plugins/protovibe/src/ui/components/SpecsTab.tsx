@@ -211,23 +211,32 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     if (!isActive) return;
     let cancelled = false;
     let timer = 0;
+    // Consecutive suspect reads of the same kind (same files torn, or the spec
+    // missing) — an agent writing one file after another never adds up.
     let suspect = 0;
+    let suspectKey = '';
+    const settled = (key: string | null) => {
+      if (key === null) { suspect = 0; suspectKey = ''; return true; }
+      suspect = key === suspectKey ? suspect + 1 : 1;
+      suspectKey = key;
+      return suspect >= SUSPECT_READS_TO_ACCEPT;
+    };
     const tick = async () => {
       if (!document.hidden && !busyRef.current) {
         const gen = readGenRef.current;
         try {
           if (currentSpecId) {
             const { bundle: next, unreadable } = await readSpecSnapshot(currentSpecId);
-            const clean = !!next && unreadable.length === 0;
-            suspect = clean ? 0 : suspect + 1;
-            if (!cancelled && gen === readGenRef.current && !busyRef.current && (clean || suspect >= SUSPECT_READS_TO_ACCEPT)) {
+            const key = next && unreadable.length === 0 ? null : `${next ? '' : 'missing'}|${[...unreadable].sort().join('|')}`;
+            const accept = settled(key);
+            if (!cancelled && gen === readGenRef.current && !busyRef.current && accept) {
               if (next) setBundle((prev) => mergeBundle(prev, next));
               else { setBundle(null); setView({ level: 'docs' }); }
             }
           } else {
             const { specs: next, unreadable } = await readSpecsListSnapshot();
-            suspect = unreadable.length === 0 ? 0 : suspect + 1;
-            if (!cancelled && gen === readGenRef.current && !busyRef.current && (suspect === 0 || suspect >= SUSPECT_READS_TO_ACCEPT)) {
+            const accept = settled(unreadable.length === 0 ? null : [...unreadable].sort().join('|'));
+            if (!cancelled && gen === readGenRef.current && !busyRef.current && accept) {
               setSpecs((prev) => (sameJson(prev, next) ? prev : next));
             }
           }
@@ -463,15 +472,19 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   };
 
   // The header's reload button: an explicit re-read that shows whatever is on
-  // disk, torn or not, and says when a file didn't parse.
+  // disk, torn or not, and says when a file didn't parse. A spec.json that
+  // didn't parse keeps the spec open (the file is likely mid-write); only a
+  // spec that is really gone goes back to the list.
   const reloadSpec = (specId: string) => run(async () => {
     const { bundle: next, unreadable } = await readSpecSnapshot(specId);
-    if (!next) { setBundle(null); setView({ level: 'docs' }); }
-    else setBundle((prev) => mergeBundle(prev, next));
+    if (next) setBundle((prev) => mergeBundle(prev, next));
+    else if (unreadable.length === 0) { setBundle(null); setView({ level: 'docs' }); }
     await refreshList();
     emitToast(unreadable.length
       ? { message: `Couldn't read ${unreadable.map((f) => f.split('/').pop()).join(', ')} — the file may still be being written`, variant: 'error', durationMs: 4000 }
-      : { message: 'Spec reloaded', variant: 'success', durationMs: 1200 });
+      : next
+        ? { message: 'Spec reloaded', variant: 'success', durationMs: 1200 }
+        : { message: 'This spec no longer exists', variant: 'error', durationMs: 2500 });
   });
 
   // ── export ────────────────────────────────────────────────────────────────────
