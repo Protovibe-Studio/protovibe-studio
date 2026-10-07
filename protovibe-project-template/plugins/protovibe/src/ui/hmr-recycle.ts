@@ -18,10 +18,10 @@
 
 const MB = 1024 * 1024;
 // The editing canvases reload rarely, so a refresh seldom interrupts work.
-const CANVAS_BUDGET_BYTES = 64 * MB;
+const CANVAS_BUDGET_BYTES = 350 * MB;
 // Spec frames are passive previews and there can be many of them, so they
 // recycle much sooner.
-const SPEC_FRAME_BUDGET_BYTES = 16 * MB;
+const SPEC_FRAME_BUDGET_BYTES = 32 * MB;
 // While the user is typing into the frame, the reload waits — up to this many
 // times the budget, after which memory wins.
 const HARD_LIMIT_FACTOR = 2;
