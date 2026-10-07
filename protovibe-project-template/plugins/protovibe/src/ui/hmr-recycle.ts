@@ -22,9 +22,6 @@ const CANVAS_BUDGET_BYTES = 350 * MB;
 // Spec frames are passive previews and there can be many of them, so they
 // recycle much sooner.
 const SPEC_FRAME_BUDGET_BYTES = 32 * MB;
-// While the user is typing into the frame, the reload waits — up to this many
-// times the budget, after which memory wins.
-const HARD_LIMIT_FACTOR = 2;
 // Resource Timing reports 0 bytes in rare cases (e.g. an opaque response);
 // count such a module as a typical small one rather than as free.
 const FALLBACK_MODULE_BYTES = 16 * 1024;
@@ -49,18 +46,9 @@ if (hot && typeof PerformanceObserver !== 'undefined') {
     }
   }).observe({ type: 'resource' });
 
-  // A document keeps its activeElement after focus moves to the shell (or it
-  // starts on an autofocused input), so only a focused frame counts.
-  const isTyping = () => {
-    if (!document.hasFocus()) return false;
-    const el = document.activeElement as HTMLElement | null;
-    return !!el && (el.isContentEditable || el.matches('input, textarea, select'));
-  };
-
   hot.on('vite:beforeUpdate', () => {
     if (firstUpdateAt === Infinity) firstUpdateAt = performance.now();
     if (reloading || loadedBytes < budget) return;
-    if (isTyping() && loadedBytes < budget * HARD_LIMIT_FACTOR) return;
     reloading = true;
     console.info(
       `[protovibe] Hot updates have loaded ${Math.round(loadedBytes / MB)} MB of modules into this frame; ` +
