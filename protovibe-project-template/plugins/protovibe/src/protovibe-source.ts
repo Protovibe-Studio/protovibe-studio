@@ -417,6 +417,13 @@ export function protovibeSourcePlugin(): Plugin {
           attrs: { type: 'module', src: '/@fs/' + normalizePath(path.resolve(PLUGIN_DIR, 'src/ui/hmr-liveness.ts')) },
           injectTo: 'body',
         };
+        // ...and reloads itself once hot updates have piled up too many
+        // never-freed module versions in it (see ui/hmr-recycle.ts).
+        const hmrRecycleTag: HtmlTagDescriptor = {
+          tag: 'script',
+          attrs: { type: 'module', src: '/@fs/' + normalizePath(path.resolve(PLUGIN_DIR, 'src/ui/hmr-recycle.ts')) },
+          injectTo: 'body',
+        };
 
         // Inject bridge.js into the user app (index.html) and components.html
         if (isIndexHtml || isComponentsHtml) {
@@ -435,6 +442,7 @@ export function protovibeSourcePlugin(): Plugin {
               injectTo: 'body',
             },
             hmrLivenessTag,
+            hmrRecycleTag,
           ];
         }
 
@@ -454,7 +462,7 @@ export function protovibeSourcePlugin(): Plugin {
             children: fs.readFileSync(sketchpadBridgePath, 'utf-8'),
             injectTo: 'body',
           });
-          tags.push(hmrLivenessTag);
+          tags.push(hmrLivenessTag, hmrRecycleTag);
 
           return tags;
         }
