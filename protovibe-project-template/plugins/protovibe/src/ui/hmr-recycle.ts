@@ -49,7 +49,10 @@ if (hot && typeof PerformanceObserver !== 'undefined') {
     }
   }).observe({ type: 'resource' });
 
+  // A document keeps its activeElement after focus moves to the shell (or it
+  // starts on an autofocused input), so only a focused frame counts.
   const isTyping = () => {
+    if (!document.hasFocus()) return false;
     const el = document.activeElement as HTMLElement | null;
     return !!el && (el.isContentEditable || el.matches('input, textarea, select'));
   };
