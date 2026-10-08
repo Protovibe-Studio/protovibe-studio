@@ -17,12 +17,10 @@ interface IconSearchInputProps {
   onRemove?: () => void;
 }
 
-const DEBOUNCE_MS = 300;
+// Long enough that typing a query doesn't fire a search (and 32 thumb fetches) per keystroke.
+const DEBOUNCE_MS = 900;
 
 const ICONIFY_API = 'https://api.iconify.design';
-
-// Rows this far above/below the visible area load their thumbs early, so scrolling feels smooth.
-const THUMB_PRELOAD_MARGIN = '200px 0px';
 
 // Session-wide thumbnail cache (iconId → SVG data URI). The Iconify API sits behind a
 // Cloudflare rate limit, and the Electron shell runs with the HTTP cache disabled, so
@@ -51,34 +49,24 @@ function loadThumb(iconId: string): Promise<string> {
   return request;
 }
 
-/** Fetches its thumbnail only once the row scrolls into (or near) the dropdown's visible area. */
-const IconThumb: React.FC<{ iconId: string; scrollRootRef: React.RefObject<HTMLDivElement | null> }> = ({ iconId, scrollRootRef }) => {
+const IconThumb: React.FC<{ iconId: string }> = ({ iconId }) => {
   const [src, setSrc] = useState(() => thumbCache.get(iconId));
-  const elRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const cached = thumbCache.get(iconId);
     setSrc(cached);
-    if (cached || !elRef.current) return;
+    if (cached) return;
 
     let cancelled = false;
-    const observer = new IntersectionObserver((entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      observer.disconnect();
-      loadThumb(iconId).then(
-        (uri) => { if (!cancelled) setSrc(uri); },
-        () => {},
-      );
-    }, { root: scrollRootRef.current, rootMargin: THUMB_PRELOAD_MARGIN });
-    observer.observe(elRef.current);
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-    };
-  }, [iconId, scrollRootRef]);
+    loadThumb(iconId).then(
+      (uri) => { if (!cancelled) setSrc(uri); },
+      () => {},
+    );
+    return () => { cancelled = true; };
+  }, [iconId]);
 
   return (
-    <span ref={elRef} style={{ width: 16, height: 16, flexShrink: 0, display: 'inline-flex' }}>
+    <span style={{ width: 16, height: 16, flexShrink: 0, display: 'inline-flex' }}>
       {src && <img src={src} alt="" width={16} height={16} style={{ opacity: 0.9 }} />}
     </span>
   );
@@ -314,7 +302,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
                   background: isActive ? theme.accent_default : 'transparent',
                 }}
               >
-                <IconThumb iconId={iconId} scrollRootRef={dropdownElRef} />
+                <IconThumb iconId={iconId} />
                 <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {result.name}
                 </span>
