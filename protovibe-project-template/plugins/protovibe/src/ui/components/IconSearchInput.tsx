@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { InspectorInput } from './InspectorInput';
 import { theme } from '../theme';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
@@ -21,6 +21,8 @@ interface IconSearchInputProps {
 const DEBOUNCE_MS = 900;
 
 const ICONIFY_API = 'https://api.iconify.design';
+
+const SPIN_KEYFRAMES = '@keyframes pv-icon-search-spin { to { transform: rotate(360deg); } }';
 
 // Session-wide thumbnail cache (iconId → SVG data URI). The Iconify API sits behind a
 // Cloudflare rate limit, and the Electron shell runs with the HTTP cache disabled, so
@@ -139,6 +141,16 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
     setLocalValue(val);
     setActiveIndex(-1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Clearing the query needs no request, so it skips the debounce.
+    if (!val.trim()) {
+      searchIcons(val);
+      return;
+    }
+    // Show the pending state for the whole debounce, and drop any in-flight response:
+    // it belongs to an older query and would otherwise end the pending state early.
+    searchIdRef.current++;
+    setSearchFailed(false);
+    setLoading(true);
     debounceRef.current = setTimeout(() => searchIcons(val), DEBOUNCE_MS);
   };
 
@@ -230,7 +242,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
           style={{
             width: '260px',
             maxHeight: '300px',
-            overflowY: 'auto',
+            overflow: 'hidden',
             background: theme.bg_secondary,
             border: `1px solid ${theme.border_default}`,
             borderRadius: '6px',
@@ -241,6 +253,8 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
             ...floatingStyle,
           }}
         >
+          <style>{SPIN_KEYFRAMES}</style>
+
           {/* Unset option */}
           <div
             onMouseDown={(e) => e.preventDefault()}
@@ -260,58 +274,87 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
+              flexShrink: 0,
             }}
           >
             <X size={10} strokeWidth={2.5} />
             Unset
           </div>
 
-          {loading && results.length === 0 && (
-            <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>
-              Searching...
-            </div>
-          )}
+          {/* Only the list scrolls, so the pending overlay stays centered on what's visible. */}
+          <div style={{ position: 'relative', flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflowY: 'auto',
+                opacity: loading && results.length > 0 ? 0.35 : 1,
+                transition: 'opacity 120ms ease',
+              }}
+            >
+              {/* Room for the spinner when there are no results to dim yet. */}
+              {loading && results.length === 0 && <div style={{ height: 64 }} />}
 
-          {!loading && results.length === 0 && localValue && (
-            <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>
-              {searchFailed ? 'Icon search failed, try again' : localValue.trim() ? 'No icons found' : 'Type to search icons'}
-            </div>
-          )}
+              {!loading && results.length === 0 && localValue && (
+                <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>
+                  {searchFailed ? 'Icon search failed, try again' : localValue.trim() ? 'No icons found' : 'Type to search icons'}
+                </div>
+              )}
 
-          {/* Results stay mounted while a new search loads, so their thumbs aren't torn down and re-fetched. */}
-          {results.map((result, i) => {
-            const isActive = i === activeIndex;
-            const iconId = `${result.prefix}:${result.name}`;
-            return (
+              {/* Results stay mounted while a new search loads, so their thumbs aren't torn down and re-fetched. */}
+              {results.map((result, i) => {
+                const isActive = i === activeIndex;
+                const iconId = `${result.prefix}:${result.name}`;
+                return (
+                  <div
+                    key={iconId}
+                    data-index={i}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => selectIcon(result)}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    onMouseLeave={() => setActiveIndex(-1)}
+                    style={{
+                      padding: '5px 10px',
+                      fontSize: '11px',
+                      color: theme.text_default,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      borderBottom: `1px solid ${theme.border_secondary}`,
+                      background: isActive ? theme.accent_default : 'transparent',
+                    }}
+                  >
+                    <IconThumb iconId={iconId} />
+                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {result.name}
+                    </span>
+                    <span style={{ color: isActive ? 'rgba(255,255,255,0.7)' : theme.text_tertiary, fontSize: '10px', marginLeft: 'auto', flexShrink: 0 }}>
+                      {result.prefix}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {loading && (
               <div
-                key={iconId}
-                data-index={i}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => selectIcon(result)}
-                onMouseEnter={() => setActiveIndex(i)}
-                onMouseLeave={() => setActiveIndex(-1)}
                 style={{
-                  padding: '5px 10px',
-                  fontSize: '11px',
-                  color: theme.text_default,
-                  cursor: 'pointer',
+                  position: 'absolute',
+                  inset: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  borderBottom: `1px solid ${theme.border_secondary}`,
-                  background: isActive ? theme.accent_default : 'transparent',
+                  justifyContent: 'center',
+                  pointerEvents: 'none',
                 }}
               >
-                <IconThumb iconId={iconId} />
-                <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {result.name}
-                </span>
-                <span style={{ color: isActive ? 'rgba(255,255,255,0.7)' : theme.text_tertiary, fontSize: '10px', marginLeft: 'auto', flexShrink: 0 }}>
-                  {result.prefix}
-                </span>
+                <Loader2
+                  size={16}
+                  style={{ color: theme.text_secondary, animation: 'pv-icon-search-spin 1s linear infinite' }}
+                />
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>,
         document.body
       )}
