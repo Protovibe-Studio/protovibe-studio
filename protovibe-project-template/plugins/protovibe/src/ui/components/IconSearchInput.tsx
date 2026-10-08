@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { InspectorInput } from './InspectorInput';
 import { theme } from '../theme';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
+import { getCachedIconSearch, getCachedIconThumb, loadIconThumb, searchIconify } from '../utils/iconifyApi';
 
 interface IconSearchResult {
   prefix: string;
@@ -19,6 +20,29 @@ interface IconSearchInputProps {
 
 const DEBOUNCE_MS = 300;
 
+const toResults = (icons: string[]): IconSearchResult[] =>
+  icons.map((icon) => {
+    const [prefix, ...rest] = icon.split(':');
+    return { prefix, name: rest.join(':') };
+  });
+
+const IconThumb: React.FC<{ iconId: string }> = ({ iconId }) => {
+  const [src, setSrc] = useState(() => getCachedIconThumb(iconId));
+
+  useEffect(() => {
+    let cancelled = false;
+    setSrc(getCachedIconThumb(iconId));
+    loadIconThumb(iconId).then(
+      (uri) => { if (!cancelled) setSrc(uri); },
+      () => { /* Not cached on failure, so the next search or reopen retries it. */ },
+    );
+    return () => { cancelled = true; };
+  }, [iconId]);
+
+  if (!src) return <span style={{ width: 16, height: 16, flexShrink: 0 }} />;
+  return <img src={src} alt="" width={16} height={16} style={{ flexShrink: 0, opacity: 0.9 }} />;
+};
+
 export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   value,
   onCommit,
@@ -27,12 +51,14 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<IconSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const inputElRef = useRef<HTMLInputElement | null>(null);
   const dropdownElRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCommittedRef = useRef(value);
+  const searchIdRef = useRef(0);
 
   useEffect(() => {
     setLocalValue(value);
@@ -47,26 +73,39 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
     updateDeps: [results.length, localValue],
   });
 
-  const searchIcons = async (query: string) => {
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
+
+  const searchIcons = (query: string) => {
+    // Responses can arrive out of order; only the latest search may update state.
+    const searchId = ++searchIdRef.current;
+    setSearchFailed(false);
     if (!query.trim()) {
       setResults([]);
       setLoading(false);
       return;
     }
-    setLoading(true);
-    try {
-      const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=30`);
-      const data = await res.json();
-      const icons: IconSearchResult[] = (data.icons || []).map((icon: string) => {
-        const [prefix, ...rest] = icon.split(':');
-        return { prefix, name: rest.join(':') };
-      });
-      setResults(icons);
-    } catch {
-      setResults([]);
-    } finally {
+    const cached = getCachedIconSearch(query);
+    if (cached) {
+      setResults(toResults(cached));
       setLoading(false);
+      return;
     }
+    setLoading(true);
+    searchIconify(query).then(
+      (icons) => {
+        if (searchId !== searchIdRef.current) return;
+        setResults(toResults(icons));
+        setLoading(false);
+      },
+      () => {
+        if (searchId !== searchIdRef.current) return;
+        setResults([]);
+        setSearchFailed(true);
+        setLoading(false);
+      },
+    );
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,7 +248,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
 
           {!loading && results.length === 0 && localValue && (
             <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>
-              {localValue.trim() ? 'No icons found' : 'Type to search icons'}
+              {searchFailed ? 'Icon search failed, try again' : localValue.trim() ? 'No icons found' : 'Type to search icons'}
             </div>
           )}
 
@@ -236,13 +275,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
                   background: isActive ? theme.accent_default : 'transparent',
                 }}
               >
-                <img
-                  src={`https://api.iconify.design/${result.prefix}/${result.name}.svg?color=white`}
-                  alt=""
-                  width={16}
-                  height={16}
-                  style={{ flexShrink: 0, opacity: 0.9 }}
-                />
+                <IconThumb iconId={iconId} />
                 <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {result.name}
                 </span>
