@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import { InspectorInput } from './InspectorInput';
 import { theme } from '../theme';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
-import { getCachedIconSearch, getCachedIconThumb, loadIconThumb, searchIconify } from '../utils/iconifyApi';
 
 interface IconSearchResult {
   prefix: string;
@@ -20,27 +19,69 @@ interface IconSearchInputProps {
 
 const DEBOUNCE_MS = 300;
 
-const toResults = (icons: string[]): IconSearchResult[] =>
-  icons.map((icon) => {
-    const [prefix, ...rest] = icon.split(':');
-    return { prefix, name: rest.join(':') };
-  });
+const ICONIFY_API = 'https://api.iconify.design';
 
-const IconThumb: React.FC<{ iconId: string }> = ({ iconId }) => {
-  const [src, setSrc] = useState(() => getCachedIconThumb(iconId));
+// Rows this far above/below the visible area load their thumbs early, so scrolling feels smooth.
+const THUMB_PRELOAD_MARGIN = '200px 0px';
+
+// Session-wide thumbnail cache (iconId → SVG data URI). The Iconify API sits behind a
+// Cloudflare rate limit, and the Electron shell runs with the HTTP cache disabled, so
+// each SVG is fetched once and reused across searches and re-renders. Failed fetches
+// (e.g. 429) aren't cached, so they retry the next time the thumb is shown.
+const thumbCache = new Map<string, string>();
+const thumbRequests = new Map<string, Promise<string>>();
+
+function loadThumb(iconId: string): Promise<string> {
+  let request = thumbRequests.get(iconId);
+  if (!request) {
+    const [prefix, ...rest] = iconId.split(':');
+    request = fetch(`${ICONIFY_API}/${prefix}/${rest.join(':')}.svg?color=white`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Iconify ${res.status} for ${iconId}`);
+        return res.text();
+      })
+      .then((svg) => {
+        const uri = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+        thumbCache.set(iconId, uri);
+        return uri;
+      })
+      .finally(() => thumbRequests.delete(iconId));
+    thumbRequests.set(iconId, request);
+  }
+  return request;
+}
+
+/** Fetches its thumbnail only once the row scrolls into (or near) the dropdown's visible area. */
+const IconThumb: React.FC<{ iconId: string; scrollRootRef: React.RefObject<HTMLDivElement | null> }> = ({ iconId, scrollRootRef }) => {
+  const [src, setSrc] = useState(() => thumbCache.get(iconId));
+  const elRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    setSrc(getCachedIconThumb(iconId));
-    loadIconThumb(iconId).then(
-      (uri) => { if (!cancelled) setSrc(uri); },
-      () => { /* Not cached on failure, so the next search or reopen retries it. */ },
-    );
-    return () => { cancelled = true; };
-  }, [iconId]);
+    const cached = thumbCache.get(iconId);
+    setSrc(cached);
+    if (cached || !elRef.current) return;
 
-  if (!src) return <span style={{ width: 16, height: 16, flexShrink: 0 }} />;
-  return <img src={src} alt="" width={16} height={16} style={{ flexShrink: 0, opacity: 0.9 }} />;
+    let cancelled = false;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      loadThumb(iconId).then(
+        (uri) => { if (!cancelled) setSrc(uri); },
+        () => {},
+      );
+    }, { root: scrollRootRef.current, rootMargin: THUMB_PRELOAD_MARGIN });
+    observer.observe(elRef.current);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [iconId, scrollRootRef]);
+
+  return (
+    <span ref={elRef} style={{ width: 16, height: 16, flexShrink: 0, display: 'inline-flex' }}>
+      {src && <img src={src} alt="" width={16} height={16} style={{ opacity: 0.9 }} />}
+    </span>
+  );
 };
 
 export const IconSearchInput: React.FC<IconSearchInputProps> = ({
@@ -77,7 +118,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
     if (debounceRef.current) clearTimeout(debounceRef.current);
   }, []);
 
-  const searchIcons = (query: string) => {
+  const searchIcons = async (query: string) => {
     // Responses can arrive out of order; only the latest search may update state.
     const searchId = ++searchIdRef.current;
     setSearchFailed(false);
@@ -86,26 +127,23 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
       setLoading(false);
       return;
     }
-    const cached = getCachedIconSearch(query);
-    if (cached) {
-      setResults(toResults(cached));
-      setLoading(false);
-      return;
-    }
     setLoading(true);
-    searchIconify(query).then(
-      (icons) => {
-        if (searchId !== searchIdRef.current) return;
-        setResults(toResults(icons));
-        setLoading(false);
-      },
-      () => {
-        if (searchId !== searchIdRef.current) return;
-        setResults([]);
-        setSearchFailed(true);
-        setLoading(false);
-      },
-    );
+    try {
+      const res = await fetch(`${ICONIFY_API}/search?query=${encodeURIComponent(query)}&limit=30`);
+      if (!res.ok) throw new Error(`Iconify search ${res.status}`);
+      const data = await res.json();
+      if (searchId !== searchIdRef.current) return;
+      const icons: IconSearchResult[] = (data.icons || []).map((icon: string) => {
+        const [prefix, ...rest] = icon.split(':');
+        return { prefix, name: rest.join(':') };
+      });
+      setResults(icons);
+    } catch {
+      if (searchId !== searchIdRef.current) return;
+      setResults([]);
+      setSearchFailed(true);
+    }
+    setLoading(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,7 +278,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
             Unset
           </div>
 
-          {loading && (
+          {loading && results.length === 0 && (
             <div style={{ padding: '12px', fontSize: '11px', color: theme.text_tertiary, textAlign: 'center' }}>
               Searching...
             </div>
@@ -252,7 +290,8 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
             </div>
           )}
 
-          {!loading && results.map((result, i) => {
+          {/* Results stay mounted while a new search loads, so their thumbs aren't torn down and re-fetched. */}
+          {results.map((result, i) => {
             const isActive = i === activeIndex;
             const iconId = `${result.prefix}:${result.name}`;
             return (
@@ -275,7 +314,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
                   background: isActive ? theme.accent_default : 'transparent',
                 }}
               >
-                <IconThumb iconId={iconId} />
+                <IconThumb iconId={iconId} scrollRootRef={dropdownElRef} />
                 <span style={{ fontFamily: 'monospace', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {result.name}
                 </span>
