@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { app, dialog, ipcMain, session, shell } = require('electron');
+const { app, dialog, ipcMain, nativeTheme, session, shell } = require('electron');
 const { devRepoRoot } = require('./paths');
 const { writeShims } = require('./toolchain');
 const { Logger } = require('./logger');
@@ -80,6 +80,9 @@ function splashError(message) {
 }
 
 async function boot() {
+  // Keep native macOS title bars dark alongside the Protovibe palette.
+  if (process.platform === 'darwin') nativeTheme.themeSource = 'dark';
+
   writeShims();
 
   // The switch above stops new cache writes, but a user upgrading from a build
