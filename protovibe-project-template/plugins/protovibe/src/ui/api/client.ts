@@ -399,6 +399,8 @@ export interface GitStatus {
   changedCount: number;
   ahead: number;
   behind: number;
+  incomingAuthors: string[];
+  mergeInProgress: boolean;
   remoteUrl: string | null;
   remoteKind: 'github-https' | 'ssh-or-other' | null;
 }
@@ -410,7 +412,8 @@ export interface GitOpState {
   status: GitOpStatus;
   message: string;
   op?: GitOp;
-  resolvedConflict?: boolean;
+  conflict?: boolean;
+  conflictFiles?: string[];
   error?: string;
   needsInstall?: boolean;
   installUrl?: string;

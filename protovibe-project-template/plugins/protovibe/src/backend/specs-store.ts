@@ -6,7 +6,7 @@
 //   src/specs/{specId}/spec.json     — document metadata only
 //   src/specs/{specId}/{itemId}.json — one file per annotation / heading
 //
-// One file per mutation keeps git sync's last-write-wins rebase safe (see
+// One file per mutation avoids unnecessary conflicts during git sync (see
 // comments-server.ts for the same reasoning). Undo/redo is handled by the
 // generic snapshot stack: the UI snapshots the exact item file (and anchor
 // source file) it is about to touch, so every spec edit is undoable.

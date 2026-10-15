@@ -134,6 +134,20 @@ function errorLine(error?: string): string {
 // prompts
 // ---------------------------------------------------------------------------
 
+/** A conflict needs code review and integration, not a GitHub sign-in tutorial. */
+export function syncConflictPrompt(root: string, branch: string | null, files: string[] = [], error?: string): string {
+  return `I'm using Protovibe. Sync with Git paused because my local changes and my team's remote changes need to be combined. Please resolve this in my project and push the combined result.
+
+WHAT I NEED YOU TO DO
+1. Inspect git status, the current branch${branch ? ` (Protovibe reported ${JSON.stringify(branch)})` : ''}, its configured upstream and any merge/rebase already in progress. Preserve all local work, including uncommitted edits. Protovibe normally commits local edits before syncing and aborts its own conflicting rebase; verify the actual state before acting.
+2. Fetch the latest changes from the configured remote. Integrate the correct upstream branch with my local changes, resolving conflicts file by file. If a merge/rebase is already in progress, finish it safely and then incorporate any newer remote commits.
+3. Preserve the intent of both people's changes. Pay particular attention to imports: keep every import needed by the combined code, remove duplicates, and check that imported names and paths are correct. Do not blindly concatenate both versions or choose all of ours/theirs. If the intended behavior is ambiguous, ask me about that specific conflict.
+4. Check that no conflict markers remain and run the relevant tests, type checks and build. Finish the merge/rebase and commit any remaining resolution changes.
+5. Push the combined result to the current branch's configured upstream using a normal push. Do not force-push, discard anyone's work or use reset --hard. If the remote advances again, fetch and integrate those changes before retrying.
+6. Verify that the local branch and upstream are in sync, then tell me in one simple sentence that I can return to Protovibe.
+${files.length ? `\nFiles with conflicts when Protovibe stopped (there may be more as integration continues):\n${files.map(file => `- ${JSON.stringify(file)}`).join('\n')}\n` : ''}` + projectLine(root) + errorLine(error);
+}
+
 function openingFor(kind: GitFailureKind, os: OsKind): string {
   const intro = `I'm using Protovibe — a visual design tool — on ${os}. I clicked the "Sync with Git" button to save and share my work, and it failed.`;
 

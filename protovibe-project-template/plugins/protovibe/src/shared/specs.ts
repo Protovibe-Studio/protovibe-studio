@@ -148,8 +148,8 @@ export interface SpecsViewerData {
 //   src/specs/{specId}/spec.json     — document metadata only (never lists items)
 //   src/specs/{specId}/{itemId}.json — one file per annotation / heading
 //
-// Every mutation lands in exactly one file so git sync's last-write-wins rebase
-// can never drop a concurrent change: adding items on two machines produces two
+// Every mutation lands in exactly one file to reduce conflicts during git sync:
+// adding items on two machines produces two
 // new files, and reordering rewrites only the moved item's `rank`.
 
 export const SPECS_DIR_REL = 'src/specs';

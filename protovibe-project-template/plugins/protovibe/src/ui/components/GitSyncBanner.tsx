@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Download, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { theme, primarySolidHover } from '../theme';
 import type { UseGitSync } from '../hooks/useGitSync';
 
@@ -32,9 +32,8 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
         boxShadow: '0 6px 20px rgba(0,0,0,0.45)',
       }}
     >
-      <Download size={16} color={theme.accent_default} style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1, color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
-        Someone made an update
+      <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
+        {status.incomingAuthors?.join(', ') || 'Your team'} made changes
       </span>
       <button
         onClick={() => void runOp('sync')}
@@ -44,7 +43,7 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
           color: '#fff', background: theme.primary_solid, cursor: 'pointer', flexShrink: 0,
         }}
       >
-        Sync changes
+        Sync
       </button>
       <button
         onClick={dismissBanner}

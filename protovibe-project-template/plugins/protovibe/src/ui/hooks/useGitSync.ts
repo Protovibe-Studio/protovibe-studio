@@ -53,6 +53,7 @@ export function useGitSync(): UseGitSync {
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [op, setOp] = useState<GitOpState>(IDLE_OP);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [statusReady, setStatusReady] = useState(false);
   const [github, setGithub] = useState<GithubStatus | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [repoAccess, setRepoAccess] = useState<GithubRepoAccess | null>(null);
@@ -60,6 +61,7 @@ export function useGitSync(): UseGitSync {
   const mounted = useRef(true);
   const lastBehind = useRef(0);
   const opRunning = useRef(false);
+  const statusRequest = useRef(0);
   const connectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const connectDeadline = useRef(0);
 
@@ -77,11 +79,22 @@ export function useGitSync(): UseGitSync {
     };
   }, []);
 
-  const refresh = useCallback(async (withFetch = false) => {
+  const refresh = useCallback(async (withFetch = false, afterOp = false) => {
+    // Background/menu reads must not race the operation's final status read.
+    if (opRunning.current && !afterOp) return;
+    const request = ++statusRequest.current;
     try {
       const next = await fetchGitStatus({ fetch: withFetch });
-      if (!mounted.current) return;
+      if (!mounted.current || request !== statusRequest.current) return;
       setStatus(next);
+      setStatusReady(true);
+      // An agent can resolve and push outside Protovibe. Ahead=0 means all
+      // local commits reached upstream, even if newer team commits arrived
+      // before this poll. Never clear guidance during an unfinished merge.
+      if (!opRunning.current && next.isRepo && next.hasUpstream &&
+          next.ahead === 0 && !next.dirty && next.mergeInProgress === false) {
+        setOp(current => current.conflict ? IDLE_OP : current);
+      }
       // Re-surface the banner only when the remote has moved further ahead than
       // the last time we showed it (a genuinely new teammate push), so dismiss
       // sticks for a given set of changes.
@@ -181,6 +194,8 @@ export function useGitSync(): UseGitSync {
   const runOp = useCallback(async (opName: GitOp, message?: string) => {
     if (opRunning.current) return;
     opRunning.current = true;
+    ++statusRequest.current; // invalidate reads started before this operation
+    setStatusReady(false);
     try {
       setOp({ status: 'committing', message: 'Starting…', op: opName });
       await startGitOp(opName, message);
@@ -195,14 +210,17 @@ export function useGitSync(): UseGitSync {
           // keep polling through transient fetch errors
         }
         if (!mounted.current) return;
-        setOp(latest);
+        if (isBusy(latest)) setOp(latest);
       }
+
+      // Keep the operation busy until the incoming count/authors are current.
+      // If this read fails, statusReady stays false until a later refresh.
+      await refresh(false, true);
+      if (!mounted.current) return;
+      setOp(latest);
 
       if (latest.status === 'success') {
         emitToast({ variant: 'success', message: latest.message || 'Done' });
-        if (latest.resolvedConflict) {
-          emitToast({ variant: 'info', message: 'Your changes overrode a conflicting edit', durationMs: 5000 });
-        }
         // sync/pull may have pulled new comment files from teammates — tell the
         // Comments tab to re-read them so the list updates without a page reload.
         if (opName === 'sync' || opName === 'pull') {
@@ -219,12 +237,12 @@ export function useGitSync(): UseGitSync {
         openGitMenu();
       }
 
-      await refresh(false);
-
       // Let a success message linger briefly, then return the menu to its normal
       // branch-status line. Errors stay until the next action so they're readable.
       if (latest.status === 'success') {
-        setTimeout(() => { if (mounted.current) setOp(IDLE_OP); }, 4000);
+        setTimeout(() => {
+          if (mounted.current) setOp(current => current === latest ? IDLE_OP : current);
+        }, 4000);
       }
     } catch (err) {
       emitToast({ variant: 'error', message: 'Couldn’t start syncing.', durationMs: 6000 });
@@ -238,11 +256,13 @@ export function useGitSync(): UseGitSync {
   const dismissBanner = useCallback(() => setBannerDismissed(true), []);
 
   const bannerVisible =
+    statusReady &&
     !!status?.gitInstalled &&
     !!status?.isRepo &&
     !!status?.hasUpstream &&
     status.behind > 0 &&
     !bannerDismissed &&
+    !op.conflict &&
     !isBusy(op);
 
   return {

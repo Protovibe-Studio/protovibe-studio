@@ -1,15 +1,14 @@
 // plugins/protovibe/src/backend/comments-server.ts
 // Backend endpoints for the Comments & Notes feature.
 //
-// Storage is designed around git sync's last-write-wins conflict handling
-// (git-server.ts rebases with `-X theirs`): anything two people can do
-// concurrently must land in *different files*, or one side's write is lost.
+// Concurrent additions land in different files so git sync can merge them
+// automatically. Same-file conflicts pause sync for agent-assisted resolution.
 //
 //   Split layout (everything new):
 //     src/comments/{threadId}/thread.json      — metadata only, no messages
 //     src/comments/{threadId}/{commentId}.json — one file per message
 //   Two concurrent replies are two new files with random names — a git sync
-//   merges them cleanly instead of a same-file conflict silently dropping one.
+//   merges them cleanly instead of pausing on a same-file conflict.
 //
 //   Legacy layout (read-compat): src/comments/comment-{threadId}.json — the
 //   whole thread with an inline `comments` array. Still read and merged with
