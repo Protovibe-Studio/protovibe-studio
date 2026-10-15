@@ -11,13 +11,14 @@
  * stored the human label, e.g. "To review") are remapped on read by
  * normalizeStatus(), so old comment files keep working.
  */
-export type CommentStatus = 'minor' | 'todo' | 'review' | 'closed';
+export type CommentStatus = 'minor' | 'todo' | 'review' | 'accepted' | 'closed';
 
 /** Display order of the statuses (also the order they appear in pickers). */
 export const COMMENT_STATUSES: CommentStatus[] = [
   'minor',
   'todo',
   'review',
+  'accepted',
   'closed',
 ];
 
@@ -125,6 +126,12 @@ export interface CommentThread {
   createdAt: string; // ISO string
   /** Project-relative path of the source file the attribute was injected into. */
   anchorFile?: string;
+}
+
+/** Read diagnostics let live refresh distinguish a torn write from a deletion. */
+export interface CommentThreadsSnapshot {
+  threads: CommentThread[];
+  unreadable: string[];
 }
 
 /**

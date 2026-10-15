@@ -5,19 +5,20 @@ import {
   MessageSquarePlus, MessageSquare, ArrowLeft, Trash2, Pencil,
   CornerDownRight, MapPin, Copy, Check, Search, X, ChevronDown,
   ChevronLeft, ChevronRight,
-  MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus,
+  MoreHorizontal, CheckCheck, Eye, EyeOff, Smile, ImagePlus, RefreshCw,
 } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
 import { theme, primarySolidHover } from '../theme';
 import { takeSnapshot } from '../api/client';
 import {
-  fetchCommentThreads, createCommentThread, replyToThread, editComment,
+  createCommentThread, replyToThread, editComment,
   deleteComment, updateThreadStatus, deleteThread as deleteThreadApi,
   setCommentSeen, markAllCommentsRead, uploadCommentAttachment,
 } from '../api/comments';
 import { emitToast } from '../events/toast';
 import { useCommentUser, authorIsMe, commentSeenByMe, threadHasUnread } from '../hooks/useCommentUser';
 import { useViewportCommentIds } from '../hooks/useViewportCommentIds';
+import { useCommentThreads } from '../hooks/useCommentThreads';
 import { UserProfileDialog } from './comments/UserProfileDialog';
 import { FilterChip, StatusDot, type FilterChipOption } from './FilterChip';
 import { CommentAvatar } from './comments/CommentAvatar';
@@ -72,6 +73,7 @@ const STATUS_CONFIG: Record<CommentStatus, { label: string; color: string }> = {
   minor:  { label: 'Minor',     color: theme.text_tertiary },
   todo:   { label: 'To do',     color: '#A78BFA' }, // purple — no theme token for it
   review: { label: 'To review', color: theme.warning_primary },
+  accepted: { label: 'Accepted', color: theme.accent_default },
   closed: { label: 'Closed',    color: theme.success_default },
 };
 
@@ -220,8 +222,11 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   } = useProtovibe();
   const { user, saveUser } = useCommentUser();
 
-  const [threads, setThreads] = useState<CommentThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  // Capture the list before opening a thread (and marking its messages read).
+  // Replies, filters and new activity must not move the Next/Prev neighbours.
+  const [navigationIds, setNavigationIds] = useState<string[]>([]);
+  const threadVisit = useRef(0);
   const [composerOpen, setComposerOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [draftAttachments, setDraftAttachments] = useState<PendingAttachment[]>([]);
@@ -254,22 +259,22 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const [profileOpen, setProfileOpen] = useState(false);
   const pendingActionRef = React.useRef<((author: CommentAuthor) => void) | null>(null);
 
-  const refresh = useCallback(async () => {
-    try {
-      const next = await fetchCommentThreads();
-      setThreads(next);
-      // Reconcile the live previews against what's now on disk on EVERY refresh,
-      // not just the first. This fires on the initial load, on undo/redo, and —
-      // crucially — after a git sync/pull (via the pv-comments-refresh event) and
-      // after a local edit. A synced or edited suggestion can be added, reworded,
-      // or removed, and the canvas iframe may have reloaded; reconcile prunes gone
-      // previews, follows reworded ones to the new copy, and re-applies them to
-      // the current canvas so the preview never lags behind the saved comment.
-      getCopySuggestionPreview().reconcile(savedSuggestionRefs(next));
-    } catch (e) {
-      setError(String(e));
-    }
-  }, []);
+  const { threads, setThreads, refresh, beginWrite } = useCommentThreads(
+    isActive,
+    next => {
+      const saved = savedSuggestionRefs(next);
+      const current = next.find(t => t.id === activeThreadId);
+      // Draft previews are anchored to the same thread as saved suggestions.
+      // Keep them while composing, but never resurrect a deleted thread/message.
+      if (current) {
+        const drafts = [...replySuggestions,
+          ...(current.comments.some(c => c.id === editingId) ? editingSuggestions : [])];
+        saved.push(...changedSuggestions(drafts).map(s => ({ threadId: current.id, ...s })));
+      }
+      getCopySuggestionPreview().reconcile(saved);
+    },
+    e => setError(String(e)),
+  );
 
   useEffect(() => { refresh(); }, [refresh, activeIframeTab]);
 
@@ -317,34 +322,12 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   // on the active surface. Only computes while the "In view" scope is active.
   const viewportIds = useViewportCommentIds(isActive && filterScope === 'viewport', activeIframeTab, threads);
 
-  // Threads read most-recently-active first, but that order is *pinned* while the
-  // panel is open: replying to a thread must not yank it to the top and reshuffle
-  // the list you are stepping through. We keep the id order in a ref and only
-  // extend it — threads not placed yet enter at the top (by activity), deleted
-  // ones fall out, everything else keeps its slot. Re-entering the panel drops the
-  // pin, which is the natural moment for a fresh sort.
-  const orderRef = useRef<string[]>([]);
-  const [orderEpoch, setOrderEpoch] = useState(0);
-  useEffect(() => {
-    if (!isActive) return;
-    orderRef.current = [];
-    setOrderEpoch((n) => n + 1);
-  }, [isActive]);
-
-  const orderedThreads = useMemo(() => {
-    const byActivity = [...threads].sort((a, b) => lastActivity(b) - lastActivity(a));
-    const alive = new Set(byActivity.map((t) => t.id));
-    const placed = new Set(orderRef.current);
-    const order = [
-      ...byActivity.filter((t) => !placed.has(t.id)).map((t) => t.id),
-      ...orderRef.current.filter((id) => alive.has(id)),
-    ];
-    orderRef.current = order;
-    const rank = new Map(order.map((id, i) => [id, i]));
-    return byActivity.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
-    // orderEpoch is the "re-sort from scratch" signal (see the effect above).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [threads, orderEpoch]);
+  // The list reflects current activity; navigation gets its own snapshot when
+  // entering a thread and is only recaptured after returning to this list.
+  const orderedThreads = useMemo(
+    () => [...threads].sort((a, b) => lastActivity(b) - lastActivity(a)),
+    [threads],
+  );
 
   const visibleThreads = useMemo(() => {
     const subtreeSet = new Set(subtreeIds);
@@ -387,6 +370,29 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   }, [threads, query]);
 
   const activeThread = activeThreadId ? threads.find((t) => t.id === activeThreadId) : undefined;
+
+  // Only accepted snapshots reach this effect: a transient missing file must
+  // not dismiss a thread or erase the reply being composed.
+  useEffect(() => {
+    const threadGone = !!activeThreadId && !activeThread;
+    const editGone = !!editingId && !activeThread?.comments.some(c => c.id === editingId);
+    if (!threadGone && !editGone) return;
+    clearSuggestionPreviews(editingSuggestions, activeThreadId ?? undefined);
+    setEditingId(null);
+    setEditingText('');
+    setEditingSuggestions([]);
+    if (threadGone) {
+      threadVisit.current++;
+      clearSuggestionPreviews(replySuggestions, activeThreadId ?? undefined);
+      replyAttachments.forEach(a => URL.revokeObjectURL(a.previewUrl));
+      setReplyAttachments([]);
+      setReplySuggestions([]);
+      setReplyDraft('');
+      setViewedUnread(new Set());
+      setActiveThreadId(null);
+      emitToast({ message: 'This comment thread was deleted', variant: 'info' });
+    }
+  }, [activeThreadId, activeThread, editingId, editingSuggestions, replySuggestions, replyAttachments]);
 
   // ── profile gate ───────────────────────────────────────────────────────────
   const withAuthor = useCallback((action: (author: CommentAuthor) => void) => {
@@ -464,6 +470,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       anchorFile: activeData.file,
     };
 
+    const endWrite = beginWrite();
     setBusy(true);
     setError(null);
     runLockedMutation(async () => {
@@ -476,6 +483,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       if (pending.length) comment.attachments = await uploadPendingAttachments(pending);
       await createCommentThread({ file: activeData.file, nameEnd: activeData.nameEnd, thread });
     }).then(async () => {
+      endWrite();
       await refresh();
       setComposerOpen(false);
       setDraft('');
@@ -494,8 +502,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       setHighlightId(id);
       setActiveThreadId(null);
       emitToast({ message: 'Comment added', variant: 'success' });
-    }).catch((e) => setError(String(e))).finally(() => setBusy(false));
-  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh]);
+    }).catch((e) => setError(String(e))).finally(() => { endWrite(); setBusy(false); });
+  }, [activeData, activeSourceId, buildContext, runLockedMutation, refresh, beginWrite]);
 
   // Comment-file-only mutation helper (reply / edit / delete reply / status).
   // Intentionally NOT snapshotted — like read receipts (see setCommentSeen),
@@ -503,21 +511,28 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   // code history never rewrites or drops a reply, edit, or status change.
   const mutateThreadFile = useCallback(async (
     fn: () => Promise<CommentThread | void>,
+    confirmedDeletions: readonly string[] = [],
   ) => {
+    const endWrite = beginWrite();
     setBusy(true);
     setError(null);
     try {
       await fn();
-      await refresh();
+      endWrite();
+      await refresh(confirmedDeletions);
+      return true;
     } catch (e) {
       setError(String(e));
+      return false;
     } finally {
+      endWrite();
       setBusy(false);
     }
-  }, [refresh]);
+  }, [refresh, beginWrite]);
 
-  const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) =>
-    mutateThreadFile(async () => {
+  const doReply = (thread: CommentThread, text: string, author: CommentAuthor, pending: PendingAttachment[], suggestions: WordingSuggestion[] = []) => {
+    const visit = threadVisit.current;
+    return mutateThreadFile(async () => {
       const attachments = pending.length ? await uploadPendingAttachments(pending) : undefined;
       const changedSugg = changedSuggestions(suggestions);
       return replyToThread(thread.id, {
@@ -525,15 +540,26 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
         ...(attachments ? { attachments } : {}),
         ...(changedSugg.length ? { suggestions: changedSugg } : {}),
       });
-    }).then(() => { revokeAttachments(pending); setReplyDraft(''); setReplyAttachments([]); setReplySuggestions([]); });
+    }).then(saved => {
+      if (!saved) return;
+      revokeAttachments(pending);
+      if (visit !== threadVisit.current) return;
+      setReplyDraft(''); setReplyAttachments([]); setReplySuggestions([]);
+    });
+  };
 
   const handleStatus = (thread: CommentThread, status: CommentStatus | null) =>
     mutateThreadFile(() => updateThreadStatus(thread.id, status));
 
-  const handleEditSave = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(() =>
+  const handleEditSave = (thread: CommentThread, commentId: string) => {
+    const visit = threadVisit.current;
+    return mutateThreadFile(() =>
       editComment(thread.id, commentId, editingText.trim(), changedSuggestions(editingSuggestions)))
-      .then(() => { setEditingId(null); setEditingText(''); setEditingSuggestions([]); });
+      .then(saved => {
+        if (!saved || visit !== threadVisit.current) return;
+        setEditingId(null); setEditingText(''); setEditingSuggestions([]);
+      });
+  };
 
   // A deleted comment takes its live previews with it — otherwise a "Replace all"
   // suggestion would keep rewriting the canvas with no block left to switch it off.
@@ -543,10 +569,12 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   };
 
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(() => deleteComment(thread.id, commentId))
-      .then(() => dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions));
+    mutateThreadFile(() => deleteComment(thread.id, commentId), [`${thread.id}/${commentId}`])
+      .then(saved => { if (saved) dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions); });
 
   const handleDeleteThread = (thread: CommentThread) => {
+    const visit = threadVisit.current;
+    const endWrite = beginWrite();
     setBusy(true);
     setError(null);
     thread.comments.forEach((c) => dropPreviews(thread.id, c.suggestions));
@@ -558,9 +586,10 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       if (anchor) await takeSnapshot(anchor, activeSourceId || '', undefined, 'delete comment thread');
       await deleteThreadApi(thread.id);
     }).then(async () => {
-      await refresh();
-      setActiveThreadId(null);
-    }).catch((e) => setError(String(e))).finally(() => setBusy(false));
+      endWrite();
+      await refresh([thread.id]);
+      if (visit === threadVisit.current) setActiveThreadId(null);
+    }).catch((e) => setError(String(e))).finally(() => { endWrite(); setBusy(false); });
   };
 
   // ── read receipts ──────────────────────────────────────────────────────────
@@ -570,6 +599,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const persistSeen = useCallback((threadId: string, commentId: string | null, seen: boolean) => {
     if (!user) return;
     const name = user.name;
+    const endWrite = beginWrite();
     setThreads((prev) => prev.map((t) => {
       if (t.id !== threadId) return t;
       return {
@@ -582,8 +612,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
         }),
       };
     }));
-    setCommentSeen(threadId, commentId, name, seen).catch(() => refresh());
-  }, [user, refresh]);
+    setCommentSeen(threadId, commentId, name, seen).catch(() => { endWrite(); return refresh(); }).finally(endWrite);
+  }, [user, refresh, beginWrite]);
 
   // Toggle a single comment's read state from the thread view's hover control.
   const handleToggleRead = useCallback((commentId: string, makeRead: boolean) => {
@@ -595,6 +625,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   const handleMarkAllRead = useCallback(() => {
     withAuthor((author) => {
       const name = author.name;
+      const endWrite = beginWrite();
       setThreads((prev) => prev.map((t) => ({
         ...t,
         comments: t.comments.map((c) => {
@@ -603,15 +634,17 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
         }),
       })));
       setViewedUnread(new Set());
-      markAllCommentsRead(name).catch(() => refresh());
+      markAllCommentsRead(name).catch(() => { endWrite(); return refresh(); }).finally(endWrite);
       emitToast({ message: 'All comments marked as read', variant: 'success' });
     });
-  }, [withAuthor, refresh]);
+  }, [withAuthor, refresh, beginWrite]);
 
   // ── navigation ───────────────────────────────────────────────────────────────
   // `navigate: false` when the thread's element is already on the canvas (a
   // canvas badge click) — restoring its saved context would only reload it.
   const openThread = (thread: CommentThread, navigate = true) => {
+    threadVisit.current++;
+    if (activeThreadId === null) setNavigationIds(listNavThreads.map(t => t.id));
     // Capture what's unread now (before we mark it read) for the dots + scroll.
     const unread = thread.comments.filter((c) => !commentSeenByMe(user, c)).map((c) => c.id);
     setViewedUnread(new Set(unread));
@@ -664,10 +697,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     return () => window.removeEventListener('message', onMessage);
   }, [isActive, threads, activeThreadId]);
 
-  // What the thread view's ‹ › chevrons step through: whatever the list is
-  // showing right now — the search hits (one entry per thread) while searching,
-  // otherwise the filtered thread list, in its pinned order.
-  const navThreads = useMemo(() => {
+  // Candidates for the next browsing session: the displayed list or search
+  // hits, deduplicated because several messages can match in one thread.
+  const listNavThreads = useMemo(() => {
     if (!query.trim()) return visibleThreads;
     const seen = new Set<string>();
     const out: CommentThread[] = [];
@@ -679,8 +711,18 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     return out;
   }, [query, searchResults, visibleThreads]);
 
-  // -1 when the open thread isn't in the current list (e.g. its element was
-  // deselected under "In selection") — both chevrons then sit disabled.
+  // Freeze only ids/order, not thread contents. Deleted threads are skipped;
+  // newly added threads wait until the user returns to the list and opens one.
+  const navThreads = useMemo(() => {
+    const current = new Map(threads.map(t => [t.id, t]));
+    return navigationIds.flatMap(id => {
+      const thread = current.get(id);
+      return thread ? [thread] : [];
+    });
+  }, [navigationIds, threads]);
+
+  // A canvas badge can open a thread outside the captured list. In that case
+  // both chevrons stay disabled until the user opens a thread from the list.
   const navIndex = activeThreadId ? navThreads.findIndex((t) => t.id === activeThreadId) : -1;
   const stepThread = (delta: number) => {
     const next = navIndex >= 0 ? navThreads[navIndex + delta] : undefined;
@@ -732,6 +774,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onMarkAllRead={handleMarkAllRead}
           hasSuggestions={allSuggestions.length > 0}
           onPreviewAll={handlePreviewAll}
+          onRefresh={() => { void refresh(); }}
         />
       )}
 
@@ -766,7 +809,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
           onDeleteReply={(cid) => handleDeleteReply(activeThread, cid)}
           onDeleteThread={() => handleDeleteThread(activeThread)}
           onLocate={() => navigateToThread(activeThread)}
-          onBack={() => setActiveThreadId(null)}
+          onBack={() => { threadVisit.current++; setActiveThreadId(null); }}
           onPrev={navIndex > 0 ? () => stepThread(-1) : undefined}
           onNext={navIndex >= 0 && navIndex < navThreads.length - 1 ? () => stepThread(1) : undefined}
           navPosition={navIndex >= 0 ? { index: navIndex, total: navThreads.length } : undefined}
@@ -823,7 +866,8 @@ const Header: React.FC<{
   onMarkAllRead: () => void;
   hasSuggestions: boolean;
   onPreviewAll: (enable: boolean) => void;
-}> = ({ user, onEditProfile, hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll }) => (
+  onRefresh: () => void;
+}> = ({ user, onEditProfile, hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll, onRefresh }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0,
@@ -834,7 +878,7 @@ const Header: React.FC<{
       </span>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <ThreadsMenu hasUnread={hasUnread} onMarkAllRead={onMarkAllRead} hasSuggestions={hasSuggestions} onPreviewAll={onPreviewAll} />
+      <ThreadsMenu hasUnread={hasUnread} onMarkAllRead={onMarkAllRead} hasSuggestions={hasSuggestions} onPreviewAll={onPreviewAll} onRefresh={onRefresh} />
       {user ? (
         <button onClick={onEditProfile} data-tooltip={`${user.name} — edit profile`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
           <CommentAvatar name={user.name} email={user.email} size={24} mine />
@@ -876,13 +920,15 @@ const ThreadsMenuItem: React.FC<{
 // "More" (kebab) menu sitting before the avatar on the threads list. Portaled so
 // the inspector's overflow:hidden doesn't clip it. Holds "Mark all as read"
 // (disabled when there's nothing unread) and the enable/disable-all wording
-// suggestion preview actions (disabled when no thread carries a suggestion).
+// suggestion preview actions (disabled when no thread carries a suggestion),
+// plus a manual refresh of the comments on disk.
 const ThreadsMenu: React.FC<{
   hasUnread: boolean;
   onMarkAllRead: () => void;
   hasSuggestions: boolean;
   onPreviewAll: (enable: boolean) => void;
-}> = ({ hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll }) => {
+  onRefresh: () => void;
+}> = ({ hasUnread, onMarkAllRead, hasSuggestions, onPreviewAll, onRefresh }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -945,6 +991,12 @@ const ThreadsMenu: React.FC<{
               label="Disable preview of all wording suggestions"
               enabled={hasSuggestions}
               onClick={() => { setOpen(false); if (hasSuggestions) onPreviewAll(false); }}
+            />
+            <ThreadsMenuItem
+              icon={<RefreshCw size={14} />}
+              label="Refresh comments"
+              enabled
+              onClick={() => { setOpen(false); onRefresh(); }}
             />
           </div>
         </>,
@@ -2143,6 +2195,7 @@ const StepThreadButton: React.FC<{
     <button
       onClick={onClick}
       disabled={!enabled}
+      aria-label={label}
       data-tooltip={enabled ? `${label}${where}` : undefined}
       style={{ ...iconBtnSm, cursor: enabled ? 'pointer' : 'not-allowed', opacity: enabled ? 1 : 0.35 }}
       onMouseEnter={(e) => { if (enabled) e.currentTarget.style.background = theme.bg_low; }}

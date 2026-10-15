@@ -16,6 +16,7 @@
     "watch:node": "tsup src/index.ts --format esm --dts --watch",
     "watch:ui": "node scripts/watch-ui.js",
     "test:specs-focus": "node --test tests/specs-focus.test.mjs",
+    "test:comments-live": "node --test tests/comments-live.test.mjs",
     "test:lofi": "node --test tests/lofi.test.mjs"
   },
   "dependencies": {
