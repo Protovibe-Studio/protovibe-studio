@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, Undo2, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree, NotepadTextDashed } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -933,7 +933,7 @@ export const ProtovibeApp: React.FC = () => {
                 return (
                   <button
                     key={t}
-                    onClick={() => setPreviewMode(t)}
+                    onClick={() => setPreviewMode(t === 'lofi' && active ? 'light' : t)}
                     data-tooltip={t === 'light' ? 'Light mode' : t === 'dark' ? 'Dark mode' : 'Lofi mode'}
                     aria-label={t === 'light' ? 'Light mode' : t === 'dark' ? 'Dark mode' : 'Lofi mode'}
                     aria-pressed={active}
@@ -954,7 +954,7 @@ export const ProtovibeApp: React.FC = () => {
                     onMouseEnter={e => { if (!active) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
                     onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
                   >
-                    {t === 'light' ? '☀' : t === 'dark' ? '☽' : '✎'}
+                    {t === 'light' ? '☀' : t === 'dark' ? '☽' : <NotepadTextDashed size={16} />}
                   </button>
                 );
               })}
