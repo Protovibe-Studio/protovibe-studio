@@ -256,6 +256,15 @@ export const InlineEditable: React.FC<{
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+  const setHighlight = useCallback((el: HTMLDivElement | null) => {
+    highlightRef.current = el;
+    // Restore the field's horizontal position when editing ends.
+    if (el && ref.current) el.scrollLeft = ref.current.scrollLeft;
+  }, []);
+  const syncHighlightScroll = () => {
+    if (highlightRef.current && ref.current) ref.current.scrollLeft = highlightRef.current.scrollLeft;
+  };
   // Escape blurs synchronously, before React flushes setDraft, so the blur
   // handler cannot trust the rendered draft — it reads this instead.
   const draftRef = useRef(value);
@@ -313,6 +322,9 @@ export const InlineEditable: React.FC<{
     value: draft,
     placeholder,
     readOnly: disabled,
+    // Find can scroll the overlay independently. Synchronise before native
+    // caret hit-testing, even if its scroll event has not been delivered yet.
+    onPointerDown: syncHighlightScroll,
     onFocus: () => { setFocused(true); onEditingChange?.(true); },
     onBlur: () => {
       setFocused(false);
@@ -350,11 +362,11 @@ export const InlineEditable: React.FC<{
     <input ref={ref as React.RefObject<HTMLInputElement>} {...shared} onChange={(e) => setBoth(e.target.value)} />
   );
   // Keep the real field mounted so clicking highlighted text still places the
-  // caret normally. The overlay uses the exact input metrics and never handles events.
+  // caret normally. The overlay shares the field's metrics and scroll position.
   if (!highlight) return input;
   return <div style={{ position: 'relative' }}>
     {input}
-    {showHighlight && <div aria-hidden="true" style={{
+    {showHighlight && <div ref={setHighlight} onScroll={syncHighlightScroll} aria-hidden="true" style={{
       ...shared.style, position: 'absolute', top: 0, left: 0, height: '100%',
       // The field's vertical margins collapse through the wrapper. The
       // positioned overlay must not apply those margins a second time.

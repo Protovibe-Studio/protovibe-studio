@@ -282,3 +282,41 @@ test('editor: Unicode case conversion preserves highlight offsets', async t => {
   await count(page, '1 of 2');
   assert.deepEqual(await page.locator('mark').allTextContents(), ['checkout', 'checkout']);
 });
+
+test('editor: clicking a horizontally revealed heading match edits that word', async t => {
+  const page = await openPage(t, '/editor');
+  const title = 'This is a very long heading with many words before the checkout word';
+  await page.evaluate(items => window.updateItems(items), [{ ...bundle.items[0], title }]);
+  const findInput = page.getByTestId('spec-find-input');
+  await findInput.fill('checkout');
+  await count(page, '1 of 1');
+  const field = page.locator('[data-spec-item="h-checkout"] input');
+  const match = page.locator('[data-spec-item="h-checkout"] mark');
+  await page.waitForFunction(() => document.querySelector('mark')?.parentElement.scrollLeft > 0);
+
+  // The overlay ignores pointer events, so use real pointer coordinates to
+  // exercise caret placement in the input underneath the visible match.
+  const clickMatch = async () => {
+    const box = await match.boundingBox();
+    assert.ok(box);
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    return field.evaluate(el => el.selectionStart);
+  };
+  const caret = await clickMatch();
+  const start = title.indexOf('checkout');
+  assert.ok(caret >= start && caret <= start + 'checkout'.length,
+    `Expected caret inside checkout at ${start}, got ${caret}`);
+  await page.keyboard.type('X');
+  const edited = title.slice(0, caret) + 'X' + title.slice(caret);
+  assert.equal(await field.inputValue(), edited);
+
+  // Restore the text so the find effect will not run again. Remounting the
+  // overlay on blur must still preserve the field's horizontal position.
+  await page.keyboard.press('Backspace');
+  assert.equal(await field.inputValue(), title);
+  await findInput.click();
+  await count(page, '1 of 1');
+  const nextCaret = await clickMatch();
+  assert.ok(nextCaret >= start && nextCaret <= start + 'checkout'.length,
+    `Expected caret inside checkout after blur at ${start}, got ${nextCaret}`);
+});
