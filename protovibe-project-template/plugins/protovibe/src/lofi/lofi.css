@@ -1,5 +1,6 @@
 /* More specific than the project's [data-theme] blocks, including live token
-   previews. Only these semantic tokens change; background colors stay intact. */
+   previews. Neutral foregrounds become grayscale; brand, status and gradient
+   foregrounds retain the project's light-theme colors. */
 html[data-pv-lofi="true"] {
   --foreground-default: #111111 !important;
   --foreground-secondary: #555555 !important;
@@ -7,14 +8,6 @@ html[data-pv-lofi="true"] {
   --foreground-strong: #000000 !important;
   --foreground-disabled: #999999 !important;
   --foreground-inverse: #eeeeee !important;
-  --foreground-on-primary: #eeeeee !important;
-  --foreground-primary: #111111 !important;
-  --foreground-primary-link: #111111 !important;
-  --foreground-destructive: #333333 !important;
-  --foreground-success: #333333 !important;
-  --foreground-warning: #333333 !important;
-  --foreground-info: #333333 !important;
-  --gradient-foreground-special: linear-gradient(#111111, #111111) !important;
 
   --border-default: #000000 !important;
   --border-secondary: #000000 !important;
