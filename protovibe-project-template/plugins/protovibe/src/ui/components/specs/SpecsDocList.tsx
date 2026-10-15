@@ -2,10 +2,11 @@
 // Level 1 of the Specs panel: every spec document, with create / export /
 // delete (titles are edited inside the spec), plus the note that specs publish alongside the prototype.
 import React, { useRef, useState } from 'react';
-import { BookOpen, Plus, MoreHorizontal, Trash2, Copy, Download, ExternalLink, Info, Search } from 'lucide-react';
+import { BookOpen, Plus, MoreHorizontal, Trash2, Copy, Download, ExternalLink, Info } from 'lucide-react';
 import { theme } from '../../theme';
 import type { SpecSummary } from '../../../shared/specs';
 import { Menu, iconBtn, primaryBtn, hoverBg } from './specsUi';
+import { SpecFindBar, SpecFindText, useSpecFind, type SpecFindHighlight } from './SpecFind';
 import { handleExternalLinkClick } from '../../utils/openExternal';
 
 export type SpecExportAction = 'copy' | 'markdown' | 'html';
@@ -21,8 +22,7 @@ export const SpecsDocList: React.FC<{
 }> = ({ specs, publishedUrl, busy, onOpen, onCreate, onDelete, onExport }) => {
   const viewerUrl = publishedUrl ? `${publishedUrl.replace(/\/+$/, '')}/specs.html` : '';
   const [query, setQuery] = useState('');
-  const q = query.trim().toLowerCase();
-  const visible = q ? specs.filter((s) => (s.title || 'Untitled spec').toLowerCase().includes(q)) : specs;
+  const find = useSpecFind(specs.map((s) => ({ id: s.id, text: s.title || 'Untitled spec' })), query);
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
@@ -35,38 +35,21 @@ export const SpecsDocList: React.FC<{
       {/* search (only once there is something to search) */}
       {specs.length > 0 && (
         <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0 }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
-            <input
-              data-testid="specs-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape' && query) { e.preventDefault(); setQuery(''); } }}
-              placeholder="Search specs…"
-              style={{
-                width: '100%', boxSizing: 'border-box', padding: '5px 10px 5px 28px',
-                background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-                color: theme.text_default, fontSize: 11, outline: 'none', fontFamily: theme.font_ui,
-              }}
-            />
-          </div>
+          <SpecFindBar query={query} onQueryChange={setQuery} find={find} placeholder="Find specs…" testId="specs-search" />
         </div>
       )}
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div ref={find.listRef} style={{ flex: 1, overflowY: 'auto' }}>
         {specs.length === 0 ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: theme.text_tertiary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <BookOpen size={40} strokeWidth={1.5} style={{ opacity: 0.5 }} />
             <span style={{ fontSize: 13 }}>No specs yet. A spec is a walkthrough of annotated prototype states.</span>
           </div>
-        ) : visible.length === 0 ? (
-          <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>
-            No specs match “{query.trim()}”.
-          </div>
-        ) : visible.map((s) => (
+        ) : specs.map((s) => (
           <SpecRow
             key={s.id}
             spec={s}
+            highlight={find.highlight(s.id)}
             onOpen={() => onOpen(s.id)}
             onDelete={() => onDelete(s.id)}
             onExport={(a) => onExport(s.id, a)}
@@ -96,10 +79,11 @@ export const SpecsDocList: React.FC<{
 
 const SpecRow: React.FC<{
   spec: SpecSummary;
+  highlight: SpecFindHighlight;
   onOpen: () => void;
   onDelete: () => void;
   onExport: (a: SpecExportAction) => void;
-}> = ({ spec, onOpen, onDelete, onExport }) => {
+}> = ({ spec, highlight, onOpen, onDelete, onExport }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const count = spec.annotationCount;
@@ -116,7 +100,7 @@ const SpecRow: React.FC<{
       <BookOpen size={15} style={{ color: theme.text_tertiary, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {spec.title || 'Untitled spec'}
+          <SpecFindText text={spec.title || 'Untitled spec'} highlight={highlight} />
         </span>
         <span style={{ fontSize: 11, color: theme.text_tertiary }}>
           {count === 0 ? 'No annotations' : count === 1 ? '1 annotation' : `${count} annotations`}

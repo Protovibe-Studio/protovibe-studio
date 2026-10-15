@@ -540,10 +540,10 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   const scopeIds: ReadonlySet<string> | null =
     scope === 'viewport' ? viewportIds : scope === 'selection' ? selectionIds : null;
 
-  // Prev / Next walk the annotations that pass the current search + filters.
+  // Prev / Next walk the annotations that pass the scope + status filters.
   const navList = useMemo(
-    () => (bundle ? annotationsOf(bundle.items).filter((a) => annotationMatches(a, query, statusFilter, scopeIds)) : []),
-    [bundle, query, statusFilter, scopeIds],
+    () => (bundle ? annotationsOf(bundle.items).filter((a) => annotationMatches(a, statusFilter, scopeIds)) : []),
+    [bundle, statusFilter, scopeIds],
   );
   const navIndex = activeAnnotation ? navList.findIndex((a) => a.id === activeAnnotation.id) : -1;
   // From an active heading, Next / Prev go to the nearest annotation after /
