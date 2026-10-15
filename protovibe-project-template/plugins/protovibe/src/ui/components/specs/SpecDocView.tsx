@@ -11,7 +11,7 @@ import type { PreviewMode } from '../../../lofi/preview-mode';
 // per-row ⋯ menu.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowLeft, Plus, MoreHorizontal, Trash2, Search, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
+  ArrowLeft, Plus, MoreHorizontal, Trash2, GripVertical, Copy, Download, Heading1, Heading2, StickyNote, RefreshCw,
   ChevronLeft, ChevronRight, ChevronDown, Link2, PinOff, User, AlertTriangle, TextCursorInput,
 } from 'lucide-react';
 import { theme } from '../../theme';
@@ -20,6 +20,7 @@ import type { SpecAnnotation, SpecBundle, SpecHeading, SpecItem, SpecStatus, Spe
 import { SPEC_STATUSES, SPEC_WORDING_STATUSES, SPEC_WORDING_STATUS_CONFIG, SPEC_ACTIVE_BG, isAnnotation, specIdSelector } from '../../../shared/specs';
 import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, SPECS_ROW_BTN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
+import { SpecFindBar, useSpecFind, type SpecFindHighlight } from './SpecFind';
 import { SpecThumbnail } from './SpecThumbnail';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
@@ -155,7 +156,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const dragPointerY = useRef<number | null>(null);
   const dragPointerAt = useRef(0);
 
-  const filtering = p.query.trim().length > 0 || p.statusFilter !== 'all' || p.scopeIds !== null;
+  const filtering = p.statusFilter !== 'all' || p.scopeIds !== null;
 
   // Annotation numbers count annotations only, over the unfiltered list.
   const numbers = useMemo(() => {
@@ -167,8 +168,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
 
   const visible = useMemo(() => {
     if (!filtering) return items;
-    const q = p.query.trim().toLowerCase();
-    const matches = (a: SpecAnnotation) => annotationMatches(a, q, p.statusFilter, p.scopeIds);
+    const matches = (a: SpecAnnotation) => annotationMatches(a, p.statusFilter, p.scopeIds);
     // Keep a heading when any annotation under it (until the next heading of
     // the same or higher level) matches.
     const out: SpecItem[] = [];
@@ -176,16 +176,18 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       const it = items[i];
       if (isAnnotation(it)) { if (matches(it)) out.push(it); continue; }
       const h = it as SpecHeading;
-      let keep = !q && p.statusFilter === 'all' && !p.scopeIds;
+      let keep = false;
       for (let j = i + 1; j < items.length; j++) {
         const n = items[j];
         if (!isAnnotation(n)) { if (n.level === 'big' || h.level === 'medium') break; continue; }
         if (matches(n)) { keep = true; break; }
       }
-      if (keep || (q && h.title.toLowerCase().includes(q))) out.push(h);
+      if (keep) out.push(h);
     }
     return out;
-  }, [items, filtering, p.query, p.statusFilter, p.scopeIds]);
+  }, [items, filtering, p.statusFilter, p.scopeIds]);
+
+  const find = useSpecFind(visible.map((it) => ({ id: it.id, text: isAnnotation(it) ? it.text : it.title })), p.query, bundle.spec.id);
 
   // ── selection ────────────────────────────────────────────────────────────────
   // Rows that went away (deleted, undone, changed by a git sync) drop out of the
@@ -377,21 +379,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
       </div>
 
       {/* search, then the filter chips (only once there is something to search) */}
-      {numbers.size > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={13} style={{ position: 'absolute', left: 9, color: theme.text_tertiary, pointerEvents: 'none' }} />
-          <input
-            value={p.query}
-            onChange={(e) => p.setQuery(e.target.value)}
-            onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape' && p.query) { e.preventDefault(); p.setQuery(''); } }}
-            placeholder="Search annotations…"
-            style={{
-              width: '100%', boxSizing: 'border-box', padding: '5px 10px 5px 28px',
-              background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
-              color: theme.text_default, fontSize: 11, outline: 'none', fontFamily: theme.font_ui,
-            }}
-          />
-        </div>
+      {items.length > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SpecFindBar query={p.query} onQueryChange={p.setQuery} find={find} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           <FilterChip value={p.scope} defaultValue="all" options={SCOPE_OPTIONS} onChange={p.setScope} menuWidth={240} testId="specs-filter-scope" />
           <FilterChip value={p.statusFilter} defaultValue="all" options={STATUS_OPTIONS} onChange={p.setStatusFilter} menuWidth={180} testId="specs-filter-status" />
@@ -418,7 +407,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
 
       {/* list */}
       <div
-        ref={setScroll}
+        ref={(el) => { setScroll(el); find.listRef.current = el; }}
         onScroll={(e) => p.onScrollChange((e.target as HTMLDivElement).scrollTop)}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -431,7 +420,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
         )}
         {filtering && visible.length === 0 && items.length > 0 && (
           <div style={{ padding: '32px 24px', textAlign: 'center', color: theme.text_tertiary, fontSize: 12, lineHeight: 1.5 }}>
-            {p.query.trim() || p.statusFilter !== 'all'
+            {p.statusFilter !== 'all'
               ? 'No annotations match.'
               : p.scope === 'selection'
                 ? 'No annotations are pinned to the selected element.'
@@ -469,6 +458,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
               {isAnnotation(it) ? (
                 <AnnotationRow
                   item={it}
+                  highlight={find.highlight(it.id)}
                   active={p.activeId === it.id}
                   selected={selected.has(it.id)}
                   autoEditText={p.autoEditTextId === it.id}
@@ -489,6 +479,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
               ) : (
                 <HeadingRow
                   item={it}
+                  highlight={find.highlight(it.id)}
                   active={p.activeId === it.id}
                   selected={selected.has(it.id)}
                   editing={p.editingItemId === it.id}
@@ -654,6 +645,7 @@ const PIN_MISSING_TOOLTIP =
 
 const AnnotationRow: React.FC<{
   item: SpecAnnotation;
+  highlight: SpecFindHighlight;
   active: boolean;
   /** Part of the current multi-selection. */
   selected: boolean;
@@ -671,7 +663,7 @@ const AnnotationRow: React.FC<{
   onUnpin: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, selected, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, highlight, active, selected, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordingMenuOpen, setWordingMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -752,6 +744,7 @@ const AnnotationRow: React.FC<{
         >
           <InlineEditable
             value={item.text}
+            highlight={highlight}
             placeholder="Write the annotation…"
             multiline
             editing={autoEditText || textEditing}
@@ -813,6 +806,7 @@ const AnnotationRow: React.FC<{
 
 const HeadingRow: React.FC<{
   item: SpecHeading;
+  highlight: SpecFindHighlight;
   active: boolean;
   /** Part of the current multi-selection. */
   selected: boolean;
@@ -823,7 +817,7 @@ const HeadingRow: React.FC<{
   onLevel: (level: SpecHeadingLevel) => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, active, selected, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
+}> = ({ item, highlight, active, selected, editing, onEditingDone, dragging, onSave, onLevel, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [localEditing, setLocalEditing] = useState(false);
@@ -858,6 +852,7 @@ const HeadingRow: React.FC<{
       >
         <InlineEditable
           value={item.title}
+          highlight={highlight}
           placeholder={big ? 'Big heading' : 'Medium heading'}
           editing={editing || localEditing}
           onEditingChange={(v) => { setLocalEditing(v); if (!v) onEditingDone(); }}
@@ -893,7 +888,7 @@ const HeadingRow: React.FC<{
 
 /** Shared filter predicate so Prev / Next in the annotation view walk the same list. */
 export function annotationMatches(
-  a: SpecAnnotation, query: string, statusFilter: SpecStatusFilter, scopeIds: ReadonlySet<string> | null = null,
+  a: SpecAnnotation, statusFilter: SpecStatusFilter, scopeIds: ReadonlySet<string> | null = null,
 ): boolean {
   if (scopeIds && !scopeIds.has(a.id)) return false;
   if (statusFilter === 'wording-none') {
@@ -901,8 +896,5 @@ export function annotationMatches(
   } else if (statusFilter.startsWith('wording-')) {
     if (`wording-${a.wordingStatus}` !== statusFilter) return false;
   } else if (statusFilter !== 'all' && a.status !== statusFilter) return false;
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  const hay = [a.text, a.state.path, a.status ? SPEC_STATUS_CONFIG[a.status].label : ''].join('\n').toLowerCase();
-  return hay.includes(q);
+  return true;
 }

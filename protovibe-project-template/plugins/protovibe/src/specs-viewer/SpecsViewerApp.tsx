@@ -13,6 +13,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { theme } from '../ui/theme';
 import type { SpecAnnotation, SpecBundle, SpecsViewerData, SpecStatus } from '../shared/specs';
 import { annotationsOf, isAnnotation, specIdSelector, SPEC_ACTIVE_BG, SPEC_STATUS_CONFIG as STATUS } from '../shared/specs';
+import { SpecFindBar, SpecFindText, useSpecFind } from '../ui/components/specs/SpecFind';
 import { SpecThumbnail } from '../ui/components/specs/SpecThumbnail';
 import { PROTOVIBE_LOGO_DATA_URL } from '../ui/protovibeLogo';
 
@@ -103,6 +104,13 @@ export const SpecsViewerApp: React.FC = () => {
     () => (route.spec ? specs.find((b) => b.spec.id === route.spec) : specs.length === 1 ? specs[0] : undefined),
     [specs, route.spec],
   );
+  const [findQuery, setFindQuery] = useState({ scope: '', value: '' });
+  const findScope = bundle?.spec.id ?? '';
+  const query = findQuery.scope === findScope ? findQuery.value : '';
+  const setQuery = (value: string) => setFindQuery({ scope: findScope, value });
+  const find = useSpecFind(bundle
+    ? bundle.items.map((it) => ({ id: it.id, text: isAnnotation(it) ? it.text.trim() : it.title }))
+    : specs.map((b) => ({ id: b.spec.id, text: b.spec.title || 'Untitled spec' })), query, findScope);
   const annotations = useMemo(() => (bundle ? annotationsOf(bundle.items) : []), [bundle]);
   // `item` is the active annotation; none (or an unknown one) ⇒ nothing active.
   const current: SpecAnnotation | undefined = useMemo(
@@ -111,6 +119,10 @@ export const SpecsViewerApp: React.FC = () => {
   );
   const index = current ? annotations.findIndex((a) => a.id === current.id) : -1;
   const [listScrollEl, setListScrollEl] = useState<HTMLDivElement | null>(null);
+  const setFindList = useCallback((el: HTMLDivElement | null) => {
+    setListScrollEl(el);
+    find.listRef.current = el;
+  }, [find.listRef]);
   // Bumped to redraw the highlight for the annotation that is already active
   // (clicking its card again after dismissing the frame in the prototype).
   const [highlightNonce, setHighlightNonce] = useState(0);
@@ -361,7 +373,10 @@ export const SpecsViewerApp: React.FC = () => {
           <>
             {/* level 1: specs */}
             {sidebarHeader('Specs', null)}
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}` }}>
+              <SpecFindBar query={query} onQueryChange={setQuery} find={find} placeholder="Find specs…" testId="specs-search" />
+            </div>
+            <div ref={find.listRef} style={{ flex: 1, overflowY: 'auto' }}>
               {specs.map((b) => {
                 const count = annotationsOf(b.items).length;
                 return (
@@ -375,7 +390,7 @@ export const SpecsViewerApp: React.FC = () => {
                     onMouseEnter={(e) => { e.currentTarget.style.background = theme.bg_low; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default, wordBreak: 'break-word' }}>{b.spec.title}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text_default, wordBreak: 'break-word' }}><SpecFindText text={b.spec.title || 'Untitled spec'} highlight={find.highlight(b.spec.id)} /></span>
                     <span style={{ fontSize: 11, color: theme.text_tertiary }}>{count === 0 ? 'No annotations' : count === 1 ? '1 annotation' : `${count} annotations`}</span>
                   </div>
                 );
@@ -391,14 +406,17 @@ export const SpecsViewerApp: React.FC = () => {
                 <NavButton label="›" title="Next annotation (→)" disabled={!canNext} onClick={() => step(1)} />
               </>
             ))}
-            <div ref={setListScrollEl} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', paddingBottom: 24 }}>
+            {bundle.items.length > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}` }}>
+              <SpecFindBar query={query} onQueryChange={setQuery} find={find} />
+            </div>}
+            <div ref={setFindList} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', paddingBottom: 24 }}>
               {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
               {bundle.items.map((it) => {
                 if (!isAnnotation(it)) {
                   const big = it.level === 'big';
                   return (
                     <div key={it.id} style={{ padding: big ? '16px 16px 4px' : '10px 16px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em' }}>
-                      {it.title}
+                      <SpecFindText text={it.title} highlight={find.highlight(it.id)} />
                     </div>
                   );
                 }
@@ -428,7 +446,7 @@ export const SpecsViewerApp: React.FC = () => {
                       revealSelector={it.anchor ? specIdSelector(it.id) : undefined}
                     />
                     {body ? (
-                      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{body}</span>
+                      <span style={{ fontSize: 12, color: theme.text_default, lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}><SpecFindText text={body} highlight={find.highlight(it.id)} /></span>
                     ) : active && (
                       <span style={{ fontSize: 12, color: theme.text_tertiary }}>No description</span>
                     )}
