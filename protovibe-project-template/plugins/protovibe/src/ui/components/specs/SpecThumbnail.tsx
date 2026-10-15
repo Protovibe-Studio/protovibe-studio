@@ -1,3 +1,4 @@
+import { applyPreviewMode, type PreviewMode } from '../../../lofi/preview-mode';
 // plugins/protovibe/src/ui/components/specs/SpecThumbnail.tsx
 // Live miniature of an annotation's state: a same-origin iframe loading the
 // deep link, scaled with transform: scale() inside a clipped box. Mounted only
@@ -97,10 +98,10 @@ export const SpecThumbnail: React.FC<{
   reloadKey?: number;
   /**
    * Force the embedded app into this colour mode, matching the editor's
-   * light/dark switch for the main canvas. Omitted in the published viewer,
+   * light/dark/lofi switch for the main canvas. Omitted in the published viewer,
    * which has no such switch and leaves the app's own theme alone.
    */
-  themeMode?: 'light' | 'dark';
+  themeMode?: PreviewMode;
   /**
    * CSS selector for the annotation's pinned element (`specIdSelector(id)`).
    * When given, the frame is scrolled so that element is in view — otherwise a
@@ -178,13 +179,13 @@ export const SpecThumbnail: React.FC<{
 
   // The thumbnail is same-origin, but bridge.ts skips its message listener in
   // `pv-spec-*` frames, so the shell's PV_SET_THEME broadcast never reaches it —
-  // write `data-theme` straight onto the frame's <html> instead. Runs on load
+  // send the mode directly to the frame's overlay runtime instead. Runs on load
   // and whenever the editor's theme switch flips while the frame stays mounted.
   const applyTheme = useCallback(() => {
     if (!themeMode) return;
     try {
       const doc = frameRef.current?.contentDocument;
-      if (doc?.documentElement) doc.documentElement.dataset.theme = themeMode;
+      if (doc?.documentElement) applyPreviewMode(doc, themeMode);
     } catch { /* cross-origin guard */ }
   }, [themeMode]);
 

@@ -1,3 +1,4 @@
+import type { PreviewMode } from '../../lofi/preview-mode';
 // plugins/protovibe/src/ui/context/ProtovibeContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { ActiveModifiers } from '../utils/tailwind';
@@ -51,7 +52,8 @@ interface ProtovibeContextType {
   htmlFontSize: number;
   setHtmlFontSize: (size: number) => void;
   iframeTheme: 'light' | 'dark';
-  setIframeTheme: (theme: 'light' | 'dark') => void;
+  previewMode: PreviewMode;
+  setPreviewMode: (mode: PreviewMode) => void;
 }
 
 const ProtovibeContext = createContext<ProtovibeContextType | undefined>(undefined);
@@ -74,16 +76,18 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [themeColors, setThemeColors] = useState<ThemeColor[]>([]);
   const [themeTokens, setThemeTokens] = useState<ThemeToken[]>([]);
   const [htmlFontSize, setHtmlFontSize] = useState(16);
-  const [iframeTheme, _setIframeTheme] = useState<'light' | 'dark'>(() => {
+  const [previewMode, _setPreviewMode] = useState<PreviewMode>(() => {
     try {
       const saved = localStorage.getItem('pv-iframe-theme');
-      if (saved === 'light' || saved === 'dark') return saved;
+      if (saved === 'light' || saved === 'dark' || saved === 'lofi') return saved;
     } catch {}
     return 'light';
   });
 
-  const setIframeTheme = useCallback((t: 'light' | 'dark') => {
-    _setIframeTheme(t);
+  const iframeTheme = previewMode === 'dark' ? 'dark' : 'light';
+
+  const setPreviewMode = useCallback((t: PreviewMode) => {
+    _setPreviewMode(t);
     try { localStorage.setItem('pv-iframe-theme', t); } catch {}
   }, []);
 
@@ -450,7 +454,8 @@ export const ProtovibeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       htmlFontSize,
       setHtmlFontSize,
       iframeTheme,
-      setIframeTheme,
+      previewMode,
+      setPreviewMode,
     }}>
       {children}
     </ProtovibeContext.Provider>

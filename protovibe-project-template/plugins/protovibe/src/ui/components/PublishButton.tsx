@@ -1,3 +1,5 @@
+import { withLofiParam } from '../../lofi/preview-mode';
+import { useProtovibe } from '../context/ProtovibeContext';
 import React, { useState, useRef, useEffect } from 'react';
 import { Share, Loader2, ChevronRight, ChevronDown, CircleCheck, Pencil, Lightbulb, MoreHorizontal, LogOut, Link2, Lock, Copy, Check } from 'lucide-react';
 import { theme, primarySolidHover } from '../theme';
@@ -74,7 +76,7 @@ function specsViewerNote(publishedUrl: string) {
   );
 }
 
-function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployHistoryEntry[]; open: boolean; onToggle: () => void }) {
+function DeployHistory({ history, open, onToggle, lofi }: { history: CloudflareDeployHistoryEntry[]; open: boolean; onToggle: () => void; lofi: boolean }) {
   return (
     <div>
       <button
@@ -92,14 +94,16 @@ function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployH
         <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
           {history.map((entry) => {
             const date = formatPublishDate(entry.publishedAt);
+            let link = entry.url;
+            try { link = withLofiParam(new URL(entry.url), lofi); } catch { /* Preserve legacy metadata. */ }
             return (
               <div key={entry.url} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                <a href={entry.url} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
+                <a href={link} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
                   style={{ fontSize: '12px', color: theme.text_secondary, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none' }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.color = theme.accent_default; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.color = theme.text_secondary; }}
                 >
-                  {entry.url}
+                  {link}
                 </a>
                 {date && (
                   <span style={{ fontSize: '12px', color: theme.text_tertiary }}>Published {date}</span>
@@ -114,6 +118,7 @@ function DeployHistory({ history, open, onToggle }: { history: CloudflareDeployH
 }
 
 export function PublishButton() {
+  const { previewMode } = useProtovibe();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -663,7 +668,7 @@ export function PublishButton() {
     const publishedLink = (() => {
       if (!publishedUrl) return '';
       try {
-        return new URL(getCurrentAppPath(), publishedUrl).toString();
+        return withLofiParam(new URL(getCurrentAppPath(), publishedUrl), previewMode === 'lofi');
       } catch {
         return publishedUrl;
       }
@@ -802,7 +807,7 @@ export function PublishButton() {
             )}
             {hasSpecs && specsViewerNote(publishedUrl)}
             {deployHistory.length > 0 && (
-              <DeployHistory history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
+              <DeployHistory lofi={previewMode === 'lofi'} history={deployHistory} open={historyOpen} onToggle={() => setHistoryOpen(v => !v)} />
             )}
           </div>
         )}
