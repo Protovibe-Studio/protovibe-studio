@@ -183,13 +183,16 @@ export function useGitSync(): UseGitSync {
   // there's no repo / upstream / git binary. Runs one fetch immediately (as soon
   // as we know it's a syncable repo) so incoming changes surface right after load
   // instead of waiting a full interval, then repeats every 2 minutes.
-  const canPoll = !!status?.gitInstalled && !!status?.isRepo && !!status?.hasUpstream;
+  const canFetch = !!status?.gitInstalled && !!status?.isRepo && !!status?.hasUpstream;
+  // A rebase can detach HEAD and temporarily hide the upstream. Keep checking
+  // local status so an agent finishing the rebase restores normal remote polling.
+  const recovering = !!status?.gitInstalled && !!status?.isRepo && (!!status?.mergeInProgress || !!op.conflict);
   useEffect(() => {
-    if (!canPoll) return;
-    void refresh(true);
-    const id = setInterval(() => { void refresh(true); }, POLL_INTERVAL_MS);
+    if (!canFetch && !recovering) return;
+    void refresh(canFetch);
+    const id = setInterval(() => { void refresh(canFetch); }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [canPoll, refresh]);
+  }, [canFetch, recovering, refresh]);
 
   const runOp = useCallback(async (opName: GitOp, message?: string) => {
     if (opRunning.current) return;

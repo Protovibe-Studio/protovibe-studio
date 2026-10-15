@@ -6,7 +6,7 @@
 
 import { Connect, ViteDevServer } from 'vite';
 import fs from 'node:fs';
-import { spawnCmd } from './server';
+import { spawnCmd } from './spawn-cmd';
 import { resolveGit, type ResolvedGit } from './git-engine';
 import {
   readStoredAuth,
@@ -54,7 +54,7 @@ async function originAuthHeader(): Promise<string | null> {
 }
 
 /**
- * Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit.
+ * Run a git command, returning stdout. Rejects on non-zero exit with diagnostics.
  * With `header`, authenticate the remote from the stored token instead of the
  * machine's credentials; without it, git uses whatever the machine already has.
  */
@@ -68,7 +68,7 @@ async function runGit(args: string[], timeoutMs: number, header: string | null):
 
   try {
     // shell: false — the auth header travels in argv and must never hit a shell.
-    return await spawnCmd(resolved.binary, fullArgs, { cwd: process.cwd(), env: gitEnv(resolved), timeoutMs, shell: false });
+    return await spawnCmd(resolved.binary, fullArgs, { cwd: process.cwd(), env: gitEnv(resolved), timeoutMs, shell: false, stdoutOnly: true });
   } catch (err) {
     // spawnCmd errors embed child stderr, and op errors reach the UI — scrub the token.
     const msg = err instanceof Error ? err.message : String(err);

@@ -28,9 +28,10 @@ before(async () => {
 });
 after(async () => { await browser?.close(); });
 
-async function openPage(t) {
+async function openPage(t, { clock = false } = {}) {
   const page = await browser.newPage();
   t.after(() => page.close());
+  if (clock) await page.clock.install();
   await page.setContent('<div id="root"></div>');
   await page.evaluate(() => {
     window.renders = [];
@@ -42,12 +43,13 @@ async function openPage(t) {
         remoteUrl: null, remoteKind: null,
       },
       op: { status: 'success', message: 'Synced', op: 'sync' },
-      holdNextStatus: false, failNextStatus: false, pending: [],
+      holdNextStatus: false, failNextStatus: false, pending: [], statusRequests: [],
     };
     // Exercise the real client/hook/React/banner with controllable API timing.
     window.fetch = async url => {
       const json = body => new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
       if (url.startsWith('/__git-status')) {
+        window.api.statusRequests.push(url);
         if (window.api.holdNextStatus) {
           window.api.holdNextStatus = false;
           return new Promise(resolve => window.api.pending.push(status => resolve(json(status))));
@@ -151,4 +153,36 @@ test('agent recovery clears conflict guidance and restores notifications, but un
   });
   await page.waitForFunction(() => window.git.op.status === 'idle');
   await page.getByText('Anna Kowalska made changes').waitFor();
+});
+
+test('a detached rebase keeps polling locally and resumes notifications after agent recovery', async t => {
+  const page = await openPage(t, { clock: true });
+  await page.evaluate(() => {
+    window.api.status = { ...window.api.status, ahead: 1 };
+    window.api.op = { status: 'error', conflict: true, message: 'Sync paused', op: 'sync' };
+    void window.git.runOp('sync');
+  });
+  await page.clock.runFor(1100);
+  await page.waitForFunction(() => window.git.op.conflict === true);
+  await page.evaluate(async () => {
+    window.api.status = { ...window.api.status, hasUpstream: false, branch: 'HEAD', mergeInProgress: true };
+    await window.git.refresh();
+  });
+  await page.waitForFunction(() => window.git.status.hasUpstream === false);
+  await page.evaluate(() => { window.api.statusRequests = []; });
+  await page.clock.runFor(120100);
+  const requests = await page.evaluate(() => window.api.statusRequests);
+  assert.ok(requests.length > 0, 'detached HEAD must still poll local status');
+  assert.ok(requests.every(url => !url.includes('fetch=1')), 'do not fetch without an upstream');
+  assert.equal(await page.evaluate(() => window.git.op.conflict), true);
+  // The agent finishes and pushes; the user does not manually refresh or reopen the menu.
+  await page.evaluate(() => {
+    window.api.status = { ...window.api.status, hasUpstream: true, branch: 'main', ahead: 0,
+      behind: 1, mergeInProgress: false, incomingAuthors: ['Anna Kowalska'] };
+    window.api.statusRequests = [];
+  });
+  await page.clock.runFor(120100);
+  await page.waitForFunction(() => window.git.op.status === 'idle');
+  await page.getByText('Anna Kowalska made changes').waitFor();
+  assert.ok(await page.evaluate(() => window.api.statusRequests.some(url => url.includes('fetch=1'))));
 });

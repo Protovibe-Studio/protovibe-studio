@@ -13,36 +13,21 @@ import { build } from 'esbuild';
 const pluginRoot = process.cwd();
 const routes = new Map();
 let syncConflictPrompt;
+let spawnCmd;
 
 before(async () => {
   const result = await build({
     stdin: {
       contents: `export { registerGitMiddleware } from './src/backend/git-server';
+        export { spawnCmd } from './src/backend/spawn-cmd';
         export { syncConflictPrompt } from './src/ui/utils/gitAgentPrompts';`,
       resolveDir: pluginRoot,
     },
     bundle: true, platform: 'node', format: 'esm', write: false,
-    plugins: [{
-      // Avoid importing the unrelated Vite/Cloudflare server. Git commands still
-      // execute for real, through the production git-server command/auth helpers.
-      name: 'git-process-runner',
-      setup(build) {
-        build.onResolve({ filter: /^\.\/server$/ }, () => ({ path: 'runner', namespace: 'test' }));
-        build.onLoad({ filter: /.*/, namespace: 'test' }, () => ({ contents: `
-          import { execFile } from 'node:child_process';
-          export function spawnCmd(cmd, args, opts) {
-            return new Promise((resolve, reject) => {
-              execFile(cmd, args, { ...opts, timeout: opts.timeoutMs }, (err, stdout, stderr) => {
-                if (err) reject(new Error(stdout + stderr));
-                else resolve(stdout + stderr);
-              });
-            });
-          }`, loader: 'js' }));
-      },
-    }],
   });
   const module = await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`);
   syncConflictPrompt = module.syncConflictPrompt;
+  spawnCmd = module.spawnCmd;
   module.registerGitMiddleware({ middlewares: { use: (route, handler) => routes.set(route, handler) } });
 });
 
@@ -162,6 +147,34 @@ test('non-overlapping changes sync and push both versions', async t => {
   assert.equal(git(repo.remote, 'show', 'main:local.txt'), 'Local work');
   assert.equal(git(repo.local, 'rev-parse', 'HEAD'), git(repo.remote, 'rev-parse', 'main'));
   assert.equal((await request('/__git-status')).mergeInProgress, false);
+});
+
+test('line-ending warnings do not block status or sync', async t => {
+  const repo = fixture(t);
+  git(repo.local, 'config', 'core.autocrlf', 'true');
+  fs.writeFileSync(path.join(repo.local, 'imports.ts'), localImports);
+  const status = await request('/__git-status');
+  assert.equal(status.mergeInProgress, false);
+  assert.equal(status.dirty, true);
+  const result = await runOp();
+  assert.equal(result.status, 'success');
+  assert.equal(result.conflict, undefined);
+  assert.equal(git(repo.remote, 'show', 'main:imports.ts'), localImports.trim());
+});
+
+test('command output excludes diagnostics only when requested and retains failure details', async () => {
+  // Run a normal Node child, outside the test runner's inherited IPC protocol.
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  const opts = { cwd: pluginRoot, shell: false, env };
+  const script = 'process.stdout.write("result"); process.stderr.write("warning");';
+  assert.equal(await spawnCmd(process.execPath, ['-e', script], { ...opts, stdoutOnly: true }), 'result');
+  const combined = await spawnCmd(process.execPath, ['-e', script], opts);
+  assert.ok(combined.includes('result') && combined.includes('warning'));
+  await assert.rejects(
+    spawnCmd(process.execPath, ['-e', script + 'process.exitCode = 1;'], { ...opts, stdoutOnly: true }),
+    error => /result/.test(error.message) && /warning/.test(error.message),
+  );
 });
 
 test('an unfinished agent merge is left untouched, including its index', async t => {
