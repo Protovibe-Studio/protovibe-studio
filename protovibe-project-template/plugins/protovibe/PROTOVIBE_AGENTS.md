@@ -921,8 +921,4 @@ correctly.
   first. It covers the file schema, id formats, the `rank` ordering scheme, the
   `data-pv-spec-*` element attribute and the rules that keep spec files safe to
   sync.
-* **Asked to write, reply to, triage or delete comments programmatically?**
-  Read [agents-skills/comments-notes.md](./agents-skills/comments-notes.md)
-  first. It covers the thread and message schemas, status ids, the legacy
-  single-file format, attachments, wording suggestions and the file-per-message
-  rule.
+* If the user asks you to manage Protovibe comments, first read the [comments skill](./agents-skills/comments-notes.md).

@@ -93,7 +93,9 @@ Rules:
 | `components` | `file`, `componentName` |
 | `sketchpad` | `sketchpadId`, `sketchpadName`, `frameId`, `frameName`, `position` |
 
-**Status** is a stable id, never a label: `minor`, `todo`, `review`, `closed`.
+**Status** is a stable id, never a label: `minor`, `todo`, `review`, `accepted`, `closed`.
+`accepted` ("Accepted") means the feedback is approved for implementation in code;
+it does not mean the changes have already been implemented or the thread is closed.
 Omit the key entirely while untriaged. Labels and colours live in the UI's
 `STATUS_CONFIG` — never write a label like `"To review"` into a file. Older
 files that hold labels are remapped on read, but new writes must use ids.
@@ -115,8 +117,16 @@ files that hold labels are remapped on read, but new writes must use ids.
 }
 ```
 
-Messages are ordered by `createdAt` (ISO strings sort lexicographically), so
-always write a real timestamp.
+When the user asks you to manage comments, you may add messages under your own
+agent name (for example, `Claude` or `Codex`) in `author.name`. Use your actual
+agent identity; do not attribute your message to the user. Set `author.email`
+to an empty string if the agent has no configured email address.
+
+Messages are ordered by `createdAt` (ISO strings sort lexicographically). For
+each new message or thread, set `createdAt` to the current UTC time obtained at
+write time (for example, `new Date().toISOString()`), not a copied example or
+an invented timestamp. When editing a message, preserve its original
+`createdAt` and set `updatedAt` to the current UTC time.
 
 ---
 

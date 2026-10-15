@@ -104,12 +104,24 @@ function commentPath(threadId: string, commentId: string): string {
   return path.join(threadDir(threadId), commentFileName(commentId));
 }
 
-function readJson<T>(p: string): T | null {
+function readJson<T>(p: string, unreadable?: string[]): T | null {
   try {
-    return JSON.parse(fs.readFileSync(p, 'utf-8')) as T;
+    const value = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Expected object');
+    return value as T;
   } catch {
+    unreadable?.push(path.relative(COMMENTS_DIR, p));
     return null;
   }
+}
+
+function validComment(item: CommentItem): boolean {
+  return !!item && typeof item.id === 'string' && typeof item.content === 'string'
+    && typeof item.createdAt === 'string' && typeof item.author?.name === 'string'
+    && typeof item.author?.email === 'string'
+    && (item.attachments === undefined || (Array.isArray(item.attachments) && item.attachments.every(a => typeof a === 'string')))
+    && (item.suggestions === undefined || (Array.isArray(item.suggestions) && item.suggestions.every(s =>
+      !!s && typeof s.original === 'string' && typeof s.suggested === 'string')));
 }
 
 // Normalize a freshly-parsed thread so the rest of the app only ever sees
@@ -134,26 +146,32 @@ function metaOf(thread: CommentThread | ThreadMeta): ThreadMeta {
  * status that was cleared after the split. Messages merge by id (a split file
  * shadows a legacy inline copy) and sort chronologically.
  */
-function readThread(id: string): CommentThread | null {
-  const legacy = readJson<CommentThread>(legacyThreadPath(id));
+function readThread(id: string, unreadable?: string[]): CommentThread | null {
+  const legacyPath = legacyThreadPath(id);
+  const legacy = fs.existsSync(legacyPath) ? readJson<CommentThread>(legacyPath, unreadable) : null;
   const dir = threadDir(id);
   let dirEntries: string[] | null = null;
   try {
     dirEntries = fs.readdirSync(dir);
-  } catch {
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
     // no split-layout directory
   }
   if (!legacy && dirEntries == null) return null;
 
   const meta: ThreadMeta | null =
-    (dirEntries != null ? readJson<ThreadMeta>(threadMetaPath(id)) : null) ??
+    (dirEntries != null ? readJson<ThreadMeta>(threadMetaPath(id), unreadable) : null) ??
     (legacy ? metaOf(legacy) : null);
 
-  const comments: CommentItem[] = Array.isArray(legacy?.comments) ? [...legacy!.comments] : [];
+  const comments: CommentItem[] = Array.isArray(legacy?.comments) ? legacy.comments.filter(validComment) : [];
+  if (legacy && (!Array.isArray(legacy.comments) || comments.length !== legacy.comments.length)) {
+    unreadable?.push(path.relative(COMMENTS_DIR, legacyPath));
+  }
   for (const f of dirEntries ?? []) {
     if (f === THREAD_META_FILE || !f.endsWith('.json')) continue;
-    const item = readJson<CommentItem>(path.join(dir, f));
-    if (!item || !item.id) continue;
+    const item = readJson<CommentItem>(path.join(dir, f), unreadable);
+    if (!item) continue;
+    if (!validComment(item)) { unreadable?.push(`${id}/${f}`); continue; }
     const at = comments.findIndex((c) => c.id === item.id);
     if (at >= 0) comments[at] = item; // split overlay shadows the inline copy
     else comments.push(item);
@@ -170,7 +188,13 @@ function readThread(id: string): CommentThread | null {
   }
   // `id` last: the filesystem name wins over whatever the JSON claims, so
   // writes always land back in the same files reads came from.
-  return hydrateThread({ ...meta, comments, id });
+  const validMeta = typeof meta.createdAt === 'string' && meta.context && typeof meta.context === 'object'
+    && ['app', 'components', 'sketchpad'].includes(meta.context.tab);
+  if (!validMeta) unreadable?.push(`${id}/${THREAD_META_FILE}`);
+  return hydrateThread({ ...meta, comments, id,
+    context: validMeta ? meta.context : { tab: 'app' },
+    createdAt: typeof meta.createdAt === 'string' ? meta.createdAt : '',
+  });
 }
 
 function writeThreadMeta(meta: ThreadMeta): void {
@@ -183,7 +207,7 @@ function writeCommentFile(threadId: string, item: CommentItem): void {
   fs.writeFileSync(commentPath(threadId, item.id), JSON.stringify(item, null, 2), 'utf-8');
 }
 
-function listThreads(): CommentThread[] {
+function listThreads(unreadable?: string[]): CommentThread[] {
   if (!fs.existsSync(COMMENTS_DIR)) return [];
   // Union of both layouts' thread ids: split directories + legacy files.
   const ids = new Set<string>();
@@ -196,7 +220,7 @@ function listThreads(): CommentThread[] {
   }
   const threads: CommentThread[] = [];
   for (const id of ids) {
-    const t = readThread(id);
+    const t = readThread(id, unreadable);
     if (t) threads.push(t);
   }
   // Newest first.
@@ -299,12 +323,13 @@ function sanitizeSuggestions(raw: unknown): { original: string; suggested: strin
 export const handleCommentsList: Connect.NextHandleFunction = async (req, res) => {
   try {
     const { ids } = await parseBody(req);
-    let threads = listThreads();
+    const unreadable: string[] = [];
+    let threads = listThreads(unreadable);
     if (Array.isArray(ids)) {
       const want = new Set(ids);
       threads = threads.filter((t) => want.has(t.id));
     }
-    sendJson(res, { threads });
+    sendJson(res, { threads, unreadable });
   } catch (err) {
     sendError(res, String(err), 500);
   }
