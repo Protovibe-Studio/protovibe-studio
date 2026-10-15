@@ -12,6 +12,7 @@ import { theme } from '../theme';
 import { INSPECTOR_WIDTH_PX } from '../constants/layout';
 import { emitToast } from '../events/toast';
 import { openNotEditableDialog } from './NotEditableDialog';
+import { blockCanvasEditIfLocked } from '../utils/canvasEditGuard';
 
 const NOT_EDITABLE_TOOLTIP = "Element isn't editable yet — click to see how to fix it";
 
@@ -59,6 +60,7 @@ export const FloatingToolbar: React.FC = () => {
   // Open add dialog via keyboard shortcut (Cmd+E)
   useEffect(() => {
     const handler = () => {
+      if (blockCanvasEditIfLocked()) return;
       if (!canAdd) {
         if (currentBaseTarget) openNotEditableDialog();
         return;
@@ -75,6 +77,7 @@ export const FloatingToolbar: React.FC = () => {
   // Open "add after" dialog via keyboard shortcut (Cmd+Shift+E)
   useEffect(() => {
     const handler = () => {
+      if (blockCanvasEditIfLocked()) return;
       if (!canBlockAction) {
         if (currentBaseTarget) openNotEditableDialog();
         return;
@@ -599,9 +602,20 @@ export const FloatingToolbar: React.FC = () => {
     </div>
   );
 
+  // In the Comments / Specs panels the canvas is read-only: intercept every
+  // toolbar click (buttons, add dialog, more menu) before it can edit the app.
+  const handleToolbarClickCapture = (e: React.MouseEvent) => {
+    if (!blockCanvasEditIfLocked()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setAddMode(null);
+    setMoreOpen(false);
+  };
+
   const toolbar = (
     <div
       ref={toolbarRef}
+      onClickCapture={handleToolbarClickCapture}
       data-testid="floating-toolbar"
       data-pv-ui="true"
       style={{
