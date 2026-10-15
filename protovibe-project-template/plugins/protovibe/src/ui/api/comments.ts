@@ -1,5 +1,5 @@
 // plugins/protovibe/src/ui/api/comments.ts
-import type { CommentThread, CommentItem, CommentStatus, WordingSuggestion } from '../../shared/comments';
+import type { CommentThread, CommentItem, CommentStatus, CommentThreadsSnapshot, WordingSuggestion } from '../../shared/comments';
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -17,6 +17,10 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 export async function fetchCommentThreads(ids?: string[]): Promise<CommentThread[]> {
   const data = await postJson<{ threads: CommentThread[] }>('/__comments-list', ids ? { ids } : {});
   return data.threads || [];
+}
+
+export function readCommentThreadsSnapshot(): Promise<CommentThreadsSnapshot> {
+  return postJson<CommentThreadsSnapshot>('/__comments-list', {});
 }
 
 export async function createCommentThread(params: {
