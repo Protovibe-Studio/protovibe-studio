@@ -40,7 +40,7 @@ These are normal source files and **are committed to git**.
 **The one rule that explains the layout:** messages live in their own files on
 purpose. Two people replying to the same thread on different machines create two
 *different new files*, so git sync merges them cleanly instead of a same-file
-conflict silently dropping one reply. Never append to an array of messages.
+conflict pausing sync for manual resolution. Never append to an array of messages.
 
 Writes under `src/comments/` do not reload the app iframe.
 

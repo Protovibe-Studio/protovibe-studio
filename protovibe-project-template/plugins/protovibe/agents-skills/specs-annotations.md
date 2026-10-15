@@ -31,8 +31,8 @@ src/specs/
 These are normal source files and **are committed to git**.
 
 **The one rule that explains the layout:** every mutation must land in exactly
-one file. Git sync rebases with last-write-wins, so two people adding items at
-once must produce two *different new files*. Never introduce an array of items
+one file. Git sync pauses on conflicts, so two people adding items at
+once must produce two *different new files* to merge automatically. Never introduce an array of items
 in `spec.json`, and never batch several items into one file.
 
 Writes under `src/specs/` do not reload the app iframe, so adding annotations

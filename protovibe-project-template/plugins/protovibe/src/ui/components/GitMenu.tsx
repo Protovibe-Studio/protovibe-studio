@@ -29,6 +29,7 @@ import {
   classifyGitFailure,
   isGithubAccessFailure,
   syncFailurePrompt,
+  syncConflictPrompt,
   installGitPrompt,
   setupRepoPrompt,
   connectRemotePrompt,
@@ -129,14 +130,17 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
 
   const os = detectOs();
   const gitMissing = !!status && !status.gitInstalled;
-  const needsBackupPanel = !!status?.gitInstalled && (!status.isRepo || !status.hasUpstream);
+  // An unfinished rebase can detach HEAD, hiding its upstream temporarily.
+  // Keep conflict recovery visible instead of offering to create a repository.
+  const needsBackupPanel = !!status?.gitInstalled && (!status.isRepo || !status.hasUpstream) && !op.conflict;
 
   // Any failed sync/pull/push earns an explanation and a way out — not just the
   // ones we can classify. `failureKind` only decides how confident the wording is.
   const opFailed = op.status === 'error';
+  const conflict = opFailed && !!op.conflict;
   const failureText = `${op.error ?? ''} ${op.message ?? ''}`;
   const failureKind = opFailed ? classifyGitFailure(failureText) : 'other';
-  const authIssue = opFailed && isGithubAccessFailure(failureText);
+  const authIssue = opFailed && !conflict && isGithubAccessFailure(failureText);
   const githubAuthIssue = authIssue && status?.remoteKind === 'github-https';
 
   const { style: menuStyle } = useFloatingDropdownPosition({
@@ -226,7 +230,9 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
   // what we tell them and what the agent prompt says.
   const syncNeedsInstall = githubAuthIssue && !!github?.connected && (repoAccess?.state === 'not-covered' || repoAccess?.state === 'no-push');
   const installUrl = op.installUrl || repoAccess?.installUrl || github?.installUrl || '';
-  const helpPrompt = syncFailurePrompt(failureKind, os, status.root, op.error, syncNeedsInstall);
+  const helpPrompt = conflict
+    ? syncConflictPrompt(status.root, status.branch, op.conflictFiles, op.error)
+    : syncFailurePrompt(failureKind, os, status.root, op.error, syncNeedsInstall);
 
   const backupFailed = opFailed && op.op === 'backup';
   const backupHelpPrompt = !status.isRepo
@@ -436,7 +442,9 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
               {opFailed && (
                 <div style={{ padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${theme.border_default}` }}>
                   <div style={{ color: theme.text_secondary, fontSize: 12, lineHeight: 1.45 }}>
-                    {failureHeadline(failureKind, syncNeedsInstall)}
+                    {conflict
+                      ? 'Sync is paused to protect both versions of the work. Copy the prompt below and paste it to your coding agent so it can combine the changes and push them.'
+                      : failureHeadline(failureKind, syncNeedsInstall)}
                   </div>
 
                   {/* One-click remedies we can offer ourselves, when they apply. */}
@@ -471,7 +479,7 @@ export const GitMenu: React.FC<{ git: UseGitSync }> = ({ git }) => {
                     )
                   )}
                   {/* The way out of every failed sync, always open. */}
-                  <AgentHelp prompt={helpPrompt} startExpanded />
+                  {conflict ? <AgentPrompt prompt={helpPrompt} /> : <AgentHelp prompt={helpPrompt} startExpanded />}
                 </div>
               )}
 

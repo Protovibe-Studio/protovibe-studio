@@ -5,7 +5,8 @@
 // in-memory state object the frontend polls.
 
 import { Connect, ViteDevServer } from 'vite';
-import { spawnCmd } from './server';
+import fs from 'node:fs';
+import { spawnCmd } from './spawn-cmd';
 import { resolveGit, type ResolvedGit } from './git-engine';
 import {
   readStoredAuth,
@@ -53,7 +54,7 @@ async function originAuthHeader(): Promise<string | null> {
 }
 
 /**
- * Run a git command, returning its combined stdout+stderr. Rejects on non-zero exit.
+ * Run a git command, returning stdout. Rejects on non-zero exit with diagnostics.
  * With `header`, authenticate the remote from the stored token instead of the
  * machine's credentials; without it, git uses whatever the machine already has.
  */
@@ -67,7 +68,7 @@ async function runGit(args: string[], timeoutMs: number, header: string | null):
 
   try {
     // shell: false — the auth header travels in argv and must never hit a shell.
-    return await spawnCmd(resolved.binary, fullArgs, { cwd: process.cwd(), env: gitEnv(resolved), timeoutMs, shell: false });
+    return await spawnCmd(resolved.binary, fullArgs, { cwd: process.cwd(), env: gitEnv(resolved), timeoutMs, shell: false, stdoutOnly: true });
   } catch (err) {
     // spawnCmd errors embed child stderr, and op errors reach the UI — scrub the token.
     const msg = err instanceof Error ? err.message : String(err);
@@ -153,6 +154,8 @@ export interface GitStatus {
   changedCount: number;
   ahead: number;
   behind: number;
+  incomingAuthors: string[];
+  mergeInProgress: boolean;
   remoteUrl: string | null;
   remoteKind: 'github-https' | 'ssh-or-other' | null;
 }
@@ -160,7 +163,7 @@ export interface GitStatus {
 const BASE_STATUS: Omit<GitStatus, 'gitInstalled' | 'isRepo'> = {
   root: process.cwd(),
   branch: null, hasUpstream: false, hasOrigin: false,
-  dirty: false, changedCount: 0, ahead: 0, behind: 0, remoteUrl: null, remoteKind: null,
+  dirty: false, changedCount: 0, ahead: 0, behind: 0, incomingAuthors: [], mergeInProgress: false, remoteUrl: null, remoteKind: null,
 };
 
 const GIT_MISSING: GitStatus = { ...BASE_STATUS, gitInstalled: false, isRepo: false };
@@ -193,10 +196,15 @@ async function readStatus(): Promise<GitStatus> {
     ahead = a || 0;
   }
 
+  // Only authors of incoming commits, with mailmap names and no duplicates.
+  const authorLog = behind > 0 ? await gitTry(['log', '--format=%aN', '-z', 'HEAD..@{u}']) : null;
+  const incomingAuthors = [...new Set((authorLog ?? '').split('\0').map(name => name.trim()).filter(Boolean))];
+  const mergeInProgress = await hasMergeInProgress(await unmergedFiles());
+
   const remoteUrl = (await gitTry(['remote', 'get-url', 'origin']))?.trim() || null;
   const remoteKind = remoteUrl ? (parseGithubHttpsRemote(remoteUrl) ? 'github-https' as const : 'ssh-or-other' as const) : null;
 
-  return { gitInstalled: true, isRepo: true, root: process.cwd(), branch, hasUpstream, hasOrigin: remoteUrl != null, dirty: changedCount > 0, changedCount, ahead, behind, remoteUrl, remoteKind };
+  return { gitInstalled: true, isRepo: true, root: process.cwd(), branch, hasUpstream, hasOrigin: remoteUrl != null, dirty: changedCount > 0, changedCount, ahead, behind, incomingAuthors, mergeInProgress, remoteUrl, remoteKind };
 }
 
 // ---------------------------------------------------------------------------
@@ -210,7 +218,8 @@ export interface GitOpState {
   status: GitOpStatus;
   message: string;
   op?: GitOp;
-  resolvedConflict?: boolean;
+  conflict?: boolean;
+  conflictFiles?: string[];
   error?: string;
   /** The app installation doesn't cover this repo — send the user to installUrl. */
   needsInstall?: boolean;
@@ -225,6 +234,21 @@ export interface GitOpState {
 const FETCH_FAILED_MESSAGE = 'Couldn’t reach your project on GitHub.';
 const MERGE_FAILED_MESSAGE = 'Couldn’t combine your team’s changes with yours.';
 const PUSH_FAILED_MESSAGE = 'Couldn’t send your work to GitHub.';
+const CONFLICT_MESSAGE = 'Sync paused — your changes and your team’s changes need to be combined.';
+
+class GitConflictError extends Error {
+  constructor(public files: string[], details: string) {
+    super(details);
+  }
+}
+
+function setGitFailure(op: GitOp, message: string, err: unknown): void {
+  setGitOpState({
+    status: 'error', op, error: String(err),
+    message: err instanceof GitConflictError ? CONFLICT_MESSAGE : message,
+    ...(err instanceof GitConflictError ? { conflict: true, conflictFiles: err.files } : {}),
+  });
+}
 
 let gitOpState: GitOpState = { status: 'idle', message: '' };
 let gitOpTimestamp = 0;
@@ -281,37 +305,48 @@ async function stageAndCommit(message: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Rebase our local commits onto the already-fetched upstream, with last-write-wins
- * on true same-line conflicts. Returns whether a conflict was auto-resolved.
- *
- * Two-phase so we can detect conflicts deterministically (a `-X theirs` rebase
- * resolves silently — it prints no "CONFLICT" — so grepping output is unreliable):
- *   1. Try a plain `git rebase @{u}`. If it succeeds, there was no overlap → false.
- *   2. If it stops on a conflict, abort and retry with `-X theirs` (during a rebase,
- *      "theirs" = the commits being replayed = our local edits), so the syncer wins.
- *      Success here means we overrode a conflicting edit → true.
- * A rebase that even `-X theirs` can't settle (e.g. rename/delete) aborts and rethrows.
- *
- * The fetch is deliberately NOT part of this: a fetch that fails because the
- * machine isn't signed in to GitHub is the single most common sync failure our
- * users hit, and reporting it as "couldn't merge" sends them looking for a
- * conflict that doesn't exist. Callers fetch first and say so themselves.
- */
-async function rebaseOntoUpstream(): Promise<boolean> {
-  // Fast path: clean rebase (no overlapping edits, or nothing to integrate).
-  try {
-    await git(['rebase', '@{u}'], 60_000);
-    return false;
-  } catch {
-    await gitTry(['rebase', '--abort']);
-  }
+async function unmergedFiles(): Promise<string[]> {
+  return (await git(['diff', '--name-only', '--diff-filter=U', '-z'])).split('\0').filter(Boolean);
+}
 
-  // Conflict path: replay our commits, resolving conflicting hunks in our favour.
+async function hasMergeInProgress(files: string[]): Promise<boolean> {
+  if (files.length) return true;
+  for (const marker of ['rebase-merge', 'rebase-apply', 'MERGE_HEAD']) {
+    const markerPath = (await git(['rev-parse', '--git-path', marker])).trim();
+    if (fs.existsSync(markerPath)) return true;
+  }
+  return false;
+}
+
+/** Never stage conflict markers or interfere with an agent's ongoing resolution. */
+async function ensureNoMergeInProgress(): Promise<void> {
+  const inside = (await gitTry(['rev-parse', '--is-inside-work-tree']))?.trim();
+  if (inside !== 'true') return;
+  const files = await unmergedFiles();
+  if (await hasMergeInProgress(files)) {
+    throw new GitConflictError(files, 'A Git merge or rebase is already in progress. Finish it with your coding agent before syncing. Protovibe left it unchanged.');
+  }
+}
+
+/** Rebase clean changes only. On conflict restore local commits and stop before push.
+ * Fetch stays separate so network/auth failures aren't reported as merge failures.
+ */
+async function rebaseOntoUpstream(): Promise<void> {
   try {
-    await git(['rebase', '-X', 'theirs', '@{u}'], 60_000);
-    return true;
+    // Don't let a cached rerere resolution silently settle a new sync conflict.
+    await git(['-c', 'rerere.enabled=false', 'rebase', '@{u}'], 60_000);
   } catch (err) {
+    const files = await unmergedFiles();
+    if (files.length) {
+      let details = String(err);
+      try {
+        await git(['rebase', '--abort']);
+        details += '\nProtovibe aborted its rebase and preserved the local commits. Nothing was pushed.';
+      } catch (abortError) {
+        details += `\nCould not abort the rebase; inspect the current Git state before continuing: ${String(abortError)}`;
+      }
+      throw new GitConflictError(files, details);
+    }
     await gitTry(['rebase', '--abort']);
     throw err;
   }
@@ -330,11 +365,10 @@ async function runGitSync(): Promise<void> {
       return;
     }
 
-    let resolvedConflict = false;
     try {
-      resolvedConflict = await rebaseOntoUpstream();
+      await rebaseOntoUpstream();
     } catch (err) {
-      setGitOpState({ status: 'error', message: MERGE_FAILED_MESSAGE, op: 'sync', error: String(err) });
+      setGitFailure('sync', MERGE_FAILED_MESSAGE, err);
       return;
     }
 
@@ -348,9 +382,8 @@ async function runGitSync(): Promise<void> {
 
     setGitOpState({
       status: 'success',
-      message: resolvedConflict ? 'Synced — resolved a conflicting edit' : 'Synced',
+      message: 'Synced',
       op: 'sync',
-      resolvedConflict,
     });
   } catch (err) {
     setGitOpState({ status: 'error', message: 'Syncing didn’t work.', op: 'sync', error: String(err) });
@@ -450,6 +483,7 @@ async function runBackup(): Promise<void> {
 
 async function runManualOp(op: GitOp, message?: string): Promise<void> {
   try {
+    await ensureNoMergeInProgress();
     if (op === 'commit') {
       setGitOpState({ status: 'committing', message: 'Committing…', op });
       const committed = await stageAndCommit((message && message.trim()) || autoCommitMessage());
@@ -464,14 +498,13 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
         setGitOpState({ status: 'error', message: FETCH_FAILED_MESSAGE, op, error: String(err) });
         return;
       }
-      let resolvedConflict = false;
       try {
-        resolvedConflict = await rebaseOntoUpstream();
+        await rebaseOntoUpstream();
       } catch (err) {
-        setGitOpState({ status: 'error', message: MERGE_FAILED_MESSAGE, op, error: String(err) });
+        setGitFailure(op, MERGE_FAILED_MESSAGE, err);
         return;
       }
-      setGitOpState({ status: 'success', message: resolvedConflict ? 'Pulled — resolved a conflicting edit' : 'Pulled', op, resolvedConflict });
+      setGitOpState({ status: 'success', message: 'Pulled', op });
       return;
     }
     if (op === 'push') {
@@ -492,7 +525,7 @@ async function runManualOp(op: GitOp, message?: string): Promise<void> {
     // op === 'sync'
     await runGitSync();
   } catch (err) {
-    setGitOpState({ status: 'error', message: 'That didn’t work.', op, error: String(err) });
+    setGitFailure(op, 'That didn’t work.', err);
   }
 }
 

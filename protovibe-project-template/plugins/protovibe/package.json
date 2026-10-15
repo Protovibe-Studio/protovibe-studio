@@ -17,7 +17,9 @@
     "watch:ui": "node scripts/watch-ui.js",
     "test:specs-focus": "node --test tests/specs-focus.test.mjs",
     "test:comments-live": "node --test tests/comments-live.test.mjs",
-    "test:lofi": "node --test tests/lofi.test.mjs"
+    "test:lofi": "node --test tests/lofi.test.mjs",
+    "test:git-sync": "node --test tests/git-sync.test.mjs",
+    "test:git-sync-ui": "node --test tests/git-sync-ui.test.mjs"
   },
   "dependencies": {
     "@babel/core": "^7.20.0",
