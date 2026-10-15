@@ -74,7 +74,7 @@ before(async () => {
             {location.pathname === '/list' ? <SpecsDocList specs={summaries} publishedUrl="" busy={false}
               onOpen={select} onCreate={noop} onDelete={noop} onExport={noop} /> :
             <SpecDocView bundle={bundle} query={query} setQuery={setQuery} statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-              scope="all" setScope={noop} scopeIds={scopeIds} busy={false} activeId={activeId} activeAnchorFound={null}
+              scope="all" setScope={noop} scopeIds={scopeIds} busy={false} activeId={activeId}
               editingItemId={null} editingTitle={false} autoEditTextId={null} thumbHolds={{}}
               onEditingDone={noop} onTitleEditingDone={noop} onAutoEditDone={noop} onBack={noop} onRename={noop}
               onSelectAnnotation={select} onSelectHeading={select} onUpdateReference={noop} onUnpin={noop}
@@ -319,4 +319,51 @@ test('editor: clicking a horizontally revealed heading match edits that word', a
   const nextCaret = await clickMatch();
   assert.ok(nextCaret >= start && nextCaret <= start + 'checkout'.length,
     `Expected caret inside checkout after blur at ${start}, got ${nextCaret}`);
+});
+
+test('editor: no wording status composes with find and scope', async t => {
+  const page = await openPage(t, '/editor');
+  await page.evaluate(items => window.updateItems(items), [
+    annotation('a-none', 'Checkout without wording status'),
+    ...['todo', 'progress', 'done'].map(wordingStatus => ({
+      ...annotation(`a-${wordingStatus}`, 'Checkout with wording status'), wordingStatus,
+    })),
+  ]);
+  await page.getByTestId('spec-find-input').fill('checkout');
+  await count(page, '1 of 4');
+  await page.getByRole('button', { name: 'All statuses', exact: true }).click();
+  await page.getByRole('button', { name: /No wording status/ }).click();
+  await count(page, '1 of 1');
+  assert.deepEqual(await page.getByTestId('spec-annotation-row').evaluateAll(rows => rows.map(row => row.dataset.specItem)), ['a-none']);
+  await page.evaluate(() => window.setScopeIds(['a-done']));
+  await count(page, 'No matches');
+  assert.equal(await page.getByTestId('spec-annotation-row').count(), 0);
+  await page.evaluate(() => { window.setScopeIds(null); window.setStatusFilter('all'); });
+  await count(page, '1 of 4');
+});
+
+test('editor: wording icon remains visible at thumbnail bottom through resizing and warning', async t => {
+  const page = await openPage(t, '/editor');
+  await page.evaluate(items => window.updateItems(items), [{
+    ...annotation('a-wording', 'A long annotation. '.repeat(30)), wordingStatus: 'progress',
+    anchor: { file: 'src/App.tsx' },
+  }]);
+  const row = page.getByTestId('spec-annotation-row');
+  const icon = page.getByTestId('spec-wording-status');
+  await icon.waitFor();
+  await page.mouse.move(1200, 800);
+  for (const width of [280, 360, 500]) {
+    await page.evaluate(width => { document.querySelector('#root > div > div').style.width = `${width}px`; }, width);
+    await page.waitForFunction(() => {
+      const icon = document.querySelector('[data-testid="spec-wording-status"]');
+      const thumbnail = document.querySelector('[data-pv-thumbnail]')?.parentElement;
+      return icon && thumbnail && Math.abs(icon.getBoundingClientRect().bottom - thumbnail.getBoundingClientRect().bottom) < 1;
+    });
+    assert.equal(await icon.evaluate(el => getComputedStyle(el).opacity), '1');
+  }
+  await page.getByTestId('spec-pin-missing-warning').waitFor({ timeout: 15000 });
+  assert.equal(await row.getByText(/not found on this screen/).count(), 0);
+  assert.ok(await icon.evaluate(el => Math.abs(el.getBoundingClientRect().bottom - document.querySelector('[data-pv-thumbnail]').parentElement.getBoundingClientRect().bottom) < 1));
+  await icon.click();
+  await page.getByRole('button', { name: /^To check/ }).waitFor();
 });

@@ -40,7 +40,7 @@ export type SpecScope = 'all' | 'viewport' | 'selection';
  * filters by wording check status (`wording-{id}`), like the Comments chip
  * mixes statuses with Unread / My threads.
  */
-export type SpecStatusFilter = SpecStatus | `wording-${SpecWordingStatus}` | 'all';
+export type SpecStatusFilter = SpecStatus | `wording-${SpecWordingStatus}` | 'wording-none' | 'all';
 
 /** The wording check icon — the same glyph as Comments' "Suggest wording change". */
 const WordingIcon: React.FC<{ color: string; size?: number }> = ({ color, size = 13 }) => (
@@ -60,6 +60,7 @@ const STATUS_OPTIONS: FilterChipOption<SpecStatusFilter>[] = [
     value: `wording-${w}`, label: SPEC_WORDING_STATUS_CONFIG[w].label, hint: SPEC_WORDING_STATUS_CONFIG[w].hint,
     icon: <WordingIcon color={SPEC_WORDING_STATUS_CONFIG[w].color} size={11} />, separator: i === 0,
   })),
+  { value: 'wording-none', label: 'No wording status', hint: 'Only annotations without a wording check status', icon: <WordingIcon color={theme.text_low} size={11} /> },
 ];
 
 /** How close to the top / bottom edge of the list a drag starts auto-scrolling. */
@@ -94,8 +95,6 @@ export interface SpecDocViewProps {
   onTitleEditingDone: () => void;
   /** The active item (highlighted row): an annotation or a heading. */
   activeId: string | null;
-  /** Whether the active annotation's pinned element is on the canvas right now. */
-  activeAnchorFound: boolean | null;
   /** Annotation whose text editor should open focused (just created). */
   autoEditTextId: string | null;
   /** Annotation id → time its thumbnail may load (just pinned / re-pinned). */
@@ -462,7 +461,6 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   highlight={find.highlight(it.id)}
                   active={p.activeId === it.id}
                   selected={selected.has(it.id)}
-                  anchorFound={p.activeId === it.id ? p.activeAnchorFound : null}
                   autoEditText={p.autoEditTextId === it.id}
                   onAutoEditDone={p.onAutoEditDone}
                   busy={p.busy}
@@ -651,7 +649,6 @@ const AnnotationRow: React.FC<{
   active: boolean;
   /** Part of the current multi-selection. */
   selected: boolean;
-  anchorFound: boolean | null;
   autoEditText: boolean;
   onAutoEditDone: () => void;
   busy: boolean;
@@ -666,7 +663,7 @@ const AnnotationRow: React.FC<{
   onUnpin: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, highlight, active, selected, anchorFound, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, highlight, active, selected, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordingMenuOpen, setWordingMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -679,9 +676,8 @@ const AnnotationRow: React.FC<{
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const wordingRef = useRef<HTMLButtonElement | null>(null);
   const baseBg = active ? SPEC_ACTIVE_BG : selected ? SPEC_SELECTED_BG : 'transparent';
-  // The "More" button (and the wording check icon under it) are hover
-  // affordances; an open menu keeps them lit while the pointer sits in the
-  // popup instead of on the row.
+  // The "More" button appears on hover; an open menu keeps it visible while
+  // the pointer sits in the popup. A set wording status is always visible.
   const showMenuBtn = hover || menuOpen || wordingMenuOpen;
   const wording = item.wordingStatus ? SPEC_WORDING_STATUS_CONFIG[item.wordingStatus] : null;
   const wordingItems = (separateFirst: boolean): MenuItem[] => SPEC_WORDING_STATUSES.map((w, i) => ({
@@ -689,7 +685,6 @@ const AnnotationRow: React.FC<{
     selected: item.wordingStatus === w, separator: separateFirst && i === 0, disabled: busy,
     onSelect: () => onUpdate({ wordingStatus: item.wordingStatus === w ? null : w }, 'change wording check status'),
   }));
-  const fileName = item.anchor?.file.split('/').pop();
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
   // Order: actions, then the status tracks, then who wrote it, then Delete.
   const menuItems: MenuItem[] = [
@@ -702,7 +697,7 @@ const AnnotationRow: React.FC<{
       label: SPEC_STATUS_CONFIG[s].label, icon: statusDot(SPEC_STATUS_CONFIG[s].color), selected: item.status === s, separator: i === 0,
       disabled: busy, onSelect: () => onUpdate({ status: item.status === s ? null : s }, 'change annotation status'),
     })),
-    // Wording check status: a separate track, shown as the icon under "More".
+    // Wording check status: a separate track, aligned with the thumbnail’s bottom edge.
     ...wordingItems(true),
     { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, separator: true, onSelect: () => {} },
     { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: onDelete },
@@ -716,17 +711,17 @@ const AnnotationRow: React.FC<{
       data-active={active}
       data-selected={selected}
       style={{
-        display: 'flex', gap: 4, padding: '10px 4px 10px 0', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
-        opacity: dragging ? 0.4 : 1, alignItems: 'flex-start',
+        display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) 20px', columnGap: 4, rowGap: 6, padding: '10px 4px 10px 0', background: baseBg, cursor: 'pointer', fontFamily: theme.font_ui,
+        opacity: dragging ? 0.4 : 1, alignItems: 'start',
         boxShadow: active ? `inset 3px 0 0 ${theme.accent_default}` : 'none',
       }}
       onMouseEnter={(e) => { setHover(true); if (!active && !selected) e.currentTarget.style.background = theme.bg_low; }}
       onMouseLeave={(e) => { setHover(false); e.currentTarget.style.background = baseBg; }}
     >
-      <span data-tooltip={GRIP_TOOLTIP} style={{ display: 'flex', flexShrink: 0, marginTop: 4, padding: '4px 4px 4px 12px', cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
+      <span data-tooltip={GRIP_TOOLTIP} style={{ gridRow: '1 / span 2', display: 'flex', flexShrink: 0, marginTop: 4, padding: '4px 4px 4px 12px', cursor: 'grab', color: selected ? theme.accent_default : theme.text_low }}>
         <GripVertical size={13} />
       </span>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ gridArea: '1 / 2', minWidth: 0 }}>
         <SpecThumbnail
           src={item.state.path}
           fullWidth
@@ -737,6 +732,8 @@ const AnnotationRow: React.FC<{
           revealSelector={item.anchor ? specIdSelector(item.id) : undefined}
           onRevealResult={setThumbPinFound}
         />
+      </div>
+      <div style={{ gridArea: '2 / 2', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {/* Clicking the text opens its editor and activates the row without
             letting the canvas selection steal the editor's focus. A modifier
             click is a selection gesture instead: it must reach the row, and
@@ -761,11 +758,8 @@ const AnnotationRow: React.FC<{
             <StatusPicker status={item.status} disabled={busy} onChange={(s) => onUpdate({ status: s }, 'change annotation status')} />
           </div>
         )}
-        {active && item.anchor && anchorFound === false && !pinMissingInState && (
-          <span style={{ fontSize: 10, color: theme.warning_primary }}>Pinned element in {fileName} not found on this screen</span>
-        )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+      <div style={{ gridArea: '1 / 3', alignSelf: 'stretch', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
         {/* Kept mounted while hidden: unmounting it would reflow the row on every
             pointer enter and leave. */}
         <button
@@ -778,20 +772,6 @@ const AnnotationRow: React.FC<{
         >
           <MoreHorizontal size={14} />
         </button>
-        {wording && (
-          <button
-            ref={wordingRef}
-            data-testid="spec-wording-status"
-            data-wording-status={item.wordingStatus}
-            className={SPECS_ROW_BTN_CLASS}
-            data-open={wordingMenuOpen}
-            style={{ ...iconBtnSm, opacity: showMenuBtn ? 1 : 0, transition: 'opacity 0.12s', pointerEvents: showMenuBtn ? 'auto' : 'none' }}
-            data-tooltip={`Wording check: ${wording.label}\n${wording.hint}`}
-            onClick={(e) => { e.stopPropagation(); setWordingMenuOpen(true); }}
-          >
-            <WordingIcon color={wording.color} size={14} />
-          </button>
-        )}
         {pinMissingInState && (
           <button
             data-testid="spec-pin-missing-warning"
@@ -801,6 +781,20 @@ const AnnotationRow: React.FC<{
             onClick={(e) => { e.stopPropagation(); openPrompt('deep-link-states'); }}
           >
             <AlertTriangle size={14} />
+          </button>
+        )}
+        {wording && (
+          <button
+            ref={wordingRef}
+            data-testid="spec-wording-status"
+            data-wording-status={item.wordingStatus}
+            className={SPECS_ROW_BTN_CLASS}
+            data-open={wordingMenuOpen}
+            style={{ ...iconBtnSm, marginTop: 'auto', flexShrink: 0 }}
+            data-tooltip={`Wording check: ${wording.label}\n${wording.hint}`}
+            onClick={(e) => { e.stopPropagation(); setWordingMenuOpen(true); }}
+          >
+            <WordingIcon color={wording.color} size={14} />
           </button>
         )}
       </div>
@@ -897,7 +891,9 @@ export function annotationMatches(
   a: SpecAnnotation, statusFilter: SpecStatusFilter, scopeIds: ReadonlySet<string> | null = null,
 ): boolean {
   if (scopeIds && !scopeIds.has(a.id)) return false;
-  if (statusFilter.startsWith('wording-')) {
+  if (statusFilter === 'wording-none') {
+    if (a.wordingStatus) return false;
+  } else if (statusFilter.startsWith('wording-')) {
     if (`wording-${a.wordingStatus}` !== statusFilter) return false;
   } else if (statusFilter !== 'all' && a.status !== statusFilter) return false;
   return true;
