@@ -1,3 +1,4 @@
+import { applyPreviewMode } from '../lofi/preview-mode';
 // plugins/protovibe/src/ui/bridge.ts
 // Runs inside app.html (the iframe). Intercepts canvas interactions and
 // communicates them to the parent Protovibe shell via postMessage.
@@ -748,7 +749,7 @@ function handleParentMessage(e: MessageEvent) {
       document.body.style.cursor = isLocked ? 'progress' : '';
       break;
     case 'PV_SET_THEME':
-      document.documentElement.dataset.theme = e.data.theme;
+      applyPreviewMode(document, e.data.lofi ? 'lofi' : e.data.theme);
       break;
     case 'PV_CLEAR_STORAGE': {
       // The app iframe is same-origin with the shell, so they share one
