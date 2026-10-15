@@ -25,6 +25,7 @@ import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
 import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
+import { withLofiParam } from '../lofi/preview-mode';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
@@ -821,13 +822,14 @@ export const ProtovibeApp: React.FC = () => {
               {/* Open in browser */}
               <button
                 onClick={() => {
-                  const fallback = new URL('/', window.location.href).href;
+                  let url = new URL('/', window.location.href);
                   try {
                     const loc = appIframeRef.current?.contentWindow?.location;
-                    openInBrowser(loc?.href || fallback);
+                    if (loc?.href) url = new URL(loc.href);
                   } catch {
-                    openInBrowser(fallback);
+                    // Keep the same-origin fallback if the iframe is inaccessible.
                   }
+                  openInBrowser(withLofiParam(url, previewMode === 'lofi'));
                 }}
                 data-tooltip="Open in browser"
                 style={{
