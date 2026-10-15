@@ -511,6 +511,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   // code history never rewrites or drops a reply, edit, or status change.
   const mutateThreadFile = useCallback(async (
     fn: () => Promise<CommentThread | void>,
+    confirmedDeletions: readonly string[] = [],
   ) => {
     const endWrite = beginWrite();
     setBusy(true);
@@ -518,7 +519,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
     try {
       await fn();
       endWrite();
-      await refresh();
+      await refresh(confirmedDeletions);
       return true;
     } catch (e) {
       setError(String(e));
@@ -568,7 +569,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
   };
 
   const handleDeleteReply = (thread: CommentThread, commentId: string) =>
-    mutateThreadFile(() => deleteComment(thread.id, commentId))
+    mutateThreadFile(() => deleteComment(thread.id, commentId), [`${thread.id}/${commentId}`])
       .then(saved => { if (saved) dropPreviews(thread.id, thread.comments.find((c) => c.id === commentId)?.suggestions); });
 
   const handleDeleteThread = (thread: CommentThread) => {
@@ -586,7 +587,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ activeIframeTab, isAct
       await deleteThreadApi(thread.id);
     }).then(async () => {
       endWrite();
-      await refresh();
+      await refresh([thread.id]);
       if (visit === threadVisit.current) setActiveThreadId(null);
     }).catch((e) => setError(String(e))).finally(() => { endWrite(); setBusy(false); });
   };

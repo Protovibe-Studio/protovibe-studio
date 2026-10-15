@@ -32,15 +32,17 @@ export function useCommentThreads(
   callbacks.current = { onSnapshot, onError };
   const suspect = useRef({ key: '', count: 0 });
 
-  const accept = useCallback((snapshot: CommentThreadsSnapshot, explicit: boolean) => {
+  const accept = useCallback((snapshot: CommentThreadsSnapshot, confirmedDeletions: readonly string[] = []) => {
     const { threads: next, unreadable } = snapshot;
     // Missing messages/threads may be an editor's atomic replacement or a sync
     // in progress. Confirm the same missing set before discarding local state.
-    const missing = explicit ? [] : threadsRef.current.flatMap(t => {
+    // Only a successful local delete can bypass confirmation for that exact id.
+    // Event/manual refreshes can race external writes just like polling can.
+    const missing = threadsRef.current.flatMap(t => {
       const nextThread = next.find(n => n.id === t.id);
       if (!nextThread) return [t.id];
       return t.comments.filter(c => !nextThread.comments.some(n => n.id === c.id)).map(c => `${t.id}/${c.id}`);
-    });
+    }).filter(id => !confirmedDeletions.includes(id));
     const key = JSON.stringify([[...unreadable].sort(), missing.sort()]);
     if (unreadable.length || missing.length) {
       suspect.current = { key, count: key === suspect.current.key ? suspect.current.count + 1 : 1 };
@@ -69,13 +71,14 @@ export function useCommentThreads(
     };
   }, []);
 
-  const refresh = useCallback(async () => {
+  // Deletion keys are threadId or threadId/commentId, matching `missing` above.
+  const refresh = useCallback(async (confirmedDeletions: readonly string[] = []) => {
     const gen = ++generation.current;
     if (writes.current) return;
     reading.current++;
     try {
       const snapshot = await readCommentThreadsSnapshot();
-      if (mounted.current && gen === generation.current && !writes.current) accept(snapshot, true);
+      if (mounted.current && gen === generation.current && !writes.current) accept(snapshot, confirmedDeletions);
     } catch (e) {
       if (mounted.current && gen === generation.current) callbacks.current.onError(e);
     } finally { reading.current--; }
@@ -90,7 +93,7 @@ export function useCommentThreads(
         const gen = generation.current;
         try {
           const snapshot = await readCommentThreadsSnapshot();
-          if (!cancelled && gen === generation.current && !writes.current) accept(snapshot, false);
+          if (!cancelled && gen === generation.current && !writes.current) accept(snapshot);
         } catch { /* Keep the last snapshot while the dev server is unreachable. */ }
       }
       if (!cancelled) timer = window.setTimeout(tick, POLL_MS);

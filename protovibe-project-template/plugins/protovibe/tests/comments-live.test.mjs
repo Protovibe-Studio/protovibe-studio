@@ -397,3 +397,69 @@ test('finishing a reply after Next does not erase the next thread draft', async 
     assert.deepEqual(page.errors, []);
   } finally { release?.(); await page.close(); }
 });
+
+test('legacy message overlays do not report missing metadata, but malformed metadata still does', async () => {
+  write('comment-legacy.json', { ...meta('legacy'), comments: [message('old', 'Legacy message')] });
+  await api('__comments-set-seen', { threadId: 'legacy', commentId: 'old', name: 'Reviewer', seen: true });
+  assert.equal(fs.existsSync(path.join(commentsDir, 'legacy/thread.json')), false);
+  const snapshot = await api('__comments-list');
+  assert.equal(snapshot.threads.find(t => t.id === 'legacy').comments[0].seenBy.includes('Reviewer'), true);
+  assert.deepEqual(snapshot.unreadable, []);
+  write('legacy/thread.json', '{');
+  assert.deepEqual((await api('__comments-list')).unreadable, ['legacy/thread.json']);
+  fs.rmSync(path.join(commentsDir, 'legacy/thread.json'));
+  const page = await openPage();
+  try {
+    // The initial read must include this valid thread without waiting for polls.
+    assert.equal(await page.getByText('Legacy message', { exact: true }).count(), 1);
+  } finally { await page.close(); }
+});
+
+test('refresh event during temporary thread disappearance preserves the draft and still confirms permanent deletion', async () => {
+  const page = await openPage();
+  const original = path.join(commentsDir, 'first');
+  const temporary = path.join(fixture, 'temporarily-moved-thread');
+  try {
+    await page.getByText('Initial comment', { exact: true }).click();
+    await page.getByPlaceholder('Reply…').fill('Must survive a temporary missing directory');
+    fs.renameSync(original, temporary);
+    await Promise.all([
+      page.waitForResponse(r => r.url().endsWith('/__comments-list')),
+      page.evaluate(() => window.dispatchEvent(new Event('pv-comments-refresh'))),
+    ]);
+    await page.waitForTimeout(100);
+    fs.renameSync(temporary, original);
+    assert.equal(await page.getByPlaceholder('Reply…').inputValue(), 'Must survive a temporary missing directory');
+    await poll(page);
+    assert.equal(await page.getByPlaceholder('Reply…').inputValue(), 'Must survive a temporary missing directory');
+    fs.rmSync(original, { recursive: true });
+    await poll(page);
+    await poll(page);
+    await poll(page);
+    await page.getByPlaceholder('Search all comments…').waitFor();
+    assert.deepEqual(page.errors, []);
+  } finally {
+    if (fs.existsSync(temporary)) fs.renameSync(temporary, original);
+    await page.close();
+  }
+});
+
+test('confirmed local deletions update immediately without waiting for polls', async () => {
+  write('first/c-reply.json', { ...message('c-reply', 'Reply to delete'), createdAt: '2026-01-02T00:00:00Z' });
+  const page = await browser.newPage();
+  page.setDefaultTimeout(5000);
+  try {
+    // Pause automatic polling; the mutation refresh must be sufficient.
+    await page.addInitScript(() => Object.defineProperty(document, 'hidden', { configurable: true, value: true }));
+    await page.goto(origin);
+    await page.getByText('Reply to delete', { exact: true }).click();
+    await page.locator('[data-pv-comment-row="c-reply"]').hover();
+    await page.locator('[data-tooltip="Delete"]').click();
+    await page.getByRole('button', { name: 'Delete', exact: true }).click();
+    await page.getByText('Reply to delete', { exact: true }).waitFor({ state: 'detached' });
+    await page.locator('[data-tooltip="Delete thread"]').click();
+    await page.getByRole('button', { name: 'Delete thread', exact: true }).click();
+    await page.getByPlaceholder('Search all comments…').waitFor();
+    assert.equal(await page.getByText('Initial comment', { exact: true }).count(), 0);
+  } finally { await page.close(); }
+});

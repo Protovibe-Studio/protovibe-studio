@@ -159,8 +159,12 @@ function readThread(id: string, unreadable?: string[]): CommentThread | null {
   }
   if (!legacy && dirEntries == null) return null;
 
+  // Legacy edits/read receipts create message overlays without thread.json.
+  // Metadata is only required in the split layout; an existing but unreadable
+  // metadata file must still be reported, even when legacy metadata is available.
+  const readMeta = dirEntries != null && (!legacy || dirEntries.includes(THREAD_META_FILE));
   const meta: ThreadMeta | null =
-    (dirEntries != null ? readJson<ThreadMeta>(threadMetaPath(id), unreadable) : null) ??
+    (readMeta ? readJson<ThreadMeta>(threadMetaPath(id), unreadable) : null) ??
     (legacy ? metaOf(legacy) : null);
 
   const comments: CommentItem[] = Array.isArray(legacy?.comments) ? legacy.comments.filter(validComment) : [];
