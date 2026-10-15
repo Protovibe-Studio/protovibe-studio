@@ -7,6 +7,23 @@ export interface SpecFindHighlight {
   active: boolean;
 }
 
+/** Lowercasing can expand a character (İ → i + combining dot). Map the
+ * matched range back to the original text before slicing it for display. */
+function findTextRange(text: string, needle: string): { start: number; end: number } | null {
+  const matchStart = needle ? text.toLowerCase().indexOf(needle) : -1;
+  if (matchStart < 0) return null;
+  const matchEnd = matchStart + needle.length;
+  let offset = 0, foldedOffset = 0, start = 0;
+  for (const char of text) {
+    const foldedEnd = foldedOffset + char.toLowerCase().length;
+    if (foldedOffset <= matchStart && matchStart < foldedEnd) start = offset;
+    offset += char.length;
+    if (foldedEnd >= matchEnd) return { start, end: offset };
+    foldedOffset = foldedEnd;
+  }
+  return null;
+}
+
 /** Find visits the first occurrence in each item, without changing the list or canvas selection. */
 export function useSpecFind(entries: { id: string; text: string }[], query: string, scope = '') {
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -16,23 +33,34 @@ export function useSpecFind(entries: { id: string; text: string }[], query: stri
   const selectedIndex = selection.query === query && selection.scope === scope ? matches.indexOf(selection.id) : -1;
   const index = matches.length ? Math.max(0, selectedIndex) : -1;
   const activeId = matches[index];
+  const activeText = entries.find(({ id }) => id === activeId)?.text;
   const matchKey = JSON.stringify(matches);
+  const [navigationVersion, setNavigationVersion] = useState(0);
 
   useEffect(() => {
     setSelection({ query, scope, id: activeId ?? '' });
   }, [query, scope, activeId, matchKey]);
 
   useEffect(() => {
-    listRef.current?.querySelector<HTMLElement>('[data-spec-find-active="true"]')
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [activeId, query, scope]);
+    // Inline editors synchronise external text in an effect. Wait for their
+    // highlight to render before looking for the active match.
+    const frame = requestAnimationFrame(() => {
+      listRef.current?.querySelector<HTMLElement>('[data-spec-find-active="true"]')
+        ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [activeId, activeText, query, scope, navigationVersion]);
 
   return {
     listRef,
     count: matches.length,
     index,
     step: (delta: number) => {
-      if (matches.length) setSelection({ query, scope, id: matches[(index + delta + matches.length) % matches.length] });
+      if (matches.length) {
+        setSelection({ query, scope, id: matches[(index + delta + matches.length) % matches.length] });
+        // A one-match search still needs to reveal that match on every step.
+        setNavigationVersion((version) => version + 1);
+      }
     },
     highlight: (id: string): SpecFindHighlight => ({ query, active: id === activeId }),
   };
@@ -40,8 +68,9 @@ export function useSpecFind(entries: { id: string; text: string }[], query: stri
 
 export const SpecFindText: React.FC<{ text: string; highlight?: SpecFindHighlight }> = ({ text, highlight }) => {
   const needle = highlight?.query.trim().toLowerCase();
-  const start = needle ? text.toLowerCase().indexOf(needle) : -1;
-  if (start < 0 || !needle) return <>{text}</>;
+  const range = needle ? findTextRange(text, needle) : null;
+  if (!range) return <>{text}</>;
+  const { start, end } = range;
   return <>
     {text.slice(0, start)}
     <mark data-spec-find-active={highlight?.active ?? false} style={{
@@ -49,8 +78,8 @@ export const SpecFindText: React.FC<{ text: string; highlight?: SpecFindHighligh
       color: highlight?.active ? theme.bg_strong : 'inherit',
       outline: highlight?.active ? `1px solid ${theme.warning_secondary}` : undefined,
       borderRadius: 2, scrollMarginBlock: 24,
-    }}>{text.slice(start, start + needle.length)}</mark>
-    {text.slice(start + needle.length)}
+    }}>{text.slice(start, end)}</mark>
+    {text.slice(end)}
   </>;
 };
 

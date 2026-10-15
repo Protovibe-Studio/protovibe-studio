@@ -235,3 +235,50 @@ test('editor: filters, live item changes, and editing stay independent from find
   await input.press('Enter');
   await count(page, '1 of 1');
 });
+
+for (const [name, path] of [['editor', '/editor'], ['published-viewer', '/specs.html?spec=s-checkout']]) {
+  test(`${name}: next and previous reveal a single match after scrolling away`, async t => {
+    const page = await openPage(t, path);
+    await page.setViewportSize({ width: 1280, height: 500 });
+    const input = page.getByTestId('spec-find-input');
+    await input.fill('[total]');
+    await count(page, '1 of 1');
+    for (const key of ['Enter', 'Shift+Enter']) {
+      await page.locator('mark').evaluate(el => {
+        let list = el.parentElement;
+        while (list && getComputedStyle(list).overflowY !== 'auto') list = list.parentElement;
+        list.scrollTop = 0;
+      });
+      await input.press(key);
+      await page.waitForFunction(() => {
+        const rect = document.querySelector('mark[data-spec-find-active="true"]').getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= innerHeight;
+      }, null, { timeout: 2000 });
+    }
+  });
+}
+
+test('editor: live text updates reveal a newly matching annotation', async t => {
+  const page = await openPage(t, '/editor');
+  await page.setViewportSize({ width: 1280, height: 500 });
+  await page.getByTestId('spec-find-input').fill('newly matching');
+  await count(page, 'No matches');
+  await page.evaluate(items => window.updateItems(items), bundle.items.map(it =>
+    it.id === 'a-literal' ? { ...it, text: 'A newly matching annotation.' } : it));
+  await count(page, '1 of 1');
+  await page.waitForFunction(() => {
+    const rect = document.querySelector('mark[data-spec-find-active="true"]')?.getBoundingClientRect();
+    return rect && rect.top >= 0 && rect.bottom <= innerHeight;
+  }, null, { timeout: 2000 });
+});
+
+test('editor: Unicode case conversion preserves highlight offsets', async t => {
+  const page = await openPage(t, '/editor');
+  await page.evaluate(items => window.updateItems(items), [
+    { ...bundle.items[0], title: 'İstanbul checkout' },
+    annotation('a-unicode', 'İstanbul checkout'),
+  ]);
+  await page.getByTestId('spec-find-input').fill('CHECKOUT');
+  await count(page, '1 of 2');
+  assert.deepEqual(await page.locator('mark').allTextContents(), ['checkout', 'checkout']);
+});
