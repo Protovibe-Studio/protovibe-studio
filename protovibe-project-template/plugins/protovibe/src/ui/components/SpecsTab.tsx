@@ -150,7 +150,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   // Spec whose title opens selected for typing (just created).
   const [editingTitleSpecId, setEditingTitleSpecId] = useState<string | null>(null);
   const [autoEditTextId, setAutoEditTextId] = useState<string | null>(null);
-  const [anchorFound, setAnchorFound] = useState<boolean | null>(null);
   // Annotation id → time its thumbnail may load (see THUMB_HOLD_MS).
   const [thumbHolds, setThumbHolds] = useState<Record<string, number>>({});
   const holdThumb = useCallback((itemId: string) => {
@@ -615,24 +614,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     return () => window.removeEventListener('keydown', onKey, true);
   }, [isActive, view.level, step]);
 
-  // Is the pinned element on the canvas right now? Polled briefly after opening
-  // so the check survives the iframe navigation the open triggers.
-  useEffect(() => {
-    if (!activeAnnotation?.anchor) { setAnchorFound(null); return; }
-    const sel = specIdSelector(activeAnnotation.id);
-    let attempts = 0;
-    let timer = 0;
-    const check = () => {
-      const doc = appIframeDocument();
-      if (doc?.querySelector(sel)) { setAnchorFound(true); return; }
-      if (++attempts < 20) timer = window.setTimeout(check, 200);
-      else setAnchorFound(false);
-    };
-    setAnchorFound(null);
-    timer = window.setTimeout(check, 150);
-    return () => clearTimeout(timer);
-  }, [activeAnnotation?.id, activeAnnotation?.anchor]);
-
   // ── profile gate ──────────────────────────────────────────────────────────────
   const handleProfileSave = (name: string, email: string) => {
     const saved = saveUser(name, email);
@@ -681,7 +662,6 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           editingTitle={editingTitleSpecId === bundle.spec.id}
           onTitleEditingDone={() => setEditingTitleSpecId(null)}
           activeId={activeId}
-          activeAnchorFound={anchorFound}
           autoEditTextId={autoEditTextId}
           thumbHolds={thumbHolds}
           onAutoEditDone={() => setAutoEditTextId(null)}
