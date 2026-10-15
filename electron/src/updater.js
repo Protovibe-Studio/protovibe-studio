@@ -1,7 +1,7 @@
 const { app, dialog, shell, autoUpdater: nativeUpdater } = require('electron');
 const { createInstallGate } = require('./install-gate');
 
-const CHECK_INTERVAL = 6 * 60 * 60 * 1000;
+const CHECK_INTERVAL = 2 * 60 * 60 * 1000;
 // Squirrel.Mac fetches the zip from a localhost proxy and verifies it; that is
 // seconds, so anything near this is a failure it never reported.
 const INSTALL_READY_TIMEOUT = 3 * 60 * 1000;

@@ -25,6 +25,7 @@ import { INSPECTOR_WIDTH_PX } from './constants/layout';
 import { restartServer, undo } from './api/client';
 import { emitToast, formatUndoRedoMessage } from './events/toast';
 import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
+import { withLofiParam } from '../lofi/preview-mode';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
 import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
@@ -152,7 +153,7 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('pv-comments-unread', handler);
   }, []);
 
-  const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, setIframeTheme, focusElement } = useProtovibe();
+  const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, runLockedMutation, iframeTheme, previewMode, setPreviewMode, focusElement } = useProtovibe();
   const git = useGitSync();
   // Restore the last app path once per refresh (the stored value is consumed
   // on read; interactions re-arm it — see utils/appPath.ts).
@@ -530,7 +531,7 @@ export const ProtovibeApp: React.FC = () => {
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
     ref.current?.contentWindow?.postMessage(
-      { type: 'PV_SET_THEME', theme: iframeTheme },
+      { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
       '*'
     );
     ref.current?.contentWindow?.postMessage(
@@ -576,7 +577,7 @@ export const ProtovibeApp: React.FC = () => {
         }
       } catch {}
     }
-  }, [iframeTheme, inspectorOpen, setHtmlFontSize, postCanvasEditLocked]);
+  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked]);
 
   // Undo the last operation with mutation locking
   const handleUndo = useCallback(async () => {
@@ -678,11 +679,11 @@ export const ProtovibeApp: React.FC = () => {
   useEffect(() => {
     [appIframeRef, sketchpadIframeRef, componentsIframeRef].forEach(ref => {
       ref.current?.contentWindow?.postMessage(
-        { type: 'PV_SET_THEME', theme: iframeTheme },
+        { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
         '*'
       );
     });
-  }, [iframeTheme]);
+  }, [iframeTheme, previewMode]);
 
   return (
     <div
@@ -847,13 +848,14 @@ export const ProtovibeApp: React.FC = () => {
               {/* Open in browser */}
               <button
                 onClick={() => {
-                  const fallback = new URL('/', window.location.href).href;
+                  let url = new URL('/', window.location.href);
                   try {
                     const loc = appIframeRef.current?.contentWindow?.location;
-                    openInBrowser(loc?.href || fallback);
+                    if (loc?.href) url = new URL(loc.href);
                   } catch {
-                    openInBrowser(fallback);
+                    // Keep the same-origin fallback if the iframe is inaccessible.
                   }
+                  openInBrowser(withLofiParam(url, previewMode === 'lofi'));
                 }}
                 data-tooltip="Open in browser"
                 style={{
@@ -952,13 +954,15 @@ export const ProtovibeApp: React.FC = () => {
                 <ListTree size={16} />
               </button>
               <div style={{ width: 1, height: 16, background: theme.border_default, margin: '4px 4px' }} />
-              {(['light', 'dark'] as const).map(t => {
-                const active = iframeTheme === t;
+              {(['light', 'dark', 'lofi'] as const).map(t => {
+                const active = previewMode === t;
                 return (
                   <button
                     key={t}
-                    onClick={() => setIframeTheme(t)}
-                    data-tooltip={t === 'light' ? 'Light mode' : 'Dark mode'}
+                    onClick={() => setPreviewMode(t)}
+                    data-tooltip={t === 'light' ? 'Light mode' : t === 'dark' ? 'Dark mode' : 'Lofi mode'}
+                    aria-label={t === 'light' ? 'Light mode' : t === 'dark' ? 'Dark mode' : 'Lofi mode'}
+                    aria-pressed={active}
                     style={{
                       width: 26,
                       height: 24,
@@ -976,7 +980,7 @@ export const ProtovibeApp: React.FC = () => {
                     onMouseEnter={e => { if (!active) { e.currentTarget.style.background = theme.bg_low; e.currentTarget.style.color = theme.text_secondary; } }}
                     onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.text_tertiary; } }}
                   >
-                    {t === 'light' ? '☀' : '☽'}
+                    {t === 'light' ? '☀' : t === 'dark' ? '☽' : '✎'}
                   </button>
                 );
               })}

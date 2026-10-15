@@ -1,3 +1,4 @@
+import { applyPreviewMode } from '../lofi/preview-mode';
 // plugins/protovibe/src/ui/bridge.ts
 // Runs inside app.html (the iframe). Intercepts canvas interactions and
 // communicates them to the parent Protovibe shell via postMessage.
@@ -7,6 +8,14 @@ import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
 import { SPEC_ATTR_PREFIX } from '../shared/specs';
 import { COMMENT_ATTR_PREFIX } from '../shared/comments';
+
+// Thumbnails run the app too: React autoFocus and mount effects can otherwise
+// steal focus from an annotation being typed while its delayed preview loads.
+// Inert must be set inside the document (not on the iframe) and before the app
+// mounts, rather than in init()/onLoad. Keep the canvas and full viewer interactive.
+if (window.parent !== window && window.name === 'pv-spec-thumbnail') {
+  document.documentElement.inert = true;
+}
 
 // Apply saved Protovibe theme preference immediately — before React mounts —
 // to avoid a flash of the wrong theme.
@@ -740,7 +749,7 @@ function handleParentMessage(e: MessageEvent) {
       document.body.style.cursor = isLocked ? 'progress' : '';
       break;
     case 'PV_SET_THEME':
-      document.documentElement.dataset.theme = e.data.theme;
+      applyPreviewMode(document, e.data.lofi ? 'lofi' : e.data.theme);
       break;
     case 'PV_CLEAR_STORAGE': {
       // The app iframe is same-origin with the shell, so they share one

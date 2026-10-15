@@ -34,6 +34,7 @@ function createSplashWindow() {
     resizable: false,
     fullscreenable: false,
     title: 'Protovibe',
+    backgroundColor: '#0f1117',
     webPreferences: {
       preload: path.join(__dirname, '..', 'splash', 'preload.js'),
       contextIsolation: true,
@@ -57,6 +58,7 @@ function createMainWindow(url) {
     minWidth: 800,
     minHeight: 560,
     title: 'Protovibe',
+    backgroundColor: '#0f1117',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

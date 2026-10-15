@@ -1,3 +1,4 @@
+import type { PreviewMode } from '../../../lofi/preview-mode';
 // plugins/protovibe/src/ui/components/specs/SpecDocView.tsx
 // The spec document: one spec's headings and annotations in order, edited in
 // place like a doc — headings and annotation text are click-to-edit, the
@@ -120,6 +121,8 @@ export interface SpecDocViewProps {
   onUpdateItem: (itemId: string, patch: SpecItemPatch, note: string) => void;
   onDeleteItem: (itemId: string) => void;
   onExport: (action: SpecExportAction) => void;
+  /** Re-read the spec from disk now (it also refreshes on its own while shown). */
+  onReload: () => void;
   onDeleteSpec: () => void;
   initialScrollTop: number;
   onScrollChange: (top: number) => void;
@@ -134,8 +137,8 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
   const [thumbReload, setThumbReload] = useState(0);
-  // Thumbnails follow the editor's light/dark switch, exactly like the canvas.
-  const { iframeTheme } = useProtovibe();
+  // Thumbnails follow the editor's preview mode, exactly like the canvas.
+  const { previewMode } = useProtovibe();
 
   // Drag reorder state: the dragged items (one row, or the whole
   // multi-selection) and the insertion slot under the cursor.
@@ -357,6 +360,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             <button style={{ ...iconBtn, opacity: p.onNext ? 1 : 0.35 }} disabled={!p.onNext} data-testid="spec-annotation-next" data-tooltip="Next annotation (→)" onClick={p.onNext}><ChevronRight size={16} /></button>
           </>
         )}
+        <button style={iconBtn} disabled={p.busy} data-testid="spec-reload" data-tooltip="Reload spec from disk" onClick={p.onReload}><RefreshCw size={14} /></button>
         <button ref={menuRef} style={iconBtn} data-tooltip="More" onClick={() => setMenuOpen(true)}><MoreHorizontal size={15} /></button>
         <Menu
           open={menuOpen}
@@ -476,7 +480,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   scrollRoot={scrollEl}
                   thumbReload={thumbReload}
                   thumbHoldUntil={p.thumbHolds[it.id]}
-                  thumbTheme={iframeTheme}
+                  thumbTheme={previewMode}
                   onSelect={(keepFocus) => { selectOnly(it.id); p.onSelectAnnotation(it.id, keepFocus); }}
                   onUpdate={(patch, note) => p.onUpdateItem(it.id, patch, note)}
                   onUpdateReference={() => p.onUpdateReference(it.id)}
@@ -663,7 +667,7 @@ const AnnotationRow: React.FC<{
   scrollRoot: HTMLElement | null;
   thumbReload: number;
   thumbHoldUntil?: number;
-  thumbTheme: 'light' | 'dark';
+  thumbTheme: PreviewMode;
   onSelect: (keepFocus: boolean) => void;
   onUpdate: (patch: SpecItemPatch, note: string) => void;
   onUpdateReference: () => void;

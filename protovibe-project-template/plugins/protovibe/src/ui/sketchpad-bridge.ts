@@ -1,3 +1,4 @@
+import { applyPreviewMode } from '../lofi/preview-mode';
 // plugins/protovibe/src/ui/sketchpad-bridge.ts
 // Runs inside sketchpad.html (the sketchpad iframe). Targets only elements
 // tagged with data-pv-sketchpad-el (absolutely-positioned sketchpad components).
@@ -1897,7 +1898,7 @@ function handleParentMessage(e: MessageEvent) {
     }
     updateOutlines();
   }
-  if (e.data.type === 'PV_SET_THEME') document.documentElement.dataset.theme = e.data.theme;
+  if (e.data.type === 'PV_SET_THEME') applyPreviewMode(document, e.data.lofi ? 'lofi' : e.data.theme);
   if (e.data.type === 'PV_SET_ACTIVE_SOURCE_ID') {
     currentActiveSourceId = e.data.activeSourceId;
   }

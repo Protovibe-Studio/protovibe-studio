@@ -1,0 +1,43 @@
+/* More specific than the project's [data-theme] blocks, including live token
+   previews. Only these semantic tokens change; background colors stay intact. */
+html[data-pv-lofi="true"] {
+  --foreground-default: #111111 !important;
+  --foreground-secondary: #555555 !important;
+  --foreground-tertiary: #737373 !important;
+  --foreground-strong: #000000 !important;
+  --foreground-disabled: #999999 !important;
+  --foreground-inverse: #eeeeee !important;
+  --foreground-on-primary: #eeeeee !important;
+  --foreground-primary: #111111 !important;
+  --foreground-primary-link: #111111 !important;
+  --foreground-destructive: #333333 !important;
+  --foreground-success: #333333 !important;
+  --foreground-warning: #333333 !important;
+  --foreground-info: #333333 !important;
+  --gradient-foreground-special: linear-gradient(#111111, #111111) !important;
+
+  --border-default: #000000 !important;
+  --border-secondary: #000000 !important;
+  --border-strong: #000000 !important;
+  --border-focus: #000000 !important;
+  --border-primary: #000000 !important;
+  --border-destructive: #000000 !important;
+  --border-success: #000000 !important;
+  --border-warning: #000000 !important;
+  --border-info: #000000 !important;
+  --gradient-border-special: linear-gradient(#000000, #000000) !important;
+
+  --font-sans: 'Balsamiq Sans', sans-serif !important;
+  --font-secondary: 'Balsamiq Sans', sans-serif !important;
+  --font-serif: 'Balsamiq Sans', sans-serif !important;
+  --font-mono: 'Balsamiq Sans', sans-serif !important;
+  --default-font-family: 'Balsamiq Sans', sans-serif !important;
+  --default-mono-font-family: 'Balsamiq Sans', sans-serif !important;
+  font-family: 'Balsamiq Sans', sans-serif;
+}
+
+/* The template body sets a literal system font; native controls can do so too. */
+html[data-pv-lofi="true"] body,
+html[data-pv-lofi="true"] :where(button, input, select, textarea) {
+  font-family: 'Balsamiq Sans', sans-serif;
+}
