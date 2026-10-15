@@ -124,6 +124,59 @@ export function DashboardPage() {
               {/* pv-editable-zone-end:fl9kxd */}
             </Card>
             {/* pv-block-end:lf7bog */}
+            {/* pv-block-start:d36tba */}
+            <Card className="gap-4 items-stretch" data-pv-block="d36tba">
+              {/* pv-editable-zone-start:tg5xgy */}
+                {/* pv-block-start:fc34u6 */}
+                <div data-pv-block="fc34u6" className="flex gap-3 flex-col items-start grow">
+                  {/* pv-editable-zone-start:xbd2vc */}
+                  {/* pv-block-start:dtval8 */}
+                  <Icon className="text-foreground-primary" data-pv-block="dtval8" iconSymbol="lucide:sparkles" size="lg" />
+                  {/* pv-block-end:dtval8 */}
+                  {/* pv-block-start:v9egsq */}
+                  <div data-pv-block="v9egsq" className="flex flex-col gap-2">
+                    {/* pv-editable-zone-start:njwxcg */}
+                    {/* pv-block-start:vu0xmj */}
+                    <TextHeading data-pv-block="vu0xmj" typography="heading-sm">
+                      Work with your coding agent
+                    </TextHeading>
+                    {/* pv-block-end:vu0xmj */}
+                    {/* pv-block-start:0zr6kw */}
+                    <TextParagraph data-pv-block="0zr6kw" typography="small">
+                      Protovibe was built to let you design hand in hand with Claude, ChatGPT or any agent. Read the intro guide to learn how to set it up.
+                    </TextParagraph>
+                    {/* pv-block-end:0zr6kw */}
+
+                    {/* pv-block-start:ljmhof */}
+                    <TextParagraph className="text-foreground-primary" data-pv-block="ljmhof" typography="small">
+                      Double-click the button to read the docs.
+                    </TextParagraph>
+                    {/* pv-block-end:ljmhof */}
+                    {/* pv-editable-zone-end:njwxcg */}
+                  </div>
+                  {/* pv-block-end:v9egsq */}
+                  {/* pv-editable-zone-end:xbd2vc */}
+                </div>
+                {/* pv-block-end:fc34u6 */}
+
+                {/* pv-block-start:pbvk9r */}
+                <Container data-pv-block="pbvk9r">
+                  {/* pv-editable-zone-start:p9k4tj */}
+                    {/* pv-block-start:q8m2x7 */}
+                    <Button
+                      data-pv-block="q8m2x7"
+                      label="Read the intro guide"
+                      variant="solid"
+                      color="primary"
+                      onClick={() => window.open('https://protovibe-studio.github.io/docs', '_blank', 'noopener,noreferrer')}
+                    />
+                    {/* pv-block-end:q8m2x7 */}
+                  {/* pv-editable-zone-end:p9k4tj */}
+                </Container>
+                {/* pv-block-end:pbvk9r */}
+              {/* pv-editable-zone-end:tg5xgy */}
+            </Card>
+            {/* pv-block-end:d36tba */}
             {/* pv-block-start:58e4sq */}
             <Card className="gap-4 items-stretch" data-pv-block="58e4sq">
               {/* pv-editable-zone-start:lzk3wr */}
@@ -178,50 +231,6 @@ export function DashboardPage() {
               {/* pv-editable-zone-end:lzk3wr */}
             </Card>
             {/* pv-block-end:58e4sq */}
-            {/* pv-block-start:d36tba */}
-            <Card className="gap-4 items-stretch" data-pv-block="d36tba">
-              {/* pv-editable-zone-start:tg5xgy */}
-                {/* pv-block-start:fc34u6 */}
-                <div data-pv-block="fc34u6" className="flex gap-3 flex-col items-start grow">
-                  {/* pv-editable-zone-start:xbd2vc */}
-                  {/* pv-block-start:dtval8 */}
-                  <Icon className="text-foreground-primary" data-pv-block="dtval8" iconSymbol="material-symbols:add" size="lg" />
-                  {/* pv-block-end:dtval8 */}
-                  {/* pv-block-start:v9egsq */}
-                  <div data-pv-block="v9egsq" className="flex flex-col gap-2">
-                    {/* pv-editable-zone-start:njwxcg */}
-                    {/* pv-block-start:vu0xmj */}
-                    <TextHeading data-pv-block="vu0xmj" typography="heading-sm">
-                      Add elements manually
-                    </TextHeading>
-                    {/* pv-block-end:vu0xmj */}
-                    {/* pv-block-start:0zr6kw */}
-                    <TextParagraph data-pv-block="0zr6kw" typography="small">
-                      Click the container below. Then, in the bottom floating toolbar, click "Add inside". It's faster if you use the Cmd+E shortcut. Try adding a button inside.
-                    </TextParagraph>
-                    {/* pv-block-end:0zr6kw */}
-            
-                    {/* pv-block-start:ljmhof */}
-                    <TextParagraph className="text-foreground-primary text-sm" data-pv-block="ljmhof" typography="regular">
-                      Try adding a button inside the container below.
-                    </TextParagraph>
-                    {/* pv-block-end:ljmhof */}
-                    {/* pv-editable-zone-end:njwxcg */}
-                  </div>
-                  {/* pv-block-end:v9egsq */}
-                  {/* pv-editable-zone-end:xbd2vc */}
-                </div>
-                {/* pv-block-end:fc34u6 */}
-            
-                {/* pv-block-start:pbvk9r */}
-                <Container data-pv-block="pbvk9r">
-                  {/* pv-editable-zone-start:p9k4tj */}
-                  {/* pv-editable-zone-end:p9k4tj */}
-                </Container>
-                {/* pv-block-end:pbvk9r */}
-              {/* pv-editable-zone-end:tg5xgy */}
-            </Card>
-            {/* pv-block-end:d36tba */}
             {/* pv-editable-zone-end:ewz19j */}
           </div>
           {/* pv-block-end:pf1hzs */}
