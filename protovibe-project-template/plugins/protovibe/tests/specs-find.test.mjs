@@ -134,6 +134,17 @@ for (const [name, path] of [['editor', '/editor'], ['published-viewer', '/specs.
     assert.equal(await page.locator('mark').count(), 4);
     assert.equal(await page.locator('[data-spec-item]').count(), name === 'editor' ? 6 : 5);
     assert.equal(await page.locator('mark[data-spec-find-active="true"]').textContent(), 'Checkout');
+    if (name === 'editor') {
+      for (const field of await page.locator('[data-spec-item] textarea, [data-spec-item] input').all()) {
+        assert.equal(await field.evaluate(el => {
+          const overlay = el.nextElementSibling;
+          if (!overlay) return true;
+          const inputRect = el.getBoundingClientRect();
+          const overlayRect = overlay.getBoundingClientRect();
+          return inputRect.x === overlayRect.x && inputRect.y === overlayRect.y && inputRect.width === overlayRect.width;
+        }), true, 'highlight text stays aligned with its editable field');
+      }
+    }
     await input.press('Enter');
     await count(page, '2 of 4');
     assert.equal(await page.locator('[data-spec-item="a-cart"] mark[data-spec-find-active="true"]').count(), 1);

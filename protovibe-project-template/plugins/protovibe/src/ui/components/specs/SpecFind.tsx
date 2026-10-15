@@ -85,11 +85,14 @@ export const SpecFindBar: React.FC<{
           }}
           placeholder={placeholder}
           style={{
-            width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '5px 6px 5px 28px',
+            width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '5px 28px',
             background: theme.bg_secondary, border: `1px solid ${theme.border_default}`, borderRadius: 6,
             color: theme.text_default, fontSize: 11, outline: 'none', fontFamily: theme.font_ui,
           }}
         />
+        {query && <button type="button" data-testid="spec-find-clear" aria-label="Clear find" title="Clear find (Escape)"
+          onClick={() => { onQueryChange(''); inputRef.current?.focus(); }}
+          style={{ ...buttonStyle, position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: theme.text_tertiary }}><X size={12} /></button>}
       </div>
       {query && <>
         <span role="status" aria-live="polite" data-testid="spec-find-count" style={{ fontSize: 10, color: theme.text_secondary, whiteSpace: 'nowrap' }}>
@@ -103,8 +106,6 @@ export const SpecFindBar: React.FC<{
             {delta < 0 ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         ))}
-        <button type="button" data-testid="spec-find-clear" aria-label="Clear find" title="Clear find (Escape)"
-          onClick={() => { onQueryChange(''); inputRef.current?.focus(); }} style={buttonStyle}><X size={12} /></button>
       </>}
     </div>
   );

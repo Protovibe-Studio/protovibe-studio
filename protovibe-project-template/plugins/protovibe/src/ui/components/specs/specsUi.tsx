@@ -356,6 +356,9 @@ export const InlineEditable: React.FC<{
     {input}
     {showHighlight && <div aria-hidden="true" style={{
       ...shared.style, position: 'absolute', top: 0, left: 0, height: '100%',
+      // The field's vertical margins collapse through the wrapper. The
+      // positioned overlay must not apply those margins a second time.
+      marginBlock: 0,
       color: baseStyle.color, pointerEvents: 'none',
       whiteSpace: multiline ? 'pre-wrap' : 'pre', overflowWrap: 'break-word',
     }}><SpecFindText text={draft} highlight={highlight} /></div>}
