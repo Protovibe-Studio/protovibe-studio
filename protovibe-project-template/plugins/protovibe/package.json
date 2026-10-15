@@ -15,6 +15,7 @@
     "build": "tsup src/index.ts --format esm --dts && esbuild src/ui/inspector.tsx --bundle --minify --outfile=dist/ui/inspector.js && esbuild src/ui/bridge.ts --bundle --minify --outfile=dist/ui/bridge.js && esbuild src/ui/sketchpad-bridge.ts --bundle --minify --outfile=dist/ui/sketchpad-bridge.js && esbuild src/specs-viewer/main.tsx --bundle --minify --outfile=dist/ui/specs-viewer.js && node scripts/write-build-info.js",
     "watch:node": "tsup src/index.ts --format esm --dts --watch",
     "watch:ui": "node scripts/watch-ui.js",
+    "test:specs-find": "node --test tests/specs-find.test.mjs",
     "test:specs-focus": "node --test tests/specs-focus.test.mjs",
     "test:comments-live": "node --test tests/comments-live.test.mjs",
     "test:lofi": "node --test tests/lofi.test.mjs",

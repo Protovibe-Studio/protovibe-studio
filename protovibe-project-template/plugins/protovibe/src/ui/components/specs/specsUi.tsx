@@ -9,6 +9,8 @@ import { theme } from '../../theme';
 import type { SpecStatus } from '../../../shared/specs';
 import { SPEC_STATUSES, SPEC_STATUS_CONFIG } from '../../../shared/specs';
 
+import { SpecFindText, type SpecFindHighlight } from './SpecFind';
+
 export { SPEC_STATUS_CONFIG };
 
 /**
@@ -249,7 +251,8 @@ export const InlineEditable: React.FC<{
   disabled?: boolean;
   /** Select the whole value when focus is requested (typing replaces it). */
   selectAllOnEdit?: boolean;
-}> = ({ value, onSave, placeholder, multiline, style, editing, onEditingChange, disabled, selectAllOnEdit }) => {
+  highlight?: SpecFindHighlight;
+}> = ({ value, onSave, placeholder, multiline, style, editing, onEditingChange, disabled, selectAllOnEdit, highlight }) => {
   const [draft, setDraft] = useState(value);
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
@@ -304,6 +307,7 @@ export const InlineEditable: React.FC<{
     ...style,
   };
 
+  const showHighlight = !focused && !!highlight?.query.trim() && draft.toLowerCase().includes(highlight.query.trim().toLowerCase());
   const shared = {
     className: INLINE_EDITABLE_CLASS,
     value: draft,
@@ -324,6 +328,7 @@ export const InlineEditable: React.FC<{
     style: {
       ...baseStyle,
       background: 'transparent',
+      color: showHighlight ? 'transparent' : baseStyle.color,
       // Transparent rather than none: keeps the box metrics stable.
       border: '1px solid transparent',
       outline: 'none',
@@ -334,7 +339,7 @@ export const InlineEditable: React.FC<{
     },
   };
 
-  return multiline ? (
+  const input = multiline ? (
     <textarea
       ref={ref as React.RefObject<HTMLTextAreaElement>}
       {...shared}
@@ -344,6 +349,17 @@ export const InlineEditable: React.FC<{
   ) : (
     <input ref={ref as React.RefObject<HTMLInputElement>} {...shared} onChange={(e) => setBoth(e.target.value)} />
   );
+  // Keep the real field mounted so clicking highlighted text still places the
+  // caret normally. The overlay uses the exact input metrics and never handles events.
+  if (!highlight) return input;
+  return <div style={{ position: 'relative' }}>
+    {input}
+    {showHighlight && <div aria-hidden="true" style={{
+      ...shared.style, position: 'absolute', top: 0, left: 0, height: '100%',
+      color: baseStyle.color, pointerEvents: 'none',
+      whiteSpace: multiline ? 'pre-wrap' : 'pre', overflowWrap: 'break-word',
+    }}><SpecFindText text={draft} highlight={highlight} /></div>}
+  </div>;
 };
 
 export function relativeTime(iso: string): string {
