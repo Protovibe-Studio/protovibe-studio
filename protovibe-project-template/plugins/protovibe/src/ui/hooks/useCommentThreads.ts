@@ -33,7 +33,16 @@ export function useCommentThreads(
   const suspect = useRef({ key: '', count: 0 });
 
   const accept = useCallback((snapshot: CommentThreadsSnapshot, confirmedDeletions: readonly string[] = []) => {
-    const { threads: next, unreadable } = snapshot;
+    // A repeatedly unreadable file is still not evidence of deletion. Keep
+    // that thread's last readable state until it recovers, without blocking
+    // healthy threads. Diagnostics use project-relative paths in either layout.
+    const unreadableThreads = new Set(snapshot.unreadable.map(file => {
+      const normalized = file.replace(/\\/g, '/');
+      return normalized.includes('/') ? normalized.split('/')[0]
+        : normalized.replace(/^comment-/, '').replace(/\.json$/, '');
+    }));
+    const next = snapshot.threads.filter(t => !unreadableThreads.has(t.id));
+    next.push(...threadsRef.current.filter(t => unreadableThreads.has(t.id)));
     // Missing messages/threads may be an editor's atomic replacement or a sync
     // in progress. Confirm the same missing set before discarding local state.
     // Only a successful local delete can bypass confirmation for that exact id.
@@ -43,8 +52,8 @@ export function useCommentThreads(
       if (!nextThread) return [t.id];
       return t.comments.filter(c => !nextThread.comments.some(n => n.id === c.id)).map(c => `${t.id}/${c.id}`);
     }).filter(id => !confirmedDeletions.includes(id));
-    const key = JSON.stringify([[...unreadable].sort(), missing.sort()]);
-    if (unreadable.length || missing.length) {
+    const key = JSON.stringify(missing.sort());
+    if (missing.length) {
       suspect.current = { key, count: key === suspect.current.key ? suspect.current.count + 1 : 1 };
       if (suspect.current.count < SUSPECT_READS_TO_ACCEPT) return;
     } else suspect.current = { key: '', count: 0 };

@@ -166,6 +166,29 @@ test('torn writes and temporary deletion keep the current thread and edit draft 
   } finally { await page.close(); }
 });
 
+test('persistent unreadable files preserve edit drafts while healthy threads keep refreshing', async () => {
+  const page = await openPage();
+  try {
+    await page.getByText('Initial comment', { exact: true }).click();
+    await page.locator('[data-pv-comment-row="c-first"]').hover();
+    await page.locator('[data-tooltip="Edit"]').click();
+    const editor = page.locator('textarea').first();
+    await editor.fill('Keep my edit until the file is readable');
+    write('first/c-first.json', '{');
+    thread('second', 'Healthy thread added during broken write');
+    for (let i = 0; i < 4; i++) await poll(page);
+    assert.equal(await editor.inputValue(), 'Keep my edit until the file is readable');
+    assert.equal(await page.getByRole('button', { name: 'Save', exact: true }).count(), 1);
+    await page.getByRole('button', { name: 'Back to all threads' }).click();
+    await page.getByText('Healthy thread added during broken write', { exact: true }).waitFor();
+    await page.getByText('Initial comment', { exact: true }).waitFor();
+    write('first/c-first.json', message('c-first', 'Recovered message'));
+    await poll(page);
+    await page.getByText('Recovered message', { exact: true }).waitFor();
+    assert.deepEqual(page.errors, []);
+  } finally { await page.close(); }
+});
+
 test('Accepted persists through API and filters; stale poll cannot overwrite a local status change', async () => {
   const page = await openPage();
   try {
