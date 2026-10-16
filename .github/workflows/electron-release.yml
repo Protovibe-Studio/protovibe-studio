@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   mac:
-    runs-on: macos-14
+    runs-on: macos-15
     # ── Approval gate: same required reviewer that gates source releases ──
     environment: release-signing
     steps:
