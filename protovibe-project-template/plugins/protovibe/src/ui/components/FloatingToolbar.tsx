@@ -32,6 +32,7 @@ export const FloatingToolbar: React.FC = () => {
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [convertSnapshot, setConvertSnapshot] = useState<DomSnapshot | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const addSearchRef = useRef<HTMLInputElement>(null);
@@ -65,6 +66,8 @@ export const FloatingToolbar: React.FC = () => {
         if (currentBaseTarget) openNotEditableDialog();
         return;
       }
+      setAddMenuOpen(false);
+      setMoreOpen(false);
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -82,6 +85,8 @@ export const FloatingToolbar: React.FC = () => {
         if (currentBaseTarget) openNotEditableDialog();
         return;
       }
+      setAddMenuOpen(false);
+      setMoreOpen(false);
       refreshComponents();
       setAddSearch('');
       setActiveIndex(0);
@@ -115,16 +120,20 @@ export const FloatingToolbar: React.FC = () => {
     };
   }, [showAddDialog]);
 
-  // Close the "more" menu on outside click or Escape
+  // Close toolbar menus on outside click or Escape
   useEffect(() => {
-    if (!moreOpen) return;
+    if (!moreOpen && !addMenuOpen) return;
     const handleMouse = (e: MouseEvent) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
         setMoreOpen(false);
+        setAddMenuOpen(false);
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMoreOpen(false);
+      if (e.key === 'Escape') {
+        setMoreOpen(false);
+        setAddMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleMouse);
     document.addEventListener('keydown', handleKey);
@@ -132,7 +141,7 @@ export const FloatingToolbar: React.FC = () => {
       document.removeEventListener('mousedown', handleMouse);
       document.removeEventListener('keydown', handleKey);
     };
-  }, [moreOpen]);
+  }, [moreOpen, addMenuOpen]);
 
   // Keep the toolbar visible for any selected element — even ones that are not
   // pv blocks. Actions that need a block open the "not editable" dialog instead.
@@ -517,11 +526,11 @@ export const FloatingToolbar: React.FC = () => {
     );
   };
 
-  const renderMoreMenuItem = (
+  const renderMenuItem = (
     icon: React.ReactNode,
     label: string,
     onClick: () => void,
-    opts?: { shortcut?: string; testId?: string },
+    opts?: { shortcut?: string; testId?: string; description?: string },
   ) => (
     <button
       data-testid={opts?.testId}
@@ -545,11 +554,61 @@ export const FloatingToolbar: React.FC = () => {
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
     >
       {icon}
-      <span style={{ flex: 1 }}>{label}</span>
+      <span style={{ flex: 1 }}>
+        <span style={{ display: 'block' }}>{label}</span>
+        {opts?.description && (
+          <span style={{ display: 'block', color: theme.text_tertiary, fontSize: '10px', marginTop: '3px' }}>{opts.description}</span>
+        )}
+      </span>
       {opts?.shortcut && (
         <span style={{ color: theme.text_tertiary, fontSize: '10px', letterSpacing: '0.5px' }}>{opts.shortcut}</span>
       )}
     </button>
+  );
+
+  const handleOpenAddDialog = (mode: 'child' | 'after') => {
+    setAddMenuOpen(false);
+    if (!(mode === 'child' ? canAdd : canBlockAction)) {
+      openNotEditableDialog();
+      return;
+    }
+    refreshComponents();
+    setAddSearch('');
+    setActiveIndex(0);
+    setAddMode(mode);
+  };
+
+  const renderAddMenu = () => (
+    <div
+      id="pv-add-menu"
+      data-testid="add-menu"
+      style={{
+        position: 'absolute',
+        bottom: 'calc(100% + 8px)',
+        left: 0,
+        minWidth: '320px',
+        background: theme.bg_secondary,
+        border: `1px solid ${theme.border_default}`,
+        borderRadius: '8px',
+        boxShadow: '0 8px 28px rgba(0,0,0,0.55)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {renderMenuItem(
+        <Plus size={13} strokeWidth={2} />,
+        'New element inside',
+        () => handleOpenAddDialog('child'),
+        { description: 'Add a child element inside selection', shortcut: '⌘E', testId: 'item-add-child' },
+      )}
+      {renderMenuItem(
+        <Plus size={13} strokeWidth={2} />,
+        'New element after',
+        () => handleOpenAddDialog('after'),
+        { description: 'Add a sibling element after selection', shortcut: '⌘⇧E', testId: 'item-add-after' },
+      )}
+    </div>
   );
 
   const renderMoreMenu = () => (
@@ -568,32 +627,32 @@ export const FloatingToolbar: React.FC = () => {
         overflow: 'hidden',
       }}
     >
-      {renderMoreMenuItem(
+      {renderMenuItem(
         <Copy size={13} strokeWidth={2} />,
         'Copy',
         () => handleClipboardAction('copy'),
         { shortcut: '⌘C', testId: 'item-copy' },
       )}
-      {renderMoreMenuItem(
+      {renderMenuItem(
         <CopyPlus size={13} strokeWidth={2} />,
         'Duplicate',
         () => handleClipboardAction('duplicate'),
         { shortcut: '⌘D', testId: 'item-duplicate' },
       )}
-      {renderMoreMenuItem(
+      {renderMenuItem(
         <Clipboard size={13} strokeWidth={2} />,
         'Paste',
         () => handlePasteBlock(false),
         { shortcut: '⌘V', testId: 'item-paste' },
       )}
-      {renderMoreMenuItem(
+      {renderMenuItem(
         <ClipboardPaste size={13} strokeWidth={2} />,
         'Paste after',
         () => handlePasteBlock(true),
         { shortcut: '⌘⇧V', testId: 'item-paste-after' },
       )}
       <div style={{ height: '1px', background: theme.border_secondary, margin: '4px 0' }} />
-      {renderMoreMenuItem(
+      {renderMenuItem(
         <PenTool size={13} strokeWidth={2} />,
         'Convert to Sketchpad…',
         handleOpenConvertDialog,
@@ -609,6 +668,7 @@ export const FloatingToolbar: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     setAddMode(null);
+    setAddMenuOpen(false);
     setMoreOpen(false);
   };
 
@@ -632,6 +692,7 @@ export const FloatingToolbar: React.FC = () => {
     >
       {showAddDialog && renderAddDialog()}
       {moreOpen && renderMoreMenu()}
+      {addMenuOpen && renderAddMenu()}
 
       <div
         style={{
@@ -682,64 +743,28 @@ export const FloatingToolbar: React.FC = () => {
               <button
                 disabled={locked}
                 onClick={() => {
-                  if (!canAdd) {
-                    openNotEditableDialog();
-                    return;
-                  }
-                  if (addMode !== 'child') {
-                    refreshComponents();
-                    setAddSearch('');
-                    setActiveIndex(0);
-                  }
-                  setAddMode(prev => prev === 'child' ? null : 'child');
+                  setAddMode(null);
+                  setMoreOpen(false);
+                  setAddMenuOpen(prev => !prev);
                 }}
-                onMouseEnter={() => setHoveredBtn('add-child')}
+                onMouseEnter={() => setHoveredBtn('add')}
                 onMouseLeave={() => setHoveredBtn(null)}
-                style={mkBtnStyle('add-child', {
-                  minWidth: '120px',
+                style={mkBtnStyle('add', {
+                  minWidth: '100px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '5px',
-                  color: addMode === 'child' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                  background: addMode === 'child' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-child' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
+                  color: addMenuOpen || showAddDialog ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
+                  background: addMenuOpen || showAddDialog ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                 })}
-                data-tooltip={canAdd ? 'Add child element' : NOT_EDITABLE_TOOLTIP}
-                data-testid="btn-add-child"
+                aria-expanded={addMenuOpen}
+                aria-controls="pv-add-menu"
+                data-tooltip="Add element"
+                data-testid="btn-add-menu"
               >
                 <Plus size={13} strokeWidth={2.5} />
-                Add child
-              </button>
-              {divider}
-              <button
-                disabled={locked}
-                onClick={() => {
-                  if (!canBlockAction) {
-                    openNotEditableDialog();
-                    return;
-                  }
-                  if (addMode !== 'after') {
-                    refreshComponents();
-                    setAddSearch('');
-                    setActiveIndex(0);
-                  }
-                  setAddMode(prev => prev === 'after' ? null : 'after');
-                }}
-                onMouseEnter={() => setHoveredBtn('add-after')}
-                onMouseLeave={() => setHoveredBtn(null)}
-                style={mkBtnStyle('add-after', {
-                  minWidth: '120px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  color: addMode === 'after' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
-                  background: addMode === 'after' ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add-after' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
-                })}
-                data-tooltip={canBlockAction ? 'Add element after' : NOT_EDITABLE_TOOLTIP}
-              >
-                <Plus size={13} strokeWidth={2.5} />
-                Add after
+                Add
               </button>
               {divider}
               <button
@@ -811,6 +836,7 @@ export const FloatingToolbar: React.FC = () => {
                     disabled={locked}
                     onClick={() => {
                       setAddMode(null);
+                      setAddMenuOpen(false);
                       setMoreOpen(prev => !prev);
                     }}
                     onMouseEnter={() => setHoveredBtn('more')}
