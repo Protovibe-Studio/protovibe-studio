@@ -35,6 +35,8 @@ export const FloatingToolbar: React.FC = () => {
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [convertSnapshot, setConvertSnapshot] = useState<DomSnapshot | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const addMenuRef = useRef<HTMLDivElement>(null);
   const addSearchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +103,10 @@ export const FloatingToolbar: React.FC = () => {
     if (addMode !== null) addSearchRef.current?.focus();
   }, [addMode]);
 
+  useEffect(() => {
+    if (addMenuOpen) addMenuRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
+  }, [addMenuOpen]);
+
   // Close add dialog on outside click or Escape
   useEffect(() => {
     if (!showAddDialog) return;
@@ -131,6 +137,11 @@ export const FloatingToolbar: React.FC = () => {
     };
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (addMenuOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          addButtonRef.current?.focus();
+        }
         setMoreOpen(false);
         setAddMenuOpen(false);
       }
@@ -530,10 +541,12 @@ export const FloatingToolbar: React.FC = () => {
     icon: React.ReactNode,
     label: string,
     onClick: () => void,
-    opts?: { shortcut?: string; testId?: string; description?: string },
+    opts?: { shortcut?: string; testId?: string; description?: string; menuItem?: boolean },
   ) => (
     <button
       data-testid={opts?.testId}
+      role={opts?.menuItem ? 'menuitem' : undefined}
+      tabIndex={opts?.menuItem ? -1 : undefined}
       disabled={locked}
       onClick={onClick}
       style={{
@@ -578,8 +591,40 @@ export const FloatingToolbar: React.FC = () => {
     setAddMode(mode);
   };
 
+  const handleAddMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Preserve direct Cmd/Ctrl shortcuts, but keep menu keys away from canvas
+    // navigation (Enter selects children there; Escape clears selection).
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.stopPropagation();
+    if (e.key === 'Escape' || e.key === 'Tab') {
+      setAddMenuOpen(false);
+      addButtonRef.current?.focus();
+      // Forward Tab proceeds to the next toolbar action; Shift+Tab returns
+      // to the trigger. Neither leaves focus in the removed menu.
+      if (e.key === 'Escape' || e.shiftKey) e.preventDefault();
+      return;
+    }
+    const items = Array.from(addMenuRef.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? []);
+    if (!items.length) return;
+    const index = items.indexOf(document.activeElement as HTMLButtonElement);
+    let next: number;
+    switch (e.key) {
+      case 'ArrowDown': next = (index + 1) % items.length; break;
+      case 'ArrowUp': next = (index - 1 + items.length) % items.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = items.length - 1; break;
+      default: return; // Preserve native Enter/Space button activation.
+    }
+    e.preventDefault();
+    items[next].focus();
+  };
+
   const renderAddMenu = () => (
     <div
+      ref={addMenuRef}
+      role="menu"
+      aria-label="Add element"
+      onKeyDown={handleAddMenuKeyDown}
       id="pv-add-menu"
       data-testid="add-menu"
       style={{
@@ -600,13 +645,13 @@ export const FloatingToolbar: React.FC = () => {
         <Plus size={13} strokeWidth={2} />,
         'New element inside',
         () => handleOpenAddDialog('child'),
-        { description: 'Add a child element inside selection', shortcut: '⌘E', testId: 'item-add-child' },
+        { description: 'Add a child element inside selection', shortcut: '⌘E', testId: 'item-add-child', menuItem: true },
       )}
       {renderMenuItem(
         <Plus size={13} strokeWidth={2} />,
         'New element after',
         () => handleOpenAddDialog('after'),
-        { description: 'Add a sibling element after selection', shortcut: '⌘⇧E', testId: 'item-add-after' },
+        { description: 'Add a sibling element after selection', shortcut: '⌘⇧E', testId: 'item-add-after', menuItem: true },
       )}
     </div>
   );
@@ -758,6 +803,20 @@ export const FloatingToolbar: React.FC = () => {
                   color: addMenuOpen || showAddDialog ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.82)',
                   background: addMenuOpen || showAddDialog ? 'rgba(255,255,255,0.1)' : (hoveredBtn === 'add' && !locked ? 'rgba(255,255,255,0.07)' : 'transparent'),
                 })}
+                ref={addButtonRef}
+                onKeyDown={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.altKey) return;
+                  if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
+                  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (locked || blockCanvasEditIfLocked()) return;
+                    setAddMode(null);
+                    setMoreOpen(false);
+                    setAddMenuOpen(true);
+                  }
+                }}
+                aria-haspopup="menu"
                 aria-expanded={addMenuOpen}
                 aria-controls="pv-add-menu"
                 data-tooltip="Add element"
