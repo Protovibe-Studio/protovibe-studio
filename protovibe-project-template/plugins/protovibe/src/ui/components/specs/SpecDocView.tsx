@@ -703,7 +703,7 @@ const AnnotationRow: React.FC<{
     // Wording check status: a separate track, aligned with the thumbnail’s bottom edge.
     ...wordingItems(true),
     { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, separator: true, onSelect: () => {} },
-    { label: 'Copy link', icon: <Link2 size={13} />, separator: true, onSelect: onCopyLink },
+    { label: 'Copy published link', icon: <Link2 size={13} />, separator: true, onSelect: onCopyLink },
     { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, onSelect: onDelete },
   ];
   return (
