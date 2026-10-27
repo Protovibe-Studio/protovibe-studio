@@ -34,6 +34,7 @@ import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
 import { SpecDocView, annotationMatches, type InsertKind, type SpecScope, type SpecStatusFilter } from './specs/SpecDocView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
+import { viewerLink } from '../../shared/specs-export';
 
 type SpecsView =
   | { level: 'docs' }
@@ -505,6 +506,24 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     downloadText(content, filename, action === 'html' ? 'text/html' : 'text/markdown');
   });
 
+  const handleCopyLink = (itemId: string) => run(async () => {
+    if (!bundle) return;
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+      // Start the clipboard write during the click: awaiting the metadata
+      // request first loses user activation in browsers such as Safari.
+      const text = fetchPublishedUrl().then((url) => {
+        const latestUrl = url || publishedUrl;
+        if (latestUrl !== publishedUrl) setPublishedUrl(latestUrl);
+        return new Blob([viewerLink(latestUrl, bundle.spec.id, itemId)], { type: 'text/plain' });
+      });
+      await navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })]);
+    } else {
+      // Older browsers use the URL already loaded when Specs was opened.
+      await navigator.clipboard.writeText(viewerLink(publishedUrl, bundle.spec.id, itemId));
+    }
+    emitToast({ message: 'Link copied to clipboard', variant: 'success', durationMs: 2500 });
+  });
+
   // ── navigation ────────────────────────────────────────────────────────────────
   // Activate an annotation (highlight its row) and restore its state on the canvas.
   const selectAnnotation = useCallback((a: SpecAnnotation, keepFocus = false) => {
@@ -676,6 +695,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           onUpdateItem={handleUpdateItem}
           onUpdateReference={handleUpdateReference}
           onUnpin={handleUnpin}
+          onCopyLink={handleCopyLink}
           onDeleteItem={handleDeleteItem}
           onExport={(a) => handleExport(bundle.spec.id, a)}
           onReload={() => reloadSpec(bundle.spec.id)}
