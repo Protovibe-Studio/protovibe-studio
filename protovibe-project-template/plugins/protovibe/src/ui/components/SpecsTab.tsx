@@ -34,6 +34,7 @@ import { SpecsInlineStyles } from './specs/specsUi';
 import { SpecsDocList, type SpecExportAction } from './specs/SpecsDocList';
 import { SpecDocView, annotationMatches, type InsertKind, type SpecScope, type SpecStatusFilter } from './specs/SpecDocView';
 import { copySpecForDocs, downloadText } from './specs/specsExport';
+import { viewerLink } from '../../shared/specs-export';
 
 type SpecsView =
   | { level: 'docs' }
@@ -505,6 +506,14 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     downloadText(content, filename, action === 'html' ? 'text/html' : 'text/markdown');
   });
 
+  const handleCopyLink = (itemId: string) => run(async () => {
+    if (!bundle) return;
+    const url = (await fetchPublishedUrl()) || publishedUrl;
+    if (url !== publishedUrl) setPublishedUrl(url);
+    await navigator.clipboard.writeText(viewerLink(url, bundle.spec.id, itemId));
+    emitToast({ message: 'Link copied to clipboard', variant: 'success', durationMs: 2500 });
+  });
+
   // ── navigation ────────────────────────────────────────────────────────────────
   // Activate an annotation (highlight its row) and restore its state on the canvas.
   const selectAnnotation = useCallback((a: SpecAnnotation, keepFocus = false) => {
@@ -676,6 +685,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
           onUpdateItem={handleUpdateItem}
           onUpdateReference={handleUpdateReference}
           onUnpin={handleUnpin}
+          onCopyLink={handleCopyLink}
           onDeleteItem={handleDeleteItem}
           onExport={(a) => handleExport(bundle.spec.id, a)}
           onReload={() => reloadSpec(bundle.spec.id)}

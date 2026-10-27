@@ -110,6 +110,7 @@ export interface SpecDocViewProps {
   onNext?: () => void;
   onUpdateReference: (itemId: string) => void;
   onUnpin: (itemId: string) => void;
+  onCopyLink: (itemId: string) => void;
   /** Insert a new item before items[index] (index === items.length ⇒ append). */
   onInsert: (index: number, kind: InsertKind) => void;
   /**
@@ -473,6 +474,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
                   onUpdate={(patch, note) => p.onUpdateItem(it.id, patch, note)}
                   onUpdateReference={() => p.onUpdateReference(it.id)}
                   onUnpin={() => p.onUnpin(it.id)}
+                  onCopyLink={() => p.onCopyLink(it.id)}
                   onDelete={() => p.onDeleteItem(it.id)}
                   rowProps={rowProps}
                 />
@@ -661,9 +663,10 @@ const AnnotationRow: React.FC<{
   onUpdate: (patch: SpecItemPatch, note: string) => void;
   onUpdateReference: () => void;
   onUnpin: () => void;
+  onCopyLink: () => void;
   onDelete: () => void;
   rowProps: React.HTMLAttributes<HTMLDivElement> & { draggable: boolean };
-}> = ({ item, highlight, active, selected, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onDelete, rowProps }) => {
+}> = ({ item, highlight, active, selected, autoEditText, onAutoEditDone, busy, dragging, scrollRoot, thumbReload, thumbHoldUntil, thumbTheme, onSelect, onUpdate, onUpdateReference, onUnpin, onCopyLink, onDelete, rowProps }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordingMenuOpen, setWordingMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -686,7 +689,7 @@ const AnnotationRow: React.FC<{
     onSelect: () => onUpdate({ wordingStatus: item.wordingStatus === w ? null : w }, 'change wording check status'),
   }));
   const statusDot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />;
-  // Order: actions, then the status tracks, then who wrote it, then Delete.
+  // Order: actions, then the status tracks, then who wrote it, then Copy / Delete.
   const menuItems: MenuItem[] = [
     { label: 'Recapture link and element', icon: <RefreshCw size={13} />, onSelect: onUpdateReference, disabled: busy },
     { label: 'Show on canvas', icon: <Link2 size={13} />, onSelect: () => onSelect(false) },
@@ -700,7 +703,8 @@ const AnnotationRow: React.FC<{
     // Wording check status: a separate track, aligned with the thumbnail’s bottom edge.
     ...wordingItems(true),
     { label: item.author.name, hint: item.updatedAt ? `edited ${relativeTime(item.updatedAt)}` : relativeTime(item.createdAt), icon: <User size={13} />, info: true, separator: true, onSelect: () => {} },
-    { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, separator: true, onSelect: onDelete },
+    { label: 'Copy link', icon: <Link2 size={13} />, separator: true, onSelect: onCopyLink },
+    { label: 'Delete annotation', icon: <Trash2 size={13} />, danger: true, onSelect: onDelete },
   ];
   return (
     <div
