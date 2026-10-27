@@ -508,9 +508,19 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
 
   const handleCopyLink = (itemId: string) => run(async () => {
     if (!bundle) return;
-    const url = (await fetchPublishedUrl()) || publishedUrl;
-    if (url !== publishedUrl) setPublishedUrl(url);
-    await navigator.clipboard.writeText(viewerLink(url, bundle.spec.id, itemId));
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+      // Start the clipboard write during the click: awaiting the metadata
+      // request first loses user activation in browsers such as Safari.
+      const text = fetchPublishedUrl().then((url) => {
+        const latestUrl = url || publishedUrl;
+        if (latestUrl !== publishedUrl) setPublishedUrl(latestUrl);
+        return new Blob([viewerLink(latestUrl, bundle.spec.id, itemId)], { type: 'text/plain' });
+      });
+      await navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })]);
+    } else {
+      // Older browsers use the URL already loaded when Specs was opened.
+      await navigator.clipboard.writeText(viewerLink(publishedUrl, bundle.spec.id, itemId));
+    }
     emitToast({ message: 'Link copied to clipboard', variant: 'success', durationMs: 2500 });
   });
 
