@@ -278,7 +278,9 @@ export function PublishButton() {
           setApiToken('');
           fetchCloudflarePublishMetadata().then(applyMetadata).catch(() => {});
         }
-        if (s.error) setErrorText(s.error);
+        if (s.status === 'error') {
+          setErrorText([s.message, s.error].filter(Boolean).join('\n\n'));
+        } else if (s.error) setErrorText(s.error);
       } catch { /* ignore transient fetch errors */ }
     }, 1500);
     return () => clearInterval(id);
@@ -363,10 +365,11 @@ export function PublishButton() {
   };
 
   const handleSaveName = async () => {
-    const trimmed = projectName.trim();
+    const trimmed = projectName.trim().toLowerCase();
     if (!trimmed) return;
     try {
       await saveCloudflareProjectName(trimmed);
+      setProjectName(trimmed);
       setSavedProjectName(trimmed);
       setEditingName(false);
       if (namePublishIntent) {
@@ -649,7 +652,7 @@ export function PublishButton() {
       return (
         <>
           <div style={labelStyle}>Publishing failed</div>
-          <div style={{ fontSize: '12px', color: '#e05252', marginBottom: '16px', lineHeight: '1.4', wordBreak: 'break-word', maxHeight: '80px', overflowY: 'auto' }}>
+          <div style={{ fontSize: '12px', color: '#e05252', marginBottom: '16px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '80px', overflowY: 'auto' }}>
             {errorText || 'An unknown error occurred.'}
           </div>
           {savedProjectName && (
@@ -713,7 +716,7 @@ export function PublishButton() {
         <>
           <div style={labelStyle}>{namePublishIntent ? 'Name your project' : 'Edit project name'}</div>
           <div style={{ ...subStyle, marginBottom: '12px' }}>
-            Your app will live at <span style={{ color: theme.text_secondary }}>{(projectName.trim() || 'my-app')}.pages.dev</span>. You can change the name any time.
+            Your app will live at <span style={{ color: theme.text_secondary }}>{(projectName.trim().toLowerCase() || 'my-app')}.pages.dev</span>. You can change the name any time.
           </div>
           <input
             ref={nameInputRef}

@@ -20,6 +20,8 @@
     "test:comments-live": "node --test tests/comments-live.test.mjs",
     "test:lofi": "node --test tests/lofi.test.mjs",
     "test:git-sync": "node --test tests/git-sync.test.mjs",
+    "test:cloudflare-publish": "node --test tests/cloudflare-publish.test.mjs",
+    "test:cloudflare-publish-ui": "node --test tests/cloudflare-publish-ui.test.mjs",
     "test:add-menu-ui": "node --test tests/add-menu-ui.test.mjs",
     "test:git-sync-ui": "node --test tests/git-sync-ui.test.mjs"
   },
