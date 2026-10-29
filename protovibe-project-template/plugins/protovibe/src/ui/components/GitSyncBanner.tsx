@@ -49,7 +49,7 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
         style={{
           padding: '6px 12px', border: 'none', borderRadius: 4, fontSize: 12, fontWeight: 600,
           color: synced ? theme.success_default : theme.text_default,
-          background: synced ? theme.success_low : theme.primary_solid,
+          background: synced ? theme.success_low : syncing ? theme.bg_tertiary : theme.primary_solid,
           cursor: disabled ? 'default' : 'pointer', flexShrink: 0,
           display: 'grid', placeItems: 'center',
         }}

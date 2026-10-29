@@ -32,7 +32,10 @@ after(async () => { await browser?.close(); });
 async function openPage(t, { clock = false } = {}) {
   const page = await browser.newPage();
   t.after(() => page.close());
-  if (clock) await page.clock.install();
+  if (clock) {
+    await page.clock.install({ time: 0 });
+    await page.clock.pauseAt(1000);
+  }
   await page.setContent('<body style="background:#212121;font-family:system-ui"><div id="root"></div></body>');
   await page.evaluate(() => {
     window.renders = [];
@@ -81,7 +84,7 @@ async function openPage(t, { clock = false } = {}) {
   return page;
 }
 
-test('banner sync keeps its button width, shows success for two seconds, then allows new authors', async t => {
+test('banner sync keeps its button width, shows success for one second, then allows new authors', async t => {
   const page = await openPage(t, { clock: true });
   const capture = async name => {
     if (!process.env.SCREENSHOT_DIR) return;
@@ -98,6 +101,7 @@ test('banner sync keeps its button width, shows success for two seconds, then al
   await button.click();
   const syncing = page.getByRole('button', { name: 'Syncing', exact: true });
   assert.equal(await syncing.isDisabled(), true);
+  assert.equal(await syncing.evaluate(button => getComputedStyle(button).backgroundColor), 'rgb(59, 59, 59)');
   assert.equal((await syncing.boundingBox()).width, initial.width);
   assert.equal(await copy.isVisible(), true);
   assert.deepEqual(await banner.boundingBox(), initialBanner);
@@ -119,7 +123,7 @@ test('banner sync keeps its button width, shows success for two seconds, then al
   assert.deepEqual(await banner.boundingBox(), initialBanner);
   assert.deepEqual(await page.evaluate(() => window.toasts), []);
   await capture('03-synced');
-  await page.clock.runFor(1900);
+  await page.clock.runFor(900);
   assert.equal(await synced.count(), 1);
   await page.clock.runFor(101);
   assert.equal(await synced.count(), 0);

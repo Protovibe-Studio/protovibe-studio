@@ -198,7 +198,7 @@ export function useGitSync(): UseGitSync {
 
   useEffect(() => {
     if (bannerFeedback?.phase !== 'success') return;
-    const timer = setTimeout(() => setBannerFeedback(null), 2000);
+    const timer = setTimeout(() => setBannerFeedback(null), 1000);
     return () => clearTimeout(timer);
   }, [bannerFeedback]);
 
