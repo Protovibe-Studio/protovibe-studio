@@ -6,13 +6,17 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Check, RotateCw, X } from 'lucide-react';
 import { theme, primarySolidHover } from '../theme';
 import type { UseGitSync } from '../hooks/useGitSync';
 
 export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
-  const { status, bannerVisible, runOp, dismissBanner } = git;
+  const { status, bannerVisible, bannerFeedback, busy, runOp, dismissBanner } = git;
   if (!bannerVisible || !status) return null;
+
+  const syncing = bannerFeedback?.phase === 'syncing';
+  const synced = bannerFeedback?.phase === 'success';
+  const disabled = busy || synced;
 
   return createPortal(
     <div
@@ -32,21 +36,31 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
         boxShadow: '0 6px 20px rgba(0,0,0,0.45)',
       }}
     >
-      <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
-        {status.incomingAuthors?.join(', ') || 'Your team'} made changes
+      <style>{'@keyframes pv-banner-sync-spin { to { transform: rotate(360deg); } }'}</style>
+      <span role="status" style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
+        {synced ? 'Synced' : `${bannerFeedback?.authors || status.incomingAuthors?.join(', ') || 'Your team'} made changes`}
       </span>
       <button
-        onClick={() => void runOp('sync')}
-        {...primarySolidHover(true)}
+        onClick={() => void runOp('sync', undefined, 'banner')}
+        disabled={disabled}
+        aria-label={syncing ? 'Syncing' : synced ? 'Synced' : 'Sync'}
+        aria-busy={syncing}
+        {...primarySolidHover(!disabled)}
         style={{
           padding: '6px 12px', border: 'none', borderRadius: 4, fontSize: 12, fontWeight: 600,
-          color: '#fff', background: theme.primary_solid, cursor: 'pointer', flexShrink: 0,
+          color: synced ? theme.success_default : theme.text_default,
+          background: synced ? theme.success_low : theme.primary_solid,
+          cursor: disabled ? 'default' : 'pointer', flexShrink: 0,
+          display: 'grid', placeItems: 'center',
         }}
       >
-        Sync
+        <span aria-hidden="true" style={{ gridArea: '1 / 1', visibility: syncing || synced ? 'hidden' : 'visible' }}>Sync</span>
+        {syncing && <RotateCw aria-hidden="true" size={14} style={{ gridArea: '1 / 1', animation: 'pv-banner-sync-spin 1s linear infinite' }} />}
+        {synced && <Check aria-hidden="true" size={14} style={{ gridArea: '1 / 1' }} />}
       </button>
       <button
         onClick={dismissBanner}
+        disabled={!!bannerFeedback}
         aria-label="Dismiss"
         style={{
           width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
