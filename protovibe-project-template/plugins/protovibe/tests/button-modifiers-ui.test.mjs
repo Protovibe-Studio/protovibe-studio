@@ -48,10 +48,9 @@ test('Button shows matching states and collapses other variants under Show more'
     await page.getByRole('button', { name: 'Hide 29 more', exact: true }).click();
     const selectedOther = list.getByRole('radio', { name: 'Variant: outline & Color: danger', exact: true });
     assert.equal(await selectedOther.getAttribute('aria-checked'), 'true');
-    assert.equal(await selectedOther.getAttribute('tabindex'), '0');
     assert.equal(await list.getByRole('radio').count(), 8);
     assert.equal(await show.innerText(), 'Show 29 more');
-    await selectedOther.press('Home');
+    await list.getByRole('radio', { name: 'All states', exact: true }).click();
     assert.equal(await list.getByRole('radio', { name: 'All states', exact: true }).getAttribute('aria-checked'), 'true');
     assert.deepEqual(await labels(), collapsed);
     assert.equal(await show.innerText(), 'Show 30 more');

@@ -225,16 +225,6 @@ export const Modifiers: React.FC = () => {
                 aria-label={label}
                 aria-description={classesLabel}
                 aria-checked={isActive}
-                tabIndex={isActive ? 0 : -1}
-                onKeyDown={event => {
-                  if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-                  event.preventDefault();
-                  const radios = Array.from(event.currentTarget.parentElement!.querySelectorAll<HTMLButtonElement>('[role=radio]'));
-                  const index = radios.indexOf(event.currentTarget);
-                  const next = event.key === 'Home' ? 0 : event.key === 'End' ? radios.length - 1 : (index + (['ArrowDown', 'ArrowRight'].includes(event.key) ? 1 : -1) + radios.length) % radios.length;
-                  radios[next].focus();
-                  radios[next].click();
-                }}
                 onClick={() => {
                   const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string>, pseudoClasses: [] as string[] };
 
