@@ -88,6 +88,18 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
       await page.mouse.move(500, 100);
       await page.screenshot({ path: `${screenshots}/styles-added.png` });
     }
+    // An element with no classes still exposes the selected All states row.
+    await writeFile(source, original.replace('<Card className="gap-4 items-stretch" data-pv-block="lf7bog">', '<Card className="" data-pv-block="lf7bog">'));
+    await page.reload();
+    await target.click({ position: { x: 10, y: 80 } });
+    await all.waitFor();
+    await page.waitForFunction(() => document.querySelector('[role="radio"][aria-label="All states"] [data-label-secondary]')?.textContent === 'No styles for this state yet');
+    assert.equal(await all.getAttribute('aria-checked'), 'true');
+    assert.equal(await page.getByRole('radio').count(), 1);
+    if (screenshots) {
+      await page.mouse.move(500, 100);
+      await page.screenshot({ path: `${screenshots}/all-states-empty.png` });
+    }
   } finally {
     await browser.close();
     await writeFile(source, original);

@@ -174,7 +174,7 @@ export const Modifiers: React.FC = () => {
 
   return (
     <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '8px 20px 10px' }}>
-      <div ref={fieldRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '4px' }}>
+      <div ref={fieldRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '2px' }}>
         Which state to style?
         <button
           type="button"
