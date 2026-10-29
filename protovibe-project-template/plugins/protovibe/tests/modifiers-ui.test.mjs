@@ -16,6 +16,8 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await target.click({ position: { x: 10, y: 80 } });
     const all = page.getByRole('radio', { name: 'All states', exact: true });
     await all.waitFor();
+    const radioColor = radio => radio.locator('span[aria-hidden=true]').evaluate(el => getComputedStyle(el).backgroundColor);
+    assert.equal(await radioColor(all), 'rgb(124, 124, 124)');
     assert.equal(await all.getAttribute('aria-checked'), 'true');
     assert.match(await all.locator('[data-label-secondary]').innerText(), /gap-4.*items-stretch/);
     assert.equal(await all.locator('[data-label-secondary]').evaluate(el => getComputedStyle(el).whiteSpace), 'nowrap');
@@ -49,6 +51,7 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
       await page.screenshot({ path: `${screenshots}/selected-state.png` });
     }
     await all.click();
+    assert.equal(await radioColor(all), 'rgb(57, 169, 255)');
     await add.click();
     await dialog.getByRole('button', { name: '768', exact: true }).click();
     await dialog.getByRole('button', { name: 'Hover', exact: true }).click();
@@ -96,6 +99,7 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await page.waitForFunction(() => document.querySelector('[role="radio"][aria-label="All states"] [data-label-secondary]')?.textContent === 'No styles for this state yet');
     assert.equal(await all.getAttribute('aria-checked'), 'true');
     assert.equal(await page.getByRole('radio').count(), 1);
+    assert.equal(await radioColor(all), 'rgb(124, 124, 124)');
     if (screenshots) {
       await page.mouse.move(500, 100);
       await page.screenshot({ path: `${screenshots}/all-states-empty.png` });

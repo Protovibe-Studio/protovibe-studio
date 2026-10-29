@@ -203,6 +203,7 @@ export const Modifiers: React.FC = () => {
             const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
 
             const isActive = modifierKey(group.modifiers) === modifierKey(modifierTokens(activeModifiers));
+            const selectedColor = modifierGroups.length === 0 ? theme.text_tertiary : theme.accent_default;
 
             return (
               <button
@@ -261,7 +262,7 @@ export const Modifiers: React.FC = () => {
                   (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_secondary : theme.text_low);
                 }}
               >
-                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '9.6px', height: '9.6px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '6px', flexShrink: 0 }}>
+                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '9.6px', height: '9.6px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? selectedColor : theme.border_strong}`, background: isActive ? selectedColor : 'transparent', color: theme.text_default, marginRight: '6px', flexShrink: 0 }}>
                   {isActive && <Check size={7.2} strokeWidth={3} />}
                 </span>
                 <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', lineHeight: '14px' }}>
