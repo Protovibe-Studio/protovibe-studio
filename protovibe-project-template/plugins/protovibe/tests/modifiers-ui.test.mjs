@@ -91,6 +91,25 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
       await page.mouse.move(500, 100);
       await page.screenshot({ path: `${screenshots}/styles-added.png` });
     }
+    // A loaded state stays selected and keyboard reachable after its last style is removed.
+    const removed = page.waitForResponse(response => response.url().endsWith('/__update-source') && response.request().method() === 'POST');
+    const marginTop = page.getByTestId('essentials-mt').locator('input');
+    await marginTop.fill('');
+    await marginTop.press('Enter');
+    assert.equal((await removed).ok(), true);
+    await page.waitForFunction(() => document.querySelector('[role="radio"][aria-checked="true"] [data-label-secondary]')?.textContent === 'No styles for this state yet');
+    assert.doesNotMatch(await readFile(source, 'utf8'), /md:hover:mt-8/);
+    const emptyState = page.getByRole('radio', { name: /(?:Md & Hover|Hover & Md)/ });
+    assert.equal(await emptyState.getAttribute('aria-checked'), 'true');
+    assert.equal(await emptyState.getAttribute('tabindex'), '0');
+    assert.equal(await page.locator('[role=radio][aria-checked=true]').count(), 1);
+    const restored = page.waitForResponse(response => response.url().endsWith('/__update-source') && response.request().method() === 'POST');
+    await marginTop.fill('8');
+    await marginTop.press('Enter');
+    assert.equal((await restored).ok(), true);
+    assert.match(await readFile(source, 'utf8'), /md:hover:mt-8/);
+    await emptyState.press('Home');
+    assert.equal(await all.getAttribute('aria-checked'), 'true');
     // An element with no classes still exposes the selected All states row.
     await writeFile(source, original.replace('<Card className="gap-4 items-stretch" data-pv-block="lf7bog">', '<Card className="" data-pv-block="lf7bog">'));
     await page.reload();
@@ -109,3 +128,4 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await writeFile(source, original);
   }
 });
+

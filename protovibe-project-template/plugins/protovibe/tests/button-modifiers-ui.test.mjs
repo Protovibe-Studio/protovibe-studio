@@ -45,6 +45,16 @@ test('Button shows matching states and collapses other variants under Show more'
     await show.click();
     await list.getByRole('radio', { name: 'Variant: outline & Color: danger', exact: true }).click();
     assert.equal(await list.locator('[role=radio][aria-checked=true]').count(), 1);
+    await page.getByRole('button', { name: 'Hide 29 more', exact: true }).click();
+    const selectedOther = list.getByRole('radio', { name: 'Variant: outline & Color: danger', exact: true });
+    assert.equal(await selectedOther.getAttribute('aria-checked'), 'true');
+    assert.equal(await selectedOther.getAttribute('tabindex'), '0');
+    assert.equal(await list.getByRole('radio').count(), 8);
+    assert.equal(await show.innerText(), 'Show 29 more');
+    await selectedOther.press('Home');
+    assert.equal(await list.getByRole('radio', { name: 'All states', exact: true }).getAttribute('aria-checked'), 'true');
+    assert.deepEqual(await labels(), collapsed);
+    assert.equal(await show.innerText(), 'Show 30 more');
     // Loading another Button resets expansion and matches that element's attributes.
     await canvas.getByPlaceholder('Filter variants…').fill('outline danger sm');
     await canvas.locator('button[data-pv-component-id="Button"][data-variant="outline"][data-color="danger"][data-size="sm"]:not([disabled]):not([data-icon-only="true"]):visible').first().click({ position: { x: 4, y: 4 } });
@@ -62,3 +72,4 @@ test('Button shows matching states and collapses other variants under Show more'
     }
   } finally { await browser.close(); }
 });
+

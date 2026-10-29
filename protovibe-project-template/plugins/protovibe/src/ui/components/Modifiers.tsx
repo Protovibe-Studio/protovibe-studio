@@ -65,6 +65,8 @@ export const Modifiers: React.FC = () => {
     : [];
   const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/) || [];
   const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
+  const activeTokens = modifierTokens(activeModifiers);
+  const activeKey = modifierKey(activeTokens);
 
   const modifierGroups = useMemo(() => {
     const groups: Record<string, { modifiers: string[], count: number, classes: string[] }> = {};
@@ -85,8 +87,12 @@ export const Modifiers: React.FC = () => {
       const key = modifierKey(modifiers);
       if (!groups[key]) groups[key] = { modifiers, count: 0, classes: [] };
     });
+    // Removing the last saved style must not hide the current editing context.
+    if (activeTokens.length && !groups[activeKey]) {
+      groups[activeKey] = { modifiers: activeTokens, count: 0, classes: [] };
+    }
     return Object.values(groups).sort((a, b) => b.count - a.count);
-  }, [flatClasses, pendingGroups]);
+  }, [flatClasses, pendingGroups, activeKey]);
 
   // In the components tab, collect the element's actual data-attr values to filter matching groups
   const elementDataAttrs = useMemo(() => {
@@ -115,6 +121,12 @@ export const Modifiers: React.FC = () => {
     });
     return { matchingGroups: matching, otherGroups: other };
   }, [modifierGroups, elementDataAttrs]);
+
+  // Keep the selected variant visible even when other variants are collapsed.
+  const collapsibleGroups = otherGroups.filter(group => modifierKey(group.modifiers) !== activeKey);
+  const visibleOtherGroups = showMore
+    ? otherGroups
+    : otherGroups.filter(group => modifierKey(group.modifiers) === activeKey);
 
   const formatModifier = (mod: string) => {
     if (mod.startsWith('data-[')) {
@@ -196,13 +208,13 @@ export const Modifiers: React.FC = () => {
 
       {/* ── Existing Modifiers List ── */}
       <div role="radiogroup" aria-label="Which state to style?" style={{ display: 'flex', flexDirection: 'column' }}>
-          {[{ modifiers: [], classes: flatClasses.filter(cls => parseModifiers(cls).modifiers.length === 0), count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
+          {[{ modifiers: [], classes: flatClasses.filter(cls => parseModifiers(cls).modifiers.length === 0), count: 0 }, ...matchingGroups, ...visibleOtherGroups].map((group) => {
             const label = group.modifiers.length ? group.modifiers.map(formatModifier).join(' & ') : 'All states';
             const classesLabel = group.classes.join(' • ') || 'No styles for this state yet';
             const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
             const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
 
-            const isActive = modifierKey(group.modifiers) === modifierKey(modifierTokens(activeModifiers));
+            const isActive = modifierKey(group.modifiers) === activeKey;
             const selectedColor = modifierGroups.length === 0 ? theme.text_tertiary : theme.accent_default;
 
             return (
@@ -272,7 +284,7 @@ export const Modifiers: React.FC = () => {
               </button>
             );
           })}
-          {otherGroups.length > 0 && (
+          {collapsibleGroups.length > 0 && (
             <button
               onClick={() => setShowMore(s => !s)}
               style={{
@@ -289,7 +301,7 @@ export const Modifiers: React.FC = () => {
               onMouseEnter={e => (e.currentTarget.style.color = theme.text_secondary)}
               onMouseLeave={e => (e.currentTarget.style.color = theme.text_tertiary)}
             >
-              {showMore ? `Hide ${otherGroups.length} more` : `Show ${otherGroups.length} more`}
+              {showMore ? `Hide ${collapsibleGroups.length} more` : `Show ${collapsibleGroups.length} more`}
             </button>
           )}
       </div>
@@ -415,3 +427,4 @@ export const Modifiers: React.FC = () => {
     </div>
   );
 };
+
