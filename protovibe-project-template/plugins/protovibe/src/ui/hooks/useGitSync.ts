@@ -32,11 +32,12 @@ export interface UseGitSync {
   op: GitOpState;
   busy: boolean;
   bannerVisible: boolean;
+  bannerFeedback: { phase: 'syncing' | 'success'; authors: string } | null;
   github: GithubStatus | null;
   connecting: boolean;
   repoAccess: GithubRepoAccess | null;
   refresh: (withFetch?: boolean) => Promise<void>;
-  runOp: (op: GitOp, message?: string) => Promise<void>;
+  runOp: (op: GitOp, message?: string, source?: 'banner') => Promise<void>;
   dismissBanner: () => void;
   checkGithub: (probe?: boolean) => Promise<void>;
   startConnect: () => void;
@@ -52,6 +53,7 @@ function isBusy(op: GitOpState): boolean {
 export function useGitSync(): UseGitSync {
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [op, setOp] = useState<GitOpState>(IDLE_OP);
+  const [bannerFeedback, setBannerFeedback] = useState<UseGitSync['bannerFeedback']>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [statusReady, setStatusReady] = useState(false);
   const [github, setGithub] = useState<GithubStatus | null>(null);
@@ -194,9 +196,18 @@ export function useGitSync(): UseGitSync {
     return () => clearInterval(id);
   }, [canFetch, recovering, refresh]);
 
-  const runOp = useCallback(async (opName: GitOp, message?: string) => {
+  useEffect(() => {
+    if (bannerFeedback?.phase !== 'success') return;
+    const timer = setTimeout(() => setBannerFeedback(null), 1000);
+    return () => clearTimeout(timer);
+  }, [bannerFeedback]);
+
+  const runOp = useCallback(async (opName: GitOp, message?: string, source?: 'banner') => {
     if (opRunning.current) return;
     opRunning.current = true;
+    setBannerFeedback(source === 'banner'
+      ? { phase: 'syncing', authors: status?.incomingAuthors?.join(', ') || 'Your team' }
+      : null);
     ++statusRequest.current; // invalidate reads started before this operation
     setStatusReady(false);
     try {
@@ -223,14 +234,21 @@ export function useGitSync(): UseGitSync {
       setOp(latest);
 
       if (latest.status === 'success') {
-        emitToast({ variant: 'success', message: latest.message || 'Done' });
+        if (source === 'banner') {
+          setBannerFeedback(current => current ? { ...current, phase: 'success' } : null);
+        } else {
+          emitToast({ variant: 'success', message: latest.message || 'Done' });
+        }
         // sync/pull may have pulled new comment files from teammates — tell the
         // Comments tab to re-read them so the list updates without a page reload.
         if (opName === 'sync' || opName === 'pull') {
           window.dispatchEvent(new CustomEvent('pv-comments-refresh'));
           window.dispatchEvent(new CustomEvent('pv-specs-refresh'));
         }
-      } else if (latest.status === 'error') {
+      } else {
+        setBannerFeedback(null);
+      }
+      if (latest.status === 'error') {
         if (!latest.needsInstall) {
           emitToast({ variant: 'error', message: latest.message || 'Git operation failed', durationMs: 6000 });
         }
@@ -248,17 +266,18 @@ export function useGitSync(): UseGitSync {
         }, 4000);
       }
     } catch (err) {
+      setBannerFeedback(null);
       emitToast({ variant: 'error', message: 'Couldn’t start syncing.', durationMs: 6000 });
       setOp({ status: 'error', message: 'Couldn’t start syncing.', op: opName, error: String(err) });
       openGitMenu();
     } finally {
       opRunning.current = false;
     }
-  }, [refresh]);
+  }, [refresh, status?.incomingAuthors]);
 
   const dismissBanner = useCallback(() => setBannerDismissed(true), []);
 
-  const bannerVisible =
+  const bannerVisible = !!bannerFeedback || (
     statusReady &&
     !!status?.gitInstalled &&
     !!status?.isRepo &&
@@ -266,13 +285,14 @@ export function useGitSync(): UseGitSync {
     status.behind > 0 &&
     !bannerDismissed &&
     !op.conflict &&
-    !isBusy(op);
+    !isBusy(op));
 
   return {
     status,
     op,
     busy: isBusy(op),
     bannerVisible,
+    bannerFeedback,
     github,
     connecting,
     repoAccess,
