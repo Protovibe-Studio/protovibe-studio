@@ -18,7 +18,7 @@ const modifierTokens = (value: ActiveModifiers) => [
 const modifierKey = (modifiers: string[]) => [...modifiers].sort().join(':');
 
 export const Modifiers: React.FC = () => {
-  const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget, activeSourceId } = useProtovibe();
+  const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget, activeSourceId, selectedTargets } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
   const [draftModifiers, setDraftModifiers] = useState<ActiveModifiers>(emptyModifiers);
   const [pendingGroups, setPendingGroups] = useState<string[][]>([]);
@@ -34,12 +34,14 @@ export const Modifiers: React.FC = () => {
     updateDeps: [Object.keys(draftModifiers.dataAttrs).length],
   });
 
+  // A playground filter can reuse the same DOM node for another variant.
+  // Reset on each selection, even when the target and source identity stay the same.
   useEffect(() => {
     setPendingGroups([]);
     setIsOpen(false);
     setShowMore(false);
     setDraftModifiers(emptyModifiers());
-  }, [currentBaseTarget, activeSourceId]);
+  }, [currentBaseTarget, activeSourceId, selectedTargets]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -96,7 +98,7 @@ export const Modifiers: React.FC = () => {
       }
     }
     return attrs;
-  }, [isComponentsTab, currentBaseTarget]);
+  }, [isComponentsTab, currentBaseTarget, selectedTargets]);
 
   const { matchingGroups, otherGroups } = useMemo(() => {
     if (!elementDataAttrs) return { matchingGroups: modifierGroups, otherGroups: [] };
