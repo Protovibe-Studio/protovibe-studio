@@ -90,12 +90,17 @@ test('banner sync keeps its button width, shows success for two seconds, then al
   };
   const button = page.getByRole('button', { name: 'Sync', exact: true });
   const initial = await button.boundingBox();
+  const copy = page.getByText('John Smith made changes', { exact: true });
+  const banner = copy.locator('..');
+  const initialBanner = await banner.boundingBox();
   await capture('01-banner');
   await page.evaluate(() => { window.api.holdNextStatus = true; });
   await button.click();
   const syncing = page.getByRole('button', { name: 'Syncing', exact: true });
   assert.equal(await syncing.isDisabled(), true);
   assert.equal((await syncing.boundingBox()).width, initial.width);
+  assert.equal(await copy.isVisible(), true);
+  assert.deepEqual(await banner.boundingBox(), initialBanner);
   await capture('02-syncing');
   await page.clock.runFor(1100);
   await page.waitForFunction(() => window.api.pending.length === 1);
@@ -110,6 +115,8 @@ test('banner sync keeps its button width, shows success for two seconds, then al
   await synced.waitFor();
   assert.equal(await synced.isDisabled(), true);
   assert.equal((await synced.boundingBox()).width, initial.width);
+  assert.equal(await copy.isVisible(), true);
+  assert.deepEqual(await banner.boundingBox(), initialBanner);
   assert.deepEqual(await page.evaluate(() => window.toasts), []);
   await capture('03-synced');
   await page.clock.runFor(1900);

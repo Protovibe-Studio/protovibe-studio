@@ -38,7 +38,7 @@ export const GitSyncBanner: React.FC<{ git: UseGitSync }> = ({ git }) => {
     >
       <style>{'@keyframes pv-banner-sync-spin { to { transform: rotate(360deg); } }'}</style>
       <span role="status" style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', color: theme.text_default, fontSize: 12, lineHeight: 1.4 }}>
-        {synced ? 'Synced' : `${bannerFeedback?.authors || status.incomingAuthors?.join(', ') || 'Your team'} made changes`}
+        {bannerFeedback?.authors || status.incomingAuthors?.join(', ') || 'Your team'} made changes
       </span>
       <button
         onClick={() => void runOp('sync', undefined, 'banner')}
