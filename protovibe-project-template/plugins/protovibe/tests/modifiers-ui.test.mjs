@@ -17,6 +17,7 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     const all = page.getByRole('radio', { name: 'All states', exact: true });
     await all.waitFor();
     assert.equal(await all.getAttribute('aria-checked'), 'true');
+    assert.match(await all.locator('[data-label-secondary]').innerText(), /gap-4.*items-stretch/);
     const add = page.getByRole('button', { name: 'Add hover or variant modifier....', exact: true });
     const submit = page.getByRole('button', { name: 'Add state', exact: true });
     const dialog = page.getByRole('dialog', { name: 'Add state' });
@@ -71,7 +72,9 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await page.reload();
     await target.click({ position: { x: 10, y: 80 } });
     await all.waitFor();
-    await page.getByRole('radio', { name: /Md & Hover/ }).waitFor({ timeout: 5000 });
+    const savedState = page.getByRole('radio', { name: /Md & Hover/ });
+    await savedState.waitFor({ timeout: 5000 });
+    assert.equal(await savedState.locator('[data-label-secondary]').innerText(), 'mt-8');
     assert.equal(await all.getAttribute('aria-checked'), 'true');
   } finally {
     await browser.close();

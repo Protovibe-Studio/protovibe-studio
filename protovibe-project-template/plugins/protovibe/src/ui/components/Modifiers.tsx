@@ -173,8 +173,8 @@ export const Modifiers: React.FC = () => {
   if (!activeData) return null;
 
   return (
-    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 20px 16px' }}>
-      <div ref={fieldRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '8px' }}>
+    <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '8px 20px 10px' }}>
+      <div ref={fieldRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '4px' }}>
         Which state to style?
         <button
           type="button"
@@ -193,8 +193,8 @@ export const Modifiers: React.FC = () => {
       </div>
 
       {/* ── Existing Modifiers List ── */}
-      <div role="radiogroup" aria-label="Which state to style?" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {[{ modifiers: [], classes: [], count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
+      <div role="radiogroup" aria-label="Which state to style?" style={{ display: 'flex', flexDirection: 'column' }}>
+          {[{ modifiers: [], classes: flatClasses.filter(cls => parseModifiers(cls).modifiers.length === 0), count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
             const label = group.modifiers.length ? group.modifiers.map(formatModifier).join(' & ') : 'All states';
             const SHOW = 2;
             const visibleClasses = group.classes.slice(0, SHOW);
@@ -210,6 +210,7 @@ export const Modifiers: React.FC = () => {
                 key={modifierKey(group.modifiers)}
                 type="button"
                 role="radio"
+                aria-label={label}
                 aria-checked={isActive}
                 tabIndex={isActive ? 0 : -1}
                 onKeyDown={event => {
@@ -243,7 +244,7 @@ export const Modifiers: React.FC = () => {
                   alignItems: 'center',
                   background: 'transparent',
                   border: 'none',
-                  padding: '6px 8px',
+                  padding: '3px 4px',
                   cursor: 'pointer',
                   textAlign: 'left',
                   borderRadius: '6px',
@@ -260,10 +261,10 @@ export const Modifiers: React.FC = () => {
                   (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_secondary : theme.text_low);
                 }}
               >
-                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '12px', height: '12px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '8px', flexShrink: 0 }}>
+                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '12px', height: '12px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '6px', flexShrink: 0 }}>
                   {isActive && <Check size={9} strokeWidth={3} />}
                 </span>
-                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, display: 'flex', flexDirection: 'column', lineHeight: '14px' }}>
                   <span data-label-primary style={{ color: isActive ? theme.text_default : theme.text_secondary }}>{label}</span>
                   {classesLabel && <span data-label-secondary style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px' }}>{classesLabel}</span>}
                 </span>
