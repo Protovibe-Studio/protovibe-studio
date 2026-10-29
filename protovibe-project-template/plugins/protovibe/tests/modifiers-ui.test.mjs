@@ -17,7 +17,8 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     const all = page.getByRole('radio', { name: 'All states', exact: true });
     await all.waitFor();
     assert.equal(await all.getAttribute('aria-checked'), 'true');
-    assert.equal(await all.locator('[data-label-secondary]').count(), 0);
+    assert.match(await all.locator('[data-label-secondary]').innerText(), /gap-4.*items-stretch/);
+    assert.equal(await all.locator('[data-label-secondary]').evaluate(el => getComputedStyle(el).whiteSpace), 'nowrap');
     const add = page.getByRole('button', { name: 'Add hover or variant modifier....', exact: true });
     const submit = page.getByRole('button', { name: 'Add state', exact: true });
     const dialog = page.getByRole('dialog', { name: 'Add state' });
@@ -38,6 +39,7 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await submit.click();
     const combination = page.getByRole('radio', { name: 'Hover & Md', exact: true });
     await combination.waitFor();
+    assert.equal(await combination.locator('[data-label-secondary]').innerText(), 'No styles for this state yet');
     assert.equal(await combination.getAttribute('aria-checked'), 'true');
     assert.equal(await all.getAttribute('aria-checked'), 'false');
     await combination.click();
@@ -76,6 +78,16 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     await savedState.waitFor({ timeout: 5000 });
     assert.equal(await savedState.locator('[data-label-secondary]').innerText(), 'mt-8');
     assert.equal(await all.getAttribute('aria-checked'), 'true');
+    if (screenshots) {
+      await page.mouse.move(500, 100);
+      await page.screenshot({ path: `${screenshots}/saved-state-reloaded.png` });
+    }
+    await savedState.click();
+    assert.equal(await savedState.getAttribute('aria-checked'), 'true');
+    if (screenshots) {
+      await page.mouse.move(500, 100);
+      await page.screenshot({ path: `${screenshots}/styles-added.png` });
+    }
   } finally {
     await browser.close();
     await writeFile(source, original);

@@ -194,12 +194,9 @@ export const Modifiers: React.FC = () => {
 
       {/* ── Existing Modifiers List ── */}
       <div role="radiogroup" aria-label="Which state to style?" style={{ display: 'flex', flexDirection: 'column' }}>
-          {[{ modifiers: [], classes: [], count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
+          {[{ modifiers: [], classes: flatClasses.filter(cls => parseModifiers(cls).modifiers.length === 0), count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
             const label = group.modifiers.length ? group.modifiers.map(formatModifier).join(' & ') : 'All states';
-            const SHOW = 2;
-            const visibleClasses = group.classes.slice(0, SHOW);
-            const remaining = group.classes.length - SHOW;
-            const classesLabel = visibleClasses.join(' • ') + (remaining > 0 ? ` • +${remaining}` : '');
+            const classesLabel = group.classes.join(' • ') || 'No styles for this state yet';
             const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
             const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
 
@@ -211,6 +208,7 @@ export const Modifiers: React.FC = () => {
                 type="button"
                 role="radio"
                 aria-label={label}
+                aria-description={classesLabel}
                 aria-checked={isActive}
                 tabIndex={isActive ? 0 : -1}
                 onKeyDown={event => {
@@ -244,7 +242,7 @@ export const Modifiers: React.FC = () => {
                   alignItems: 'center',
                   background: 'transparent',
                   border: 'none',
-                  padding: '3px 4px',
+                  padding: '3px 4px 3px 0',
                   cursor: 'pointer',
                   textAlign: 'left',
                   borderRadius: '6px',
@@ -261,12 +259,12 @@ export const Modifiers: React.FC = () => {
                   (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_secondary : theme.text_low);
                 }}
               >
-                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '12px', height: '12px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '6px', flexShrink: 0 }}>
-                  {isActive && <Check size={9} strokeWidth={3} />}
+                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '9.6px', height: '9.6px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '6px', flexShrink: 0 }}>
+                  {isActive && <Check size={7.2} strokeWidth={3} />}
                 </span>
-                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, display: 'flex', flexDirection: 'column', lineHeight: '14px' }}>
+                <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', lineHeight: '14px' }}>
                   <span data-label-primary style={{ color: isActive ? theme.text_default : theme.text_secondary }}>{label}</span>
-                  {classesLabel && <span data-label-secondary style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px' }}>{classesLabel}</span>}
+                  <span data-label-secondary title={classesLabel} style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{classesLabel}</span>
                 </span>
               </button>
             );
