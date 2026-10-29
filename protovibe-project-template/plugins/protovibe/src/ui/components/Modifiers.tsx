@@ -1,67 +1,27 @@
 // plugins/protovibe/src/ui/components/Modifiers.tsx
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { useProtovibe } from '../context/ProtovibeContext';
-import { extractAvailableModifiers, parseModifiers } from '../utils/tailwind';
+import { extractAvailableModifiers, parseModifiers, type ActiveModifiers } from '../utils/tailwind';
 import { SegmentedControl } from './visual/SegmentedControl';
 import { useFloatingDropdownPosition } from '../hooks/useFloatingDropdownPosition';
 import { theme } from '../theme';
 
-// ─── Chip colours by modifier type ────────────────────────────────────────────
-
-const CHIP_INTERACTION = { bg: theme.accent_low,    border: theme.accent_default,   text: theme.accent_default  };
-const CHIP_SCREEN      = { bg: theme.warning_low,   border: theme.warning_primary,  text: theme.warning_primary };
-const CHIP_VARIANT     = { bg: theme.success_low,   border: theme.success_default,  text: theme.success_default };
-
-// ─── Chip ──────────────────────────────────────────────────────────────────────
-
-interface ChipProps {
-  label: string;
-  colors: typeof CHIP_INTERACTION;
-  onRemove: () => void;
-}
-
-const Chip: React.FC<ChipProps> = ({ label, colors, onRemove }) => (
-  <div style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    padding: '1px 4px 1px 8px',
-    borderRadius: '4px',
-    background: colors.bg,
-    border: `1px solid ${colors.border}`,
-    color: colors.text,
-    fontSize: '11px',
-    fontWeight: 500,
-    flexShrink: 0,
-    lineHeight: 1.4,
-  }}>
-    {label}
-    <button
-      onClick={(e) => { e.stopPropagation(); onRemove(); }}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: '14px', height: '14px',
-        borderRadius: '2px', border: 'none',
-        background: 'transparent', color: colors.text,
-        cursor: 'pointer', padding: 0, flexShrink: 0,
-        opacity: 0.7,
-      }}
-      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-      onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
-    >
-      <X size={9} />
-    </button>
-  </div>
-);
-
-// ─── Modifiers ────────────────────────────────────────────────────────────────
+const emptyModifiers = (): ActiveModifiers => ({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
+const modifierTokens = (value: ActiveModifiers) => [
+  ...value.interaction,
+  ...(value.breakpoint ? [value.breakpoint] : []),
+  ...Object.entries(value.dataAttrs).map(([key, val]) => `data-[${key}=${val}]`),
+  ...(value.pseudoClasses || []),
+];
+const modifierKey = (modifiers: string[]) => [...modifiers].sort().join(':');
 
 export const Modifiers: React.FC = () => {
-  const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget } = useProtovibe();
+  const { activeModifiers, setActiveModifiers, activeData, currentBaseTarget, activeSourceId } = useProtovibe();
   const [isOpen, setIsOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [draftModifiers, setDraftModifiers] = useState<ActiveModifiers>(emptyModifiers);
+  const [pendingGroups, setPendingGroups] = useState<string[][]>([]);
   const [showMore, setShowMore] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -71,35 +31,46 @@ export const Modifiers: React.FC = () => {
     anchorRef: fieldRef,
     dropdownRef: popoverRef,
     preferredPlacement: 'bottom',
-    updateDeps: [Object.keys(activeModifiers.dataAttrs).length],
+    updateDeps: [Object.keys(draftModifiers.dataAttrs).length],
   });
 
-  const lastProcessedTarget = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    setPendingGroups([]);
+    setIsOpen(false);
+    setShowMore(false);
+    setDraftModifiers(emptyModifiers());
+  }, [currentBaseTarget, activeSourceId]);
 
   useEffect(() => {
-    if (!currentBaseTarget) {
-      lastProcessedTarget.current = null;
-    }
-  }, [currentBaseTarget]);
-
-  if (!activeData) return null;
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        setIsOpen(false);
+        fieldRef.current?.querySelector('button')?.focus();
+      }
+    };
+    popoverRef.current?.querySelector('button')?.focus();
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [isOpen]);
 
   const pathname = (currentBaseTarget?.ownerDocument?.defaultView?.location?.pathname ?? '').toLowerCase();
   const isComponentsTab = pathname.includes('components');
 
-  const flatClasses = activeData.parsedClasses
-    ? Object.values(activeData.parsedClasses).flat().map((c: any) => c.cls)
+  const flatClasses = activeData?.parsedClasses
+    ? Object.values(activeData?.parsedClasses).flat().map((c: any) => c.cls)
     : [];
   const domClasses = currentBaseTarget?.getAttribute('class')?.split(/\s+/) || [];
   const availableDataAttrs = extractAvailableModifiers([...flatClasses, ...domClasses]);
 
   const modifierGroups = useMemo(() => {
     const groups: Record<string, { modifiers: string[], count: number, classes: string[] }> = {};
-    
+
     flatClasses.forEach((cls: string) => {
       const { modifiers, base } = parseModifiers(cls);
       if (modifiers.length === 0) return;
-      
+
       const key = [...modifiers].sort().join(':');
       if (!groups[key]) {
         groups[key] = { modifiers, count: 0, classes: [] };
@@ -107,9 +78,13 @@ export const Modifiers: React.FC = () => {
       groups[key].count++;
       groups[key].classes.push(base);
     });
-    
+
+    pendingGroups.forEach(modifiers => {
+      const key = modifierKey(modifiers);
+      if (!groups[key]) groups[key] = { modifiers, count: 0, classes: [] };
+    });
     return Object.values(groups).sort((a, b) => b.count - a.count);
-  }, [flatClasses]);
+  }, [flatClasses, pendingGroups]);
 
   // In the components tab, collect the element's actual data-attr values to filter matching groups
   const elementDataAttrs = useMemo(() => {
@@ -150,7 +125,7 @@ export const Modifiers: React.FC = () => {
   };
 
   const handleInteraction = (val: string) => {
-    setActiveModifiers(prev => {
+    setDraftModifiers(prev => {
       if (val === 'none') return { ...prev, interaction: [] };
       const interaction = [...prev.interaction];
       const idx = interaction.indexOf(val);
@@ -161,11 +136,11 @@ export const Modifiers: React.FC = () => {
   };
 
   const handleBreakpoint = (val: string) => {
-    setActiveModifiers(prev => ({ ...prev, breakpoint: val === 'none' ? null : val }));
+    setDraftModifiers(prev => ({ ...prev, breakpoint: val === 'none' ? null : val }));
   };
 
   const handleStructural = (val: string) => {
-    setActiveModifiers(prev => {
+    setDraftModifiers(prev => {
       const structurals = ['first', 'last', 'odd', 'even'];
       const filtered = (prev.pseudoClasses || []).filter(p => !structurals.includes(p));
       if (val !== 'none' && val !== '') filtered.push(val);
@@ -176,7 +151,7 @@ export const Modifiers: React.FC = () => {
   const UNSET_SENTINEL = '__unset__';
 
   const handleDataAttr = (key: string, val: string) => {
-    setActiveModifiers(prev => {
+    setDraftModifiers(prev => {
       const dataAttrs = { ...prev.dataAttrs };
       if (val === UNSET_SENTINEL || val === '') delete dataAttrs[key];
       else dataAttrs[key] = val;
@@ -184,121 +159,43 @@ export const Modifiers: React.FC = () => {
     });
   };
 
-  const clearAll = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
+  const draftTokens = modifierTokens(draftModifiers);
+  const submitState = () => {
+    if (!draftTokens.length) return;
+    setPendingGroups(groups => groups.some(group => modifierKey(group) === modifierKey(draftTokens))
+      ? groups : [...groups, draftTokens]);
+    setActiveModifiers(draftModifiers);
+    setShowMore(true);
+    setIsOpen(false);
+    fieldRef.current?.querySelector('button')?.focus();
   };
 
-  const handlePseudo = (val: string) => {
-    setActiveModifiers(prev => ({
-      ...prev,
-      pseudoClasses: (prev.pseudoClasses || []).filter(p => p !== val)
-    }));
-  };
-
-  // ── Build chip list ──────────────────────────────────────────────────────────
-  const chips: Array<{ key: string; label: string; colors: typeof CHIP_INTERACTION; onRemove: () => void }> = [];
-
-  activeModifiers.interaction.forEach(i => chips.push({
-    key: `interaction-${i}`,
-    label: i.charAt(0).toUpperCase() + i.slice(1),
-    colors: CHIP_INTERACTION,
-    onRemove: () => handleInteraction(i),
-  }));
-
-  if (activeModifiers.breakpoint) {
-    const bp = activeModifiers.breakpoint;
-    chips.push({
-      key: `bp-${bp}`,
-      label: bp.toUpperCase(),
-      colors: CHIP_SCREEN,
-      onRemove: () => handleBreakpoint('none'),
-    });
-  }
-
-  Object.entries(activeModifiers.dataAttrs).forEach(([key, val]) => {
-    const label = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${val.charAt(0).toUpperCase() + val.slice(1)}`;
-    chips.push({
-      key: `data-${key}`,
-      label,
-      colors: CHIP_VARIANT,
-      onRemove: () => handleDataAttr(key, '__unset__'),
-    });
-  });
-
-  (activeModifiers.pseudoClasses || []).forEach(p => {
-    chips.push({
-      key: `pseudo-${p}`,
-      label: formatModifier(p),
-      colors: CHIP_INTERACTION,
-      onRemove: () => handlePseudo(p),
-    });
-  });
-
-  const hasAny = chips.length > 0;
+  if (!activeData) return null;
 
   return (
     <div style={{ borderTop: `1px solid ${theme.border_default}`, padding: '12px 20px 16px' }}>
-      <div style={{ color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '8px' }}>
+      <div ref={fieldRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.text_default, fontSize: '11px', lineHeight: '20px', fontWeight: '600', marginBottom: '8px' }}>
         Which state to style?
-      </div>
-
-      {/* ── Chip-input field ──────────────────────────────────────────────── */}
-      <div
-        ref={fieldRef}
-        onClick={() => setIsOpen(o => !o)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '4px',
-          minHeight: '24px',
-          padding: hasAny ? '3px 28px 3px 8px' : '0 28px 0 8px',
-          borderRadius: '6px',
-          border: `1px solid ${isOpen ? theme.border_accent : isHovered ? theme.border_strong : theme.border_default}`,
-          background: theme.bg_secondary,
-          cursor: 'pointer',
-          position: 'relative',
-          boxSizing: 'border-box',
-          transition: 'border-color 0.15s',
-        }}
-      >
-        {!hasAny && (
-          <span style={{ fontSize: '11px', color: theme.text_tertiary, lineHeight: '20px' }}>
-            Add hover or variant modifier....
-          </span>
-        )}
-        {chips.map(c => (
-          <Chip key={c.key} label={c.label} colors={c.colors} onRemove={c.onRemove} />
-        ))}
-
-        {/* Clear-all button */}
-        {hasAny && (
-          <button
-            onClick={clearAll}
-            style={{
-              position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '18px', height: '18px',
-              borderRadius: '3px', border: 'none',
-              background: 'transparent', color: theme.text_tertiary,
-              cursor: 'pointer', padding: 0,
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = theme.text_secondary)}
-            onMouseLeave={e => (e.currentTarget.style.color = theme.text_tertiary)}
-          >
-            <X size={11} />
-          </button>
-        )}
+        <button
+          type="button"
+          data-tooltip="Add hover or variant modifier...."
+          aria-label="Add hover or variant modifier...."
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+          onClick={() => {
+            setDraftModifiers(emptyModifiers());
+            setIsOpen(open => !open);
+          }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', padding: 0, border: 'none', borderRadius: '4px', background: 'transparent', color: theme.text_secondary, cursor: 'pointer' }}
+        >
+          <Plus size={14} />
+        </button>
       </div>
 
       {/* ── Existing Modifiers List ── */}
-      {modifierGroups.length > 0 && (
-        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {[...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
-            const label = group.modifiers.map(formatModifier).join(' & ');
+      <div role="radiogroup" aria-label="Which state to style?" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {[{ modifiers: [], classes: [], count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
+            const label = group.modifiers.length ? group.modifiers.map(formatModifier).join(' & ') : 'All states';
             const SHOW = 2;
             const visibleClasses = group.classes.slice(0, SHOW);
             const remaining = group.classes.length - SHOW;
@@ -306,43 +203,25 @@ export const Modifiers: React.FC = () => {
             const bps = ['sm', 'md', 'lg', 'xl', '2xl'];
             const interactions = ['hover', 'active', 'focus', 'visited', 'disabled'];
 
-            const isActive = (() => {
-              const expectedInteraction: string[] = [];
-              let expectedBreakpoint: string | null = null;
-              const expectedDataAttrs: Record<string, string> = {};
-              const expectedPseudo: string[] = [];
-
-              group.modifiers.forEach(mod => {
-                if (bps.includes(mod)) expectedBreakpoint = mod;
-                else if (interactions.includes(mod)) expectedInteraction.push(mod);
-                else {
-                  const match = mod.match(/^data-\[([^=]+)=([^\]]+)\]$/);
-                  if (match) expectedDataAttrs[match[1]] = match[2];
-                  else expectedPseudo.push(mod);
-                }
-              });
-              const interactionMatch =
-                expectedInteraction.length === activeModifiers.interaction.length &&
-                expectedInteraction.every(i => activeModifiers.interaction.includes(i));
-              const breakpointMatch = expectedBreakpoint === activeModifiers.breakpoint;
-              const dataAttrsMatch =
-                Object.keys(expectedDataAttrs).length === Object.keys(activeModifiers.dataAttrs).length &&
-                Object.entries(expectedDataAttrs).every(([k, v]) => activeModifiers.dataAttrs[k] === v);
-              const pseudoMatch =
-                expectedPseudo.length === (activeModifiers.pseudoClasses?.length || 0) &&
-                expectedPseudo.every(p => (activeModifiers.pseudoClasses || []).includes(p));
-
-              return interactionMatch && breakpointMatch && dataAttrsMatch && pseudoMatch;
-            })();
+            const isActive = modifierKey(group.modifiers) === modifierKey(modifierTokens(activeModifiers));
 
             return (
               <button
-                key={group.modifiers.join(':')}
+                key={modifierKey(group.modifiers)}
+                type="button"
+                role="radio"
+                aria-checked={isActive}
+                tabIndex={isActive ? 0 : -1}
+                onKeyDown={event => {
+                  if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                  event.preventDefault();
+                  const radios = Array.from(event.currentTarget.parentElement!.querySelectorAll<HTMLButtonElement>('[role=radio]'));
+                  const index = radios.indexOf(event.currentTarget);
+                  const next = event.key === 'Home' ? 0 : event.key === 'End' ? radios.length - 1 : (index + (['ArrowDown', 'ArrowRight'].includes(event.key) ? 1 : -1) + radios.length) % radios.length;
+                  radios[next].focus();
+                  radios[next].click();
+                }}
                 onClick={() => {
-                  if (isActive) {
-                    setActiveModifiers({ interaction: [], breakpoint: null, dataAttrs: {}, pseudoClasses: [] });
-                    return;
-                  }
                   const nextModifiers = { interaction: [] as string[], breakpoint: null as string | null, dataAttrs: {} as Record<string, string>, pseudoClasses: [] as string[] };
 
                   group.modifiers.forEach(mod => {
@@ -362,7 +241,7 @@ export const Modifiers: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  background: isActive ? theme.accent_low : 'transparent',
+                  background: 'transparent',
                   border: 'none',
                   padding: '6px 8px',
                   cursor: 'pointer',
@@ -371,20 +250,22 @@ export const Modifiers: React.FC = () => {
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = isActive ? theme.accent_low : theme.bg_secondary;
+                  e.currentTarget.style.background = theme.bg_secondary;
                   (e.currentTarget.querySelector('[data-label-primary]') as HTMLElement | null)?.style.setProperty('color', theme.text_default);
                   (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', theme.text_secondary);
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = isActive ? theme.accent_low : 'transparent';
+                  e.currentTarget.style.background = 'transparent';
                   (e.currentTarget.querySelector('[data-label-primary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_default : theme.text_secondary);
                   (e.currentTarget.querySelector('[data-label-secondary]') as HTMLElement | null)?.style.setProperty('color', isActive ? theme.text_secondary : theme.text_low);
                 }}
               >
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.accent_default, marginRight: '8px', flexShrink: 0 }} />
+                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '12px', height: '12px', boxSizing: 'border-box', borderRadius: '50%', border: `1px solid ${isActive ? theme.accent_default : theme.border_strong}`, background: isActive ? theme.accent_default : 'transparent', color: theme.text_default, marginRight: '8px', flexShrink: 0 }}>
+                  {isActive && <Check size={9} strokeWidth={3} />}
+                </span>
                 <span style={{ fontSize: '11px', color: theme.text_secondary, flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span data-label-primary style={{ color: isActive ? theme.text_default : theme.text_secondary }}>{label}</span>
-                  <span data-label-secondary style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px' }}>{classesLabel}</span>
+                  {classesLabel && <span data-label-secondary style={{ color: isActive ? theme.text_secondary : theme.text_low, fontSize: '11px' }}>{classesLabel}</span>}
                 </span>
               </button>
             );
@@ -409,8 +290,7 @@ export const Modifiers: React.FC = () => {
               {showMore ? `Hide ${otherGroups.length} more` : `Show ${otherGroups.length} more`}
             </button>
           )}
-        </div>
-      )}
+      </div>
 
       {/* ── Popover ───────────────────────────────────────────────────────── */}
       {isOpen && typeof document !== 'undefined' && createPortal(
@@ -418,9 +298,13 @@ export const Modifiers: React.FC = () => {
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999997 }} onClick={() => setIsOpen(false)} />
           <div
             ref={popoverRef}
+            role="dialog"
+            aria-label="Add state"
             data-pv-overlay="true"
             data-pv-ui="true"
             style={{
+              width: '300px',
+              boxSizing: 'border-box',
               background: theme.bg_default,
               border: `1px solid ${theme.border_default}`,
               borderRadius: '8px',
@@ -434,12 +318,13 @@ export const Modifiers: React.FC = () => {
               ...popoverStyle,
             }}
           >
+
             {/* Interaction */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Interaction</span>
               <SegmentedControl
                 label=""
-                value={activeModifiers.interaction.length === 0 ? 'none' : activeModifiers.interaction}
+                value={draftModifiers.interaction.length === 0 ? 'none' : draftModifiers.interaction}
                 onChange={handleInteraction}
                 segments={[
                   { label: 'None',     val: 'none'     },
@@ -456,7 +341,7 @@ export const Modifiers: React.FC = () => {
               <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Screen width above</span>
               <SegmentedControl
                 label=""
-                value={activeModifiers.breakpoint || 'none'}
+                value={draftModifiers.breakpoint || 'none'}
                 onChange={handleBreakpoint}
                 segments={[
                   { label: 'All', val: 'none' },
@@ -473,7 +358,7 @@ export const Modifiers: React.FC = () => {
               <span style={{ fontSize: '11px', lineHeight: '11px', color: theme.text_secondary }}>Child Position</span>
               <SegmentedControl
                 label=""
-                value={activeModifiers.pseudoClasses?.find(p => ['first', 'last', 'odd', 'even'].includes(p)) || 'none'}
+                value={draftModifiers.pseudoClasses?.find(p => ['first', 'last', 'odd', 'even'].includes(p)) || 'none'}
                 onChange={handleStructural}
                 segments={[
                   { label: 'All', val: 'none' },
@@ -487,7 +372,7 @@ export const Modifiers: React.FC = () => {
 
             {/* Dynamic data-attr variants */}
             {Object.entries(availableDataAttrs).map(([key, values]) => {
-              const activeVal = activeModifiers.dataAttrs[key] || '__unset__';
+              const activeVal = draftModifiers.dataAttrs[key] || '__unset__';
               const domVal = currentBaseTarget?.getAttribute(`data-${key}`);
               const segments: any[] = [{
                 label: 'Unset', val: '__unset__',
@@ -519,6 +404,8 @@ export const Modifiers: React.FC = () => {
                 </span>
               </div>
             )}
+            <button type="button" onClick={submitState} disabled={!draftTokens.length} style={{ padding: '7px 12px', border: 'none', borderRadius: '6px', background: theme.accent_default, color: theme.text_default, fontSize: '11px', cursor: draftTokens.length ? 'pointer' : 'default', opacity: draftTokens.length ? 1 : 0.5 }}>Add state</button>
+
           </div>
         </>,
         document.body
