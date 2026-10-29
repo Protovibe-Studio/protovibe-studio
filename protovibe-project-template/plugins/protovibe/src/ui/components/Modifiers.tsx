@@ -194,7 +194,7 @@ export const Modifiers: React.FC = () => {
 
       {/* ── Existing Modifiers List ── */}
       <div role="radiogroup" aria-label="Which state to style?" style={{ display: 'flex', flexDirection: 'column' }}>
-          {[{ modifiers: [], classes: flatClasses.filter(cls => parseModifiers(cls).modifiers.length === 0), count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
+          {[{ modifiers: [], classes: [], count: 0 }, ...matchingGroups, ...(showMore ? otherGroups : [])].map((group) => {
             const label = group.modifiers.length ? group.modifiers.map(formatModifier).join(' & ') : 'All states';
             const SHOW = 2;
             const visibleClasses = group.classes.slice(0, SHOW);

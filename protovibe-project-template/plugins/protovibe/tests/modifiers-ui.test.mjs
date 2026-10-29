@@ -17,7 +17,7 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     const all = page.getByRole('radio', { name: 'All states', exact: true });
     await all.waitFor();
     assert.equal(await all.getAttribute('aria-checked'), 'true');
-    assert.match(await all.locator('[data-label-secondary]').innerText(), /gap-4.*items-stretch/);
+    assert.equal(await all.locator('[data-label-secondary]').count(), 0);
     const add = page.getByRole('button', { name: 'Add hover or variant modifier....', exact: true });
     const submit = page.getByRole('button', { name: 'Add state', exact: true });
     const dialog = page.getByRole('dialog', { name: 'Add state' });
