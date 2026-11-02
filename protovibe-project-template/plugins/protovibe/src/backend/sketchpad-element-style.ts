@@ -29,12 +29,18 @@ export function updateSketchpadElementStyle(
 
       const style = attrs.find(attr => babel.types.isJSXAttribute(attr)
         && babel.types.isJSXIdentifier(attr.name, { name: 'style' }));
-      if (!babel.types.isJSXAttribute(style)
-        || !babel.types.isJSXExpressionContainer(style.value)
-        || !babel.types.isObjectExpression(style.value.expression)) {
+      let object = babel.types.isJSXAttribute(style) && babel.types.isJSXExpressionContainer(style.value)
+        ? style.value.expression : null;
+      // TypeScript annotations do not change the runtime style object. Unwrap
+      // them for the lookup, but leave their source intact when patching it.
+      while (babel.types.isTSAsExpression(object)
+        || babel.types.isTSSatisfiesExpression(object)
+        || babel.types.isTSNonNullExpression(object)) {
+        object = object.expression;
+      }
+      if (!babel.types.isObjectExpression(object)) {
         throw new Error(`Element ${blockId} requires an inline style object`);
       }
-      const object = style.value.expression;
       const updates = Object.entries(values).map(([key, value]) => {
         if (!Number.isFinite(value)) throw new Error(`Invalid ${key} value`);
         return [key, String(Math.round(value))] as const;

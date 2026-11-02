@@ -84,6 +84,30 @@ function renderedStyle() {
 }
 
 for (const style of [
+  '{ left: 10, top: 20, width: 30, opacity: 0.5 } as const',
+  '{ left: 10, top: 20, width: 30, opacity: 0.5 } satisfies Style',
+  '(({ ...defaults } as Style) satisfies Style)!',
+]) {
+  test(`updates type-annotated inline styles in ${style}`, async () => {
+    fs.writeFileSync(frameFile, `type Style = Record<string, number>;
+      const defaults = { left: 10, top: 20, width: 30, opacity: 0.5 };
+      export default () => <div data-pv-sketchpad-el="typed" style={${style}} />;`);
+    for (const [x, y] of [[125, 180], [-24, 72]]) {
+      const result = await update('handleSketchpadUpdateElementPosition', 'typed', { x, y });
+      assert.equal(result.success, true, result.error);
+      assert.deepEqual(renderedStyle(), { left: x, top: y, width: 30, opacity: 0.5 });
+    }
+    const result = await update('handleSketchpadUpdateElementSize', 'typed', { width: 240, height: 120 });
+    assert.equal(result.success, true, result.error);
+    assert.deepEqual(renderedStyle(), { left: -24, top: 72, width: 240, height: 120, opacity: 0.5 });
+    const saved = fs.readFileSync(frameFile, 'utf8');
+    for (const annotation of ['as const', 'as Style', 'satisfies Style']) {
+      if (style.includes(annotation)) assert.ok(saved.includes(annotation));
+    }
+  });
+}
+
+for (const style of [
   '{ ...defaults }',
   '{ left: 1, top: 2, width: 3, ...defaults }',
   '{ ["left"]: 10, ["top"]: 20, ["width"]: 30, opacity: 0.5 }',
