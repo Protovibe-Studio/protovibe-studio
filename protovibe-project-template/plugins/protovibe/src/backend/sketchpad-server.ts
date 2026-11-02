@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { Connect } from 'vite';
 import { pushUndoSnapshot } from './server';
+import { updateSketchpadElementStyle } from './sketchpad-element-style';
 
 const SKETCHPADS_DIR = path.resolve(process.cwd(), 'src/sketchpads');
 const INDEX_CSS_PATH = path.resolve(process.cwd(), 'src/index.css');
@@ -741,26 +742,9 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
+    const content = updateSketchpadElementStyle(fs.readFileSync(filePath, 'utf-8'), blockId, { left: x, top: y });
     maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'move element');
-    let content = fs.readFileSync(filePath, 'utf-8');
-
-    // Independently update left and top to avoid regex failures if code formatting changes
-    const leftRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)left:\\s*-?\\d+(?:\\.\\d+)?`);
-    const topRegex = new RegExp(`(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)top:\\s*-?\\d+(?:\\.\\d+)?`);
-
-    let updated = false;
-    if (leftRegex.test(content)) {
-      content = content.replace(leftRegex, `$1left: ${Math.round(x)}`);
-      updated = true;
-    }
-    if (topRegex.test(content)) {
-      content = content.replace(topRegex, `$1top: ${Math.round(y)}`);
-      updated = true;
-    }
-
-    if (updated) {
-      fs.writeFileSync(filePath, content, 'utf-8');
-    }
+    fs.writeFileSync(filePath, content, 'utf-8');
 
     sendJson(res, { success: true });
   } catch (err) {
@@ -777,29 +761,11 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
+    const content = updateSketchpadElementStyle(fs.readFileSync(filePath, 'utf-8'), blockId, {
+      ...(width !== undefined ? { width } : {}),
+      ...(height !== undefined ? { height } : {}),
+    });
     maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'resize element');
-    let content = fs.readFileSync(filePath, 'utf-8');
-
-    // Helper to update or insert a dimension in the style object
-    const updateDimension = (dim: 'width' | 'height', value: number) => {
-      const existsRe = new RegExp(
-        `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?)${dim}:\\s*\\d+(?:\\.\\d+)?`,
-      );
-      if (existsRe.test(content)) {
-        content = content.replace(existsRe, `$1${dim}: ${Math.round(value)}`);
-      } else {
-        const insertRe = new RegExp(
-          `(data-pv-sketchpad-el="${blockId}"[^>]*?style=\\{\\{[^}]*?position:\\s*'absolute')`,
-        );
-        if (insertRe.test(content)) {
-          content = content.replace(insertRe, `$1, ${dim}: ${Math.round(value)}`);
-        }
-      }
-    };
-
-    if (width !== undefined) updateDimension('width', width);
-    if (height !== undefined) updateDimension('height', height);
-
     fs.writeFileSync(filePath, content, 'utf-8');
     sendJson(res, { success: true });
   } catch (err) {
