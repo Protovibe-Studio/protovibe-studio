@@ -4,8 +4,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import { after, before, test } from 'node:test';
-import { build } from 'esbuild';
+import { build, transformSync } from 'esbuild';
 import * as babel from '@babel/core';
 import syntaxJsx from '@babel/plugin-syntax-jsx';
 
@@ -68,6 +69,35 @@ function savedStyle(blockId) {
   } });
   assert.ok(result, `saved element ${blockId} exists`);
   return result;
+}
+
+// Evaluate only these test fixtures so spreads and computed keys have the same
+// precedence they have when React receives the saved style after a reload.
+function renderedStyle() {
+  const { code, warnings } = transformSync(fs.readFileSync(frameFile, 'utf8'), {
+    loader: 'tsx', format: 'cjs', jsxFactory: 'element',
+  });
+  assert.deepEqual(warnings, [], 'saved source has no duplicate property warnings');
+  const context = { module: { exports: {} }, element: (_tag, props) => props };
+  runInNewContext(code, context);
+  return { ...context.module.exports.default().style };
+}
+
+for (const style of [
+  '{ ...defaults }',
+  '{ left: 1, top: 2, width: 3, ...defaults }',
+  '{ ["left"]: 10, ["top"]: 20, ["width"]: 30, opacity: 0.5 }',
+]) {
+  test(`saved updates take precedence over dynamic properties in ${style}`, async () => {
+    fs.writeFileSync(frameFile, `const defaults = { left: 10, top: 20, width: 30, opacity: 0.5 };
+      export default () => <div style={${style}} data-pv-sketchpad-el="dynamic" />;`);
+    for (const [x, y] of [[125, 180], [-24, 72]]) {
+      assert.equal((await update('handleSketchpadUpdateElementPosition', 'dynamic', { x, y })).success, true);
+      assert.deepEqual(renderedStyle(), { left: x, top: y, width: 30, opacity: 0.5 });
+    }
+    assert.equal((await update('handleSketchpadUpdateElementSize', 'dynamic', { width: 240, height: 120 })).success, true);
+    assert.deepEqual(renderedStyle(), { left: -24, top: 72, width: 240, height: 120, opacity: 0.5 });
+  });
 }
 
 for (const style of ['', ' style={{ opacity: 0.5 }}']) {

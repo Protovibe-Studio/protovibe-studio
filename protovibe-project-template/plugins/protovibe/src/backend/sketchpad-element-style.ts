@@ -35,10 +35,31 @@ export function updateSketchpadElementStyle(
         throw new Error(`Element ${blockId} requires an inline style object`);
       }
       const object = style.value.expression;
-      const missing: string[] = [];
-      for (const [key, value] of Object.entries(values)) {
+      const updates = Object.entries(values).map(([key, value]) => {
         if (!Number.isFinite(value)) throw new Error(`Invalid ${key} value`);
-        const text = String(Math.round(value));
+        return [key, String(Math.round(value))] as const;
+      });
+      const needsOverride = updates.some(([key]) => {
+        const lastWriter = [...object.properties].reverse().find(prop =>
+          babel.types.isSpreadElement(prop) || prop.computed
+          || babel.types.isIdentifier(prop.key, { name: key })
+          || babel.types.isStringLiteral(prop.key, { value: key }));
+        return lastWriter && (!babel.types.isObjectProperty(lastWriter) || lastWriter.computed);
+      });
+      if (needsOverride) {
+        // A spread, computed key, or getter can override an in-place edit or a
+        // prepended property. Preserve the original object's source/evaluation
+        // and put explicit overrides after it without duplicate static keys.
+        // Later edits update these outer properties directly.
+        edits.push({
+          start: object.start!, end: object.end!,
+          text: `{ ...${content.slice(object.start!, object.end!)}, ${updates.map(([key, text]) => `${key}: ${text}`).join(', ')} }`,
+        });
+        p.stop();
+        return;
+      }
+      const missing: string[] = [];
+      for (const [key, text] of updates) {
         const properties = object.properties.filter(prop => babel.types.isObjectProperty(prop)
           && !prop.computed && (babel.types.isIdentifier(prop.key, { name: key })
             || babel.types.isStringLiteral(prop.key, { value: key })));
