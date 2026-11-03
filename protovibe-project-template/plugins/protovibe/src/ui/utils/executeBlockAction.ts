@@ -126,13 +126,18 @@ export async function executeClipboardBlockAction({
   // Overwrite the OS clipboard with a marker so any previously-copied image
   // is evicted — pasting an image only works when the image was copied AFTER
   // the most recent protovibe copy/cut.
-  const clearOsClipboard = () => {
-    try { navigator.clipboard?.writeText('protovibe-block'); } catch {}
+  const activateBlockClipboard = () => {
+    try { navigator.clipboard?.writeText('protovibe-block').catch(() => {}); } catch {}
+    // The most recent user copy/cut owns paste, including when it originated in
+    // another canvas or the toolbar. Internal drag copies don't call this helper.
+    document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])').forEach(iframe => {
+      iframe.contentWindow?.postMessage({ type: 'PV_BLOCK_CLIPBOARD_CHANGED' }, '*');
+    });
   };
 
   if (action === 'copy') {
     await blockAction('copy', blockId, file);
-    clearOsClipboard();
+    activateBlockClipboard();
     return;
   }
 
@@ -140,7 +145,7 @@ export async function executeClipboardBlockAction({
 
   await takeSnapshot(file, activeSourceId, undefined, action);
   await blockAction(action, blockId, file);
-  if (action === 'cut') clearOsClipboard();
+  if (action === 'cut') activateBlockClipboard();
 
   if (action === 'duplicate') {
     await wait(300);

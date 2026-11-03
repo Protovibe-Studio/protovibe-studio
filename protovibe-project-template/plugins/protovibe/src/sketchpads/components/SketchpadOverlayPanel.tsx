@@ -168,6 +168,7 @@ export function SketchpadOverlayPanel({
           {sketchpads.map((sp) => (
             <div
               key={sp.id}
+              data-testid={`sketchpad-${sp.id}`}
               onClick={() => onSelect(sp.id)}
               onContextMenu={(e) => {
                 e.preventDefault();

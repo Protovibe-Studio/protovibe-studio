@@ -1167,6 +1167,13 @@ export function SketchpadApp() {
   // Listen for undo/redo completion and element selection events from the parent shell
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_SKETCHPAD_ESCAPE') {
+        setSelectedFrameIds([]);
+        setPendingAction(null);
+      }
+      if (e.data?.type === 'PV_BLOCK_CLIPBOARD_CHANGED') {
+        frameClipboardRef.current = null;
+      }
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
         reloadRegistry();
       }
@@ -1225,7 +1232,8 @@ export function SketchpadApp() {
 
       if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
-      if (e.key === 'Escape' && pendingAction) {
+      if (e.key === 'Escape') {
+        setSelectedFrameIds([]);
         setPendingAction(null);
         return;
       }
@@ -2131,6 +2139,7 @@ export function SketchpadApp() {
             <div style={{ fontSize: 14, fontWeight: 700, color: theme.text_default, marginBottom: 12 }}>Rename Frame</div>
             <input
               autoFocus
+              data-testid="input-frame-name"
               defaultValue={renamePrompt.name}
               onFocus={(e) => e.currentTarget.select()}
               onKeyDown={(e) => {

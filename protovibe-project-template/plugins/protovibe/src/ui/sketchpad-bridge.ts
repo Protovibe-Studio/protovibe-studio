@@ -1717,9 +1717,25 @@ function handleKeyDown(e: KeyboardEvent) {
 
   if (e.key === 'Escape' && selectedEls.length > 0) {
     e.preventDefault();
-    e.stopPropagation();
+    // Let SketchpadApp also clear frame selection and pending placement.
     clearSelection();
     window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+    return;
+  }
+
+  // Local zoom is handled by SketchpadApp. Forwarding it to the shell would
+  // bounce PV_SKETCHPAD_ZOOM back and apply the same factor a second time.
+  if ((e.metaKey || e.ctrlKey) &&
+      ['Digit0', 'Numpad0', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract'].includes(e.code)) {
+    return;
+  }
+
+  // SketchpadApp owns frame copy/cut. Forwarding these as block shortcuts also
+  // makes the shell try to copy the frame root, opening "not editable" over the
+  // successfully copied frame. Keep locked-mode shortcuts routed to the shell.
+  if (!canvasEditLocked && (e.metaKey || e.ctrlKey) &&
+      ['c', 'x'].includes(e.key.toLowerCase()) &&
+      document.querySelector('[data-sketchpad-frame-overlay]')) {
     return;
   }
 
