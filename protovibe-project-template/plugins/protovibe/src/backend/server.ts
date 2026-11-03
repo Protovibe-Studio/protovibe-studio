@@ -1163,7 +1163,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
+      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, pasteData, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -1187,12 +1187,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       let newBlockIds: string[] = [];
 
       if (elementType === 'paste') {
-        if (!clipboard.data) {
+        const data = pasteData ?? clipboard.data;
+        if (!data) {
           throw new Error('Clipboard is empty.');
         }
-        const originalBlocks = clipboard.data.blocks;
+        const originalBlocks = data.blocks;
         pastedContent = originalBlocks.join('\n');
-        pastedImports = clipboard.data.imports || [];
+        pastedImports = data.imports || [];
 
         // Identify top-level IDs
         const topLevelOldIds = originalBlocks.map(b => {
@@ -1704,7 +1705,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
 
-      if (action === 'copy' || action === 'cut') {
+      if (action === 'copy' || action === 'cut' || action === 'read') {
         const rawBlocksArr: string[] = [];
         const matchesToCut: { start: number; end: number }[] = [];
 
@@ -1781,8 +1782,16 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           });
 
-          clipboard.data = { file, blocks: rawBlocksArr, imports: requiredImports };
+          const data = { file, blocks: rawBlocksArr, imports: requiredImports };
+          // Internal moves/Alt-drags carry their own payload. They must never
+          // replace the clipboard explicitly populated by the user's copy/cut.
+          if (action === 'read') {
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ success: true, data }));
+          }
+          clipboard.data = data;
         }
+        if (action === 'read') throw new Error('No blocks found to read.');
         if (action === 'copy') {
           res.setHeader('Content-Type', 'application/json');
           return res.end(JSON.stringify({ success: true }));

@@ -1482,8 +1482,8 @@ export function SketchpadApp() {
         let mutationRan = false;
         await runLockedMutation(async () => {
             mutationRan = true;
-            // 1. Copy the elements first
-            await blockAction('copy', draggedBlockIds, sourceFile);
+            // 1. Read a private transfer payload without changing the user clipboard.
+            const transfer = await blockAction('read', draggedBlockIds, sourceFile);
 
             // 2. Resolve target
             let currentTargetFile = fallbackTargetFile;
@@ -1525,6 +1525,7 @@ export function SketchpadApp() {
               zoneId: currentTargetZoneId,
               isPristine: currentTargetIsPristine,
               elementType: 'paste',
+              pasteData: transfer.data,
               targetLayoutMode,
               pasteX: Math.round(x),
               pasteY: Math.round(y),
@@ -1561,22 +1562,15 @@ export function SketchpadApp() {
       const comp = components.find((c) => c.name === compName);
       if (!comp || !containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const canvasX = (e.clientX - rect.left - transform.panX) / transform.zoom;
-      const canvasY = (e.clientY - rect.top - transform.panY) / transform.zoom;
-
-      // Find which frame the drop landed on
-      const targetFrame = activeSketchpad?.frames.find(
-        (f) =>
-          canvasX >= f.canvasX &&
-          canvasX <= f.canvasX + f.width &&
-          canvasY >= f.canvasY &&
-          canvasY <= f.canvasY + f.height,
-      );
-
-      if (targetFrame) {
-        const relX = canvasX - targetFrame.canvasX;
-        const relY = canvasY - targetFrame.canvasY;
+      // Registry coordinates include the title bar, while components are
+      // positioned inside the frame content's padding box. Hit-test the actual
+      // content so drops near its bottom edge work at any pan/zoom as well.
+      const frameEl = (e.target as HTMLElement).closest<HTMLElement>('[data-sketchpad-frame]');
+      const targetFrame = activeSketchpad?.frames.find(f => f.id === frameEl?.dataset.sketchpadFrame);
+      if (frameEl && targetFrame) {
+        const rect = frameEl.getBoundingClientRect();
+        const relX = (e.clientX - rect.left) / transform.zoom - frameEl.clientLeft;
+        const relY = (e.clientY - rect.top) / transform.zoom - frameEl.clientTop;
         handleAddComponent(comp, targetFrame.id, relX, relY);
       }
     },

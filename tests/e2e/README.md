@@ -16,8 +16,9 @@ npx playwright test tests/e2e/sketchpad.spec.ts --workers=1
 ```
 
 Rebuild `protovibe-project-template/plugins/protovibe` after changing the bridge
-or shell: those scripts are served from `dist`. Sketchpad React components use
-Vite's source modules directly.
+or shell: those scripts are served from `dist`. Restart the Vite server after
+rebuilding backend handlers as well. Sketchpad React components use Vite's
+source modules directly.
 
 The fixture creates a uniquely named sketchpad with a small frame using the real
 backend, then exercises operations through the UI. It deletes only its own
@@ -38,3 +39,11 @@ reload. Frame positions are rounded to whole
 canvas pixels by the backend.
 
 Failure traces, screenshots and videos are in `test-results/artifacts/`.
+
+Additional regressions cover horizontal and corner element resizing as a single
+undo step, multi-item drag undo/redo, inspector width edits, palette drops at
+non-default zoom (including the bottom of a frame), flow-to-absolute reparenting,
+clipboard preservation during internal duplicate/reparent operations, and styled
+cut/paste plus keyboard duplication across frames. Geometry checks include reload
+persistence. The fixture also fails on unsuccessful canvas mutation responses so
+optimistic DOM movement cannot hide a failed save.

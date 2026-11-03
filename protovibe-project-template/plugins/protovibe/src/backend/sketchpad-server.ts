@@ -22,16 +22,8 @@ function nudgeTailwindRescan(): void {
   } catch {}
 }
 
-// Debounce snapshots for high-frequency drag/resize endpoints. A single drag/resize
-// gesture fires N position-update calls in rapid succession; we want one undo step
-// covering the whole gesture. Snapshot only the first call within the window — its
-// content is the pre-gesture state; subsequent skipped snapshots would just capture
-// intermediate states.
-//
-// The window is keyed per element + operation (not per file): moving element A and then
-// element B in the same frame are distinct gestures, so B must still take (and thereby
-// annotate) its own snapshot. Keying by file alone would treat B as a continuation of
-// A's burst and skip it, leaving an un-annotated checkpoint at the top of the stack.
+// Coalesce keyboard nudges into one undo step per element. Pointer drags and
+// resizes send the complete gesture in one request and snapshot independently.
 const recentBurstSnapshots = new Map<string, number>();
 const BURST_SNAPSHOT_WINDOW_MS = 1000;
 
@@ -735,15 +727,23 @@ export const handleFrameUpdatePositionMulti: Connect.NextHandleFunction = async 
 
 export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, x, y, activeSourceId } = await parseBody(req);
-    if (!sketchpadId || !frameId || !blockId)
+    const { sketchpadId, frameId, blockId, x, y, positions, activeSourceId } = await parseBody(req);
+    if (!sketchpadId || !frameId || (!blockId && !positions?.length))
       return sendError(res, 'sketchpadId, frameId, and blockId required');
 
     const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
     if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
 
-    const content = updateSketchpadElementStyle(fs.readFileSync(filePath, 'utf-8'), blockId, { left: x, top: y });
-    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'move element');
+    let content = fs.readFileSync(filePath, 'utf-8');
+    const updates = positions ?? [{ blockId, x, y }];
+    for (const update of updates) {
+      content = updateSketchpadElementStyle(content, update.blockId, { left: update.x, top: update.y });
+    }
+    const relPath = path.relative(process.cwd(), filePath);
+    // A pointer gesture arrives as one batch, including single-item drags.
+    // Keyboard nudges still use the legacy burst-coalesced form.
+    if (positions) snapshotFiles(activeSourceId, '?tab=sketchpad', 'move elements', relPath);
+    else maybeSnapshotForBurst(activeSourceId, relPath, blockId, 'move element');
     fs.writeFileSync(filePath, content, 'utf-8');
 
     sendJson(res, { success: true });
@@ -754,7 +754,7 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
 
 export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = async (req, res) => {
   try {
-    const { sketchpadId, frameId, blockId, width, height, activeSourceId } = await parseBody(req);
+    const { sketchpadId, frameId, blockId, width, height, x, y, activeSourceId } = await parseBody(req);
     if (!sketchpadId || !frameId || !blockId || (width === undefined && height === undefined))
       return sendError(res, 'sketchpadId, frameId, blockId, and width or height required');
 
@@ -764,8 +764,10 @@ export const handleSketchpadUpdateElementSize: Connect.NextHandleFunction = asyn
     const content = updateSketchpadElementStyle(fs.readFileSync(filePath, 'utf-8'), blockId, {
       ...(width !== undefined ? { width } : {}),
       ...(height !== undefined ? { height } : {}),
+      ...(Number.isFinite(x) ? { left: x } : {}),
+      ...(Number.isFinite(y) ? { top: y } : {}),
     });
-    maybeSnapshotForBurst(activeSourceId, path.relative(process.cwd(), filePath), blockId, 'resize element');
+    snapshotFiles(activeSourceId, '?tab=sketchpad', 'resize element', path.relative(process.cwd(), filePath));
     fs.writeFileSync(filePath, content, 'utf-8');
     sendJson(res, { success: true });
   } catch (err) {

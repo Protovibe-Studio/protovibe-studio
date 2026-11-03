@@ -1,4 +1,5 @@
 // plugins/protovibe/src/ui/api/client.ts
+import type { BlockClipboard } from '../../shared/state';
 
 export async function fetchSourceInfo(id: string, componentId?: string) {
   const res = await fetch('/__get-source-info', {
@@ -103,6 +104,7 @@ export async function addBlock(params: {
   targetStartLine?: number;
   targetEndLine?: number;
   targetLayoutMode?: string;
+  pasteData?: BlockClipboard;
   pasteX?: number;
   pasteY?: number;
   imageUrl?: string;

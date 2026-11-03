@@ -89,11 +89,20 @@ export class Sketchpad {
 export const test = base.extend<{ sketch: Sketchpad }>({
   sketch: async ({ page }, use, testInfo) => {
     const sketch = new Sketchpad(page);
+    const failedMutations: string[] = [];
+    page.on('response', response => {
+      const path = new URL(response.url()).pathname;
+      if (response.request().method() === 'POST' && response.status() >= 400
+          && /^\/__(sketchpad-|frame-|block-action$|add-block$|update-source$)/.test(path)) {
+        failedMutations.push(`${response.status()} ${path}`);
+      }
+    });
     try {
       const sp = await sketch.create(`E2E ${testInfo.workerIndex} ${Date.now()}`);
       sketch.id = sp.id;
       await sketch.open();
       await use(sketch);
+      expect(failedMutations, 'Canvas mutations must persist successfully').toEqual([]);
     } finally {
       testInfo.setTimeout(testInfo.timeout + 15_000);
       // API teardown still runs when the UI is broken or a test assertion fails.

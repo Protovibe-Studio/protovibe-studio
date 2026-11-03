@@ -221,3 +221,60 @@ test('missing elements and unsupported styles return errors without changing the
     }
   }
 });
+
+test('a group move writes and snapshots the whole gesture atomically', async () => {
+  const source = `export default () => <div>
+    <div data-pv-sketchpad-el="batch1" style={{ left: 10, top: 20 }} />
+    <div data-pv-sketchpad-el="batch2" style={{ left: 30, top: 40 }} />
+  </div>;`;
+  fs.writeFileSync(frameFile, source);
+  handlers.undoStack.length = 0;
+  const positions = [{ blockId: 'batch1', x: 60, y: 70 }, { blockId: 'batch2', x: 80, y: 90 }];
+  assert.equal((await update('handleSketchpadUpdateElementPosition', undefined, { positions })).status, 200);
+  assert.deepEqual(savedStyle('batch1'), { left: 60, top: 70 });
+  assert.deepEqual(savedStyle('batch2'), { left: 80, top: 90 });
+  assert.equal(handlers.undoStack.length, 1);
+  assert.equal(handlers.undoStack[0].files[0].content, source);
+
+  const saved = fs.readFileSync(frameFile, 'utf8');
+  const invalid = [{ blockId: 'batch1', x: 100, y: 100 }, { blockId: 'missing', x: 0, y: 0 }];
+  assert.equal((await update('handleSketchpadUpdateElementPosition', undefined, { positions: invalid })).status, 500);
+  assert.equal(fs.readFileSync(frameFile, 'utf8'), saved, 'failed batch must not partially move the group');
+  assert.equal(handlers.undoStack.length, 1);
+});
+
+test('northwest resize saves size and origin in one snapshot', async () => {
+  const source = `export default () => <div data-pv-sketchpad-el="corner" style={{ left: 100, top: 100, width: 200, height: 150 }} />;`;
+  fs.writeFileSync(frameFile, source);
+  handlers.undoStack.length = 0;
+  assert.equal((await update('handleSketchpadUpdateElementSize', 'corner', { x: 80, y: 70, width: 220, height: 180 })).status, 200);
+  assert.deepEqual(savedStyle('corner'), { left: 80, top: 70, width: 220, height: 180 });
+  assert.equal(handlers.undoStack.length, 1);
+  assert.equal(handlers.undoStack[0].files[0].content, source);
+});
+
+test('private block transfers leave the user clipboard intact, including failed reads', async () => {
+  const source = `export default () => <div>
+    {/* pv-editable-zone-start:zone01 */}
+      {/* pv-block-start:copy01 */}
+      <div data-pv-block="copy01">Copied</div>
+      {/* pv-block-end:copy01 */}
+      {/* pv-block-start:move01 */}
+      <div data-pv-block="move01">Moved</div>
+      {/* pv-block-end:move01 */}
+    {/* pv-editable-zone-end:zone01 */}
+  </div>;`;
+  fs.writeFileSync(frameFile, source);
+  await request('handleBlockAction', { file: relativeFile, blockId: 'copy01', action: 'copy' });
+  const transfer = await request('handleBlockAction', { file: relativeFile, blockId: 'move01', action: 'read' });
+  assert.equal(transfer.status, 200);
+  assert.match(transfer.data.blocks[0], /Moved/);
+  const internalPaste = await request('handleAddBlock', { file: relativeFile, zoneId: 'zone01', elementType: 'paste', pasteData: transfer.data });
+  assert.equal(internalPaste.status, 200);
+  assert.equal((await request('handleBlockAction', { file: relativeFile, blockId: 'absent', action: 'read' })).status, 500);
+  const userPaste = await request('handleAddBlock', { file: relativeFile, zoneId: 'zone01', elementType: 'paste' });
+  assert.equal(userPaste.status, 200);
+  const saved = fs.readFileSync(frameFile, 'utf8');
+  assert.equal((saved.match(/>Copied</g) || []).length, 2);
+  assert.equal((saved.match(/>Moved</g) || []).length, 2);
+});

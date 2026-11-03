@@ -1468,20 +1468,14 @@ function handlePointerUp(e: PointerEvent) {
       const newLeft = parseFloat(resizeState.target.style.left);
       const newTop = parseFloat(resizeState.target.style.top);
 
-      // Persist position if it changed (top/left edge or corner resize)
+      // Save size and origin together: west/north resizing is one undo step.
       const edge = resizeState.edge;
-      if (edge.includes('w') || edge.includes('n')) {
-        postApi('/__sketchpad-update-element-position', {
-          sketchpadId, frameId, blockId,
-          x: Math.round(newLeft), y: Math.round(newTop),
-          activeSourceId: currentActiveSourceId
-        });
-      }
-
       // Persist size
       if (newWidth || newHeight) {
         postApi('/__sketchpad-update-element-size', {
           sketchpadId, frameId, blockId,
+          x: edge.includes('w') && Number.isFinite(newLeft) ? Math.round(newLeft) : undefined,
+          y: edge.includes('n') && Number.isFinite(newTop) ? Math.round(newTop) : undefined,
           width: newWidth ? Math.round(newWidth) : undefined,
           height: newHeight ? Math.round(newHeight) : undefined,
           activeSourceId: currentActiveSourceId
@@ -1542,6 +1536,7 @@ function handlePointerUp(e: PointerEvent) {
       dy += adjustY;
     }
 
+    const positions: Array<{ blockId: string; x: number; y: number }> = [];
     if (sketchpadId && draggedBlockIds.length > 0 && sourceFrameId && targetFrameId && dropContainer && !dragEls.includes(dropContainer as HTMLElement)) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
@@ -1559,10 +1554,7 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (blockId) {
-            postApi('/__sketchpad-update-element-position', {
-              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
-              activeSourceId: currentActiveSourceId
-            });
+            positions.push({ blockId, x: newLeft, y: newTop });
           }
         });
       } else {
@@ -1674,16 +1666,18 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (sketchpadId && sourceFrameId && blockId) {
-            postApi('/__sketchpad-update-element-position', {
-              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
-              activeSourceId: currentActiveSourceId
-            });
+            positions.push({ blockId, x: newLeft, y: newTop });
           }
         });
       }
     } else {
       // No valid drop target (e.g. flow element dragged outside any frame). Snap back.
       dragState.targets.forEach(t => { t.el.style.transform = t.origTransform; });
+    }
+    if (positions.length && sketchpadId && sourceFrameId) {
+      postApi('/__sketchpad-update-element-position', {
+        sketchpadId, frameId: sourceFrameId, positions, activeSourceId: currentActiveSourceId,
+      });
     }
   }
 

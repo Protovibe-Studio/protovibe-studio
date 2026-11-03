@@ -9,6 +9,7 @@ export type Snapshot = {
 };
 
 export const undoStack: Snapshot[] = [];
-export const clipboard = { data: null as { file: string; blocks: string[]; imports: Array<{ name: string; path: string; isDefault: boolean }> } | null };
+export type BlockClipboard = { file: string; blocks: string[]; imports: Array<{ name: string; path: string; isDefault: boolean }> };
+export const clipboard = { data: null as BlockClipboard | null };
 
 export const redoStack: Snapshot[] = [];
