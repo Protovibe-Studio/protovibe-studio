@@ -87,7 +87,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   const clearClassPreview = () => classPreviewRef.current.clear();
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value === '-' ? '' : value);
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [hoveredValue, setHoveredValue] = useState<string | null>(null);
   const [editingToken, setEditingToken] = useState<{
     tokenName: string;
     themeMode: ColorMode;
@@ -166,22 +166,13 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     return baseOpts;
   }, [options, localValue, isColorDropdown, hasColorGroups, semanticOptions, paletteOptions]);
 
-  // Sync activeIndex
-  useEffect(() => {
-    if (!isOpen) {
-      setActiveIndex(-1);
-      return;
-    }
-    if (localValue) {
-      const query = localValue.toLowerCase().trim();
-      const exactIdx = renderableOptions.findIndex(o => o.val.toLowerCase() === query);
-      if (exactIdx !== -1) {
-        setActiveIndex(exactIdx);
-      }
-    } else {
-      setActiveIndex(-1);
-    }
-  }, [localValue, isOpen, renderableOptions]);
+  // Derive the highlight from the current value, rather than syncing an index
+  // in an effect: inserting a custom option changes indices on every keystroke.
+  const activeIndex = !isOpen ? -1 : renderableOptions.findIndex(o =>
+    hoveredValue !== null
+      ? o.val === hoveredValue
+      : o.val.toLowerCase() === localValue.toLowerCase().trim()
+  );
 
   const currentSwatchColor = useMemo(() => {
     if (!isColorDropdown) return undefined;
@@ -211,12 +202,16 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   };
 
   const selectValue = (val: string, blurTarget?: HTMLInputElement | null, applyToAll?: boolean) => {
+    if (strictOptions && val && !options.some(o => o.val === val)) {
+      val = lastCommittedValueRef.current;
+    }
     pendingBlurValueRef.current = val;
     setLocalValue(val);
     setIsOpen(false);
     clearClassPreview();
     triggerCommit(val, applyToAll);
-    setTimeout(() => (blurTarget ?? inputElRef.current)?.blur(), 0);
+    (blurTarget ?? inputElRef.current)?.blur();
+    pendingBlurValueRef.current = null;
   };
 
   useEffect(() => {
@@ -244,11 +239,9 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       const applyToAll = e.metaKey || e.ctrlKey;
-      if (activeIndex >= 0 && activeIndex < renderableOptions.length) {
-        selectValue(renderableOptions[activeIndex].val, e.currentTarget, applyToAll);
-      } else {
-        selectValue(localValue, e.currentTarget, applyToAll);
-      }
+      // Arrow navigation writes its choice into the input. Mouse hover only
+      // previews a row; it must never override text on Enter.
+      selectValue(e.currentTarget.value, e.currentTarget, applyToAll);
       return;
     }
 
@@ -263,6 +256,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       scrollTriggerRef.current = 'keyboard';
+      setHoveredValue(null);
       if (!isOpen) setIsOpen(true);
       const next = activeIndex === -1 ? 0 : Math.min(activeIndex + 1, renderableOptions.length - 1);
       setLocalValue(renderableOptions[next].val);
@@ -271,6 +265,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       scrollTriggerRef.current = 'keyboard';
+      setHoveredValue(null);
       if (!isOpen) setIsOpen(true);
       const prev = activeIndex === -1 ? 0 : Math.max(activeIndex - 1, 0);
       setLocalValue(renderableOptions[prev].val);
@@ -325,11 +320,11 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         }}
         onMouseEnter={() => {
           scrollTriggerRef.current = 'mouse';
-          setActiveIndex(index);
+          setHoveredValue(opt.val);
           applyClassPreview(opt.val);
         }}
         onMouseLeave={() => {
-          setActiveIndex(-1);
+          setHoveredValue(null);
           clearClassPreview();
         }}
       >
@@ -393,11 +388,14 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         value={!isOpen && displayLabel ? displayLabel(localValue, options.find(o => o.val === localValue)) : localValue}
         onChange={(e) => {
           scrollTriggerRef.current = 'typing';
+          setHoveredValue(null);
+          clearClassPreview();
           setLocalValue(e.target.value);
         }}
         onKeyDown={handleKeyDown}
         onFocus={(e) => {
           inputElRef.current = e.currentTarget;
+          setHoveredValue(null);
           setIsOpen(true);
           onInputFocus?.(e);
         }}
@@ -408,7 +406,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             commitValue = lastCommittedValueRef.current;
             setLocalValue(commitValue);
           }
-          setTimeout(() => setIsOpen(false), 200);
+          setIsOpen(false);
           triggerCommit(commitValue);
           onInputBlur?.(e);
         }}
