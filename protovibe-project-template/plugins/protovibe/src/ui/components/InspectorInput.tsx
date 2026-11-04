@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
+import { selectOnFirstMouseDown } from '../utils/inspectorInputSelection';
 
 type InspectorFieldElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -98,13 +99,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent<InspectorFieldElement>) => {
     onMouseDown?.(e as React.MouseEvent<HTMLInputElement>);
-    if (!e.defaultPrevented && e.button === 0 && document.activeElement !== e.currentTarget) {
-      // Native mousedown places the caret after onFocus selects the text.
-      // Prevent that default on first focus so typing before mouseup replaces
-      // the value too. Later clicks/drags retain normal caret selection.
-      e.preventDefault();
-      e.currentTarget.focus();
-    }
+    selectOnFirstMouseDown(e);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<InspectorFieldElement>) => {

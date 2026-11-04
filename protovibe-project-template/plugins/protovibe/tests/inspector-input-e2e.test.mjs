@@ -15,6 +15,7 @@ async function openEditor(t) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   t.after(() => page.close());
   await page.route('**/__take-snapshot', route => route.fulfill({ json: { success: true } }));
+  await page.route('**/__block-action', route => route.fulfill({ json: { success: true } }));
   await page.route('**/__update-source', route => route.fulfill({ json: { success: true } }));
   await page.goto(`${process.env.PROTOVIBE_TEST_URL || 'http://localhost:3000'}/protovibe.html`);
   const canvas = page.frameLocator('iframe').first();
@@ -68,4 +69,17 @@ test('height: typing 16 across mouse release retains both digits', async t => {
   const saved = page.waitForRequest('**/__update-source');
   await page.keyboard.press('Enter');
   assert.equal((await saved).postDataJSON().newClass, 'h-16');
+});
+
+
+test('rich text: typing immediately after canvas double-click keeps the full value', async t => {
+  const { page, canvas } = await openEditor(t);
+  const heading = canvas.locator('[data-pv-block="hzrzb5"]');
+  await heading.click();
+  await page.getByTestId('text-content-editor').waitFor();
+  await heading.dblclick();
+  await page.keyboard.type('16');
+  const saved = page.waitForRequest('**/__block-action');
+  await page.keyboard.press('Enter');
+  assert.equal((await saved).postDataJSON().text, '16');
 });

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { theme } from '../theme';
+import { selectOnFirstMouseDown } from '../utils/inspectorInputSelection';
 import { ColorPicker } from './ColorPicker';
 
 const BARE_HEX_RE = /^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{4}$|^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$/;
@@ -511,6 +512,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
             Custom CSS
           </div>
           <textarea
+            data-testid="gradient-css"
             value={finalCSS}
             onChange={e => setCustomCSS(e.target.value)}
             spellCheck={false}
@@ -547,6 +549,7 @@ export function GradientPicker({ tokenName, themeMode, initialValue, anchorRect,
           Cancel
         </button>
         <button
+          data-testid="gradient-save"
           onClick={() => onSave(finalCSS)}
           style={{
             padding: '6px 16px', background: theme.accent_default,
@@ -626,7 +629,11 @@ function StopRow({ index, stop, canRemove, onChange, onRemove, onOpenColorPicker
         />
         <input
           type="text"
+          data-testid={`gradient-stop-${index}`}
           value={stop.color}
+          onMouseDown={selectOnFirstMouseDown}
+          onFocus={e => e.currentTarget.select()}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
           onChange={e => onChange({ color: e.target.value })}
           onBlur={e => {
             const normalized = normalizeBareHex(e.target.value);
