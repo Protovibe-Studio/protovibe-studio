@@ -90,6 +90,18 @@ test('a permanent missing export gets only one retry across document reloads', a
   assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 2);
 });
 
+test('a URL change before a module error still gets only one retry', async t => {
+  const fixture = await openFixture(t, () => `
+    history.replaceState({}, '', '/?view=normalized');
+    void import('/__missing-module-for-test.js');
+    ${emptyApp}
+  `);
+  await fixture.page.waitForFunction(() => !!document.querySelector('[data-testid="app-preview"]')
+    ?.contentWindow.sessionStorage.getItem('pv-blank-preview-retry:/?view=normalized'));
+  await staysAt(fixture, 2);
+  assert.equal(new URL(fixture.frame.url()).search, '?view=normalized');
+});
+
 test('an intentionally empty app without an error does not refresh', async t => {
   const fixture = await openFixture(t, () => emptyApp);
   assert.equal(await fixture.frame.locator('#root').innerHTML(), '');
@@ -188,6 +200,16 @@ test('content outside an empty root (such as a portal) prevents recovery', async
     const portal = document.createElement('div');
     portal.textContent = 'App rendered outside root';
     document.body.appendChild(portal);
+    void import('/__missing-module-for-test.js');
+    ${emptyApp}
+  `);
+  await staysAt(fixture, 1);
+  assert.ok(fixture.errors.some(e => e.includes('dynamically imported module')));
+});
+
+test('text content outside an empty root prevents recovery', async t => {
+  const fixture = await openFixture(t, () => `
+    document.body.appendChild(document.createTextNode('App fallback content'));
     void import('/__missing-module-for-test.js');
     ${emptyApp}
   `);

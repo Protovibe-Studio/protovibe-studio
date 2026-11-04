@@ -7,7 +7,9 @@ export function installBlankPreviewRecovery() {
 
   const SETTLE_MS = 1_500;
   const MAX_WAIT_MS = 30_000;
-  const STORAGE_KEY = `pv-blank-preview-retry:${location.pathname}${location.search}`;
+  // App navigation updates the URL without replacing this bridge. Charge the
+  // URL being reloaded so the next document reads the same retry budget.
+  const storageKey = () => `pv-blank-preview-retry:${location.pathname}${location.search}`;
   const nativeFetch = window.fetch.bind(window);
   let pending = false;
 
@@ -16,9 +18,12 @@ export function installBlankPreviewRecovery() {
     return !!root && root.childElementCount === 0 && !root.textContent?.trim();
   };
   // React portals can render a functioning UI outside #root. Treat any other
-  // body element conservatively as app content, ignoring only infrastructure.
-  const hasOutsideContent = () => Array.from(document.body.children).some(element =>
-    element.id !== 'root' && !element.matches('script, style, link, vite-error-overlay, [data-pv-ui]'));
+  // body element or non-whitespace text as app content, ignoring infrastructure.
+  const hasOutsideContent = () => Array.from(document.body.childNodes).some(node => {
+    if (node.nodeType === Node.TEXT_NODE) return !!node.textContent?.trim();
+    return node instanceof Element && node.id !== 'root' &&
+      !node.matches('script, style, link, vite-error-overlay, [data-pv-ui]');
+  });
   const eligible = () => document.readyState === 'complete' && emptyRoot() &&
     !hasOutsideContent() && !document.querySelector('vite-error-overlay');
 
@@ -32,7 +37,7 @@ export function installBlankPreviewRecovery() {
     }
     healthySince ||= Date.now();
     if (Date.now() - healthySince < 5_000) return;
-    try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* recovery fails closed */ }
+    try { sessionStorage.removeItem(storageKey()); } catch { /* recovery fails closed */ }
     clearInterval(healthyTimer);
   }, 1_000);
 
@@ -40,7 +45,7 @@ export function installBlankPreviewRecovery() {
     if (pending || !/(does not provide an export named|Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed)/i.test(message)) return;
     if (!emptyRoot() || hasOutsideContent()) return;
     try {
-      if (sessionStorage.getItem(STORAGE_KEY)) return;
+      if (sessionStorage.getItem(storageKey())) return;
     } catch { return; } // No durable budget means no safe automatic retry.
     pending = true;
     healthySince = 0;
@@ -78,8 +83,9 @@ export function installBlankPreviewRecovery() {
           return;
         }
         // A render, overlay, or another document can win while HTTP is pending.
-        if (cancelled || !eligible() || Date.now() >= deadline || sessionStorage.getItem(STORAGE_KEY)) return stop();
-        sessionStorage.setItem(STORAGE_KEY, '1');
+        const key = storageKey();
+        if (cancelled || !eligible() || Date.now() >= deadline || sessionStorage.getItem(key)) return stop();
+        sessionStorage.setItem(key, '1');
         stop();
         console.warn('[protovibe] Module error left the app root empty; retrying this preview once.');
         window.location.reload();
