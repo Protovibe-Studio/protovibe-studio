@@ -24,7 +24,8 @@
     "test:cloudflare-publish": "node --test tests/cloudflare-publish.test.mjs",
     "test:cloudflare-publish-ui": "node --test tests/cloudflare-publish-ui.test.mjs",
     "test:add-menu-ui": "node --test tests/add-menu-ui.test.mjs",
-    "test:git-sync-ui": "node --test tests/git-sync-ui.test.mjs"
+    "test:git-sync-ui": "node --test tests/git-sync-ui.test.mjs",
+    "test:blank-preview": "node --test tests/blank-preview.test.mjs"
   },
   "dependencies": {
     "@babel/core": "^7.20.0",

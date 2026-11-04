@@ -6,6 +6,7 @@ import { applyPreviewMode } from '../lofi/preview-mode';
 import { isElementAllowed } from './utils/traversal';
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { installBlankPreviewRecovery } from './blank-preview-recovery';
 import { SPEC_ATTR_PREFIX } from '../shared/specs';
 import { COMMENT_ATTR_PREFIX } from '../shared/comments';
 
@@ -778,6 +779,9 @@ function handleParentMessage(e: MessageEvent) {
 // DOMContentLoaded, so waiting for init() would miss it.
 // `moduleLoadError: true` tells the shell the canvas is blank (no overlay to
 // see through to), so it must render the error itself once the grace elapses.
+// Install before the app's module graph evaluates, including link-time errors
+// that never reach React or create a Vite overlay.
+installBlankPreviewRecovery();
 let sawModuleLoadError = false;
 window.addEventListener('error', (e) => {
   const target = e.target as HTMLElement | null;
