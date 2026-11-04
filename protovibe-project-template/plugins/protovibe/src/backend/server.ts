@@ -903,34 +903,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
         wrapperAttrs += ` data-pv-sketchpad-el="${wrapperId}" style={{ position: 'absolute', left: ${left}, top: ${top} }}`;
       }
 
-      const processedBlocks = extractedBlocks.map(block => {
-        let newBlock = block;
-        // Strip absolute positioning from the root element's style tag. The
-        // wrapper is a flex-column (flow) container, so children also shed any
-        // enforced inline width/height — matching the drop-onto-flow-element
-        // path — otherwise a previously resized element keeps a fixed size
-        // that no longer makes sense inside auto-layout.
-        const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
-        newBlock = newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
-          // Only the rehosted root becomes a flow child. Nested absolute
-          // layouts keep their own draggable/resizable descendants.
-          attrs = attrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-          const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
-          if (styleRegex.test(attrs)) {
-            const newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-              const cleaned = innerStyles
-                .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
-                .trim()
-                .replace(/,$/, '')
-                .trim();
-              return cleaned ? `style={{ ${cleaned} }}` : '';
-            });
-            return `${tag}${newAttrs}${closing}`;
-          }
-          return `${tag}${attrs}${closing}`;
-        });
-        return newBlock;
-      });
+      const processedBlocks = extractedBlocks.map(block => rehostBlockRoot(block, 'flow', undefined, true));
 
       const innerContent = processedBlocks.map(b =>
         b.split('\n').map(line => {
@@ -961,7 +934,8 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
 const rehostBlockRoot = (
   block: string,
   target: 'flow' | 'absolute',
-  pos?: { left: number; top: number; width?: number | null }
+  pos?: { left: number; top: number; width?: number | null },
+  clearFlowSize = false,
 ): string => {
   let newBlock = block;
   const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
@@ -972,13 +946,22 @@ const rehostBlockRoot = (
 
     if (target === 'flow') {
       newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-      if (!hasStyle) return `${tag}${newAttrs}${closing}`;
-      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-        const cleaned = innerStyles
-          .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
-          .trim().replace(/,$/, '').trim();
-        return cleaned ? `style={{ ${cleaned} }}` : '';
-      });
+      // A nested absolute layout still needs its own containing block and
+      // dimensions when its root joins flow. Its children remain absolute.
+      const keepsAbsoluteChildren = /data-layout-mode=(["'])absolute\1/.test(newAttrs);
+      const stripProps = clearFlowSize && !keepsAbsoluteChildren
+        ? '(?:position|left|top|right|bottom|width|height|zIndex)'
+        : '(?:position|left|top|right|bottom|zIndex)';
+      if (hasStyle) {
+        newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+          const cleaned = innerStyles.replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
+            .trim().replace(/,$/, '').trim();
+          const styles = [keepsAbsoluteChildren ? "position: 'relative'" : '', cleaned].filter(Boolean).join(', ');
+          return styles ? `style={{ ${styles} }}` : '';
+        });
+      } else if (keepsAbsoluteChildren) {
+        newAttrs += ` style={{ position: 'relative' }}`;
+      }
       return `${tag}${newAttrs}${closing}`;
     }
 
@@ -1116,6 +1099,19 @@ export const handleUnwrapBlock: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+// Selecting a parent and child must never splice overlapping source ranges or
+// duplicate the child once inside its parent and once again as a sibling.
+function topLevelBlockIds(content: string, ids: string[]): string[] {
+  const ranges = [...new Set(ids)].map(id => {
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid block ID');
+    const start = content.search(new RegExp(`pv-block-start:${id}\\s*\\*\\/`));
+    const endMatch = new RegExp(`pv-block-end:${id}\\s*\\*\\/`).exec(content.slice(Math.max(start, 0)));
+    return { id, start, end: endMatch ? start + endMatch.index : -1 };
+  }).filter(range => range.start >= 0 && range.end >= range.start);
+  return ranges.filter(range => !ranges.some(other => other !== range
+    && other.start < range.start && other.end > range.end)).map(range => range.id);
+}
+
 export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
@@ -1131,7 +1127,7 @@ export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
 
       const blockMatches: { id: string, index: number, length: number }[] = [];
 
-      for (const blockId of blockIds) {
+      for (const blockId of topLevelBlockIds(fileContent, blockIds)) {
         const regex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
         const match = fileContent.match(regex);
         if (match) {
@@ -1279,6 +1275,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           const deltaY = (pasteY ?? 100) - minTop;
 
           const processedBlocks = mappedBlocks.map(block => {
+            if (targetLayoutMode === 'flow') return rehostBlockRoot(block, 'flow', undefined, true);
             const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
             
             // Only replace the very first tag in the block (the root element)
@@ -1287,19 +1284,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
               const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
               const hasStyle = styleRegex.test(attrs);
 
-              if (targetLayoutMode === 'flow') {
-                // Only the transferred root changes layout; absolute descendants
-                // keep their editing markers and their own coordinate systems.
-                newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-                if (hasStyle) {
-                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                    let cleaned = innerStyles
-                      .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
-                      .trim().replace(/,$/, '').trim();
-                    return cleaned ? `style={{ ${cleaned} }}` : '';
-                  });
-                }
-              } else if (targetLayoutMode === 'absolute') {
+              if (targetLayoutMode === 'absolute') {
                 if (!newAttrs.includes('data-pv-sketchpad-el')) {
                   const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
                   if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
@@ -1735,9 +1720,10 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   req.on('end', () => {
     try {
       const { file, blockId, blockIds, action, text, startLine, nameEnd } = JSON.parse(body || '{}');
-      const targetIds = blockIds || (blockId ? [blockId] : []);
+      const requestedIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+      const targetIds = topLevelBlockIds(fileContent, requestedIds);
 
       if (action === 'copy' || action === 'cut' || action === 'read') {
         const rawBlocksArr: string[] = [];

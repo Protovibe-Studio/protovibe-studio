@@ -87,3 +87,12 @@ npx playwright test tests/e2e/sketchpad.spec.ts tests/e2e/app-editor.spec.ts --w
 
 The bordered-container checks cover both unwrap and drag reparenting, including
 zoom, undo/redo and reload persistence.
+
+Cross-frame coverage includes selections spanning two frames: dragging from either
+selected item and keyboard nudging must persist both frames and undo as one step.
+The backend prepares all affected files before writing, so an invalid target
+cannot leave a partially moved group. Absolute-layout containers keep their size
+and a relative containing block when wrapped or moved into flow, preserving their
+absolute children's coordinate system. Overlapping ancestor/descendant selections
+operate on each subtree once; cut, delete and duplicate are covered through the
+UI, with backend checks for copy/read and repeated block IDs as well.

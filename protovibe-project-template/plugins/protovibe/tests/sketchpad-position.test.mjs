@@ -21,7 +21,7 @@ before(async () => {
   const bundle = path.join(bundleDir, 'backend.mjs');
   await build({
     stdin: { resolveDir: pluginRoot, contents: `
-      export { handleAddBlock, handleBlockAction, handleUpdateSource, handleWrapBlocks, handleUnwrapBlock } from './src/backend/server';
+      export { handleAddBlock, handleBlockAction, handleUpdateSource, handleWrapBlocks, handleUnwrapBlock, handleDeleteBlocks } from './src/backend/server';
       export { handleSketchpadUpdateElementPosition, handleSketchpadUpdateElementSize } from './src/backend/sketchpad-server';
       export { undoStack } from './src/shared/state';
     ` },
@@ -437,3 +437,63 @@ test('bring-to-front moves to the end of its zone without crossing another zone'
   assert.equal((await move()).success, true);
   assert.equal(fs.readFileSync(frameFile, 'utf8'), saved, 'already frontmost is a no-op');
 });
+
+test('cross-frame movement validates every target before saving one undo snapshot', async () => {
+  const otherFile = path.join(path.dirname(frameFile), 'frame-other.tsx');
+  const firstSource = `export default () => <div data-pv-sketchpad-el="first1" style={{ left: 10, top: 20 }} />;`;
+  const otherSource = `export default () => <div data-pv-sketchpad-el="second" style={{ left: 30, top: 40 }} />;`;
+  fs.writeFileSync(frameFile, firstSource);
+  fs.writeFileSync(otherFile, otherSource);
+  handlers.undoStack.length = 0;
+  const first = { blockId: 'first1', x: 60, y: 70 };
+  const second = { frameId: 'frame-other', blockId: 'second', x: 80, y: 90 };
+  for (const invalid of [{ ...second, blockId: 'missing' }, { ...second, frameId: 'missing' }]) {
+    const result = await update('handleSketchpadUpdateElementPosition', undefined, { positions: [first, invalid] });
+    assert.ok(result.status >= 400);
+    assert.equal(fs.readFileSync(frameFile, 'utf8'), firstSource);
+    assert.equal(fs.readFileSync(otherFile, 'utf8'), otherSource);
+    assert.equal(handlers.undoStack.length, 0);
+  }
+  const result = await update('handleSketchpadUpdateElementPosition', undefined, { positions: [first, second] });
+  assert.equal(result.success, true, result.error);
+  assert.deepEqual(savedStyle('first1'), { left: 60, top: 70 });
+  assert.match(fs.readFileSync(otherFile, 'utf8'), /left: 80, top: 90/);
+  assert.equal(handlers.undoStack.length, 1);
+  assert.deepEqual(handlers.undoStack[0].files.map(file => file.content), [firstSource, otherSource]);
+  fs.unlinkSync(otherFile);
+});
+
+for (const action of ['copy', 'cut', 'read', 'duplicate', 'delete', 'delete-many']) {
+  test(`overlapping block selection ${action} handles each subtree once`, async () => {
+    const sibling = `{/* pv-block-start:other1 */}<div data-pv-block="other1" />{/* pv-block-end:other1 */}`;
+    const source = `export default () => <div>
+      {/* pv-editable-zone-start:root01 */}
+        {/* pv-block-start:outer1 */}
+        <div data-pv-block="outer1">
+          {/* pv-editable-zone-start:inner1 */}
+            {/* pv-block-start:child1 */}<div data-pv-block="child1" />{/* pv-block-end:child1 */}
+          {/* pv-editable-zone-end:inner1 */}
+        </div>
+        {/* pv-block-end:outer1 */}
+        ${sibling}
+      {/* pv-editable-zone-end:root01 */}
+    </div>;`;
+    fs.writeFileSync(frameFile, source);
+    const result = await request(action === 'delete-many' ? 'handleDeleteBlocks' : 'handleBlockAction', {
+      file: relativeFile, action, blockIds: ['child1', 'outer1', 'child1'],
+    });
+    assert.equal(result.success, true, result.error);
+    const saved = fs.readFileSync(frameFile, 'utf8');
+    assert.ok(saved.includes(sibling), 'unselected sibling remains untouched');
+    babel.parseSync(saved, { plugins: [syntaxJsx] });
+    if (action === 'read') assert.equal(result.data.blocks.length, 1);
+    if (['copy', 'read'].includes(action)) assert.equal(saved, source);
+    else if (action === 'duplicate') {
+      const ids = [...saved.matchAll(/data-pv-block="([^"]+)"/g)].map(match => match[1]);
+      assert.equal(ids.length, 5, 'parent and child duplicated once');
+      assert.equal(new Set(ids).size, 5);
+    } else {
+      assert.doesNotMatch(saved, /data-pv-block="(?:outer1|child1)"/);
+    }
+  });
+}

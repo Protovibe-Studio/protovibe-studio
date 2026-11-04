@@ -731,20 +731,20 @@ export const handleSketchpadUpdateElementPosition: Connect.NextHandleFunction = 
     if (!sketchpadId || !frameId || (!blockId && !positions?.length))
       return sendError(res, 'sketchpadId, frameId, and blockId required');
 
-    const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${frameId}.tsx`);
-    if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
-
-    let content = fs.readFileSync(filePath, 'utf-8');
     const updates = positions ?? [{ blockId, x, y }];
+    const contents = new Map<string, string>();
+    // Validate and prepare every frame before writing or taking a snapshot.
+    // A selection spanning frames is still one user gesture and one Undo.
     for (const update of updates) {
-      content = updateSketchpadElementStyle(content, update.blockId, { left: update.x, top: update.y });
+      const filePath = path.join(SKETCHPADS_DIR, sketchpadId, `${update.frameId ?? frameId}.tsx`);
+      if (!fs.existsSync(filePath)) return sendError(res, 'Frame file not found', 404);
+      const content = contents.get(filePath) ?? fs.readFileSync(filePath, 'utf-8');
+      contents.set(filePath, updateSketchpadElementStyle(content, update.blockId, { left: update.x, top: update.y }));
     }
-    const relPath = path.relative(process.cwd(), filePath);
-    // A pointer gesture arrives as one batch, including single-item drags.
-    // Keyboard nudges still use the legacy burst-coalesced form.
-    if (positions) snapshotFiles(activeSourceId, '?tab=sketchpad', 'move elements', relPath);
-    else maybeSnapshotForBurst(activeSourceId, relPath, blockId, 'move element');
-    fs.writeFileSync(filePath, content, 'utf-8');
+    const relPaths = [...contents.keys()].map(filePath => path.relative(process.cwd(), filePath));
+    if (positions) snapshotFiles(activeSourceId, '?tab=sketchpad', 'move elements', ...relPaths);
+    else maybeSnapshotForBurst(activeSourceId, relPaths[0], blockId, 'move element');
+    for (const [filePath, content] of contents) fs.writeFileSync(filePath, content, 'utf-8');
 
     sendJson(res, { success: true });
   } catch (err) {

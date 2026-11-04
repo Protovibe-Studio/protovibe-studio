@@ -59,6 +59,7 @@ interface SnapContext {
 }
 
 let dragState: {
+  primaryTarget: HTMLElement;
   pointerId: number;
   startX: number;
   startY: number;
@@ -920,6 +921,10 @@ function clearHover() {
   updateOutlines();
 }
 
+function topLevelSelection(els: HTMLElement[]): HTMLElement[] {
+  return [...new Set(els)].filter(el => !els.some(other => other !== el && other.contains(el)));
+}
+
 function setSelection(el: HTMLElement, isMulti = false) {
   if (isMulti) {
     if (selectedEls.includes(el)) {
@@ -930,6 +935,10 @@ function setSelection(el: HTMLElement, isMulti = false) {
   } else {
     selectedEls = [el];
   }
+
+  // Ancestors already carry their descendants. Never transform or mutate
+  // the same subtree twice when Ctrl+Shift-click extends a selection.
+  selectedEls = topLevelSelection(selectedEls);
 
   // Keep drill-down context (selectedParentEl) sticky while extending a multi-selection.
   // Recompute only on first selection; preserve when adding/removing siblings so subsequent
@@ -1311,6 +1320,7 @@ function handlePointerDown(e: PointerEvent) {
   const dragAllAbsolute = dragTargets.every(t => t.hasAttribute('data-pv-sketchpad-el'));
   const zoom = getCanvasZoom();
   dragState = {
+    primaryTarget: nextTarget,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
@@ -1512,7 +1522,7 @@ function handlePointerUp(e: PointerEvent) {
     const draggedBlockIds = dragState.targets.map(t => t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block')).filter(Boolean) as string[];
     const sketchpadId = getSketchpadId();
 
-    const currentContainer = dragState.targets[0].el.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
+    const currentContainer = dragState.primaryTarget.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
     const isAnyFlow = dragState.targets.some(t => t.isFlow);
 
     // Calculate final drop delta for same-container drops
@@ -1536,7 +1546,7 @@ function handlePointerUp(e: PointerEvent) {
       dy += adjustY;
     }
 
-    const positions: Array<{ blockId: string; x: number; y: number }> = [];
+    const positions: Array<{ frameId?: string; blockId: string; x: number; y: number }> = [];
     if (sketchpadId && draggedBlockIds.length > 0 && sourceFrameId && targetFrameId && dropContainer && !dragEls.includes(dropContainer as HTMLElement)) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
@@ -1554,7 +1564,7 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (blockId) {
-            positions.push({ blockId, x: newLeft, y: newTop });
+            positions.push({ frameId: findFrameContainer(t.el)?.dataset.sketchpadFrame, blockId, x: newLeft, y: newTop });
           }
         });
       } else {
@@ -1667,7 +1677,7 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (sketchpadId && sourceFrameId && blockId) {
-            positions.push({ blockId, x: newLeft, y: newTop });
+            positions.push({ frameId: findFrameContainer(t.el)?.dataset.sketchpadFrame, blockId, x: newLeft, y: newTop });
           }
         });
       }
@@ -1861,7 +1871,7 @@ function handleParentMessage(e: MessageEvent) {
 
     if (nudgeState.activeKeys.size === 0) {
       const sketchpadId = getSketchpadId();
-      const positionsByFrame = new Map<string, Array<{ blockId: string; x: number; y: number }>>();
+      const positions: Array<{ frameId: string; blockId: string; x: number; y: number }> = [];
       nudgeState.targets.forEach(t => {
         const newLeft = t.origLeft + nudgeState!.dx;
         const newTop = t.origTop + nudgeState!.dy;
@@ -1870,18 +1880,14 @@ function handleParentMessage(e: MessageEvent) {
         t.el.style.left = `${newLeft}px`;
         t.el.style.top = `${newTop}px`;
 
-        const positions = positionsByFrame.get(t.frameId) ?? [];
-        positions.push({ blockId: t.blockId, x: newLeft, y: newTop });
-        positionsByFrame.set(t.frameId, positions);
+        positions.push({ frameId: t.frameId, blockId: t.blockId, x: newLeft, y: newTop });
       });
       // A held key is already coalesced until keyup. Persist the selection as
       // one gesture, just like a pointer drag, so Undo restores every item.
-      if (sketchpadId) {
-        for (const [frameId, positions] of positionsByFrame) {
-          postApi('/__sketchpad-update-element-position', {
-            sketchpadId, frameId, positions, activeSourceId: currentActiveSourceId,
-          });
-        }
+      if (sketchpadId && positions.length) {
+        postApi('/__sketchpad-update-element-position', {
+          sketchpadId, frameId: positions[0].frameId, positions, activeSourceId: currentActiveSourceId,
+        });
       }
       nudgeState = null;
       syncOverlays();
@@ -1904,6 +1910,7 @@ function handleParentMessage(e: MessageEvent) {
       const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
       if (el) selectedEls.push(el);
     });
+    selectedEls = topLevelSelection(selectedEls);
     // Same sticky-drill rule as setSelection: keep parent across multi-select echoes from the shell.
     if (selectedEls.length === 0) {
       selectedParentEl = null;

@@ -1043,3 +1043,97 @@ test('reparenting into a bordered absolute container keeps the dropped position'
   await s.open();
   await expect.poll(() => s.position(child)).toEqual(saved);
 });
+
+for (const gesture of ['drag-first', 'drag-last', 'nudge'] as const) {
+  test(`a cross-frame selection ${gesture} persists both items as one undo step`, async ({ sketch: s }) => {
+    await s.post('/__frame-create', { sketchpadId: s.id, name: 'Other', width: 500, height: 360, canvasX: 620, canvasY: 0 });
+    await s.open();
+    await s.addComponent('Button', s.frames.nth(0));
+    await s.addComponent('Button', s.frames.nth(1));
+    const items = [s.items(s.frames.nth(0)).first(), s.items(s.frames.nth(1)).first()];
+    await items[0].click();
+    await items[1].click({ modifiers: ['Shift'] });
+    const positions = () => Promise.all(items.map(item => s.position(item)));
+    const before = await positions();
+    if (gesture.startsWith('drag')) await s.drag(items[gesture === 'drag-first' ? 0 : 1], 30, 25);
+    else await s.key('Shift+ArrowRight');
+    const after = (await positions()).map(({ x, y }) => ({ x: Math.round(x), y: Math.round(y) }));
+    expect(after[0].x).toBeGreaterThan(before[0].x);
+    expect(after[1].x - before[1].x).toBe(after[0].x - before[0].x);
+    await s.open();
+    await expect.poll(positions).toEqual(after);
+    await s.history();
+    await expect.poll(positions).toEqual(before);
+    await s.history(true);
+    await expect.poll(positions).toEqual(after);
+  });
+}
+
+for (const operation of ['wrap', 'reparent'] as const) {
+  test(`${operation} keeps a nested absolute layout's size and containing block`, async ({ sketch: s }) => {
+    await seed(s, `
+      {/* pv-block-start:outer1 */}
+      <div data-pv-block="outer1" data-pv-sketchpad-el="outer1" data-testid="outer" data-layout-mode="absolute" style={{position:'absolute',left:40,top:40,width:200,height:150}}>
+        {/* pv-editable-zone-start:inner1 */}
+          {/* pv-block-start:child1 */}
+          <div data-pv-block="child1" data-pv-sketchpad-el="child1" data-testid="child" style={{position:'absolute',left:20,top:30,width:80,height:40,background:'teal'}} />
+          {/* pv-block-end:child1 */}
+        {/* pv-editable-zone-end:inner1 */}
+      </div>
+      {/* pv-block-end:outer1 */}
+      {/* pv-block-start:target */}
+      <div data-pv-block="target" data-pv-sketchpad-el="target" data-testid="target" data-layout-mode="flow" className="flex flex-col" style={{position:'absolute',left:300,top:170,width:250,height:200}}>
+        {/* pv-editable-zone-start:zone02 */}
+        {/* pv-editable-zone-end:zone02 */}
+      </div>
+      {/* pv-block-end:target */}`);
+    const outer = s.canvas.getByTestId('outer');
+    const child = s.canvas.getByTestId('child');
+    if (operation === 'wrap') {
+      await outer.click({ position: { x: 100, y: 90 } });
+      await toolbar(s, 'btn-wrap');
+    } else {
+      const start = (await outer.boundingBox())!;
+      const end = (await s.canvas.getByTestId('target').boundingBox())!;
+      await s.drag(outer, end.x + end.width / 2 - start.x - start.width / 2, end.y + end.height / 2 - start.y - start.height / 2);
+      await expect(s.canvas.getByTestId('target').getByTestId('outer')).toHaveCount(1);
+    }
+    await expect(outer).toHaveCSS('position', 'relative');
+    await expect(outer).toHaveCSS('width', '200px');
+    await expect(outer).toHaveCSS('height', '150px');
+    expect(await child.evaluate(el => (el as HTMLElement).offsetParent?.getAttribute('data-testid'))).toBe('outer');
+    await s.history();
+    await expect(outer).toHaveCSS('position', 'absolute');
+    await s.history(true);
+    await expect(outer).toHaveCSS('position', 'relative');
+    await s.open();
+    await expect(outer).toHaveCSS('width', '200px');
+    await expect(outer).toHaveCSS('height', '150px');
+    expect(await child.evaluate(el => (el as HTMLElement).offsetParent?.getAttribute('data-testid'))).toBe('outer');
+  });
+}
+
+for (const action of ['Delete', `${modifier}+x`, `${modifier}+d`] as const) {
+  test(`ancestor and descendant selection ${action} operates on the subtree once`, async ({ sketch: s }) => {
+    await seed(s, nested);
+    const outer = s.canvas.getByTestId('outer');
+    const child = s.canvas.getByTestId('child');
+    await outer.click({ position: { x: 100, y: 90 } });
+    await child.click({ modifiers: [modifier, 'Shift'], position: { x: 10, y: 10 } });
+    await s.key(action);
+    const duplicating = action.endsWith('+d');
+    await expect(outer).toHaveCount(duplicating ? 2 : 0);
+    await expect(child).toHaveCount(duplicating ? 2 : 0);
+    await expect(s.frames).toHaveCount(1);
+    await s.history();
+    await expect(outer).toHaveCount(1);
+    await expect(child).toHaveCount(1);
+    await s.history(true);
+    await expect(outer).toHaveCount(duplicating ? 2 : 0);
+    await expect(child).toHaveCount(duplicating ? 2 : 0);
+    if (duplicating) {
+      const ids = await s.frames.first().locator('[data-pv-block]').evaluateAll(els => els.map(el => el.getAttribute('data-pv-block')));
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+}
