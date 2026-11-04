@@ -243,6 +243,25 @@ test('rich text: a late source refresh cannot clear or replace an active draft',
   assert.equal(await page.evaluate(() => window.requests.find(r => r.url === '/__block-action').body.text), '16');
 });
 
+test('rich text: source refresh preserves the draft and selection while editing a link', async t => {
+  const page = await open(t, 'text');
+  const input = page.getByTestId('text-content-editor');
+  await input.click();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.type('Draft text');
+  await page.keyboard.press('Control+a');
+  await page.locator('button[data-tooltip="Link"]').click();
+  const url = page.getByPlaceholder('https://example.com');
+  await url.fill('https://example.com');
+  await page.evaluate(() => window.updateContext({ isLoading: true }));
+  await page.evaluate(() => window.updateContext({ isLoading: false, activeData: { ...window.context.activeData, code: '<span>Refreshed text</span>' } }));
+  assert.equal(await input.innerText(), 'Draft text');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.waitForFunction(() => window.requests.some(r => r.url === '/__block-action'));
+  const saved = await page.evaluate(() => window.requests.find(r => r.url === '/__block-action').body.text);
+  assert.match(saved, /<a href="https:\/\/example.com\/?">Draft text<\/a>/);
+});
+
 test('icon search: cancelling a pending search cannot repopulate an empty refocused field', async t => {
   const page = await open(t, 'icon');
   await page.clock.install();

@@ -133,9 +133,10 @@ export const BlockEditor: React.FC = () => {
 
     // Re-clicking the selected element refreshes its source asynchronously.
     // Keep the existing DOM/selection through loading and do not overwrite a
-    // focused draft with the response. A different target still gets fresh text.
+    // focused draft with the response, including while its link popover owns
+    // focus and holds a Range into this DOM. A different target gets fresh text.
     if (loadedTargetRef.current === currentBaseTarget &&
-        (isLoading || document.activeElement === el)) return;
+        (isLoading || document.activeElement === el || suppressBlurRef.current)) return;
 
     if (isLoading || !isTextNode || !activeData?.code) {
       el.innerHTML = '';
