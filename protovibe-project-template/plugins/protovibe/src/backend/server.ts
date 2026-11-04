@@ -13,6 +13,7 @@ import * as babel from '@babel/core';
 // (which would look relative to the user's source files and fail).
 import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
 import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
+import { updateSketchpadElementStyle } from './sketchpad-element-style';
 import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
 import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
@@ -526,6 +527,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
       const originalContent = fs.readFileSync(absolutePath, 'utf-8');
       const lines = originalContent.split('\n');
       let finalContent = originalContent;
+      let sketchpadBlockId: string | undefined;
 
       // Re-derive accurate positions from the current file state to guard against
       // stale locatorMap entries (e.g. when file indentation changed since last HMR
@@ -539,7 +541,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
           });
           if (!freshAst) throw new Error('parse returned null');
           const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
-          const candidates: Array<{ nameEnd: number[]; hasClass: boolean; cStart: number[] | null; cEnd: number[] | null }> = [];
+          const candidates: Array<{ nameEnd: number[]; hasClass: boolean; cStart: number[] | null; cEnd: number[] | null; sketchpadBlockId?: string }> = [];
 
           babel.traverse(freshAst, {
             JSXOpeningElement(p) {
@@ -558,7 +560,10 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
                 freshCStart = [classAttr.value.loc.start.line, classAttr.value.loc.start.column];
                 freshCEnd = [classAttr.value.loc.end.line, classAttr.value.loc.end.column];
               }
-              candidates.push({ nameEnd: freshNameEnd, hasClass: freshHasClass, cStart: freshCStart, cEnd: freshCEnd });
+              const marker = p.node.attributes.find(attr => babel.types.isJSXAttribute(attr)
+                && babel.types.isJSXIdentifier(attr.name, { name: 'data-pv-sketchpad-el' }));
+              const blockId = babel.types.isJSXAttribute(marker) && babel.types.isStringLiteral(marker.value) ? marker.value.value : undefined;
+              candidates.push({ nameEnd: freshNameEnd, hasClass: freshHasClass, cStart: freshCStart, cEnd: freshCEnd, sketchpadBlockId: blockId });
             }
           });
 
@@ -569,6 +574,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
             hasClass = best.hasClass;
             cStart = best.cStart;
             cEnd = best.cEnd;
+            sketchpadBlockId = best.sketchpadBlockId;
           }
         } catch {
           // If re-parsing fails, fall through and use client-provided values.
@@ -701,6 +707,18 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
           lines[lineIdx] = line.slice(0, colIdx) + ` className="${newClass}"` + line.slice(colIdx);
           finalContent = lines.join('\n');
         }
+      }
+
+      // A pointer resize saves inline dimensions. An inspector class edit
+      // must release those overrides or the new width/height never renders.
+      // Leave state-specific utilities (hover:, md:, etc.) and other styles alone.
+      if (sketchpadBlockId) {
+        const changedClasses = [oldClass, ...(Array.isArray(oldClasses) ? oldClasses : []), newClass]
+          .filter((value): value is string => typeof value === 'string').flatMap(splitClasses);
+        const clear: Array<'width' | 'height'> = [];
+        if (changedClasses.some(cls => /^(w|size)-/.test(cls))) clear.push('width');
+        if (changedClasses.some(cls => /^(h|size)-/.test(cls))) clear.push('height');
+        if (clear.length) finalContent = updateSketchpadElementStyle(finalContent, sketchpadBlockId, {}, clear);
       }
 
       fs.writeFileSync(absolutePath, finalContent, 'utf-8');
@@ -1163,7 +1181,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, pasteData, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
+      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, pasteData, moveBlockIds, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -1272,6 +1290,9 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
               const hasStyle = styleRegex.test(attrs);
 
               if (targetLayoutMode === 'flow') {
+                // Only the transferred root changes layout; absolute descendants
+                // keep their editing markers and their own coordinate systems.
+                newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
                 if (hasStyle) {
                   newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
                     let cleaned = innerStyles
@@ -1314,10 +1335,6 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
           });
 
           pastedContent = processedBlocks.join('\n');
-
-          if (targetLayoutMode === 'flow') {
-            pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-          }
         }
       }
 
@@ -1581,6 +1598,25 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         });
         if (!hasReplaced) {
           throw new Error(`Could not find target editable-zone-end tag to insert into: ${zoneId}`);
+        }
+      }
+
+      // Same-file reparenting is one write: an intermediate paste followed by
+      // a separate delete can leave Fast Refresh rendering the pasted-only state.
+      if (moveBlockIds?.length) {
+        if (elementType !== 'paste' || pasteData?.file !== file || !Array.isArray(moveBlockIds)) {
+          throw new Error('A move requires a private payload from the same file');
+        }
+        for (const id of moveBlockIds) {
+          if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid move block ID');
+          const blockRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${id}\\s*\\*\\/\\}\\n?`);
+          const match = blockRegex.exec(fileContent);
+          if (!match) throw new Error(`Move source block ${id} not found`);
+          fileContent = fileContent.slice(0, match.index) + '\n' + fileContent.slice(match.index + match[0].length);
+          fileContent = cleanupZonesAtAnchors(fileContent, [match.index]);
+        }
+        if (!newBlockIds.length || newBlockIds.some(id => !fileContent.includes(`pv-block-start:${id}`))) {
+          throw new Error('Move destination must exist outside the source blocks');
         }
       }
 

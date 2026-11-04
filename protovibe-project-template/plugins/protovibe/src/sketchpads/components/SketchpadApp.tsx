@@ -1519,13 +1519,15 @@ export function SketchpadApp() {
             const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
             await takeSnapshot(sourceFile, activeSourceId || '', extraFiles, isDuplicate ? 'duplicate element' : 'move element');
 
-            // 3. Paste
+            // 3. Move within a frame atomically so HMR never sees two copies.
+            const sameFileMove = !isDuplicate && sourceFile === currentTargetFile;
             const res = await addBlock({
               file: currentTargetFile,
               zoneId: currentTargetZoneId,
               isPristine: currentTargetIsPristine,
               elementType: 'paste',
               pasteData: transfer.data,
+              moveBlockIds: sameFileMove ? draggedBlockIds : undefined,
               targetLayoutMode,
               pasteX: Math.round(x),
               pasteY: Math.round(y),
@@ -1533,8 +1535,8 @@ export function SketchpadApp() {
               targetEndLine: currentTargetEndLine,
             });
 
-            // 4. Delete originals (single bulk call to avoid N HMR cycles)
-            if (!isDuplicate) {
+            // 4. Cross-file moves remove originals after the destination is saved.
+            if (!isDuplicate && !sameFileMove) {
               await blockAction('delete', draggedBlockIds, sourceFile);
             }
 

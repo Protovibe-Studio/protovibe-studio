@@ -1860,6 +1860,7 @@ function handleParentMessage(e: MessageEvent) {
 
     if (nudgeState.activeKeys.size === 0) {
       const sketchpadId = getSketchpadId();
+      const positionsByFrame = new Map<string, Array<{ blockId: string; x: number; y: number }>>();
       nudgeState.targets.forEach(t => {
         const newLeft = t.origLeft + nudgeState!.dx;
         const newTop = t.origTop + nudgeState!.dy;
@@ -1868,17 +1869,19 @@ function handleParentMessage(e: MessageEvent) {
         t.el.style.left = `${newLeft}px`;
         t.el.style.top = `${newTop}px`;
 
-        if (sketchpadId) {
+        const positions = positionsByFrame.get(t.frameId) ?? [];
+        positions.push({ blockId: t.blockId, x: newLeft, y: newTop });
+        positionsByFrame.set(t.frameId, positions);
+      });
+      // A held key is already coalesced until keyup. Persist the selection as
+      // one gesture, just like a pointer drag, so Undo restores every item.
+      if (sketchpadId) {
+        for (const [frameId, positions] of positionsByFrame) {
           postApi('/__sketchpad-update-element-position', {
-            sketchpadId,
-            frameId: t.frameId,
-            blockId: t.blockId,
-            x: newLeft,
-            y: newTop,
-            activeSourceId: currentActiveSourceId
+            sketchpadId, frameId, positions, activeSourceId: currentActiveSourceId,
           });
         }
-      });
+      }
       nudgeState = null;
       syncOverlays();
     }

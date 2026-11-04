@@ -105,6 +105,7 @@ export async function addBlock(params: {
   targetEndLine?: number;
   targetLayoutMode?: string;
   pasteData?: BlockClipboard;
+  moveBlockIds?: string[];
   pasteX?: number;
   pasteY?: number;
   imageUrl?: string;

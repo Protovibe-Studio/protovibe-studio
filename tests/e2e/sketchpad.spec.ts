@@ -417,10 +417,11 @@ for (const action of ['copy', 'cut'] as const) {
   });
 }
 
-for (const edge of ['east', 'west', 'northwest', 'southeast'] as const) {
+for (const edge of ['east', 'west', 'north', 'south', 'northwest', 'northeast', 'southwest', 'southeast'] as const) {
   test(`resizes an item from the ${edge} edge as one undo step`, async ({ sketch: s }) => {
-    const corner = edge === 'northwest' || edge === 'southeast';
-    await s.addComponent(corner ? 'Rectangle' : 'Button');
+    const horizontal = edge.includes('east') || edge.includes('west');
+    const vertical = edge.includes('north') || edge.includes('south');
+    await s.addComponent(vertical ? 'Rectangle' : 'Button');
     const item = s.items().first();
     const geometry = () => item.evaluate(el => {
       const style = getComputedStyle(el);
@@ -429,20 +430,25 @@ for (const edge of ['east', 'west', 'northwest', 'southeast'] as const) {
     const before = await geometry();
     await item.click();
     const box = (await item.boundingBox())!;
-    const west = edge === 'west' || edge === 'northwest';
-    const x = west ? box.x + 1 : box.x + box.width - 1;
-    const y = corner ? (west ? box.y + 1 : box.y + box.height - 1) : box.y + box.height / 2;
+    const west = edge.includes('west');
+    const north = edge.includes('north');
+    const x = horizontal ? (west ? box.x + 1 : box.x + box.width - 1) : box.x + box.width / 2;
+    const y = vertical ? (north ? box.y + 1 : box.y + box.height - 1) : box.y + box.height / 2;
     const resized = s.page.waitForResponse(r => r.url().endsWith('/__sketchpad-update-element-size'));
     await s.page.mouse.move(x, y);
     await s.page.mouse.down();
-    await s.page.mouse.move(x + (west ? -25 : 55), y + (corner ? (west ? -20 : 35) : 0), { steps: 12 });
+    await s.page.mouse.move(x + (horizontal ? (west ? -25 : 55) : 0), y + (vertical ? (north ? -20 : 35) : 0), { steps: 12 });
     await s.page.mouse.up();
     expect((await resized).ok()).toBeTruthy();
     const after = await geometry();
-    expect(after.width).toBeGreaterThan(before.width);
-    if (corner) expect(after.height).toBeGreaterThan(before.height);
+    if (horizontal) expect(after.width).toBeGreaterThan(before.width);
+    else expect(after.width).toBe(before.width);
+    if (vertical) expect(after.height).toBeGreaterThan(before.height);
     else expect(after.height).toBe(before.height);
     if (west) expect(after.x).toBeLessThan(before.x);
+    else expect(after.x).toBe(before.x);
+    if (north) expect(after.y).toBeLessThan(before.y);
+    else expect(after.y).toBe(before.y);
     await s.history();
     await expect.poll(geometry).toEqual(before);
     await s.history(true);
@@ -511,6 +517,12 @@ test('moves multiple items together and undoes the entire gesture', async ({ ske
 });
 
 test('reparents a flow child back to its frame and persists its dropped position', async ({ sketch: s }) => {
+  const moves: string[][] = [];
+  const separateDeletes: string[] = [];
+  s.page.on('request', r => {
+    if (r.url().endsWith('/__add-block') && r.postDataJSON()?.moveBlockIds) moves.push(r.postDataJSON().moveBlockIds);
+    if (r.url().endsWith('/__block-action') && r.postDataJSON()?.action === 'delete') separateDeletes.push(r.url());
+  });
   await s.addComponent('Container');
   const container = s.frames.first().locator('[data-pv-component-id="Container"]');
   await s.drag(container, 100, 120);
@@ -520,7 +532,7 @@ test('reparents a flow child back to its frame and persists its dropped position
   const end = (await container.boundingBox())!;
   await s.drag(button, end.x + end.width / 2 - start.x - start.width / 2, end.y + end.height / 2 - start.y - start.height / 2);
   await expect(container.locator('[data-pv-component-id="Button"]')).toHaveCount(1);
-  // Reparenting pastes before deleting the source; wait for both HMR updates.
+  // Wait for the completed hierarchy update before starting the next gesture.
   await expect(button).toHaveCount(1);
   await expect(button).not.toHaveCSS('position', 'absolute');
   await s.key('Escape');
@@ -531,6 +543,8 @@ test('reparents a flow child back to its frame and persists its dropped position
   await s.drag(button, frame.x + frame.width * 0.3 - nested.x - nested.width / 2, frame.y + frame.height * 0.2 - nested.y - nested.height / 2);
   await expect(container.locator('[data-pv-component-id="Button"]')).toHaveCount(0);
   await expect(button).toHaveCSS('position', 'absolute');
+  expect(moves).toHaveLength(2);
+  expect(separateDeletes).toEqual([]);
   const moved = await s.position(button);
   expect(moved.x).toBeGreaterThan(0);
   expect(moved.y).toBeGreaterThan(0);
@@ -620,3 +634,171 @@ test('cuts a styled item into another frame and duplicates it with fresh IDs', a
   await expect(s.items(target)).toHaveCount(2);
   await expect(s.items(target).nth(1)).toHaveCSS('width', '180px');
 });
+
+test('nudges multiple items and undoes the whole selection in one step', async ({ sketch: s }) => {
+  await s.addComponent();
+  await s.drag(s.items().first(), 100, 100);
+  await s.addComponent();
+  await s.items().first().click();
+  await s.items().nth(1).click({ modifiers: ['Shift'] });
+  const positions = () => Promise.all([s.position(s.items().first()), s.position(s.items().nth(1))]);
+  const before = await positions();
+  await s.key('Shift+ArrowRight');
+  const after = before.map(p => ({ x: p.x + 8, y: p.y }));
+  await expect.poll(positions).toEqual(after);
+  await s.history();
+  await expect.poll(positions).toEqual(before);
+  await s.history(true);
+  await expect.poll(positions).toEqual(after);
+  await s.open();
+  await expect.poll(positions).toEqual(after);
+});
+
+for (const action of ['copy', 'cut'] as const) {
+  test(`frame ${action} supersedes an older item clipboard`, async ({ sketch: s }) => {
+    await s.addComponent();
+    await s.items().first().click();
+    const copied = s.page.waitForResponse(r => r.url().endsWith('/__block-action') && r.request().postDataJSON()?.action === 'copy');
+    await s.key(`${modifier}+c`);
+    await copied;
+    await s.title().click();
+    const read = s.page.waitForResponse(r => r.url().endsWith('/__frame-read'));
+    await s.key(`${modifier}+${action === 'copy' ? 'c' : 'x'}`);
+    await read;
+    if (action === 'cut') await expect(s.frames).toHaveCount(0);
+    await unlock(s.canvas);
+    await s.key(`${modifier}+v`);
+    await expect(s.frames).toHaveCount(action === 'copy' ? 2 : 1);
+    for (const frame of await s.frames.all()) await expect(s.items(frame)).toHaveCount(1);
+  });
+}
+
+test('inspector dimensions override a pointer resize and survive duplication', async ({ sketch: s }) => {
+  await s.addComponent('Rectangle');
+  const item = s.items().first();
+  await item.click();
+  const box = (await item.boundingBox())!;
+  const resized = s.page.waitForResponse(r => r.url().endsWith('/__sketchpad-update-element-size'));
+  await s.page.mouse.move(box.x + box.width - 1, box.y + box.height - 1);
+  await s.page.mouse.down();
+  await s.page.mouse.move(box.x + box.width + 40, box.y + box.height + 30, { steps: 12 });
+  await s.page.mouse.up();
+  await resized;
+  for (const [dimension, value] of [['width', '210px'], ['height', '140px']]) {
+    const input = s.page.getByTestId(`control-${dimension}`).locator('input');
+    await input.fill(value);
+    await input.press('Enter');
+    await expect(item).toHaveCSS(dimension, value);
+  }
+  const shadowInput = s.page.getByTestId('control-box-shadow').locator('input');
+  await shadowInput.fill('lg');
+  await shadowInput.press('Enter');
+  await expect(item).not.toHaveCSS('box-shadow', 'none');
+  const shadow = await item.evaluate(el => getComputedStyle(el).boxShadow);
+  await s.drag(item, 30, 25);
+  await s.key(`${modifier}+d`);
+  await expect(s.items()).toHaveCount(2);
+  for (const copy of await s.items().all()) {
+    await expect(copy).toHaveCSS('width', '210px');
+    await expect(copy).toHaveCSS('height', '140px');
+    await expect(copy).toHaveCSS('box-shadow', shadow);
+  }
+  await s.open();
+  for (const copy of await s.items().all()) {
+    await expect(copy).toHaveCSS('width', '210px');
+    await expect(copy).toHaveCSS('height', '140px');
+    await expect(copy).toHaveCSS('box-shadow', shadow);
+  }
+});
+
+test('reparenting a container preserves its absolute children for later movement and resizing', async ({ sketch: s }) => {
+  // Seed a converted-style nested absolute layout; normal palette containers use flow.
+  await s.post('/__frame-delete', { sketchpadId: s.id, frameId: (await s.registry()).frames[0].id });
+  await s.post('/__frame-paste', { targetSketchpadId: s.id, frames: [{
+    name: 'Nested layout', width: 600, height: 420, canvasX: 0, canvasY: 0,
+    content: `import { Container } from '@/components/ui/container';
+      import { Button } from '@/components/ui/button';
+      export default function NestedLayout() { return <div data-layout-mode="absolute" style={{width:'100%',height:'100%',position:'relative'}}>
+        {/* pv-editable-zone-start:root01 */}
+          {/* pv-block-start:outer1 */}
+          <Container data-pv-block="outer1" data-pv-sketchpad-el="outer1" data-layout-mode="absolute" data-testid="nested-source" className="min-w-48 min-h-32" style={{position:'absolute',left:40,top:40}}>
+            {/* pv-editable-zone-start:inner1 */}
+              {/* pv-block-start:child1 */}
+              <Button data-pv-block="child1" data-pv-sketchpad-el="child1" label="Child" style={{position:'absolute',left:20,top:20}} />
+              {/* pv-block-end:child1 */}
+            {/* pv-editable-zone-end:inner1 */}
+          </Container>
+          {/* pv-block-end:outer1 */}
+          {/* pv-block-start:target */}
+          <Container data-pv-block="target" data-pv-sketchpad-el="target" data-testid="nested-target" className="min-w-48 min-h-32" style={{position:'absolute',left:330,top:220}}>
+            {/* pv-editable-zone-start:zone02 */}
+            {/* pv-editable-zone-end:zone02 */}
+          </Container>
+          {/* pv-block-end:target */}
+        {/* pv-editable-zone-end:root01 */}
+      </div>; }`,
+  }] });
+  await s.open();
+  const source = s.canvas.getByTestId('nested-source');
+  const target = s.canvas.getByTestId('nested-target');
+  const start = (await source.boundingBox())!;
+  const end = (await target.boundingBox())!;
+  await s.drag(source, end.x + end.width / 2 - start.x - start.width / 2, end.y + end.height / 2 - start.y - start.height / 2);
+  await expect(target.getByTestId('nested-source')).toHaveCount(1);
+  await expect(source).toHaveCount(1);
+  const child = source.locator('[data-pv-component-id="Button"]');
+  await expect(child).toHaveAttribute('data-pv-sketchpad-el', /.+/);
+  await expect(source).not.toHaveAttribute('data-pv-sketchpad-el', /.+/);
+  await s.key('Escape');
+  await child.click({ modifiers: [modifier], position: { x: 10, y: 10 } });
+  const before = await s.position(child);
+  await s.drag(child, 25, 20);
+  const moved = await s.position(child);
+  expect(moved.x).toBeGreaterThan(before.x);
+  expect(moved.y).toBeGreaterThan(before.y);
+  await child.click();
+  const box = (await child.boundingBox())!;
+  const resized = s.page.waitForResponse(r => r.url().endsWith('/__sketchpad-update-element-size'));
+  await s.page.mouse.move(box.x + box.width - 1, box.y + box.height / 2);
+  await s.page.mouse.down();
+  await s.page.mouse.move(box.x + box.width + 25, box.y + box.height / 2, { steps: 12 });
+  await s.page.mouse.up();
+  expect((await resized).ok()).toBeTruthy();
+  const width = await child.evaluate(el => getComputedStyle(el).width);
+  await s.open();
+  await expect.poll(() => s.position(child)).toEqual(moved);
+  await expect(child).toHaveCSS('width', width);
+});
+
+for (const action of ['copy', 'cut'] as const) {
+  test(`multi-item ${action}/paste preserves spacing and uses fresh IDs`, async ({ sketch: s }) => {
+    await s.addComponent();
+    await s.drag(s.items().first(), 100, 100);
+    await s.addComponent();
+    await s.items().first().click();
+    await s.items().nth(1).click({ modifiers: ['Shift'] });
+    const before = await Promise.all([s.position(s.items().first()), s.position(s.items().nth(1))]);
+    const ids = await s.items().evaluateAll(els => els.map(el => el.getAttribute('data-pv-block')));
+    const copied = s.page.waitForResponse(r => r.url().endsWith('/__block-action') && r.request().postDataJSON()?.action === action);
+    await s.key(`${modifier}+${action === 'copy' ? 'c' : 'x'}`);
+    await copied;
+    if (action === 'cut') await expect(s.items()).toHaveCount(0);
+    await s.title().click();
+    await s.key(`${modifier}+v`);
+    await expect(s.items()).toHaveCount(action === 'copy' ? 4 : 2);
+    const offset = action === 'copy' ? 2 : 0;
+    const first = s.items().nth(offset);
+    const second = s.items().nth(offset + 1);
+    const after = [await s.position(first), await s.position(second)];
+    expect(after[0].x - after[1].x).toBe(before[0].x - before[1].x);
+    expect(after[0].y - after[1].y).toBe(before[0].y - before[1].y);
+    expect(ids).not.toContain(await first.getAttribute('data-pv-block'));
+    expect(ids).not.toContain(await second.getAttribute('data-pv-block'));
+    await s.history();
+    await expect(s.items()).toHaveCount(action === 'copy' ? 2 : 0);
+    await s.history(true);
+    await expect(s.items()).toHaveCount(action === 'copy' ? 4 : 2);
+    await s.open();
+    await expect.poll(async () => [await s.position(first), await s.position(second)]).toEqual(after);
+  });
+}

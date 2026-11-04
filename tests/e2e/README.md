@@ -47,3 +47,22 @@ clipboard preservation during internal duplicate/reparent operations, and styled
 cut/paste plus keyboard duplication across frames. Geometry checks include reload
 persistence. The fixture also fails on unsuccessful canvas mutation responses so
 optimistic DOM movement cannot hide a failed save.
+
+The review regressions also exercise all eight resize edges/corners, keyboard
+nudging of a selection as one undo step, frame clipboard precedence over an older
+item clipboard, and group copy/cut/paste with preserved spacing and fresh IDs.
+Inspector dimensions and box shadows are checked after pointer resizing, moving,
+duplicating and reloading. A nested absolute-layout fixture verifies that moving
+its container into flow layout preserves the children's editing markers, so those
+children can still be moved and resized after the transfer.
+
+Backend regressions (`pnpm --dir plugins/protovibe test:sketchpad-position` from
+the template) cover nested editing markers and inspector dimensions overriding
+saved inline sizes, including typed objects, spreads, removal, and reapplying the
+same size class. Ordinary app styles and conditional size classes are preserved.
+
+Same-frame reparenting uses one backend write for insertion and source removal,
+so HMR cannot stop at an intermediate duplicate. The flow-to-frame e2e verifies
+both moves use that atomic path; backend checks verify one write and no partial
+changes for invalid moves. Cross-frame transfers still save the destination
+before removing the source.

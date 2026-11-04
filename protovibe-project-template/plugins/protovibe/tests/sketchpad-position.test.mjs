@@ -21,7 +21,7 @@ before(async () => {
   const bundle = path.join(bundleDir, 'backend.mjs');
   await build({
     stdin: { resolveDir: pluginRoot, contents: `
-      export { handleAddBlock, handleBlockAction } from './src/backend/server';
+      export { handleAddBlock, handleBlockAction, handleUpdateSource } from './src/backend/server';
       export { handleSketchpadUpdateElementPosition, handleSketchpadUpdateElementSize } from './src/backend/sketchpad-server';
       export { undoStack } from './src/shared/state';
     ` },
@@ -277,4 +277,112 @@ test('private block transfers leave the user clipboard intact, including failed 
   const saved = fs.readFileSync(frameFile, 'utf8');
   assert.equal((saved.match(/>Copied</g) || []).length, 2);
   assert.equal((saved.match(/>Moved</g) || []).length, 2);
+});
+
+test('pasting a container into flow preserves absolute descendants', async () => {
+  fs.writeFileSync(frameFile, `export default () => <div>
+    {/* pv-editable-zone-start:zone01 */}
+      {/* pv-block-start:outer1 */}
+      <div data-pv-block="outer1" data-pv-sketchpad-el="outer1" data-layout-mode="absolute" style={{ position: 'absolute', left: 40, top: 40 }}>
+        {/* pv-editable-zone-start:inner1 */}
+          {/* pv-block-start:child1 */}
+          <div data-pv-block="child1" data-pv-sketchpad-el="child1" style={{ position: 'absolute', left: 20, top: 20, width: 80 }}>Child</div>
+          {/* pv-block-end:child1 */}
+        {/* pv-editable-zone-end:inner1 */}
+      </div>
+      {/* pv-block-end:outer1 */}
+    {/* pv-editable-zone-end:zone01 */}
+  </div>;`);
+  const transfer = await request('handleBlockAction', { file: relativeFile, blockId: 'outer1', action: 'read' });
+  const pasted = await request('handleAddBlock', {
+    file: relativeFile, zoneId: 'zone01', elementType: 'paste', targetLayoutMode: 'flow', pasteData: transfer.data,
+  });
+  assert.equal(pasted.status, 200, pasted.error);
+  await request('handleBlockAction', { file: relativeFile, blockId: 'outer1', action: 'delete' });
+  const saved = fs.readFileSync(frameFile, 'utf8');
+  const childId = saved.match(/data-pv-sketchpad-el="([^"]+)"/)?.[1];
+  assert.ok(childId, 'absolute child retains its editing marker');
+  assert.notEqual(childId, pasted.newBlockIds[0], 'flow root loses only its own marker');
+  assert.deepEqual(savedStyle(childId), { position: 'absolute', left: 20, top: 20, width: 80 });
+  assert.equal((await update('handleSketchpadUpdateElementPosition', childId, { positions: [{ blockId: childId, x: 60, y: 50 }] })).status, 200);
+  assert.equal((await update('handleSketchpadUpdateElementSize', childId, { width: 120 })).status, 200);
+});
+
+for (const style of [
+  "{ position: 'absolute', left: 10, top: 20, width: 300, height: 200, opacity: 0.5 }",
+  "{ ...{ position: 'absolute', left: 10, top: 20, width: 300, height: 200, opacity: 0.5 } } as const",
+]) {
+  test(`inspector size classes release only the corresponding inline override: ${style}`, async () => {
+    fs.writeFileSync(frameFile, `export default () => <div data-pv-sketchpad-el="sized1" className="w-[200px] h-[100px]" style={${style}} />;`);
+    const edit = (oldClass, newClass, action = 'edit') => request('handleUpdateSource', {
+      file: relativeFile, startLine: 1, oldClass, newClass, action,
+    });
+    // Conditional styling must not silently discard the base inline dimension.
+    assert.equal((await edit('', 'hover:w-[250px]', 'add')).status, 200);
+    assert.equal(renderedStyle().width, 300);
+    // Reapplying the existing width class still releases a pointer resize.
+    assert.equal((await edit('w-[200px]', 'w-[200px]')).status, 200);
+    assert.deepEqual(renderedStyle(), { position: 'absolute', left: 10, top: 20, width: undefined, height: 200, opacity: 0.5 });
+    assert.equal((await edit('h-[100px]', 'h-[140px]')).status, 200);
+    assert.equal(renderedStyle().height, undefined);
+    assert.match(fs.readFileSync(frameFile, 'utf8'), /h-\[140px\]/);
+    assert.equal((await update('handleSketchpadUpdateElementSize', 'sized1', { width: 250 })).status, 200);
+    assert.equal(renderedStyle().width, 250, 'pointer resizing works after inspector editing');
+    assert.equal((await edit('w-[200px]', '', 'remove')).status, 200);
+    assert.equal(renderedStyle().width, undefined, 'removing a size also releases the override');
+  });
+}
+
+test('inspector class editing leaves ordinary app inline dimensions untouched', async () => {
+  fs.writeFileSync(frameFile, `export default () => <div className="w-[200px]" style={{ width: 300, height: 200 }} />;`);
+  assert.equal((await request('handleUpdateSource', {
+    file: relativeFile, startLine: 1, oldClass: 'w-[200px]', newClass: 'w-[210px]', action: 'edit',
+  })).status, 200);
+  assert.deepEqual(renderedStyle(), { width: 300, height: 200 });
+});
+
+test('same-frame reparenting removes the source and inserts the destination in one write', async () => {
+  const source = `export default () => <div>
+    {/* pv-editable-zone-start:root01 */}
+      {/* pv-block-start:outer1 */}
+      <div data-pv-block="outer1">
+        {/* pv-editable-zone-start:inner1 */}
+          {/* pv-block-start:child1 */}
+          <div data-pv-block="child1">Child</div>
+          {/* pv-block-end:child1 */}
+        {/* pv-editable-zone-end:inner1 */}
+      </div>
+      {/* pv-block-end:outer1 */}
+    {/* pv-editable-zone-end:root01 */}
+  </div>;`;
+  fs.writeFileSync(frameFile, source);
+  const transfer = await request('handleBlockAction', { file: relativeFile, blockId: 'child1', action: 'read' });
+  const params = {
+    file: relativeFile, zoneId: 'root01', elementType: 'paste', targetLayoutMode: 'absolute',
+    pasteX: 80, pasteY: 90, pasteData: transfer.data,
+  };
+  const writes = [];
+  const write = fs.writeFileSync;
+  fs.writeFileSync = (...args) => {
+    if (args[0] === frameFile) writes.push(args[1]);
+    return write(...args);
+  };
+  try {
+    const invalid = await request('handleAddBlock', { ...params, moveBlockIds: ['missing'] });
+    assert.equal(invalid.status, 500);
+    const intoSelf = await request('handleAddBlock', {
+      ...params, zoneId: 'inner1', moveBlockIds: ['outer1'],
+    });
+    assert.equal(intoSelf.status, 500, 'a move cannot erase its own destination');
+    assert.deepEqual(writes, [], 'invalid move must not paste a duplicate');
+    assert.equal(fs.readFileSync(frameFile, 'utf8'), source);
+    const moved = await request('handleAddBlock', { ...params, moveBlockIds: ['child1'] });
+    assert.equal(moved.status, 200, moved.error);
+    assert.equal(writes.length, 1, 'the file watcher sees only the completed move');
+    assert.doesNotMatch(writes[0], /pv-block-start:child1/);
+    assert.equal((writes[0].match(/>Child</g) || []).length, 1);
+    assert.deepEqual(savedStyle(moved.newBlockIds[0]), { position: 'absolute', left: 80, top: 90 });
+  } finally {
+    fs.writeFileSync = write;
+  }
 });
