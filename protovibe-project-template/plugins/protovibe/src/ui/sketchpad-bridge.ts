@@ -1567,8 +1567,9 @@ function handlePointerUp(e: PointerEvent) {
         
         dragState.targets.forEach(t => {
           const rect = t.el.getBoundingClientRect();
-          minNewLeft = Math.min(minNewLeft, layoutMode === 'absolute' ? (rect.left - containerRect.left) / zoom : 0);
-          minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom);
+          minNewLeft = Math.min(minNewLeft, layoutMode === 'absolute'
+            ? (rect.left - containerRect.left) / zoom - dropContainer.clientLeft + dropContainer.scrollLeft : 0);
+          minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom - dropContainer.clientTop + dropContainer.scrollTop);
         });
 
         if (e.altKey) {

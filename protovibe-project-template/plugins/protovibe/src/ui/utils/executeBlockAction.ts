@@ -1,6 +1,6 @@
 import { blockAction, takeSnapshot } from '../api/client';
 
-export type BlockMutationAction = 'delete' | 'move-up' | 'move-down';
+export type BlockMutationAction = 'delete' | 'move-up' | 'move-down' | 'bring-to-front';
 
 function findBlockElement(blockId: string): HTMLElement | null {
   const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];

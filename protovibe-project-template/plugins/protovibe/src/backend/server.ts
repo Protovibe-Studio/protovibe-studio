@@ -14,7 +14,7 @@ import * as babel from '@babel/core';
 import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
 import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
 import { updateSketchpadElementStyle } from './sketchpad-element-style';
-import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
+import { locatorMap, redoStack, undoStack, clipboard, type BlockClipboard } from '../shared/state';
 import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
@@ -905,9 +905,6 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
 
       const processedBlocks = extractedBlocks.map(block => {
         let newBlock = block;
-        // Universally strip sketchpad draggable attribute from the children
-        newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-
         // Strip absolute positioning from the root element's style tag. The
         // wrapper is a flex-column (flow) container, so children also shed any
         // enforced inline width/height — matching the drop-onto-flow-element
@@ -915,6 +912,9 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
         // that no longer makes sense inside auto-layout.
         const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
         newBlock = newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
+          // Only the rehosted root becomes a flow child. Nested absolute
+          // layouts keep their own draggable/resizable descendants.
+          attrs = attrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
           const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
           if (styleRegex.test(attrs)) {
             const newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
@@ -927,7 +927,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
             });
             return `${tag}${newAttrs}${closing}`;
           }
-          return match;
+          return `${tag}${attrs}${closing}`;
         });
         return newBlock;
       });
@@ -964,9 +964,6 @@ const rehostBlockRoot = (
   pos?: { left: number; top: number; width?: number | null }
 ): string => {
   let newBlock = block;
-  if (target === 'flow') {
-    newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-  }
   const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
   return newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
     let newAttrs = attrs;
@@ -974,7 +971,8 @@ const rehostBlockRoot = (
     const hasStyle = styleRegex.test(newAttrs);
 
     if (target === 'flow') {
-      if (!hasStyle) return match;
+      newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
+      if (!hasStyle) return `${tag}${newAttrs}${closing}`;
       newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
         const cleaned = innerStyles
           .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
@@ -1205,7 +1203,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       let newBlockIds: string[] = [];
 
       if (elementType === 'paste') {
-        const data = pasteData ?? clipboard.data;
+        const data: BlockClipboard | null = pasteData ?? clipboard.data;
         if (!data) {
           throw new Error('Clipboard is empty.');
         }
@@ -1904,7 +1902,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         }
         fileContent = cleanupZonesAtAnchors(fileContent, deleteAnchors);
       }
-      else if (action === 'move-up' || action === 'move-down') {
+      else if (action === 'move-up' || action === 'move-down' || action === 'bring-to-front') {
         // 1. Find all block AND editable-zone start/end tags so siblings respect zone scope.
         const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-(block|editable-zone)-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;
         let match;
@@ -1964,7 +1962,18 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         // 4. Swap the block with its sibling — but only if the parent is an editable
         //    zone. Blocks at the file root (outside any zone) are not reorderable.
         if (targetParent && targetParent.kind === 'editable-zone' && targetIndex !== -1) {
-          if (action === 'move-up' && targetIndex > 0) {
+          if (action === 'bring-to-front' && targetIndex < targetSiblings.length - 1) {
+            const curr = targetSiblings[targetIndex];
+            const last = targetSiblings[targetSiblings.length - 1];
+            if (curr.startTag && curr.endTag && last.endTag) {
+              const start = curr.startTag.index;
+              const end = curr.endTag.index + curr.endTag.length;
+              const destination = last.endTag.index + last.endTag.length;
+              fileContent = fileContent.slice(0, start) + fileContent.slice(end, destination)
+                + fileContent.slice(start, end) + fileContent.slice(destination);
+            }
+          }
+          else if (action === 'move-up' && targetIndex > 0) {
             const prev = targetSiblings[targetIndex - 1];
             const curr = targetSiblings[targetIndex];
 

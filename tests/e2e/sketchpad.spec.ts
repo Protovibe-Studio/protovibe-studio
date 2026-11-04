@@ -1,4 +1,4 @@
-import { test, expect, modifier, unlock } from './helpers/sketchpad';
+import { test, expect, modifier, unlock, type Sketchpad } from './helpers/sketchpad';
 
 // One server owns source files, clipboard and undo history: never run these in parallel.
 test.describe.configure({ mode: 'default', timeout: 60_000 });
@@ -802,3 +802,244 @@ for (const action of ['copy', 'cut'] as const) {
     await expect.poll(async () => [await s.position(first), await s.position(second)]).toEqual(after);
   });
 }
+
+async function seed(s: Sketchpad, content: string) {
+  await s.post('/__frame-delete', { sketchpadId: s.id, frameId: (await s.registry()).frames[0].id });
+  await s.post('/__frame-paste', { targetSketchpadId: s.id, frames: [{
+    name: 'Structure', width: 600, height: 420, canvasX: 0, canvasY: 0,
+    content: `export default function Structure() { return <div data-layout-mode="absolute" style={{width:'100%',height:'100%',position:'relative'}}>
+      {/* pv-editable-zone-start:root01 */}
+      ${content}
+      {/* pv-editable-zone-end:root01 */}
+    </div>; }`,
+  }] });
+  await s.open();
+}
+
+const blocks = ['first1', 'second', 'third1'].map((id, i) => `
+  {/* pv-block-start:${id} */}
+  <div data-pv-block="${id}" data-pv-sketchpad-el="${id}" data-testid="${id}" style={{position:'absolute',left:${40 + i * 25},top:${40 + i * 25},width:140,height:80,background:'teal'}} />
+  {/* pv-block-end:${id} */}
+`).join('\n');
+
+async function toolbar(s: Sketchpad, id: string) {
+  await expect(s.page.getByTestId('inspector-sidebar')).toHaveAttribute('aria-busy', 'false');
+  await s.page.getByTestId(id).click();
+  await unlock(s.canvas);
+  await expect(s.page.getByTestId('inspector-sidebar')).toHaveAttribute('aria-busy', 'false');
+}
+
+const order = (s: Sketchpad) => s.frames.first().locator('[data-testid]').evaluateAll(els => els.map(el => el.getAttribute('data-testid')));
+
+test('Bring to front crosses every sibling; Send backward moves one layer with undo/redo', async ({ sketch: s }) => {
+  await seed(s, blocks);
+  const first = s.canvas.getByTestId('first1');
+  const before = await s.position(first);
+  await first.click({ position: { x: 10, y: 10 } });
+  await toolbar(s, 'btn-move-up');
+  await expect.poll(() => order(s)).toEqual(['second', 'third1', 'first1']);
+  await expect.poll(() => s.position(first)).toEqual(before);
+  await s.history();
+  await expect.poll(() => order(s)).toEqual(['first1', 'second', 'third1']);
+  await s.history(true);
+  await expect.poll(() => order(s)).toEqual(['second', 'third1', 'first1']);
+  await first.click();
+  await toolbar(s, 'btn-move-down');
+  await expect.poll(() => order(s)).toEqual(['second', 'first1', 'third1']);
+  await s.open();
+  await expect.poll(() => order(s)).toEqual(['second', 'first1', 'third1']);
+  await expect.poll(() => s.position(first)).toEqual(before);
+});
+
+test('wraps a multi-selection, reorders flow children and unwraps without a visual jump', async ({ sketch: s }) => {
+  await s.addComponent();
+  await s.drag(s.items().first(), 140, 120);
+  await s.addComponent();
+  const ids = await s.items().evaluateAll(els => els.map(el => el.getAttribute('data-pv-block')!));
+  await s.items().first().click();
+  await s.items().nth(1).click({ modifiers: ['Shift'] });
+  await toolbar(s, 'btn-wrap');
+  const wrapper = s.items().first();
+  const children = wrapper.locator('[data-pv-block]');
+  await expect(children).toHaveCount(2);
+  await expect(s.items()).toHaveCount(1);
+  const childOrder = () => children.evaluateAll(els => els.map(el => el.getAttribute('data-pv-block')));
+  await expect.poll(childOrder).toEqual(ids);
+  // Undo wrapping restores both original absolute items.
+  await s.history();
+  await expect(s.items()).toHaveCount(2);
+  await s.history(true);
+  await expect(children).toHaveCount(2);
+  await children.nth(1).click({ modifiers: [modifier], position: { x: 10, y: 10 } });
+  await toolbar(s, 'btn-move-up');
+  await expect.poll(childOrder).toEqual([...ids].reverse());
+  await toolbar(s, 'btn-move-down');
+  await expect.poll(childOrder).toEqual(ids);
+  await s.key('Escape');
+  await wrapper.click({ position: { x: 2, y: 2 } });
+  const before = await children.evaluateAll(els => els.map(el => {
+    const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height };
+  }));
+  await toolbar(s, 'btn-unwrap');
+  await expect(s.items()).toHaveCount(2);
+  for (const [i, id] of ids.entries()) {
+    const item = s.frames.first().locator(`[data-pv-block="${id}"]`);
+    const after = await item.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
+    for (const key of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(after[key] - before[i][key])).toBeLessThanOrEqual(1);
+  }
+  await s.history();
+  await expect(children).toHaveCount(2);
+  await s.history(true);
+  await expect(s.items()).toHaveCount(2);
+  await s.open();
+  await expect(s.items()).toHaveCount(2);
+});
+
+const nested = `
+  {/* pv-block-start:outer1 */}
+  <div data-pv-block="outer1" data-pv-sketchpad-el="outer1" data-testid="outer" data-layout-mode="absolute" className="w-64 h-48" style={{position:'absolute',left:50,top:50}}>
+    {/* pv-editable-zone-start:inner1 */}
+      {/* pv-block-start:child1 */}
+      <div data-pv-block="child1" data-pv-sketchpad-el="child1" data-testid="child" style={{position:'absolute',left:20,top:20,width:80,height:40,background:'teal'}} />
+      {/* pv-block-end:child1 */}
+    {/* pv-editable-zone-end:inner1 */}
+  </div>
+  {/* pv-block-end:outer1 */}`;
+
+for (const operation of ['wrap', 'unwrap'] as const) {
+  test(`${operation} preserves nested absolute children's editing markers`, async ({ sketch: s }) => {
+    await seed(s, operation === 'wrap' ? nested : `
+      {/* pv-block-start:flow01 */}
+      <div data-pv-block="flow01" data-pv-sketchpad-el="flow01" data-layout-mode="flow" style={{position:'absolute',left:40,top:40}}>
+        {/* pv-editable-zone-start:flow02 */}
+          {/* pv-block-start:wrap01 */}
+          <div data-pv-block="wrap01" data-testid="wrapper" className="w-80 h-64">
+            {/* pv-editable-zone-start:wrap02 */}
+              ${nested}
+            {/* pv-editable-zone-end:wrap02 */}
+          </div>
+          {/* pv-block-end:wrap01 */}
+        {/* pv-editable-zone-end:flow02 */}
+      </div>
+      {/* pv-block-end:flow01 */}`);
+    const outer = s.canvas.getByTestId('outer');
+    const child = s.canvas.getByTestId('child');
+    if (operation === 'wrap') await outer.click({ position: { x: 150, y: 90 } });
+    else await s.canvas.getByTestId('wrapper').click({ modifiers: [modifier], position: { x: 10, y: 10 } });
+    await toolbar(s, `btn-${operation}`);
+    await expect(outer).not.toHaveAttribute('data-pv-sketchpad-el', /.+/);
+    await expect(child).toHaveAttribute('data-pv-sketchpad-el', /.+/);
+    await s.open();
+    await expect(child).toHaveAttribute('data-pv-sketchpad-el', /.+/);
+    await child.click({ modifiers: [modifier], position: { x: 10, y: 10 } });
+    const before = await s.position(child);
+    await s.drag(child, 20, 15);
+    const after = await s.position(child);
+    expect(after.x).toBeGreaterThan(before.x);
+    expect(after.y).toBeGreaterThan(before.y);
+    await s.history();
+    await expect.poll(() => s.position(child)).toEqual(before);
+    await s.history(true);
+    await expect.poll(() => s.position(child)).toEqual(after);
+  });
+}
+
+test('unwrap preserves coordinates inside a bordered absolute container at non-default zoom', async ({ sketch: s }) => {
+  await seed(s, `
+    {/* pv-block-start:parent */}
+    <div data-pv-block="parent" data-pv-sketchpad-el="parent" data-testid="parent" data-layout-mode="absolute" style={{position:'absolute',left:30,top:30,width:400,height:300,border:'12px solid teal'}}>
+      {/* pv-editable-zone-start:zone01 */}
+        {/* pv-block-start:wrap01 */}
+        <div data-pv-block="wrap01" data-pv-sketchpad-el="wrap01" data-testid="wrapper" className="flex flex-col" style={{position:'absolute',left:30,top:40,width:200,height:100}}>
+          {/* pv-editable-zone-start:zone02 */}
+            {/* pv-block-start:child1 */}
+            <div data-pv-block="child1" data-testid="child" style={{width:80,height:40,background:'teal'}} />
+            {/* pv-block-end:child1 */}
+          {/* pv-editable-zone-end:zone02 */}
+        </div>
+        {/* pv-block-end:wrap01 */}
+      {/* pv-editable-zone-end:zone01 */}
+    </div>
+    {/* pv-block-end:parent */}`);
+  await s.key(`${modifier}+-`);
+  const child = s.canvas.getByTestId('child');
+  await s.canvas.getByTestId('wrapper').click({ modifiers: [modifier], position: { x: 85, y: 45 } });
+  const before = (await child.boundingBox())!;
+  await toolbar(s, 'btn-unwrap');
+  await expect(s.canvas.getByTestId('wrapper')).toHaveCount(0);
+  const after = (await child.boundingBox())!;
+  expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+  await s.history();
+  await expect(s.canvas.getByTestId('wrapper')).toHaveCount(1);
+  await s.history(true);
+  await expect(s.canvas.getByTestId('wrapper')).toHaveCount(0);
+  const saved = await s.position(child);
+  await s.open();
+  await expect.poll(() => s.position(child)).toEqual(saved);
+});
+
+test('marquee selects a group, moves it together, and preserves spacing after reload', async ({ sketch: s }) => {
+  await seed(s, blocks);
+  await s.key('Escape');
+  const box = (await s.frames.first().boundingBox())!;
+  const scale = box.width / 600;
+  await s.page.mouse.move(box.x + 20 * scale, box.y + 20 * scale);
+  await s.page.mouse.down();
+  await s.page.mouse.move(box.x + 250 * scale, box.y + 200 * scale, { steps: 12 });
+  await s.page.mouse.up();
+  const items = ['first1', 'second', 'third1'].map(id => s.canvas.getByTestId(id));
+  const positions = () => Promise.all(items.map(item => s.position(item)));
+  const before = await positions();
+  await s.drag(items[2], 90, 60);
+  const after = await positions();
+  const delta = { x: after[0].x - before[0].x, y: after[0].y - before[0].y };
+  expect(delta.x).toBeGreaterThan(0);
+  expect(delta.y).toBeGreaterThan(0);
+  for (let i = 1; i < 3; i++) {
+    expect(after[i].x - before[i].x).toBe(delta.x);
+    expect(after[i].y - before[i].y).toBe(delta.y);
+  }
+  await s.history();
+  await expect.poll(positions).toEqual(before);
+  await s.history(true);
+  await expect.poll(positions).toEqual(after);
+  await s.open();
+  await expect.poll(positions).toEqual(after);
+});
+
+test('reparenting into a bordered absolute container keeps the dropped position', async ({ sketch: s }) => {
+  await seed(s, `
+    {/* pv-block-start:parent */}
+    <div data-pv-block="parent" data-pv-sketchpad-el="parent" data-testid="parent" data-layout-mode="absolute" style={{position:'absolute',left:240,top:40,width:300,height:300,border:'12px solid teal'}}>
+      {/* pv-editable-zone-start:zone01 */}
+      {/* pv-editable-zone-end:zone01 */}
+    </div>
+    {/* pv-block-end:parent */}
+    {/* pv-block-start:child1 */}
+    <div data-pv-block="child1" data-pv-sketchpad-el="child1" data-testid="child" style={{position:'absolute',left:40,top:100,width:80,height:40,background:'teal'}} />
+    {/* pv-block-end:child1 */}`);
+  await s.key(`${modifier}+-`);
+  const child = s.canvas.getByTestId('child');
+  const parent = s.canvas.getByTestId('parent');
+  const start = (await child.boundingBox())!;
+  const end = (await parent.boundingBox())!;
+  await s.page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+  await s.page.mouse.down();
+  await s.page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 12 });
+  const dropped = (await child.boundingBox())!;
+  await s.page.mouse.up();
+  await unlock(s.canvas);
+  await expect(parent.getByTestId('child')).toHaveCount(1);
+  await expect(child).toHaveCount(1);
+  const after = (await child.boundingBox())!;
+  expect(Math.abs(after.x - dropped.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(after.y - dropped.y)).toBeLessThanOrEqual(1);
+  const saved = await s.position(child);
+  await s.history();
+  await expect(parent.getByTestId('child')).toHaveCount(0);
+  await s.history(true);
+  await expect(parent.getByTestId('child')).toHaveCount(1);
+  await s.open();
+  await expect.poll(() => s.position(child)).toEqual(saved);
+});

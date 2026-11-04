@@ -66,3 +66,24 @@ so HMR cannot stop at an intermediate duplicate. The flow-to-frame e2e verifies
 both moves use that atomic path; backend checks verify one write and no partial
 changes for invalid moves. Cross-frame transfers still save the destination
 before removing the source.
+
+Structural regressions cover wrapping a multi-selection, moving flow children up
+and down, unwrapping without a visual jump, bringing an item past multiple siblings
+to the front, sending it backward, and moving a marquee-selected group. Wrap and
+unwrap preserve editing markers on nested absolute children; the tests move those
+children after reload and exercise undo/redo. Unwrap geometry is also checked
+inside a bordered absolute parent at non-default zoom. Mutation checks include
+wrap/unwrap/delete endpoints and JSON-level failures, even with HTTP 200.
+
+Shared-editor regressions in `app-editor.spec.ts` check App clipboard operations,
+uppercase redo, inspector dimensions (including ordinary inline-style precedence),
+flow reordering, wrapping/unwrapping, and Escape. These temporarily replace the
+local tutorial page and restore its exact contents in fixture teardown. Run them
+on the same dedicated template server, serially with Sketchpad:
+
+```sh
+npx playwright test tests/e2e/sketchpad.spec.ts tests/e2e/app-editor.spec.ts --workers=1
+```
+
+The bordered-container checks cover both unwrap and drag reparenting, including
+zoom, undo/redo and reload persistence.

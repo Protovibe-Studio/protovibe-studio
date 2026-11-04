@@ -21,7 +21,7 @@ before(async () => {
   const bundle = path.join(bundleDir, 'backend.mjs');
   await build({
     stdin: { resolveDir: pluginRoot, contents: `
-      export { handleAddBlock, handleBlockAction, handleUpdateSource } from './src/backend/server';
+      export { handleAddBlock, handleBlockAction, handleUpdateSource, handleWrapBlocks, handleUnwrapBlock } from './src/backend/server';
       export { handleSketchpadUpdateElementPosition, handleSketchpadUpdateElementSize } from './src/backend/sketchpad-server';
       export { undoStack } from './src/shared/state';
     ` },
@@ -385,4 +385,55 @@ test('same-frame reparenting removes the source and inserts the destination in o
   } finally {
     fs.writeFileSync = write;
   }
+});
+
+for (const operation of ['wrap', 'unwrap']) {
+  for (const rootStyle of ['', `style={{ position: 'absolute', left: 20, top: 30 }}`]) {
+    test(`${operation} into flow preserves absolute descendants (${rootStyle || 'no root style'})`, async () => {
+      const descendant = `<div data-pv-block="child1" data-pv-sketchpad-el="child1" style={{ position: 'absolute', left: 5, top: 10, width: 40 }} />`;
+      const nested = `
+        {/* pv-block-start:outer1 */}
+        <div data-pv-block="outer1" data-pv-sketchpad-el="outer1" ${rootStyle}>
+          {/* pv-editable-zone-start:inner1 */}
+            {/* pv-block-start:child1 */}
+            ${descendant}
+            {/* pv-block-end:child1 */}
+          {/* pv-editable-zone-end:inner1 */}
+        </div>
+        {/* pv-block-end:outer1 */}`;
+      fs.writeFileSync(frameFile, `export default () => <div>
+        {/* pv-editable-zone-start:root01 */}
+        {/* pv-block-start:wrap01 */}
+        <div data-pv-block="wrap01">
+          {/* pv-editable-zone-start:wrap02 */}
+          ${nested}
+          {/* pv-editable-zone-end:wrap02 */}
+        </div>
+        {/* pv-block-end:wrap01 */}
+        {/* pv-editable-zone-end:root01 */}
+      </div>;`);
+      const result = await request(operation === 'wrap' ? 'handleWrapBlocks' : 'handleUnwrapBlock', {
+        file: relativeFile, blockId: 'wrap01', blockIds: ['outer1'], targetLayoutMode: 'flow',
+      });
+      assert.equal(result.success, true, result.error);
+      const saved = fs.readFileSync(frameFile, 'utf8');
+      assert.ok(saved.includes(descendant), 'descendant source is untouched');
+      assert.ok(!saved.includes('data-pv-sketchpad-el="outer1"'), 'only the root becomes flow');
+      babel.parseSync(saved, { plugins: [syntaxJsx] });
+    });
+  }
+}
+
+test('bring-to-front moves to the end of its zone without crossing another zone', async () => {
+  const block = id => `    {/* pv-block-start:${id} */}\n    <div data-pv-block="${id}" />\n    {/* pv-block-end:${id} */}\n`;
+  const otherZone = `    {/* pv-editable-zone-start:other1 */}\n${block('other2')}    {/* pv-editable-zone-end:other1 */}`;
+  fs.writeFileSync(frameFile, `export default () => <div>\n    {/* pv-editable-zone-start:root01 */}\n${['first1', 'second', 'third1'].map(block).join('')}    {/* pv-editable-zone-end:root01 */}\n${otherZone}\n</div>;`);
+  const move = () => request('handleBlockAction', { file: relativeFile, blockId: 'first1', action: 'bring-to-front' });
+  assert.equal((await move()).success, true);
+  const saved = fs.readFileSync(frameFile, 'utf8');
+  assert.ok(saved.indexOf('pv-block-start:third1') < saved.indexOf('pv-block-start:first1'));
+  assert.ok(saved.indexOf('pv-block-start:first1') < saved.indexOf('pv-editable-zone-end:root01'));
+  assert.ok(saved.includes(otherZone));
+  assert.equal((await move()).success, true);
+  assert.equal(fs.readFileSync(frameFile, 'utf8'), saved, 'already frontmost is a no-op');
 });

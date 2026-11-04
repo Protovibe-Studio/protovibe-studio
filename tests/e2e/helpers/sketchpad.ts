@@ -10,6 +10,7 @@ export class Sketchpad {
   readonly canvas: FrameLocator;
   readonly frames: Locator;
   readonly ids: string[] = [];
+  readonly mutationChecks: Promise<void>[] = [];
   id = '';
   constructor(readonly page: Page) {
     this.canvas = page.frameLocator('iframe[title="Sketchpad"]');
@@ -20,6 +21,7 @@ export class Sketchpad {
     expect(response.ok(), `${url}: ${await response.text()}`).toBeTruthy();
     const result = await response.json();
     expect(result.error).toBeUndefined();
+    expect(result.success).not.toBe(false);
     return result;
   }
   async create(name: string) {
@@ -30,6 +32,8 @@ export class Sketchpad {
     return sp;
   }
   async open(id = this.id) {
+    // Read completed mutation bodies before navigation invalidates Chromium's response handles.
+    await Promise.all(this.mutationChecks);
     await this.page.goto('/protovibe.html');
     await this.page.getByTestId('tab-sketchpad').click();
     await this.canvas.getByTestId('btn-close-palette').click();
@@ -90,11 +94,17 @@ export const test = base.extend<{ sketch: Sketchpad }>({
   sketch: async ({ page }, use, testInfo) => {
     const sketch = new Sketchpad(page);
     const failedMutations: string[] = [];
+    const mutationChecks = sketch.mutationChecks;
     page.on('response', response => {
       const path = new URL(response.url()).pathname;
-      if (response.request().method() === 'POST' && response.status() >= 400
-          && /^\/__(sketchpad-|frame-|block-action$|add-block$|update-source$)/.test(path)) {
-        failedMutations.push(`${response.status()} ${path}`);
+      if (response.request().method() === 'POST'
+          && /^\/__(sketchpad-|frame-|block-action$|add-block$|update-source$|wrap-blocks$|unwrap-block$|delete-blocks$)/.test(path)) {
+        mutationChecks.push((async () => {
+          const result = await response.json();
+          if (!response.ok() || result.success === false || result.error) {
+            failedMutations.push(`${response.status()} ${path}: ${JSON.stringify(result)}`);
+          }
+        })().catch(error => { failedMutations.push(`${path}: ${error}`); }));
       }
     });
     try {
@@ -102,6 +112,7 @@ export const test = base.extend<{ sketch: Sketchpad }>({
       sketch.id = sp.id;
       await sketch.open();
       await use(sketch);
+      await Promise.all(mutationChecks);
       expect(failedMutations, 'Canvas mutations must persist successfully').toEqual([]);
     } finally {
       testInfo.setTimeout(testInfo.timeout + 15_000);
