@@ -345,8 +345,8 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   >
                     <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0 text-foreground-primary" />
                     <span className="flex flex-col gap-0.5">
-                      <span>Start designing</span>
-                      <span className="text-xs font-normal text-foreground-secondary">Launch this project and open the editor</span>
+                      <span>Design</span>
+                      <span className="text-xs font-normal text-foreground-secondary">Open the editor and continue designing</span>
                     </span>
                   </a>
                 )}
@@ -393,7 +393,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 >
                   <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0 text-foreground-primary" />
                   <span className="flex flex-col gap-0.5">
-                    <span>Start designing</span>
+                    <span>Design</span>
                     <span className="text-xs font-normal text-foreground-secondary">Launch this project and open the editor</span>
                   </span>
                 </button>
