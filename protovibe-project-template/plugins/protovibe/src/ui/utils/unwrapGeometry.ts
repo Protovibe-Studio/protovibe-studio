@@ -26,9 +26,11 @@ export function collectChildPositions(wrapperEl: HTMLElement): Record<string, Un
     const id = el.getAttribute('data-pv-block');
     if (!id || result[id]) continue;
     const rect = el.getBoundingClientRect();
+    // Absolute offsets use the padding edge, not the outer border edge.
+    // Scroll is in unscaled layout pixels, just like clientLeft/clientTop.
     result[id] = {
-      left: (rect.left - containerRect.left) / zoom,
-      top: (rect.top - containerRect.top) / zoom,
+      left: (rect.left - containerRect.left) / zoom - container.clientLeft + container.scrollLeft,
+      top: (rect.top - containerRect.top) / zoom - container.clientTop + container.scrollTop,
       width: rect.width / zoom,
       wasAbsolute: view.getComputedStyle(el).position === 'absolute',
     };

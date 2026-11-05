@@ -6,6 +6,7 @@ import { applyPreviewMode } from '../lofi/preview-mode';
 
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { collectBlockGeometry } from './utils/blockGeometry';
 import { isCanvasMutationShortcut, PV_SET_CANVAS_EDIT_LOCKED, PV_CANVAS_EDIT_BLOCKED } from './utils/canvasEditGuard';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
@@ -59,6 +60,7 @@ interface SnapContext {
 }
 
 let dragState: {
+  primaryTarget: HTMLElement;
   pointerId: number;
   startX: number;
   startY: number;
@@ -920,6 +922,10 @@ function clearHover() {
   updateOutlines();
 }
 
+function topLevelSelection(els: HTMLElement[]): HTMLElement[] {
+  return [...new Set(els)].filter(el => !els.some(other => other !== el && other.contains(el)));
+}
+
 function setSelection(el: HTMLElement, isMulti = false) {
   if (isMulti) {
     if (selectedEls.includes(el)) {
@@ -930,6 +936,10 @@ function setSelection(el: HTMLElement, isMulti = false) {
   } else {
     selectedEls = [el];
   }
+
+  // Ancestors already carry their descendants. Never transform or mutate
+  // the same subtree twice when Ctrl+Shift-click extends a selection.
+  selectedEls = topLevelSelection(selectedEls);
 
   // Keep drill-down context (selectedParentEl) sticky while extending a multi-selection.
   // Recompute only on first selection; preserve when adding/removing siblings so subsequent
@@ -1311,6 +1321,7 @@ function handlePointerDown(e: PointerEvent) {
   const dragAllAbsolute = dragTargets.every(t => t.hasAttribute('data-pv-sketchpad-el'));
   const zoom = getCanvasZoom();
   dragState = {
+    primaryTarget: nextTarget,
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
@@ -1468,20 +1479,14 @@ function handlePointerUp(e: PointerEvent) {
       const newLeft = parseFloat(resizeState.target.style.left);
       const newTop = parseFloat(resizeState.target.style.top);
 
-      // Persist position if it changed (top/left edge or corner resize)
+      // Save size and origin together: west/north resizing is one undo step.
       const edge = resizeState.edge;
-      if (edge.includes('w') || edge.includes('n')) {
-        postApi('/__sketchpad-update-element-position', {
-          sketchpadId, frameId, blockId,
-          x: Math.round(newLeft), y: Math.round(newTop),
-          activeSourceId: currentActiveSourceId
-        });
-      }
-
       // Persist size
       if (newWidth || newHeight) {
         postApi('/__sketchpad-update-element-size', {
           sketchpadId, frameId, blockId,
+          x: edge.includes('w') && Number.isFinite(newLeft) ? Math.round(newLeft) : undefined,
+          y: edge.includes('n') && Number.isFinite(newTop) ? Math.round(newTop) : undefined,
           width: newWidth ? Math.round(newWidth) : undefined,
           height: newHeight ? Math.round(newHeight) : undefined,
           activeSourceId: currentActiveSourceId
@@ -1518,7 +1523,7 @@ function handlePointerUp(e: PointerEvent) {
     const draggedBlockIds = dragState.targets.map(t => t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block')).filter(Boolean) as string[];
     const sketchpadId = getSketchpadId();
 
-    const currentContainer = dragState.targets[0].el.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
+    const currentContainer = dragState.primaryTarget.parentElement?.closest('[data-pv-block], [data-sketchpad-frame]');
     const isAnyFlow = dragState.targets.some(t => t.isFlow);
 
     // Calculate final drop delta for same-container drops
@@ -1542,6 +1547,7 @@ function handlePointerUp(e: PointerEvent) {
       dy += adjustY;
     }
 
+    const positions: Array<{ frameId?: string; blockId: string; x: number; y: number }> = [];
     if (sketchpadId && draggedBlockIds.length > 0 && sourceFrameId && targetFrameId && dropContainer && !dragEls.includes(dropContainer as HTMLElement)) {
       const isFrameTarget = dropContainer.hasAttribute('data-sketchpad-frame');
       const layoutMode = isFrameTarget ? 'absolute' : (dropContainer.getAttribute('data-layout-mode') || 'flow');
@@ -1559,15 +1565,13 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (blockId) {
-            postApi('/__sketchpad-update-element-position', {
-              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
-              activeSourceId: currentActiveSourceId
-            });
+            positions.push({ frameId: findFrameContainer(t.el)?.dataset.sketchpadFrame, blockId, x: newLeft, y: newTop });
           }
         });
       } else {
         // Dragged to a different container OR duplicating
         const containerRect = dropContainer.getBoundingClientRect();
+        const geometry = collectBlockGeometry(dragState.targets.map(t => t.el));
         
         // Find the visual bounding box of the group relative to the new container BEFORE resetting transform
         let minNewLeft = Infinity;
@@ -1575,8 +1579,9 @@ function handlePointerUp(e: PointerEvent) {
         
         dragState.targets.forEach(t => {
           const rect = t.el.getBoundingClientRect();
-          minNewLeft = Math.min(minNewLeft, layoutMode === 'absolute' ? (rect.left - containerRect.left) / zoom : 0);
-          minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom);
+          minNewLeft = Math.min(minNewLeft, layoutMode === 'absolute'
+            ? (rect.left - containerRect.left) / zoom - dropContainer.clientLeft + dropContainer.scrollLeft : 0);
+          minNewTop = Math.min(minNewTop, (rect.top - containerRect.top) / zoom - dropContainer.clientTop + dropContainer.scrollTop);
         });
 
         if (e.altKey) {
@@ -1620,6 +1625,7 @@ function handlePointerUp(e: PointerEvent) {
             isDuplicate: e.altKey,
             activeSourceId: currentActiveSourceId,
             fallbackPositions,
+            geometry,
           },
         }));
 
@@ -1636,6 +1642,7 @@ function handlePointerUp(e: PointerEvent) {
       if (e.altKey && sketchpadId && sourceFrameId && draggedBlockIds.length > 0) {
          // Duplicating in place: calculate bounding box relative to its original parent
          const containerRect = dragState.targets[0].el.parentElement!.getBoundingClientRect();
+         const geometry = collectBlockGeometry(dragState.targets.map(t => t.el));
          let minNewLeft = Infinity;
          let minNewTop = Infinity;
          
@@ -1661,6 +1668,7 @@ function handlePointerUp(e: PointerEvent) {
             y: minNewTop,
             targetLayoutMode: 'absolute',
             isDuplicate: true,
+            geometry,
             activeSourceId: currentActiveSourceId,
           },
          }));
@@ -1674,16 +1682,18 @@ function handlePointerUp(e: PointerEvent) {
 
           const blockId = t.el.getAttribute('data-pv-sketchpad-el') || t.el.getAttribute('data-pv-block');
           if (sketchpadId && sourceFrameId && blockId) {
-            postApi('/__sketchpad-update-element-position', {
-              sketchpadId, frameId: sourceFrameId, blockId, x: newLeft, y: newTop,
-              activeSourceId: currentActiveSourceId
-            });
+            positions.push({ frameId: findFrameContainer(t.el)?.dataset.sketchpadFrame, blockId, x: newLeft, y: newTop });
           }
         });
       }
     } else {
       // No valid drop target (e.g. flow element dragged outside any frame). Snap back.
       dragState.targets.forEach(t => { t.el.style.transform = t.origTransform; });
+    }
+    if (positions.length && sketchpadId && sourceFrameId) {
+      postApi('/__sketchpad-update-element-position', {
+        sketchpadId, frameId: sourceFrameId, positions, activeSourceId: currentActiveSourceId,
+      });
     }
   }
 
@@ -1717,9 +1727,25 @@ function handleKeyDown(e: KeyboardEvent) {
 
   if (e.key === 'Escape' && selectedEls.length > 0) {
     e.preventDefault();
-    e.stopPropagation();
+    // Let SketchpadApp also clear frame selection and pending placement.
     clearSelection();
     window.parent.postMessage({ type: 'PV_ELEMENT_DESELECT' }, '*');
+    return;
+  }
+
+  // Local zoom is handled by SketchpadApp. Forwarding it to the shell would
+  // bounce PV_SKETCHPAD_ZOOM back and apply the same factor a second time.
+  if ((e.metaKey || e.ctrlKey) &&
+      ['Digit0', 'Numpad0', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract'].includes(e.code)) {
+    return;
+  }
+
+  // SketchpadApp owns frame copy/cut. Forwarding these as block shortcuts also
+  // makes the shell try to copy the frame root, opening "not editable" over the
+  // successfully copied frame. Keep locked-mode shortcuts routed to the shell.
+  if (!canvasEditLocked && (e.metaKey || e.ctrlKey) &&
+      ['c', 'x'].includes(e.key.toLowerCase()) &&
+      document.querySelector('[data-sketchpad-frame-overlay]')) {
     return;
   }
 
@@ -1850,6 +1876,7 @@ function handleParentMessage(e: MessageEvent) {
 
     if (nudgeState.activeKeys.size === 0) {
       const sketchpadId = getSketchpadId();
+      const positions: Array<{ frameId: string; blockId: string; x: number; y: number }> = [];
       nudgeState.targets.forEach(t => {
         const newLeft = t.origLeft + nudgeState!.dx;
         const newTop = t.origTop + nudgeState!.dy;
@@ -1858,17 +1885,15 @@ function handleParentMessage(e: MessageEvent) {
         t.el.style.left = `${newLeft}px`;
         t.el.style.top = `${newTop}px`;
 
-        if (sketchpadId) {
-          postApi('/__sketchpad-update-element-position', {
-            sketchpadId,
-            frameId: t.frameId,
-            blockId: t.blockId,
-            x: newLeft,
-            y: newTop,
-            activeSourceId: currentActiveSourceId
-          });
-        }
+        positions.push({ frameId: t.frameId, blockId: t.blockId, x: newLeft, y: newTop });
       });
+      // A held key is already coalesced until keyup. Persist the selection as
+      // one gesture, just like a pointer drag, so Undo restores every item.
+      if (sketchpadId && positions.length) {
+        postApi('/__sketchpad-update-element-position', {
+          sketchpadId, frameId: positions[0].frameId, positions, activeSourceId: currentActiveSourceId,
+        });
+      }
       nudgeState = null;
       syncOverlays();
     }
@@ -1890,6 +1915,7 @@ function handleParentMessage(e: MessageEvent) {
       const el = document.querySelector(`[data-pv-runtime-id="${id}"]`) as HTMLElement | null;
       if (el) selectedEls.push(el);
     });
+    selectedEls = topLevelSelection(selectedEls);
     // Same sticky-drill rule as setSelection: keep parent across multi-select echoes from the shell.
     if (selectedEls.length === 0) {
       selectedParentEl = null;

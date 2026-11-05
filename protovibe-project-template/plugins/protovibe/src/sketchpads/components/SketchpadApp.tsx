@@ -13,6 +13,7 @@ import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
 import { Frame, Square, Plus, Menu, Type, Minus } from 'lucide-react';
+import type { BlockClipboard } from '../../shared/state';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -142,6 +143,7 @@ type SketchpadDropDetail = {
   // drop target has no editable zone — instead of snapping back, we apply
   // these as a position-only update on the source frame.
   fallbackPositions?: Array<{ blockId: string; x: number; y: number }>;
+  geometry?: BlockClipboard['geometry'];
 };
 
 /**
@@ -1167,6 +1169,13 @@ export function SketchpadApp() {
   // Listen for undo/redo completion and element selection events from the parent shell
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PV_SKETCHPAD_ESCAPE') {
+        setSelectedFrameIds([]);
+        setPendingAction(null);
+      }
+      if (e.data?.type === 'PV_BLOCK_CLIPBOARD_CHANGED') {
+        frameClipboardRef.current = null;
+      }
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
         reloadRegistry();
       }
@@ -1225,7 +1234,8 @@ export function SketchpadApp() {
 
       if (isTypingInput(document.activeElement as HTMLElement | null)) return;
 
-      if (e.key === 'Escape' && pendingAction) {
+      if (e.key === 'Escape') {
+        setSelectedFrameIds([]);
         setPendingAction(null);
         return;
       }
@@ -1439,6 +1449,7 @@ export function SketchpadApp() {
         isDuplicate,
         activeSourceId,
         fallbackPositions,
+        geometry,
       } = data;
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockIds?.length) return;
@@ -1474,8 +1485,8 @@ export function SketchpadApp() {
         let mutationRan = false;
         await runLockedMutation(async () => {
             mutationRan = true;
-            // 1. Copy the elements first
-            await blockAction('copy', draggedBlockIds, sourceFile);
+            // 1. Read a private transfer payload without changing the user clipboard.
+            const transfer = await blockAction('read', draggedBlockIds, sourceFile, undefined, undefined, geometry);
 
             // 2. Resolve target
             let currentTargetFile = fallbackTargetFile;
@@ -1511,12 +1522,15 @@ export function SketchpadApp() {
             const extraFiles = sourceFile !== currentTargetFile ? [currentTargetFile] : [];
             await takeSnapshot(sourceFile, activeSourceId || '', extraFiles, isDuplicate ? 'duplicate element' : 'move element');
 
-            // 3. Paste
+            // 3. Move within a frame atomically so HMR never sees two copies.
+            const sameFileMove = !isDuplicate && sourceFile === currentTargetFile;
             const res = await addBlock({
               file: currentTargetFile,
               zoneId: currentTargetZoneId,
               isPristine: currentTargetIsPristine,
               elementType: 'paste',
+              pasteData: transfer.data,
+              moveBlockIds: sameFileMove ? draggedBlockIds : undefined,
               targetLayoutMode,
               pasteX: Math.round(x),
               pasteY: Math.round(y),
@@ -1524,8 +1538,8 @@ export function SketchpadApp() {
               targetEndLine: currentTargetEndLine,
             });
 
-            // 4. Delete originals (single bulk call to avoid N HMR cycles)
-            if (!isDuplicate) {
+            // 4. Cross-file moves remove originals after the destination is saved.
+            if (!isDuplicate && !sameFileMove) {
               await blockAction('delete', draggedBlockIds, sourceFile);
             }
 
@@ -1553,22 +1567,15 @@ export function SketchpadApp() {
       const comp = components.find((c) => c.name === compName);
       if (!comp || !containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const canvasX = (e.clientX - rect.left - transform.panX) / transform.zoom;
-      const canvasY = (e.clientY - rect.top - transform.panY) / transform.zoom;
-
-      // Find which frame the drop landed on
-      const targetFrame = activeSketchpad?.frames.find(
-        (f) =>
-          canvasX >= f.canvasX &&
-          canvasX <= f.canvasX + f.width &&
-          canvasY >= f.canvasY &&
-          canvasY <= f.canvasY + f.height,
-      );
-
-      if (targetFrame) {
-        const relX = canvasX - targetFrame.canvasX;
-        const relY = canvasY - targetFrame.canvasY;
+      // Registry coordinates include the title bar, while components are
+      // positioned inside the frame content's padding box. Hit-test the actual
+      // content so drops near its bottom edge work at any pan/zoom as well.
+      const frameEl = (e.target as HTMLElement).closest<HTMLElement>('[data-sketchpad-frame]');
+      const targetFrame = activeSketchpad?.frames.find(f => f.id === frameEl?.dataset.sketchpadFrame);
+      if (frameEl && targetFrame) {
+        const rect = frameEl.getBoundingClientRect();
+        const relX = (e.clientX - rect.left) / transform.zoom - frameEl.clientLeft;
+        const relY = (e.clientY - rect.top) / transform.zoom - frameEl.clientTop;
         handleAddComponent(comp, targetFrame.id, relX, relY);
       }
     },
@@ -2131,6 +2138,7 @@ export function SketchpadApp() {
             <div style={{ fontSize: 14, fontWeight: 700, color: theme.text_default, marginBottom: 12 }}>Rename Frame</div>
             <input
               autoFocus
+              data-testid="input-frame-name"
               defaultValue={renamePrompt.name}
               onFocus={(e) => e.currentTarget.select()}
               onKeyDown={(e) => {

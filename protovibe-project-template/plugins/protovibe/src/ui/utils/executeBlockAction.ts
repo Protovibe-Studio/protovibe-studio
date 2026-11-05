@@ -1,6 +1,7 @@
 import { blockAction, takeSnapshot } from '../api/client';
+import { collectBlockGeometry } from './blockGeometry';
 
-export type BlockMutationAction = 'delete' | 'move-up' | 'move-down';
+export type BlockMutationAction = 'delete' | 'move-up' | 'move-down' | 'bring-to-front';
 
 function findBlockElement(blockId: string): HTMLElement | null {
   const allIframes = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])')) as HTMLIFrameElement[];
@@ -123,24 +124,31 @@ export async function executeClipboardBlockAction({
   refreshActiveData
 }: ExecuteClipboardBlockActionParams): Promise<void> {
   const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+  const geometry = collectBlockGeometry((Array.isArray(blockId) ? blockId : [blockId])
+    .map(findBlockElement).filter((el): el is HTMLElement => el !== null));
   // Overwrite the OS clipboard with a marker so any previously-copied image
   // is evicted — pasting an image only works when the image was copied AFTER
   // the most recent protovibe copy/cut.
-  const clearOsClipboard = () => {
-    try { navigator.clipboard?.writeText('protovibe-block'); } catch {}
+  const activateBlockClipboard = () => {
+    try { navigator.clipboard?.writeText('protovibe-block').catch(() => {}); } catch {}
+    // The most recent user copy/cut owns paste, including when it originated in
+    // another canvas or the toolbar. Internal drag copies don't call this helper.
+    document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])').forEach(iframe => {
+      iframe.contentWindow?.postMessage({ type: 'PV_BLOCK_CLIPBOARD_CHANGED' }, '*');
+    });
   };
 
   if (action === 'copy') {
-    await blockAction('copy', blockId, file);
-    clearOsClipboard();
+    await blockAction('copy', blockId, file, undefined, undefined, geometry);
+    activateBlockClipboard();
     return;
   }
 
   const oldTarget = Array.isArray(blockId) ? findBlockElement(blockId[0]) : findBlockElement(blockId);
 
   await takeSnapshot(file, activeSourceId, undefined, action);
-  await blockAction(action, blockId, file);
-  if (action === 'cut') clearOsClipboard();
+  await blockAction(action, blockId, file, undefined, undefined, geometry);
+  if (action === 'cut') activateBlockClipboard();
 
   if (action === 'duplicate') {
     await wait(300);

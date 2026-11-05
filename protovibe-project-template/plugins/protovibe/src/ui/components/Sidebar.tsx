@@ -48,6 +48,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       <>
         <div
           id="source-loc-toast"
+          data-testid="inspector-sidebar"
+          aria-busy={isMutationLocked}
           data-pv-ui="true"
           data-prevent-closing-popover="true"
           style={sidebarStyle}
@@ -69,6 +71,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     <>
       <div
         id="source-loc-toast"
+        data-testid="inspector-sidebar"
+        aria-busy={isMutationLocked}
         data-pv-ui="true"
         data-prevent-closing-popover="true"
         style={sidebarStyle}

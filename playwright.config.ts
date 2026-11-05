@@ -6,6 +6,8 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
+  // App and Sketchpad share one source tree, clipboard and undo history.
+  workers: 1,
   retries: 0,
   reporter: [
     ['list', { printSteps: true }],

@@ -901,6 +901,7 @@ export const ProtovibeApp: React.FC = () => {
           <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={sketchpadIframeRef}
+              title="Sketchpad"
               src="/sketchpad.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
               onLoad={() => handleIframeLoad(sketchpadIframeRef)}

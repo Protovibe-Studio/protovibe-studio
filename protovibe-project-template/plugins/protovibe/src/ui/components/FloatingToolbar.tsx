@@ -5,7 +5,7 @@ import { Plus, ChevronUp, ChevronDown, Trash2, SquareDashed, Ungroup, BringToFro
 import { useProtovibe } from '../context/ProtovibeContext';
 import { addBlock, takeSnapshot, deleteBlocks, unwrapBlock } from '../api/client';
 import { collectChildPositions } from '../utils/unwrapGeometry';
-import { executeBlockAction, executeClipboardBlockAction } from '../utils/executeBlockAction';
+import { executeBlockAction, executeClipboardBlockAction, type BlockMutationAction } from '../utils/executeBlockAction';
 import { snapshotElement, DomSnapshot } from '../utils/domSnapshot';
 import { ConvertToSketchpadDialog } from './ConvertToSketchpadDialog';
 import { theme } from '../theme';
@@ -173,12 +173,12 @@ export const FloatingToolbar: React.FC = () => {
     setConvertSnapshot(snapshot);
   };
 
-  const handleBlockAction = async (action: string) => {
+  const handleBlockAction = async (action: BlockMutationAction) => {
     setAddMode(null);
     if (!closestBlockId || !activeData?.file) return;
     await runLockedMutation(async () => {
       await executeBlockAction({
-        action: action as 'delete' | 'move-up' | 'move-down',
+        action,
         blockId: closestBlockId,
         file: activeData.file,
         activeSourceId: activeSourceId!,
@@ -758,6 +758,7 @@ export const FloatingToolbar: React.FC = () => {
             <>
             <button
               disabled={locked}
+              data-testid="btn-wrap"
               onClick={handleWrapBlocks}
               onMouseEnter={() => setHoveredBtn('wrap')}
               onMouseLeave={() => setHoveredBtn(null)}
@@ -828,6 +829,7 @@ export const FloatingToolbar: React.FC = () => {
               {divider}
               <button
                 disabled={locked}
+                data-testid="btn-wrap"
                 onClick={() => canBlockAction ? handleWrapBlocks() : openNotEditableDialog()}
                 onMouseEnter={() => setHoveredBtn('wrap')}
                 onMouseLeave={() => setHoveredBtn(null)}
@@ -853,7 +855,8 @@ export const FloatingToolbar: React.FC = () => {
               {divider}
               <button
                 disabled={locked}
-                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-down' : 'move-up') : openNotEditableDialog()}
+                onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'bring-to-front' : 'move-up') : openNotEditableDialog()}
+                data-testid="btn-move-up"
                 onMouseEnter={() => setHoveredBtn('up')}
                 onMouseLeave={() => setHoveredBtn(null)}
                 style={mkBtnStyle('up')}
@@ -866,6 +869,7 @@ export const FloatingToolbar: React.FC = () => {
               <button
                 disabled={locked}
                 onClick={() => canBlockAction ? handleBlockAction(isSketchpadAbsolute ? 'move-up' : 'move-down') : openNotEditableDialog()}
+                data-testid="btn-move-down"
                 onMouseEnter={() => setHoveredBtn('down')}
                 onMouseLeave={() => setHoveredBtn(null)}
                 style={mkBtnStyle('down')}

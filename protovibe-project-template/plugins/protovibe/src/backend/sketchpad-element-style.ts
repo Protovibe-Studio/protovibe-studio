@@ -9,6 +9,7 @@ export function updateSketchpadElementStyle(
   content: string,
   blockId: string,
   values: Partial<Record<'left' | 'top' | 'width' | 'height', number>>,
+  clearProperties: Array<'width' | 'height'> = [],
 ): string {
   const ast = babel.parseSync(content, {
     filename: 'frame.tsx',
@@ -39,12 +40,23 @@ export function updateSketchpadElementStyle(
         object = object.expression;
       }
       if (!babel.types.isObjectExpression(object)) {
+        if (clearProperties.length) { p.stop(); return; }
         throw new Error(`Element ${blockId} requires an inline style object`);
       }
       const updates = Object.entries(values).map(([key, value]) => {
         if (!Number.isFinite(value)) throw new Error(`Invalid ${key} value`);
         return [key, String(Math.round(value))] as const;
       });
+      // React omits undefined dimensions, allowing inspector classes to win.
+      // Keep the override explicit so a spread cannot restore a resized value.
+      for (const key of clearProperties) {
+        if (object.properties.some(prop => babel.types.isSpreadElement(prop) || prop.computed
+          || babel.types.isIdentifier(prop.key, { name: key })
+          || babel.types.isStringLiteral(prop.key, { value: key }))) {
+          updates.push([key, 'undefined']);
+        }
+      }
+      if (!updates.length) { p.stop(); return; }
       const needsOverride = updates.some(([key]) => {
         const lastWriter = [...object.properties].reverse().find(prop =>
           babel.types.isSpreadElement(prop) || prop.computed
