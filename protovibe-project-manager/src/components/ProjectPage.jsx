@@ -331,7 +331,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
           </div>
         ) : (
-          <div className="flex flex-col gap-5 p-7">
+          <div className="flex flex-col gap-8 p-7">
 
             {/* Action buttons */}
             <div className="flex flex-col gap-2.5">
@@ -426,13 +426,13 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                 <div className="flex flex-col gap-1 min-w-0">
                   <span className="text-sm font-medium text-foreground-info">
                     {isUpdating
-                      ? 'Updating your editor…'
-                      : pluginOutdated
-                        ? 'Your editor will update on next launch'
-                        : 'Your editor update will finish on next launch'}
+                      ? 'Updating Protovibe…'
+                      : 'Protovibe update ready'}
                   </span>
                   <span className="text-xs leading-relaxed text-foreground-secondary">
-                    Protovibe takes care of this automatically. No action needed.
+                    {isUpdating
+                      ? 'Your project is updating automatically. Just so you know.'
+                      : 'Your project will update automatically on next launch. Just so you know.'}
                   </span>
                   {pluginOutdated && (
                     <span className="text-xs leading-relaxed text-foreground-secondary">
