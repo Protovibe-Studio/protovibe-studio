@@ -13,6 +13,7 @@ import { ToastViewport } from '../../ui/components/ToastViewport';
 import { theme } from '../../ui/theme';
 import { isTypingInput } from '../../ui/utils/elementType';
 import { Frame, Square, Plus, Menu, Type, Minus } from 'lucide-react';
+import type { BlockClipboard } from '../../shared/state';
 
 // Client-side modules for React Component references (rendering)
 const allModules: Record<string, any> = import.meta.glob('/src/components/**/*.{tsx,jsx}', { eager: true });
@@ -142,6 +143,7 @@ type SketchpadDropDetail = {
   // drop target has no editable zone — instead of snapping back, we apply
   // these as a position-only update on the source frame.
   fallbackPositions?: Array<{ blockId: string; x: number; y: number }>;
+  geometry?: BlockClipboard['geometry'];
 };
 
 /**
@@ -1447,6 +1449,7 @@ export function SketchpadApp() {
         isDuplicate,
         activeSourceId,
         fallbackPositions,
+        geometry,
       } = data;
 
       if (!sketchpadId || !sourceFrameId || !targetFrameId || !draggedBlockIds?.length) return;
@@ -1483,7 +1486,7 @@ export function SketchpadApp() {
         await runLockedMutation(async () => {
             mutationRan = true;
             // 1. Read a private transfer payload without changing the user clipboard.
-            const transfer = await blockAction('read', draggedBlockIds, sourceFile);
+            const transfer = await blockAction('read', draggedBlockIds, sourceFile, undefined, undefined, geometry);
 
             // 2. Resolve target
             let currentTargetFile = fallbackTargetFile;

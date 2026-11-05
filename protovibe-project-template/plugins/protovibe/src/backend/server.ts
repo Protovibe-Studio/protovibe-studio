@@ -15,6 +15,7 @@ import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
 import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
 import { updateSketchpadElementStyle } from './sketchpad-element-style';
 import { locatorMap, redoStack, undoStack, clipboard, type BlockClipboard } from '../shared/state';
+import { getPastePositions } from './paste-geometry';
 import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
@@ -934,7 +935,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
 const rehostBlockRoot = (
   block: string,
   target: 'flow' | 'absolute',
-  pos?: { left: number; top: number; width?: number | null },
+  pos?: { left: number; top: number; width?: number | null; height?: number; fromFlow?: boolean },
   clearFlowSize = false,
 ): string => {
   let newBlock = block;
@@ -972,9 +973,10 @@ const rehostBlockRoot = (
     const left = Math.round(pos?.left ?? 100);
     const top = Math.round(pos?.top ?? 100);
     const width = pos?.width != null ? Math.round(pos.width) : null;
-    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}`;
+    const height = pos?.height != null ? Math.round(pos.height) : null;
+    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}${height != null ? `, height: ${height}` : ''}${pos?.fromFlow ? ", margin: 0, boxSizing: 'border-box'" : ''}`;
     if (hasStyle) {
-      const stripProps = width != null ? '(?:position|left|top|width)' : '(?:position|left|top)';
+      const stripProps = `(?:position|left|top|right|bottom${width != null ? '|width' : ''}${height != null ? '|height' : ''}${pos?.fromFlow ? '|margin(?:Top|Right|Bottom|Left|Inline|Block|InlineStart|InlineEnd|BlockStart|BlockEnd)?|boxSizing' : ''})`;
       newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
         const cleaned = innerStyles
           .replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
@@ -1249,73 +1251,11 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
         // Hybrid style transform: add, update, or strip absolute-positioning styles
         if (targetLayoutMode) {
-          let minLeft = Infinity;
-          let minTop = Infinity;
-
-          if (targetLayoutMode === 'absolute') {
-            mappedBlocks.forEach(block => {
-              // Only check the first opening tag of the root block for bounding box
-              const firstTagMatch = block.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/);
-              if (firstTagMatch) {
-                const attrs = firstTagMatch[2];
-                const styleMatch = attrs.match(/style=\{\s*\{([\s\S]*?)\}\s*\}/);
-                if (styleMatch) {
-                  const leftMatch = styleMatch[1].match(/left:\s*(-?[\d.]+)/);
-                  const topMatch = styleMatch[1].match(/top:\s*(-?[\d.]+)/);
-                  if (leftMatch) minLeft = Math.min(minLeft, parseFloat(leftMatch[1]));
-                  if (topMatch) minTop = Math.min(minTop, parseFloat(topMatch[1]));
-                }
-              }
-            });
-            if (minLeft === Infinity) minLeft = 100;
-            if (minTop === Infinity) minTop = 100;
-          }
-
-          const deltaX = (pasteX ?? 100) - minLeft;
-          const deltaY = (pasteY ?? 100) - minTop;
-
-          const processedBlocks = mappedBlocks.map(block => {
-            if (targetLayoutMode === 'flow') return rehostBlockRoot(block, 'flow', undefined, true);
-            const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
-            
-            // Only replace the very first tag in the block (the root element)
-            return block.replace(firstTagRegex, (match, tag, attrs, closing) => {
-              let newAttrs = attrs;
-              const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
-              const hasStyle = styleRegex.test(attrs);
-
-              if (targetLayoutMode === 'absolute') {
-                if (!newAttrs.includes('data-pv-sketchpad-el')) {
-                  const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
-                  if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
-                }
-
-                if (hasStyle) {
-                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                    let leftVal = pasteX ?? 100;
-                    let topVal = pasteY ?? 100;
-                    
-                    const leftMatch = innerStyles.match(/left:\s*(-?[\d.]+)/);
-                    const topMatch = innerStyles.match(/top:\s*(-?[\d.]+)/);
-                    
-                    if (leftMatch) leftVal = parseFloat(leftMatch[1]) + deltaX;
-                    if (topMatch) topVal = parseFloat(topMatch[1]) + deltaY;
-
-                    let cleaned = innerStyles
-                      .replace(/(?:position|left|top)\s*:\s*[^,}]*,?/g, '')
-                      .trim().replace(/,$/, '').trim();
-                    
-                    const separator = cleaned ? ', ' : '';
-                    return `style={{ position: 'absolute', left: ${Math.round(leftVal)}, top: ${Math.round(topVal)}${separator}${cleaned} }}`;
-                  });
-                } else {
-                  newAttrs = `${newAttrs} style={{ position: 'absolute', left: ${Math.round(pasteX ?? 100)}, top: ${Math.round(pasteY ?? 100)} }}`;
-                }
-              }
-
-              return `${tag}${newAttrs}${closing}`;
-            });
-          });
+          const positions = getPastePositions(data, pasteX ?? 100, pasteY ?? 100);
+          const processedBlocks = mappedBlocks.map((block, index) =>
+            targetLayoutMode === 'flow'
+              ? rehostBlockRoot(block, 'flow', undefined, true)
+              : rehostBlockRoot(block, 'absolute', positions[index]));
 
           pastedContent = processedBlocks.join('\n');
         }
@@ -1719,7 +1659,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockId, blockIds, action, text, startLine, nameEnd } = JSON.parse(body || '{}');
+      const { file, blockId, blockIds, action, text, startLine, nameEnd, geometry } = JSON.parse(body || '{}');
       const requestedIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
@@ -1802,7 +1742,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           });
 
-          const data = { file, blocks: rawBlocksArr, imports: requiredImports };
+          const data: BlockClipboard = { file, blocks: rawBlocksArr, imports: requiredImports, geometry };
           // Internal moves/Alt-drags carry their own payload. They must never
           // replace the clipboard explicitly populated by the user's copy/cut.
           if (action === 'read') {

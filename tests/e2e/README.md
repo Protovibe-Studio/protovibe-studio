@@ -96,3 +96,10 @@ and a relative containing block when wrapped or moved into flow, preserving thei
 absolute children's coordinate system. Overlapping ancestor/descendant selections
 operate on each subtree once; cut, delete and duplicate are covered through the
 UI, with backend checks for copy/read and repeated block IDs as well.
+
+Flow-to-absolute group transfers cover drag, cut/paste and copy/paste for columns
+and grids, into both frames and bordered nested containers at non-default zoom.
+The checks preserve rendered size and relative offsets, even when selection order
+is reversed, through undo/redo and reload. A missing-coordinate case verifies the
+vertical fallback uses each item's height plus a gap. Backend cases also exercise
+legacy payloads without geometry and incomplete or invalid measurements.

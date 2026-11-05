@@ -497,3 +497,59 @@ for (const action of ['copy', 'cut', 'read', 'duplicate', 'delete', 'delete-many
     }
   });
 }
+
+for (const mode of ['measured', 'missing', 'partial', 'invalid']) {
+  test(`flow group paste uses rendered offsets or vertical fallback (${mode})`, async () => {
+    const blocks = ['flow01', 'flow02', 'flow03'].map((id, i) => `
+      {/* pv-block-start:${id} */}
+      <div data-pv-block="${id}" style={{ width: 90, height: ${140 + i * 20}, marginTop: 7, opacity: 0.7 }} />
+      {/* pv-block-end:${id} */}`);
+    fs.writeFileSync(frameFile, `export default () => <div>{/* pv-editable-zone-start:root01 */}${blocks.join('\n')}{/* pv-editable-zone-end:root01 */}</div>;`);
+    const geometry = mode === 'missing' ? undefined : {
+      flow01: { left: 410, top: 230, width: 100, height: 140, isFlow: true },
+      flow02: { left: 540, top: 230, width: 110, height: 160, isFlow: true },
+      flow03: { left: 410, top: 430, width: 120, height: 180, isFlow: true },
+    };
+    if (mode === 'partial') delete geometry.flow02;
+    if (mode === 'invalid') geometry.flow02.left = null;
+    // Reverse selection order: geometry is associated with source IDs, never DOM order.
+    const cut = await request('handleBlockAction', { file: relativeFile, action: 'cut', blockIds: ['flow03', 'flow01', 'flow02'], geometry });
+    assert.equal(cut.success, true);
+    const pasted = await request('handleAddBlock', {
+      file: relativeFile, zoneId: 'root01', elementType: 'paste', targetLayoutMode: 'absolute', pasteX: 30, pasteY: 50,
+    });
+    assert.equal(pasted.success, true, pasted.error);
+    const styles = pasted.newBlockIds.map(savedStyle);
+    if (mode === 'measured') {
+      assert.deepEqual(styles.map(s => [s.left, s.top]), [[30, 250], [30, 50], [160, 50]]);
+      assert.deepEqual(styles.map(s => s.width), [120, 100, 110]);
+    } else {
+      assert.deepEqual(styles.map(s => [s.left, s.top]), [[30, 50], [30, 246], [30, 402]]);
+    }
+    for (const style of styles) {
+      assert.equal(style.position, 'absolute');
+      assert.equal(style.margin, 0);
+      assert.equal(style.marginTop, undefined);
+      assert.equal(style.opacity, 0.7);
+      assert.equal(style.boxSizing, 'border-box');
+    }
+  });
+}
+
+test('absolute group paste does not count existing margins twice', async () => {
+  fs.writeFileSync(frameFile, `export default () => <div>{/* pv-editable-zone-start:root01 */}{/* pv-editable-zone-end:root01 */}</div>;`);
+  const blocks = ['first1', 'second'].map((id, i) => `
+    {/* pv-block-start:${id} */}
+    <div data-pv-block="${id}" data-pv-sketchpad-el="${id}" style={{position:'absolute',left:${10 + i * 100},top:20,width:80,height:40,marginLeft:${i * 10} }} />
+    {/* pv-block-end:${id} */}`);
+  const pasted = await request('handleAddBlock', {
+    file: relativeFile, zoneId: 'root01', elementType: 'paste', targetLayoutMode: 'absolute', pasteX: 30, pasteY: 50,
+    pasteData: { file: relativeFile, blocks, imports: [], geometry: {
+      first1: { left: 10, top: 20, width: 80, height: 40, isFlow: false },
+      second: { left: 120, top: 20, width: 80, height: 40, isFlow: false },
+    } },
+  });
+  assert.equal(pasted.success, true, pasted.error);
+  const styles = pasted.newBlockIds.map(savedStyle);
+  assert.deepEqual(styles.map(s => [s.left, s.top, s.marginLeft]), [[30, 50, 0], [130, 50, 10]]);
+});

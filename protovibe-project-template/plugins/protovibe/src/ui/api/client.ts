@@ -29,7 +29,7 @@ export async function fetchComponents() {
   return await res.json();
 }
 
-export async function blockAction(action: string, blockId: string | string[], file: string, text?: string, locInfo?: { startLine?: number; nameEnd?: number[] }) {
+export async function blockAction(action: string, blockId: string | string[], file: string, text?: string, locInfo?: { startLine?: number; nameEnd?: number[] }, geometry?: BlockClipboard['geometry']) {
   const payload: Record<string, unknown> = Array.isArray(blockId)
     ? { action, blockIds: blockId, file, text }
     : { action, blockId, file, text };
@@ -37,6 +37,7 @@ export async function blockAction(action: string, blockId: string | string[], fi
     payload.startLine = locInfo.startLine;
     payload.nameEnd = locInfo.nameEnd;
   }
+  if (geometry) payload.geometry = geometry;
   const res = await fetch('/__block-action', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

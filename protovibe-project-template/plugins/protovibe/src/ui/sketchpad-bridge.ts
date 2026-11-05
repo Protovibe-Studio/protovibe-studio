@@ -6,6 +6,7 @@ import { applyPreviewMode } from '../lofi/preview-mode';
 
 import { isTypingInput } from './utils/elementType';
 import { installCanvasLinkInterceptor } from './utils/canvasLinks';
+import { collectBlockGeometry } from './utils/blockGeometry';
 import { isCanvasMutationShortcut, PV_SET_CANVAS_EDIT_LOCKED, PV_CANVAS_EDIT_BLOCKED } from './utils/canvasEditGuard';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
@@ -1570,6 +1571,7 @@ function handlePointerUp(e: PointerEvent) {
       } else {
         // Dragged to a different container OR duplicating
         const containerRect = dropContainer.getBoundingClientRect();
+        const geometry = collectBlockGeometry(dragState.targets.map(t => t.el));
         
         // Find the visual bounding box of the group relative to the new container BEFORE resetting transform
         let minNewLeft = Infinity;
@@ -1623,6 +1625,7 @@ function handlePointerUp(e: PointerEvent) {
             isDuplicate: e.altKey,
             activeSourceId: currentActiveSourceId,
             fallbackPositions,
+            geometry,
           },
         }));
 
@@ -1639,6 +1642,7 @@ function handlePointerUp(e: PointerEvent) {
       if (e.altKey && sketchpadId && sourceFrameId && draggedBlockIds.length > 0) {
          // Duplicating in place: calculate bounding box relative to its original parent
          const containerRect = dragState.targets[0].el.parentElement!.getBoundingClientRect();
+         const geometry = collectBlockGeometry(dragState.targets.map(t => t.el));
          let minNewLeft = Infinity;
          let minNewTop = Infinity;
          
@@ -1664,6 +1668,7 @@ function handlePointerUp(e: PointerEvent) {
             y: minNewTop,
             targetLayoutMode: 'absolute',
             isDuplicate: true,
+            geometry,
             activeSourceId: currentActiveSourceId,
           },
          }));

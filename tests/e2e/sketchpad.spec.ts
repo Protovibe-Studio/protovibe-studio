@@ -1137,3 +1137,112 @@ for (const action of ['Delete', `${modifier}+x`, `${modifier}+d`] as const) {
     }
   });
 }
+
+for (const scenario of [
+  { action: 'drag', layout: 'column', destination: 'frame' },
+  { action: 'drag', layout: 'grid', destination: 'nested' },
+  { action: 'cut', layout: 'column', destination: 'nested' },
+  { action: 'cut', layout: 'grid', destination: 'frame' },
+  { action: 'copy', layout: 'grid', destination: 'frame' },
+  { action: 'fallback', layout: 'column', destination: 'frame' },
+] as const) {
+  test(`flow group ${scenario.action} to absolute ${scenario.destination} preserves ${scenario.layout} geometry`, async ({ sketch: s }) => {
+    const grid = scenario.layout === 'grid';
+    await seed(s, `
+      {/* pv-block-start:source */}
+      <div data-pv-block="source" data-pv-sketchpad-el="source" data-testid="flow-source" data-layout-mode="flow" style={{position:'absolute',left:20,top:20,width:250,display:'${grid ? 'grid' : 'flex'}',flexDirection:'column',gridTemplateColumns:'100px 120px',gap:18,padding:10}}>
+        {/* pv-editable-zone-start:flowzz */}
+        ${['flow01', 'flow02', 'flow03'].map((id, i) => `
+          {/* pv-block-start:${id} */}
+          <div data-pv-block="${id}" data-testid="${id}" style={{height:${35 + 10 * i},marginTop:5,background:'teal',border:'2px solid black',boxSizing:'content-box'}} />
+          {/* pv-block-end:${id} */}`).join('\n')}
+        {/* pv-editable-zone-end:flowzz */}
+      </div>
+      {/* pv-block-end:source */}
+      {/* pv-block-start:target */}
+      <div data-pv-block="target" data-pv-sketchpad-el="target" data-testid="absolute-target" data-layout-mode="absolute" style={{position:'absolute',left:320,top:20,width:270,height:390,border:'6px solid black'}}>
+        {/* pv-editable-zone-start:abszon */}
+        {/* pv-editable-zone-end:abszon */}
+      </div>
+      {/* pv-block-end:target */}`);
+    if (scenario.destination === 'frame') {
+      await s.post('/__frame-create', { sketchpadId: s.id, name: 'Destination', width: 600, height: 420, canvasX: 680, canvasY: 0 });
+      await s.open();
+    }
+    await s.key(`${modifier}+-`);
+    const source = s.canvas.getByTestId('flow-source');
+    const originalItems = source.locator('[data-testid^="flow0"]');
+    const dimensions = async (items: typeof originalItems) => items.evaluateAll(els => {
+      const zoom = Number(document.querySelector('[data-sketchpad-zoom]')?.getAttribute('data-sketchpad-zoom')) || 1;
+      const rects = els.map(el => el.getBoundingClientRect());
+      return rects.map(r => ({ x: (r.left - rects[0].left) / zoom, y: (r.top - rects[0].top) / zoom, width: r.width / zoom, height: r.height / zoom }));
+    });
+    const before = await dimensions(originalItems);
+    const oldIds = await originalItems.evaluateAll(els => els.map(el => el.getAttribute('data-pv-block')));
+    // Select in reverse visual order to exercise ID-keyed geometry.
+    await originalItems.nth(2).click({ modifiers: [modifier], position: { x: 12, y: 12 } });
+    await originalItems.nth(1).click({ modifiers: [modifier, 'Shift'], position: { x: 12, y: 12 } });
+    await originalItems.nth(0).click({ modifiers: [modifier, 'Shift'], position: { x: 12, y: 12 } });
+    const destination = scenario.destination === 'frame' ? s.frames.nth(1) : s.canvas.getByTestId('absolute-target');
+    if (scenario.action === 'drag') {
+      const from = (await originalItems.first().boundingBox())!;
+      const to = (await destination.boundingBox())!;
+      await s.drag(originalItems.first(), to.x + 50 - from.x - from.width / 2, to.y + 55 - from.y - from.height / 2);
+    } else {
+      if (scenario.action === 'fallback') {
+        // Simulate a clipboard from a client without usable coordinates, but
+        // retain measured dimensions so variable-height items can stack safely.
+        await s.page.route('**/__block-action', async route => {
+          const data = route.request().postDataJSON();
+          if (data.geometry) for (const value of Object.values(data.geometry) as any[]) delete value.left;
+          await route.continue({ postData: JSON.stringify(data) });
+        });
+      }
+      const action = scenario.action === 'copy' ? 'copy' : 'cut';
+      const response = s.page.waitForResponse(r => r.url().endsWith('/__block-action') && r.request().postDataJSON()?.action === action);
+      await s.key(`${modifier}+${action === 'copy' ? 'c' : 'x'}`);
+      await response;
+      if (action === 'cut') await expect(originalItems).toHaveCount(0);
+      await s.key('Escape');
+      if (scenario.destination === 'frame') await s.title(destination).click();
+      else await destination.click({ position: { x: 30, y: 30 } });
+      await s.key(`${modifier}+v`);
+    }
+    const moved = destination.locator('[data-testid^="flow0"]');
+    await expect(moved).toHaveCount(3);
+    if (scenario.action !== 'copy') await expect(originalItems).toHaveCount(0);
+    const check = async () => {
+      const after = await dimensions(moved);
+      if (scenario.action === 'fallback') {
+        for (let i = 1; i < after.length; i++) {
+          expect(after[i].x).toBeCloseTo(after[0].x, 0);
+          expect(after[i].y).toBeGreaterThanOrEqual(after[i - 1].y + after[i - 1].height);
+        }
+      } else {
+        // Query in source visual order: paste order follows the reversed selection.
+        for (let i = 0; i < 3; i++) {
+          const id = `flow0${i + 1}`;
+          const item = destination.getByTestId(id);
+          const origin = (await destination.getByTestId('flow01').boundingBox())!;
+          const box = (await item.boundingBox())!;
+          const zoom = await s.canvas.locator('[data-sketchpad-zoom]').getAttribute('data-sketchpad-zoom');
+          expect((box.x - origin.x) / Number(zoom)).toBeCloseTo(before[i].x, 0);
+          expect((box.y - origin.y) / Number(zoom)).toBeCloseTo(before[i].y, 0);
+          expect(box.width / Number(zoom)).toBeCloseTo(before[i].width, 0);
+          expect(box.height / Number(zoom)).toBeCloseTo(before[i].height, 0);
+          await expect(item).toHaveCSS('position', 'absolute');
+          expect(oldIds).not.toContain(await item.getAttribute('data-pv-block'));
+        }
+      }
+    };
+    await check();
+    await s.history();
+    await expect(moved).toHaveCount(0);
+    await expect(originalItems).toHaveCount(scenario.action === 'drag' || scenario.action === 'copy' ? 3 : 0);
+    await s.history(true);
+    await expect(moved).toHaveCount(3);
+    await check();
+    await s.open();
+    await check();
+  });
+}

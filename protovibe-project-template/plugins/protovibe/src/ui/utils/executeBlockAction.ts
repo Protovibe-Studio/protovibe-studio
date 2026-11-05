@@ -1,4 +1,5 @@
 import { blockAction, takeSnapshot } from '../api/client';
+import { collectBlockGeometry } from './blockGeometry';
 
 export type BlockMutationAction = 'delete' | 'move-up' | 'move-down' | 'bring-to-front';
 
@@ -123,6 +124,8 @@ export async function executeClipboardBlockAction({
   refreshActiveData
 }: ExecuteClipboardBlockActionParams): Promise<void> {
   const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+  const geometry = collectBlockGeometry((Array.isArray(blockId) ? blockId : [blockId])
+    .map(findBlockElement).filter((el): el is HTMLElement => el !== null));
   // Overwrite the OS clipboard with a marker so any previously-copied image
   // is evicted — pasting an image only works when the image was copied AFTER
   // the most recent protovibe copy/cut.
@@ -136,7 +139,7 @@ export async function executeClipboardBlockAction({
   };
 
   if (action === 'copy') {
-    await blockAction('copy', blockId, file);
+    await blockAction('copy', blockId, file, undefined, undefined, geometry);
     activateBlockClipboard();
     return;
   }
@@ -144,7 +147,7 @@ export async function executeClipboardBlockAction({
   const oldTarget = Array.isArray(blockId) ? findBlockElement(blockId[0]) : findBlockElement(blockId);
 
   await takeSnapshot(file, activeSourceId, undefined, action);
-  await blockAction(action, blockId, file);
+  await blockAction(action, blockId, file, undefined, undefined, geometry);
   if (action === 'cut') activateBlockClipboard();
 
   if (action === 'duplicate') {
