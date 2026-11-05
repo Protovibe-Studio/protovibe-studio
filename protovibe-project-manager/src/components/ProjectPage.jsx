@@ -5,7 +5,7 @@ import PathDisplay from './PathDisplay.jsx'
 import {
   ArrowLeft,
   X,
-  ExternalLink,
+  ArrowRight,
   Square,
   RotateCcw,
   Folder,
@@ -344,7 +344,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                     href={`http://localhost:${port}/protovibe.html`}
                     className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer"
                   >
-                    <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />
+                    <ArrowRight size={18} strokeWidth={1.75} className="shrink-0" />
                     Open Protovibe editor
                   </a>
                 )}
@@ -387,7 +387,7 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   data-testid="btn-run"
                   onClick={() => setSetupMode(true)}
                   disabled={isUpdating}
-                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-primary-subtle text-foreground-primary text-sm font-semibold hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0" />
                   Run project
