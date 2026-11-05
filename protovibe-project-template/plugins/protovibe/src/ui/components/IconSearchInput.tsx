@@ -90,6 +90,8 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCommittedRef = useRef(value);
   const searchIdRef = useRef(0);
+  const keyboardSelectionRef = useRef<IconSearchResult | null>(null);
+  const pendingBlurValueRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalValue(value);
@@ -111,6 +113,8 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   const searchIcons = async (query: string) => {
     // Responses can arrive out of order; only the latest search may update state.
     const searchId = ++searchIdRef.current;
+    keyboardSelectionRef.current = null;
+    setActiveIndex(-1);
     setSearchFailed(false);
     if (!query.trim()) {
       setResults([]);
@@ -139,6 +143,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setLocalValue(val);
+    keyboardSelectionRef.current = null;
     setActiveIndex(-1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     // Clearing the query needs no request, so it skips the debounce.
@@ -154,41 +159,55 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
     debounceRef.current = setTimeout(() => searchIcons(val), DEBOUNCE_MS);
   };
 
-  const selectIcon = (result: IconSearchResult) => {
-    const val = `${result.prefix}:${result.name}`;
+  const commitValue = (val: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    ++searchIdRef.current;
+    setLoading(false);
+    keyboardSelectionRef.current = null;
+    pendingBlurValueRef.current = val;
     setLocalValue(val);
-    lastCommittedRef.current = val;
-    onCommit(val);
+    if (val !== lastCommittedRef.current) {
+      lastCommittedRef.current = val;
+      onCommit(val);
+    }
     setIsOpen(false);
-    setTimeout(() => inputElRef.current?.blur(), 0);
+    inputElRef.current?.blur();
+    pendingBlurValueRef.current = null;
+  };
+
+  const selectIcon = (result: IconSearchResult) => {
+    if (!loading) commitValue(`${result.prefix}:${result.name}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (activeIndex >= 0 && activeIndex < results.length) {
-        selectIcon(results[activeIndex]);
-      } else if (localValue) {
-        lastCommittedRef.current = localValue;
-        onCommit(localValue);
-        setIsOpen(false);
-        e.currentTarget.blur();
-      }
+      const selected = keyboardSelectionRef.current;
+      if (!loading && selected) selectIcon(selected);
+      else commitValue(e.currentTarget.value);
       return;
     }
     if (e.key === 'Escape') {
+      pendingBlurValueRef.current = lastCommittedRef.current;
       setLocalValue(lastCommittedRef.current);
       setIsOpen(false);
       e.currentTarget.blur();
+      pendingBlurValueRef.current = null;
       return;
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setActiveIndex(i => Math.min(i + 1, results.length - 1));
+      if (loading || !results.length) return;
+      const next = Math.min(activeIndex + 1, results.length - 1);
+      keyboardSelectionRef.current = results[next];
+      setActiveIndex(next);
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setActiveIndex(i => Math.max(i - 1, 0));
+      if (loading || !results.length) return;
+      const prev = Math.max(activeIndex - 1, 0);
+      keyboardSelectionRef.current = results[prev];
+      setActiveIndex(prev);
     }
   };
 
@@ -205,6 +224,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
   return (
     <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
       <InspectorInput
+        data-testid="icon-search"
         type="text"
         value={localValue}
         onChange={handleChange}
@@ -212,13 +232,19 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
         onFocus={(e) => {
           inputElRef.current = e.currentTarget;
           setIsOpen(true);
-          if (localValue) searchIcons(localValue);
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          searchIcons(localValue);
         }}
-        onBlur={() => {
-          setTimeout(() => setIsOpen(false), 200);
-          if (localValue !== lastCommittedRef.current) {
-            lastCommittedRef.current = localValue;
-            onCommit(localValue);
+        onBlur={(e) => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          ++searchIdRef.current;
+          setLoading(false);
+          setIsOpen(false);
+          keyboardSelectionRef.current = null;
+          const val = pendingBlurValueRef.current ?? e.currentTarget.value;
+          if (val !== lastCommittedRef.current) {
+            lastCommittedRef.current = val;
+            onCommit(val);
           }
         }}
         placeholder="Search icons..."
@@ -236,6 +262,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
 
       {isOpen && canUseDOM && createPortal(
         <div
+          data-testid="icon-results"
           ref={dropdownElRef}
           data-pv-overlay="true"
           data-pv-ui="true"
@@ -258,13 +285,7 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
           {/* Unset option */}
           <div
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              setLocalValue('');
-              lastCommittedRef.current = '';
-              onCommit('');
-              setIsOpen(false);
-              setTimeout(() => inputElRef.current?.blur(), 0);
-            }}
+            onClick={() => commitValue('')}
             style={{
               padding: '6px 10px',
               fontSize: '11px',
@@ -308,10 +329,11 @@ export const IconSearchInput: React.FC<IconSearchInputProps> = ({
                 return (
                   <div
                     key={iconId}
+                    data-testid={`icon-option-${iconId}`}
                     data-index={i}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectIcon(result)}
-                    onMouseEnter={() => setActiveIndex(i)}
+                    onMouseEnter={() => { if (!loading) setActiveIndex(i); }}
                     onMouseLeave={() => setActiveIndex(-1)}
                     style={{
                       padding: '5px 10px',

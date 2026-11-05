@@ -120,6 +120,11 @@ export function useKeyboardShortcuts() {
       if (e.key === 'Escape') {
         e.preventDefault();
         clearFocus();
+        // Frame selection belongs to SketchpadApp, separately from inspector
+        // focus. Clear it explicitly when Escape originates in the shell.
+        document.querySelectorAll<HTMLIFrameElement>('iframe:not([data-pv-thumbnail])').forEach(iframe => {
+          iframe.contentWindow?.postMessage({ type: 'PV_SKETCHPAD_ESCAPE' }, '*');
+        });
         return;
       }
 
@@ -152,7 +157,7 @@ export function useKeyboardShortcuts() {
       }
 
       // 2. Undo & Redo
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         await runLockedMutation(async () => {
           let res;
@@ -182,7 +187,7 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         await runLockedMutation(async () => {
           const res = await redo();

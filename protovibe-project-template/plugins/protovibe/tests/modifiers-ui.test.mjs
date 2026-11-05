@@ -94,6 +94,8 @@ test('state combinations are explicit, exclusive, deduplicated, and temporary un
     // A loaded state stays selected after its last style is removed.
     const removed = page.waitForResponse(response => response.url().endsWith('/__update-source') && response.request().method() === 'POST');
     const marginTop = page.getByTestId('essentials-mt').locator('input');
+    // Selecting a saved modifier asynchronously hydrates its inspector values.
+    await page.waitForFunction(() => document.querySelector('[data-testid="essentials-mt"] input')?.value === '8');
     await marginTop.fill('');
     await marginTop.press('Enter');
     assert.equal((await removed).ok(), true);

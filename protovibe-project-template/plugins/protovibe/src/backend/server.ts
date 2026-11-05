@@ -13,7 +13,9 @@ import * as babel from '@babel/core';
 // (which would look relative to the user's source files and fail).
 import babelPluginSyntaxJsx from '@babel/plugin-syntax-jsx';
 import babelPluginSyntaxTypeScript from '@babel/plugin-syntax-typescript';
-import { locatorMap, redoStack, undoStack, clipboard } from '../shared/state';
+import { updateSketchpadElementStyle } from './sketchpad-element-style';
+import { locatorMap, redoStack, undoStack, clipboard, type BlockClipboard } from '../shared/state';
+import { getPastePositions } from './paste-geometry';
 import { parseTailwindClasses, splitTailwindClasses } from '../shared/utils';
 import { parseThemeColors, parseThemeTokens, updateCssVariable } from './css-theme-parser';
 
@@ -526,6 +528,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
       const originalContent = fs.readFileSync(absolutePath, 'utf-8');
       const lines = originalContent.split('\n');
       let finalContent = originalContent;
+      let sketchpadBlockId: string | undefined;
 
       // Re-derive accurate positions from the current file state to guard against
       // stale locatorMap entries (e.g. when file indentation changed since last HMR
@@ -539,7 +542,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
           });
           if (!freshAst) throw new Error('parse returned null');
           const hintCol: number = Array.isArray(nameEnd) ? Number(nameEnd[1]) : -1;
-          const candidates: Array<{ nameEnd: number[]; hasClass: boolean; cStart: number[] | null; cEnd: number[] | null }> = [];
+          const candidates: Array<{ nameEnd: number[]; hasClass: boolean; cStart: number[] | null; cEnd: number[] | null; sketchpadBlockId?: string }> = [];
 
           babel.traverse(freshAst, {
             JSXOpeningElement(p) {
@@ -558,7 +561,10 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
                 freshCStart = [classAttr.value.loc.start.line, classAttr.value.loc.start.column];
                 freshCEnd = [classAttr.value.loc.end.line, classAttr.value.loc.end.column];
               }
-              candidates.push({ nameEnd: freshNameEnd, hasClass: freshHasClass, cStart: freshCStart, cEnd: freshCEnd });
+              const marker = p.node.attributes.find(attr => babel.types.isJSXAttribute(attr)
+                && babel.types.isJSXIdentifier(attr.name, { name: 'data-pv-sketchpad-el' }));
+              const blockId = babel.types.isJSXAttribute(marker) && babel.types.isStringLiteral(marker.value) ? marker.value.value : undefined;
+              candidates.push({ nameEnd: freshNameEnd, hasClass: freshHasClass, cStart: freshCStart, cEnd: freshCEnd, sketchpadBlockId: blockId });
             }
           });
 
@@ -569,6 +575,7 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
             hasClass = best.hasClass;
             cStart = best.cStart;
             cEnd = best.cEnd;
+            sketchpadBlockId = best.sketchpadBlockId;
           }
         } catch {
           // If re-parsing fails, fall through and use client-provided values.
@@ -701,6 +708,18 @@ export const handleUpdateSource: Connect.NextHandleFunction = (req, res) => {
           lines[lineIdx] = line.slice(0, colIdx) + ` className="${newClass}"` + line.slice(colIdx);
           finalContent = lines.join('\n');
         }
+      }
+
+      // A pointer resize saves inline dimensions. An inspector class edit
+      // must release those overrides or the new width/height never renders.
+      // Leave state-specific utilities (hover:, md:, etc.) and other styles alone.
+      if (sketchpadBlockId) {
+        const changedClasses = [oldClass, ...(Array.isArray(oldClasses) ? oldClasses : []), newClass]
+          .filter((value): value is string => typeof value === 'string').flatMap(splitClasses);
+        const clear: Array<'width' | 'height'> = [];
+        if (changedClasses.some(cls => /^(w|size)-/.test(cls))) clear.push('width');
+        if (changedClasses.some(cls => /^(h|size)-/.test(cls))) clear.push('height');
+        if (clear.length) finalContent = updateSketchpadElementStyle(finalContent, sketchpadBlockId, {}, clear);
       }
 
       fs.writeFileSync(absolutePath, finalContent, 'utf-8');
@@ -885,34 +904,7 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
         wrapperAttrs += ` data-pv-sketchpad-el="${wrapperId}" style={{ position: 'absolute', left: ${left}, top: ${top} }}`;
       }
 
-      const processedBlocks = extractedBlocks.map(block => {
-        let newBlock = block;
-        // Universally strip sketchpad draggable attribute from the children
-        newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-
-        // Strip absolute positioning from the root element's style tag. The
-        // wrapper is a flex-column (flow) container, so children also shed any
-        // enforced inline width/height — matching the drop-onto-flow-element
-        // path — otherwise a previously resized element keeps a fixed size
-        // that no longer makes sense inside auto-layout.
-        const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
-        newBlock = newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
-          const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
-          if (styleRegex.test(attrs)) {
-            const newAttrs = attrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-              const cleaned = innerStyles
-                .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
-                .trim()
-                .replace(/,$/, '')
-                .trim();
-              return cleaned ? `style={{ ${cleaned} }}` : '';
-            });
-            return `${tag}${newAttrs}${closing}`;
-          }
-          return match;
-        });
-        return newBlock;
-      });
+      const processedBlocks = extractedBlocks.map(block => rehostBlockRoot(block, 'flow', undefined, true));
 
       const innerContent = processedBlocks.map(b =>
         b.split('\n').map(line => {
@@ -943,12 +935,10 @@ export const handleWrapBlocks: Connect.NextHandleFunction = (req, res) => {
 const rehostBlockRoot = (
   block: string,
   target: 'flow' | 'absolute',
-  pos?: { left: number; top: number; width?: number | null }
+  pos?: { left: number; top: number; width?: number | null; height?: number; fromFlow?: boolean },
+  clearFlowSize = false,
 ): string => {
   let newBlock = block;
-  if (target === 'flow') {
-    newBlock = newBlock.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-  }
   const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
   return newBlock.replace(firstTagRegex, (match, tag, attrs, closing) => {
     let newAttrs = attrs;
@@ -956,13 +946,23 @@ const rehostBlockRoot = (
     const hasStyle = styleRegex.test(newAttrs);
 
     if (target === 'flow') {
-      if (!hasStyle) return match;
-      newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-        const cleaned = innerStyles
-          .replace(/(?:position|left|top|right|bottom|zIndex)\s*:\s*[^,}]*,?/g, '')
-          .trim().replace(/,$/, '').trim();
-        return cleaned ? `style={{ ${cleaned} }}` : '';
-      });
+      newAttrs = newAttrs.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
+      // A nested absolute layout still needs its own containing block and
+      // dimensions when its root joins flow. Its children remain absolute.
+      const keepsAbsoluteChildren = /data-layout-mode=(["'])absolute\1/.test(newAttrs);
+      const stripProps = clearFlowSize && !keepsAbsoluteChildren
+        ? '(?:position|left|top|right|bottom|width|height|zIndex)'
+        : '(?:position|left|top|right|bottom|zIndex)';
+      if (hasStyle) {
+        newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
+          const cleaned = innerStyles.replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
+            .trim().replace(/,$/, '').trim();
+          const styles = [keepsAbsoluteChildren ? "position: 'relative'" : '', cleaned].filter(Boolean).join(', ');
+          return styles ? `style={{ ${styles} }}` : '';
+        });
+      } else if (keepsAbsoluteChildren) {
+        newAttrs += ` style={{ position: 'relative' }}`;
+      }
       return `${tag}${newAttrs}${closing}`;
     }
 
@@ -973,9 +973,10 @@ const rehostBlockRoot = (
     const left = Math.round(pos?.left ?? 100);
     const top = Math.round(pos?.top ?? 100);
     const width = pos?.width != null ? Math.round(pos.width) : null;
-    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}`;
+    const height = pos?.height != null ? Math.round(pos.height) : null;
+    const positioning = `position: 'absolute', left: ${left}, top: ${top}${width != null ? `, width: ${width}` : ''}${height != null ? `, height: ${height}` : ''}${pos?.fromFlow ? ", margin: 0, boxSizing: 'border-box'" : ''}`;
     if (hasStyle) {
-      const stripProps = width != null ? '(?:position|left|top|width)' : '(?:position|left|top)';
+      const stripProps = `(?:position|left|top|right|bottom${width != null ? '|width' : ''}${height != null ? '|height' : ''}${pos?.fromFlow ? '|margin(?:Top|Right|Bottom|Left|Inline|Block|InlineStart|InlineEnd|BlockStart|BlockEnd)?|boxSizing' : ''})`;
       newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
         const cleaned = innerStyles
           .replace(new RegExp(`${stripProps}\\s*:\\s*[^,}]*,?`, 'g'), '')
@@ -1100,6 +1101,19 @@ export const handleUnwrapBlock: Connect.NextHandleFunction = (req, res) => {
   });
 };
 
+// Selecting a parent and child must never splice overlapping source ranges or
+// duplicate the child once inside its parent and once again as a sibling.
+function topLevelBlockIds(content: string, ids: string[]): string[] {
+  const ranges = [...new Set(ids)].map(id => {
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid block ID');
+    const start = content.search(new RegExp(`pv-block-start:${id}\\s*\\*\\/`));
+    const endMatch = new RegExp(`pv-block-end:${id}\\s*\\*\\/`).exec(content.slice(Math.max(start, 0)));
+    return { id, start, end: endMatch ? start + endMatch.index : -1 };
+  }).filter(range => range.start >= 0 && range.end >= range.start);
+  return ranges.filter(range => !ranges.some(other => other !== range
+    && other.start < range.start && other.end > range.end)).map(range => range.id);
+}
+
 export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
@@ -1115,7 +1129,7 @@ export const handleDeleteBlocks: Connect.NextHandleFunction = (req, res) => {
 
       const blockMatches: { id: string, index: number, length: number }[] = [];
 
-      for (const blockId of blockIds) {
+      for (const blockId of topLevelBlockIds(fileContent, blockIds)) {
         const regex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${blockId}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${blockId}\\s*\\*\\/\\}\\n?`);
         const match = fileContent.match(regex);
         if (match) {
@@ -1163,7 +1177,7 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
+      const { file, zoneId, afterBlockId, isPristine, elementType = 'block', compName, importPath, defaultProps, defaultContent, additionalImportsForDefaultContent, targetStartLine, targetEndLine, pasteX, pasteY, targetLayoutMode, pasteData, moveBlockIds, imageUrl, imageWidth, imageHeight } = JSON.parse(body || '{}');
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
@@ -1187,12 +1201,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
       let newBlockIds: string[] = [];
 
       if (elementType === 'paste') {
-        if (!clipboard.data) {
+        const data: BlockClipboard | null = pasteData ?? clipboard.data;
+        if (!data) {
           throw new Error('Clipboard is empty.');
         }
-        const originalBlocks = clipboard.data.blocks;
+        const originalBlocks = data.blocks;
         pastedContent = originalBlocks.join('\n');
-        pastedImports = clipboard.data.imports || [];
+        pastedImports = data.imports || [];
 
         // Identify top-level IDs
         const topLevelOldIds = originalBlocks.map(b => {
@@ -1236,87 +1251,13 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
 
         // Hybrid style transform: add, update, or strip absolute-positioning styles
         if (targetLayoutMode) {
-          let minLeft = Infinity;
-          let minTop = Infinity;
-
-          if (targetLayoutMode === 'absolute') {
-            mappedBlocks.forEach(block => {
-              // Only check the first opening tag of the root block for bounding box
-              const firstTagMatch = block.match(/(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/);
-              if (firstTagMatch) {
-                const attrs = firstTagMatch[2];
-                const styleMatch = attrs.match(/style=\{\s*\{([\s\S]*?)\}\s*\}/);
-                if (styleMatch) {
-                  const leftMatch = styleMatch[1].match(/left:\s*(-?[\d.]+)/);
-                  const topMatch = styleMatch[1].match(/top:\s*(-?[\d.]+)/);
-                  if (leftMatch) minLeft = Math.min(minLeft, parseFloat(leftMatch[1]));
-                  if (topMatch) minTop = Math.min(minTop, parseFloat(topMatch[1]));
-                }
-              }
-            });
-            if (minLeft === Infinity) minLeft = 100;
-            if (minTop === Infinity) minTop = 100;
-          }
-
-          const deltaX = (pasteX ?? 100) - minLeft;
-          const deltaY = (pasteY ?? 100) - minTop;
-
-          const processedBlocks = mappedBlocks.map(block => {
-            const firstTagRegex = /(<[A-Za-z0-9_.-]+)([^>]*?)(>|\/>)/;
-            
-            // Only replace the very first tag in the block (the root element)
-            return block.replace(firstTagRegex, (match, tag, attrs, closing) => {
-              let newAttrs = attrs;
-              const styleRegex = /style=\{\s*\{([\s\S]*?)\}\s*\}/;
-              const hasStyle = styleRegex.test(attrs);
-
-              if (targetLayoutMode === 'flow') {
-                if (hasStyle) {
-                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                    let cleaned = innerStyles
-                      .replace(/(?:position|left|top|right|bottom|width|height|zIndex)\s*:\s*[^,}]*,?/g, '')
-                      .trim().replace(/,$/, '').trim();
-                    return cleaned ? `style={{ ${cleaned} }}` : '';
-                  });
-                }
-              } else if (targetLayoutMode === 'absolute') {
-                if (!newAttrs.includes('data-pv-sketchpad-el')) {
-                  const blockIdMatch = newAttrs.match(/data-pv-block="([^"]+)"/);
-                  if (blockIdMatch) newAttrs += ` data-pv-sketchpad-el="${blockIdMatch[1]}"`;
-                }
-
-                if (hasStyle) {
-                  newAttrs = newAttrs.replace(styleRegex, (_m: string, innerStyles: string) => {
-                    let leftVal = pasteX ?? 100;
-                    let topVal = pasteY ?? 100;
-                    
-                    const leftMatch = innerStyles.match(/left:\s*(-?[\d.]+)/);
-                    const topMatch = innerStyles.match(/top:\s*(-?[\d.]+)/);
-                    
-                    if (leftMatch) leftVal = parseFloat(leftMatch[1]) + deltaX;
-                    if (topMatch) topVal = parseFloat(topMatch[1]) + deltaY;
-
-                    let cleaned = innerStyles
-                      .replace(/(?:position|left|top)\s*:\s*[^,}]*,?/g, '')
-                      .trim().replace(/,$/, '').trim();
-                    
-                    const separator = cleaned ? ', ' : '';
-                    return `style={{ position: 'absolute', left: ${Math.round(leftVal)}, top: ${Math.round(topVal)}${separator}${cleaned} }}`;
-                  });
-                } else {
-                  newAttrs = `${newAttrs} style={{ position: 'absolute', left: ${Math.round(pasteX ?? 100)}, top: ${Math.round(pasteY ?? 100)} }}`;
-                }
-              }
-
-              return `${tag}${newAttrs}${closing}`;
-            });
-          });
+          const positions = getPastePositions(data, pasteX ?? 100, pasteY ?? 100);
+          const processedBlocks = mappedBlocks.map((block, index) =>
+            targetLayoutMode === 'flow'
+              ? rehostBlockRoot(block, 'flow', undefined, true)
+              : rehostBlockRoot(block, 'absolute', positions[index]));
 
           pastedContent = processedBlocks.join('\n');
-
-          if (targetLayoutMode === 'flow') {
-            pastedContent = pastedContent.replace(/\s*data-pv-sketchpad-el=(["'])[^"']*\1/g, '');
-          }
         }
       }
 
@@ -1583,6 +1524,25 @@ export const handleAddBlock: Connect.NextHandleFunction = (req, res) => {
         }
       }
 
+      // Same-file reparenting is one write: an intermediate paste followed by
+      // a separate delete can leave Fast Refresh rendering the pasted-only state.
+      if (moveBlockIds?.length) {
+        if (elementType !== 'paste' || pasteData?.file !== file || !Array.isArray(moveBlockIds)) {
+          throw new Error('A move requires a private payload from the same file');
+        }
+        for (const id of moveBlockIds) {
+          if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid move block ID');
+          const blockRegex = new RegExp(`\\n?[ \\t]*\\{\\/\\*\\s*pv-block-start:${id}\\s*\\*\\/\\}[\\s\\S]*?\\{\\/\\*\\s*pv-block-end:${id}\\s*\\*\\/\\}\\n?`);
+          const match = blockRegex.exec(fileContent);
+          if (!match) throw new Error(`Move source block ${id} not found`);
+          fileContent = fileContent.slice(0, match.index) + '\n' + fileContent.slice(match.index + match[0].length);
+          fileContent = cleanupZonesAtAnchors(fileContent, [match.index]);
+        }
+        if (!newBlockIds.length || newBlockIds.some(id => !fileContent.includes(`pv-block-start:${id}`))) {
+          throw new Error('Move destination must exist outside the source blocks');
+        }
+      }
+
       fs.writeFileSync(absolutePath, fileContent, 'utf-8');
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ success: true, blockId, newBlockIds: newBlockIds.length > 0 ? newBlockIds : [blockId] }));
@@ -1699,12 +1659,13 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     try {
-      const { file, blockId, blockIds, action, text, startLine, nameEnd } = JSON.parse(body || '{}');
-      const targetIds = blockIds || (blockId ? [blockId] : []);
+      const { file, blockId, blockIds, action, text, startLine, nameEnd, geometry } = JSON.parse(body || '{}');
+      const requestedIds = blockIds || (blockId ? [blockId] : []);
       const absolutePath = path.resolve(process.cwd(), file);
       let fileContent = fs.readFileSync(absolutePath, 'utf-8');
+      const targetIds = topLevelBlockIds(fileContent, requestedIds);
 
-      if (action === 'copy' || action === 'cut') {
+      if (action === 'copy' || action === 'cut' || action === 'read') {
         const rawBlocksArr: string[] = [];
         const matchesToCut: { start: number; end: number }[] = [];
 
@@ -1781,8 +1742,16 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
             }
           });
 
-          clipboard.data = { file, blocks: rawBlocksArr, imports: requiredImports };
+          const data: BlockClipboard = { file, blocks: rawBlocksArr, imports: requiredImports, geometry };
+          // Internal moves/Alt-drags carry their own payload. They must never
+          // replace the clipboard explicitly populated by the user's copy/cut.
+          if (action === 'read') {
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ success: true, data }));
+          }
+          clipboard.data = data;
         }
+        if (action === 'read') throw new Error('No blocks found to read.');
         if (action === 'copy') {
           res.setHeader('Content-Type', 'application/json');
           return res.end(JSON.stringify({ success: true }));
@@ -1859,7 +1828,7 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         }
         fileContent = cleanupZonesAtAnchors(fileContent, deleteAnchors);
       }
-      else if (action === 'move-up' || action === 'move-down') {
+      else if (action === 'move-up' || action === 'move-down' || action === 'bring-to-front') {
         // 1. Find all block AND editable-zone start/end tags so siblings respect zone scope.
         const allTagsRegex = /(^[ \t]*)\{\/\*\s*pv-(block|editable-zone)-(start|end):([a-zA-Z0-9_-]+)\s*\*\/\}\n?/gm;
         let match;
@@ -1919,7 +1888,18 @@ export const handleBlockAction: Connect.NextHandleFunction = (req, res) => {
         // 4. Swap the block with its sibling — but only if the parent is an editable
         //    zone. Blocks at the file root (outside any zone) are not reorderable.
         if (targetParent && targetParent.kind === 'editable-zone' && targetIndex !== -1) {
-          if (action === 'move-up' && targetIndex > 0) {
+          if (action === 'bring-to-front' && targetIndex < targetSiblings.length - 1) {
+            const curr = targetSiblings[targetIndex];
+            const last = targetSiblings[targetSiblings.length - 1];
+            if (curr.startTag && curr.endTag && last.endTag) {
+              const start = curr.startTag.index;
+              const end = curr.endTag.index + curr.endTag.length;
+              const destination = last.endTag.index + last.endTag.length;
+              fileContent = fileContent.slice(0, start) + fileContent.slice(end, destination)
+                + fileContent.slice(start, end) + fileContent.slice(destination);
+            }
+          }
+          else if (action === 'move-up' && targetIndex > 0) {
             const prev = targetSiblings[targetIndex - 1];
             const curr = targetSiblings[targetIndex];
 

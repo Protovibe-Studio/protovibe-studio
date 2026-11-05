@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { theme } from '../theme';
+import { selectOnFirstMouseDown } from '../utils/inspectorInputSelection';
 
 type InspectorFieldElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -40,7 +41,6 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef<InspectorFieldElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const shouldSelectOnMouseUpRef = useRef(false);
 
   // Sync focused state with actual DOM focus to avoid stale visual state
   useEffect(() => {
@@ -78,6 +78,14 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
     return () => observer.disconnect();
   }, [autoGrow, resizeToContent]);
 
+  // Opening an autocomplete can replace its display label with the editable
+  // value. Select after that render as well as on focus, before the next key.
+  useLayoutEffect(() => {
+    if (focused && document.activeElement === inputRef.current) {
+      inputRef.current?.select();
+    }
+  }, [focused]);
+
   const handleFocus = (e: React.FocusEvent<InspectorFieldElement>) => {
     e.target.select();
     setFocused(true);
@@ -86,21 +94,12 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
 
   const handleBlur = (e: React.FocusEvent<InspectorFieldElement>) => {
     setFocused(false);
-    shouldSelectOnMouseUpRef.current = false;
     if (onBlur) onBlur(e as React.FocusEvent<HTMLInputElement>);
   };
 
   const handleMouseDown = (e: React.MouseEvent<InspectorFieldElement>) => {
-    shouldSelectOnMouseUpRef.current = document.activeElement !== e.currentTarget;
     onMouseDown?.(e as React.MouseEvent<HTMLInputElement>);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent<InspectorFieldElement>) => {
-    if (shouldSelectOnMouseUpRef.current) {
-      e.currentTarget.select();
-      shouldSelectOnMouseUpRef.current = false;
-    }
-    onMouseUp?.(e as React.MouseEvent<HTMLInputElement>);
+    selectOnFirstMouseDown(e);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<InspectorFieldElement>) => {
@@ -159,7 +158,7 @@ export const InspectorInput: React.FC<InspectorInputProps> = ({
     onFocus: handleFocus,
     onBlur: handleBlur,
     onMouseDown: handleMouseDown,
-    onMouseUp: handleMouseUp,
+    onMouseUp,
     onKeyDown: handleKeyDown,
     onChange: handleChange,
   };

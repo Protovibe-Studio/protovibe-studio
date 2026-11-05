@@ -193,7 +193,7 @@ export function FrameContainer({
           }));
         }
 
-        if (isDuplicateDragRef.current) {
+        if (isDuplicateDragRef.current && (dx !== 0 || dy !== 0)) {
           // Alt+drag: restore source frame(s) to original position, create duplicates at drop offset
           isDuplicateDragRef.current = false;
           if (frameRef.current) {
@@ -485,6 +485,7 @@ export function FrameContainer({
       >
         {/* Frame title */}
         <div
+          data-testid="frame-title"
           onPointerDown={handleTitlePointerDown}
           onPointerMove={handleTitlePointerMove}
           onPointerUp={handleTitlePointerUp}

@@ -136,7 +136,8 @@ export const VisualControl: React.FC<VisualControlProps> = ({ label, prefix, val
         let action = 'edit';
         if (!effectiveOriginal && newClass) action = 'add';
         if (effectiveOriginal && !newClass) action = 'remove';
-        if (effectiveOriginal === newClass) return;
+        // Reapplying a dimension also clears a saved Sketchpad resize override.
+        if (effectiveOriginal === newClass && cssProperty !== 'width' && cssProperty !== 'height') return;
 
         await updateSource({
           ...activeData,
