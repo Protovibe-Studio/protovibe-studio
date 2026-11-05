@@ -25,6 +25,7 @@
     "test:cloudflare-publish-ui": "node --test tests/cloudflare-publish-ui.test.mjs",
     "test:add-menu-ui": "node --test tests/add-menu-ui.test.mjs",
     "test:git-sync-ui": "node --test tests/git-sync-ui.test.mjs",
+    "test:blank-preview": "node --test tests/blank-preview.test.mjs",
     "test:inspector-input-ui": "node --test tests/inspector-input-ui.test.mjs",
     "test:inspector-input-e2e": "node --test tests/inspector-input-e2e.test.mjs",
     "test:inspector-special-input-ui": "node --test tests/inspector-special-input-ui.test.mjs"

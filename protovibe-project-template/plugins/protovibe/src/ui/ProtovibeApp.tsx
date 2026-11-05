@@ -886,6 +886,7 @@ export const ProtovibeApp: React.FC = () => {
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minHeight: 0, position: 'relative', background: mobileWidth ? theme.bg_strong : 'transparent' }}>
               <iframe
                 ref={appIframeRef}
+                data-testid="app-preview"
                 src={initialAppSrc}
                 style={{
                   flex: mobileWidth ? 'none' : 1,
