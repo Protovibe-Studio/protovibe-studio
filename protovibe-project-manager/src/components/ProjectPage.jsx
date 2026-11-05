@@ -5,7 +5,6 @@ import PathDisplay from './PathDisplay.jsx'
 import {
   ArrowLeft,
   X,
-  ExternalLink,
   Square,
   RotateCcw,
   Folder,
@@ -342,10 +341,13 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   <a
                     data-testid="btn-open-editor"
                     href={`http://localhost:${port}/protovibe.html`}
-                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-primary text-foreground-on-primary text-sm font-semibold hover:bg-primary-hover hover:shadow-sm transition-all cursor-pointer"
+                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-tertiary text-foreground-default text-left text-sm font-semibold hover:brightness-110 hover:shadow-sm transition-all cursor-pointer"
                   >
-                    <ExternalLink size={18} strokeWidth={1.75} className="shrink-0" />
-                    Open Protovibe editor
+                    <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0 text-foreground-primary" />
+                    <span className="flex flex-col gap-0.5">
+                      <span>Start designing</span>
+                      <span className="text-xs font-normal text-foreground-secondary">Launch this project and open the editor</span>
+                    </span>
                   </a>
                 )}
                 <button
@@ -387,10 +389,13 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
                   data-testid="btn-run"
                   onClick={() => setSetupMode(true)}
                   disabled={isUpdating}
-                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-primary-subtle text-foreground-primary text-sm font-semibold hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-background-tertiary text-foreground-default text-left text-sm font-semibold hover:brightness-110 hover:shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0" />
-                  Run project
+                  <Play size={18} fill="currentColor" strokeWidth={0} className="shrink-0 text-foreground-primary" />
+                  <span className="flex flex-col gap-0.5">
+                    <span>Start designing</span>
+                    <span className="text-xs font-normal text-foreground-secondary">Launch this project and open the editor</span>
+                  </span>
                 </button>
                 <button
                   onClick={onShowFolder}
