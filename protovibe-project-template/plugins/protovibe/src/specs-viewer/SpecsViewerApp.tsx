@@ -366,7 +366,7 @@ export const SpecsViewerApp: React.FC = () => {
   );
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_strong, color: theme.text_default, fontFamily: theme.font_ui }}>
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_default, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
       <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
         {sidebarBrand}
@@ -416,7 +416,7 @@ export const SpecsViewerApp: React.FC = () => {
                 if (!isAnnotation(it)) {
                   const big = it.level === 'big';
                   return (
-                    <div key={it.id} style={{ padding: big ? '16px 16px 4px' : '10px 16px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em', overflowWrap: 'anywhere' }}>
+                    <div key={it.id} style={{ padding: big ? '16px 12px 4px' : '10px 12px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em', overflowWrap: 'anywhere' }}>
                       <SpecFindText text={it.title} highlight={find.highlight(it.id)} />
                     </div>
                   );
