@@ -11,7 +11,7 @@ import {
   Code2,
   Play,
   ChevronDown,
-  RefreshCw,
+  Info,
 } from 'lucide-react'
 
 export default function ProjectPage({ project, onBack, onSetup, onShowFolder, onOpenVSCode, onDuplicate, onDelete, onStop, onRenamed }) {
@@ -331,10 +331,10 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             <div className="w-8 h-8 rounded-full border-[3px] border-border-default border-t-primary animate-spin" />
           </div>
         ) : (
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-5 p-7">
 
             {/* Action buttons */}
-            <div className="flex flex-col gap-2.5 p-7">
+            <div className="flex flex-col gap-2.5">
             {isRunning && (
               <>
                 {port && (
@@ -420,28 +420,25 @@ export default function ProjectPage({ project, onBack, onSetup, onShowFolder, on
             {!isBusy && syncPending && (
               <div
                 data-testid="plugin-outdated-notice"
-                className="flex items-start gap-3 px-7 py-4 bg-background-info-subtle border-t border-border-default"
+                className="flex items-start gap-3 rounded-xl px-4 py-4 bg-background-info-subtle"
               >
-                <RefreshCw size={14} className="text-foreground-info shrink-0 mt-0.5" />
-                <div className="flex flex-col min-w-0">
+                <Info size={18} className="text-foreground-info shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1 min-w-0">
                   <span className="text-sm font-medium text-foreground-info">
-                    {pluginOutdated
-                      ? 'This project uses an older version of Protovibe editor'
-                      : 'This project’s Protovibe editor update didn’t finish'}
+                    {isUpdating
+                      ? 'Updating your editor…'
+                      : pluginOutdated
+                        ? 'Your editor will update on next launch'
+                        : 'Your editor update will finish on next launch'}
                   </span>
-                  <span className="text-xs text-foreground-secondary">
-                    {pluginOutdated ? (
-                      <>
-                        Project version: v{pluginVersion} · Newer version: v{sourcePluginVersion} — it will be
-                        updated automatically the next time you run this project.
-                      </>
-                    ) : (
-                      <>
-                        It is still running the editor it had before, and the update will be retried
-                        automatically the next time you run this project.
-                      </>
-                    )}
+                  <span className="text-xs leading-relaxed text-foreground-secondary">
+                    Protovibe takes care of this automatically. No action needed.
                   </span>
+                  {pluginOutdated && (
+                    <span className="text-xs leading-relaxed text-foreground-secondary">
+                      Current: v{pluginVersion} · New: v{sourcePluginVersion}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
