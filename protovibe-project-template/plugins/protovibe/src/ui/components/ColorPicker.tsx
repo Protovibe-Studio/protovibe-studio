@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { theme } from '../theme';
+import { selectOnFirstMouseDown } from '../utils/inspectorInputSelection';
 import { cssColorToOklch, oklchToHex, oklchToRgbString, parseOklch, formatOklch } from '../utils/colorConversion';
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
@@ -120,12 +121,15 @@ function SliderWithInput({
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <StepButton onActivate={() => nudge(-inputStep)}>−</StepButton>
           <input
+            data-testid={`color-channel-${label.toLowerCase()}`}
             type="text"
             value={inputRaw}
             onChange={e => onInputChange(e.target.value)}
-            onFocus={onInputFocus}
+            onMouseDown={selectOnFirstMouseDown}
+            onFocus={e => { e.currentTarget.select(); onInputFocus(); }}
             onBlur={onInputBlur}
             onKeyDown={e => {
+              if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
               if (e.key === 'ArrowUp')   { e.preventDefault(); nudge(+inputStep); }
               if (e.key === 'ArrowDown') { e.preventDefault(); nudge(-inputStep); }
             }}
@@ -183,11 +187,14 @@ function ConversionInput({ label, placeholder, value, error, onChange, onFocus, 
         {label}
       </div>
       <input
+        data-testid={`color-conversion-${label.toLowerCase()}`}
         type="text"
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
-        onFocus={onFocus}
+        onMouseDown={selectOnFirstMouseDown}
+        onFocus={e => { e.currentTarget.select(); onFocus(); }}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
         onBlur={onBlur}
         spellCheck={false}
         style={{
@@ -529,6 +536,7 @@ export function ColorPicker({ tokenName, themeMode, initialValue, anchorRect, on
           Cancel
         </button>
         <button
+          data-testid="color-save"
           disabled={!canSave}
           onClick={() => canSave && onSave(currentOklch)}
           style={{

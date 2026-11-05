@@ -88,6 +88,7 @@ export const BlockEditor: React.FC = () => {
 
   const editorRef = useRef<HTMLDivElement>(null);
   const originalHtmlRef = useRef<string>('');
+  const loadedTargetRef = useRef<HTMLElement | null>(null);
   const savedRangeRef = useRef<Range | null>(null);
   // While the link popover is open, the editor loses focus to the popover
   // input — suppress the intermediate blur-save so HMR doesn't re-render the
@@ -112,16 +113,14 @@ export const BlockEditor: React.FC = () => {
       const el = editorRef.current;
       if (!el) return;
 
-      // Defer focus and selection to ensure the DOM is settled
-      // and prevent the browser from overriding the range.
-      setTimeout(() => {
-        el.focus();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-      }, 50);
+      // The editor is already mounted for this selection. Deferring select-all
+      // can erase characters typed immediately after a canvas double click.
+      el.focus();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
     };
 
     window.addEventListener(PV_FOCUS_TEXT_CONTENT_EVENT, handleFocus);
@@ -132,15 +131,24 @@ export const BlockEditor: React.FC = () => {
     const el = editorRef.current;
     if (!el) return;
 
+    // Re-clicking the selected element refreshes its source asynchronously.
+    // Keep the existing DOM/selection through loading and do not overwrite a
+    // focused draft with the response, including while its link popover owns
+    // focus and holds a Range into this DOM. A different target gets fresh text.
+    if (loadedTargetRef.current === currentBaseTarget &&
+        (isLoading || document.activeElement === el || suppressBlurRef.current)) return;
+
     if (isLoading || !isTextNode || !activeData?.code) {
       el.innerHTML = '';
       originalHtmlRef.current = '';
+      loadedTargetRef.current = null;
       setIsEmpty(true);
       return;
     }
 
     const html = jsxInnerToEditorHtml(activeData.code);
     el.innerHTML = html;
+    loadedTargetRef.current = currentBaseTarget;
     originalHtmlRef.current = normalizeHtml(html);
     setIsEmpty(!el.textContent?.trim());
   }, [currentBaseTarget, activeData?.code, isTextNode, isLoading]);
@@ -323,6 +331,7 @@ export const BlockEditor: React.FC = () => {
           }}
         >
           <div
+            data-testid="text-content-editor"
             ref={editorRef}
             contentEditable={!isMutationLocked}
             suppressContentEditableWarning

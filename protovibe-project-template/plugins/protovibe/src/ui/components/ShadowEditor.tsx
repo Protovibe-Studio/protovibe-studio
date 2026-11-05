@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Sun } from 'lucide-react';
 import { theme } from '../theme';
+import { selectOnFirstMouseDown } from '../utils/inspectorInputSelection';
 
 // ─── Color helpers ───────────────────────────────────────────────────────────
 
@@ -366,6 +367,8 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
   const [spread, setSpread] = useState(params.spread);
   const [opacity, setOpacity] = useState(params.opacity);
   const [color, setColor] = useState(params.color);
+  // Preserve partial hex input; only valid colors update the preview.
+  const [colorRaw, setColorRaw] = useState(params.color);
   const [layersCount, setLayersCount] = useState(params.layersCount);
   const inset = params.inset;
   const [customCSS, setCustomCSS] = useState<string | null>(null);
@@ -503,7 +506,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
                 <input
                   type="color"
                   value={color}
-                  onChange={e => { setColor(e.target.value); setCustomCSS(null); }}
+                  onChange={e => { setColor(e.target.value); setColorRaw(e.target.value); setCustomCSS(null); }}
                   style={{
                     position: 'absolute', top: -4, left: -4,
                     width: 28, height: 28,
@@ -512,16 +515,26 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
                 />
               </div>
               <input
+                data-testid="shadow-color"
                 type="text"
-                value={color}
+                value={colorRaw}
+                onMouseDown={selectOnFirstMouseDown}
+                onFocus={e => e.currentTarget.select()}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
                 onChange={e => {
-                  const val = e.target.value;
+                  const raw = e.target.value;
+                  setColorRaw(raw);
+                  const val = raw.startsWith('#') ? raw : '#' + raw;
                   if (/^#[0-9a-fA-F]{6}$/.test(val)) { setColor(val); setCustomCSS(null); }
                 }}
                 onBlur={e => {
-                  let val = e.target.value;
-                  if (!val.startsWith('#')) val = '#' + val;
-                  if (/^#[0-9a-fA-F]{6}$/.test(val)) { setColor(val); setCustomCSS(null); }
+                  const raw = e.target.value;
+                  const val = raw.startsWith('#') ? raw : '#' + raw;
+                  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                    setColor(val); setColorRaw(val); setCustomCSS(null);
+                  } else {
+                    setColorRaw(color);
+                  }
                 }}
                 style={{
                   width: 70,
@@ -553,6 +566,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
             Custom CSS
           </div>
           <textarea
+            data-testid="shadow-css"
             value={shadowCSS}
             onChange={e => setCustomCSS(e.target.value)}
             spellCheck={false}
@@ -596,6 +610,7 @@ export function ShadowEditor({ tokenName, initialValue, anchorRect, onSave, onCa
           Cancel
         </button>
         <button
+          data-testid="shadow-save"
           onClick={() => onSave(shadowCSS)}
           style={{
             padding: '6px 16px',
