@@ -22,6 +22,7 @@ import type { SpecItemPatch } from '../../api/specs';
 import { Menu, InlineEditable, StatusPicker, SPEC_STATUS_CONFIG, SPEC_SELECTED_BG, SPECS_FADE_IN_CLASS, SPECS_ROW_BTN_CLASS, ghostBtn, iconBtn, iconBtnSm, relativeTime, type MenuItem } from './specsUi';
 import { SpecFindBar, useSpecFind, type SpecFindHighlight } from './SpecFind';
 import { SpecThumbnail } from './SpecThumbnail';
+import { SpecSections } from './SpecSections';
 import type { SpecExportAction } from './SpecsDocList';
 import { isTypingInput } from '../../utils/elementType';
 import { FilterChip, StatusDot, type FilterChipOption } from '../FilterChip';
@@ -434,7 +435,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
             visible row inserts right after it in the full list. */}
         <InsertLine index={0} active={dropAt === 0} dragging={dragging} dragCount={dragIds.length} onInsert={p.onInsert} />
 
-        {visible.map((it) => {
+        <SpecSections items={visible} scrollRoot={scrollEl} renderItem={(it) => {
           const index = items.indexOf(it);
           const rowProps = {
             draggable: !filtering,
@@ -502,7 +503,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
               />
             </React.Fragment>
           );
-        })}
+        }} />
 
         <AddButton busy={p.busy} onInsert={(kind) => p.onInsert(items.length, kind)} />
       </div>

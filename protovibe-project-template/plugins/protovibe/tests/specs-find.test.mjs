@@ -367,3 +367,137 @@ test('editor: wording icon remains visible at thumbnail bottom through resizing 
   await icon.click();
   await page.getByRole('button', { name: /^To check/ }).waitFor();
 });
+
+const heading = (id, title, level = 'big') => ({ id, type: 'heading', rank: id, title, level, createdAt });
+const sectionNotes = prefix => Array.from({ length: 4 }, (_, i) =>
+  annotation(`a-${prefix}-${i}`, `${prefix === 'payment' ? 'Payment' : 'Delivery'} step ${i + 1}. Review the details and keep the customer informed before continuing.`, 'verified'));
+const stickyBundle = {
+  spec: { id: 's-sticky', title: 'Checkout experience', createdAt },
+  items: [
+    heading('h-intro', 'Before checkout', 'medium'), ...sectionNotes('intro'),
+    heading('h-checkout', 'Checkout flow'),
+    heading('h-delivery', 'Delivery details', 'medium'), ...sectionNotes('delivery'),
+    heading('h-payment', 'Payment and billing', 'medium'), ...sectionNotes('payment'),
+    heading('h-complete', 'Order confirmation'), ...sectionNotes('complete'),
+    heading('h-receipt', 'Receipt and next steps', 'medium'), ...sectionNotes('receipt'),
+  ],
+};
+
+async function openStickyPage(t, name) {
+  const page = await openPage(t, '/editor');
+  if (name === 'editor') {
+    await page.waitForFunction(() => !!window.updateItems);
+    await page.evaluate(items => window.updateItems(items), stickyBundle.items);
+  } else {
+    await page.route('**/specs-data.json', route => route.fulfill({
+      json: { generatedAt: createdAt, specs: [stickyBundle] },
+    }));
+    await page.goto(origin + '/specs.html?spec=s-sticky');
+  }
+  await page.locator('[data-spec-section="h-receipt"]').waitFor();
+  return page;
+}
+
+// Scroll the real list, not the page. Layout assertions below also catch an
+// accidental sticky ancestor or a section wrapper that cannot grow/shrink.
+async function scrollToNote(page, id, inset = 100) {
+  await page.locator(`[data-spec-item="${id}"]`).evaluate((row, inset) => {
+    let list = row.parentElement;
+    while (list && getComputedStyle(list).overflowY !== 'auto') list = list.parentElement;
+    list.scrollTop += row.getBoundingClientRect().top - list.getBoundingClientRect().top - inset;
+  }, inset);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+async function pinnedHeadings(page) {
+  return page.locator('[data-spec-sticky-heading]').evaluateAll(headings => {
+    let list = headings[0].parentElement;
+    while (list && getComputedStyle(list).overflowY !== 'auto') list = list.parentElement;
+    const top = list.getBoundingClientRect().top;
+    return headings.filter(el => Math.abs(el.getBoundingClientRect().top - top - parseFloat(getComputedStyle(el).top)) < 1)
+      .map(el => el.parentElement.dataset.specSection);
+  });
+}
+
+for (const name of ['editor', 'published-viewer']) {
+  test(`${name}: sticky headings replace each level and clear the subsection at a big heading`, async t => {
+    const page = await openStickyPage(t, name);
+    await scrollToNote(page, 'a-intro-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-intro'], 'a small heading without a parent sticks at the top');
+    await scrollToNote(page, 'a-delivery-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-delivery']);
+    await scrollToNote(page, 'a-payment-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-payment']);
+    const big = await page.locator('[data-spec-section="h-checkout"] > [data-spec-sticky-heading]').boundingBox();
+    const small = await page.locator('[data-spec-section="h-payment"] > [data-spec-sticky-heading]').boundingBox();
+    assert.ok(Math.abs(big.y + big.height - small.y) < 1, 'small heading sits directly below its big heading');
+    await page.mouse.move(1200, 800);
+    await screenshot(page, name + '-sticky-headings');
+    await scrollToNote(page, 'a-complete-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-complete'], 'previous subsection does not leak into a new big section');
+    await screenshot(page, name + '-sticky-new-section');
+    await scrollToNote(page, 'a-receipt-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-complete', 'h-receipt']);
+    await scrollToNote(page, 'a-delivery-2');
+    assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-delivery'], 'scrolling back restores the earlier section');
+    await page.locator('[data-spec-sticky-heading]').first().evaluate(el => {
+      let list = el.parentElement;
+      while (list && getComputedStyle(list).overflowY !== 'auto') list = list.parentElement;
+      list.scrollTop = 0;
+    });
+    assert.deepEqual(await pinnedHeadings(page), name === 'editor' ? [] : ['h-intro']);
+  });
+
+  test(`${name}: find reveals an earlier annotation below sticky headings`, async t => {
+    const page = await openStickyPage(t, name);
+    await scrollToNote(page, 'a-receipt-2');
+    await page.getByTestId('spec-find-input').fill('Payment step 1.');
+    await count(page, '1 of 1');
+    await page.waitForFunction(() => {
+      const match = document.querySelector('mark[data-spec-find-active="true"]');
+      const big = document.querySelector('[data-spec-section="h-checkout"] > [data-spec-sticky-heading]');
+      const small = document.querySelector('[data-spec-section="h-payment"] > [data-spec-sticky-heading]');
+      return match && match.getBoundingClientRect().top >= Math.max(big.getBoundingClientRect().bottom, small.getBoundingClientRect().bottom);
+    });
+    assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-payment']);
+  });
+}
+
+test('published-viewer: wrapped headings remeasure after sidebar resize', async t => {
+  const page = await openStickyPage(t, 'published-viewer');
+  await page.route('**/specs-data.json', route => route.fulfill({ json: {
+    generatedAt: createdAt, specs: [{ ...stickyBundle, items: stickyBundle.items.map(it =>
+      it.id === 'h-checkout' ? { ...it, title: 'Checkout flow with saved addresses and delivery preferences' } : it) }],
+  } }));
+  await page.reload();
+  await scrollToNote(page, 'a-payment-2');
+  for (const width of [400, 240]) {
+    const handle = page.getByTitle('Resize sidebar');
+    const box = await handle.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, 300);
+    await page.mouse.down();
+    await page.mouse.move(width, 300);
+    await page.mouse.up();
+    await page.waitForFunction(() => {
+      const big = document.querySelector('[data-spec-section="h-checkout"] > [data-spec-sticky-heading]').getBoundingClientRect();
+      const small = document.querySelector('[data-spec-section="h-payment"] > [data-spec-sticky-heading]').getBoundingClientRect();
+      return Math.abs(big.bottom - small.top) < 1;
+    });
+    assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-payment']);
+  }
+  await screenshot(page, 'published-viewer-sticky-wrapped');
+});
+
+test('editor: sticky headings remain editable and follow filtering and live changes', async t => {
+  const page = await openStickyPage(t, 'editor');
+  await scrollToNote(page, 'a-payment-2');
+  const title = page.locator('[data-spec-item="h-payment"] input');
+  await title.click();
+  await title.fill('Payment methods');
+  await page.getByTestId('spec-find-input').click();
+  assert.equal(await title.inputValue(), 'Payment methods');
+  assert.deepEqual(await pinnedHeadings(page), ['h-checkout', 'h-payment']);
+  await page.evaluate(() => window.setScopeIds(['a-complete-2']));
+  assert.deepEqual(await page.locator('[data-spec-section]').evaluateAll(rows => rows.map(row => row.dataset.specSection)), ['h-complete']);
+  await page.evaluate(items => { window.setScopeIds(null); window.updateItems(items); }, stickyBundle.items.filter(it => it.type === 'annotation'));
+  assert.equal(await page.locator('[data-spec-sticky-heading]').count(), 0);
+});
