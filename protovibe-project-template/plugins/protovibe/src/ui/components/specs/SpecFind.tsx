@@ -181,13 +181,13 @@ export const SpecFindBar: React.FC<{
           style={{ position: 'fixed', ...position, zIndex: 10000, boxSizing: 'border-box', overflowY: 'auto',
             overscrollBehavior: 'contain', padding: 4, borderRadius: 6, border: `1px solid ${theme.border_default}`,
             background: theme.bg_strong, boxShadow: '0 6px 24px rgba(0,0,0,0.2)', fontFamily: theme.font_ui }}>
-          <div style={{ padding: '8px', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: theme.text_tertiary }}>JUMP TO</div>
+          <div style={{ padding: '5px 8px', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: theme.text_tertiary }}>JUMP TO</div>
           {headings.map(heading => <button key={heading.id} type="button" data-testid="spec-heading-jump"
             data-level={heading.level} onClick={() => jump(heading.id)}
             onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             style={{ display: 'block', width: '100%', border: 'none', borderRadius: 4, background: 'transparent',
-              padding: '8px', paddingLeft: heading.level === 'big' ? 8 : 24, textAlign: 'left',
+              padding: '4px 8px', paddingLeft: heading.level === 'big' ? 8 : 24, textAlign: 'left',
               fontFamily: 'inherit', fontSize: 12, fontWeight: heading.level === 'big' ? 600 : 400,
               color: heading.level === 'big' ? theme.text_default : theme.text_secondary,
               overflowWrap: 'anywhere', cursor: 'pointer', transition: 'background 120ms' }}>
