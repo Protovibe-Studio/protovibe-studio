@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import type { SpecHeading } from '../../../shared/specs';
 import { theme } from '../../theme';
 
 export interface SpecFindHighlight {
@@ -87,10 +89,47 @@ export const SpecFindBar: React.FC<{
   query: string;
   onQueryChange: (query: string) => void;
   find: ReturnType<typeof useSpecFind>;
+  headings?: SpecHeading[];
   placeholder?: string;
   testId?: string;
-}> = ({ query, onQueryChange, find, placeholder = 'Find in spec…', testId = 'spec-find-input' }) => {
+}> = ({ query, onQueryChange, find, headings = [], placeholder = 'Find in spec…', testId = 'spec-find-input' }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuId = useId();
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 0 });
+  const showOverview = open && !query && headings.length > 0;
+  useLayoutEffect(() => {
+    if (!showOverview) return;
+    const reposition = () => {
+      const rect = inputRef.current?.getBoundingClientRect();
+      if (rect) setPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width,
+        maxHeight: Math.max(0, Math.min(window.innerHeight * 0.7, window.innerHeight - rect.bottom - 12)) });
+    };
+    reposition();
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    const dismiss = (e: Event) => {
+      if (!inputRef.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const blur = () => setOpen(false);
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('focusin', dismiss);
+    window.addEventListener('blur', blur);
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('focusin', dismiss);
+      window.removeEventListener('blur', blur);
+    };
+  }, [showOverview]);
+  const jump = (id: string) => {
+    inputRef.current?.focus();
+    setOpen(false);
+    find.listRef.current?.querySelector<HTMLElement>(`[data-spec-section="${CSS.escape(id)}"]`)
+      ?.scrollIntoView({ block: 'start', inline: 'nearest' });
+  };
   const buttonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
     width: 20, height: 24, padding: 0, border: 'none', borderRadius: 4,
@@ -104,13 +143,18 @@ export const SpecFindBar: React.FC<{
           ref={inputRef}
           data-testid={testId}
           aria-label={placeholder.replace('…', '')}
+          aria-expanded={headings.length ? showOverview : undefined}
+          aria-controls={showOverview ? menuId : undefined}
+          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation();
             if (e.nativeEvent.isComposing) return;
             if (e.key === 'Enter') { e.preventDefault(); find.step(e.shiftKey ? -1 : 1); }
-            if (e.key === 'Escape') { e.preventDefault(); onQueryChange(''); }
+            if (e.key === 'Escape') { e.preventDefault(); setOpen(false); onQueryChange(''); }
+            if (e.key === 'ArrowDown' && showOverview) { e.preventDefault(); menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }
           }}
           placeholder={placeholder}
           style={{
@@ -123,6 +167,33 @@ export const SpecFindBar: React.FC<{
           onClick={() => { onQueryChange(''); inputRef.current?.focus(); }}
           style={{ ...buttonStyle, position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: theme.text_tertiary }}><X size={12} /></button>}
       </div>
+      {showOverview && createPortal(
+        <div ref={menuRef} id={menuId} data-testid="spec-heading-overview" role="navigation" aria-label="Jump to heading"
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === 'Escape') { e.preventDefault(); inputRef.current?.focus(); setOpen(false); }
+            const buttons = Array.from(menuRef.current?.querySelectorAll('button') ?? []);
+            const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault(); buttons[(index + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+            }
+          }}
+          style={{ position: 'fixed', ...position, zIndex: 10000, boxSizing: 'border-box', overflowY: 'auto',
+            overscrollBehavior: 'contain', padding: 4, borderRadius: 6, border: `1px solid ${theme.border_default}`,
+            background: theme.bg_strong, boxShadow: '0 6px 24px rgba(0,0,0,0.2)', fontFamily: theme.font_ui }}>
+          <div style={{ padding: '5px 8px', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: theme.text_tertiary }}>JUMP TO</div>
+          {headings.map(heading => <button key={heading.id} type="button" data-testid="spec-heading-jump"
+            data-level={heading.level} onClick={() => jump(heading.id)}
+            onMouseEnter={e => { e.currentTarget.style.background = theme.bg_low; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            style={{ display: 'block', width: '100%', border: 'none', borderRadius: 4, background: 'transparent',
+              padding: '4px 8px', paddingLeft: heading.level === 'big' ? 8 : 24, textAlign: 'left',
+              fontFamily: 'inherit', fontSize: 12, fontWeight: heading.level === 'big' ? 600 : 400,
+              color: heading.level === 'big' ? theme.text_default : theme.text_secondary,
+              overflowWrap: 'anywhere', cursor: 'pointer', transition: 'background 120ms' }}>
+            {heading.title || 'Untitled heading'}
+          </button>)}
+        </div>, document.body)}
       {query && <>
         <span role="status" aria-live="polite" data-testid="spec-find-count" style={{ fontSize: 10, color: theme.text_secondary, whiteSpace: 'nowrap' }}>
           {find.count ? `${find.index + 1} of ${find.count}` : 'No matches'}

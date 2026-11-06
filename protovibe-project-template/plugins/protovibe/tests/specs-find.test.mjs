@@ -25,6 +25,14 @@ const bundle = {
     annotation('a-literal', 'The checkout confirmation includes literal [total] and <receipt> labels.'),
   ],
 };
+const overviewBundle = {
+  ...bundle,
+  items: Array.from({ length: 24 }, (_, i) => [
+    { id: `h-chapter-${i}`, type: 'heading', rank: `${i}`, title: i === 0 ? 'Checkout flow' : `Chapter ${i + 1}`, level: 'big', createdAt },
+    { id: `h-detail-${i}`, type: 'heading', rank: `${i}`, title: 'Details and requirements', level: 'medium', createdAt },
+    annotation(`a-chapter-${i}`, `Requirements for chapter ${i + 1}`, i === 0 ? 'verified' : 'todo'),
+  ]).flat(),
+};
 const specs = [bundle, { spec: { id: 's-account', title: 'Account settings', createdAt }, items: [] },
   { spec: { id: 's-return', title: 'Checkout returns', createdAt }, items: [] }];
 const prototype = `<!doctype html><html><body style="margin:0;background:#f5f6f8;color:#202632;font-family:system-ui">
@@ -54,7 +62,7 @@ before(async () => {
       import { SpecDocView } from './src/ui/components/specs/SpecDocView';
       import { SpecsDocList } from './src/ui/components/specs/SpecsDocList';
       import { SpecsInlineStyles } from './src/ui/components/specs/specsUi';
-      const initial = ${JSON.stringify(bundle)};
+      const initial = location.search.includes('overview') ? ${JSON.stringify(overviewBundle)} : ${JSON.stringify(bundle)};
       const summaries = ${JSON.stringify(specs.map(b => ({ ...b.spec, annotationCount: b.items.filter(i => i.type === 'annotation').length })))};
       const noop = () => {};
       window.selections = [];
@@ -91,7 +99,7 @@ before(async () => {
   server = createServer((req, res) => {
     const path = new URL(req.url, 'http://localhost').pathname;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    if (path === '/specs-data.json') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ generatedAt: createdAt, specs })); }
+    if (path === '/specs-data.json') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ generatedAt: createdAt, specs: req.headers.referer?.includes('overview') ? [overviewBundle] : specs })); }
     else if (path === '/specs-viewer.js' || path === '/editor.js') { res.setHeader('Content-Type', 'text/javascript'); res.end(path === '/editor.js' ? editor : viewer); }
     else if (path === '/specs.html') res.end(viewerHtml);
     else if (path === '/index.html') res.end(prototype);
@@ -109,6 +117,7 @@ after(async () => {
 
 async function openPage(t, path) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.setDefaultTimeout(10_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   t.after(async () => { await page.close(); assert.deepEqual(errors, []); });
@@ -501,3 +510,54 @@ test('editor: sticky headings remain editable and follow filtering and live chan
   await page.evaluate(items => { window.setScopeIds(null); window.updateItems(items); }, stickyBundle.items.filter(it => it.type === 'annotation'));
   assert.equal(await page.locator('[data-spec-sticky-heading]').count(), 0);
 });
+
+for (const [name, path] of [['editor', '/editor?overview'], ['published-viewer', '/specs.html?spec=s-checkout&overview']]) {
+  test(`${name}: heading overview navigates, nests, scrolls, and dismisses`, async t => {
+    const page = await openPage(t, path);
+    const input = page.getByTestId('spec-find-input');
+    const menu = page.getByTestId('spec-heading-overview');
+    const entries = page.getByTestId('spec-heading-jump');
+    await input.click();
+    await menu.waitFor();
+    assert.equal(await entries.count(), 48);
+    assert.equal(await entries.nth(0).textContent(), 'Checkout flow');
+    assert.equal(await entries.nth(1).evaluate(el => parseInt(getComputedStyle(el).paddingLeft)), 24);
+    assert.equal(await entries.nth(0).evaluate(el => parseInt(getComputedStyle(el).paddingLeft)), 8);
+    assert.equal(await menu.evaluate(el => el.scrollHeight > el.clientHeight), true);
+    assert.ok((await menu.boundingBox()).height <= 900 * 0.7);
+    const beforeHover = await entries.nth(1).evaluate(el => getComputedStyle(el).backgroundColor);
+    await entries.nth(1).hover();
+    await page.waitForFunction(before => getComputedStyle(document.querySelectorAll('[data-testid="spec-heading-jump"]')[1]).backgroundColor !== before, beforeHover);
+    await screenshot(page, name + '-overview');
+    await entries.nth(42).click();
+    await menu.waitFor({ state: 'hidden' });
+    const heading = page.locator('[data-spec-heading="h-chapter-21"]');
+    const rect = await heading.boundingBox();
+    assert.ok(rect.y > 0 && rect.y < 800, 'selected chapter is visible');
+    await input.click();
+    await input.fill('Requirements');
+    await menu.waitFor({ state: 'hidden' });
+    await count(page, '1 of 48');
+    await input.press('Escape');
+    await menu.waitFor({ state: 'hidden' });
+    await input.click();
+    await input.press('ArrowDown');
+    assert.equal(await entries.first().evaluate(el => el === document.activeElement), true);
+    await entries.first().press('ArrowDown');
+    await entries.nth(1).press('Enter');
+    await menu.waitFor({ state: 'hidden' });
+    assert.ok((await page.locator('[data-spec-heading="h-detail-0"]').boundingBox()).y < 300, 'keyboard jump returns to the first subsection');
+    await input.click();
+    await menu.waitFor();
+    await page.locator('body').click({ position: { x: 5, y: 5 } });
+    await menu.waitFor({ state: 'hidden' });
+    if (name === 'editor') {
+      await page.evaluate(() => window.setStatusFilter('verified'));
+      await input.click();
+      await menu.waitFor();
+      assert.equal(await entries.count(), 2, 'only filtered headings appear');
+      await page.evaluate(() => window.updateItems([]));
+      await menu.waitFor({ state: 'hidden' });
+    }
+  });
+}
