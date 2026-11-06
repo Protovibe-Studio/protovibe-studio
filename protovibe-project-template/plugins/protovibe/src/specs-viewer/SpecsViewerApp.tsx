@@ -408,7 +408,7 @@ export const SpecsViewerApp: React.FC = () => {
               </>
             ))}
             {bundle.items.length > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}` }}>
-              <SpecFindBar query={query} onQueryChange={setQuery} find={find} />
+              <SpecFindBar query={query} onQueryChange={setQuery} find={find} headings={bundle.items.filter(it => !isAnnotation(it))} />
             </div>}
             <div ref={setFindList} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', paddingBottom: 24 }}>
               {bundle.items.length === 0 && <div style={{ padding: 16, fontSize: 12, color: theme.text_tertiary }}>This spec has no annotations.</div>}
@@ -416,7 +416,7 @@ export const SpecsViewerApp: React.FC = () => {
                 if (!isAnnotation(it)) {
                   const big = it.level === 'big';
                   return (
-                    <div key={it.id} style={{ padding: big ? '16px 12px 4px' : '10px 12px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em', overflowWrap: 'anywhere' }}>
+                    <div key={it.id} data-spec-heading={it.id} style={{ padding: big ? '16px 12px 4px' : '10px 12px 2px', fontSize: big ? 14 : 12, fontWeight: big ? 700 : 600, color: big ? theme.text_default : theme.text_secondary, letterSpacing: big ? 0 : '0.02em', overflowWrap: 'anywhere' }}>
                       <SpecFindText text={it.title} highlight={find.highlight(it.id)} />
                     </div>
                   );

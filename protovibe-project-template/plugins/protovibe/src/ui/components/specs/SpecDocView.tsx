@@ -382,7 +382,7 @@ export const SpecDocView: React.FC<SpecDocViewProps> = (p) => {
 
       {/* search, then the filter chips (only once there is something to search) */}
       {items.length > 0 && <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border_default}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <SpecFindBar query={p.query} onQueryChange={p.setQuery} find={find} />
+        <SpecFindBar query={p.query} onQueryChange={p.setQuery} find={find} headings={visible.filter((it): it is SpecHeading => !isAnnotation(it))} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           <FilterChip value={p.scope} defaultValue="all" options={SCOPE_OPTIONS} onChange={p.setScope} menuWidth={240} testId="specs-filter-scope" />
           <FilterChip value={p.statusFilter} defaultValue="all" options={STATUS_OPTIONS} onChange={p.setStatusFilter} menuWidth={180} testId="specs-filter-status" />
@@ -835,6 +835,7 @@ const HeadingRow: React.FC<{
       {...rowProps}
       draggable={rowProps.draggable && !localEditing}
       data-testid="spec-heading-row"
+      data-spec-heading={item.id}
       data-spec-item={item.id}
       data-active={active}
       data-selected={selected}
