@@ -3,10 +3,19 @@
 import assert from 'node:assert/strict';
 import { before, after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 
 const templateRoot = fileURLToPath(new URL('../../../', import.meta.url));
+// Opt-in screenshots from the real e2e flow; normal test runs don't write files.
+const screenshotsDir = process.env.PV_BLANK_PREVIEW_SCREENSHOTS_DIR;
+async function captureState(page, name) {
+  if (!screenshotsDir) return;
+  await mkdir(screenshotsDir, { recursive: true });
+  await page.screenshot({ path: path.join(screenshotsDir, `${name}.png`), fullPage: true });
+}
 let server, browser, origin;
 before(async () => {
   process.chdir(templateRoot);
@@ -58,9 +67,10 @@ async function openFixture(t, source, { path = '/', init } = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   let requests = 0;
-  await page.route('**/src/App.tsx', route => route.fulfill({
-    contentType: 'text/javascript', body: source(++requests),
-  }));
+  await page.route('**/src/App.tsx', route => {
+    const body = source(++requests);
+    return body === null ? route.continue() : route.fulfill({ contentType: 'text/javascript', body });
+  });
   // Keep unrelated publishing/auth work out of this preview test.
   await page.route('**/__cloudflare-auth-status*', route => route.fulfill({ json: {} }));
   if (path !== '/') await page.addInitScript(path => {
@@ -81,24 +91,23 @@ async function staysAt(fixture, count) {
   assert.equal(fixture.requests(), count);
 }
 
-test('a permanent missing export gets only one retry across document reloads', async t => {
+test('a permanent missing export exhausts two retries and shows the captured error', async t => {
   const fixture = await openFixture(t, () => missingExport);
-  await fixture.page.waitForFunction(() => !!document.querySelector('[data-testid="app-preview"]')
-    ?.contentWindow.sessionStorage.getItem('pv-blank-preview-retry:/'));
-  await staysAt(fixture, 2);
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  await staysAt(fixture, 3);
+  assert.match(await fixture.page.locator('pre').first().innerText(), /does not provide an export/);
   assert.equal(await fixture.frame.locator('#root').innerHTML(), '');
-  assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 2);
+  assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 3);
 });
 
-test('a URL change before a module error still gets only one retry', async t => {
+test('a URL change before a module error retains the bounded retry episode', async t => {
   const fixture = await openFixture(t, () => `
     history.replaceState({}, '', '/?view=normalized');
     void import('/__missing-module-for-test.js');
     ${emptyApp}
   `);
-  await fixture.page.waitForFunction(() => !!document.querySelector('[data-testid="app-preview"]')
-    ?.contentWindow.sessionStorage.getItem('pv-blank-preview-retry:/?view=normalized'));
-  await staysAt(fixture, 2);
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  await staysAt(fixture, 3);
   assert.equal(new URL(fixture.frame.url()).search, '?view=normalized');
 });
 
@@ -116,9 +125,13 @@ test('a module error in a rendered app does not refresh it', async t => {
   assert.ok(fixture.errors.some(e => e.includes('dynamically imported module')));
 });
 
-test('an unrelated uncaught runtime error plus an empty root does not refresh', async t => {
-  const fixture = await openFixture(t, () => `setTimeout(() => { throw new Error('Business logic bug'); }, 0); ${emptyApp}`);
-  await staysAt(fixture, 1);
+test('an uncaught runtime error plus an empty root recovers through the loading cover', async t => {
+  const fixture = await openFixture(t, n => n === 1
+    ? `setTimeout(() => { throw new Error('Business logic bug'); }, 0); ${emptyApp}` : readyApp);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.equal(fixture.requests(), 2);
   assert.ok(fixture.errors.includes('Business logic bug'));
 });
 
@@ -164,17 +177,18 @@ test('a busy or unavailable server delays recovery until it is ready', async t =
   assert.equal(fixture.requests(), 2);
 });
 
-test('unavailable session storage disables automatic retry', async t => {
+test('retries remain bounded even when session storage is unavailable', async t => {
   const fixture = await openFixture(t, () => missingExport, { init: page => page.addInitScript(() => {
     Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage disabled'); } });
   }) });
-  await staysAt(fixture, 1);
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  await staysAt(fixture, 3);
 });
 
 test('a healthy recovery re-arms the budget for a later independent edit', async t => {
   const fixture = await openFixture(t, n => n % 2 ? missingExport : readyApp);
   await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
-  await fixture.frame.waitForFunction(() => sessionStorage.getItem('pv-blank-preview-retry:/') === null);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
   await fixture.frame.goto(`${origin}/`);
   await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
   assert.equal(fixture.requests(), 4);
@@ -215,4 +229,185 @@ test('text content outside an empty root prevents recovery', async t => {
   `);
   await staysAt(fixture, 1);
   assert.ok(fixture.errors.some(e => e.includes('dynamically imported module')));
+});
+
+const providerCrash = `export default function App() { throw new Error('useStore must be used within StoreProvider'); }`;
+
+test('a transient React render crash recovers without reloading the editor or losing its URL', async t => {
+  const fixture = await openFixture(t, n => n === 1 ? providerCrash : readyApp, { path: '/?view=runtime#details' });
+  await fixture.page.evaluate(() => { window.shellIdentity = 'same shell'; });
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.equal(fixture.requests(), 2);
+  assert.ok(fixture.errors.some(e => e.includes('useStore must be used within StoreProvider')));
+  assert.equal(new URL(fixture.frame.url()).search + new URL(fixture.frame.url()).hash, '?view=runtime#details');
+  assert.equal(await fixture.page.evaluate(() => window.shellIdentity), 'same shell');
+});
+
+test('a permanent React crash shows its error after two retries, despite unrelated cleared reports', async t => {
+  const fixture = await openFixture(t, () => providerCrash);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.page.evaluate(() => {
+    const other = [...document.querySelectorAll('iframe')].find(f => f.dataset.testid !== 'app-preview');
+    if (other) other.contentWindow.eval(`setInterval(() => parent.postMessage({ type: 'PV_VITE_ERROR_CLEARED' }, location.origin), 500)`);
+    // A message from the shell itself is not an app report either.
+    setInterval(() => window.postMessage({ type: 'PV_BLANK_PREVIEW_RECOVERED' }, location.origin), 500);
+  });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
+  await staysAt(fixture, 3);
+});
+
+async function appReactUrl() {
+  const main = await server.transformRequest('/src/main.tsx');
+  const url = main.code.match(/["']([^"']*\/react\.js[^"']*)["']/)?.[1];
+  assert.ok(url, 'use the same React module as the app entry');
+  return JSON.stringify(url);
+}
+
+test('a React crash after the app has mounted recovers', async t => {
+  const reactUrl = await appReactUrl();
+  const fixture = await openFixture(t, n => n === 1 ? `
+    import React from ${reactUrl};
+    const { useState } = React;
+    export default function App() {
+      const [crashed, setCrashed] = useState(false);
+      window.crashApp = () => setCrashed(true);
+      if (crashed) throw new Error('Post-edit runtime crash');
+      return 'Recovery fixture ready';
+    }
+  ` : readyApp);
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  assert.equal(fixture.requests(), 1);
+  assert.deepEqual(fixture.errors, []);
+  await fixture.frame.evaluate(() => window.crashApp());
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.equal(fixture.requests(), 2);
+  assert.ok(fixture.errors.some(e => e.includes('Post-edit runtime crash')));
+});
+
+test('uncaught errors and rejected promises do not refresh an app that still renders', async t => {
+  const fixture = await openFixture(t, () => readyApp);
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  await fixture.frame.evaluate(() => {
+    setTimeout(() => { throw new Error('Nonfatal handler error'); });
+    void Promise.reject(new Error('Nonfatal request error'));
+    console.error('Logged error');
+  });
+  await staysAt(fixture, 1);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().count(), 0);
+});
+
+test('an unhandled string rejection with a blank app recovers', async t => {
+  const fixture = await openFixture(t, n => n === 1
+    ? `void Promise.reject('App startup failed'); ${emptyApp}` : readyApp);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => document.getElementById('root').textContent.includes('Recovery fixture ready'));
+  assert.equal(fixture.requests(), 2);
+});
+
+test('console.error alone does not refresh an intentionally empty app', async t => {
+  const fixture = await openFixture(t, () => `console.error('Diagnostic only'); ${emptyApp}`);
+  await staysAt(fixture, 1);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().count(), 0);
+});
+
+test('a blank reload without a new error is not mistaken for recovery', async t => {
+  const fixture = await openFixture(t, n => n === 1 ? providerCrash : emptyApp);
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
+  await staysAt(fixture, 3);
+});
+
+test('rendering during the settling period cancels stale runtime evidence', async t => {
+  const fixture = await openFixture(t, () => emptyApp);
+  await fixture.frame.evaluate(() => {
+    window.dispatchEvent(new ErrorEvent('error', { message: 'Transient error' }));
+    const root = document.getElementById('root');
+    root.textContent = 'Recovered';
+    setTimeout(() => { root.textContent = ''; }, 100);
+  });
+  await staysAt(fixture, 1);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().count(), 0);
+});
+
+test('a React error boundary fallback is preserved', async t => {
+  const reactUrl = await appReactUrl();
+  const fixture = await openFixture(t, () => `
+    import React from ${reactUrl};
+    const { Component, createElement } = React;
+    function Broken() { throw new Error('Caught render error'); }
+    class Boundary extends Component {
+      state = { failed: false };
+      static getDerivedStateFromError() { return { failed: true }; }
+      render() { return this.state.failed ? 'Usable fallback' : this.props.children; }
+    }
+    export default function App() { return createElement(Boundary, null, createElement(Broken)); }
+  `);
+  await fixture.frame.getByText('Usable fallback', { exact: true }).waitFor();
+  await staysAt(fixture, 1);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).count(), 0);
+});
+
+test('ongoing edits keep the loading cover beyond a minute; an idle persistent failure then shows its error', async t => {
+  let activityMsAgo = 0;
+  const fixture = await openFixture(t, () => providerCrash, { init: async page => {
+    // Advance the episode's age without fast-forwarding HTTP abort timers:
+    // network responses still need real browser event-loop turns to arrive.
+    await page.clock.setFixedTime(new Date());
+    await page.route('**/__hmr-activity', route => route.fulfill({ json: { msSinceLastChange: activityMsAgo } }));
+  } });
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.page.clock.setFixedTime(new Date(Date.now() + 61_000));
+  await fixture.page.waitForTimeout(2_000);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().isVisible(), true);
+  assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).count(), 0);
+  assert.equal(fixture.requests(), 1, 'wait for writes to settle before reloading');
+
+  // A short pause allows retries but must still hide the error, even though
+  // the episode itself is much older than the normal final-error deadline.
+  activityMsAgo = 9_000;
+  await fixture.page.waitForTimeout(5_000);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().isVisible(), true);
+  assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).count(), 0);
+
+  activityMsAgo = 10_000;
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor();
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
+  await staysAt(fixture, 3);
+});
+
+test('the loading, final error, and restored app states support manual recovery', async t => {
+  let fixed = false;
+  const fixture = await openFixture(t, () => fixed ? null : providerCrash, { init: page =>
+    page.setViewportSize({ width: 1440, height: 1000 }),
+  });
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await captureState(fixture.page, '01-loading');
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
+  assert.equal(fixture.requests(), 3);
+  await captureState(fixture.page, '02-error-after-idle');
+
+  fixed = true;
+  await fixture.page.getByRole('button', { name: 'Refresh page', exact: true }).first().click();
+  await fixture.frame.locator('#root > *').first().waitFor();
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.equal(fixture.requests(), 4);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).count(), 0);
+  await captureState(fixture.page, '03-recovered');
+});
+
+test('a cleared Vite error during runtime recovery does not hide the final blank-page diagnostic', async t => {
+  const fixture = await openFixture(t, n => n === 1 ? providerCrash : `
+    parent.postMessage({ type: 'PV_VITE_ERROR', moduleLoadError: false }, location.origin);
+    parent.postMessage({ type: 'PV_VITE_ERROR_CLEARED' }, location.origin);
+    ${emptyApp}
+  `);
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
+  await staysAt(fixture, 3);
 });
