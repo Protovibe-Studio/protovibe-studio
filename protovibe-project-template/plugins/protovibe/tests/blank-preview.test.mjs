@@ -426,3 +426,41 @@ test('a cleared Vite error during runtime recovery does not hide the final blank
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
   await staysAt(fixture, 4);
 });
+
+test('a blank document must render for the full confirmation period before recovery', async t => {
+  const fixture = await openFixture(t, n => n === 1 ? providerCrash : `window.blankRetryReady = true; ${emptyApp}`);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => window.blankRetryReady && document.readyState === 'complete');
+  await fixture.page.waitForTimeout(1_800);
+  await fixture.frame.evaluate(() => { document.getElementById('root').textContent = 'Late recovery'; });
+  const renderedAt = Date.now();
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.ok(Date.now() - renderedAt >= 2_400, 'confirm 2.5 seconds of rendered content, not just a loaded document');
+  assert.equal(fixture.requests(), 2);
+});
+
+test('losing rendered content restarts the recovery confirmation period', async t => {
+  const fixture = await openFixture(t, n => n === 1 ? providerCrash : `window.blankRetryReady = true; ${emptyApp}`);
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
+  await fixture.frame.waitForFunction(() => window.blankRetryReady && document.readyState === 'complete');
+  await fixture.frame.evaluate(() => { document.getElementById('root').textContent = 'Brief recovery'; });
+  await fixture.page.waitForTimeout(1_000);
+  await fixture.frame.evaluate(() => { document.getElementById('root').textContent = ''; });
+  await fixture.page.waitForTimeout(600);
+  await fixture.frame.evaluate(() => { document.getElementById('root').textContent = 'Stable recovery'; });
+  const renderedAt = Date.now();
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.ok(Date.now() - renderedAt >= 2_400, 'confirmation requires continuously rendered content');
+  assert.equal(fixture.requests(), 2);
+});
+
+for (const reason of ['undefined', '0', '{}']) {
+  test(`an unhandled ${reason} rejection with a blank app recovers`, async t => {
+    const fixture = await openFixture(t, n => n === 1
+      ? `void Promise.reject(${reason}); ${emptyApp}` : readyApp);
+    await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ timeout: 5_000 });
+    await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor();
+    await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
+    assert.equal(fixture.requests(), 2);
+  });
+}

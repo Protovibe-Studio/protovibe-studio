@@ -46,14 +46,15 @@ export function installBlankPreviewRecovery() {
       !document.querySelector('vite-error-overlay');
     if (healthy && !reportedHealthy) {
       window.parent.postMessage({ type: 'PV_BLANK_PREVIEW_RECOVERED' }, window.location.origin);
+    } else if (!healthy && reportedHealthy) {
+      window.parent.postMessage({ type: 'PV_BLANK_PREVIEW_UNHEALTHY' }, window.location.origin);
     }
     reportedHealthy = healthy;
   };
-  const onError = (reason: unknown) => {
-    const detail = typeof reason === 'string' ? reason :
+  const onError = (reason: unknown, fallback = 'Unknown runtime error') => {
+    const detail = (typeof reason === 'string' ? reason :
       reason && typeof (reason as Error).message === 'string'
-        ? (typeof (reason as Error).stack === 'string' ? (reason as Error).stack! : (reason as Error).message) : '';
-    if (!detail) return;
+        ? (typeof (reason as Error).stack === 'string' ? (reason as Error).stack! : (reason as Error).message) : '') || fallback;
     if (pending) {
       pending.detail = detail.slice(0, 8_000);
       return;
@@ -63,9 +64,15 @@ export function installBlankPreviewRecovery() {
   };
 
   window.addEventListener('error', event => onError(event.error || event.message));
-  window.addEventListener('unhandledrejection', event => onError(event.reason));
+  window.addEventListener('unhandledrejection', event => onError(event.reason, 'Unhandled promise rejection'));
+  // A reload or navigation also interrupts the shell's confirmation period.
+  window.addEventListener('pagehide', () => {
+    window.parent.postMessage({ type: 'PV_BLANK_PREVIEW_UNHEALTHY' }, window.location.origin);
+    reportedHealthy = false;
+  });
   const observer = new MutationObserver(observeContent);
   observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  window.addEventListener('pageshow', observeContent);
   window.addEventListener('load', () => {
     observeContent();
     if (pending) {

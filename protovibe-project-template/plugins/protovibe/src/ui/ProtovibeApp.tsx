@@ -511,6 +511,10 @@ export const ProtovibeApp: React.FC = () => {
       const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
       if (!fromAppIframe && e.source !== componentsIframeRef.current?.contentWindow &&
           e.source !== sketchpadIframeRef.current?.contentWindow) return;
+      if (e.data?.type === 'PV_BLANK_PREVIEW_UNHEALTHY' && fromAppIframe && crashEpisodeRef.current?.blankPreview) {
+        clearCrashRecoveryTimer();
+        return;
+      }
       const blankError = e.data?.type === 'PV_BLANK_PREVIEW_ERROR' && fromAppIframe;
       if (e.data?.type === 'PV_VITE_ERROR' || blankError) {
         // A delayed report must not refresh an app that has already recovered.
@@ -537,7 +541,8 @@ export const ProtovibeApp: React.FC = () => {
         if (!crashEpisodeRef.current) return;
         // Other canvases and a fresh document's lack of a Vite overlay cannot
         // prove that an app which crashed at runtime has recovered.
-        if (crashEpisodeRef.current.blankPreview && !fromAppIframe) return;
+        if (crashEpisodeRef.current.blankPreview &&
+            (!fromAppIframe || e.data.type !== 'PV_BLANK_PREVIEW_RECOVERED')) return;
         // No CLEARED is definitive: vite removes and re-adds the overlay on
         // every update cycle when a broken JS update rides along with a
         // successful CSS one, and a freshly loaded document merely hasn't
