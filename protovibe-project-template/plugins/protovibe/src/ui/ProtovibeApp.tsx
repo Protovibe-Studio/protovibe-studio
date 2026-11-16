@@ -42,14 +42,14 @@ import {
 // A compile or runtime crash is often transient while an AI agent edits code, so the
 // shell runs each crash as an "episode" behind a loading cover instead of
 // alarming the user immediately:
-//   t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
+//   t+1s / t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
 //                  auto-reload out of a broken state; a refresh sometimes does)
 //   t+15s        — show the full error state, but only once watched source
 //                  files have stopped changing — an agent mid-task keeps the
 //                  loading cover up for as long as it keeps writing.
 // The episode clock is retained across those refreshes: a reloading document
 // re-reports its error state (see bridge.ts), which must not reset the counter.
-const CRASH_AUTO_REFRESH_AT_MS = [5_000, 10_000];
+const CRASH_AUTO_REFRESH_AT_MS = [1_000, 5_000, 10_000];
 const CRASH_FINAL_ERROR_AT_MS = 15_000;
 // A source change within this window counts as "agent still working" and
 // postpones the final error until the writes stop.

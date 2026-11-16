@@ -67,7 +67,9 @@ async function openFixture(t, source, { path = '/', init } = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   let requests = 0;
+  const requestTimes = [];
   await page.route('**/src/App.tsx', route => {
+    requestTimes.push(Date.now());
     const body = source(++requests);
     return body === null ? route.continue() : route.fulfill({ contentType: 'text/javascript', body });
   });
@@ -82,7 +84,7 @@ async function openFixture(t, source, { path = '/', init } = {}) {
   await element.waitFor();
   const frame = await (await element.elementHandle()).contentFrame();
   await frame.waitForLoadState('load');
-  return { page, frame, errors, requests: () => requests };
+  return { page, frame, errors, requests: () => requests, requestTimes };
 }
 
 async function staysAt(fixture, count) {
@@ -91,13 +93,13 @@ async function staysAt(fixture, count) {
   assert.equal(fixture.requests(), count);
 }
 
-test('a permanent missing export exhausts two retries and shows the captured error', async t => {
+test('a permanent missing export exhausts three retries and shows the captured error', async t => {
   const fixture = await openFixture(t, () => missingExport);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
   assert.match(await fixture.page.locator('pre').first().innerText(), /does not provide an export/);
   assert.equal(await fixture.frame.locator('#root').innerHTML(), '');
-  assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 3);
+  assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 4);
 });
 
 test('a URL change before a module error retains the bounded retry episode', async t => {
@@ -107,7 +109,7 @@ test('a URL change before a module error retains the bounded retry episode', asy
     ${emptyApp}
   `);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
   assert.equal(new URL(fixture.frame.url()).search, '?view=normalized');
 });
 
@@ -182,7 +184,7 @@ test('retries remain bounded even when session storage is unavailable', async t 
     Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage disabled'); } });
   }) });
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
 });
 
 test('a healthy recovery re-arms the budget for a later independent edit', async t => {
@@ -205,7 +207,7 @@ test('a Vite overlay keeps ownership of compile-error recovery', async t => {
   const fixture = await openFixture(t, () => missingExport);
   server.ws.send({ type: 'error', err: { message: 'Compile error fixture', stack: '' } });
   await fixture.frame.locator('vite-error-overlay').waitFor({ state: 'attached' });
-  await staysAt(fixture, 1);
+  await staysAt(fixture, 2);
 });
 
 
@@ -245,8 +247,13 @@ test('a transient React render crash recovers without reloading the editor or lo
   assert.equal(await fixture.page.evaluate(() => window.shellIdentity), 'same shell');
 });
 
-test('a permanent React crash shows its error after two retries, despite unrelated cleared reports', async t => {
-  const fixture = await openFixture(t, () => providerCrash);
+test('a permanent React crash shows its error after three retries, despite unrelated cleared reports', async t => {
+  const fixture = await openFixture(t, () => providerCrash, { init: page => page.addInitScript(() => {
+    if (window !== window.top) return;
+    window.addEventListener('message', event => {
+      if (event.data?.type === 'PV_BLANK_PREVIEW_ERROR') window.previewCrashAt ??= Date.now();
+    });
+  }) });
   await fixture.page.getByText('Loading…', { exact: true }).first().waitFor();
   await fixture.page.evaluate(() => {
     const other = [...document.querySelectorAll('iframe')].find(f => f.dataset.testid !== 'app-preview');
@@ -256,7 +263,15 @@ test('a permanent React crash shows its error after two retries, despite unrelat
   });
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
+  const detectedAt = await fixture.page.evaluate(() => window.previewCrashAt);
+  // Assert the actual browser requests, not just the configured constants.
+  // Allow scheduling/network latency, but fail if the first attempt waits 5s.
+  for (const [index, target] of [1_000, 5_000, 10_000].entries()) {
+    const elapsed = fixture.requestTimes[index + 1] - detectedAt;
+    assert.ok(elapsed >= target - 100 && elapsed < target + 3_000,
+      `retry ${index + 1} arrived ${elapsed}ms after detection (target ${target}ms)`);
+  }
 });
 
 async function appReactUrl() {
@@ -319,7 +334,7 @@ test('a blank reload without a new error is not mistaken for recovery', async t 
   const fixture = await openFixture(t, n => n === 1 ? providerCrash : emptyApp);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
 });
 
 test('rendering during the settling period cancels stale runtime evidence', async t => {
@@ -377,7 +392,7 @@ test('ongoing edits keep the loading cover beyond a minute; an idle persistent f
   activityMsAgo = 10_000;
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor();
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
 });
 
 test('the loading, final error, and restored app states support manual recovery', async t => {
@@ -389,14 +404,14 @@ test('the loading, final error, and restored app states support manual recovery'
   await captureState(fixture.page, '01-loading');
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  assert.equal(fixture.requests(), 3);
+  assert.equal(fixture.requests(), 4);
   await captureState(fixture.page, '02-error-after-idle');
 
   fixed = true;
   await fixture.page.getByRole('button', { name: 'Refresh page', exact: true }).first().click();
   await fixture.frame.locator('#root > *').first().waitFor();
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
-  assert.equal(fixture.requests(), 4);
+  assert.equal(fixture.requests(), 5);
   assert.equal(await fixture.page.getByText('Loading…', { exact: true }).count(), 0);
   await captureState(fixture.page, '03-recovered');
 });
@@ -409,5 +424,5 @@ test('a cleared Vite error during runtime recovery does not hide the final blank
   `);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  await staysAt(fixture, 3);
+  await staysAt(fixture, 4);
 });
