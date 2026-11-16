@@ -16,6 +16,7 @@ import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
 import { CrashLoadingOverlay, CrashErrorOverlay } from './components/CrashLoadingOverlay';
+import { hasPreviewContent } from './blank-preview-recovery';
 import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -38,21 +39,22 @@ import {
   PV_CANVAS_EDIT_BLOCKED,
 } from './utils/canvasEditGuard';
 
-// A Vite crash is often a transient state while an AI agent edits code, so the
+// A compile or runtime crash is often transient while an AI agent edits code, so the
 // shell runs each crash as an "episode" behind a loading cover instead of
 // alarming the user immediately:
-//   t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
+//   t+1s / t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
 //                  auto-reload out of a broken state; a refresh sometimes does)
 //   t+15s        — show the full error state, but only once watched source
 //                  files have stopped changing — an agent mid-task keeps the
 //                  loading cover up for as long as it keeps writing.
 // The episode clock is retained across those refreshes: a reloading document
 // re-reports its error state (see bridge.ts), which must not reset the counter.
-const CRASH_AUTO_REFRESH_AT_MS = [5_000, 10_000];
+const CRASH_AUTO_REFRESH_AT_MS = [1_000, 5_000, 10_000];
 const CRASH_FINAL_ERROR_AT_MS = 15_000;
 // A source change within this window counts as "agent still working" and
 // postpones the final error until the writes stop.
 const CRASH_ACTIVITY_EXTEND_MS = 10_000;
+const BLANK_PREVIEW_SETTLE_MS = 1_500;
 // How long after an ambiguous "no error yet" report (a freshly loaded document
 // that may still crash — see bridge.ts) before the episode counts as recovered.
 const CRASH_RECOVERY_CONFIRM_MS = 2_500;
@@ -109,12 +111,12 @@ export const ProtovibeApp: React.FC = () => {
   // countdown to the final error isn't reset by a reloading document.
   // canvasBlanked: the app iframe was reloaded into a failed module load at
   // some point, so it may need one more reload to come back after recovery.
-  const crashEpisodeRef = useRef<{ start: number; refreshesDone: number; canvasBlanked: boolean } | null>(null);
+  const crashEpisodeRef = useRef<{
+    start: number; refreshesDone: number; canvasBlanked: boolean;
+    blankPreview: boolean; detail: string | null;
+  } | null>(null);
   const crashTickRef = useRef<number | null>(null);
   const crashRecoveryTimerRef = useRef<number | null>(null);
-  // Freshness of the last watched-source change, polled from the dev server
-  // during an episode (Infinity until a poll lands or when polling fails).
-  const crashActivityMsAgoRef = useRef<number>(Infinity);
 
   const setViteError = useCallback((phase: ViteErrorPhase) => {
     viteErrorPhaseRef.current = phase;
@@ -189,32 +191,48 @@ export const ProtovibeApp: React.FC = () => {
   // Begin a crash episode: cover the canvas and drive the auto-refresh /
   // final-error schedule off one retained clock.
   const startCrashEpisode = useCallback(() => {
-    crashEpisodeRef.current = { start: Date.now(), refreshesDone: 0, canvasBlanked: false };
-    crashActivityMsAgoRef.current = Infinity;
+    crashEpisodeRef.current = { start: Date.now(), refreshesDone: 0, canvasBlanked: false, blankPreview: false, detail: null };
     setViteError('pending');
     clearCrashTick();
-    crashTickRef.current = window.setInterval(() => {
+    let probing = false;
+    crashTickRef.current = window.setInterval(async () => {
       const ep = crashEpisodeRef.current;
-      if (!ep || viteErrorPhaseRef.current !== 'pending') return;
+      if (!ep || viteErrorPhaseRef.current !== 'pending' || probing) return;
 
-      // Refresh the dev server's view of agent activity. A stale result is
-      // fine — the deadline check just uses the latest poll that has landed.
-      fetch('/__hmr-activity')
-        .then(r => r.json())
-        .then(d => {
-          crashActivityMsAgoRef.current = typeof d?.msSinceLastChange === 'number' ? d.msSinceLastChange : Infinity;
-        })
-        .catch(() => { crashActivityMsAgoRef.current = Infinity; });
+      // Don't reload a blank app in the middle of a multi-file write or while
+      // Vite is unavailable. The shell retains the budget across reloads.
+      let ready = false;
+      let activityMsAgo = Infinity;
+      probing = true;
+      try {
+        const response = await fetch('/__hmr-activity', { cache: 'no-store', signal: AbortSignal.timeout(2_000) });
+        if (!response.ok) throw new Error('Server unavailable');
+        const d = await response.json();
+        activityMsAgo = typeof d?.msSinceLastChange === 'number' ? d.msSinceLastChange : Infinity;
+        ready = d?.msSinceLastChange === null ||
+          (typeof d?.msSinceLastChange === 'number' && d.msSinceLastChange >= BLANK_PREVIEW_SETTLE_MS);
+      } catch {
+        // Keep the final error reachable even if the server is down.
+      } finally {
+        probing = false;
+      }
+      if (crashEpisodeRef.current !== ep || viteErrorPhaseRef.current !== 'pending') return;
 
       const elapsed = Date.now() - ep.start;
-      if (ep.refreshesDone < CRASH_AUTO_REFRESH_AT_MS.length && elapsed >= CRASH_AUTO_REFRESH_AT_MS[ep.refreshesDone]) {
+      const doc = appIframeRef.current?.contentDocument;
+      const blankRetryAllowed = ready && doc?.readyState === 'complete' && !hasPreviewContent(doc);
+      if (ep.refreshesDone < CRASH_AUTO_REFRESH_AT_MS.length && elapsed >= CRASH_AUTO_REFRESH_AT_MS[ep.refreshesDone] &&
+          (!ep.blankPreview || blankRetryAllowed)) {
         ep.refreshesDone += 1;
         reloadIframe(appIframeRef);
         return;
       }
-      if (elapsed >= CRASH_FINAL_ERROR_AT_MS && crashActivityMsAgoRef.current >= CRASH_ACTIVITY_EXTEND_MS) {
+      if (elapsed >= CRASH_FINAL_ERROR_AT_MS && activityMsAgo >= CRASH_ACTIVITY_EXTEND_MS) {
         clearCrashTick();
-        setViteErrorDetail(readOwnViteOverlayError());
+        // A compile overlay may have appeared and disappeared during runtime
+        // recovery. If the app is still blank, restore the shell's error cover.
+        if (ep.blankPreview) setModuleLoadError(!doc?.querySelector('vite-error-overlay'));
+        setViteErrorDetail(ep.detail || readOwnViteOverlayError());
         setViteError('error');
       }
     }, CRASH_TICK_MS);
@@ -484,32 +502,59 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [activeIframeTab]);
 
-  // Listen for Vite error reports from the iframe bridges. A crash is often
+  // Listen for compile and blank-page runtime errors from the iframe bridges. A crash is often
   // just a transient state while an AI agent edits code, so it runs as an
   // episode (see the CRASH_* constants) instead of alarming the user right away.
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'PV_VITE_ERROR') {
+      if (e.origin !== window.location.origin) return;
+      const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
+      if (!fromAppIframe && e.source !== componentsIframeRef.current?.contentWindow &&
+          e.source !== sketchpadIframeRef.current?.contentWindow) return;
+      if (e.data?.type === 'PV_BLANK_PREVIEW_UNHEALTHY' && fromAppIframe && crashEpisodeRef.current?.blankPreview) {
+        clearCrashRecoveryTimer();
+        return;
+      }
+      const blankError = e.data?.type === 'PV_BLANK_PREVIEW_ERROR' && fromAppIframe;
+      if (e.data?.type === 'PV_VITE_ERROR' || blankError) {
+        // A delayed report must not refresh an app that has already recovered.
+        if (blankError && (!appIframeRef.current?.contentDocument || hasPreviewContent(appIframeRef.current.contentDocument))) return;
+        // Repeated errors retain the episode's clock and cancel confirmation.
+        clearCrashRecoveryTimer();
+        if (!crashEpisodeRef.current) startCrashEpisode();
+        const ep = crashEpisodeRef.current!;
+        if (blankError) {
+          ep.blankPreview = true;
+          ep.canvasBlanked = true;
+          ep.detail = typeof e.data.detail === 'string' ? e.data.detail.slice(0, 8_000) : null;
+          setModuleLoadError(true);
+          setViteErrorDetail(ep.detail);
+          return;
+        }
         // Last write wins: an overlay appearing in the iframe means the canvas
         // is no longer blank, a failed module load means it is.
         if (typeof e.data.moduleLoadError === 'boolean') setModuleLoadError(e.data.moduleLoadError);
-        if (e.data.moduleLoadError && crashEpisodeRef.current) crashEpisodeRef.current.canvasBlanked = true;
-        // An error during recovery confirmation means the app is still broken
-        // — keep the episode (and its clock).
-        clearCrashRecoveryTimer();
-        if (!crashEpisodeRef.current) startCrashEpisode();
+        if (e.data.moduleLoadError) ep.canvasBlanked = true;
       }
-      if (e.data?.type === 'PV_VITE_ERROR_CLEARED') {
+      if (e.data?.type === 'PV_VITE_ERROR_CLEARED' ||
+          (e.data?.type === 'PV_BLANK_PREVIEW_RECOVERED' && fromAppIframe)) {
         if (!crashEpisodeRef.current) return;
+        // Other canvases and a fresh document's lack of a Vite overlay cannot
+        // prove that an app which crashed at runtime has recovered.
+        if (crashEpisodeRef.current.blankPreview &&
+            (!fromAppIframe || e.data.type !== 'PV_BLANK_PREVIEW_RECOVERED')) return;
         // No CLEARED is definitive: vite removes and re-adds the overlay on
         // every update cycle when a broken JS update rides along with a
         // successful CSS one, and a freshly loaded document merely hasn't
         // errored *yet*. Confirm recovery with a delay — a quick re-error
         // cancels it, retaining the episode clock.
-        const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
         if (crashRecoveryTimerRef.current === null) {
           crashRecoveryTimerRef.current = window.setTimeout(() => {
             crashRecoveryTimerRef.current = null;
+            if (crashEpisodeRef.current?.blankPreview) {
+              const doc = appIframeRef.current?.contentDocument;
+              if (!doc || doc.readyState !== 'complete' || !hasPreviewContent(doc) || doc.querySelector('vite-error-overlay')) return;
+            }
             // A canvas left blank by a mid-crash reload can't apply HMR
             // updates, so the fix that other iframes just confirmed never
             // reaches it — revive it with one more reload.
