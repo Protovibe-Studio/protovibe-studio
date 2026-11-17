@@ -166,6 +166,7 @@ export const ProtovibeApp: React.FC = () => {
   // on read; interactions re-arm it — see utils/appPath.ts).
   const [initialAppSrc] = useState(consumePersistedAppPath);
   const [appIframePath, setAppIframePath] = useState(initialAppSrc);
+  const [appIframeLoading, setAppIframeLoading] = useState(true);
   useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -186,6 +187,7 @@ export const ProtovibeApp: React.FC = () => {
   // Reload one canvas iframe (used by the crash covers, the crash banner, and
   // the episode's auto-refresh schedule).
   const reloadIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    if (ref === appIframeRef && ref.current) setAppIframeLoading(true);
     if (ref === appIframeRef && ref.current && crashEpisodeRef.current) {
       crashReloadStartedAtRef.current = Date.now();
     }
@@ -617,7 +619,13 @@ export const ProtovibeApp: React.FC = () => {
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
-    if (ref === appIframeRef) crashReloadStartedAtRef.current = null;
+    if (ref === appIframeRef) {
+      crashReloadStartedAtRef.current = null;
+      setAppIframeLoading(false);
+      // Full navigations and HMR reloads replace this window's document;
+      // client-side route changes keep the already loaded preview visible.
+      ref.current?.contentWindow?.addEventListener('pagehide', () => setAppIframeLoading(true), { once: true });
+    }
     ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
       '*'
@@ -953,6 +961,20 @@ export const ProtovibeApp: React.FC = () => {
                 }}
                 onLoad={() => handleIframeLoad(appIframeRef)}
               />
+              {appIframeLoading && viteErrorPhase === 'none' && (
+                <div
+                  role="status"
+                  aria-label="Loading app"
+                  style={{
+                    position: 'absolute', inset: 0, zIndex: 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: theme.bg_default, color: theme.text_secondary,
+                  }}
+                >
+                  <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>
+                  <RotateCw size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
+                </div>
+              )}
               {renderCrashCover(appIframeRef)}
             </div>
           </div>
