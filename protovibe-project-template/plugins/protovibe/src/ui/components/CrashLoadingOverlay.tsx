@@ -100,7 +100,7 @@ export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () 
         padding: '12px 16px',
         fontSize: 12,
         lineHeight: 1.5,
-        color: theme.destructive_default,
+        color: theme.text_default,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
       }}>
