@@ -556,3 +556,48 @@ test('failed entry-module requests continue retrying after the compile error is 
   await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor({ timeout: 8_000 });
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
 });
+
+for (const resource of ['module', 'document']) {
+  test(`background retries let a slow ${resource} load finish after the app is fixed`, async t => {
+    let fixed = false;
+    let slowRequests = 0;
+    const fixture = await openFixture(t, () => fixed ? readyApp : providerCrash, {
+      init: page => page.route(resource === 'module' ? '**/src/main.tsx' : `${origin}/`, async route => {
+        if (fixed) {
+          slowRequests++;
+          // Longer than the background retry interval: reloading at five seconds
+          // would cancel this successful response and prevent recovery forever.
+          await new Promise(resolve => setTimeout(resolve, 7_000));
+        }
+        await route.continue().catch(() => {});
+      }),
+    });
+    await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+    fixed = true;
+    await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor({ timeout: 18_000 });
+    await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+    assert.equal(slowRequests, 1, 'do not interrupt an in-flight recovery load');
+  });
+}
+
+test('a stalled background reload is retried after its timeout', async t => {
+  let fixed = false;
+  let recoveryRequests = 0;
+  const fixture = await openFixture(t, () => fixed ? readyApp : providerCrash, {
+    init: page => page.route('**/src/main.tsx', route => {
+      // Leave the first recovery request pending forever; the next one works.
+      if (fixed && ++recoveryRequests === 1) return;
+      return route.continue();
+    }),
+  });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  const request = fixture.page.waitForRequest('**/src/main.tsx');
+  fixed = true;
+  await request;
+  // Age the stalled request without waiting thirty seconds or accelerating
+  // browser timers needed by Vite's networking and recovery confirmation.
+  await fixture.page.clock.setFixedTime(new Date(Date.now() + 31_000));
+  await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor({ timeout: 8_000 });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+  assert.equal(recoveryRequests, 2);
+});

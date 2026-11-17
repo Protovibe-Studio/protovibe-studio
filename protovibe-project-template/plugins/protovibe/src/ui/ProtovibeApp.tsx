@@ -52,6 +52,8 @@ import {
 const CRASH_AUTO_REFRESH_AT_MS = [1_000, 5_000, 10_000];
 const CRASH_FINAL_ERROR_AT_MS = 15_000;
 const CRASH_ERROR_REFRESH_MS = 5_000;
+// Give slow recovery loads time to finish, but still retry stalled requests.
+const CRASH_RELOAD_TIMEOUT_MS = 30_000;
 // A source change within this window counts as "agent still working" and
 // postpones the final error until the writes stop.
 const CRASH_ACTIVITY_EXTEND_MS = 10_000;
@@ -118,6 +120,7 @@ export const ProtovibeApp: React.FC = () => {
   } | null>(null);
   const crashTickRef = useRef<number | null>(null);
   const crashRecoveryTimerRef = useRef<number | null>(null);
+  const crashReloadStartedAtRef = useRef<number | null>(null);
 
   const setViteError = useCallback((phase: ViteErrorPhase) => {
     viteErrorPhaseRef.current = phase;
@@ -140,6 +143,7 @@ export const ProtovibeApp: React.FC = () => {
 
   const endCrashEpisode = useCallback(() => {
     crashEpisodeRef.current = null;
+    crashReloadStartedAtRef.current = null;
     clearCrashTick();
     clearCrashRecoveryTimer();
     setViteError('none');
@@ -182,6 +186,9 @@ export const ProtovibeApp: React.FC = () => {
   // Reload one canvas iframe (used by the crash covers, the crash banner, and
   // the episode's auto-refresh schedule).
   const reloadIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    if (ref === appIframeRef && ref.current && crashEpisodeRef.current) {
+      crashReloadStartedAtRef.current = Date.now();
+    }
     try {
       ref.current?.contentWindow?.location.reload();
     } catch {
@@ -209,6 +216,11 @@ export const ProtovibeApp: React.FC = () => {
 
       if (viteErrorPhaseRef.current === 'error') {
         if (Date.now() < ep.nextErrorRefreshAt || crashRecoveryTimerRef.current !== null) return;
+        // A new navigation can still expose the previous, complete document
+        // while waiting for HTML. Track reloads until onLoad instead of using
+        // readyState, so neither slow HTML nor slow modules get cancelled.
+        const reloadStartedAt = crashReloadStartedAtRef.current;
+        if (reloadStartedAt !== null && Date.now() - reloadStartedAt < CRASH_RELOAD_TIMEOUT_MS) return;
         const doc = appIframeRef.current?.contentDocument;
         // Leave a newly rendered app alone while its bridge confirms recovery.
         if (ep.blankPreview && doc && hasPreviewContent(doc) && !doc.querySelector('vite-error-overlay')) return;
@@ -605,6 +617,7 @@ export const ProtovibeApp: React.FC = () => {
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    if (ref === appIframeRef) crashReloadStartedAtRef.current = null;
     ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
       '*'
