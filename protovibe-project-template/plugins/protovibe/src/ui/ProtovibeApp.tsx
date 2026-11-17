@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree, NotepadTextDashed } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, LoaderCircle, Home, ExternalLink, Smartphone, X, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree, NotepadTextDashed } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -972,7 +972,7 @@ export const ProtovibeApp: React.FC = () => {
                   }}
                 >
                   <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>
-                  <RotateCw size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
+                  <LoaderCircle size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
                 </div>
               )}
               {renderCrashCover(appIframeRef)}

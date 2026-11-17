@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/CrashLoadingOverlay.tsx
 import React from 'react';
-import { RotateCw, RefreshCw } from 'lucide-react';
+import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { theme } from '../theme';
 
 const SPIN_KEYFRAMES = '@keyframes pv-crash-spin { to { transform: rotate(360deg); } }';
@@ -47,7 +47,7 @@ const CoverButton: React.FC<{ onClick: () => void; children: React.ReactNode }> 
 export const CrashAutoRefreshStatus: React.FC = () => (
   <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 13 }}>
     <style>{SPIN_KEYFRAMES}</style>
-    <RotateCw size={14} aria-hidden="true" style={{ animation: 'pv-crash-spin 1s linear infinite' }} />
+    <LoaderCircle size={14} aria-hidden="true" style={{ animation: 'pv-crash-spin 1s linear infinite' }} />
     <span>Auto-refreshing every 5 seconds</span>
   </div>
 );
@@ -59,7 +59,7 @@ export const CrashAutoRefreshStatus: React.FC = () => (
 export const CrashLoadingOverlay: React.FC = () => (
   <div style={containerStyle}>
     <style>{SPIN_KEYFRAMES}</style>
-    <RotateCw size={28} style={{ color: theme.text_secondary, animation: 'pv-crash-spin 1s linear infinite' }} />
+    <LoaderCircle size={28} aria-hidden="true" style={{ color: theme.text_secondary, animation: 'pv-crash-spin 1s linear infinite' }} />
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, maxWidth: 440, textAlign: 'center', padding: '0 24px' }}>
       <div style={{ color: theme.text_default, fontSize: 15, fontWeight: 600 }}>
         Loading…
