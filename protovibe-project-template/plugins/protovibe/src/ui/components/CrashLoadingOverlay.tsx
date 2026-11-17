@@ -81,7 +81,7 @@ export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () 
         The app failed to load
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
-        If your AI agent is still working, wait — this page refreshes automatically.{' '}
+        If your AI agent is still working, just wait a bit — this page refreshes automatically.{' '}
         {detail
           ? 'If it’s finished, copy the error below and ask it to fix the app.'
           : 'If it’s finished, ask it to fix the app.'}

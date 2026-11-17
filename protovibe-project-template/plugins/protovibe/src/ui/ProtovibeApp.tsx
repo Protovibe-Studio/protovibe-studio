@@ -15,7 +15,7 @@ import { NotEditableDialog } from './components/NotEditableDialog';
 import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
-import { CrashLoadingOverlay, CrashErrorOverlay, CrashAutoRefreshStatus } from './components/CrashLoadingOverlay';
+import { CrashLoadingOverlay, CrashErrorOverlay } from './components/CrashLoadingOverlay';
 import { hasPreviewContent } from './blank-preview-recovery';
 import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
@@ -765,17 +765,10 @@ export const ProtovibeApp: React.FC = () => {
           borderBottom: `1px solid ${theme.destructive_default}`,
           flexShrink: 0, zIndex: 50, gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
-            <span style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>⚠️</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ color: theme.destructive_default, fontSize: '15px', fontWeight: 600 }}>
-                The app crashed
-              </div>
-              <div style={{ color: theme.destructive_default, fontSize: '13px', fontWeight: 400, lineHeight: '1.4' }}>
-                If your AI agent is still working, wait — this page refreshes automatically.
-                If it’s finished, copy the error below and ask it to fix the app.
-              </div>
-              {!moduleLoadError && <CrashAutoRefreshStatus />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+            <div style={{ color: theme.destructive_default, fontSize: '15px', fontWeight: 600 }}>
+              The app has errors in code
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
