@@ -183,6 +183,7 @@ export const ProtovibeApp: React.FC = () => {
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
   const appScrollPositionsRef = useRef<Array<{ el: Element; top: number; left: number }>>([]);
+  const handleAppPageHide = useCallback(() => setAppIframeLoading(true), []);
 
   // Reload one canvas iframe (used by the crash covers, the crash banner, and
   // the episode's auto-refresh schedule).
@@ -551,6 +552,12 @@ export const ProtovibeApp: React.FC = () => {
       const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
       if (!fromAppIframe && e.source !== componentsIframeRef.current?.contentWindow &&
           e.source !== sketchpadIframeRef.current?.contentWindow) return;
+      if (fromAppIframe && e.data?.type === 'PV_APP_PREVIEW_READY') {
+        setAppIframeLoading(false);
+        // Wire navigation as soon as content renders, even if load is still pending.
+        appIframeRef.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
+        return;
+      }
       if (e.data?.type === 'PV_BLANK_PREVIEW_UNHEALTHY' && fromAppIframe && crashEpisodeRef.current?.blankPreview) {
         clearCrashRecoveryTimer();
         return;
@@ -615,16 +622,14 @@ export const ProtovibeApp: React.FC = () => {
       clearCrashTick();
       clearCrashRecoveryTimer();
     };
-  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe]);
+  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe, handleAppPageHide]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
     if (ref === appIframeRef) {
       crashReloadStartedAtRef.current = null;
       setAppIframeLoading(false);
-      // Full navigations and HMR reloads replace this window's document;
-      // client-side route changes keep the already loaded preview visible.
-      ref.current?.contentWindow?.addEventListener('pagehide', () => setAppIframeLoading(true), { once: true });
+      ref.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
     }
     ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
@@ -673,7 +678,7 @@ export const ProtovibeApp: React.FC = () => {
         }
       } catch {}
     }
-  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked]);
+  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked, handleAppPageHide]);
 
   const activeIframeRef =
     activeIframeTab === 'sketchpad' ? sketchpadIframeRef :
@@ -968,7 +973,8 @@ export const ProtovibeApp: React.FC = () => {
                   style={{
                     position: 'absolute', inset: 0, zIndex: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: theme.bg_default, color: theme.text_secondary,
+                    // Never hide or intercept a usable app if a readiness signal is delayed.
+                    pointerEvents: 'none', color: theme.text_secondary,
                   }}
                 >
                   <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>

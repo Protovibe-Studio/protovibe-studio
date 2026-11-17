@@ -21,6 +21,7 @@ export function installBlankPreviewRecovery() {
   let pending: { detail: string; sawBlank: boolean } | null = null;
   let timer: number | undefined;
   let reportedHealthy = false;
+  let reportedContent = false;
   const blank = () => !!document.getElementById('root') && !hasPreviewContent(document);
   const cancel = () => {
     pending = null;
@@ -34,6 +35,12 @@ export function installBlankPreviewRecovery() {
     cancel();
   };
   const observeContent = () => {
+    // First content is enough to dismiss the ordinary loading indicator.
+    // Recovery confirmation still waits for a complete, healthy document below.
+    if (!reportedContent && hasPreviewContent(document)) {
+      window.parent.postMessage({ type: 'PV_APP_PREVIEW_READY' }, window.location.origin);
+      reportedContent = true;
+    }
     const isBlank = blank();
     if (pending) {
       // React may report the error just before it unmounts the root. Conversely,
@@ -72,7 +79,10 @@ export function installBlankPreviewRecovery() {
   });
   const observer = new MutationObserver(observeContent);
   observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-  window.addEventListener('pageshow', observeContent);
+  window.addEventListener('pageshow', () => {
+    reportedContent = false;
+    observeContent();
+  });
   window.addEventListener('load', () => {
     observeContent();
     if (pending) {
