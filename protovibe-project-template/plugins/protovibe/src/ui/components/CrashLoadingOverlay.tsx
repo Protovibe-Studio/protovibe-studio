@@ -54,10 +54,9 @@ export const CrashAutoRefreshStatus: React.FC = () => (
 
 // Opaque cover shown over the canvas while a Vite crash is inside its grace
 // period (see ProtovibeApp). When an AI agent edits code the app routinely
-// passes through broken states that the next HMR update clears, so this reads
-// as "working" rather than "crashed" — with a small hint that it might be an
-// error, and a manual refresh action.
-export const CrashLoadingOverlay: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
+// passes through broken states that the next HMR update clears. The shell
+// retries automatically while this cover is visible.
+export const CrashLoadingOverlay: React.FC = () => (
   <div style={containerStyle}>
     <style>{SPIN_KEYFRAMES}</style>
     <RotateCw size={28} style={{ color: theme.text_secondary, animation: 'pv-crash-spin 1s linear infinite' }} />
@@ -66,10 +65,9 @@ export const CrashLoadingOverlay: React.FC<{ onRefresh: () => void }> = ({ onRef
         Loading…
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
-        This usually means your AI agent is working on the code — but it could also be an error.
+        This usually means your AI agent is working on the code.
       </div>
     </div>
-    <CoverButton onClick={onRefresh}><RefreshCw size={14} />Refresh page</CoverButton>
   </div>
 );
 
@@ -83,9 +81,10 @@ export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () 
         The app failed to load
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
+        If your AI agent is still working, wait — this page refreshes automatically.{' '}
         {detail
-          ? 'Fix the error below or ask your coding agent for help.'
-          : 'There is an error in the code. Ask your coding agent for help.'}
+          ? 'If it’s finished, copy the error below and ask it to fix the app.'
+          : 'If it’s finished, ask it to fix the app.'}
       </div>
     </div>
     {detail && (

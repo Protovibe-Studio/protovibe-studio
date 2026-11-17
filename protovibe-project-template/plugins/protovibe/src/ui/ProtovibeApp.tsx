@@ -719,7 +719,7 @@ export const ProtovibeApp: React.FC = () => {
   const renderCrashCover = (ref: React.RefObject<HTMLIFrameElement | null>) => (
     <>
       {viteErrorPhase === 'pending' && (
-        <CrashLoadingOverlay onRefresh={() => refreshCrashedIframe(ref)} />
+        <CrashLoadingOverlay />
       )}
       {viteErrorPhase === 'error' && moduleLoadError && (
         <CrashErrorOverlay detail={viteErrorDetail} onRefresh={() => refreshCrashedIframe(ref)} />
@@ -772,7 +772,8 @@ export const ProtovibeApp: React.FC = () => {
                 The app crashed
               </div>
               <div style={{ color: theme.destructive_default, fontSize: '13px', fontWeight: 400, lineHeight: '1.4' }}>
-                Refresh the page or restart the development server. Ask your coding agent for help if the issue persists.
+                If your AI agent is still working, wait — this page refreshes automatically.
+                If it’s finished, copy the error below and ask it to fix the app.
               </div>
               {!moduleLoadError && <CrashAutoRefreshStatus />}
             </div>
