@@ -93,7 +93,7 @@ async function staysAt(fixture, count) {
   assert.equal(fixture.requests(), count);
 }
 
-test('a permanent missing export exhausts three retries and shows the captured error', async t => {
+test('a permanent missing export shows the captured error after the initial three retries', async t => {
   const fixture = await openFixture(t, () => missingExport);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   await staysAt(fixture, 4);
@@ -102,7 +102,7 @@ test('a permanent missing export exhausts three retries and shows the captured e
   assert.equal(fixture.errors.filter(e => e.includes('does not provide an export')).length, 4);
 });
 
-test('a URL change before a module error retains the bounded retry episode', async t => {
+test('a URL change before a module error retains the initial retry schedule', async t => {
   const fixture = await openFixture(t, () => `
     history.replaceState({}, '', '/?view=normalized');
     void import('/__missing-module-for-test.js');
@@ -179,7 +179,7 @@ test('a busy or unavailable server delays recovery until it is ready', async t =
   assert.equal(fixture.requests(), 2);
 });
 
-test('retries remain bounded even when session storage is unavailable', async t => {
+test('the initial retry schedule works even when session storage is unavailable', async t => {
   const fixture = await openFixture(t, () => missingExport, { init: page => page.addInitScript(() => {
     Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage disabled'); } });
   }) });
@@ -409,8 +409,11 @@ test('the loading, final error, and restored app states support manual recovery'
 
   fixed = true;
   await fixture.page.getByRole('button', { name: 'Refresh page', exact: true }).first().click();
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().isVisible(), true);
+  assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).count(), 0);
+  await captureState(fixture.page, '04-manual-refresh-loading');
   await fixture.frame.locator('#root > *').first().waitFor();
-  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+  await fixture.page.getByText('Loading…', { exact: true }).first().waitFor({ state: 'hidden' });
   assert.equal(fixture.requests(), 5);
   assert.equal(await fixture.page.getByText('Loading…', { exact: true }).count(), 0);
   await captureState(fixture.page, '03-recovered');
@@ -424,7 +427,10 @@ test('a cleared Vite error during runtime recovery does not hide the final blank
   `);
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
   assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
-  await staysAt(fixture, 4);
+  await fixture.page.waitForTimeout(7_000);
+  assert.equal(fixture.requests(), 5, 'continue retrying even after mixed compile/runtime errors');
+  assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).first().isVisible(), true);
+  assert.match(await fixture.page.locator('pre').first().innerText(), /useStore must be used within StoreProvider/);
 });
 
 test('a blank document must render for the full confirmation period before recovery', async t => {
@@ -464,3 +470,89 @@ for (const reason of ['undefined', '0', '{}']) {
     assert.equal(fixture.requests(), 2);
   });
 }
+
+test('the visible error keeps refreshing every five seconds and automatically clears after a fix', async t => {
+  let fixed = false;
+  let activityStatus = 200;
+  const fixture = await openFixture(t, () => fixed ? readyApp : providerCrash, {
+    path: '/?view=background-recovery#details',
+    init: page => page.route('**/__hmr-activity', route => route.fulfill({
+      status: activityStatus, json: { msSinceLastChange: null },
+    })),
+  });
+  await fixture.page.evaluate(() => { window.shellIdentity = 'same shell'; });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  const errorShownAt = Date.now();
+  assert.equal(fixture.requests(), 4);
+  assert.equal(await fixture.page.getByRole('button', { name: /undo/i }).count(), 0);
+  const status = fixture.page.getByRole('status').filter({ hasText: 'Auto-refreshing every 5 seconds' }).first();
+  assert.equal(await status.isVisible(), true);
+  assert.equal(await status.locator('svg').evaluate(el => getComputedStyle(el).animationName), 'pv-crash-spin');
+
+  // Error-state retries must keep running even if the readiness probe fails.
+  activityStatus = 503;
+  await fixture.page.waitForTimeout(11_500);
+  assert.equal(fixture.requests(), 6);
+  assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).first().isVisible(), true);
+  assert.equal(await fixture.page.getByText('Loading…', { exact: true }).count(), 0);
+  const firstDelay = fixture.requestTimes[4] - errorShownAt;
+  const retryInterval = fixture.requestTimes[5] - fixture.requestTimes[4];
+  assert.ok(firstDelay >= 4_500 && firstDelay < 7_000, `first background retry after ${firstDelay}ms`);
+  assert.ok(retryInterval >= 4_800 && retryInterval < 6_500, `background retry interval ${retryInterval}ms`);
+
+  fixed = true;
+  await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor({ timeout: 8_000 });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+  const recoveredRequests = fixture.requests();
+  await fixture.page.waitForTimeout(6_000);
+  assert.equal(fixture.requests(), recoveredRequests, 'stop background retries after confirmed recovery');
+  assert.equal(new URL(fixture.frame.url()).search + new URL(fixture.frame.url()).hash, '?view=background-recovery#details');
+  assert.equal(await fixture.page.evaluate(() => window.shellIdentity), 'same shell');
+});
+
+for (const buttonName of ['Refresh page', 'Refresh', 'toolbar Refresh']) {
+  test(`${buttonName} immediately restores loading and restarts the full attempt cycle`, async t => {
+    const fixture = await openFixture(t, () => providerCrash);
+    await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+    const requestsBeforeRefresh = fixture.requests();
+    const clickedAt = Date.now();
+    const button = buttonName === 'toolbar Refresh'
+      ? fixture.page.locator('button[data-tooltip="Refresh"]').first()
+      : fixture.page.getByRole('button', { name: buttonName, exact: true }).first();
+    await button.click();
+    assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().isVisible(), true);
+    assert.equal(await fixture.page.getByText('The app failed to load', { exact: true }).count(), 0);
+    assert.equal(await fixture.page.getByRole('button', { name: /undo/i }).count(), 0);
+    await fixture.page.waitForTimeout(4_000);
+    assert.equal(await fixture.page.getByText('Loading…', { exact: true }).first().isVisible(), true);
+    await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 20_000 });
+    assert.ok(Date.now() - clickedAt >= 15_000, 'give the restarted episode a new grace period');
+    assert.equal(fixture.requests(), requestsBeforeRefresh + 4, 'manual reload plus three fresh automatic attempts');
+    for (const [index, target] of [1_000, 5_000, 10_000].entries()) {
+      const elapsed = fixture.requestTimes[requestsBeforeRefresh + index + 1] - clickedAt;
+      assert.ok(elapsed >= target - 100 && elapsed < target + 3_000,
+        `restarted retry ${index + 1} arrived ${elapsed}ms after click (target ${target}ms)`);
+    }
+  });
+}
+
+test('failed entry-module requests continue retrying after the compile error is shown', async t => {
+  let broken = true;
+  let entryRequests = 0;
+  const fixture = await openFixture(t, () => readyApp, { init: page =>
+    page.route('**/src/main.tsx', route => {
+      entryRequests++;
+      return broken
+        ? route.fulfill({ status: 500, contentType: 'text/javascript', body: 'Compile error fixture' })
+        : route.continue();
+    }),
+  });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 25_000 });
+  assert.equal(entryRequests, 4);
+  await fixture.page.waitForTimeout(7_000);
+  assert.equal(entryRequests, 5);
+  assert.equal(await fixture.page.getByText('Auto-refreshing every 5 seconds', { exact: true }).first().isVisible(), true);
+  broken = false;
+  await fixture.frame.getByText('Recovery fixture ready', { exact: true }).waitFor({ timeout: 8_000 });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
+});
