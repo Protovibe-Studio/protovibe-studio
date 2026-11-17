@@ -1,6 +1,6 @@
 // plugins/protovibe/src/ui/components/CrashLoadingOverlay.tsx
 import React from 'react';
-import { RotateCw, RefreshCw, Undo2 } from 'lucide-react';
+import { RotateCw, RefreshCw } from 'lucide-react';
 import { theme } from '../theme';
 
 const SPIN_KEYFRAMES = '@keyframes pv-crash-spin { to { transform: rotate(360deg); } }';
@@ -44,21 +44,19 @@ const CoverButton: React.FC<{ onClick: () => void; children: React.ReactNode }> 
   </button>
 );
 
-// Refresh sits above Undo: reloading is always safe, undo only applies when the
-// user's own change caused the crash.
-const CoverActions: React.FC<{ onRefresh: () => void; onUndo: () => void }> = ({ onRefresh, onUndo }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
-    <CoverButton onClick={onRefresh}><RefreshCw size={14} />Refresh page</CoverButton>
-    <CoverButton onClick={onUndo}><Undo2 size={14} />Undo last change</CoverButton>
+export const CrashAutoRefreshStatus: React.FC = () => (
+  <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.text_secondary, fontSize: 13 }}>
+    <style>{SPIN_KEYFRAMES}</style>
+    <RotateCw size={14} aria-hidden="true" style={{ animation: 'pv-crash-spin 1s linear infinite' }} />
+    <span>Auto-refreshing every 5 seconds</span>
   </div>
 );
 
 // Opaque cover shown over the canvas while a Vite crash is inside its grace
 // period (see ProtovibeApp). When an AI agent edits code the app routinely
-// passes through broken states that the next HMR update clears, so this reads
-// as "working" rather than "crashed" — with a small hint that it might be an
-// error, and Refresh/Undo escape hatches.
-export const CrashLoadingOverlay: React.FC<{ onRefresh: () => void; onUndo: () => void }> = ({ onRefresh, onUndo }) => (
+// passes through broken states that the next HMR update clears. The shell
+// retries automatically while this cover is visible.
+export const CrashLoadingOverlay: React.FC = () => (
   <div style={containerStyle}>
     <style>{SPIN_KEYFRAMES}</style>
     <RotateCw size={28} style={{ color: theme.text_secondary, animation: 'pv-crash-spin 1s linear infinite' }} />
@@ -67,27 +65,26 @@ export const CrashLoadingOverlay: React.FC<{ onRefresh: () => void; onUndo: () =
         Loading…
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
-        This usually means your AI agent is working on the code — but it could also be an error.
-        If your last change caused this, you can undo it.
+        This usually means your AI agent is working on the code.
       </div>
     </div>
-    <CoverActions onRefresh={onRefresh} onUndo={onUndo} />
   </div>
 );
 
 // Final error state for a crash that leaves the canvas blank: a document that
 // loads while the server has a compile error gets no vite-error-overlay, so the
 // shell shows the captured error (or a generic message) itself.
-export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () => void; onUndo: () => void }> = ({ detail, onRefresh, onUndo }) => (
+export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () => void }> = ({ detail, onRefresh }) => (
   <div style={containerStyle}>
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, maxWidth: 640, textAlign: 'center', padding: '0 24px' }}>
       <div style={{ color: theme.destructive_default, fontSize: 15, fontWeight: 600 }}>
         The app failed to load
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
+        If your AI agent is still working, just wait a bit — this page refreshes automatically.{' '}
         {detail
-          ? 'Fix the error below, undo your last change, or ask your coding agent for help.'
-          : 'There is an error in the code. Undo your last change or ask your coding agent for help.'}
+          ? 'If it’s finished, copy the error below and ask it to fix the app.'
+          : 'If it’s finished, ask it to fix the app.'}
       </div>
     </div>
     {detail && (
@@ -103,13 +100,14 @@ export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () 
         padding: '12px 16px',
         fontSize: 12,
         lineHeight: 1.5,
-        color: theme.destructive_default,
+        color: theme.text_default,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
       }}>
         {detail}
       </pre>
     )}
-    <CoverActions onRefresh={onRefresh} onUndo={onUndo} />
+    <CrashAutoRefreshStatus />
+    <CoverButton onClick={onRefresh}><RefreshCw size={14} />Refresh page</CoverButton>
   </div>
 );
