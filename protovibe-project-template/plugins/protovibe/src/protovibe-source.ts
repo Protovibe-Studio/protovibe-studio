@@ -12,6 +12,7 @@ import { registerSpecsMiddleware } from './backend/specs-server';
 import { SPECS_VIEWER_HTML_PATH, SPECS_VIEWER_BUNDLE_PATH } from './backend/specs-publish';
 import { registerGitMiddleware } from './backend/git-server';
 import { registerProfileMiddleware } from './backend/profile-server';
+import { appPathBootstrap, handleAppPath } from './backend/app-path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -118,6 +119,8 @@ export function protovibeSourcePlugin(): Plugin {
     },
 
     configureServer(server) {
+      const projectRoot = server.config.root;
+      server.middlewares.use('/__app-path', (req, res) => { void handleAppPath(projectRoot, req, res); });
       const originalPrintUrls = server.printUrls.bind(server);
       server.printUrls = () => {
         originalPrintUrls();
@@ -250,6 +253,9 @@ export function protovibeSourcePlugin(): Plugin {
           let html = fs.readFileSync(htmlFile, 'utf-8');
           // Replace the placeholder with the actual plugin directory path
           html = html.replace(/\[PLUGIN_DIR\]/g, PLUGIN_DIR);
+          if (pathname === '/protovibe.html') {
+            html = html.replace('</head>', `${appPathBootstrap(projectRoot)}</head>`);
+          }
           // Let Vite process the HTML (applies transformIndexHtml hooks, etc.)
           html = await server.transformIndexHtml(url, html);
           res.setHeader('Content-Type', 'text/html');
