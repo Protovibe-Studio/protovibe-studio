@@ -132,9 +132,11 @@ interface SpecsTabProps {
   activeIframeTab: IframeTab;
   /** Whether the Specs panel is the visible sidebar tab (it stays mounted when hidden). */
   isActive: boolean;
+  /** Reveal the sidebar when a desktop annotation link resolves. */
+  onOpen?: () => void;
 }
 
-export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive }) => {
+export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, onOpen }) => {
   const { currentBaseTarget, activeData, activeSourceId, runLockedMutation } = useProtovibe();
   const { user, saveUser } = useCommentUser();
 
@@ -163,6 +165,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
   // that was already in flight doesn't land an older state over the result.
   const readGenRef = useRef(0);
   const busyRef = useRef(false);
+  const openRef = useRef(onOpen);
+  openRef.current = onOpen;
 
   // Profile dialog + the action queued behind it (same gate as comments).
   const [profileOpen, setProfileOpen] = useState(false);
@@ -187,9 +191,12 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
 
   const refreshBundle = useCallback(async (specId: string | null) => {
     if (!specId) { setBundle(null); return; }
+    const gen = readGenRef.current;
     try {
-      setBundle(await fetchSpec(specId));
+      const next = await fetchSpec(specId);
+      if (gen === readGenRef.current) setBundle(next);
     } catch {
+      if (gen !== readGenRef.current) return;
       // The spec is gone (deleted, or its creation was undone) — back to the list.
       setBundle(null);
       setView({ level: 'docs' });
@@ -204,6 +211,51 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive })
     return () => window.removeEventListener(PV_SPECS_REFRESH_EVENT, handler);
   }, [refreshList, refreshBundle, currentSpecId]);
   useEffect(() => { if (isActive) { void refreshList(); fetchPublishedUrl().then(setPublishedUrl); } }, [isActive, refreshList]);
+
+  // Keep this subscription alive even when the sidebar is hidden. Resolve from
+  // disk, since an agent may have just written an annotation between polls.
+  useEffect(() => {
+    const bridge = (window as unknown as {
+      electronAPI?: { onAnnotationLink?: (callback: (link: { specId: string; itemId: string }) => void) => () => void };
+    }).electronAPI;
+    let request = 0;
+    let scrollFrame = 0;
+    const unsubscribe = bridge?.onAnnotationLink?.(async ({ specId, itemId }) => {
+      const current = ++request;
+      ++readGenRef.current;
+      try {
+        const { bundle: next, unreadable } = await readSpecSnapshot(specId);
+        if (current !== request) return;
+        const item = next?.items.find((it) => it.id === itemId && isAnnotation(it));
+        if (!next || !item || !isAnnotation(item)) {
+          emitToast({ message: unreadable.length
+            ? 'Could not read this annotation. Try the link again after the files finish saving.'
+            : 'This annotation was not found in the current project.', variant: 'error' });
+          return;
+        }
+        ++readGenRef.current;
+        setError(null);
+        setQuery('');
+        setStatusFilter('all');
+        setScope('all');
+        setEditingItemId(null);
+        setAutoEditTextId(null);
+        setBundle(next);
+        setView({ level: 'doc', specId, itemId });
+        openRef.current?.();
+        navigateToAnnotation(item);
+        // Also reveal a link clicked again while its annotation is already active.
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = requestAnimationFrame(() => {
+          rootRef.current?.querySelector<HTMLElement>(`[data-spec-item="${CSS.escape(itemId)}"]`)
+            ?.scrollIntoView({ block: 'nearest' });
+        });
+      } catch {
+        if (current === request) emitToast({ message: 'Could not load this annotation. Please try again.', variant: 'error' });
+      }
+    });
+    return () => { ++request; cancelAnimationFrame(scrollFrame); unsubscribe?.(); };
+  }, [setView]);
 
   // Poll what the panel shows — the docs list or the open spec — only while
   // it is the visible tab and the browser tab is in front; never mid-mutation.

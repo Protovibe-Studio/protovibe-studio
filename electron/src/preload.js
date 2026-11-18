@@ -10,4 +10,13 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+  onAnnotationLink: (callback) => {
+    const listener = (_event, annotation) => callback(annotation);
+    ipcRenderer.on('deeplink:annotation', listener);
+    ipcRenderer.send('deeplink:annotations-ready');
+    return () => {
+      ipcRenderer.removeListener('deeplink:annotation', listener);
+      ipcRenderer.send('deeplink:annotations-not-ready');
+    };
+  },
 });

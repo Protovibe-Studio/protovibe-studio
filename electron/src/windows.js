@@ -47,8 +47,8 @@ function createSplashWindow() {
 }
 
 // The manager SPA talks to its own /api backend and deep links arrive as plain
-// URL navigations, so the preload exposes just one thing: an openExternal
-// bridge, for local URLs the UI wants handed to the system browser rather than
+// URL navigations, except annotation links delivered through the preload.
+// The preload also exposes an openExternal bridge, for local URLs the UI wants handed to the system browser rather than
 // opened in-app (see src/preload.js). The editor is a same-window navigation
 // from the manager, so it inherits this preload.
 function createMainWindow(url) {

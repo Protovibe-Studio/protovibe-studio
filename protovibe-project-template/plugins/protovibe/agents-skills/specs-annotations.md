@@ -239,15 +239,47 @@ Scroll position and hover are not captured.
 6. Re-read what you wrote: every file is valid JSON, every `type` is spelled
    correctly, every `state.path` starts with `/`, every ranks ascends, and every
    `anchor.file` really contains the matching attribute.
-7. Tell the user the spec is in the Specs tab and ships at `/specs.html` when
-   they publish.
+7. Give the user clickable desktop links to the annotations you created or
+   updated (see below). Specs also ship at `/specs.html` when they publish.
 
 The Specs panel re-reads from disk when it refreshes, so a spec written this way
 shows up without restarting anything.
 
 ---
 
-## 9. Never
+## 9. Link to annotations in the desktop app
+
+When you create, update, or refer to an annotation, include a clickable Markdown
+link so the user can jump to it in Protovibe without publishing:
+
+```text
+protovibe://annotation/{specId}/{itemId}
+```
+
+For `src/specs/k3f9x2m1qa/a-9z8y7x6w.json`, write:
+
+```markdown
+[Recruiting defaults](protovibe://annotation/k3f9x2m1qa/a-9z8y7x6w)
+```
+
+Use the existing spec directory and annotation filename (without `.json`) as the
+IDs. Do not invent IDs, use heading IDs, or put `state.path`, a local port, or a
+published URL in this link. Finish saving the files before sharing the link.
+
+The installed Protovibe desktop app handles this scheme. A browser may prompt
+the user to open Protovibe. The app looks in the **currently open project**,
+opens Specs, reveals the annotation, restores its saved prototype state, and
+selects its pinned element when present. It does not search or switch projects.
+If the annotation is absent, it shows a toast; if no project is open, it asks the
+user to open the right project and click the link again.
+
+These links are for local desktop work. Published web links remain
+`https://<published-site>/specs.html?spec={specId}&item={itemId}` for recipients
+viewing the published prototype.
+
+---
+
+## 10. Never
 
 - Never put an items array in `spec.json`, or several items in one file.
 - Never renumber every rank to reorder one item.
