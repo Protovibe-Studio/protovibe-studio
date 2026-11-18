@@ -90,6 +90,11 @@ export default function App() {
     if (openedFromProject) window.history.replaceState(null, '', window.location.pathname)
   }, [openedFromProject])
 
+  // The manager has no open editor in which to resolve an annotation.
+  useEffect(() => window.electronAPI?.onAnnotationLink?.(() => {
+    showToast('Open the project containing this annotation, then click the link again.', 'error')
+  }), [])
+
   // Connected GitHub account for the header chip. Refreshed when the GitHub
   // flow exits (connect and log-out both happen inside it). null = status not
   // known yet (render neither chip nor connect prompt), false = not connected.

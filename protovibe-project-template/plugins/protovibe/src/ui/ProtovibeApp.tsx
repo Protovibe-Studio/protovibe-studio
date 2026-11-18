@@ -1236,19 +1236,21 @@ export const ProtovibeApp: React.FC = () => {
           </div>
         )}
 
-        {inspectorOpen && (
-          <div
-            style={{
-              width: `${INSPECTOR_WIDTH_PX}px`,
-              flexShrink: 0,
-              borderLeft: `1px solid ${theme.border_default}`,
-              overflow: 'hidden',
-              display: activeSidebarTab === 'specs' ? 'flex' : 'none',
-            }}
-          >
-            <SpecsTab activeIframeTab={activeIframeTab} isActive={activeSidebarTab === 'specs'} />
-          </div>
-        )}
+        <div
+          style={{
+            width: `${INSPECTOR_WIDTH_PX}px`,
+            flexShrink: 0,
+            borderLeft: `1px solid ${theme.border_default}`,
+            overflow: 'hidden',
+            display: inspectorOpen && activeSidebarTab === 'specs' ? 'flex' : 'none',
+          }}
+        >
+          <SpecsTab
+            activeIframeTab={activeIframeTab}
+            isActive={inspectorOpen && activeSidebarTab === 'specs'}
+            onOpen={() => { toggleInspector(true); setActiveSidebarTab('specs'); }}
+          />
+        </div>
 
         <FloatingToolbar />
         <NotEditableDialog />

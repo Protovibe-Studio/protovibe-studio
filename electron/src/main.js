@@ -130,8 +130,9 @@ function startSupervisor(root) {
     supervisor = new Supervisor(root, logger);
 
     supervisor.once('ready', (url) => {
-      deeplink.setManagerUrl(url);
       mainWindow = createMainWindow(url);
+      deeplink.attachWindow(mainWindow);
+      deeplink.setManagerUrl(url);
       if (supervisor.attached) {
         mainWindow.setTitle('Protovibe (attached to running server)');
       }
