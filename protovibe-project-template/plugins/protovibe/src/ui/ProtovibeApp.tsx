@@ -1,7 +1,7 @@
 // plugins/protovibe/src/ui/ProtovibeApp.tsx
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, Home, ExternalLink, Smartphone, X, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree, NotepadTextDashed } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, RefreshCw, LoaderCircle, Home, ExternalLink, Smartphone, X, HelpCircle, BookOpen, Keyboard, Bug, Eraser, ListTree, NotepadTextDashed } from 'lucide-react';
 import { useFloatingDropdownPosition } from './hooks/useFloatingDropdownPosition';
 import { ShellNavBar, IframeTab, SidebarTab } from './components/ShellNavBar';
 import { TokensTab } from './components/TokensTab';
@@ -166,6 +166,7 @@ export const ProtovibeApp: React.FC = () => {
   // on read; interactions re-arm it — see utils/appPath.ts).
   const [initialAppSrc] = useState(consumePersistedAppPath);
   const [appIframePath, setAppIframePath] = useState(initialAppSrc);
+  const [appIframeLoading, setAppIframeLoading] = useState(true);
   useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -182,10 +183,12 @@ export const ProtovibeApp: React.FC = () => {
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
   const appScrollPositionsRef = useRef<Array<{ el: Element; top: number; left: number }>>([]);
+  const handleAppPageHide = useCallback(() => setAppIframeLoading(true), []);
 
   // Reload one canvas iframe (used by the crash covers, the crash banner, and
   // the episode's auto-refresh schedule).
   const reloadIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
+    if (ref === appIframeRef && ref.current) setAppIframeLoading(true);
     if (ref === appIframeRef && ref.current && crashEpisodeRef.current) {
       crashReloadStartedAtRef.current = Date.now();
     }
@@ -549,6 +552,12 @@ export const ProtovibeApp: React.FC = () => {
       const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
       if (!fromAppIframe && e.source !== componentsIframeRef.current?.contentWindow &&
           e.source !== sketchpadIframeRef.current?.contentWindow) return;
+      if (fromAppIframe && e.data?.type === 'PV_APP_PREVIEW_READY') {
+        setAppIframeLoading(false);
+        // Wire navigation as soon as content renders, even if load is still pending.
+        appIframeRef.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
+        return;
+      }
       if (e.data?.type === 'PV_BLANK_PREVIEW_UNHEALTHY' && fromAppIframe && crashEpisodeRef.current?.blankPreview) {
         clearCrashRecoveryTimer();
         return;
@@ -613,11 +622,15 @@ export const ProtovibeApp: React.FC = () => {
       clearCrashTick();
       clearCrashRecoveryTimer();
     };
-  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe]);
+  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe, handleAppPageHide]);
 
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
   const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
-    if (ref === appIframeRef) crashReloadStartedAtRef.current = null;
+    if (ref === appIframeRef) {
+      crashReloadStartedAtRef.current = null;
+      setAppIframeLoading(false);
+      ref.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
+    }
     ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
       '*'
@@ -665,7 +678,7 @@ export const ProtovibeApp: React.FC = () => {
         }
       } catch {}
     }
-  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked]);
+  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked, handleAppPageHide]);
 
   const activeIframeRef =
     activeIframeTab === 'sketchpad' ? sketchpadIframeRef :
@@ -953,6 +966,21 @@ export const ProtovibeApp: React.FC = () => {
                 }}
                 onLoad={() => handleIframeLoad(appIframeRef)}
               />
+              {appIframeLoading && viteErrorPhase === 'none' && (
+                <div
+                  role="status"
+                  aria-label="Loading app"
+                  style={{
+                    position: 'absolute', inset: 0, zIndex: 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    // Never hide or intercept a usable app if a readiness signal is delayed.
+                    pointerEvents: 'none', color: theme.text_secondary,
+                  }}
+                >
+                  <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>
+                  <LoaderCircle size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
+                </div>
+              )}
               {renderCrashCover(appIframeRef)}
             </div>
           </div>
