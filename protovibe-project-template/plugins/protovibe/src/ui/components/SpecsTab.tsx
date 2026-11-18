@@ -165,6 +165,8 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, o
   // that was already in flight doesn't land an older state over the result.
   const readGenRef = useRef(0);
   const busyRef = useRef(false);
+  const mutationCountRef = useRef(0);
+  const mutationWaitersRef = useRef(new Set<() => void>());
   const openRef = useRef(onOpen);
   openRef.current = onOpen;
 
@@ -220,36 +222,55 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, o
     }).electronAPI;
     let request = 0;
     let scrollFrame = 0;
+    const commitPanelEdit = () => {
+      const field = document.activeElement;
+      // Blur saves through the current spec's callbacks before changing its identity.
+      if (field instanceof HTMLElement && rootRef.current?.contains(field)) field.blur();
+    };
     const unsubscribe = bridge?.onAnnotationLink?.(async ({ specId, itemId }) => {
       const current = ++request;
-      ++readGenRef.current;
       try {
-        const { bundle: next, unreadable } = await readSpecSnapshot(specId);
-        if (current !== request) return;
-        const item = next?.items.find((it) => it.id === itemId && isAnnotation(it));
-        if (!next || !item || !isAnnotation(item)) {
-          emitToast({ message: unreadable.length
-            ? 'Could not read this annotation. Try the link again after the files finish saving.'
-            : 'This annotation was not found in the current project.', variant: 'error' });
+        while (current === request) {
+          commitPanelEdit();
+          // Keep only the latest link, and let every outstanding save finish first.
+          while (busyRef.current && current === request) {
+            await new Promise<void>((resolve) => mutationWaitersRef.current.add(resolve));
+          }
+          if (current !== request) return;
+          const gen = ++readGenRef.current;
+          const { bundle: next, unreadable } = await readSpecSnapshot(specId);
+          if (current !== request) return;
+          // Another edit may have started while disk was being read. Save it and
+          // re-read after it settles instead of applying a pre-mutation snapshot.
+          commitPanelEdit();
+          if (busyRef.current || gen !== readGenRef.current) continue;
+          const item = next?.items.find((it) => it.id === itemId && isAnnotation(it));
+          if (!next || !item || !isAnnotation(item)) {
+            emitToast({ message: unreadable.length
+              ? 'Could not read this annotation. Try the link again after the files finish saving.'
+              : 'This annotation was not found in the current project.', variant: 'error' });
+            return;
+          }
+          ++readGenRef.current;
+          setError(null);
+          setQuery('');
+          setStatusFilter('all');
+          setScope('all');
+          setEditingItemId(null);
+          setEditingTitleSpecId(null);
+          setAutoEditTextId(null);
+          setBundle(next);
+          setView({ level: 'doc', specId, itemId });
+          openRef.current?.();
+          navigateToAnnotation(item);
+          // Also reveal a link clicked again while its annotation is already active.
+          cancelAnimationFrame(scrollFrame);
+          scrollFrame = requestAnimationFrame(() => {
+            rootRef.current?.querySelector<HTMLElement>(`[data-spec-item="${CSS.escape(itemId)}"]`)
+              ?.scrollIntoView({ block: 'nearest' });
+          });
           return;
         }
-        ++readGenRef.current;
-        setError(null);
-        setQuery('');
-        setStatusFilter('all');
-        setScope('all');
-        setEditingItemId(null);
-        setAutoEditTextId(null);
-        setBundle(next);
-        setView({ level: 'doc', specId, itemId });
-        openRef.current?.();
-        navigateToAnnotation(item);
-        // Also reveal a link clicked again while its annotation is already active.
-        cancelAnimationFrame(scrollFrame);
-        scrollFrame = requestAnimationFrame(() => {
-          rootRef.current?.querySelector<HTMLElement>(`[data-spec-item="${CSS.escape(itemId)}"]`)
-            ?.scrollIntoView({ block: 'nearest' });
-        });
       } catch {
         if (current === request) emitToast({ message: 'Could not load this annotation. Please try again.', variant: 'error' });
       }
@@ -320,6 +341,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, o
 
   // `lock` when the mutation rewrites a source file (anchor attribute).
   const run = useCallback(async (fn: () => Promise<void>, lock = false) => {
+    mutationCountRef.current++;
     setBusy(true);
     busyRef.current = true;
     readGenRef.current++;
@@ -330,8 +352,12 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, o
       setError((e as Error).message || String(e));
     } finally {
       readGenRef.current++;
-      busyRef.current = false;
-      setBusy(false);
+      busyRef.current = --mutationCountRef.current > 0;
+      setBusy(busyRef.current);
+      if (!busyRef.current) {
+        for (const resolve of mutationWaitersRef.current) resolve();
+        mutationWaitersRef.current.clear();
+      }
     }
   }, [runLockedMutation]);
 
@@ -719,6 +745,7 @@ export const SpecsTab: React.FC<SpecsTabProps> = ({ activeIframeTab, isActive, o
 
       {view.level === 'doc' && bundle && bundle.spec.id === view.specId && (
         <SpecDocView
+          key={bundle.spec.id}
           bundle={bundle}
           busy={busy}
           query={query}

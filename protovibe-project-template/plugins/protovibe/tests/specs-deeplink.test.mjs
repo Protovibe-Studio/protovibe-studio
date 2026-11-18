@@ -20,9 +20,11 @@ async function openEditor(t) {
   t.after(() => page.close());
   page.setDefaultTimeout(10000);
   let items = [annotation];
-  await page.route('**/__specs-list', r => r.fulfill({ json: { specs: [{ ...spec, annotationCount: items.length }] } }));
+  let currentSpec = spec;
+  await page.route('**/__take-snapshot', r => r.fulfill({ json: {} }));
+  await page.route('**/__specs-list', r => r.fulfill({ json: { specs: [{ ...currentSpec, annotationCount: items.length }] } }));
   await page.route('**/__specs-get', r => r.request().postDataJSON().specId === specId
-    ? r.fulfill({ json: { spec, items } }) : r.fulfill({ status: 404, json: { error: 'Spec not found' } }));
+    ? r.fulfill({ json: { spec: currentSpec, items } }) : r.fulfill({ status: 404, json: { error: 'Spec not found' } }));
   await page.route('**/__cloudflare-publish-metadata', r => r.fulfill({ json: {} }));
   await page.addInitScript(() => {
     if (window !== window.top) return;
@@ -38,9 +40,137 @@ async function openEditor(t) {
   });
   await page.goto(`${process.env.PROTOVIBE_TEST_URL || 'http://localhost:3000'}/protovibe.html`);
   await page.waitForFunction(() => typeof window.openAnnotation === 'function');
-  return { page, setItems: next => { items = next; } };
+  return { page, setItems: next => { items = next; }, setSpec: next => { currentSpec = next; } };
 }
 const openLink = (page, target = { specId, itemId }) => page.evaluate(link => window.openAnnotation(link), target);
+const queueLink = (page, target) => page.evaluate(link => { window.pendingLink = window.openAnnotation(link); }, target);
+const currentSpecId = page => page.evaluate(() => JSON.parse(sessionStorage.getItem('pv-specs-view')).specId);
+const secondSpec = { ...spec, id: 'second-spec', title: 'Second spec' };
+const secondItem = { ...annotation, id: 'a-second', text: 'Second annotation' };
+const secondLink = { specId: secondSpec.id, itemId: secondItem.id };
+
+function deferred(t) {
+  let resolve;
+  const promise = new Promise(done => { resolve = done; });
+  t.after(() => resolve());
+  return { promise, resolve };
+}
+
+async function routeSecondSpec(page, beforeRead = async () => {}) {
+  await page.route('**/__specs-get', async r => {
+    if (r.request().postDataJSON().specId !== secondSpec.id) return r.fallback();
+    await beforeRead();
+    await r.fulfill({ json: { spec: secondSpec, items: [secondItem] } });
+  });
+}
+
+test('commits the focused title to its original spec before opening the latest queued link', async t => {
+  const { page, setSpec } = await openEditor(t);
+  await routeSecondSpec(page);
+  await openLink(page);
+  const save = deferred(t);
+  const writes = [];
+  await page.route('**/__specs-update', async r => {
+    const body = r.request().postDataJSON();
+    writes.push(body);
+    await save.promise;
+    const saved = { ...spec, title: body.title };
+    setSpec(saved);
+    await r.fulfill({ json: { spec: saved, items: [annotation] } });
+  });
+  const title = page.getByPlaceholder('Untitled spec', { exact: true });
+  await title.click();
+  await title.fill('Renamed first spec');
+  const saving = page.waitForRequest('**/__specs-update');
+  await queueLink(page, { specId: 'superseded', itemId });
+  await saving;
+  await queueLink(page, secondLink);
+  assert.equal(await currentSpecId(page), specId);
+  assert.deepEqual(writes, [{ specId, title: 'Renamed first spec' }]);
+  save.resolve();
+  await page.evaluate(() => window.pendingLink);
+  await page.waitForFunction(() => document.querySelector('input[placeholder="Untitled spec"]')?.value === 'Second spec');
+  assert.equal(await currentSpecId(page), secondSpec.id);
+  await page.getByTestId('spec-find-input').click();
+  assert.equal(writes.length, 1, 'the old title must never be saved to the destination spec');
+  assert.equal(await page.getByText('This annotation was not found in the current project.', { exact: true }).count(), 0);
+});
+
+test('waits for every overlapping mutation before switching specs', async t => {
+  const { page, setSpec, setItems } = await openEditor(t);
+  let targetReads = 0;
+  await routeSecondSpec(page, async () => { targetReads++; });
+  await openLink(page);
+  const rename = deferred(t);
+  const update = deferred(t);
+  const savedSpec = { ...spec, title: 'Saved first edit' };
+  await page.route('**/__specs-update', async r => {
+    await rename.promise;
+    setSpec(savedSpec);
+    await r.fulfill({ json: { spec: savedSpec, items: [annotation] } });
+  });
+  await page.route('**/__specs-item-update', async r => {
+    const { patch } = r.request().postDataJSON();
+    await update.promise;
+    const saved = { ...annotation, ...patch };
+    setItems([saved]);
+    await r.fulfill({ json: { spec: savedSpec, items: [saved] } });
+  });
+  const title = page.getByPlaceholder('Untitled spec', { exact: true });
+  await title.click();
+  await title.fill('First edit');
+  const renaming = page.waitForRequest('**/__specs-update');
+  await title.evaluate(el => el.blur());
+  await renaming;
+  const text = page.getByPlaceholder('Write the annotation…', { exact: true });
+  await text.click();
+  await text.fill('Second edit');
+  const updating = page.waitForRequest('**/__specs-item-update');
+  await text.evaluate(el => el.blur());
+  await updating;
+  await queueLink(page, secondLink);
+  rename.resolve();
+  await page.waitForFunction(() => document.querySelector('input[placeholder="Untitled spec"]')?.value === 'Saved first edit');
+  assert.equal(await currentSpecId(page), specId);
+  assert.equal(targetReads, 0, 'the second save still owns the current spec');
+  assert.equal(await page.getByTestId('spec-reload').isDisabled(), true);
+  update.resolve();
+  await page.evaluate(() => window.pendingLink);
+  assert.equal(await currentSpecId(page), secondSpec.id);
+});
+
+test('saves edits made during link loading and re-reads after the mutation', async t => {
+  const { page, setSpec } = await openEditor(t);
+  await openLink(page);
+  const read = deferred(t);
+  const save = deferred(t);
+  const requested = deferred(t);
+  let targetReads = 0;
+  await routeSecondSpec(page, async () => {
+    if (++targetReads === 1) { requested.resolve(); await read.promise; }
+  });
+  await page.route('**/__specs-update', async r => {
+    const body = r.request().postDataJSON();
+    assert.equal(body.specId, specId);
+    await save.promise;
+    const saved = { ...spec, title: body.title };
+    setSpec(saved);
+    await r.fulfill({ json: { spec: saved, items: [annotation] } });
+  });
+  await queueLink(page, secondLink);
+  await requested.promise;
+  const title = page.getByPlaceholder('Untitled spec', { exact: true });
+  await title.click();
+  await title.fill('Edited while loading');
+  const saving = page.waitForRequest('**/__specs-update');
+  read.resolve();
+  await saving;
+  assert.equal(await currentSpecId(page), specId);
+  save.resolve();
+  await page.evaluate(() => window.pendingLink);
+  assert.equal(await currentSpecId(page), secondSpec.id);
+  assert.ok(targetReads >= 2, 'the snapshot from before the save must be discarded');
+});
 
 async function expectActive(page) {
   await page.getByText(annotation.text, { exact: true }).waitFor();
