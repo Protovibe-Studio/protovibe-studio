@@ -29,7 +29,7 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { withLofiParam } from '../lofi/preview-mode';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
-import { consumePersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+import { readPersistedAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
 import { PV_OPEN_IN_CANVAS } from './utils/canvasLinks';
 import { PV_OPEN_PROMPT_EVENT } from './events/openPrompt';
 import {
@@ -162,12 +162,10 @@ export const ProtovibeApp: React.FC = () => {
 
   const { inspectorOpen, toggleInspector, refreshComponents, setHtmlFontSize, iframeTheme, previewMode, setPreviewMode, focusElement } = useProtovibe();
   const git = useGitSync();
-  // Restore the last app path once per refresh (the stored value is consumed
-  // on read; interactions re-arm it — see utils/appPath.ts).
-  const [initialAppSrc] = useState(consumePersistedAppPath);
+  // Restore the project's last URL on every reload or React remount.
+  const [initialAppSrc] = useState(readPersistedAppPath);
   const [appIframePath, setAppIframePath] = useState(initialAppSrc);
   const [appIframeLoading, setAppIframeLoading] = useState(true);
-  useEffect(() => { setCurrentAppPath(initialAppSrc); }, [initialAppSrc]);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [elementsPanelOpen, setElementsPanelOpen] = useState(() => {
@@ -195,7 +193,7 @@ export const ProtovibeApp: React.FC = () => {
     try {
       ref.current?.contentWindow?.location.reload();
     } catch {
-      if (ref.current) ref.current.src = ref.current.src; // eslint-disable-line no-self-assign
+      if (ref.current) ref.current.src = ref === appIframeRef ? getCurrentAppPath() : ref.current.src;
     }
   }, []);
 
@@ -666,17 +664,20 @@ export const ProtovibeApp: React.FC = () => {
         const fs = parseFloat(iframeDoc.defaultView.getComputedStyle(iframeDoc.documentElement).fontSize);
         if (!isNaN(fs) && fs > 0) setHtmlFontSize(fs);
       }
-      try {
-        const loc = ref.current?.contentWindow?.location;
-        if (loc) {
-          const path = loc.pathname + loc.search + loc.hash;
+      const win = ref.current?.contentWindow;
+      const rememberPath = () => {
+        try {
+          if (!win) return;
+          const path = win.location.pathname + win.location.search + win.location.hash;
           setAppIframePath(path);
-          // Track for other shell components, but don't persist: a bare page
-          // load isn't a user interaction, and persisting here would re-arm
-          // the restored path in a refresh loop even on a broken page.
           setCurrentAppPath(path);
-        }
-      } catch {}
+        } catch { /* Browser error documents must not replace the last app URL. */ }
+      };
+      rememberPath();
+      try {
+        win?.addEventListener('hashchange', rememberPath);
+        win?.addEventListener('popstate', rememberPath);
+      } catch { /* The next successful load restores navigation tracking. */ }
     }
   }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked, handleAppPageHide]);
 
@@ -713,7 +714,7 @@ export const ProtovibeApp: React.FC = () => {
       handleIframeTabChange('app');
       const win = appIframeRef.current?.contentWindow;
       if (win) win.location.href = path;
-      persistAppPath(path);
+      setCurrentAppPath(path);
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
@@ -727,12 +728,6 @@ export const ProtovibeApp: React.FC = () => {
         const path = e.data.path || '/';
         setAppIframePath(path);
         setCurrentAppPath(path);
-        persistAppPath(path);
-      }
-      // Selecting an element on the canvas also re-arms the persisted path,
-      // so the next refresh restores the page the user is working on.
-      if (e.data?.type === 'PV_ELEMENT_CLICK') {
-        persistAppPath(getCurrentAppPath());
       }
     };
     window.addEventListener('message', handler);
@@ -1263,3 +1258,4 @@ export const ProtovibeApp: React.FC = () => {
     </div>
   );
 };
+

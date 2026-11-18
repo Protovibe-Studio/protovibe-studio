@@ -17,6 +17,18 @@ async function captureState(page, name) {
   await page.screenshot({ path: path.join(screenshotsDir, `${name}.png`), fullPage: true });
 }
 let server, browser, origin;
+// Keep these recovery fixtures independent of the user's project-local URL.
+async function isolateAppPath(page, path = '/') {
+  await page.route('**/__app-path', route => route.fulfill({ json: { success: true } }));
+  await page.route('**/protovibe.html*', async route => {
+    const response = await route.fetch();
+    const html = (await response.text()).replace(
+      /(<script id="pv-app-path-state" type="application\/json">)([^<]*)(<\/script>)/,
+      (_, open, json, close) => open + JSON.stringify({ ...JSON.parse(json), path, updatedAt: 1 }).replace(/</g, '\\u003c') + close,
+    );
+    await route.fulfill({ response, body: html });
+  });
+}
 before(async () => {
   process.chdir(templateRoot);
   server = await createServer({ server: { port: 0, host: '127.0.0.1' } });
@@ -31,6 +43,7 @@ after(async () => {
 
 test('recovers an empty App tab after a transient missing export', async t => {
   const page = await browser.newPage();
+  await isolateAppPath(page);
   t.after(() => page.close());
   await page.route('**/__cloudflare-auth-status*', route => route.fulfill({ json: {} }));
   const errors = [];
@@ -75,9 +88,7 @@ async function openFixture(t, source, { path = '/', init } = {}) {
   });
   // Keep unrelated publishing/auth work out of this preview test.
   await page.route('**/__cloudflare-auth-status*', route => route.fulfill({ json: {} }));
-  if (path !== '/') await page.addInitScript(path => {
-    if (window === window.top) localStorage.setItem('pv-app-iframe-path', path);
-  }, path);
+  await isolateAppPath(page, path);
   if (init) await init(page);
   await page.goto(`${origin}/protovibe.html`);
   const element = page.getByTestId('app-preview');
@@ -601,3 +612,4 @@ test('a stalled background reload is retried after its timeout', async t => {
   await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ state: 'hidden' });
   assert.equal(recoveryRequests, 2);
 });
+
