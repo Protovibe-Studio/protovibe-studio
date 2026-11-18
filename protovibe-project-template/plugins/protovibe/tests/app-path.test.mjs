@@ -136,7 +136,7 @@ async function navigate(page, value) {
   await page.evaluate((value) => {
     const win = document.querySelector('iframe').contentWindow;
     win.history.pushState({}, '', value);
-    window.paths.persistAppPath(value);
+    window.paths.setCurrentAppPath(value);
   }, value);
 }
 const current = (page) =>
@@ -245,6 +245,31 @@ test('full document navigation and Home persist even with browser storage disabl
   assert.equal(await current(page), '/');
 });
 
+test('long URLs remain current for links and annotations without exceeding the persistence limit', async (t) => {
+  const f = await fixture(t);
+  const page = await open(t, f);
+  await navigate(page, '/safe');
+  await saved(f, '/safe');
+
+  const value = `/employees?filter=${'a'.repeat(2100)}#salary`;
+  await navigate(page, value);
+  assert.equal(await current(page), value);
+  assert.equal(await page.evaluate(() => window.paths.getCurrentAppPath()), value);
+  assert.equal(await page.evaluate(() => window.paths.readPersistedAppPath()), '/safe');
+  assert.equal(f.disk().path, '/safe');
+
+  const response = await fetch(f.origin + '/__app-path', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: value, updatedAt: Date.now(), projectKey: f.key() }),
+  });
+  assert.equal(response.status, 400);
+
+  await navigate(page, '/after-long');
+  await saved(f, '/after-long');
+  assert.equal(await page.evaluate(() => window.paths.getCurrentAppPath()), '/after-long');
+});
+
 test('unsafe URLs and invalid payloads are rejected without replacing the saved URL', async (t) => {
   const f = await fixture(t);
   const page = await open(t, f);
@@ -264,7 +289,7 @@ test('unsafe URLs and invalid payloads are rejected without replacing the saved 
       body: JSON.stringify({ path: value, updatedAt: Date.now() + 1 }),
     });
     assert.equal(response.status, 400, value);
-    await page.evaluate((value) => window.paths.persistAppPath(value), value);
+    await page.evaluate((value) => window.paths.setCurrentAppPath(value), value);
     assert.equal(
       await page.evaluate(() => window.paths.getCurrentAppPath()),
       '/safe',

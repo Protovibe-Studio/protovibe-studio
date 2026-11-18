@@ -29,7 +29,7 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { withLofiParam } from '../lofi/preview-mode';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
-import { readPersistedAppPath, persistAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+import { readPersistedAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
 import { PV_OPEN_IN_CANVAS } from './utils/canvasLinks';
 import { PV_OPEN_PROMPT_EVENT } from './events/openPrompt';
 import {
@@ -714,7 +714,7 @@ export const ProtovibeApp: React.FC = () => {
       handleIframeTabChange('app');
       const win = appIframeRef.current?.contentWindow;
       if (win) win.location.href = path;
-      persistAppPath(path);
+      setCurrentAppPath(path);
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
@@ -728,7 +728,6 @@ export const ProtovibeApp: React.FC = () => {
         const path = e.data.path || '/';
         setAppIframePath(path);
         setCurrentAppPath(path);
-        persistAppPath(path);
       }
     };
     window.addEventListener('message', handler);
