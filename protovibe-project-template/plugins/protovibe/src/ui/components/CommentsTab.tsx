@@ -72,6 +72,7 @@ function uploadPendingAttachments(pending: PendingAttachment[]): Promise<string[
 const STATUS_CONFIG: Record<CommentStatus, { label: string; color: string }> = {
   minor:  { label: 'Minor',     color: theme.text_tertiary },
   todo:   { label: 'To do',     color: '#A78BFA' }, // purple — no theme token for it
+  'in-progress': { label: 'In progress', color: theme.accent_secondary },
   review: { label: 'To review', color: theme.warning_primary },
   accepted: { label: 'Accepted', color: theme.accent_default },
   closed: { label: 'Closed',    color: theme.success_default },
