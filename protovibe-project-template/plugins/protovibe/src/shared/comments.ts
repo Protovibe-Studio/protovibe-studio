@@ -11,12 +11,13 @@
  * stored the human label, e.g. "To review") are remapped on read by
  * normalizeStatus(), so old comment files keep working.
  */
-export type CommentStatus = 'minor' | 'todo' | 'review' | 'accepted' | 'closed';
+export type CommentStatus = 'minor' | 'todo' | 'in-progress' | 'review' | 'accepted' | 'closed';
 
 /** Display order of the statuses (also the order they appear in pickers). */
 export const COMMENT_STATUSES: CommentStatus[] = [
   'minor',
   'todo',
+  'in-progress',
   'review',
   'accepted',
   'closed',

@@ -93,7 +93,7 @@ Rules:
 | `components` | `file`, `componentName` |
 | `sketchpad` | `sketchpadId`, `sketchpadName`, `frameId`, `frameName`, `position` |
 
-**Status** is a stable id, never a label: `minor`, `todo`, `review`, `accepted`, `closed`.
+**Status** is a stable id, never a label: `minor`, `todo`, `in-progress`, `review`, `accepted`, `closed`.
 `accepted` ("Accepted") means the feedback is approved for implementation in code;
 it does not mean the changes have already been implemented or the thread is closed.
 Omit the key entirely while untriaged. Labels and colours live in the UI's
