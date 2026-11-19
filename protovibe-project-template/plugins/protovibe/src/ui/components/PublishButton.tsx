@@ -689,7 +689,8 @@ export function PublishButton() {
             Anyone with this link can view it:
           </div>
           <a href={publishedLink || publishedUrl} target="_blank" rel="noreferrer" onClick={handleExternalLinkClick}
-            style={{ display: 'block', fontSize: '13px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
+            title={publishedLink || publishedUrl}
+            style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', fontSize: '13px', color: theme.accent_default, wordBreak: 'break-all', lineHeight: '1.4', textDecoration: 'none', marginBottom: '14px' }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = 'underline'; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = 'none'; }}
           >
