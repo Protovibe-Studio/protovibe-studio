@@ -1395,11 +1395,9 @@ const ThreadView: React.FC<{
           Back to all threads
         </button>
         <div style={{ height: 1, background: theme.border_default }} />
-        {/* Header = thread id (copyable for AI); locate/delete share the title line
-            so they align with the copy icon. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: theme.text_default }}>
-            Thread {thread.id}
+            Thread
           </span>
           <CopyIdButton id={thread.id} />
           <StepThreadButton

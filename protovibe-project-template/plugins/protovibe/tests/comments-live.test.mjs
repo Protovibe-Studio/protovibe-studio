@@ -110,6 +110,7 @@ test('agent edits update list and open thread while preserving draft and focus; 
     await poll(page);
     await page.getByText('New thread from agent', { exact: true }).waitFor();
     await page.getByText('Edited by agent', { exact: true }).click();
+    await page.getByText('Thread', { exact: true }).waitFor();
     const reply = page.getByPlaceholder('Reply…');
     await reply.fill('My unfinished reply');
     await reply.evaluate(el => el.setSelectionRange(3, 3));
@@ -319,12 +320,12 @@ for (const mode of ['all', 'unread', 'search']) {
       await page.waitForTimeout(60);
       await page.evaluate(() => window.renderPanel(true));
       await page.getByRole('button', { name: 'Next comment', exact: true }).click();
-      await page.getByText('Thread third', { exact: true }).waitFor();
+      await page.getByText('Oldest comment', { exact: true }).waitFor();
       assert.equal(await page.getByRole('button', { name: 'Next comment', exact: true }).isDisabled(), true);
       await page.getByRole('button', { name: 'Previous comment', exact: true }).click();
-      await page.getByText('Thread second', { exact: true }).waitFor();
+      await page.getByText('Middle comment', { exact: true }).waitFor();
       await page.getByRole('button', { name: 'Previous comment', exact: true }).click();
-      await page.getByText('Thread first', { exact: true }).waitFor();
+      await page.getByText('Initial comment', { exact: true }).waitFor();
       assert.equal(await page.getByRole('button', { name: 'Previous comment', exact: true }).isDisabled(), true);
       await page.getByRole('button', { name: 'Back to all threads' }).click();
       if (mode === 'unread') {
@@ -335,7 +336,7 @@ for (const mode of ['all', 'unread', 'search']) {
       await page.getByText('My comment reply', { exact: true }).click();
       assert.equal(await page.getByRole('button', { name: 'Previous comment', exact: true }).isDisabled(), true);
       await page.getByRole('button', { name: 'Next comment', exact: true }).click();
-      await page.getByText('Thread first', { exact: true }).waitFor();
+      await page.getByText('Initial comment', { exact: true }).waitFor();
       assert.deepEqual(page.errors, []);
     } finally { await page.close(); }
   });
@@ -357,13 +358,13 @@ test('navigation skips deleted neighbours and includes new threads only after re
     await poll(page);
     assert.equal(await page.getByRole('button', { name: 'Previous comment', exact: true }).isDisabled(), true);
     await page.getByRole('button', { name: 'Next comment', exact: true }).click();
-    await page.getByText('Thread third', { exact: true }).waitFor();
+    await page.getByText('Oldest comment', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Previous comment', exact: true }).click();
-    await page.getByText('Thread first', { exact: true }).waitFor();
+    await page.getByText('Initial comment', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Back to all threads' }).click();
     await page.getByText('Initial comment', { exact: true }).click();
     await page.getByRole('button', { name: 'Previous comment', exact: true }).click();
-    await page.getByText('Thread newest', { exact: true }).waitFor();
+    await page.getByText('New comment', { exact: true }).waitFor();
     assert.deepEqual(page.errors, []);
   } finally { await page.close(); }
 });
@@ -410,7 +411,7 @@ test('finishing a reply after Next does not erase the next thread draft', async 
     await page.getByRole('button', { name: 'Reply', exact: true }).click();
     await capturedPromise;
     await page.getByRole('button', { name: 'Next comment', exact: true }).click();
-    await page.getByText('Thread second', { exact: true }).waitFor();
+    await page.getByText('Second comment', { exact: true }).waitFor();
     await page.getByPlaceholder('Reply…').fill('Draft in the second thread');
     const refreshed = page.waitForResponse(r => r.url().endsWith('/__comments-list'));
     release();
