@@ -17,6 +17,7 @@
     "watch:ui": "node scripts/watch-ui.js",
     "test:specs-deeplink": "node --test tests/specs-deeplink.test.mjs",
     "test:specs-find": "node --test tests/specs-find.test.mjs",
+    "test:sketchpad-live": "node --test tests/sketchpad-live.test.mjs",
     "test:sketchpad-position": "node --test tests/sketchpad-position.test.mjs",
     "test:sketchpad-refresh-ui": "node --test tests/sketchpad-refresh-ui.test.mjs",
     "test:specs-focus": "node --test tests/specs-focus.test.mjs",
