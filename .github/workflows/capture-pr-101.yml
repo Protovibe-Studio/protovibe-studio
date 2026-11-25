@@ -65,3 +65,12 @@ jobs:
           name: published-viewer-comparison
           path: review-images/*.png
           retention-days: 3
+      - name: Export PNGs for the PR description
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib
+          for p in sorted(pathlib.Path("review-images").glob("*.png")):
+              encoded = base64.b64encode(p.read_bytes()).decode()
+              for n in range(0,len(encoded),512):
+                  print("CAPTURE",p.stem,n//512,encoded[n:n+512])
+          PY
