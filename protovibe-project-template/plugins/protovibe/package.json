@@ -18,6 +18,7 @@
     "test:specs-deeplink": "node --test tests/specs-deeplink.test.mjs",
     "test:specs-find": "node --test tests/specs-find.test.mjs",
     "test:sketchpad-position": "node --test tests/sketchpad-position.test.mjs",
+    "test:sketchpad-refresh-ui": "node --test tests/sketchpad-refresh-ui.test.mjs",
     "test:specs-focus": "node --test tests/specs-focus.test.mjs",
     "test:comments-live": "node --test tests/comments-live.test.mjs",
     "test:lofi": "node --test tests/lofi.test.mjs",
