@@ -468,13 +468,13 @@ export const SpecsViewerApp: React.FC = () => {
       </div>
 
       {/* prototype */}
-      <div style={{ flex: 1, minWidth: 0, background: '#fff', pointerEvents: resizing ? 'none' : 'auto' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: 8, background: '#000', pointerEvents: resizing ? 'none' : 'auto' }}>
         <iframe
           ref={iframeRef}
           name="pv-spec-viewer"
           src={iframeSrc}
           title="Prototype"
-          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+          style={{ width: '100%', height: '100%', border: 'none', borderRadius: 4, display: 'block' }}
         />
       </div>
     </div>
