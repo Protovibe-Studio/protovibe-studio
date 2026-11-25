@@ -1095,9 +1095,10 @@ export function SketchpadApp() {
     setPendingAction({ type: 'add-text' });
   }, [activeSketchpadId]);
 
-  // Reload registry state after undo/redo (frames are hot-reloaded by HMR)
+  // Refresh the registry on demand and after undo/redo.
   const reloadRegistry = useCallback(async () => {
     const reg = await api.fetchRegistry();
+    if (!Array.isArray(reg.sketchpads)) throw new Error('Invalid sketchpad registry');
 
     if (activeSketchpadId && activeSketchpad) {
       const nextSp = reg.sketchpads.find(s => s.id === activeSketchpadId);
@@ -1117,7 +1118,7 @@ export function SketchpadApp() {
     // If undo/redo removed the active sketchpad, re-point to a valid one AND move
     // the viewport to it — otherwise the canvas stays panned to where the deleted
     // sketchpad was and shows an empty page.
-    if (activeSketchpadId && !reg.sketchpads.some((s) => s.id === activeSketchpadId)) {
+    if (!reg.sketchpads.some((s) => s.id === activeSketchpadId)) {
       const lastActiveId = localViewState.getLastActiveSketchpadId();
       const next = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
       setActiveSketchpadId(next?.id ?? '');
@@ -2066,6 +2067,7 @@ export function SketchpadApp() {
       )}
 
       <SketchpadOverlayPanel
+        onRefresh={reloadRegistry}
         isOpen={showSketchpadPanel}
         onClose={() => setShowSketchpadPanel(false)}
         sketchpads={sketchpads}

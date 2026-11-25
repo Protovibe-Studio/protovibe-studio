@@ -6,6 +6,7 @@ import { theme } from '../../ui/theme';
 
 interface SketchpadOverlayPanelProps {
   isOpen: boolean;
+  onRefresh: () => Promise<void>;
   onClose: () => void;
   sketchpads: Sketchpad[];
   activeSketchpadId: string;
@@ -18,6 +19,7 @@ interface SketchpadOverlayPanelProps {
 
 export function SketchpadOverlayPanel({
   isOpen,
+  onRefresh,
   onClose,
   sketchpads,
   activeSketchpadId,
@@ -35,7 +37,19 @@ export function SketchpadOverlayPanel({
   const [renameDialogId, setRenameDialogId] = useState<string | null>(null);
   const [renameDialogValue, setRenameDialogValue] = useState('');
 
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+
   if (!isOpen) return null;
+
+  const handleRefresh = async () => {
+    setRefreshStatus('loading');
+    try {
+      await onRefresh();
+      setRefreshStatus('idle');
+    } catch {
+      setRefreshStatus('error');
+    }
+  };
 
   const handleRenameSubmit = (id: string) => {
     if (renameValue.trim()) {
@@ -107,14 +121,30 @@ export function SketchpadOverlayPanel({
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: 6,
             padding: '12px 14px 8px',
             borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#ddd', letterSpacing: '-0.2px' }}>
+          <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#ddd', letterSpacing: '-0.2px' }}>
             Sketchpads
           </span>
+          <button
+            type="button"
+            aria-label="Refresh sketchpads"
+            disabled={refreshStatus === 'loading'}
+            onClick={handleRefresh}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: theme.text_secondary,
+              cursor: refreshStatus === 'loading' ? 'wait' : 'pointer',
+              fontSize: 11,
+              padding: '4px 8px',
+            }}
+          >
+            {refreshStatus === 'loading' ? 'Refreshing…' : 'Refresh'}
+          </button>
           <button
             data-testid="btn-new-sketchpad"
             onClick={() => setShowNewInput(true)}
@@ -132,6 +162,12 @@ export function SketchpadOverlayPanel({
             + New
           </button>
         </div>
+
+        {refreshStatus === 'error' && (
+          <div role="alert" style={{ padding: '8px 14px', color: theme.text_secondary, fontSize: 12 }}>
+            Couldn’t refresh sketchpads. Try again.
+          </div>
+        )}
 
         {/* New sketchpad input */}
         {showNewInput && (
