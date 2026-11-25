@@ -10,7 +10,18 @@ const post = async (url: string, body: Record<string, unknown> = {}) => {
 };
 
 export async function fetchRegistry(): Promise<Registry> {
-  return post('/__sketchpad-list');
+  const reg = await post('/__sketchpad-list');
+  // Valid JSON can still be an unfinished agent write. Never publish malformed
+  // entries to React (including entries in an inactive sketchpad).
+  const validFrame = (frame: any) => frame && typeof frame.id === 'string'
+    && typeof frame.name === 'string'
+    && ['width', 'height', 'canvasX', 'canvasY'].every((key) => Number.isFinite(frame[key]));
+  if (!reg || !Array.isArray(reg.sketchpads) || !reg.sketchpads.every((sp: any) =>
+    sp && typeof sp.id === 'string' && typeof sp.name === 'string'
+    && Array.isArray(sp.frames) && sp.frames.every(validFrame))) {
+    throw new Error('Invalid sketchpad registry');
+  }
+  return reg;
 }
 
 export async function createSketchpad(

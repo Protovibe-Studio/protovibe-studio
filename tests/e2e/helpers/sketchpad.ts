@@ -97,7 +97,8 @@ export const test = base.extend<{ sketch: Sketchpad }>({
     const mutationChecks = sketch.mutationChecks;
     page.on('response', response => {
       const path = new URL(response.url()).pathname;
-      if (response.request().method() === 'POST'
+      // Background registry reads may be interrupted by navigation; they are not writes.
+      if (path !== '/__sketchpad-list' && response.request().method() === 'POST'
           && /^\/__(sketchpad-|frame-|block-action$|add-block$|update-source$|wrap-blocks$|unwrap-block$|delete-blocks$)/.test(path)) {
         mutationChecks.push((async () => {
           const result = await response.json();

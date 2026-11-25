@@ -86,17 +86,20 @@ interface Registry {
 // on each sketchpad and a top-level `lastActiveSketchpadId`. Drop them on read
 // so the next write cleans the committed file for everyone.
 function stripLegacyViewState(reg: any): Registry {
-  const sketchpads = Array.isArray(reg?.sketchpads) ? reg.sketchpads : [];
+  if (!Array.isArray(reg?.sketchpads)) throw new Error('Invalid sketchpad registry');
+  const sketchpads = reg.sketchpads;
   return {
     sketchpads: sketchpads.map(({ viewState, ...entry }: any) => entry as SketchpadEntry),
   };
 }
 
-function readRegistry(): Registry {
+function readRegistry(initialize = true): Registry {
   if (!fs.existsSync(REGISTRY_PATH)) {
     const initial: Registry = { sketchpads: [] };
-    fs.mkdirSync(SKETCHPADS_DIR, { recursive: true });
-    fs.writeFileSync(REGISTRY_PATH, JSON.stringify(initial, null, 2));
+    if (initialize) {
+      fs.mkdirSync(SKETCHPADS_DIR, { recursive: true });
+      fs.writeFileSync(REGISTRY_PATH, JSON.stringify(initial, null, 2));
+    }
     return initial;
   }
   return stripLegacyViewState(JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf-8')));
@@ -253,7 +256,8 @@ export default function ${funcName || 'Frame'}() {
 
 export const handleSketchpadList: Connect.NextHandleFunction = async (_req, res) => {
   try {
-    const reg = readRegistry();
+    // Polling must not recreate a registry that an external writer is replacing.
+    const reg = readRegistry(false);
     sendJson(res, reg);
   } catch (err) {
     sendError(res, String(err), 500);

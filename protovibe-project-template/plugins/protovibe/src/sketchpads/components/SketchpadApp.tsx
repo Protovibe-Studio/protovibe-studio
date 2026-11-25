@@ -6,6 +6,7 @@ import { FrameContainer } from './FrameContainer';
 import { ComponentPalette } from './ComponentPalette';
 import { SketchpadOverlayPanel } from './SketchpadOverlayPanel';
 import * as api from '../api';
+import { importFrameModule } from '../frame-modules';
 import * as localViewState from '../local-view-state';
 import { fetchSourceInfo, fetchZones, takeSnapshot, blockAction, addBlock } from '../../ui/api/client';
 import { parseDefaultProps } from '../utils';
@@ -164,7 +165,24 @@ function findFrameRootEl(frameId: string): HTMLElement | null {
 
 export function SketchpadApp() {
   const [sketchpads, setSketchpads] = useState<Sketchpad[]>([]);
-  const [activeSketchpadId, setActiveSketchpadId] = useState<string>('');
+  const [registryLoaded, setRegistryLoaded] = useState(false);
+  const [activeSketchpadId, setActiveSketchpadIdState] = useState<string>('');
+  const activeSketchpadIdRef = useRef('');
+  const readGenerationRef = useRef(0);
+  const registryReloadCountRef = useRef(0);
+  const undoReloadGenerationRef = useRef(0);
+  const undoReloadTimerRef = useRef(0);
+  useEffect(() => () => {
+    undoReloadGenerationRef.current++;
+    clearTimeout(undoReloadTimerRef.current);
+  }, []);
+  const setActiveSketchpadId = useCallback((id: string) => {
+    undoReloadGenerationRef.current++;
+    clearTimeout(undoReloadTimerRef.current);
+    readGenerationRef.current++;
+    activeSketchpadIdRef.current = id;
+    setActiveSketchpadIdState(id);
+  }, []);
   const [transform, setTransform] = useState<CanvasTransform>(INITIAL_TRANSFORM);
   const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
   const selectedFrameId = selectedFrameIds[selectedFrameIds.length - 1] ?? null;
@@ -240,6 +258,7 @@ export function SketchpadApp() {
 
   const runLockedMutation = useCallback(async <T,>(mutation: () => Promise<T>): Promise<T | undefined> => {
     if (mutationLockRef.current) return undefined;
+    readGenerationRef.current++;
     mutationLockRef.current = true;
     setIsMutationLocked(true);
     try {
@@ -248,9 +267,28 @@ export function SketchpadApp() {
       await new Promise<void>((resolve) => setTimeout(resolve, 150));
       return result;
     } finally {
+      readGenerationRef.current++;
       mutationLockRef.current = false;
       setIsMutationLocked(false);
     }
+  }, []);
+
+  // Drag/resize positions are optimistic until pointerup saves them. Suppress
+  // polls throughout the gesture and invalidate reads started before it.
+  const pointerDownRef = useRef(false);
+  useEffect(() => {
+    const down = () => { pointerDownRef.current = true; readGenerationRef.current++; };
+    const up = () => { pointerDownRef.current = false; readGenerationRef.current++; };
+    window.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointerup', up, true);
+    window.addEventListener('pointercancel', up, true);
+    window.addEventListener('blur', up);
+    return () => {
+      window.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('pointerup', up, true);
+      window.removeEventListener('pointercancel', up, true);
+      window.removeEventListener('blur', up);
+    };
   }, []);
 
   // Fetch components from server (includes PvDefaultContent extraction)
@@ -263,15 +301,18 @@ export function SketchpadApp() {
     Record<string, React.ComponentType<any>>
   >({});
 
+  const frameLoadGenerationRef = useRef(0);
+  const loadingFrameSetRef = useRef(false);
+
   // Load a frame module dynamically via import()
   const loadFrameModule = useCallback(
     async (sketchpadId: string, frameId: string) => {
+      const generation = frameLoadGenerationRef.current;
       try {
-        const mod = await import(
-          /* @vite-ignore */ `/src/sketchpads/${sketchpadId}/${frameId}.tsx?t=${Date.now()}`
-        );
-        if (mod?.default) {
-          setFrameModules((prev) => ({ ...prev, [frameId]: mod.default }));
+        const Component = await importFrameModule(sketchpadId, frameId);
+        if (Component && activeSketchpadIdRef.current === sketchpadId
+          && generation === frameLoadGenerationRef.current) {
+          setFrameModules((prev) => prev[frameId] === Component ? prev : { ...prev, [frameId]: Component });
         }
       } catch (e) {
         console.warn(`Failed to load frame module ${frameId}:`, e);
@@ -283,20 +324,26 @@ export function SketchpadApp() {
   // Load all frame modules for the active sketchpad
   const loadAllFrameModules = useCallback(
     async (sketchpadId: string, frames: SketchpadFrame[]) => {
+      const generation = ++frameLoadGenerationRef.current;
+      readGenerationRef.current++;
+      loadingFrameSetRef.current = true;
       const modules: Record<string, React.ComponentType<any>> = {};
-      for (const frame of frames) {
-        try {
-          const mod = await import(
-            /* @vite-ignore */ `/src/sketchpads/${sketchpadId}/${frame.id}.tsx?t=${Date.now()}`
-          );
-          if (mod?.default) {
-            modules[frame.id] = mod.default;
+      const current = () => generation === frameLoadGenerationRef.current
+        && activeSketchpadIdRef.current === sketchpadId;
+      try {
+        for (const frame of frames) {
+          if (!current()) return;
+          try {
+            const Component = await importFrameModule(sketchpadId, frame.id);
+            if (Component) modules[frame.id] = Component;
+          } catch (e) {
+            console.warn(`Failed to load frame module ${frame.id}:`, e);
           }
-        } catch (e) {
-          console.warn(`Failed to load frame module ${frame.id}:`, e);
         }
+        if (current()) setFrameModules(modules);
+      } finally {
+        if (generation === frameLoadGenerationRef.current) loadingFrameSetRef.current = false;
       }
-      setFrameModules(modules);
     },
     [],
   );
@@ -310,29 +357,50 @@ export function SketchpadApp() {
   // nothing saved (fresh browser, cleared storage) it opens the first sketchpad
   // and the auto-center effect below frames it.
   useEffect(() => {
-    api.fetchRegistry().then(async (reg) => {
-      if (reg.sketchpads?.length > 0) {
-        setSketchpads(reg.sketchpads);
-        const lastActiveId = localViewState.getLastActiveSketchpadId();
-        const initial = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
-        setActiveSketchpadId(initial.id);
-        const savedTransform = localViewState.getViewState(initial.id);
-        if (savedTransform) {
-          setTransform(savedTransform);
-          initialTransformAppliedRef.current = true;
-        }
-        loadAllFrameModules(initial.id, initial.frames);
-      } else {
-        // Initial bootstrap — not an undoable user action.
-        const sp = await api.createSketchpad('Sketchpad 1', {
-          withFrame: { name: 'Frame 1', width: 1440, height: 900, canvasX: 0, canvasY: 0 },
-          skipSnapshot: true,
-        });
-        setSketchpads([sp]);
-        setActiveSketchpadId(sp.id);
-        loadAllFrameModules(sp.id, sp.frames);
+    let cancelled = false;
+    let timer = 0;
+    let firstRead = true;
+    const load = async () => {
+      if (cancelled) return;
+      if (!firstRead && (document.hidden || !containerRef.current?.getClientRects().length)) {
+        timer = window.setTimeout(load, 2000);
+        return;
       }
-    });
+      firstRead = false;
+      try {
+        const reg = await api.fetchRegistry();
+        if (cancelled) return;
+        if (reg.sketchpads?.length > 0) {
+          setSketchpads(reg.sketchpads);
+          const lastActiveId = localViewState.getLastActiveSketchpadId();
+          const initial = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
+          setActiveSketchpadId(initial.id);
+          const savedTransform = localViewState.getViewState(initial.id);
+          if (savedTransform) {
+            setTransform(savedTransform);
+            initialTransformAppliedRef.current = true;
+          }
+          await loadAllFrameModules(initial.id, initial.frames);
+        } else {
+          // Initial bootstrap — not an undoable user action.
+          const sp = await api.createSketchpad('Sketchpad 1', {
+            withFrame: { name: 'Frame 1', width: 1440, height: 900, canvasX: 0, canvasY: 0 },
+            skipSnapshot: true,
+          });
+          if (cancelled) return;
+          setSketchpads([sp]);
+          setActiveSketchpadId(sp.id);
+          await loadAllFrameModules(sp.id, sp.frames);
+        }
+        if (!cancelled) setRegistryLoaded(true);
+      } catch {
+        // An agent may be replacing the registry during startup. Recover without
+        // requiring a page reload, and leave the current canvas intact.
+        if (!cancelled) timer = window.setTimeout(load, 2000);
+      }
+    };
+    void load();
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [loadAllFrameModules]);
 
   // Persist active sketchpad id whenever it changes.
@@ -472,6 +540,87 @@ export function SketchpadApp() {
   useEffect(() => { activeSketchpadRef.current = activeSketchpad; }, [activeSketchpad]);
   const sketchpadsRef = useRef(sketchpads);
   useEffect(() => { sketchpadsRef.current = sketchpads; }, [sketchpads]);
+
+  // Discover additions only. Polling must never reconcile existing frame
+  // metadata, remove frames, change sketchpads or move the user's camera.
+  // Retry missing modules too, without changing their metadata. Loaded frame
+  // contents continue to update through HMR.
+  useEffect(() => {
+    if (!registryLoaded) return;
+    let cancelled = false;
+    let timer = 0;
+    let reading = false;
+    const visible = () => !document.hidden && !!containerRef.current?.getClientRects().length
+      && containerRef.current.clientWidth > 0 && containerRef.current.clientHeight > 0;
+    let generation = readGenerationRef.current;
+    const current = () => !cancelled && visible() && !mutationLockRef.current
+      && !pointerDownRef.current && !loadingFrameSetRef.current && registryReloadCountRef.current === 0
+      && generation === readGenerationRef.current;
+    const tick = async () => {
+      clearTimeout(timer);
+      if (reading || cancelled) return;
+      reading = true;
+      generation = readGenerationRef.current;
+      try {
+        if (!current() || isMutationLocked) return;
+        const reg = await api.fetchRegistry();
+        if (!current()) return;
+        const next = reg.sketchpads.find((sp) => sp.id === activeSketchpadId);
+        const active = sketchpads.find((sp) => sp.id === activeSketchpadId);
+        if (!next || !active) return;
+        const knownIds = new Set(active.frames.map((frame) => frame.id));
+        const additions: SketchpadFrame[] = [];
+        const modules: Record<string, React.ComponentType<any>> = {};
+        for (const frame of next.frames) {
+          if (!current()) return;
+          const isKnown = knownIds.has(frame.id);
+          if (isKnown && frameModules[frame.id]) continue;
+          try {
+            const Component = await importFrameModule(activeSketchpadId, frame.id);
+            if (Component) {
+              if (!isKnown) additions.push(frame);
+              modules[frame.id] = Component;
+              knownIds.add(frame.id);
+            }
+          } catch { /* Do not publish unfinished frames; retry next tick. */ }
+        }
+        if (!current() || Object.keys(modules).length === 0) return;
+        setFrameModules((prev) => ({ ...prev, ...modules }));
+        if (additions.length) setSketchpads((prev) => prev.map((sp) => {
+          if (sp.id !== activeSketchpadId) return sp;
+          const missing = additions.filter((frame) => !sp.frames.some((existing) => existing.id === frame.id));
+          return missing.length ? { ...sp, frames: [...sp.frames, ...missing] } : sp;
+        }));
+      } catch { /* Keep the last good registry during partial writes or server restarts. */ }
+      finally {
+        reading = false;
+        if (!cancelled) timer = window.setTimeout(tick, 2000);
+      }
+    };
+    const wake = () => { if (visible()) void tick(); };
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'PV_SKETCHPAD_TAB_OPENED') wake();
+    };
+    // ResizeObserver also fires during ordinary window resizing. Wake only
+    // when the canvas becomes visible, not for every size change.
+    let wasVisible = false;
+    const observer = new ResizeObserver(() => {
+      const nowVisible = visible();
+      if (nowVisible && !wasVisible) wake();
+      wasVisible = nowVisible;
+    });
+    if (containerRef.current) observer.observe(containerRef.current);
+    document.addEventListener('visibilitychange', wake);
+    window.addEventListener('message', onMessage);
+    timer = window.setTimeout(tick, 2000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', wake);
+      window.removeEventListener('message', onMessage);
+    };
+  }, [registryLoaded, activeSketchpadId, sketchpads, frameModules, isMutationLocked]);
 
   // A comment in the Comments panel was opened — bring its frame (and the
   // commented element's coordinates) into view: switch sketchpad if needed,
@@ -1097,40 +1246,120 @@ export function SketchpadApp() {
 
   // Refresh the registry on demand and after undo/redo.
   const reloadRegistry = useCallback(async () => {
-    const reg = await api.fetchRegistry();
-    if (!Array.isArray(reg.sketchpads)) throw new Error('Invalid sketchpad registry');
+    readGenerationRef.current++;
+    registryReloadCountRef.current++;
+    try {
+      const reg = await api.fetchRegistry();
+      if (!Array.isArray(reg.sketchpads)) throw new Error('Invalid sketchpad registry');
 
-    // The user can switch sketchpads while the registry request is pending.
-    const current = activeSketchpadRef.current;
-    const refreshed = reg.sketchpads.find((sp) => sp.id === current?.id);
-    setSketchpads(reg.sketchpads);
+      // The user can switch sketchpads while the registry request is pending.
+      const current = activeSketchpadRef.current;
+      const refreshed = reg.sketchpads.find((sp) => sp.id === current?.id);
+      setSketchpads(reg.sketchpads);
 
-    if (current && refreshed) {
-      const addedFrames = refreshed.frames.filter(
-        (frame) => !current.frames.some((previous) => previous.id === frame.id)
-      );
-      for (const frame of addedFrames) {
-        loadFrameModule(current.id, frame.id);
+      if (current && refreshed) {
+        const addedFrames = refreshed.frames.filter(
+          (frame) => !current.frames.some((previous) => previous.id === frame.id)
+        );
+        for (const frame of addedFrames) {
+          loadFrameModule(current.id, frame.id);
+        }
+      } else {
+        const lastActiveId = localViewState.getLastActiveSketchpadId();
+        const next = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
+        setActiveSketchpadId(next?.id ?? '');
+        setSelectedFrameIds([]);
+        if (next) {
+          const rect = containerRef.current?.getBoundingClientRect();
+          const baseTransform = localViewState.getViewState(next.id) ?? INITIAL_TRANSFORM;
+          const safeTransform =
+            rect && rect.width > 0 && rect.height > 0
+              ? ensureFramesVisible(next.frames, baseTransform, rect.width, rect.height)
+              : baseTransform;
+          setTransform(safeTransform);
+          initialTransformAppliedRef.current = true;
+          hasInitiallyCentered.current = true;
+          loadAllFrameModules(next.id, next.frames);
+        }
       }
-    } else {
-      const lastActiveId = localViewState.getLastActiveSketchpadId();
-      const next = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
-      setActiveSketchpadId(next?.id ?? '');
-      setSelectedFrameIds([]);
-      if (next) {
-        const rect = containerRef.current?.getBoundingClientRect();
-        const baseTransform = localViewState.getViewState(next.id) ?? INITIAL_TRANSFORM;
-        const safeTransform =
-          rect && rect.width > 0 && rect.height > 0
-            ? ensureFramesVisible(next.frames, baseTransform, rect.width, rect.height)
-            : baseTransform;
-        setTransform(safeTransform);
-        initialTransformAppliedRef.current = true;
-        hasInitiallyCentered.current = true;
-        loadAllFrameModules(next.id, next.frames);
-      }
+    } finally {
+      readGenerationRef.current++;
+      registryReloadCountRef.current--;
     }
   }, [loadFrameModule, loadAllFrameModules]);
+
+  // History refreshes retry independently; the manual button must instead
+  // surface errors to its own retry UI and reconcile the current selection.
+  const reloadRegistryAfterHistory = useCallback(async () => {
+    const undoGeneration = ++undoReloadGenerationRef.current;
+    clearTimeout(undoReloadTimerRef.current);
+    readGenerationRef.current++;
+    const isCurrentUndo = () => undoGeneration === undoReloadGenerationRef.current;
+    // Discovery deliberately cannot repair an existing frame's metadata. An
+    // explicit undo/redo refresh therefore owns its retries until it succeeds,
+    // another history action supersedes it, or the user switches sketchpads.
+    const retry = () => {
+      if (isCurrentUndo()) undoReloadTimerRef.current = window.setTimeout(() => { void attempt(); }, 2000);
+    };
+    const attempt = async () => {
+      if (!isCurrentUndo()) return;
+      if (document.hidden || !containerRef.current?.getClientRects().length
+        || pointerDownRef.current || mutationLockRef.current) { retry(); return; }
+      const readGeneration = ++readGenerationRef.current;
+      registryReloadCountRef.current++;
+      try {
+        const reg = await api.fetchRegistry();
+        if (!isCurrentUndo()) return;
+        if (readGeneration !== readGenerationRef.current || pointerDownRef.current || mutationLockRef.current) {
+          retry();
+          return;
+        }
+        const currentSketchpad = activeSketchpadRef.current;
+        if (activeSketchpadId && currentSketchpad) {
+          const nextSp = reg.sketchpads.find(s => s.id === activeSketchpadId);
+          if (nextSp) {
+            // Only load modules for frames that were just restored/added by the undo/redo
+            const restoredFrames = nextSp.frames.filter(
+              (nf) => !currentSketchpad.frames.some((pf) => pf.id === nf.id)
+            );
+            for (const frame of restoredFrames) {
+              loadFrameModule(activeSketchpadId, frame.id);
+            }
+          }
+        }
+
+        setSketchpads(reg.sketchpads);
+
+        // If undo/redo removed the active sketchpad, re-point to a valid one AND move
+        // the viewport to it — otherwise the canvas stays panned to where the deleted
+        // sketchpad was and shows an empty page.
+        if (activeSketchpadId && !reg.sketchpads.some((s) => s.id === activeSketchpadId)) {
+          const lastActiveId = localViewState.getLastActiveSketchpadId();
+          const next = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
+          setActiveSketchpadId(next?.id ?? '');
+          setSelectedFrameIds([]);
+          if (next) {
+            const rect = containerRef.current?.getBoundingClientRect();
+            const baseTransform = localViewState.getViewState(next.id) ?? INITIAL_TRANSFORM;
+            const safeTransform =
+              rect && rect.width > 0 && rect.height > 0
+                ? ensureFramesVisible(next.frames, baseTransform, rect.width, rect.height)
+                : baseTransform;
+            setTransform(safeTransform);
+            initialTransformAppliedRef.current = true;
+            hasInitiallyCentered.current = true;
+            loadAllFrameModules(next.id, next.frames);
+          }
+        }
+      } catch {
+        retry();
+      } finally {
+        registryReloadCountRef.current--;
+      }
+    };
+    await attempt();
+  }, [activeSketchpadId, activeSketchpad, loadFrameModule, loadAllFrameModules]);
+
 
   // Whenever a frame becomes the primary canvas selection — title-bar click,
   // create, duplicate, paste, marquee, navigation from another tab — focus its
@@ -1172,7 +1401,7 @@ export function SketchpadApp() {
         frameClipboardRef.current = null;
       }
       if (e.data?.type === 'PV_UNDO_REDO_COMPLETE') {
-        reloadRegistry();
+        reloadRegistryAfterHistory();
       }
       if (e.data?.type === 'PV_SET_SELECTION' && Array.isArray(e.data.runtimeIds) && e.data.runtimeIds.length > 0) {
         // The shell echoes every inspector selection back to us. Keep the canvas
@@ -1205,7 +1434,7 @@ export function SketchpadApp() {
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [reloadRegistry, zoomToCenter, zoomByFactor, selectedFrameIds, handleDeleteFramesMulti]);
+  }, [reloadRegistryAfterHistory, zoomToCenter, zoomByFactor, selectedFrameIds, handleDeleteFramesMulti]);
 
   // Keyboard shortcuts
   useEffect(() => {
