@@ -474,7 +474,7 @@ export const SpecsViewerApp: React.FC = () => {
           name="pv-spec-viewer"
           src={iframeSrc}
           title="Prototype"
-          style={{ width: '100%', height: '100%', border: 'none', borderRadius: 4, display: 'block' }}
+          style={{ width: '100%', height: '100%', border: 'none', borderRadius: 4, background: '#fff', display: 'block' }}
         />
       </div>
     </div>
