@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import type { Sketchpad } from '../types';
 import { ConfirmDialog } from '../../ui/components/ConfirmDialog';
@@ -38,6 +39,8 @@ export function SketchpadOverlayPanel({
   const [renameDialogValue, setRenameDialogValue] = useState('');
 
   const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+
+  const isRefreshing = refreshStatus === 'loading';
 
   if (!isOpen) return null;
 
@@ -132,18 +135,29 @@ export function SketchpadOverlayPanel({
           <button
             type="button"
             aria-label="Refresh sketchpads"
-            disabled={refreshStatus === 'loading'}
+            title="Refresh sketchpads"
+            aria-busy={isRefreshing}
+            disabled={isRefreshing}
             onClick={handleRefresh}
             style={{
               background: 'transparent',
               border: 'none',
               color: theme.text_secondary,
-              cursor: refreshStatus === 'loading' ? 'wait' : 'pointer',
-              fontSize: 11,
-              padding: '4px 8px',
+              cursor: isRefreshing ? 'wait' : 'pointer',
+              display: 'grid',
+              placeItems: 'center',
+              width: 26,
+              height: 26,
             }}
           >
-            {refreshStatus === 'loading' ? 'Refreshing…' : 'Refresh'}
+            {isRefreshing ? (
+              <>
+                <style>{'@keyframes pv-sketchpads-refresh-spin { to { transform: rotate(360deg); } }'}</style>
+                <LoaderCircle size={15} aria-hidden="true" style={{ animation: 'pv-sketchpads-refresh-spin 1s linear infinite' }} />
+              </>
+            ) : (
+              <RefreshCw size={15} aria-hidden="true" />
+            )}
           </button>
           <button
             data-testid="btn-new-sketchpad"
