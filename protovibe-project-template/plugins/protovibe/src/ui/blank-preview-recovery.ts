@@ -1,8 +1,11 @@
+export const previewRootIds = { app: 'root', components: 'pv-previewer-root', sketchpad: 'sketchpad-root' } as const;
+
 // Keep this check conservative: an intentionally empty app is valid, and a
 // portal or an error boundary may provide usable UI outside the app root.
-export function hasPreviewContent(doc: Document): boolean {
-  const root = doc.getElementById('root');
+export function hasPreviewContent(doc: Document, rootId: string): boolean {
+  const root = doc.getElementById(rootId);
   if (root && (root.childElementCount > 0 || root.textContent?.trim())) return true;
+  if (rootId !== previewRootIds.app) return false;
   return Array.from(doc.body?.childNodes ?? []).some(node => {
     if (node.nodeType === 3) return !!node.textContent?.trim();
     return node.nodeType === 1 && (node as Element).id !== 'root' &&
@@ -13,16 +16,17 @@ export function hasPreviewContent(doc: Document): boolean {
 // Detection lives outside React, so it survives a root unmount caused by an
 // uncaught render error. The shell owns all retries and the final error state;
 // reloading this document must never reset that budget.
-export function installBlankPreviewRecovery() {
-  if (window.parent === window || window.name.startsWith('pv-spec-') ||
-      window.location.pathname.endsWith('/components.html')) return;
+export function installBlankPreviewRecovery(rootId: string) {
+  if (window.parent === window || window.name.startsWith('pv-spec-')) return;
 
   const SETTLE_MS = 1_500;
   let pending: { detail: string; sawBlank: boolean } | null = null;
   let timer: number | undefined;
   let reportedHealthy = false;
   let reportedContent = false;
-  const blank = () => !!document.getElementById('root') && !hasPreviewContent(document);
+  let failedScript: string | null = null;
+  let lastViteState: 'overlay' | 'module' | 'clear' | undefined;
+  const blank = () => !!document.getElementById(rootId) && !hasPreviewContent(document, rootId);
   const cancel = () => {
     pending = null;
     window.clearTimeout(timer);
@@ -35,22 +39,32 @@ export function installBlankPreviewRecovery() {
     cancel();
   };
   const observeContent = () => {
-    // First content is enough to dismiss the ordinary loading indicator.
-    // Recovery confirmation still waits for a complete, healthy document below.
-    if (!reportedContent && hasPreviewContent(document)) {
+    const hasOverlay = !!document.querySelector('vite-error-overlay');
+    const hasContent = hasPreviewContent(document, rootId);
+    // Once the preview renders, an earlier script failure cannot explain a later empty render.
+    if (hasContent) failedScript = null;
+    const viteState = hasOverlay ? 'overlay' : failedScript ? 'module' : 'clear';
+    if (viteState !== lastViteState && (viteState !== 'clear' || document.readyState === 'complete')) {
+      lastViteState = viteState;
+      window.parent.postMessage(viteState === 'clear'
+        ? { type: 'PV_VITE_ERROR_CLEARED' }
+        : { type: 'PV_VITE_ERROR', moduleLoadError: viteState === 'module', detail: failedScript }, location.origin);
+    }
+    // Dismiss ordinary loading as soon as the preview renders. Recovery
+    // confirmation still waits for a complete, healthy document below.
+    if (!reportedContent && hasContent) {
       window.parent.postMessage({ type: 'PV_APP_PREVIEW_READY' }, window.location.origin);
       reportedContent = true;
     }
-    const isBlank = blank();
+    const isBlank = !!document.getElementById(rootId) && !hasContent;
     if (pending) {
       // React may report the error just before it unmounts the root. Conversely,
       // a successful render invalidates an earlier blank-page error, even if
       // the app intentionally renders nothing again later.
       if (isBlank) pending.sawBlank = true;
-      else if (pending.sawBlank && hasPreviewContent(document)) cancel();
+      else if (pending.sawBlank && hasContent) cancel();
     }
-    const healthy = document.readyState === 'complete' && hasPreviewContent(document) &&
-      !document.querySelector('vite-error-overlay');
+    const healthy = document.readyState === 'complete' && hasContent && !hasOverlay;
     if (healthy && !reportedHealthy) {
       window.parent.postMessage({ type: 'PV_BLANK_PREVIEW_RECOVERED' }, window.location.origin);
     } else if (!healthy && reportedHealthy) {
@@ -70,6 +84,16 @@ export function installBlankPreviewRecovery() {
     timer = window.setTimeout(check, SETTLE_MS);
   };
 
+  // A failed entry module can leave a fresh document blank without a Vite
+  // overlay. Ignore failures in auxiliary scripts when the canvas is usable.
+  window.addEventListener('error', event => {
+    const script = event.target;
+    if (!(script instanceof HTMLScriptElement) || !script.src) return;
+    const url = new URL(script.src);
+    if (url.origin !== location.origin) return;
+    failedScript = `Could not load ${url.pathname.split('/').pop()} or one of its imports.`;
+    observeContent();
+  }, true);
   window.addEventListener('error', event => onError(event.error || event.message));
   window.addEventListener('unhandledrejection', event => onError(event.reason, 'Unhandled promise rejection'));
   // A reload or navigation also interrupts the shell's confirmation period.

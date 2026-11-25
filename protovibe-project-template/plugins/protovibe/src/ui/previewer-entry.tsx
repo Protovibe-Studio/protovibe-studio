@@ -8,9 +8,4 @@ import { createRoot } from 'react-dom/client';
 import { ProtovibePreviewer } from './ProtovibePreviewer';
 import '@/index.css';
 
-const container = document.createElement('div');
-container.id = 'pv-previewer-root';
-container.setAttribute('data-pv-ui', 'true');
-document.body.appendChild(container);
-
-createRoot(container).render(<ProtovibePreviewer />);
+createRoot(document.getElementById('pv-previewer-root')!).render(<ProtovibePreviewer />);

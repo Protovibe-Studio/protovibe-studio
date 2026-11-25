@@ -16,7 +16,7 @@ import { ToastViewport } from './components/ToastViewport';
 import { GitMenu } from './components/GitMenu';
 import { GitSyncBanner } from './components/GitSyncBanner';
 import { CrashLoadingOverlay, CrashErrorOverlay } from './components/CrashLoadingOverlay';
-import { hasPreviewContent } from './blank-preview-recovery';
+import { usePreviewRecovery } from './hooks/usePreviewRecovery';
 import { useGitSync } from './hooks/useGitSync';
 import { useIframeBridge } from './hooks/useIframeBridge';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -29,7 +29,7 @@ import { openInBrowser, handleExternalLinkClick } from './utils/openExternal';
 import { withLofiParam } from '../lofi/preview-mode';
 import { commentIdSelector } from '../shared/comments';
 import type { CommentContext } from '../shared/comments';
-import { readPersistedAppPath, setCurrentAppPath, getCurrentAppPath } from './utils/appPath';
+import { readPersistedAppPath, setCurrentAppPath } from './utils/appPath';
 import { PV_OPEN_IN_CANVAS } from './utils/canvasLinks';
 import { PV_OPEN_PROMPT_EVENT } from './events/openPrompt';
 import {
@@ -38,52 +38,6 @@ import {
   PV_SET_CANVAS_EDIT_LOCKED,
   PV_CANVAS_EDIT_BLOCKED,
 } from './utils/canvasEditGuard';
-
-// A compile or runtime crash is often transient while an AI agent edits code, so the
-// shell runs each crash as an "episode" behind a loading cover instead of
-// alarming the user immediately:
-//   t+1s / t+5s / t+10s — auto-refresh the app iframe (Vite doesn't always manage to
-//                  auto-reload out of a broken state; a refresh sometimes does)
-//   t+15s        — show the full error state, but only once watched source
-//                  files have stopped changing — an agent mid-task keeps the
-//                  loading cover up for as long as it keeps writing.
-//   after error  — keep retrying every 5s behind the error until recovery.
-// Automatic refreshes retain the episode clock; manual refresh starts it over.
-const CRASH_AUTO_REFRESH_AT_MS = [1_000, 5_000, 10_000];
-const CRASH_FINAL_ERROR_AT_MS = 15_000;
-const CRASH_ERROR_REFRESH_MS = 5_000;
-// Give slow recovery loads time to finish, but still retry stalled requests.
-const CRASH_RELOAD_TIMEOUT_MS = 30_000;
-// A source change within this window counts as "agent still working" and
-// postpones the final error until the writes stop.
-const CRASH_ACTIVITY_EXTEND_MS = 10_000;
-const BLANK_PREVIEW_SETTLE_MS = 1_500;
-// How long after an ambiguous "no error yet" report (a freshly loaded document
-// that may still crash — see bridge.ts) before the episode counts as recovered.
-const CRASH_RECOVERY_CONFIRM_MS = 2_500;
-const CRASH_TICK_MS = 1_000;
-
-// none: healthy · pending: crash inside the grace period (canvas covered by a
-// loading state) · error: crash outlived the grace period (full error shown).
-type ViteErrorPhase = 'none' | 'pending' | 'error';
-
-// The shell itself is a Vite client, so error payloads pushed over the HMR
-// websocket create a vite-error-overlay in this document too (hidden by
-// shell.css). Read it to recover the error text for the blank-canvas case,
-// where the app iframe has no overlay of its own to show.
-function readOwnViteOverlayError(): string | null {
-  try {
-    const root = (document.querySelector('vite-error-overlay') as HTMLElement & { shadowRoot?: ShadowRoot | null })?.shadowRoot;
-    if (!root) return null;
-    const part = (sel: string) => root.querySelector(sel)?.textContent?.trim() || '';
-    const text = [part('.plugin'), part('.message-body'), part('.file'), part('.frame')]
-      .filter(Boolean)
-      .join('\n\n');
-    return text || null;
-  } catch {
-    return null;
-  }
-}
 
 function parseTabParam(search: string): IframeTab {
   const tab = new URLSearchParams(search).get('tab');
@@ -101,55 +55,6 @@ export const ProtovibeApp: React.FC = () => {
     () => parseTabParam(window.location.search)
   );
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('design');
-  const [viteErrorPhase, setViteErrorPhase] = useState<ViteErrorPhase>('none');
-  // A crash that leaves the canvas blank (failed module load on a fresh page,
-  // no vite-error-overlay in the iframe) — the shell must render the final
-  // error itself, using whatever detail it can recover.
-  const [moduleLoadError, setModuleLoadError] = useState(false);
-  const [viteErrorDetail, setViteErrorDetail] = useState<string | null>(null);
-  // Ref mirror so the (once-registered) message handler and the episode tick
-  // can read the current phase without re-subscribing on every change.
-  const viteErrorPhaseRef = useRef<ViteErrorPhase>('none');
-  // The active crash episode. Automatic refreshes retain the countdown to the
-  // error; an explicit refresh starts a fresh loading/attempt cycle.
-  // canvasBlanked: the app iframe was reloaded into a failed module load at
-  // some point, so it may need one more reload to come back after recovery.
-  const crashEpisodeRef = useRef<{
-    start: number; refreshesDone: number; canvasBlanked: boolean;
-    blankPreview: boolean; detail: string | null; nextErrorRefreshAt: number;
-  } | null>(null);
-  const crashTickRef = useRef<number | null>(null);
-  const crashRecoveryTimerRef = useRef<number | null>(null);
-  const crashReloadStartedAtRef = useRef<number | null>(null);
-
-  const setViteError = useCallback((phase: ViteErrorPhase) => {
-    viteErrorPhaseRef.current = phase;
-    setViteErrorPhase(phase);
-  }, []);
-
-  const clearCrashRecoveryTimer = useCallback(() => {
-    if (crashRecoveryTimerRef.current !== null) {
-      window.clearTimeout(crashRecoveryTimerRef.current);
-      crashRecoveryTimerRef.current = null;
-    }
-  }, []);
-
-  const clearCrashTick = useCallback(() => {
-    if (crashTickRef.current !== null) {
-      window.clearInterval(crashTickRef.current);
-      crashTickRef.current = null;
-    }
-  }, []);
-
-  const endCrashEpisode = useCallback(() => {
-    crashEpisodeRef.current = null;
-    crashReloadStartedAtRef.current = null;
-    clearCrashTick();
-    clearCrashRecoveryTimer();
-    setViteError('none');
-    setModuleLoadError(false);
-    setViteErrorDetail(null);
-  }, [clearCrashTick, clearCrashRecoveryTimer, setViteError]);
   // Unread-thread count broadcast by the (always-mounted) CommentsTab, surfaced
   // as a dot on the Comments nav tab even while that panel is hidden.
   const [unreadComments, setUnreadComments] = useState(0);
@@ -165,7 +70,6 @@ export const ProtovibeApp: React.FC = () => {
   // Restore the project's last URL on every reload or React remount.
   const [initialAppSrc] = useState(readPersistedAppPath);
   const [appIframePath, setAppIframePath] = useState(initialAppSrc);
-  const [appIframeLoading, setAppIframeLoading] = useState(true);
   const [mobileWidth, setMobileWidth] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [elementsPanelOpen, setElementsPanelOpen] = useState(() => {
@@ -181,101 +85,12 @@ export const ProtovibeApp: React.FC = () => {
   const sketchpadIframeRef = useRef<HTMLIFrameElement>(null);
   const componentsIframeRef = useRef<HTMLIFrameElement>(null);
   const appScrollPositionsRef = useRef<Array<{ el: Element; top: number; left: number }>>([]);
-  const handleAppPageHide = useCallback(() => setAppIframeLoading(true), []);
-
-  // Reload one canvas iframe (used by the crash covers, the crash banner, and
-  // the episode's auto-refresh schedule).
-  const reloadIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
-    if (ref === appIframeRef && ref.current) setAppIframeLoading(true);
-    if (ref === appIframeRef && ref.current && crashEpisodeRef.current) {
-      crashReloadStartedAtRef.current = Date.now();
-    }
-    try {
-      ref.current?.contentWindow?.location.reload();
-    } catch {
-      if (ref.current) ref.current.src = ref === appIframeRef ? getCurrentAppPath() : ref.current.src;
-    }
-  }, []);
-
-  // Begin a crash episode: cover the canvas and drive the auto-refresh /
-  // final-error schedule off one retained clock.
-  const startCrashEpisode = useCallback(() => {
-    const previous = crashEpisodeRef.current;
-    crashEpisodeRef.current = {
-      start: Date.now(), refreshesDone: 0, nextErrorRefreshAt: 0,
-      canvasBlanked: previous?.canvasBlanked ?? false,
-      blankPreview: previous?.blankPreview ?? false,
-      detail: previous?.detail ?? null,
-    };
-    clearCrashRecoveryTimer();
-    setViteError('pending');
-    clearCrashTick();
-    let probing = false;
-    crashTickRef.current = window.setInterval(async () => {
-      const ep = crashEpisodeRef.current;
-      if (!ep || probing) return;
-
-      if (viteErrorPhaseRef.current === 'error') {
-        if (Date.now() < ep.nextErrorRefreshAt || crashRecoveryTimerRef.current !== null) return;
-        // A new navigation can still expose the previous, complete document
-        // while waiting for HTML. Track reloads until onLoad instead of using
-        // readyState, so neither slow HTML nor slow modules get cancelled.
-        const reloadStartedAt = crashReloadStartedAtRef.current;
-        if (reloadStartedAt !== null && Date.now() - reloadStartedAt < CRASH_RELOAD_TIMEOUT_MS) return;
-        const doc = appIframeRef.current?.contentDocument;
-        // Leave a newly rendered app alone while its bridge confirms recovery.
-        if (ep.blankPreview && doc && hasPreviewContent(doc) && !doc.querySelector('vite-error-overlay')) return;
-        ep.nextErrorRefreshAt = Date.now() + CRASH_ERROR_REFRESH_MS;
-        reloadIframe(appIframeRef);
-        return;
-      }
-
-      // Don't reload a blank app in the middle of a multi-file write or while
-      // Vite is unavailable. The shell retains the budget across reloads.
-      let ready = false;
-      let activityMsAgo = Infinity;
-      probing = true;
-      try {
-        const response = await fetch('/__hmr-activity', { cache: 'no-store', signal: AbortSignal.timeout(2_000) });
-        if (!response.ok) throw new Error('Server unavailable');
-        const d = await response.json();
-        activityMsAgo = typeof d?.msSinceLastChange === 'number' ? d.msSinceLastChange : Infinity;
-        ready = d?.msSinceLastChange === null ||
-          (typeof d?.msSinceLastChange === 'number' && d.msSinceLastChange >= BLANK_PREVIEW_SETTLE_MS);
-      } catch {
-        // Keep the final error reachable even if the server is down.
-      } finally {
-        probing = false;
-      }
-      if (crashEpisodeRef.current !== ep || viteErrorPhaseRef.current !== 'pending') return;
-
-      const elapsed = Date.now() - ep.start;
-      const doc = appIframeRef.current?.contentDocument;
-      const blankRetryAllowed = ready && doc?.readyState === 'complete' && !hasPreviewContent(doc);
-      if (ep.refreshesDone < CRASH_AUTO_REFRESH_AT_MS.length && elapsed >= CRASH_AUTO_REFRESH_AT_MS[ep.refreshesDone] &&
-          (!ep.blankPreview || blankRetryAllowed)) {
-        ep.refreshesDone += 1;
-        reloadIframe(appIframeRef);
-        return;
-      }
-      if (elapsed >= CRASH_FINAL_ERROR_AT_MS && activityMsAgo >= CRASH_ACTIVITY_EXTEND_MS) {
-        ep.nextErrorRefreshAt = Date.now() + CRASH_ERROR_REFRESH_MS;
-        // A compile overlay may have appeared and disappeared during runtime
-        // recovery. If the app is still blank, restore the shell's error cover.
-        if (ep.blankPreview) setModuleLoadError(!doc?.querySelector('vite-error-overlay'));
-        setViteErrorDetail(ep.detail || readOwnViteOverlayError());
-        setViteError('error');
-      }
-    }, CRASH_TICK_MS);
-  }, [setViteError, clearCrashTick, clearCrashRecoveryTimer, reloadIframe]);
-
-  const refreshCrashedIframe = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
-    startCrashEpisode();
-    reloadIframe(ref);
-    // The same cover is shown on all canvases. If the app caused it, refreshing
-    // another tab must still retry the app that owns the runtime failure.
-    if (ref !== appIframeRef && crashEpisodeRef.current?.blankPreview) reloadIframe(appIframeRef);
-  }, [startCrashEpisode, reloadIframe]);
+  const app = usePreviewRecovery(appIframeRef, 'app');
+  const sketchpad = usePreviewRecovery(sketchpadIframeRef, 'sketchpad');
+  const components = usePreviewRecovery(componentsIframeRef, 'components');
+  const frameRefs = { app: appIframeRef, sketchpad: sketchpadIframeRef, components: componentsIframeRef };
+  const previews = { app, sketchpad, components };
+  const activePreview = previews[activeIframeTab];
 
   const captureAppScrollPositions = useCallback(() => {
     const doc = appIframeRef.current?.contentDocument;
@@ -393,13 +208,13 @@ export const ProtovibeApp: React.FC = () => {
   // <link>s are only injected when the page is served).
   useEffect(() => {
     const handler = () => {
-      reloadIframe(appIframeRef);
-      reloadIframe(sketchpadIframeRef);
-      reloadIframe(componentsIframeRef);
+      app.refresh();
+      sketchpad.refresh();
+      components.refresh();
     };
     window.addEventListener('pv-reload-canvases', handler);
     return () => window.removeEventListener('pv-reload-canvases', handler);
-  }, [reloadIframe]);
+  }, [app.refresh, sketchpad.refresh, components.refresh]);
 
   // Bring an anchored element (a comment thread's or a spec annotation's) into
   // view by CSS selector. Retries across iframes because the element may only
@@ -541,94 +356,10 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [activeIframeTab]);
 
-  // Listen for compile and blank-page runtime errors from the iframe bridges. A crash is often
-  // just a transient state while an AI agent edits code, so it runs as an
-  // episode (see the CRASH_* constants) instead of alarming the user right away.
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin) return;
-      const fromAppIframe = e.source === appIframeRef.current?.contentWindow;
-      if (!fromAppIframe && e.source !== componentsIframeRef.current?.contentWindow &&
-          e.source !== sketchpadIframeRef.current?.contentWindow) return;
-      if (fromAppIframe && e.data?.type === 'PV_APP_PREVIEW_READY') {
-        setAppIframeLoading(false);
-        // Wire navigation as soon as content renders, even if load is still pending.
-        appIframeRef.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
-        return;
-      }
-      if (e.data?.type === 'PV_BLANK_PREVIEW_UNHEALTHY' && fromAppIframe && crashEpisodeRef.current?.blankPreview) {
-        clearCrashRecoveryTimer();
-        return;
-      }
-      const blankError = e.data?.type === 'PV_BLANK_PREVIEW_ERROR' && fromAppIframe;
-      if (e.data?.type === 'PV_VITE_ERROR' || blankError) {
-        // A delayed report must not refresh an app that has already recovered.
-        if (blankError && (!appIframeRef.current?.contentDocument || hasPreviewContent(appIframeRef.current.contentDocument))) return;
-        // Repeated errors retain the episode's clock and cancel confirmation.
-        clearCrashRecoveryTimer();
-        if (!crashEpisodeRef.current) startCrashEpisode();
-        const ep = crashEpisodeRef.current!;
-        if (blankError) {
-          ep.blankPreview = true;
-          ep.canvasBlanked = true;
-          ep.detail = typeof e.data.detail === 'string' ? e.data.detail.slice(0, 8_000) : null;
-          setModuleLoadError(true);
-          setViteErrorDetail(ep.detail);
-          return;
-        }
-        // Last write wins: an overlay appearing in the iframe means the canvas
-        // is no longer blank, a failed module load means it is.
-        if (ep.blankPreview) {
-          // Reports from another canvas must not hide the runtime diagnostic
-          // while the app is still blank during a background reload.
-          setModuleLoadError(!appIframeRef.current?.contentDocument?.querySelector('vite-error-overlay'));
-        } else if (typeof e.data.moduleLoadError === 'boolean') setModuleLoadError(e.data.moduleLoadError);
-        if (e.data.moduleLoadError) ep.canvasBlanked = true;
-      }
-      if (e.data?.type === 'PV_VITE_ERROR_CLEARED' ||
-          (e.data?.type === 'PV_BLANK_PREVIEW_RECOVERED' && fromAppIframe)) {
-        if (!crashEpisodeRef.current) return;
-        // Other canvases and a fresh document's lack of a Vite overlay cannot
-        // prove that an app which crashed at runtime has recovered.
-        if (crashEpisodeRef.current.blankPreview &&
-            (!fromAppIframe || e.data.type !== 'PV_BLANK_PREVIEW_RECOVERED')) return;
-        // No CLEARED is definitive: vite removes and re-adds the overlay on
-        // every update cycle when a broken JS update rides along with a
-        // successful CSS one, and a freshly loaded document merely hasn't
-        // errored *yet*. Confirm recovery with a delay — a quick re-error
-        // cancels it, retaining the episode clock.
-        if (crashRecoveryTimerRef.current === null) {
-          crashRecoveryTimerRef.current = window.setTimeout(() => {
-            crashRecoveryTimerRef.current = null;
-            if (crashEpisodeRef.current?.blankPreview) {
-              const doc = appIframeRef.current?.contentDocument;
-              if (!doc || doc.readyState !== 'complete' || !hasPreviewContent(doc) || doc.querySelector('vite-error-overlay')) return;
-            }
-            // A canvas left blank by a mid-crash reload can't apply HMR
-            // updates, so the fix that other iframes just confirmed never
-            // reaches it — revive it with one more reload.
-            const revive = !!crashEpisodeRef.current?.canvasBlanked && !fromAppIframe;
-            endCrashEpisode();
-            if (revive) reloadIframe(appIframeRef);
-          }, CRASH_RECOVERY_CONFIRM_MS);
-        }
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => {
-      window.removeEventListener('message', handler);
-      clearCrashTick();
-      clearCrashRecoveryTimer();
-    };
-  }, [startCrashEpisode, endCrashEpisode, clearCrashRecoveryTimer, clearCrashTick, reloadIframe, handleAppPageHide]);
-
   // Re-send state whenever a specific iframe reloads (e.g. HMR full-reload)
-  const handleIframeLoad = useCallback((ref: React.RefObject<HTMLIFrameElement | null>) => {
-    if (ref === appIframeRef) {
-      crashReloadStartedAtRef.current = null;
-      setAppIframeLoading(false);
-      ref.current?.contentWindow?.addEventListener('pagehide', handleAppPageHide, { once: true });
-    }
+  const handleIframeLoad = (tab: IframeTab) => {
+    previews[tab].onLoad();
+    const ref = frameRefs[tab];
     ref.current?.contentWindow?.postMessage(
       { type: 'PV_SET_THEME', theme: iframeTheme, lofi: previewMode === 'lofi' },
       '*'
@@ -679,12 +410,9 @@ export const ProtovibeApp: React.FC = () => {
         win?.addEventListener('popstate', rememberPath);
       } catch { /* The next successful load restores navigation tracking. */ }
     }
-  }, [iframeTheme, previewMode, inspectorOpen, setHtmlFontSize, postCanvasEditLocked, handleAppPageHide]);
+  };
 
-  const activeIframeRef =
-    activeIframeTab === 'sketchpad' ? sketchpadIframeRef :
-    activeIframeTab === 'components' ? componentsIframeRef :
-    appIframeRef;
+  const activeIframeRef = frameRefs[activeIframeTab];
 
   // Wipe the prototype's persisted state. The clear runs inside the app iframe
   // (see PV_CLEAR_STORAGE in bridge.ts), which then reloads itself.
@@ -697,7 +425,7 @@ export const ProtovibeApp: React.FC = () => {
   const handleRestart = async () => {
     try {
       await restartServer();
-      endCrashEpisode();
+      activePreview.dismiss();
     } catch (e) {
       console.error('Restart failed', e);
     }
@@ -734,19 +462,31 @@ export const ProtovibeApp: React.FC = () => {
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  // Crash covers rendered over each canvas iframe: the loading state during the
-  // grace period, and the shell-rendered final error when the canvas is blank
-  // (a failed module load leaves no vite-error-overlay to show through to).
-  const renderCrashCover = (ref: React.RefObject<HTMLIFrameElement | null>) => (
-    <>
-      {viteErrorPhase === 'pending' && (
-        <CrashLoadingOverlay />
-      )}
-      {viteErrorPhase === 'error' && moduleLoadError && (
-        <CrashErrorOverlay detail={viteErrorDetail} onRefresh={() => refreshCrashedIframe(ref)} />
-      )}
-    </>
-  );
+  const renderPreviewStatus = (tab: IframeTab) => {
+    const preview = previews[tab];
+    if (preview.phase === 'pending') return <CrashLoadingOverlay />;
+    if (preview.phase === 'error' && preview.moduleLoadError) {
+      return <CrashErrorOverlay tab={tab} detail={preview.detail} onRefresh={preview.refresh} />;
+    }
+    if (preview.phase === 'none' && preview.loading) {
+      return (
+        <div
+          role="status"
+          aria-label={`Loading ${tab}`}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            // Never hide or intercept a usable preview if a readiness signal is delayed.
+            pointerEvents: 'none', color: theme.text_secondary,
+          }}
+        >
+          <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>
+          <LoaderCircle size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Broadcast theme to all iframes whenever it changes
   useEffect(() => {
@@ -779,7 +519,7 @@ export const ProtovibeApp: React.FC = () => {
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => toggleInspector()}
       />
-      {viteErrorPhase === 'error' && (
+      {activePreview.phase === 'error' && (
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '16px 20px', background: theme.destructive_low,
@@ -789,11 +529,11 @@ export const ProtovibeApp: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
             <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
             <div style={{ color: theme.destructive_default, fontSize: '15px', fontWeight: 600 }}>
-              The app has errors in code
+              {activeIframeTab === 'app' ? 'The app has errors in code' : 'Preview unavailable'}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-            <button onClick={() => refreshCrashedIframe(activeIframeRef)} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={activePreview.refresh} style={{ background: theme.destructive_default, color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <RefreshCw size={16} />
               Refresh
             </button>
@@ -802,7 +542,7 @@ export const ProtovibeApp: React.FC = () => {
               Restart
             </button>
           </div>
-          <button onClick={endCrashEpisode} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={activePreview.dismiss} style={{ background: 'transparent', color: theme.destructive_default, border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <X size={16} />
           </button>
         </div>
@@ -861,8 +601,7 @@ export const ProtovibeApp: React.FC = () => {
                 <ArrowRight size={16} />
               </button>
               <button
-                onClick={() => viteErrorPhaseRef.current === 'none'
-                  ? reloadIframe(appIframeRef) : refreshCrashedIframe(appIframeRef)}
+                onClick={app.refresh}
                 data-tooltip="Refresh"
                 style={{
                   width: 26, height: 26, border: 'none', borderRadius: 4,
@@ -959,24 +698,9 @@ export const ProtovibeApp: React.FC = () => {
                   border: 'none',
                   minWidth: 0,
                 }}
-                onLoad={() => handleIframeLoad(appIframeRef)}
+                onLoad={() => handleIframeLoad('app')}
               />
-              {appIframeLoading && viteErrorPhase === 'none' && (
-                <div
-                  role="status"
-                  aria-label="Loading app"
-                  style={{
-                    position: 'absolute', inset: 0, zIndex: 1,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    // Never hide or intercept a usable app if a readiness signal is delayed.
-                    pointerEvents: 'none', color: theme.text_secondary,
-                  }}
-                >
-                  <style>{'@keyframes pv-app-loading-spin { to { transform: rotate(360deg); } }'}</style>
-                  <LoaderCircle size={28} aria-hidden="true" style={{ animation: 'pv-app-loading-spin 1s linear infinite' }} />
-                </div>
-              )}
-              {renderCrashCover(appIframeRef)}
+              {renderPreviewStatus('app')}
             </div>
           </div>
           <div style={{ flex: 1, display: activeIframeTab === 'sketchpad' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
@@ -985,18 +709,18 @@ export const ProtovibeApp: React.FC = () => {
               title="Sketchpad"
               src="/sketchpad.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
-              onLoad={() => handleIframeLoad(sketchpadIframeRef)}
+              onLoad={() => handleIframeLoad('sketchpad')}
             />
-            {renderCrashCover(sketchpadIframeRef)}
+            {renderPreviewStatus('sketchpad')}
           </div>
           <div style={{ flex: 1, display: activeIframeTab === 'components' ? 'flex' : 'none', minHeight: 0, position: 'relative' }}>
             <iframe
               ref={componentsIframeRef}
               src="/components.html"
               style={{ flex: 1, border: 'none', minWidth: 0 }}
-              onLoad={() => handleIframeLoad(componentsIframeRef)}
+              onLoad={() => handleIframeLoad('components')}
             />
-            {renderCrashCover(componentsIframeRef)}
+            {renderPreviewStatus('components')}
           </div>
             </div>
           </div>

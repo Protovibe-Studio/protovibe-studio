@@ -138,6 +138,37 @@ test('a module error in a rendered app does not refresh it', async t => {
   assert.ok(fixture.errors.some(e => e.includes('dynamically imported module')));
 });
 
+test('an auxiliary script failure does not revive when a rendered app becomes empty', async t => {
+  const fixture = await openFixture(t, () => readyApp);
+  await fixture.frame.getByText('Recovery fixture ready').waitFor();
+  await fixture.page.route('**/optional-widget.js', route => route.fulfill({ status: 404 }));
+  await fixture.frame.evaluate(async () => {
+    const script = document.createElement('script');
+    script.src = '/optional-widget.js';
+    const failed = new Promise(resolve => { script.onerror = resolve; });
+    document.head.appendChild(script);
+    await failed;
+    document.getElementById('root').replaceChildren();
+  });
+  await staysAt(fixture, 1);
+});
+
+test('slow entry failures retain the original recovery budget', async t => {
+  let requests = 0;
+  const fixture = await openFixture(t, () => readyApp, { init: async page => {
+    // Trigger the bridge's DOM observer while the next entry is still loading.
+    await page.addInitScript(() => document.addEventListener('readystatechange', () => {
+      if (document.readyState === 'interactive') document.head.append(document.createElement('meta'));
+    }));
+    await page.route('**/src/main.tsx', async route => {
+      if (++requests > 1) await new Promise(resolve => setTimeout(resolve, 3_500));
+      await route.fulfill({ status: 503 });
+    });
+  } });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 22_000 });
+  assert.equal(requests, 4);
+});
+
 test('an uncaught runtime error plus an empty root recovers through the loading cover', async t => {
   const fixture = await openFixture(t, n => n === 1
     ? `setTimeout(() => { throw new Error('Business logic bug'); }, 0); ${emptyApp}` : readyApp);
@@ -613,3 +644,91 @@ test('a stalled background reload is retried after its timeout', async t => {
   assert.equal(recoveryRequests, 2);
 });
 
+
+const panels = [
+  { tab: 'components', entry: '**/src/ui/previewer-entry.tsx*', root: '#pv-previewer-root' },
+  { tab: 'sketchpad', entry: '**/src/sketchpads/sketchpad-main.tsx*', root: '#sketchpad-root' },
+];
+
+async function openPanel(t, tab) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  t.after(() => page.close());
+  await isolateAppPath(page);
+  await page.route('**/__cloudflare-auth-status*', route => route.fulfill({ json: {} }));
+  await page.route('**/__git-status*', route => route.fulfill({ json: { isRepo: false } }));
+  await page.goto(`${origin}/protovibe.html?tab=${tab}`);
+  return page;
+}
+
+for (const { tab, entry, root } of panels) {
+  test(`refreshing ${tab} shows only its ordinary spinner while a hidden App fails`, async t => {
+    const page = await openPanel(t, tab);
+    const frame = page.frameLocator(`iframe[src="/${tab}.html"]`);
+    await frame.locator(`${root} > *`).first().waitFor({ state: 'attached' });
+
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    t.after(release);
+    await page.route(entry, async route => { await gate; await route.continue(); });
+    await page.route('**/src/main.tsx', route => route.fulfill({ status: 503, body: 'App unavailable' }));
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    // Verify the hidden App has really entered its retry cycle.
+    await page.getByTestId('app-preview').locator('..').getByText('Loading…', { exact: true }).waitFor({ state: 'attached' });
+    const spinner = page.getByRole('status', { name: `Loading ${tab}`, exact: true });
+    await spinner.waitFor();
+    const panel = page.locator(`iframe[src="/${tab}.html"]`).locator('..');
+    assert.equal(await panel.getByText('Loading…', { exact: true }).count(), 0);
+    assert.doesNotMatch(await panel.innerText(), /agent is working/i);
+    await captureState(page, `${tab}-ordinary-loading`);
+    release();
+    await frame.locator(`${root} > div`).first().waitFor();
+    await spinner.waitFor({ state: 'detached' });
+    assert.equal(await page.getByRole('button', { name: 'Refresh page' }).isVisible(), false);
+  });
+
+  test(`${tab} retries its own failed module and recovers after the final error`, async t => {
+    const page = await openPanel(t, tab);
+    const element = page.locator(`iframe[src="/${tab}.html"]`);
+    const frame = await (await element.elementHandle()).contentFrame();
+    const panel = element.locator('..');
+    if (tab === 'components') {
+      await frame.getByRole('button', { name: 'Open Button variants' }).click();
+      await frame.getByRole('button', { name: 'Back to components list' }).waitFor();
+    }
+    const appFrame = await (await page.getByTestId('app-preview').elementHandle()).contentFrame();
+    await appFrame.evaluate(() => { window.appIdentity = 'original document'; });
+    let broken = true;
+    let attempts = 0;
+    await page.route(entry, route => {
+      attempts++;
+      if (!broken) return route.continue();
+      // Exercise both a failed network request and a link-time error from
+      // mismatched exports. Neither fixture creates a Vite overlay.
+      return tab === 'components'
+        ? route.fulfill({ status: 503, body: 'Module unavailable' })
+        : route.fulfill({ contentType: 'text/javascript', body: "import { missing } from 'data:text/javascript,export const interim = 1';" });
+    });
+    await frame.evaluate(() => location.reload());
+    await panel.getByText('Loading…', { exact: true }).waitFor();
+    await page.getByTestId('tab-app').click();
+    assert.equal(await page.getByText('Loading…', { exact: true }).isVisible(), false);
+    await page.getByTestId(`tab-${tab}`).click();
+    const retry = panel.getByRole('button', { name: 'Refresh page' });
+    await retry.waitFor({ timeout: 25_000 });
+    assert.equal(attempts, 4, 'initial failure plus three retries of this panel');
+    if (tab === 'sketchpad') assert.match(await panel.locator('pre').innerText(), /missing/);
+    await captureState(page, `${tab}-error`);
+
+    broken = false;
+    await retry.waitFor({ state: 'detached', timeout: 15_000 });
+    if (tab === 'components') {
+      await frame.getByRole('button', { name: 'Back to components list' }).waitFor();
+      assert.equal(new URL(frame.url()).searchParams.get('component'), 'Button');
+    } else {
+      await frame.getByTestId('toolbar-add').waitFor();
+    }
+    assert.equal(attempts, 5);
+    assert.equal(await appFrame.evaluate(() => window.appIdentity), 'original document');
+    await captureState(page, `${tab}-recovered`);
+  });
+}

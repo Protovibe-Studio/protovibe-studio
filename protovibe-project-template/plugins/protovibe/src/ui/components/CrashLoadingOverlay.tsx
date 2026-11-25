@@ -1,6 +1,7 @@
 // plugins/protovibe/src/ui/components/CrashLoadingOverlay.tsx
 import React from 'react';
 import { LoaderCircle, RefreshCw } from 'lucide-react';
+import type { IframeTab } from './ShellNavBar';
 import { theme } from '../theme';
 
 const SPIN_KEYFRAMES = '@keyframes pv-crash-spin { to { transform: rotate(360deg); } }';
@@ -65,7 +66,7 @@ export const CrashLoadingOverlay: React.FC = () => (
         Loading…
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
-        This usually means your AI agent is working on the code.
+        Retrying the preview automatically.
       </div>
     </div>
   </div>
@@ -74,17 +75,15 @@ export const CrashLoadingOverlay: React.FC = () => (
 // Final error state for a crash that leaves the canvas blank: a document that
 // loads while the server has a compile error gets no vite-error-overlay, so the
 // shell shows the captured error (or a generic message) itself.
-export const CrashErrorOverlay: React.FC<{ detail: string | null; onRefresh: () => void }> = ({ detail, onRefresh }) => (
+export const CrashErrorOverlay: React.FC<{ tab: IframeTab; detail: string | null; onRefresh: () => void }> = ({ tab, detail, onRefresh }) => (
   <div style={containerStyle}>
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, maxWidth: 640, textAlign: 'center', padding: '0 24px' }}>
       <div style={{ color: theme.destructive_default, fontSize: 15, fontWeight: 600 }}>
-        The app failed to load
+        {tab === 'app' ? 'The app' : tab === 'components' ? 'Components' : 'Sketchpad'} failed to load
       </div>
       <div style={{ color: theme.text_tertiary, fontSize: 13, lineHeight: 1.5 }}>
-        If your AI agent is still working, just wait a bit — this page refreshes automatically.{' '}
-        {detail
-          ? 'If it’s finished, copy the error below and ask it to fix the app.'
-          : 'If it’s finished, ask it to fix the app.'}
+        {detail ? 'Check the error below. The preview will refresh after the code is fixed.'
+          : 'The preview will refresh after the code is fixed.'}
       </div>
     </div>
     {detail && (
