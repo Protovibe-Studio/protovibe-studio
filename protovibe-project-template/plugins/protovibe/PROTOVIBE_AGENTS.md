@@ -2,6 +2,9 @@ AI Agent! You MUST read the whole file below until the last line.
 
 # AGENTS.md: Protovibe AI Engineering Rules
 
+* Before doing anything related to specs or annotations, read [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md) in full.
+* Whenever you refer to an annotation, make its descriptive text a Markdown link to `https://protovibe-studio.github.io/open/?url=` + `encodeURIComponent('protovibe://annotation/{specId}/{itemId}')`, with its actual IDs.
+
 If you find an uncommitted Protovibe editor update, you may include it as a separate commit when committing and syncing your task changes.
 
 Protovibe is an AST-based visual builder that reads and writes React code directly. Because it relies on static AST parsing and specific DOM data-attributes to map the canvas to the code, you must adhere to these strict architectural rules based on the task you are performing.
@@ -887,7 +890,7 @@ only) plus one `{itemId}.json` file per annotation (`a-…`) or heading (`h-…`
 Order comes from each item's fractional `rank` string. These files are committed
 to git. Do not edit them unless the user asks you to.
 
-> **Writing specs or annotations?** Read
+> **Anything related to specs or annotations?** Read
 > [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
 > first — full schemas, id formats, the `rank` ordering scheme and the rules for
 > pinning an annotation to an element.
@@ -918,7 +921,7 @@ Deeper, task-specific instructions live next to this file in
 starting that kind of task — the summaries above are not enough to do the work
 correctly.
 
-* **Asked to create, edit or assemble specs or annotations programmatically?**
+* **Doing anything related to specs or annotations?**
   Read [agents-skills/specs-annotations.md](./agents-skills/specs-annotations.md)
   first. It covers the file schema, id formats, the `rank` ordering scheme, the
   `data-pv-spec-*` element attribute and the rules that keep spec files safe to

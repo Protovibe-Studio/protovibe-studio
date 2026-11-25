@@ -1,10 +1,11 @@
-# Skill: authoring Protovibe specs and annotations programmatically
+# Skill: working with Protovibe specs and annotations
 
-How a coding agent creates, edits and assembles **specs** (annotated prototype
-states) by writing files directly, without going through the Specs panel.
+How a coding agent reads, discusses, links to, and edits **specs** (annotated
+prototype states) and their annotation files.
 
-Read this before writing anything under `src/specs/`. Only act on it when the
-user asks for specs or annotations — never invent or reorganise them on your own.
+Read this before doing anything related to specs or annotations, including
+reading, reviewing, discussing, creating, or editing them. Only create or edit
+specs or annotations when the user asks — never invent or reorganise them on your own.
 
 ---
 
@@ -249,25 +250,31 @@ shows up without restarting anything.
 
 ## 9. Link to annotations in the desktop app
 
-When you create, update, or refer to an annotation, include a clickable Markdown
-link so the user can jump to it in Protovibe without publishing:
+Whenever you refer to an annotation, make its descriptive text a clickable
+Markdown link to the HTTPS redirect, including in reviews and summaries.
+Build the destination as follows:
 
-```text
-protovibe://annotation/{specId}/{itemId}
+```js
+const deepLink = `protovibe://annotation/${specId}/${itemId}`;
+const link = 'https://protovibe-studio.github.io/open/?url=' + encodeURIComponent(deepLink);
 ```
 
 For `src/specs/k3f9x2m1qa/a-9z8y7x6w.json`, write:
 
 ```markdown
-[Recruiting defaults](protovibe://annotation/k3f9x2m1qa/a-9z8y7x6w)
+[Recruiting defaults](https://protovibe-studio.github.io/open/?url=protovibe%3A%2F%2Fannotation%2Fk3f9x2m1qa%2Fa-9z8y7x6w)
 ```
 
 Use the existing spec directory and annotation filename (without `.json`) as the
 IDs. Do not invent IDs, use heading IDs, or put `state.path`, a local port, or a
 published URL in this link. Finish saving the files before sharing the link.
+Use the HTTPS wrapper in responses; some chat clients do not render custom-scheme
+links. Encode the complete deep link once. Before sending, check that each
+annotation reference has its link.
 
-The installed Protovibe desktop app handles this scheme. A browser may prompt
-the user to open Protovibe. The app looks in the **currently open project**,
+The redirect attempts to open the installed Protovibe desktop app and provides
+an **Open in Protovibe** button if the browser requires a click. The app looks
+in the **currently open project**,
 opens Specs, reveals the annotation, restores its saved prototype state, and
 selects its pinned element when present. It does not search or switch projects.
 If the annotation is absent, it shows a toast; if no project is open, it asks the
