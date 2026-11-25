@@ -468,7 +468,7 @@ export const SpecsViewerApp: React.FC = () => {
       </div>
 
       {/* prototype */}
-      <div style={{ flex: 1, minWidth: 0, padding: 8, background: '#000', pointerEvents: resizing ? 'none' : 'auto' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: 8, pointerEvents: resizing ? 'none' : 'auto' }}>
         <iframe
           ref={iframeRef}
           name="pv-spec-viewer"
