@@ -1,0 +1,85 @@
+name: Capture PR 101 comparison
+on:
+  push:
+    branches: [review/pr-101-screenshots]
+    paths: [.github/workflows/capture-pr-101.yml]
+permissions:
+  contents: read
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1fdab8011086aaa847bb96960cb89eca084afa9d
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - name: Build the sample prototype and both viewer revisions
+        working-directory: protovibe-project-template
+        run: |
+          pnpm install --ignore-scripts --no-frozen-lockfile
+          pnpm --dir plugins/protovibe install --ignore-scripts --no-frozen-lockfile
+          sed '/import { protovibePlugin }/d;s/, protovibePlugin()//' vite.config.ts > vite.review.config.ts
+          pnpm exec vite build --config vite.review.config.ts
+          viewer=plugins/protovibe/src/specs-viewer
+          esbuild=plugins/protovibe/node_modules/.bin/esbuild
+          cp "$viewer/specs.html" dist/specs.html
+          "$esbuild" "$viewer/main.tsx" --bundle --minify --outfile=dist/specs-viewer.js
+          git fetch --depth=1 origin 65fed25cbe9600b1737955c0aeef57c116a7c757
+          git show "FETCH_HEAD:protovibe-project-template/$viewer/SpecsViewerApp.tsx" > "$viewer/SpecsViewerApp.tsx"
+          "$esbuild" "$viewer/main.tsx" --bundle --minify --outfile=dist/before.js
+          sed 's/src=".\/specs-viewer.js"/src=".\/before.js"/' dist/specs.html > dist/before.html
+          cat > dist/specs-data.json <<'JSON'
+          {"specs":[{"spec":{"id":"overview","title":"Prototype overview"},"items":[{"id":"intro","rank":"a","type":"heading","level":"big","title":"Introduction"},{"id":"home","rank":"b","type":"annotation","text":"The initial dashboard view of the prototype.","state":{"tab":"app","path":"/"},"author":{"name":"Design","email":""}}]}]}
+          JSON
+      - name: Capture and verify matching viewports
+        run: |
+          python3 -m http.server 43187 --bind 127.0.0.1 --directory protovibe-project-template/dist >/tmp/review-http.log 2>&1 &
+          npm install --prefix /tmp/pr101 playwright@1.56.1
+          mkdir -p review-images
+          node <<'JS'
+          const {chromium} = require('/tmp/pr101/node_modules/playwright');
+          (async()=>{
+            const browser = await chromium.launch({channel:'chrome'});
+            const page = await browser.newPage({viewport:{width:1440,height:800},colorScheme:'light'});
+            for (const [name,url,gap,radius] of [['before','before',0,'0px'],['after','specs',8,'4px']]){
+              await page.goto('http://127.0.0.1:43187/'+url+'.html?spec=overview&item=home');
+              const frame=page.frameLocator('iframe[name="pv-spec-viewer"]');
+              await frame.locator('#root > *').first().waitFor();
+              await page.waitForLoadState('networkidle');
+              const metrics=await page.locator('iframe[name="pv-spec-viewer"]').evaluate(e=>{
+                const a=e.getBoundingClientRect(),b=e.parentElement.getBoundingClientRect();
+                return [a.left-b.left,a.top-b.top,b.right-a.right,b.bottom-a.bottom,getComputedStyle(e).borderRadius];
+              });
+              require('node:assert/strict').deepEqual(metrics,[gap,gap,gap,gap,radius]);
+              if(name==='after'){
+                const colors=await page.locator('iframe[name="pv-spec-viewer"]').evaluate(e=>{
+                  function paintedBackground(el){while(el){const c=getComputedStyle(el).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;el=el.parentElement;}}
+                  return [paintedBackground(e.parentElement),paintedBackground(e.parentElement.previousElementSibling)];
+                });
+                require('node:assert/strict').equal(colors[0],colors[1]);
+                console.log('Sidebar and inset',colors);
+              }
+              await page.screenshot({path:'review-images/'+name+'.png'});
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: published-viewer-comparison
+          path: review-images/*.png
+          retention-days: 3
+      - name: Export PNGs for the PR description
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib
+          for p in sorted(pathlib.Path("review-images").glob("*.png")):
+              encoded = base64.b64encode(p.read_bytes()).decode()
+              for n in range(0,len(encoded),512):
+                  print("CAPTURE",p.stem,n//512,encoded[n:n+512])
+          PY
