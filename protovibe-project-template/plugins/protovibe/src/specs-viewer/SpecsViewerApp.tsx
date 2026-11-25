@@ -368,7 +368,7 @@ export const SpecsViewerApp: React.FC = () => {
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_default, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
-      <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
+      <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
         {sidebarBrand}
         {!bundle ? (
           <>
@@ -468,13 +468,13 @@ export const SpecsViewerApp: React.FC = () => {
       </div>
 
       {/* prototype */}
-      <div style={{ flex: 1, minWidth: 0, background: '#fff', pointerEvents: resizing ? 'none' : 'auto' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: 8, pointerEvents: resizing ? 'none' : 'auto' }}>
         <iframe
           ref={iframeRef}
           name="pv-spec-viewer"
           src={iframeSrc}
           title="Prototype"
-          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+          style={{ width: '100%', height: '100%', border: 'none', borderRadius: 4, background: '#fff', display: 'block' }}
         />
       </div>
     </div>
