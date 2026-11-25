@@ -1100,25 +1100,19 @@ export function SketchpadApp() {
     const reg = await api.fetchRegistry();
     if (!Array.isArray(reg.sketchpads)) throw new Error('Invalid sketchpad registry');
 
-    if (activeSketchpadId && activeSketchpad) {
-      const nextSp = reg.sketchpads.find(s => s.id === activeSketchpadId);
-      if (nextSp) {
-        // Only load modules for frames that were just restored/added by the undo/redo
-        const restoredFrames = nextSp.frames.filter(
-          (nf) => !activeSketchpad.frames.some((pf) => pf.id === nf.id)
-        );
-        for (const frame of restoredFrames) {
-          loadFrameModule(activeSketchpadId, frame.id);
-        }
-      }
-    }
-
+    // The user can switch sketchpads while the registry request is pending.
+    const current = activeSketchpadRef.current;
+    const refreshed = reg.sketchpads.find((sp) => sp.id === current?.id);
     setSketchpads(reg.sketchpads);
 
-    // If undo/redo removed the active sketchpad, re-point to a valid one AND move
-    // the viewport to it — otherwise the canvas stays panned to where the deleted
-    // sketchpad was and shows an empty page.
-    if (!reg.sketchpads.some((s) => s.id === activeSketchpadId)) {
+    if (current && refreshed) {
+      const addedFrames = refreshed.frames.filter(
+        (frame) => !current.frames.some((previous) => previous.id === frame.id)
+      );
+      for (const frame of addedFrames) {
+        loadFrameModule(current.id, frame.id);
+      }
+    } else {
       const lastActiveId = localViewState.getLastActiveSketchpadId();
       const next = reg.sketchpads.find((s) => s.id === lastActiveId) ?? reg.sketchpads[0];
       setActiveSketchpadId(next?.id ?? '');
@@ -1136,7 +1130,7 @@ export function SketchpadApp() {
         loadAllFrameModules(next.id, next.frames);
       }
     }
-  }, [activeSketchpadId, activeSketchpad, loadFrameModule, loadAllFrameModules]);
+  }, [loadFrameModule, loadAllFrameModules]);
 
   // Whenever a frame becomes the primary canvas selection — title-bar click,
   // create, duplicate, paste, marquee, navigation from another tab — focus its
