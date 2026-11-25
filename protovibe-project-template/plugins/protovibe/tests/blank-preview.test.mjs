@@ -138,6 +138,37 @@ test('a module error in a rendered app does not refresh it', async t => {
   assert.ok(fixture.errors.some(e => e.includes('dynamically imported module')));
 });
 
+test('an auxiliary script failure does not revive when a rendered app becomes empty', async t => {
+  const fixture = await openFixture(t, () => readyApp);
+  await fixture.frame.getByText('Recovery fixture ready').waitFor();
+  await fixture.page.route('**/optional-widget.js', route => route.fulfill({ status: 404 }));
+  await fixture.frame.evaluate(async () => {
+    const script = document.createElement('script');
+    script.src = '/optional-widget.js';
+    const failed = new Promise(resolve => { script.onerror = resolve; });
+    document.head.appendChild(script);
+    await failed;
+    document.getElementById('root').replaceChildren();
+  });
+  await staysAt(fixture, 1);
+});
+
+test('slow entry failures retain the original recovery budget', async t => {
+  let requests = 0;
+  const fixture = await openFixture(t, () => readyApp, { init: async page => {
+    // Trigger the bridge's DOM observer while the next entry is still loading.
+    await page.addInitScript(() => document.addEventListener('readystatechange', () => {
+      if (document.readyState === 'interactive') document.head.append(document.createElement('meta'));
+    }));
+    await page.route('**/src/main.tsx', async route => {
+      if (++requests > 1) await new Promise(resolve => setTimeout(resolve, 3_500));
+      await route.fulfill({ status: 503 });
+    });
+  } });
+  await fixture.page.getByText('The app failed to load', { exact: true }).first().waitFor({ timeout: 22_000 });
+  assert.equal(requests, 4);
+});
+
 test('an uncaught runtime error plus an empty root recovers through the loading cover', async t => {
   const fixture = await openFixture(t, n => n === 1
     ? `setTimeout(() => { throw new Error('Business logic bug'); }, 0); ${emptyApp}` : readyApp);

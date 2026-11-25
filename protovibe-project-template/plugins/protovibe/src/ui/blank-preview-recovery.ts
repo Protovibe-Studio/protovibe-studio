@@ -41,8 +41,10 @@ export function installBlankPreviewRecovery(rootId: string) {
   const observeContent = () => {
     const hasOverlay = !!document.querySelector('vite-error-overlay');
     const hasContent = hasPreviewContent(document, rootId);
-    const viteState = hasOverlay ? 'overlay' : failedScript && !hasContent ? 'module' : 'clear';
-    if (viteState !== lastViteState && (viteState !== 'clear' || document.readyState !== 'loading')) {
+    // Once the preview renders, an earlier script failure cannot explain a later empty render.
+    if (hasContent) failedScript = null;
+    const viteState = hasOverlay ? 'overlay' : failedScript ? 'module' : 'clear';
+    if (viteState !== lastViteState && (viteState !== 'clear' || document.readyState === 'complete')) {
       lastViteState = viteState;
       window.parent.postMessage(viteState === 'clear'
         ? { type: 'PV_VITE_ERROR_CLEARED' }
