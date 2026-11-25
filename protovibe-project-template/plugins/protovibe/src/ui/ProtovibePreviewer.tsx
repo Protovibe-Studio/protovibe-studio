@@ -915,7 +915,16 @@ const PREVIEWER_STYLE = `
 
 export function ProtovibePreviewer() {
   const [discovered, setDiscovered] = useState<ComponentEntry[]>([]);
-  const [selected, setSelected] = useState<ComponentEntry | null>(null);
+  const [selectedName, setSelectedName] = useState(() => new URLSearchParams(location.search).get('component'));
+  const selected = discovered.find(entry => entry.config.name === selectedName);
+  const setSelected = (entry: ComponentEntry | null) => {
+    // A Vite or recovery reload should reopen the variants the user was editing.
+    const url = new URL(location.href);
+    if (entry) url.searchParams.set('component', entry.config.name);
+    else url.searchParams.delete('component');
+    history.replaceState(history.state, '', url);
+    setSelectedName(entry?.config.name ?? null);
+  };
   const [targetProps, setTargetProps] = useState<Record<string, any> | null>(null);
   const [search, setSearch] = useState('');
   const [refreshFlash, setRefreshFlash] = useState(false);
@@ -945,16 +954,6 @@ export function ProtovibePreviewer() {
       });
     }
   }, [refresh]);
-
-  // When components refresh, update selected to the latest discovered version
-  useEffect(() => {
-    if (selected) {
-      const updated = discovered.find(e => e.config.name === selected.config.name);
-      if (updated) {
-        setSelected(updated);
-      }
-    }
-  }, [discovered, selected?.config.name]);
 
   // Allow the parent shell to trigger a refresh (e.g. on tab switch)
   useEffect(() => {

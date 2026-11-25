@@ -9,6 +9,10 @@ import { installCanvasLinkInterceptor } from './utils/canvasLinks';
 import { collectBlockGeometry } from './utils/blockGeometry';
 import { isCanvasMutationShortcut, PV_SET_CANVAS_EDIT_LOCKED, PV_CANVAS_EDIT_BLOCKED } from './utils/canvasEditGuard';
 
+import { installBlankPreviewRecovery, previewRootIds } from './blank-preview-recovery';
+
+installBlankPreviewRecovery(previewRootIds.sketchpad);
+
 // ─── Theme ────────────────────────────────────────────────────────────────────
 (function () {
   try {
