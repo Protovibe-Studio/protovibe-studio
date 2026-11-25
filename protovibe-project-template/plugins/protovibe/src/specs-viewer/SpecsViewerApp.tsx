@@ -368,7 +368,7 @@ export const SpecsViewerApp: React.FC = () => {
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: theme.bg_default, color: theme.text_default, fontFamily: theme.font_ui }}>
       {/* sidebar */}
-      <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${theme.border_default}`, minHeight: 0, position: 'relative' }}>
+      <div style={{ width: sidebarW, flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
         {sidebarBrand}
         {!bundle ? (
           <>
