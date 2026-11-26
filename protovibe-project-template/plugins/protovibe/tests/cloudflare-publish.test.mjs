@@ -113,3 +113,32 @@ test('invalid names are rejected before launching commands', async t => {
   assert.equal((await f.request('start', {})).status, 400);
   assert.equal(f.calls.length, 0);
 });
+
+test('overlapping checks share Wrangler and logout invalidates an unfinished check', async t => {
+  const pending = Promise.withResolvers();
+  let whoami = pending.promise;
+  const f = fixture(t, 'demo-project', args => {
+    if (args.includes('whoami')) return whoami;
+  });
+  const first = f.request('auth');
+  const second = f.request('auth');
+  assert.equal(f.calls.length, 1);
+  await f.request('logout');
+  whoami = 'You are not authenticated';
+  assert.equal((await f.request('auth')).loggedIn, false);
+  pending.resolve('You are logged in');
+  await Promise.all([first, second]);
+  assert.equal((await f.request('auth')).loggedIn, false);
+});
+
+test('explicit sign-out errors can be rechecked immediately and confirmed connections are cached', async t => {
+  let connected = false;
+  const f = fixture(t, 'demo-project', args => {
+    if (!connected && args.includes('whoami')) throw new Error('You are not logged in');
+  });
+  assert.equal((await f.request('auth')).loggedIn, false);
+  connected = true;
+  assert.equal((await f.request('auth')).loggedIn, true);
+  assert.equal((await f.request('auth')).loggedIn, true);
+  assert.equal(f.calls.length, 2);
+});

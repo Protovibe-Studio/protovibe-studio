@@ -11,7 +11,7 @@ import vm from 'node:vm';
 // publish history use real files in a fresh directory for every test.
 const source = fs.readFileSync(new URL('../../src/backend/server.ts', import.meta.url), 'utf8');
 const start = source.indexOf('type CfPublishStatus =');
-const end = source.indexOf('export const handleCloudflareLogout:');
+const end = source.indexOf('export const handleCloudflareLoginStart:');
 assert.ok(start >= 0 && end > start);
 const publishCode = stripTypeScriptTypes(source.slice(start, end)).replace(/^export /gm, '');
 
@@ -35,13 +35,15 @@ export function fixture(t, name = 'My-PROTOTYPE', respond = () => undefined) {
   });
   const handlers = vm.runInContext(`${publishCode}\n({
     auth: handleCloudflareAuthStatus,
+    logout: handleCloudflareLogout,
     metadata: handleCloudflarePublishMetadata,
     save: handleCloudflarePublishSaveName,
     start: handleCloudflarePublishStart,
     status: handleCloudflarePublishStatus,
   })`, context);
-  const request = (handler, body) => new Promise(resolve => {
+  const request = (handler, body, url = '') => new Promise(resolve => {
     const req = new EventEmitter();
+    req.url = url;
     const res = { statusCode: 200, setHeader() {}, end: text => resolve({ status: res.statusCode, ...JSON.parse(text) }) };
     handlers[handler](req, res);
     if (body !== undefined) {

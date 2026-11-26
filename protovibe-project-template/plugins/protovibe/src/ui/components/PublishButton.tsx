@@ -136,9 +136,9 @@ export function PublishButton() {
   // published read-only viewer (see backend/specs-publish.ts).
   const [hasSpecs, setHasSpecs] = useState(false);
 
-  // Cloudflare connection state — known up-front so the popover can explain
-  // the flow to logged-out users before anything is deployed.
-  const [auth, setAuth] = useState<'unknown' | 'logged-out' | 'logged-in'>('unknown');
+  // A failed status check leaves the connection undetermined.
+  const [auth, setAuth] = useState<'checking' | 'unavailable' | 'logged-out' | 'logged-in'>('checking');
+  const authRequest = useRef(0);
   const [accountEmail, setAccountEmail] = useState('');
 
   // UI state
@@ -186,32 +186,30 @@ export function PublishButton() {
     setDeployHistory(data.deployHistory ?? []);
   };
 
-  const refreshAuth = (refresh = false) => {
-    fetchCloudflareAuthStatus(refresh)
-      .then((a) => {
-        setAuth(a.loggedIn ? 'logged-in' : 'logged-out');
-        setAccountEmail(a.email ?? '');
-      })
-      .catch(() => {
-        // Can't determine the state — assume logged out; the connect flow and
-        // the backend's own whoami check both recover gracefully from this.
-        setAuth('logged-out');
-      });
+  const refreshAuth = async (refresh = false) => {
+    const request = ++authRequest.current;
+    setAuth('checking');
+    try {
+      const result = await fetchCloudflareAuthStatus(refresh);
+      if (request !== authRequest.current) return;
+      setAuth(result.loggedIn ? 'logged-in' : 'logged-out');
+      setAccountEmail(result.email ?? '');
+      if (result.loggedIn) setLoggedOutFlash(false);
+    } catch {
+      if (request === authRequest.current) setAuth('unavailable');
+    }
   };
 
-  // Load metadata + auth state once on mount
+  // Load saved publish metadata once on mount
   useEffect(() => {
     fetchCloudflarePublishMetadata().then((data) => {
       applyMetadata(data);
       setProjectName(data.projectName);
     }).catch(() => {});
-    refreshAuth();
   }, []);
 
-  // Re-check auth whenever the popover opens (served from a backend cache, so cheap)
   useEffect(() => {
     if (open) {
-      refreshAuth();
       fetchSpecsList().then((list) => setHasSpecs(list.length > 0)).catch(() => {});
     }
     if (!open) {
@@ -228,12 +226,7 @@ export function PublishButton() {
   // if the user was mid-publish, continue the flow without another click.
   const handleLoginComplete = () => {
     setAuthUrl('');
-    fetchCloudflareAuthStatus(true)
-      .then((a) => {
-        setAuth(a.loggedIn ? 'logged-in' : 'logged-out');
-        setAccountEmail(a.email ?? '');
-      })
-      .catch(() => { setAuth('logged-in'); });
+    void refreshAuth(true);
     if (!pendingPublishRef.current) return;
     pendingPublishRef.current = false;
     if (savedProjectNameRef.current) {
@@ -260,6 +253,12 @@ export function PublishButton() {
         const skipSuccessView = s.status === 'success' && !successViewEligibleRef.current;
         if (skipSuccessView) {
           handleReset();
+        } else if (s.status === 'not-logged-in') {
+          // A publish can discover an expired session after the popover opens.
+          authRequest.current++;
+          setAuth('logged-out');
+          setAccountEmail('');
+          setStatus('idle');
         } else {
           setStatus(s.status);
           setStatusMessage(s.message ?? '');
@@ -322,6 +321,7 @@ export function PublishButton() {
       setSelectedAccount('');
       setAuthUrl('');
       setApiToken('');
+      authRequest.current++;
       setAuth('logged-out');
       setAccountEmail('');
       pendingPublishRef.current = false;
@@ -517,12 +517,6 @@ export function PublishButton() {
 
   // ── popover body ───────────────────────────────────────────────────────────
   const renderBody = () => {
-    // Backend discovered mid-publish that we're logged out — show the intro,
-    // which explains the flow and offers the connect button.
-    if (status === 'not-logged-in') {
-      return renderIntro();
-    }
-
     // In-progress states
     if (status === 'waiting-for-browser-approval') {
       return (
@@ -711,6 +705,33 @@ export function PublishButton() {
     // ── Idle — the "home" view ────────────────────────────────────────────────
     const nameIsSaved = !!savedProjectName;
 
+    // Not connected to Cloudflare — explain the flow before anything happens.
+    if (auth === 'logged-out') {
+      return renderIntro();
+    }
+
+    if (auth === 'checking') {
+      return (
+        <>
+          <div style={labelStyle}>Publish your app</div>
+          <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '8px' }}>
+            <Loader2 size={14} style={spinStyle} />
+            Checking your Cloudflare connection…
+          </div>
+        </>
+      );
+    }
+
+    if (auth === 'unavailable') {
+      return (
+        <>
+          <div style={labelStyle}>Publish your app</div>
+          <div role="status" style={subStyle}>Couldn’t check your Cloudflare connection.</div>
+          <button style={actionBtnBase} onClick={() => void refreshAuth(true)}>Check again</button>
+        </>
+      );
+    }
+
     // Full popover view for editing / choosing the project name
     if (editingName) {
       return (
@@ -751,24 +772,6 @@ export function PublishButton() {
           >
             Cancel
           </button>
-        </>
-      );
-    }
-
-    // Not connected to Cloudflare — explain the flow before anything happens.
-    if (auth === 'logged-out') {
-      return renderIntro();
-    }
-
-    // Connection state not resolved yet — brief transient state on first open.
-    if (auth === 'unknown') {
-      return (
-        <>
-          <div style={labelStyle}>Publish your app</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.text_secondary, fontSize: '12px', marginTop: '8px' }}>
-            <Loader2 size={14} style={spinStyle} />
-            Checking your Cloudflare connection…
-          </div>
         </>
       );
     }
@@ -881,7 +884,10 @@ export function PublishButton() {
     <>
       <button
         ref={btnRef}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (!open) void refreshAuth();
+          setOpen(!open);
+        }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         data-tooltip="Publish"
@@ -972,7 +978,7 @@ export function PublishButton() {
               </div>
             )}
           </div>
-          {loggedOutFlash && (
+          {loggedOutFlash && auth === 'logged-out' && (
             <div
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',

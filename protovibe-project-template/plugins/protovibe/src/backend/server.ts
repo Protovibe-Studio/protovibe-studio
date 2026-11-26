@@ -2967,22 +2967,29 @@ interface CfAuthStatus {
   accounts?: Array<{ id: string; name: string }>;
 }
 
+let cfAuthInFlight: Promise<CfAuthStatus> | null = null;
 let cfAuthCache: { result: CfAuthStatus; ts: number } | null = null;
 const CF_AUTH_CACHE_TTL_MS = 5 * 60 * 1000;
 
 function invalidateCfAuthCache(): void {
+  cfAuthInFlight = null;
   cfAuthCache = null;
 }
 
 async function checkCloudflareAuth(): Promise<CfAuthStatus> {
-  const out = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], {
-    cwd: process.cwd(),
-    env: { ...process.env, ...WRANGLER_NON_INTERACTIVE_ENV },
-    timeoutMs: 30_000,
-  });
-  if (out.includes('You are not authenticated') || out.includes('not logged in')) {
-    return { loggedIn: false };
+  const signedOut = /not authenticated|not logged in/i;
+  let out: string;
+  try {
+    out = await spawnCmd('pnpm', ['exec', 'wrangler', 'whoami'], {
+      cwd: process.cwd(),
+      env: { ...process.env, ...WRANGLER_NON_INTERACTIVE_ENV },
+      timeoutMs: 30_000,
+    });
+  } catch (err) {
+    if (signedOut.test(String(err))) return { loggedIn: false };
+    throw err;
   }
+  if (signedOut.test(out)) return { loggedIn: false };
   const emailMatch = out.match(/associated with the email\s+'?([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})'?/i);
   return {
     loggedIn: true,
@@ -2991,29 +2998,36 @@ async function checkCloudflareAuth(): Promise<CfAuthStatus> {
   };
 }
 
-export const handleCloudflareAuthStatus: Connect.NextHandleFunction = (req, res) => {
-  (async () => {
-    res.setHeader('Content-Type', 'application/json');
-    const wantsRefresh = (req.url ?? '').includes('refresh=1');
-    if (!wantsRefresh && cfAuthCache && Date.now() - cfAuthCache.ts < CF_AUTH_CACHE_TTL_MS) {
-      return res.end(JSON.stringify(cfAuthCache.result));
-    }
-    let result: CfAuthStatus;
-    try {
-      result = await checkCloudflareAuth();
-    } catch (err) {
-      // whoami exits non-zero when not authenticated; treat any failure as
-      // logged-out rather than surfacing an error — the UI then shows the
-      // intro/connect view, which is always a safe place to land.
-      const errStr = String(err);
-      if (!/not authenticated|not logged in/i.test(errStr)) {
-        cfLog('auth-status whoami failed:', errStr);
-      }
-      result = { loggedIn: false };
-    }
-    cfAuthCache = { result, ts: Date.now() };
+async function getCloudflareAuth(refresh: boolean): Promise<CfAuthStatus> {
+  if (cfAuthInFlight) return cfAuthInFlight;
+  if (!refresh && cfAuthCache && Date.now() - cfAuthCache.ts < CF_AUTH_CACHE_TTL_MS) {
+    return cfAuthCache.result;
+  }
+  cfAuthCache = null;
+  const check = checkCloudflareAuth();
+  cfAuthInFlight = check;
+  try {
+    const result = await check;
+    // Login/logout can invalidate this check while Wrangler is running. Only
+    // cache confirmed connections so a login in another project is picked up on reopen.
+    if (cfAuthInFlight === check && result.loggedIn) cfAuthCache = { result, ts: Date.now() };
+    return result;
+  } finally {
+    if (cfAuthInFlight === check) cfAuthInFlight = null;
+  }
+}
+
+export const handleCloudflareAuthStatus: Connect.NextHandleFunction = async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+  try {
+    const result = await getCloudflareAuth((req.url ?? '').includes('refresh=1'));
     res.end(JSON.stringify(result));
-  })();
+  } catch (err) {
+    cfLog('auth-status whoami failed:', String(err));
+    res.statusCode = 503;
+    res.end(JSON.stringify({ error: 'Could not check the Cloudflare connection.' }));
+  }
 };
 
 async function runCloudflarePublish(projectName: string, accountId?: string, apiToken?: string): Promise<void> {
