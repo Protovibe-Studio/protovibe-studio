@@ -333,7 +333,9 @@ export interface CloudflareAuthStatus {
 export async function fetchCloudflareAuthStatus(refresh = false): Promise<CloudflareAuthStatus> {
   const res = await fetch(`/__cloudflare-auth-status${refresh ? '?refresh=1' : ''}`);
   if (!res.ok) throw new Error('Failed to fetch Cloudflare auth status');
-  return res.json();
+  const result = await res.json();
+  if (typeof result?.loggedIn !== 'boolean') throw new Error('Invalid Cloudflare auth status');
+  return result;
 }
 
 export async function saveCloudflareProjectName(projectName: string): Promise<void> {

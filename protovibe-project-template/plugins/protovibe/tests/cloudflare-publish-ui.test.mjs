@@ -45,7 +45,7 @@ after(async () => {
   if (server) await new Promise(resolve => server.close(resolve));
 });
 
-async function openPublisher(t, name = 'My-PROTOTYPE', respond) {
+async function setupPublisher(t, name = 'My-PROTOTYPE', respond) {
   const f = fixture(t, name, respond);
   const page = await browser.newPage();
   const errors = [];
@@ -65,16 +65,23 @@ async function openPublisher(t, name = 'My-PROTOTYPE', respond) {
     const handler = routes[new URL(route.request().url()).pathname];
     assert.ok(handler, `Unexpected Cloudflare route: ${route.request().url()}`);
     const body = route.request().method() === 'POST' ? route.request().postDataJSON() : undefined;
-    const result = await f.request(handler, body);
+    const result = await f.request(handler, body, route.request().url());
     const status = typeof result.status === 'number' ? result.status : 200;
     if (typeof result.status === 'number') delete result.status;
     await route.fulfill({ status, json: result });
   });
   await page.route('**/__specs-list', route => route.fulfill({ json: { specs: [] } }));
+  const toggle = page.locator('button[data-tooltip="Publish"]');
+  return { ...f, page, toggle };
+}
+
+async function openPublisher(t, name, respond) {
+  const f = await setupPublisher(t, name, respond);
+  const { page } = f;
   await page.goto(origin);
-  await page.locator('button[data-tooltip="Publish"]').click();
+  await f.toggle.click();
   await page.getByText('Connected to Cloudflare', { exact: true }).waitFor();
-  return { ...f, page };
+  return f;
 }
 
 test('legacy uppercase name publishes successfully using lowercase Wrangler arguments', async t => {
@@ -138,4 +145,60 @@ test('an error without command details still shows its backend summary', async t
   await f.page.getByText('Publishing failed', { exact: true }).waitFor();
   await f.page.getByText(/auto-rename failed.*choose a different project name/).waitFor();
   assert.equal(await f.page.getByText('An unknown error occurred.', { exact: true }).count(), 0);
+});
+
+test('reopening after a confirmed logout shows checking until the published project is verified', async t => {
+  const checked = Promise.withResolvers();
+  let whoami;
+  const f = await setupPublisher(t, 'demo-project', args => {
+    if (args.includes('whoami')) return whoami;
+  });
+  assert.equal((await f.publish()).status, 'success');
+  whoami = 'You are not authenticated';
+  await f.page.goto(origin);
+  await f.toggle.click();
+  const connect = f.page.getByRole('button', { name: 'Connect Cloudflare' });
+  await connect.waitFor();
+  await f.toggle.click();
+
+  whoami = checked.promise;
+  await f.toggle.click();
+  await f.page.getByRole('status').filter({ hasText: 'Checking your Cloudflare connection' }).waitFor();
+  assert.equal(await connect.count(), 0);
+  checked.resolve('You are logged in with an OAuth Token');
+  await f.page.getByRole('link', { name: /demo-project.pages.dev/ }).waitFor();
+  await f.page.getByRole('button', { name: 'Publish update' }).waitFor();
+});
+
+test('a Wrangler timeout offers a connection retry that recovers in the same popover', async t => {
+  let offline = false;
+  const f = await setupPublisher(t, 'demo-project', args => {
+    if (offline && args.includes('whoami')) throw new Error('Connection timed out');
+  });
+  assert.equal((await f.publish()).status, 'success');
+  offline = true;
+  await f.page.goto(origin);
+  await f.toggle.click();
+  const retry = f.page.getByRole('button', { name: 'Check again' });
+  await retry.waitFor();
+  assert.equal(await f.page.getByRole('button', { name: 'Connect Cloudflare' }).count(), 0);
+  offline = false;
+  await retry.click();
+  await f.page.getByRole('button', { name: 'Publish update' }).waitFor();
+  assert.equal(f.calls.filter(c => c.args.includes('deploy')).length, 1);
+});
+
+test('a sign-out discovered during publish is rechecked on the next open', async t => {
+  let signedOut = false;
+  const f = await openPublisher(t, 'demo-project', args => {
+    if (signedOut && args.includes('whoami')) return 'You are not authenticated';
+  });
+  signedOut = true;
+  const publish = f.page.getByRole('button', { name: 'Publish to Cloudflare', exact: true });
+  await publish.click();
+  await f.page.getByRole('button', { name: 'Connect Cloudflare' }).waitFor();
+  await f.toggle.click();
+  signedOut = false;
+  await f.toggle.click();
+  await publish.waitFor();
 });
